@@ -1,0 +1,29 @@
+:host {
+  display: block;
+  color: var(--text);
+  font-family: 'Tajawal', 'Cairo', sans-serif;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.page-header__primary {
+  min-width: 160px;
+}
+
+.muted { color: var(--text-dim); margin-inline-start: 0.4rem; }
+.empty { text-align: center; padding: 3rem; color: var(--text-dim); }
+
+
+
+/* Dialog */
+.dialog-header { display: inline-flex; align-items: center; gap: var(--space-3); }
+.dialog-header__icon { color: var(--brand-300); font-size: 1.15rem; }
+.dialog-header__title { font-weight: 700; }
+
+.dialog-body { padding-top: var(--space-2); }
+.field { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-3); }
+.field label { font-weight: 600; font-size: 0.88rem; color: var(--text); }

@@ -1,0 +1,281 @@
+
+Warning: This is a simple server for use in testing or debugging Angular applications
+locally. It hasn't been reviewed for security issues.
+
+Binding this server to an open connection can result in compromising your application or
+computer. Using a different host than the one passed to the "--host" flag might result in
+websocket connection issues. You might need to use "--disable-host-check" if that's the
+case.
+    
+- Building...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
+
+    src/app/app.config.ts:44:29:
+      44 │           useFactory: (http: HttpClient) => new TranslateHttpLoade...
+         ╵                              ~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
+
+    src/app/app.config.ts:45:17:
+      45 │           deps: [HttpClient]
+         ╵                  ~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
+
+    src/app/app.config.ts:44:29:
+      44 │           useFactory: (http: HttpClient) => new TranslateHttpLoade...
+         ╵                              ~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
+
+    src/app/app.config.ts:45:17:
+      45 │           deps: [HttpClient]
+         ╵                  ~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, FormsModule, ReactiveFormsModule, (not statically analyzable), TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, DropdownModule, TagModule, TooltipModule, ConfirmDialogModule, DialogModule]'. [plugin angular-compiler]
+
+    src/app/features/schools/schools-list/schools-list.component.ts:25:11:
+      25 │   imports: [
+         ╵            ^
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/schools/schools-list/schools-list.component.ts:26:52:
+      26 │     CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe,
+         ╵                                                     ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, FormsModule, ReactiveFormsModule, (not statically analyzable), TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, InputNumberModule, DropdownModule, TagModule, TooltipModule, ConfirmDialogModule, DialogModule]'. [plugin angular-compiler]
+
+    src/app/features/users/users-list/users-list.component.ts:27:11:
+      27 │   imports: [
+         ╵            ^
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/users/users-list/users-list.component.ts:28:52:
+      28 │     CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe,
+         ╵                                                     ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, FormsModule, ReactiveFormsModule, (not statically analyzable), TableModule, ButtonModule, DropdownModule, InputGroupModule, InputGroupAddonModule, TooltipModule, ConfirmDialogModule, DialogModule]'. [plugin angular-compiler]
+
+    src/app/features/user-school-roles/user-school-roles-list/user-school-roles-list.component.ts:23:11:
+      23 │   imports: [
+         ╵            ^
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/user-school-roles/user-school-roles-list/user-school-roles-list.component.ts:24:52:
+      24 │     CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe,
+         ╵                                                     ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, ReactiveFormsModule, RouterLink, (not statically analyzable), ButtonModule, InputTextModule, PasswordModule, DropdownModule]'. [plugin angular-compiler]
+
+    src/app/features/users/user-form/user-form.component.ts:18:11:
+      18 │   imports: [
+         ╵            ^
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/users/user-form/user-form.component.ts:19:51:
+      19 │     CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe,
+         ╵                                                    ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, ReactiveFormsModule, RouterLink, (not statically analyzable), ButtonModule, InputTextModule, DropdownModule]'. [plugin angular-compiler]
+
+    src/app/features/schools/school-form/school-form.component.ts:17:11:
+      17 │   imports: [
+         ╵            ^
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/schools/school-form/school-form.component.ts:18:51:
+      18 │     CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe,
+         ╵                                                    ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, RouterOutlet, RouterLink, RouterLinkActive, (not statically analyzable)]'. [plugin angular-compiler]
+
+    src/app/shared/layout/shell/shell.component.ts:25:11:
+      25 │   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActi...
+         ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/shared/layout/shell/shell.component.ts:25:70:
+      25 │ ...odule, RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
+         ╵                                                       ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, ReactiveFormsModule, (not statically analyzable), RouterLink]'. [plugin angular-compiler]
+
+    src/app/features/auth/school-login/school-login.component.ts:12:11:
+      12 │   imports: [CommonModule, ReactiveFormsModule, TranslatePipe, Rout...
+         ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/auth/school-login/school-login.component.ts:12:47:
+      12 │ ...s: [CommonModule, ReactiveFormsModule, TranslatePipe, RouterLink],
+         ╵                                           ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, ReactiveFormsModule, (not statically analyzable), RouterLink]'. [plugin angular-compiler]
+
+    src/app/features/auth/main-manager-login/main-manager-login.component.ts:11:11:
+      11 │   imports: [CommonModule, ReactiveFormsModule, TranslatePipe, Rout...
+         ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/auth/main-manager-login/main-manager-login.component.ts:11:47:
+      11 │ ...s: [CommonModule, ReactiveFormsModule, TranslatePipe, RouterLink],
+         ╵                                           ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
+
+    src/app/features/dashboards/instructor-dashboard/instructor-dashboard.component.ts:9:11:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/dashboards/instructor-dashboard/instructor-dashboard.component.ts:9:26:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵                           ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
+
+    src/app/features/dashboards/moderator-dashboard/moderator-dashboard.component.ts:9:11:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/dashboards/moderator-dashboard/moderator-dashboard.component.ts:9:26:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵                           ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
+
+    src/app/features/dashboards/school-manager-dashboard/school-manager-dashboard.component.ts:9:11:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/dashboards/school-manager-dashboard/school-manager-dashboard.component.ts:9:26:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵                           ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
+
+    src/app/features/dashboards/main-manager-dashboard/main-manager-dashboard.component.ts:9:11:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+
+    src/app/features/dashboards/main-manager-dashboard/main-manager-dashboard.component.ts:9:26:
+      9 │   imports: [CommonModule, TranslatePipe],
+        ╵                           ~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+

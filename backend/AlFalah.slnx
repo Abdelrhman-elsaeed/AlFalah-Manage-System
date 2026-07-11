@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="AlFalah.Api/AlFalah.Api.csproj" />
+  <Project Path="AlFalah.Application/AlFalah.Application.csproj" />
+  <Project Path="AlFalah.Domain/AlFalah.Domain.csproj" />
+  <Project Path="AlFalah.Infrastructure/AlFalah.Infrastructure.csproj" />
+  <Project Path="AlFalah.Shared/AlFalah.Shared.csproj" />
+</Solution>

@@ -1,0 +1,177 @@
+/* ─── Main Manager Login — Saudi light identity (D-25) ────────────────────── */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-app);
+  position: relative;
+  background: var(--bg-page);
+}
+
+.login-bg-mm {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(30, 142, 78, 0.10) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(212, 175, 55, 0.10) 0%, transparent 50%),
+    var(--bg-page);
+  z-index: -1;
+}
+
+.login-container-mm {
+  width: 100%;
+  max-width: 440px;
+  padding: 1.5rem;
+}
+
+.form-card-mm {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.form-header-mm {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.mm-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold) 0%, #B8941F 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.40);
+  color: #1E293B;
+}
+
+.mm-badge-icon {
+  font-size: 1.75rem;
+}
+
+.form-title-mm {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  margin-bottom: 0.3rem;
+}
+
+.form-subtitle-mm {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.alert-error-mm {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-group-mm {
+  margin-bottom: 1.25rem;
+}
+
+.form-label-mm {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 0.5rem;
+}
+
+.form-control-mm {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-strong);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  direction: rtl;
+}
+
+.form-control-mm:focus {
+  outline: none;
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(30, 142, 78, 0.18);
+}
+
+.form-control-mm.is-invalid-mm { border-color: var(--danger); }
+
+.form-control-mm::placeholder { color: var(--text-dim); }
+
+.invalid-feedback-mm {
+  font-size: 0.8rem;
+  color: var(--danger);
+  margin-top: 0.35rem;
+}
+
+.btn-login-mm {
+  width: 100%;
+  padding: 0.875rem;
+  background: var(--brand-500);
+  border: 1px solid var(--brand-500);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+.btn-login-mm:hover:not(:disabled) {
+  background: var(--brand-700);
+  border-color: var(--brand-700);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(30, 142, 78, 0.25);
+}
+.btn-login-mm:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.spinner-mm {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.40);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.form-footer-mm {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.back-link {
+  font-size: 0.875rem;
+  color: var(--brand-700);
+  text-decoration: none;
+  transition: color 0.15s;
+  font-weight: 600;
+}
+.back-link:hover {
+  color: var(--brand-900);
+  text-decoration: underline;
+}

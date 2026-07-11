@@ -1,0 +1,36 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.DotSettings
+*.DotSettings.user
+
+# ASP.NET Core
+appsettings.Development.json
+appsettings.Production.json
+!appsettings.json
+
+# EF Core migrations temp
+*.migration.sql
+
+# Node / Angular
+frontend/al-falah-app/node_modules/
+frontend/al-falah-app/dist/
+frontend/al-falah-app/.angular/
+
+# Secrets (never commit)
+*.pfx
+secrets/
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local audit / QA artefacts (contain JWT tokens and IDs from live testing — never commit)
+.audit/
+nul
+backend/nul
+frontend/nul

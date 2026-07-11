@@ -1,0 +1,140 @@
+<div class="page" dir="rtl">
+  <p-confirmDialog></p-confirmDialog>
+
+  <app-list-page-header titleKey="USERS.LIST" subtitleKey="USERS.TITLE">
+    <button slot="action" pButton type="button" icon="pi pi-plus"
+            [label]="'USERS.NEW' | translate"
+            class="page-header__primary"
+            (click)="goToCreate()"></button>
+  </app-list-page-header>
+
+  <app-list-toolbar>
+    <app-list-toolbar-field [grow]="true" labelKey="COMMON.SEARCH">
+      <p-inputGroup>
+        <input type="text" pInputText [placeholder]="'COMMON.SEARCH' | translate"
+               [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event); onSearch()" />
+        <button type="button" pButton icon="pi pi-search" (click)="onSearch()"></button>
+      </p-inputGroup>
+    </app-list-toolbar-field>
+
+    <app-list-toolbar-field labelKey="USERS.ROLE">
+      <p-dropdown [options]="roleOptions" [ngModel]="roleFilter()"
+                (onChange)="roleFilter.set($event.value); onFilter()"
+                [placeholder]="'USERS.ROLE' | translate" [showClear]="true"
+                appendTo="body"></p-dropdown>
+    </app-list-toolbar-field>
+
+    <app-list-toolbar-field labelKey="COMMON.ACTIVE">
+      <p-dropdown [options]="isActiveOptions" [ngModel]="isActiveFilter()"
+                (onChange)="isActiveFilter.set($event.value); onFilter()"
+                [placeholder]="'COMMON.ACTIVE' | translate" [showClear]="true"
+                appendTo="body"></p-dropdown>
+    </app-list-toolbar-field>
+  </app-list-toolbar>
+
+  <section class="surface-card table-card">
+    <p-table [value]="users()" [loading]="loading()" [totalRecords]="totalCount()" [lazy]="true"
+             (onLazyLoad)="loadUsers($event)" [paginator]="true" [rows]="20"
+             [rowsPerPageOptions]="[10, 20, 50, 100]"
+             styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>{{ 'USERS.FULL_NAME' | translate }}</th>
+          <th>{{ 'USERS.USERNAME' | translate }}</th>
+          <th>{{ 'USERS.ROLE' | translate }}</th>
+          <th>{{ 'USERS.SCHOOLS' | translate }}</th>
+          <th>{{ 'COMMON.ACTIVE' | translate }}</th>
+          <th>{{ 'USERS.LAST_LOGIN' | translate }}</th>
+          <th class="table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-user>
+        <tr>
+          <td><strong>{{ user.fullName }}</strong></td>
+          <td>{{ user.username }}</td>
+          <td>
+            <span *ngFor="let role of user.roles" class="role-badge">{{ role }}</span>
+          </td>
+          <td>
+            <span *ngIf="user.schools.length === 0" class="text-dim">{{ 'USERS.NO_SCHOOL' | translate }}</span>
+            <span *ngFor="let s of user.schools" class="school-chip">{{ s.schoolName }} <small>({{ s.role }})</small></span>
+          </td>
+          <td>
+            <p-tag *ngIf="user.isActive" severity="success" [value]="'USERS.ACTIVE' | translate"></p-tag>
+            <p-tag *ngIf="!user.isActive" severity="danger" [value]="'USERS.DEACTIVATED' | translate"></p-tag>
+          </td>
+          <td>{{ user.lastLoginAt ? (user.lastLoginAt | date:'short') : '—' }}</td>
+          <td>
+            <div class="table-actions">
+              <button pButton type="button" icon="pi pi-pencil" class="p-button-secondary p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'COMMON.EDIT' | translate" tooltipPosition="top"
+                      (click)="goToEdit(user)"></button>
+
+              <button pButton type="button" icon="pi pi-link" class="p-button-secondary p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'USERS.ASSIGN_TO_SCHOOL' | translate" tooltipPosition="top"
+                      (click)="openAssignDialog(user)"></button>
+
+              <button *ngIf="user.isActive" pButton type="button" icon="pi pi-ban"
+                      class="p-button-warning p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'USERS.DEACTIVATE' | translate" tooltipPosition="top"
+                      (click)="confirmDeactivate(user, $event)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="7" class="empty">{{ 'COMMON.NO_DATA' | translate }}</td></tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <!-- Assign-to-school dialog -->
+  <p-dialog [header]="'USERS.ASSIGN_TO_SCHOOL' | translate"
+            [(visible)]="assignDialogVisible" [modal]="true"
+            [style]="{ width: '480px' }"
+            [draggable]="false" [resizable]="false">
+    <ng-template pTemplate="header">
+      <div class="dialog-header">
+        <i class="pi pi-link dialog-header__icon"></i>
+        <span class="dialog-header__title">{{ 'USERS.ASSIGN_TO_SCHOOL' | translate }}</span>
+      </div>
+    </ng-template>
+
+    <div class="dialog-body">
+      <p class="dialog-school-name">{{ selectedUserName() }}</p>
+
+      <form [formGroup]="assignForm" (ngSubmit)="submitAssign()">
+        <div class="field">
+          <label for="assign-school">{{ 'USERS.SCHOOL' | translate }} *</label>
+          <p-dropdown inputId="assign-school" [options]="availableSchools()" formControlName="schoolId"
+                    optionLabel="name" optionValue="id"
+                    [placeholder]="'COMMON.SELECT' | translate"
+                    [filter]="true" filterBy="name"
+                    [showClear]="true"
+                    appendTo="body"
+                    [emptyMessage]="'USERS.NO_SCHOOLS_AVAILABLE' | translate"
+                    [loading]="schoolsLoading()"
+                    styleClass="w-100"></p-dropdown>
+        </div>
+
+        <div class="field">
+          <label for="assign-role">{{ 'USERS.ROLE' | translate }} *</label>
+          <p-dropdown inputId="assign-role" [options]="roleOptions" formControlName="role"
+                    optionLabel="label" optionValue="value"
+                    appendTo="body"
+                    styleClass="w-100"></p-dropdown>
+        </div>
+      </form>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-secondary p-button-text"
+              (click)="assignDialogVisible.set(false)"></button>
+      <button pButton type="button" [label]="'COMMON.SAVE' | translate"
+              (click)="submitAssign()"
+              [disabled]="assignForm.invalid"></button>
+    </ng-template>
+  </p-dialog>
+</div>

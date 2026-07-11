@@ -1,0 +1,122 @@
+<div class="page" dir="rtl">
+  <p-confirmDialog></p-confirmDialog>
+
+  <app-list-page-header titleKey="USER_SCHOOL_ROLES.TITLE" subtitleKey="USER_SCHOOL_ROLES.TITLE">
+    <button slot="action" pButton type="button" icon="pi pi-plus"
+            [label]="'USER_SCHOOL_ROLES.NEW' | translate"
+            class="page-header__primary"
+            (click)="openCreate()"></button>
+  </app-list-page-header>
+
+  <app-list-toolbar *ngIf="!isSchoolScoped">
+    <app-list-toolbar-field [grow]="true" labelKey="USER_SCHOOL_ROLES.SCHOOL">
+      <p-dropdown [options]="schoolOptions()" [ngModel]="schoolFilter()"
+                  (onChange)="schoolFilter.set($event.value); load()"
+                  [placeholder]="'USER_SCHOOL_ROLES.SCHOOL' | translate"
+                  optionLabel="name" optionValue="id" [showClear]="true"
+                  [filter]="true" filterBy="name"
+                  appendTo="body"></p-dropdown>
+    </app-list-toolbar-field>
+  </app-list-toolbar>
+
+  <section class="surface-card table-card">
+    <p-table [value]="assignments()" [loading]="loading()" [lazy]="true"
+             (onLazyLoad)="load($event)" [paginator]="true" [rows]="20"
+             [rowsPerPageOptions]="[10, 20, 50, 100]"
+             styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>{{ 'USER_SCHOOL_ROLES.USER' | translate }}</th>
+          <th>{{ 'USER_SCHOOL_ROLES.SCHOOL' | translate }}</th>
+          <th>{{ 'USER_SCHOOL_ROLES.ROLE' | translate }}</th>
+          <th>{{ 'USER_SCHOOL_ROLES.ACTIVE' | translate }}</th>
+          <th class="table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>
+            <strong>{{ row.fullName }}</strong>
+            <small class="muted">({{ row.username }})</small>
+          </td>
+          <td>{{ row.schoolName }}</td>
+          <td>{{ row.role }}</td>
+          <td>
+            <p-tag *ngIf="row.isActive" severity="success" [value]="'USER_SCHOOL_ROLES.ACTIVE' | translate"></p-tag>
+            <p-tag *ngIf="!row.isActive" severity="danger" [value]="'USER_SCHOOL_ROLES.ACTIVE' | translate"></p-tag>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button pButton type="button" icon="pi pi-trash"
+                      class="p-button-danger p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'COMMON.DELETE' | translate" tooltipPosition="top"
+                      (click)="confirmRemove(row, $event)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="5" class="empty">{{ 'COMMON.NO_DATA' | translate }}</td></tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <!-- Create dialog -->
+  <p-dialog [header]="'USER_SCHOOL_ROLES.NEW' | translate"
+            [(visible)]="createVisible" [modal]="true"
+            [style]="{ width: '480px' }"
+            [draggable]="false" [resizable]="false">
+    <ng-template pTemplate="header">
+      <div class="dialog-header">
+        <i class="pi pi-user-plus dialog-header__icon"></i>
+        <span class="dialog-header__title">{{ 'USER_SCHOOL_ROLES.NEW' | translate }}</span>
+      </div>
+    </ng-template>
+
+    <div class="dialog-body">
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="usr-user">{{ 'USER_SCHOOL_ROLES.USER' | translate }} *</label>
+          <p-dropdown inputId="usr-user" [options]="userOptions()" formControlName="userId"
+                    optionLabel="fullName" optionValue="userId"
+                    [placeholder]="'COMMON.SELECT' | translate"
+                    [filter]="true" filterBy="fullName"
+                    [showClear]="true"
+                    appendTo="body"
+                    [emptyMessage]="'USER_SCHOOL_ROLES.NO_USERS_AVAILABLE' | translate"
+                    [loading]="lookupsLoading()"
+                    styleClass="w-100"></p-dropdown>
+        </div>
+
+        <div class="field">
+          <label for="usr-school">{{ 'USER_SCHOOL_ROLES.SCHOOL' | translate }} *</label>
+          <p-dropdown inputId="usr-school" [options]="schoolOptions()" formControlName="schoolId"
+                    optionLabel="name" optionValue="id"
+                    [placeholder]="'COMMON.SELECT' | translate"
+                    [filter]="true" filterBy="name"
+                    [showClear]="true"
+                    appendTo="body"
+                    [emptyMessage]="'USER_SCHOOL_ROLES.NO_SCHOOLS_AVAILABLE' | translate"
+                    styleClass="w-100"></p-dropdown>
+        </div>
+
+        <div class="field">
+          <label for="usr-role">{{ 'USER_SCHOOL_ROLES.ROLE' | translate }} *</label>
+          <p-dropdown inputId="usr-role" [options]="roleOptions" formControlName="role"
+                    optionLabel="label" optionValue="value"
+                    appendTo="body"
+                    styleClass="w-100"></p-dropdown>
+        </div>
+      </form>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-secondary p-button-text"
+              (click)="createVisible.set(false)"></button>
+      <button pButton type="button" [label]="'COMMON.SAVE' | translate" [disabled]="form.invalid"
+              (click)="submit()"></button>
+    </ng-template>
+  </p-dialog>
+</div>

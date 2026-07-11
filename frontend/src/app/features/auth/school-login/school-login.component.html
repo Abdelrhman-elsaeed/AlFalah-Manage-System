@@ -1,0 +1,148 @@
+<!-- School Login Page — Al-Falah Schools Evaluation System -->
+<div class="login-page" dir="rtl">
+
+  <!-- Background Gradient -->
+  <div class="login-bg"></div>
+
+  <div class="login-container">
+
+    <!-- Left Brand Panel -->
+    <div class="brand-panel">
+      <div class="brand-content">
+        <div class="logo-wrapper">
+          <div class="logo-circle">
+            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+              <circle cx="30" cy="30" r="30" fill="rgba(255,255,255,0.15)"/>
+              <text x="30" y="38" text-anchor="middle" fill="white" font-size="22" font-weight="bold" font-family="Arial">ف</text>
+            </svg>
+          </div>
+        </div>
+        <h1 class="brand-title">{{ 'APP.NAME' | translate }}</h1>
+        <p class="brand-subtitle">نظام متكامل لتقييم أداء المعلمين وتطويرهم المهني</p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>تقييم شامل بـ 25 معياراً</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>خطط تطوير مخصصة</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>تقارير رسمية احترافية</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>متابعة مستمرة للأداء</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Login Form Panel -->
+    <div class="form-panel">
+      <div class="form-card">
+
+        <!-- Header -->
+        <div class="form-header">
+          <h2 class="form-title">{{ 'AUTH.SCHOOL_LOGIN' | translate }}</h2>
+          <p class="form-subtitle">سجّل دخولك للوصول إلى بياناتك المدرسية</p>
+        </div>
+
+        <!-- Error Alert -->
+        @if (errorMessage()) {
+          <div class="alert alert-error">
+            <span class="alert-icon">⚠</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+
+          <!-- School Selection -->
+          <div class="form-group">
+            <label class="form-label" for="schoolSelect">
+              {{ 'AUTH.SELECT_SCHOOL' | translate }}
+              <span class="required">*</span>
+            </label>
+            @if (schoolsLoading()) {
+              <div class="loading-skeleton"></div>
+            } @else {
+              <select id="schoolSelect" class="form-control" formControlName="schoolId"
+                [class.is-invalid]="schoolIdControl?.invalid && schoolIdControl?.touched">
+                <option value="">{{ 'AUTH.SELECT_SCHOOL_PLACEHOLDER' | translate }}</option>
+                @for (school of schools(); track school.id) {
+                  <option [value]="school.id">
+                    {{ school.name }} — {{ school.city }}
+                    ({{ 'SCHOOLS.STAGE.' + school.stage.toUpperCase() | translate }})
+                  </option>
+                }
+              </select>
+            }
+            @if (schoolIdControl?.invalid && schoolIdControl?.touched) {
+              <div class="invalid-feedback">{{ 'AUTH.ERROR_SCHOOL_REQUIRED' | translate }}</div>
+            }
+          </div>
+
+          <!-- Username -->
+          <div class="form-group">
+            <label class="form-label" for="username">
+              {{ 'AUTH.USERNAME' | translate }}
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input id="username" type="text" class="form-control" formControlName="username"
+                [placeholder]="'AUTH.USERNAME' | translate"
+                [class.is-invalid]="usernameControl?.invalid && usernameControl?.touched"
+                autocomplete="username" />
+            </div>
+            @if (usernameControl?.invalid && usernameControl?.touched) {
+              <div class="invalid-feedback">{{ 'AUTH.ERROR_USERNAME_REQUIRED' | translate }}</div>
+            }
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="password">
+              {{ 'AUTH.PASSWORD' | translate }}
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔒</span>
+              <input id="password" type="password" class="form-control" formControlName="password"
+                [placeholder]="'AUTH.PASSWORD' | translate"
+                [class.is-invalid]="passwordControl?.invalid && passwordControl?.touched"
+                autocomplete="current-password" />
+            </div>
+            @if (passwordControl?.invalid && passwordControl?.touched) {
+              <div class="invalid-feedback">{{ 'AUTH.ERROR_PASSWORD_REQUIRED' | translate }}</div>
+            }
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-login" [disabled]="loading()">
+            @if (loading()) {
+              <span class="spinner"></span>
+              {{ 'AUTH.LOGGING_IN' | translate }}
+            } @else {
+              {{ 'AUTH.LOGIN' | translate }}
+            }
+          </button>
+
+        </form>
+
+        <!-- Footer Links -->
+        <div class="form-footer">
+          <a routerLink="/auth/main-manager-login" class="link-muted">
+            {{ 'AUTH.MAIN_MANAGER_LOGIN' | translate }}
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

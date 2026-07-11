@@ -1,0 +1,74 @@
+.suggestions-container {
+  border-right: 4px solid var(--primary-color, #10b981);
+  padding: 1.25rem;
+  background-color: var(--surface-card);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.suggestions-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.suggestions-desc {
+  font-size: 0.9rem;
+  color: var(--text-color-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.suggestions-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.suggestion-chip {
+  transition: all 0.2s ease-in-out;
+}
+
+.suggestion-chip:hover {
+  transform: translateY(-2px);
+  background-color: var(--orange-50) !important;
+  color: var(--orange-700) !important;
+}
+
+.plans-list-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.no-plans-box {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background-color: var(--surface-100);
+  border-radius: 6px;
+  color: var(--text-color-secondary);
+}
+
+.text-truncate {
+  display: inline-block;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.text-danger {
+  color: var(--red-500);
+}
+
+.text-warning {
+  color: var(--orange-500);
+}
+
+.suggestion-chip.p-button-warning {
+  border-color: var(--orange-400);
+  color: var(--orange-700);
+}

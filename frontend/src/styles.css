@@ -1,0 +1,727 @@
+/* ─── Global Styles — Al-Falah Schools Evaluation System ──────────────────── */
+/* D-25: Saudi government-grade light theme. Design tokens drive every page;
+   components MUST consume these vars, never hard-code colors. */
+
+/* ─── Design Tokens ──────────────────────────────────────────────────────── */
+:root {
+  /* Brand — Saudi green */
+  --brand-900: #15603D;
+  --brand-700: #0F7132;
+  --brand-500: #1E8E4E;
+  --brand-300: #22C55E;
+  --brand-50:  #E8F5EE;
+
+  /* Accent — Saudi gold */
+  --gold: #D4AF37;
+  --gold-bg: rgba(212, 175, 55, 0.10);
+  --gold-border: rgba(212, 175, 55, 0.40);
+
+  /* Surfaces (light, off-white) */
+  --bg-page:      #F6F1E7;
+  --bg-surface:   #FFFFFF;
+  --bg-surface-2: #F0F4F1;
+  --bg-elevated:  #FFFFFF;
+
+  /* Borders */
+  --border:        #E3E1D8;
+  --border-strong: #CFCABB;
+  --border-focus:  var(--brand-500);
+
+  /* Text — AA contrast on #F6F1E7 / #FFFFFF */
+  --text:        #334155;
+  --text-strong: #1E293B;
+  --text-muted:  #64748B;
+  --text-dim:    #94A3B8;
+  --text-on-brand: #FFFFFF;
+
+  /* Semantic */
+  --success: #22C55E;
+  --success-bg: rgba(34, 197, 94, 0.10);
+  --success-border: rgba(34, 197, 94, 0.40);
+
+  --warning: #D4AF37;
+  --warning-bg: rgba(212, 175, 55, 0.12);
+  --warning-border: rgba(212, 175, 55, 0.45);
+
+  --danger: #DC2626;
+  --danger-bg: rgba(220, 38, 38, 0.08);
+  --danger-border: rgba(220, 38, 38, 0.35);
+
+  --info: #0F7132;
+  --info-bg: rgba(15, 113, 50, 0.08);
+  --info-border: rgba(15, 113, 50, 0.35);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* Spacing (4px grid) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  /* Shadows — subtle on light surfaces */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+
+  /* App font — Arabic */
+  --font-app: 'Cairo', 'Tajawal', 'Segoe UI', Arial, sans-serif;
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--font-app);
+  background: var(--bg-page);
+  color: var(--text);
+  line-height: 1.6;
+  direction: rtl;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-surface-2); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+  border: 2px solid var(--bg-surface-2);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--brand-500); }
+
+::selection { background: var(--brand-50); color: var(--brand-900); }
+
+/* ─── Typography ─────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-strong);
+  font-family: var(--font-app);
+}
+
+a { color: var(--brand-700); text-decoration: none; }
+a:hover { color: var(--brand-900); text-decoration: underline; }
+
+:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Reusable utility classes ───────────────────────────────────────────── */
+.text-muted   { color: var(--text-muted); }
+.text-dim     { color: var(--text-dim); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger  { color: var(--danger); }
+.text-info    { color: var(--info); }
+.text-brand   { color: var(--brand-700); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.w-100 { width: 100%; }
+
+/* ─── D-32 — Centered narrow-page container ─────────────────────────────── */
+/* Used by Visit Detail (and other detail / form pages) so content doesn't
+   sprawl on ultra-wide screens. Same pattern on Users-list toolbar. */
+.page--narrow {
+  max-width: 1100px;
+  margin-inline: auto;
+  width: 100%;
+}
+.page--form {
+  max-width: 880px;
+  margin-inline: auto;
+  width: 100%;
+}
+
+/* ─── D-31 — Unified List-Page Toolbar ───────────────────────────────────── */
+/* Every list page (Visits / Users / Assignments / Schools) renders the same
+   page header + filters card + table card. Tokens drive spacing; per-component
+   CSS is only allowed to override cell content (chips, badges, hints). */
+.list-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.list-page-header__titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.list-page-header__title  { font-size: 1.5rem; font-weight: 800; color: var(--text-strong); margin: 0; }
+.list-page-header__subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+.list-page-header__action { min-width: 160px; display: flex; justify-content: flex-end; }
+
+.list-toolbar {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+.list-toolbar--compact { padding: var(--space-3); }
+
+.toolbar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  flex: 0 0 auto;
+}
+.toolbar-field--grow   { flex: 1 1 240px; min-width: 240px; }
+.toolbar-field--actions { flex-direction: row; align-items: flex-end; gap: var(--space-2); min-width: auto; }
+.toolbar-field__label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+/* every PrimeNG control inside a toolbar field stretches to the field width,
+   and the calendar icon button (PrimeNG default showIcon) is fixed-size so it
+   does not collapse into the input. */
+.toolbar-field__control { width: 100%; display: flex; align-items: center; }
+.toolbar-field__control > .p-dropdown,
+.toolbar-field__control > .p-calendar,
+.toolbar-field__control > .p-inputnumber,
+.toolbar-field__control > .p-inputgroup,
+.toolbar-field__control > input.p-inputtext { width: 100%; min-height: 2.4rem; height: 2.4rem; }
+.toolbar-field__control > .p-calendar .p-datepicker-trigger {
+  width: 2.4rem !important;
+  min-width: 2.4rem !important;
+  padding: 0 !important;
+  flex: 0 0 2.4rem !important;
+}
+.toolbar-field__control > .p-inputgroup .p-inputgroup-addon {
+  background: var(--brand-500) !important;
+  border-color: var(--brand-500) !important;
+  color: #fff !important;
+  width: 2.4rem !important;
+  min-width: 2.4rem !important;
+  padding: 0 !important;
+}
+.toolbar-field__control > .p-inputgroup .p-inputgroup-addon .p-button {
+  background: transparent !important;
+  border: 0 !important;
+  color: #fff !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.toolbar-field__control > .p-inputgroup .p-inputgroup-addon .p-button:hover { background: rgba(255,255,255,0.12) !important; }
+
+/* D-31 — single calendar icon inside the field (D-31: no extra glued green button). */
+.toolbar-field__control > .p-calendar .p-datepicker-trigger { background: var(--brand-500) !important; color: #fff !important; border-color: var(--brand-500) !important; border-radius: 0 var(--radius-md) var(--radius-md) 0 !important; }
+[dir="rtl"] .toolbar-field__control > .p-calendar .p-datepicker-trigger { border-radius: var(--radius-md) 0 0 var(--radius-md) !important; }
+
+/* D-31 — surface card (table card, dialog body) — unified across list pages */
+.surface-card {
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+.table-card { padding: var(--space-3); }
+.table-card .p-datatable { border-radius: var(--radius-md); overflow: hidden; }
+
+/* ─── PrimeNG Global Overrides (light) ───────────────────────────────────── */
+
+/* Inputs / dropdowns / textarea — white surface, green focus ring.
+   D-41: every control unified to the same 2.4rem height as buttons so
+   fields stack neatly without visual misalignment. */
+.p-inputtext,
+.p-inputtext-input,
+.p-password input,
+.p-inputnumber-input,
+textarea.p-inputtext,
+.p-dropdown,
+.p-multiselect {
+  width: 100%;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-height: 2.4rem;
+  height: 2.4rem;
+  padding: 0.4rem 0.75rem !important;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+/* Textareas need to expand vertically but keep the same padding/border. */
+textarea.p-inputtext {
+  height: auto;
+  min-height: 4rem;
+}
+
+/* D-34: p-calendar inputs must NOT use width: 100% globally — it breaks the
+   flex layout that keeps the .p-datepicker-trigger icon inline with the input
+   (the trigger would otherwise wrap below as a detached floating button). The
+   toolbar fields handle their own .p-calendar layout; for free-standing
+   .p-calendar (visit form, etc.) PrimeNG's default `flex: 1 1 auto; width: 1%`
+   is correct. We only style background / border / radius here. */
+.p-calendar input {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.75rem !important;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.p-calendar-w-btn .p-inputtext { border-radius: 0 !important; }
+.p-calendar-w-btn .p-datepicker-trigger {
+  width: 2.4rem !important; min-width: 2.4rem !important;
+  flex: 0 0 2.4rem !important;
+  background: var(--brand-500) !important; color: #fff !important;
+  border-color: var(--brand-500) !important;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0 !important;
+}
+[dir="rtl"] .p-calendar-w-btn .p-inputtext { border-radius: 0 !important; }
+[dir="rtl"] .p-calendar-w-btn .p-datepicker-trigger { border-radius: var(--radius-md) 0 0 var(--radius-md) !important; }
+
+.p-inputtext:enabled:hover,
+.p-dropdown:not(.p-disabled):hover {
+  border-color: var(--brand-500) !important;
+}
+
+.p-inputtext:enabled:focus,
+.p-dropdown:not(.p-disabled).p-focus {
+  border-color: var(--brand-500) !important;
+  box-shadow: 0 0 0 3px rgba(30, 142, 78, 0.18) !important;
+  outline: none;
+}
+
+.p-inputtext::placeholder { color: var(--text-dim) !important; }
+
+/* PrimeNG dropdown — trigger chevron + clear icon stay inline-end.
+   D-41: label reserves right/left padding for the chevron + clear "✕" so
+   they NEVER overlap the selected value (RTL-safe). */
+.p-dropdown {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  min-width: 12rem;
+}
+.p-dropdown .p-dropdown-label {
+  padding: 0.4rem 2.6rem 0.4rem 0.75rem !important;
+  background: transparent !important;
+  color: var(--text-strong) !important;
+  border: 0 !important;
+  text-align: start;
+}
+[dir="rtl"] .p-dropdown .p-dropdown-label {
+  padding: 0.4rem 0.75rem 0.4rem 2.6rem !important;
+}
+.p-dropdown .p-dropdown-trigger,
+.p-dropdown .p-dropdown-clear-icon {
+  color: var(--text-muted) !important;
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+  inset-inline-end: auto;
+}
+/* Clear "✕" sits at the inline-end of the field, before the chevron,
+   separated so they never collide. */
+.p-dropdown .p-dropdown-clear-icon {
+  inset-inline-end: 1.9rem !important;
+  margin-inline-start: 0 !important;
+  background: transparent;
+  border-radius: 999px;
+  transition: background 0.15s, color 0.15s;
+}
+.p-dropdown .p-dropdown-clear-icon:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Dropdown panel — FIX 1: panel renders at body, but its own surface is light.
+   D-41: item height reduced to 2.2rem for a denser, more compact panel. */
+.p-dropdown-panel,
+.p-multiselect-panel,
+.p-autocomplete-panel {
+  background: var(--bg-elevated) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+.p-dropdown-items .p-dropdown-item,
+.p-multiselect-items .p-multiselect-item {
+  color: var(--text-strong) !important;
+  padding: 0.45rem 0.85rem !important;
+  min-height: 2.2rem;
+  border-radius: var(--radius-sm);
+  margin: 2px;
+}
+.p-dropdown-items .p-dropdown-item:hover,
+.p-multiselect-items .p-multiselect-item:hover {
+  background: var(--brand-50) !important;
+  color: var(--brand-900) !important;
+}
+.p-dropdown-items .p-dropdown-item.p-highlight,
+.p-multiselect-items .p-multiselect-item.p-highlight {
+  background: var(--brand-500) !important;
+  color: #fff !important;
+}
+
+/* Dropdown filter input (inside the panel) */
+.p-dropdown-filter,
+.p-dropdown-panel .p-dropdown-filter {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-strong) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0.4rem 0.6rem !important;
+  width: 100% !important;
+}
+
+/* Tags (p-tag) — token-driven; status: green=active, gold=warning, red=danger */
+.p-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+  vertical-align: middle;
+  min-height: 1.6rem;
+}
+.p-tag.p-tag-success { background: var(--success-bg); color: #15803D; border: 1px solid var(--success-border); }
+.p-tag.p-tag-warning { background: var(--warning-bg); color: #92580B; border: 1px solid var(--warning-border); }
+.p-tag.p-tag-danger  { background: var(--danger-bg);  color: var(--danger);  border: 1px solid var(--danger-border); }
+.p-tag.p-tag-info    { background: var(--info-bg);    color: var(--info);    border: 1px solid var(--info-border); }
+
+/* Tables — light header (brand tint), row hover (brand 6%), green-vs-red statuses */
+.p-datatable {
+  background-color: var(--bg-surface) !important;
+}
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: var(--brand-50) !important;
+  background-image: none !important;
+  color: var(--brand-900) !important;
+  border-bottom: 1px solid var(--border-strong) !important;
+  font-weight: 700;
+  padding: 0.85rem 1rem !important;
+  text-align: start;
+}
+.p-datatable .p-datatable-tbody > tr {
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  color: var(--text);
+}
+.p-datatable .p-datatable-tbody > tr > td {
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 0.75rem 1rem !important;
+  vertical-align: middle;
+  text-align: start; /* Match header alignment for RTL */
+}
+.p-datatable .p-datatable-tbody > tr:hover > td {
+  background-color: rgba(15, 113, 50, 0.06) !important;
+  background-image: none !important;
+}
+.p-datatable .p-datatable-tfoot > tr > td {
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-top: 1px solid var(--border) !important;
+}
+.p-datatable .p-sortable-column.p-highlight { color: var(--brand-700) !important; }
+
+/* Centered columns for badges/numeric/status/actions */
+.p-datatable th.text-center, 
+.p-datatable td.text-center { text-align: center !important; }
+.p-datatable th.table-actions-col, 
+.p-datatable td.table-actions-col { text-align: center !important; width: 120px; white-space: nowrap; }
+
+/* Action groups */
+.action-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+/* D-41: table action group — identical square icon buttons, 0.4rem gap.
+   Every cell wraps its buttons in .table-actions; .actions-cell is the
+   legacy alias kept for older components. */
+.table-actions,
+.actions-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.table-actions .p-button.p-button-icon-only,
+.actions-cell .p-button.p-button-icon-only {
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  flex: 0 0 2.2rem;
+}
+
+/* Paginator — RTL-aware, light surface */
+.p-paginator {
+  background: var(--bg-surface) !important;
+  color: var(--text-muted) !important;
+  border-top: 1px solid var(--border) !important;
+  padding: 0.5rem 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-last {
+  background: var(--bg-surface) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 2px;
+}
+/* RTL mirror: prime icons caret-left/caret-right look wrong in RTL paginator */
+.p-paginator .p-paginator-prev .p-paginator-icon,
+.p-paginator .p-paginator-first .p-paginator-icon {
+  transform: scaleX(-1);
+}
+.p-paginator .p-paginator-next .p-paginator-icon,
+.p-paginator .p-paginator-last .p-paginator-icon {
+  transform: scaleX(-1);
+}
+.p-paginator .p-paginator-current {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.p-paginator .p-dropdown {
+  min-width: 5rem;
+  background: var(--bg-surface) !important;
+}
+
+/* Dialog */
+.p-dialog {
+  background: var(--bg-surface) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+.p-dialog .p-dialog-header {
+  background: var(--bg-surface) !important;
+  color: var(--text-strong) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 1rem 1.25rem !important;
+}
+.p-dialog .p-dialog-content {
+  background: var(--bg-surface) !important;
+  color: var(--text) !important;
+  padding: 1.25rem !important;
+}
+.p-dialog .p-dialog-footer {
+  background: var(--bg-surface) !important;
+  border-top: 1px solid var(--border) !important;
+  padding: 0.85rem 1.25rem !important;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* Confirm dialog */
+.p-confirm-dialog .p-dialog-content { display: flex; align-items: center; gap: var(--space-3); }
+.p-confirm-dialog .p-confirm-dialog-icon { font-size: 1.5rem; }
+
+/* Toast — light card surface, status-colored inline-start border */
+.p-toast .p-toast-message {
+  background: var(--bg-surface);
+  color: var(--text-strong);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.p-toast .p-toast-message.p-toast-message-success { border-inline-start: 4px solid var(--success); }
+.p-toast .p-toast-message.p-toast-message-info    { border-inline-start: 4px solid var(--info); }
+.p-toast .p-toast-message.p-toast-message-warn    { border-inline-start: 4px solid var(--warning); }
+.p-toast .p-toast-message.p-toast-message-error   { border-inline-start: 4px solid var(--danger); }
+
+/* Tooltip */
+.p-tooltip .p-tooltip-text {
+  background: var(--text-strong) !important;
+  color: var(--bg-surface) !important;
+  border: 0;
+  font-size: 0.78rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Buttons — consistent gap & icon spacing (RTL) (D-31: ensure icon + label never touch) */
+.p-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.p-button .p-button-icon { margin-inline-end: 0 !important; margin-inline-start: 0 !important; font-size: 1rem; }
+/* D-41: unified icon size across buttons + section headers.
+   Standard 1rem in buttons, 1.1rem for section headers. */
+.p-button .pi,
+.p-button .p-button-icon,
+i.pi { line-height: 1; }
+.p-button .pi { font-size: 1rem; }
+.section-header .pi,
+.subsection-title .pi,
+.page-header__title .pi,
+h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
+.p-button .p-button-icon-left  + .p-button-label,
+.p-button .p-button-label + .p-button-icon-right { margin-inline-start: 0.5rem; }
+.p-button .p-button-label + .p-button-icon-left { margin-inline-end: 0.5rem; }
+.p-button.p-button-sm { height: 2rem; padding: 0.4rem 0.7rem; font-size: 0.82rem; }
+.p-button.p-button-text { background: transparent; }
+
+/* D-31: defensive — any p-button that hosts both an icon and a label gets the gap
+   even if PrimeNG drops its own .p-button-label wrapper. */
+.p-button > i + span,
+.p-button > span + i,
+.p-button > .pi + .p-button-label,
+.p-button > .p-button-label + .pi { margin-inline-start: 0.5rem; }
+
+/* D-31 + D-41: icon-only button (no label) — fixed square size so it never collapses.
+   Default 2.5rem, .p-button-sm 2.2rem so table action icons all match. */
+.p-button.p-button-icon-only {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  flex: 0 0 auto;
+}
+.p-button.p-button-icon-only.p-button-sm { width: 2.2rem; height: 2.2rem; }
+.p-button.p-button-icon-only .pi,
+.p-button.p-button-icon-only .p-button-icon { font-size: 0.95rem; }
+
+/* Primary action — brand green */
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-danger):not(.p-button-warning):not(.p-button-success):not(.p-button-secondary) {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+  color: #fff;
+}
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-danger):not(.p-button-warning):not(.p-button-success):not(.p-button-secondary):enabled:hover {
+  background: var(--brand-700);
+  border-color: var(--brand-700);
+}
+.p-button.p-button-outlined {
+  color: var(--brand-700);
+  border-color: var(--brand-500);
+  background: transparent;
+}
+.p-button.p-button-outlined:enabled:hover {
+  background: var(--brand-50);
+  color: var(--brand-900);
+}
+.p-button.p-button-text { color: var(--brand-700); }
+.p-button.p-button-text:enabled:hover { background: var(--brand-50); color: var(--brand-900); }
+
+/* p-button-danger — subtle red (not the gloomy dark red from before) */
+.p-button.p-button-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.p-button.p-button-danger:enabled:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
+.p-button.p-button-text.p-button-danger { color: var(--danger); background: transparent; }
+.p-button.p-button-text.p-button-danger:enabled:hover { background: var(--danger-bg); color: #B91C1C; }
+
+/* p-button-success — green */
+.p-button.p-button-success {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+.p-button.p-button-success:enabled:hover {
+  background: #15803D;
+  border-color: #15803D;
+}
+
+/* p-button-warning — gold */
+.p-button.p-button-warning {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: #1E293B;
+}
+.p-button.p-button-warning:enabled:hover {
+  background: #B8941F;
+  border-color: #B8941F;
+}
+.p-button.p-button-text.p-button-warning { color: var(--warning); background: transparent; }
+.p-button.p-button-text.p-button-warning:enabled:hover { background: var(--warning-bg); }
+
+/* p-button-secondary — neutral surface + border */
+.p-button.p-button-secondary {
+  background: var(--bg-surface-2);
+  border-color: var(--border-strong);
+  color: var(--text-strong);
+}
+.p-button.p-button-secondary:enabled:hover {
+  background: var(--border);
+  border-color: var(--text-muted);
+}
+.p-button.p-button-text.p-button-secondary { color: var(--text-muted); background: transparent; }
+.p-button.p-button-text.p-button-secondary:enabled:hover { background: var(--bg-surface-2); color: var(--text-strong); }
+
+/* Disabled state — readable on light bg */
+.p-button:disabled,
+.p-button.p-disabled {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+}
+
+/* Progress spinner */
+.p-progress-spinner-circle {
+  stroke: var(--brand-500) !important;
+}

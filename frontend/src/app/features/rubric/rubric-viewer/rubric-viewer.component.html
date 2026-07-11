@@ -1,0 +1,66 @@
+<div class="page page--narrow" dir="rtl">
+  <header class="list-page-header">
+    <div class="list-page-header__titles">
+      <h1 class="list-page-header__title">{{ 'RUBRIC.VIEWER_TITLE' | translate }}</h1>
+      <p class="list-page-header__subtitle" *ngIf="version() as v">
+        {{ 'RUBRIC.VERSION_LABEL' | translate }}:
+        <strong>{{ v.versionNumber }}</strong>
+        <span class="active-pill" *ngIf="v.isActive">
+          <i class="pi pi-check-circle"></i>
+          {{ 'RUBRIC.ACTIVE_BADGE' | translate }}
+        </span>
+        <span class="meta-sep">·</span>
+        <span class="meta-text">{{ v.createdAt | date:'mediumDate' }}</span>
+      </p>
+    </div>
+
+    <div class="list-page-header__action" *ngIf="version()">
+      <button *ngIf="canManage()" pButton type="button" icon="pi pi-pencil"
+              [label]="'RUBRIC.EDIT_BUTTON' | translate"
+              (click)="goEdit()"></button>
+    </div>
+  </header>
+
+  <ng-container *ngIf="loading(); else ready">
+    <div class="loading surface-card">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4"></p-progressSpinner>
+      <span>{{ 'COMMON.LOADING' | translate }}</span>
+    </div>
+  </ng-container>
+
+  <ng-template #ready>
+    <ng-container *ngIf="version() as v; else empty">
+      <p class="notes surface-card" *ngIf="v.notes">
+        <i class="pi pi-info-circle"></i>
+        <span>{{ v.notes }}</span>
+      </p>
+
+      <div class="domain-grid">
+        <article class="domain-card surface-card" *ngFor="let d of v.domains; trackBy: trackDomain">
+          <header class="domain-header">
+            <span class="domain-code">{{ d.code }}</span>
+            <h2 class="domain-name">{{ d.nameAr }}</h2>
+            <span class="std-count">
+              {{ d.standards.length }} {{ 'RUBRIC.STANDARDS_COUNT' | translate }}
+            </span>
+          </header>
+          <ol class="standard-list">
+            <li class="standard" *ngFor="let s of d.standards; trackBy: trackStandard">
+              <span class="std-code">{{ s.code }}</span>
+              <span class="std-text">{{ s.textAr }}</span>
+            </li>
+          </ol>
+        </article>
+      </div>
+    </ng-container>
+
+    <ng-template #empty>
+      <div class="empty surface-card">
+        <i class="pi pi-inbox"></i>
+        <p>{{ 'RUBRIC.NO_ACTIVE_VERSION' | translate }}</p>
+        <button pButton type="button" icon="pi pi-refresh" [label]="'COMMON.RETRY' | translate"
+                class="p-button-outlined" (click)="load()"></button>
+      </div>
+    </ng-template>
+  </ng-template>
+</div>

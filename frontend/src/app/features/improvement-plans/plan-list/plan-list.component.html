@@ -1,0 +1,196 @@
+<div class="page page--narrow" dir="rtl">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">خطط التحسين والتطوير</h1>
+      <p class="page-header__subtitle" *ngIf="visit() as v">
+        <span>زيارة المعلم: {{ v.instructorFullName }}</span>
+        <span class="meta-sep">·</span>
+        <span>مدرسة: {{ v.schoolName }}</span>
+        <span class="meta-sep">·</span>
+        <span>تاريخ الزيارة: {{ v.visitDate | date:'yyyy/MM/dd' }}</span>
+      </p>
+    </div>
+    <div class="page-header__action">
+      <button pButton type="button" icon="pi pi-arrow-right"
+              label="العودة للزيارة" class="p-button-text" (click)="goBack()"></button>
+      <button *ngIf="canCreate()" pButton type="button" icon="pi pi-plus"
+              label="خطة تحسين جديدة" class="p-button-success" (click)="openCreateDialog()"></button>
+    </div>
+  </header>
+
+  <ng-container *ngIf="loading(); else ready">
+    <div class="loading surface-card">جاري التحميل...</div>
+  </ng-container>
+
+  <ng-template #ready>
+    <!-- Weak Domains Suggestions -->
+    <div *ngIf="suggestions().length > 0" class="suggestions-container surface-card mb-4">
+      <h3 class="suggestions-title"><i class="pi pi-sparkles text-warning ml-2"></i>مجالات بحاجة لتحسين (المتوسط أقل من 2.5)</h3>
+      <p class="suggestions-desc">انقر على المحور للبدء بإنشاء خطة تحسين جاهزة بتعبئة تلقائية:</p>
+      <div class="suggestions-chips">
+        <button *ngFor="let sug of suggestions()" pButton type="button"
+                [label]="sug.domainCode + ' - ' + sug.domainNameAr + ' (متوسط: ' + sug.averageScore + ')'"
+                class="p-button-outlined p-button-warning p-button-sm suggestion-chip"
+                (click)="onSuggestionClick(sug)"></button>
+      </div>
+    </div>
+
+    <!-- Plans Table & Filters -->
+    <div class="surface-card p-4">
+      <div class="flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h2 class="plans-list-title">الخطط الحالية</h2>
+        
+        <!-- Status Filter -->
+        <div class="flex align-items-center gap-2">
+          <label for="statusFilter">تصفية حسب الحالة:</label>
+          <p-dropdown id="statusFilter" [options]="[
+            { label: 'الكل', value: 'all' },
+            { label: 'نشطة', value: 'active' },
+            { label: 'مكتملة', value: 'completed' },
+            { label: 'ملغاة', value: 'cancelled' }
+          ]" [(ngModel)]="statusFilter" styleClass="w-12rem"></p-dropdown>
+        </div>
+      </div>
+
+      <!-- No Plans State -->
+      <div *ngIf="filteredPlans().length === 0" class="no-plans-box">
+        <i class="pi pi-info-circle mb-3" style="font-size: 2.5rem; color: var(--text-color-secondary);"></i>
+        <p>لا توجد خطط تحسين تطابق تصفيتك حالياً لهذه الزيارة الصفية.</p>
+      </div>
+
+      <!-- Plans Table -->
+      <p-table *ngIf="filteredPlans().length > 0" [value]="filteredPlans()" styleClass="p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>المجال / المحور</th>
+            <th>الهدف العام</th>
+            <th>تاريخ البدء</th>
+            <th>تاريخ الانتهاء</th>
+            <th>الحالة</th>
+            <th class="text-center">الإجراءات</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-plan>
+          <tr>
+            <td>
+              <span class="font-bold">{{ plan.domainNameAr || 'خطة عامة' }}</span>
+            </td>
+            <td>
+              <span class="text-truncate">{{ plan.goal }}</span>
+            </td>
+            <td>{{ plan.startDate | date:'yyyy/MM/dd' }}</td>
+            <td>{{ plan.endDate | date:'yyyy/MM/dd' }}</td>
+            <td>
+              <p-tag [severity]="statusSeverity(plan.status)" [value]="statusLabel(plan.status)"></p-tag>
+            </td>
+            <td class="text-center">
+              <div class="flex justify-content-center gap-2">
+                <button pButton type="button" icon="pi pi-eye"
+                        [routerLink]="['/improvement-plans', plan.id]"
+                        class="p-button-text p-button-info" pTooltip="المتابعة والتفاصيل" tooltipPosition="top"></button>
+                <button *ngIf="canEdit() && !plan.isReadOnly" pButton type="button" icon="pi pi-pencil"
+                        class="p-button-text p-button-warning" (click)="openEditDialog(plan)"
+                        pTooltip="تعديل الخطة" tooltipPosition="top"></button>
+                <button *ngIf="canDelete() && !plan.isReadOnly" pButton type="button" icon="pi pi-trash"
+                        class="p-button-text p-button-danger" (click)="confirmDelete(plan)"
+                        pTooltip="حذف الخطة" tooltipPosition="top"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-template>
+
+  <!-- Create/Edit Plan Dialog -->
+  <p-dialog [header]="dialogMode() === 'create' ? 'إنشاء خطة تحسين جديدة' : 'تعديل خطة التحسين'"
+            [(visible)]="planDialogVisible" [modal]="true" [style]="{ width: '45rem' }"
+            [draggable]="false" [resizable]="false">
+    <form [formGroup]="planForm" class="flex flex-column gap-3 mt-2" (ngSubmit)="savePlan()">
+      
+      <!-- Domain (Optional Selection) -->
+      <div class="field flex flex-column gap-1">
+        <label for="domainId" class="font-semibold">المجال / المحور المرتبط (اختياري)</label>
+        <p-dropdown id="domainId" [options]="visitDomains()" optionLabel="nameAr" optionValue="id"
+                    formControlName="domainId" placeholder="اختر المحور المرتبط أو اتركه عاماً"
+                    [showClear]="true" styleClass="w-full"></p-dropdown>
+      </div>
+
+      <!-- Goal -->
+      <div class="field flex flex-column gap-1">
+        <label for="goal" class="font-semibold">الهدف الرئيسي للخطة <span class="text-danger">*</span></label>
+        <textarea id="goal" pInputTextarea formControlName="goal" rows="3" class="w-full"
+                  placeholder="اكتب الهدف التعليمي بوضوح ودقة"></textarea>
+        <small class="text-danger" *ngIf="planForm.get('goal')?.touched && planForm.get('goal')?.hasError('required')">
+          الهدف مطلوب ومستهدف تعبئته.
+        </small>
+      </div>
+
+      <!-- Actions -->
+      <div class="field flex flex-column gap-1">
+        <label for="actions" class="font-semibold">الإجراءات والخطوات العملية <span class="text-danger">*</span></label>
+        <textarea id="actions" pInputTextarea formControlName="actions" rows="5" class="w-full"
+                  placeholder="حدد قائمة الخطوات والإجراءات المحددة للتحسين"></textarea>
+        <small class="text-danger" *ngIf="planForm.get('actions')?.touched && planForm.get('actions')?.hasError('required')">
+          الإجراءات مطلوبة ويجب تحديد خطة عمل واضحة.
+        </small>
+      </div>
+
+      <!-- Success Indicators -->
+      <div class="field flex flex-column gap-1">
+        <label for="successIndicators" class="font-semibold">مؤشرات النجاح وأدلة التحقق <span class="text-danger">*</span></label>
+        <textarea id="successIndicators" pInputTextarea formControlName="successIndicators" rows="3" class="w-full"
+                  placeholder="مثال: ارتفاع متوسط درجات المجال إلى 3.0 في الزيارة القادمة"></textarea>
+        <small class="text-danger" *ngIf="planForm.get('successIndicators')?.touched && planForm.get('successIndicators')?.hasError('required')">
+          مؤشرات النجاح مطلوبة لتتبع مستوى التقدم.
+        </small>
+      </div>
+
+      <!-- Dates Grid -->
+      <div class="grid col-12 px-0 py-2 gap-3 flex-wrap">
+        <!-- Start Date -->
+        <div class="field flex flex-column gap-1 col flex-grow-1">
+          <label for="startDate" class="font-semibold">تاريخ البدء <span class="text-danger">*</span></label>
+          <p-calendar id="startDate" formControlName="startDate" [showIcon]="true" dateFormat="yy/mm/dd"
+                      styleClass="w-full" appendTo="body"></p-calendar>
+        </div>
+
+        <!-- End Date -->
+        <div class="field flex flex-column gap-1 col flex-grow-1">
+          <label for="endDate" class="font-semibold">تاريخ الانتهاء المتوقع <span class="text-danger">*</span></label>
+          <p-calendar id="endDate" formControlName="endDate" [showIcon]="true" dateFormat="yy/mm/dd"
+                      styleClass="w-full" appendTo="body"></p-calendar>
+        </div>
+      </div>
+
+      <!-- Non-blocking Warning for EndDate < StartDate -->
+      <div *ngIf="isDateRangeInvalid()" class="p-message p-message-warn flex align-items-center gap-2 p-3 surface-100 border-round mb-2" style="border-right: 4px solid var(--orange-500); background-color: var(--orange-50); color: var(--orange-900);">
+        <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem;"></i>
+        <div>
+          <strong class="block">تنبيه بشأن التواريخ:</strong>
+          <span>تاريخ الانتهاء المختار يسبق تاريخ البدء. لن يتم حظر الحفظ، ولكن يرجى التحقق من صحة التواريخ.</span>
+        </div>
+      </div>
+
+      <!-- Status (Edit Mode Only) -->
+      <div *ngIf="dialogMode() === 'edit'" class="field flex flex-column gap-1">
+        <label for="status" class="font-semibold">حالة الخطة</label>
+        <p-dropdown id="status" [options]="[
+          { label: 'نشطة', value: 'active' },
+          { label: 'مكتملة', value: 'completed' },
+          { label: 'ملغاة', value: 'cancelled' }
+        ]" formControlName="status" styleClass="w-full"></p-dropdown>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-content-end gap-2 mt-3">
+        <button pButton type="button" label="إلغاء" class="p-button-text" (click)="planDialogVisible.set(false)" [disabled]="submitting()"></button>
+        <button pButton type="submit" label="حفظ" class="p-button-success" [loading]="submitting()"></button>
+      </div>
+    </form>
+  </p-dialog>
+
+  <!-- Global Confirm Dialog -->
+  <p-confirmDialog appendTo="body"></p-confirmDialog>
+</div>

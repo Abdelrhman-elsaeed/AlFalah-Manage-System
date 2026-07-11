@@ -1,0 +1,67 @@
+<div class="page page--form" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ (isEdit() ? 'SCHOOLS.EDIT' : 'SCHOOLS.NEW') | translate }}</h1>
+      <p class="page-header__subtitle">{{ 'SCHOOLS.TITLE' | translate }}</p>
+    </div>
+    <a routerLink="/schools" class="page-header__back">
+      <i class="pi pi-arrow-right"></i>
+      <span>{{ 'COMMON.BACK' | translate }}</span>
+    </a>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="surface-card form-card">
+    <div class="grid">
+      <div class="field">
+        <label for="school-name">{{ 'SCHOOLS.NAME' | translate }} *</label>
+        <input id="school-name" pInputText type="text" formControlName="name" />
+        <small *ngIf="name?.invalid && name?.touched" class="field__error">
+          {{ 'AUTH.ERROR_USERNAME_REQUIRED' | translate }}
+        </small>
+      </div>
+
+      <div class="field">
+        <label for="school-stage">{{ 'SCHOOLS.STAGE_LABEL' | translate }} *</label>
+        <p-dropdown inputId="school-stage" [options]="stageOptions" formControlName="stage" styleClass="w-100"></p-dropdown>
+      </div>
+
+      <div class="field">
+        <label for="school-city">{{ 'SCHOOLS.CITY' | translate }} *</label>
+        <input id="school-city" pInputText type="text" formControlName="city" />
+        <small *ngIf="city?.invalid && city?.touched" class="field__error">
+          {{ 'AUTH.ERROR_USERNAME_REQUIRED' | translate }}
+        </small>
+      </div>
+
+      <div class="field">
+        <label for="school-location">{{ 'SCHOOLS.LOCATION' | translate }}</label>
+        <input id="school-location" pInputText type="text" formControlName="locationDetails" />
+      </div>
+
+      <div class="field">
+        <label for="school-logo">{{ 'SCHOOLS.LOGO_URL' | translate }}</label>
+        <input id="school-logo" pInputText type="text" formControlName="logoUrl" />
+      </div>
+
+      <div class="field">
+        <label for="school-manager">
+          {{ 'SCHOOLS.MANAGER' | translate }}
+          <span class="field__muted">({{ 'COMMON.OPTIONAL' | translate }})</span>
+        </label>
+        <p-dropdown inputId="school-manager" [options]="availableManagers()" formControlName="managerUserId"
+                  optionLabel="fullName" optionValue="userId"
+                  [placeholder]="(isEdit() ? 'COMMON.SELECT' : 'COMMON.OPTIONAL') | translate"
+                  [filter]="true" filterBy="fullName"
+                  [showClear]="true" styleClass="w-100"></p-dropdown>
+        <small class="field__hint">{{ 'SCHOOLS.MANAGER_REQUIRED_HINT' | translate }}</small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-text"
+              routerLink="/schools"></button>
+      <button pButton type="submit" [label]="'COMMON.SAVE' | translate" [loading]="saving()"
+              [disabled]="form.invalid"></button>
+    </div>
+  </form>
+</div>

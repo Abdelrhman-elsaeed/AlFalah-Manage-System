@@ -1,0 +1,165 @@
+:host {
+  display: block;
+  color: var(--text);
+  font-family: var(--font-app);
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ─── Active pill (success chip) ────────────────────────────────────────── */
+.active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline-start: 0.5rem;
+  padding: 0.2rem 0.7rem;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #15803D;
+}
+.active-pill i { font-size: 0.8rem; }
+
+.meta-sep { margin: 0 0.5rem; color: var(--text-dim); }
+.meta-text { color: var(--text-muted); font-size: 0.8rem; }
+
+
+
+/* ─── Loading ───────────────────────────────────────────────────────────── */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 3rem 0;
+  color: var(--text-muted);
+}
+
+/* ─── Notes banner — light brand tint (D-25) ────────────────────────────── */
+.notes {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.95rem 1.1rem;
+  background-color: rgba(15, 113, 50, 0.08) !important;
+  background-image: none !important;
+  border: 1px solid rgba(15, 113, 50, 0.30);
+  color: #0F5132;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  box-shadow: none;
+}
+.notes i {
+  color: var(--brand-700);
+  font-size: 1.1rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+/* ─── Domain grid + cards ───────────────────────────────────────────────── */
+.domain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-4);
+}
+
+.domain-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.domain-card:hover {
+  border-color: var(--brand-500);
+  box-shadow: var(--shadow-md);
+}
+
+.domain-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: var(--space-3);
+}
+
+/* Domain code chip — light surface, gold accent */
+.domain-code {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--gold);
+  background-color: var(--gold-bg) !important;
+  background-image: none !important;
+  border: 1px solid var(--gold-border);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+.domain-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.std-count { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ─── Standard list ─────────────────────────────────────────────────────── */
+.standard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.standard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.7rem 0.85rem;
+  background-color: var(--bg-surface-2) !important;
+  background-image: none !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.standard .std-code {
+  font-weight: 700;
+  color: #92580B;
+  font-size: 0.82rem;
+  background-color: var(--warning-bg) !important;
+  background-image: none !important;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  min-width: 64px;
+  text-align: center;
+}
+
+.standard .std-text {
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+/* ─── Empty state ───────────────────────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 4rem var(--space-4);
+  color: var(--text-muted);
+}
+.empty i {
+  font-size: 3rem;
+  margin-bottom: var(--space-4);
+  display: block;
+  color: var(--text-dim);
+}
+.empty p { margin-bottom: var(--space-4); }

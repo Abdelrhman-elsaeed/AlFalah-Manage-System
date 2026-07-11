@@ -1,0 +1,106 @@
+<div class="page page--narrow" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ 'RUBRIC.EDITOR_TITLE' | translate }}</h1>
+      <p class="page-header__subtitle" *ngIf="sourceVersion() as v">
+        {{ 'RUBRIC.BASED_ON' | translate }} <strong>{{ v.versionNumber }}</strong>
+        · {{ 'RUBRIC.STANDARDS_TOTAL' | translate }}: <strong>{{ totalStandards() }}</strong>
+      </p>
+    </div>
+    <div class="page-header__actions">
+      <button pButton type="button" icon="pi pi-times"
+              [label]="'COMMON.CANCEL' | translate"
+              class="p-button-text"
+              [disabled]="saving()"
+              (click)="cancel()"></button>
+      <button pButton type="button" icon="pi pi-save"
+              [label]="'RUBRIC.SAVE_NEW_VERSION' | translate"
+              [loading]="saving()"
+              [disabled]="saving() || loading() || form.invalid"
+              (click)="saveNewVersion()"></button>
+    </div>
+  </header>
+
+  <ng-container *ngIf="loading(); else ready">
+    <div class="loading surface-card">
+      <p-progressSpinner styleClass="w-3rem h-3rem" strokeWidth="4"></p-progressSpinner>
+      <span>{{ 'COMMON.LOADING' | translate }}</span>
+    </div>
+  </ng-container>
+
+  <ng-template #ready>
+    <section class="notes-section surface-card">
+      <label for="rubric-notes">{{ 'RUBRIC.NOTES_LABEL' | translate }}</label>
+      <textarea pInputTextarea id="rubric-notes" rows="3"
+                [formControl]="notesControl"
+                [placeholder]="'RUBRIC.NOTES_PLACEHOLDER' | translate"
+                class="w-100"></textarea>
+    </section>
+
+    <div class="domain-grid">
+      <article class="domain-card surface-card" *ngFor="let d of domains.controls; let dIdx = index; trackBy: trackDomain">
+        <header class="domain-header">
+          <div class="domain-handle">
+            <span class="domain-code-input">
+              <input pInputText [formControl]="d.controls.code" maxlength="20"
+                     [attr.aria-label]="'RUBRIC.DOMAIN_CODE' | translate" />
+            </span>
+            <span class="sort-order">#{{ d.controls.sortOrder.value }}</span>
+          </div>
+          <div class="domain-name-wrap">
+            <input pInputText [formControl]="d.controls.nameAr" maxlength="300"
+                   class="domain-name-input"
+                   [placeholder]="'RUBRIC.DOMAIN_NAME' | translate" />
+          </div>
+          <div class="domain-actions">
+            <button pButton type="button" icon="pi pi-arrow-up" class="p-button-text p-button-sm"
+                    [disabled]="dIdx === 0"
+                    [pTooltip]="'RUBRIC.MOVE_UP' | translate" tooltipPosition="top"
+                    (click)="moveDomainUp(dIdx)"></button>
+            <button pButton type="button" icon="pi pi-arrow-down" class="p-button-text p-button-sm"
+                    [disabled]="dIdx === domains.length - 1"
+                    [pTooltip]="'RUBRIC.MOVE_DOWN' | translate" tooltipPosition="top"
+                    (click)="moveDomainDown(dIdx)"></button>
+          </div>
+        </header>
+
+        <ol class="standard-list">
+          <li class="standard" *ngFor="let s of d.controls.standards.controls; let sIdx = index; trackBy: trackStandard">
+            <div class="std-handle">
+              <span class="std-code-input">
+                <input pInputText [formControl]="s.controls.code" maxlength="20"
+                       [attr.aria-label]="'RUBRIC.STANDARD_CODE' | translate" />
+              </span>
+              <span class="std-order">#{{ s.controls.sortOrder.value }}</span>
+            </div>
+            <div class="std-text-wrap">
+              <textarea pInputTextarea rows="2" [formControl]="s.controls.textAr" maxlength="1000"
+                        class="std-text-input"
+                        [placeholder]="'RUBRIC.STANDARD_TEXT' | translate"></textarea>
+            </div>
+            <div class="std-actions">
+              <button pButton type="button" icon="pi pi-arrow-up" class="p-button-text p-button-sm"
+                      [disabled]="sIdx === 0"
+                      [pTooltip]="'RUBRIC.MOVE_UP' | translate" tooltipPosition="top"
+                      (click)="moveStandardUp(dIdx, sIdx)"></button>
+              <button pButton type="button" icon="pi pi-arrow-down" class="p-button-text p-button-sm"
+                      [disabled]="sIdx === d.controls.standards.length - 1"
+                      [pTooltip]="'RUBRIC.MOVE_DOWN' | translate" tooltipPosition="top"
+                      (click)="moveStandardDown(dIdx, sIdx)"></button>
+            </div>
+          </li>
+        </ol>
+      </article>
+    </div>
+
+    <div class="save-bar">
+      <button pButton type="button" icon="pi pi-times" [label]="'COMMON.CANCEL' | translate"
+              class="p-button-text" [disabled]="saving()" (click)="cancel()"></button>
+      <button pButton type="button" icon="pi pi-save"
+              [label]="'RUBRIC.SAVE_NEW_VERSION' | translate"
+              [loading]="saving()"
+              [disabled]="saving() || form.invalid"
+              (click)="saveNewVersion()"></button>
+    </div>
+  </ng-template>
+</div>

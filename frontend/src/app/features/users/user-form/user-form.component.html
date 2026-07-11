@@ -1,0 +1,79 @@
+<div class="page page--form" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ (isEdit() ? 'USERS.EDIT' : 'USERS.NEW') | translate }}</h1>
+      <p class="page-header__subtitle">{{ 'USERS.TITLE' | translate }}</p>
+    </div>
+    <a routerLink="/users" class="page-header__back">
+      <i class="pi pi-arrow-right"></i>
+      <span>{{ 'COMMON.BACK' | translate }}</span>
+    </a>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="surface-card form-card">
+    <div class="grid">
+      <div class="field">
+        <label for="user-username">{{ 'USERS.USERNAME' | translate }} *</label>
+        <input id="user-username" pInputText type="text" formControlName="username" />
+      </div>
+
+      <div class="field" *ngIf="!isEdit()">
+        <label for="user-password">{{ 'USERS.PASSWORD' | translate }} *</label>
+        <p-password inputId="user-password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-100"
+                    inputStyleClass="w-100"></p-password>
+      </div>
+
+      <div class="field">
+        <label for="user-first">{{ 'USERS.FIRST_NAME' | translate }} *</label>
+        <input id="user-first" pInputText type="text" formControlName="firstName" />
+      </div>
+
+      <div class="field">
+        <label for="user-last">{{ 'USERS.LAST_NAME' | translate }} *</label>
+        <input id="user-last" pInputText type="text" formControlName="lastName" />
+      </div>
+
+      <div class="field">
+        <label for="user-email">{{ 'USERS.EMAIL' | translate }}</label>
+        <input id="user-email" pInputText type="email" formControlName="email" />
+      </div>
+
+      <div class="field">
+        <label for="user-phone">{{ 'USERS.PHONE' | translate }}</label>
+        <input id="user-phone" pInputText type="tel" formControlName="phoneNumber" />
+      </div>
+
+      <div class="field">
+        <label for="user-lang">{{ 'USERS.PREFERRED_LANGUAGE' | translate }}</label>
+        <p-dropdown inputId="user-lang" [options]="languageOptions" formControlName="preferredLanguage" styleClass="w-100"></p-dropdown>
+      </div>
+
+      <div class="field" *ngIf="!isEdit()">
+        <label for="user-role">{{ 'USERS.ROLE' | translate }} *</label>
+        <p-dropdown inputId="user-role" [options]="roleOptions" formControlName="role" styleClass="w-100"></p-dropdown>
+      </div>
+
+      <div class="field" *ngIf="!isEdit()">
+        <label for="user-school">{{ 'USERS.SCHOOL' | translate }}</label>
+        <p-dropdown inputId="user-school" [options]="availableSchools()" formControlName="schoolId"
+                  optionLabel="name" optionValue="id"
+                  [placeholder]="'COMMON.OPTIONAL' | translate"
+                  [filter]="true" filterBy="name"
+                  [showClear]="true" styleClass="w-100"></p-dropdown>
+      </div>
+
+      <div class="field" *ngIf="isEdit()">
+        <label for="user-role-edit">{{ 'USERS.ROLE' | translate }}</label>
+        <p-dropdown inputId="user-role-edit" [options]="roleOptions" formControlName="role" styleClass="w-100" [disabled]="true"></p-dropdown>
+        <small class="field__hint">لتغيير الدور، عطّل المستخدم وأنشئ حساباً جديداً.</small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-text"
+              routerLink="/users"></button>
+      <button pButton type="submit" [label]="'COMMON.SAVE' | translate" [loading]="saving()"
+              [disabled]="form.invalid"></button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,163 @@
+<div class="page" dir="rtl">
+  <p-confirmDialog></p-confirmDialog>
+
+  <app-list-page-header titleKey="SCHOOLS.LIST" subtitleKey="SCHOOLS.TITLE">
+    <button slot="action" pButton type="button" icon="pi pi-plus"
+            [label]="'SCHOOLS.NEW' | translate"
+            class="page-header__primary"
+            (click)="goToCreate()"></button>
+  </app-list-page-header>
+
+  <app-list-toolbar>
+    <app-list-toolbar-field [grow]="true" labelKey="COMMON.SEARCH">
+      <p-inputGroup>
+        <input type="text" pInputText [placeholder]="'COMMON.SEARCH' | translate"
+               [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event); onSearch()" />
+        <button type="button" pButton icon="pi pi-search" (click)="onSearch()"></button>
+      </p-inputGroup>
+    </app-list-toolbar-field>
+
+    <app-list-toolbar-field labelKey="SCHOOLS.STAGE_LABEL">
+      <p-dropdown [options]="stageOptions" [ngModel]="stageFilter()"
+                  (onChange)="stageFilter.set($event.value); onFilter()"
+                  [placeholder]="'SCHOOLS.STAGE_LABEL' | translate"
+                  [showClear]="true"
+                  appendTo="body"></p-dropdown>
+    </app-list-toolbar-field>
+
+    <app-list-toolbar-field labelKey="COMMON.ACTIVE">
+      <p-dropdown [options]="isActiveOptions" [ngModel]="isActiveFilter()"
+                  (onChange)="isActiveFilter.set($event.value); onFilter()"
+                  [placeholder]="'COMMON.ACTIVE' | translate"
+                  [showClear]="true"
+                  appendTo="body"></p-dropdown>
+    </app-list-toolbar-field>
+  </app-list-toolbar>
+
+  <section class="surface-card table-card">
+    <p-table [value]="schools()" [loading]="loading()" [totalRecords]="totalCount()" [lazy]="true"
+             (onLazyLoad)="loadSchools($event)" [paginator]="true" [rows]="20"
+             [rowsPerPageOptions]="[10, 20, 50, 100]"
+             styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>{{ 'SCHOOLS.NAME' | translate }}</th>
+          <th>{{ 'SCHOOLS.CITY' | translate }}</th>
+          <th>{{ 'SCHOOLS.STAGE_LABEL' | translate }}</th>
+          <th>{{ 'SCHOOLS.MANAGER' | translate }}</th>
+          <th>{{ 'SCHOOLS.USERS_COUNT' | translate }}</th>
+          <th>{{ 'COMMON.ACTIVE' | translate }}</th>
+          <th class="table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-school>
+        <tr>
+          <td>
+            <div class="school-name">{{ school.name }}</div>
+            <div class="school-row-hints">
+              <span *ngIf="!school.managerUserId" class="hint hint-warning"
+                    [pTooltip]="'SCHOOLS.NEEDS_MANAGER_HINT' | translate" tooltipPosition="top">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>{{ 'SCHOOLS.MANAGER_REQUIRED_BADGE' | translate }}</span>
+              </span>
+              <span *ngIf="!school.isActive" class="hint hint-neutral">
+                <i class="pi pi-eye-slash"></i>
+                <span>{{ 'SCHOOLS.STATUS_INACTIVE_NOTE' | translate }}</span>
+              </span>
+            </div>
+          </td>
+          <td>{{ school.city }}</td>
+          <td>{{ stageLabel(school.stage) }}</td>
+          <td>
+            <span *ngIf="school.managerFullName; else noMgr">{{ school.managerFullName }}</span>
+            <ng-template #noMgr>
+              <span class="text-dim">{{ 'SCHOOLS.NO_MANAGER' | translate }}</span>
+            </ng-template>
+          </td>
+          <td>{{ school.activeUserCount }}</td>
+          <td>
+            <p-tag *ngIf="school.isActive" severity="success" [value]="'SCHOOLS.ACTIVE' | translate"></p-tag>
+            <p-tag *ngIf="!school.isActive" severity="danger" [value]="'SCHOOLS.INACTIVE' | translate"></p-tag>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button pButton type="button" icon="pi pi-pencil" class="p-button-secondary p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'COMMON.EDIT' | translate" tooltipPosition="top"
+                      (click)="goToEdit(school)"></button>
+
+              <button pButton type="button" icon="pi pi-user-plus" class="p-button-secondary p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'SCHOOLS.ASSIGN_MANAGER' | translate" tooltipPosition="top"
+                      (click)="openAssignManager(school)"></button>
+
+              <button *ngIf="school.isActive" pButton type="button" icon="pi pi-times-circle"
+                      class="p-button-warning p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'SCHOOLS.DEACTIVATE' | translate" tooltipPosition="top"
+                      (click)="toggleActive(school)"></button>
+
+              <button *ngIf="!school.isActive" pButton type="button" icon="pi pi-check-circle"
+                      class="p-button-success p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="(school.managerUserId ? 'SCHOOLS.ACTIVATE' : 'SCHOOLS.NEEDS_MANAGER_HINT') | translate"
+                      tooltipPosition="top"
+                      [disabled]="!school.managerUserId"
+                      (click)="toggleActive(school)"></button>
+
+              <button pButton type="button" icon="pi pi-trash"
+                      class="p-button-danger p-button-text p-button-sm p-button-icon-only"
+                      [pTooltip]="'COMMON.DELETE' | translate" tooltipPosition="top"
+                      (click)="confirmDelete(school, $event)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="empty">{{ 'COMMON.NO_DATA' | translate }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <!-- A6: Assign Manager dialog — proper padding, header, full-width searchable dropdown, footer actions -->
+  <p-dialog [header]="'SCHOOLS.ASSIGN_MANAGER' | translate"
+            [(visible)]="assignDialogVisible" [modal]="true"
+            [style]="{ width: '480px' }"
+            [draggable]="false" [resizable]="false">
+    <ng-template pTemplate="header">
+      <div class="dialog-header">
+        <i class="pi pi-user-plus dialog-header__icon"></i>
+        <span class="dialog-header__title">{{ 'SCHOOLS.ASSIGN_MANAGER' | translate }}</span>
+      </div>
+    </ng-template>
+
+    <div class="dialog-body">
+      <p class="dialog-school-name">{{ assignSchoolName() }}</p>
+
+      <form [formGroup]="assignForm" (ngSubmit)="submitAssignManager()">
+        <div class="field">
+          <label for="assign-user">{{ 'USERS.FULL_NAME' | translate }} *</label>
+          <p-dropdown inputId="assign-user"
+                      [options]="availableManagers()"
+                      formControlName="userId"
+                      optionLabel="fullName" optionValue="userId"
+                      [placeholder]="'COMMON.SELECT' | translate"
+                      [filter]="true" filterBy="fullName"
+                      [showClear]="true"
+                      appendTo="body"
+                      [emptyMessage]="'SCHOOLS.NO_MANAGERS_AVAILABLE' | translate"
+                      [loading]="managersLoading()"
+                      styleClass="w-100"></p-dropdown>
+        </div>
+      </form>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-secondary p-button-text"
+              (click)="assignDialogVisible.set(false)"></button>
+      <button pButton type="button" [label]="'COMMON.SAVE' | translate"
+              (click)="submitAssignManager()"
+              [disabled]="assignForm.invalid"></button>
+    </ng-template>
+  </p-dialog>
+</div>
