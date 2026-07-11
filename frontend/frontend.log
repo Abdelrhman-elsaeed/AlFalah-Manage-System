@@ -1,509 +1,19 @@
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.13 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 762.94 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-4MUDKLB5.js   | schools-list-component             |  26.86 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-R5FVO5LI.js   | users-list-component               |  25.71 kB | 
-chunk-QZ5E66MT.js   | user-school-roles-list-component   |  19.76 kB | 
-chunk-KRU6DQPF.js   | user-form-component                |  16.79 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-OLKOR2Z5.js   | school-form-component              |  14.04 kB | 
-chunk-KA2CMYDA.js   | shell-component                    |  11.74 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [4.034 seconds]
-
-Watch mode enabled. Watching for file changes...
-  ➜  Local:   http://localhost:4200/
-  ➜  Network: http://172.30.64.1:4200/
-  ➜  Network: http://192.168.0.104:4200/
-  ➜  Network: http://172.26.0.1:4200/
-
-No output file changes.
-
-Application bundle generation complete. [0.705 seconds]
-
-
-No output file changes.
-
-Application bundle generation complete. [0.713 seconds]
-
-Initial chunk files | Names | Raw size
-main.js             | main  | 17.26 kB | 
-
-Application bundle generation complete. [1.001 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [1.150 seconds]
-
-Application bundle generation failed. [0.239 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-4MUDKLB5.js   | schools-list-component             |  26.86 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-R5FVO5LI.js   | users-list-component               |  25.71 kB | 
-chunk-QZ5E66MT.js   | user-school-roles-list-component   |  19.76 kB | 
-chunk-KRU6DQPF.js   | user-form-component                |  16.79 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-OLKOR2Z5.js   | school-form-component              |  14.04 kB | 
-chunk-KA2CMYDA.js   | shell-component                    |  11.74 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.267 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names | Raw size
-main.js             | main  | 17.23 kB | 
-
-Application bundle generation complete. [0.291 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.387 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-R5FVO5LI.js   | users-list-component               |  25.71 kB | 
-chunk-QZ5E66MT.js   | user-school-roles-list-component   |  19.76 kB | 
-chunk-KRU6DQPF.js   | user-form-component                |  16.79 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-OLKOR2Z5.js   | school-form-component              |  14.04 kB | 
-chunk-KA2CMYDA.js   | shell-component                    |  11.74 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.479 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.535 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-QZ5E66MT.js   | user-school-roles-list-component   |  19.76 kB | 
-chunk-KRU6DQPF.js   | user-form-component                |  16.79 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-OLKOR2Z5.js   | school-form-component              |  14.04 kB | 
-chunk-KA2CMYDA.js   | shell-component                    |  11.74 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.501 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.523 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-KRU6DQPF.js   | user-form-component                |  16.79 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-OLKOR2Z5.js   | school-form-component              |  14.04 kB | 
-chunk-KA2CMYDA.js   | shell-component                    |  11.74 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.510 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.414 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-OLKOR2Z5.js   | school-form-component              |  14.04 kB | 
-chunk-KA2CMYDA.js   | shell-component                    |  11.74 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.364 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.375 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-KA2CMYDA.js   | shell-component                    |  11.74 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.397 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.401 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-UWXH7ROL.js   | school-login-component             |  26.18 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-JIXMTYHF.js   | shell-component                    |  11.80 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.426 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.367 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-37CHIKI4.js   | school-login-component             |  26.20 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-ZKQWVQTR.js   | main-manager-login-component       |  14.78 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-JIXMTYHF.js   | shell-component                    |  11.80 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.318 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.416 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-37CHIKI4.js   | school-login-component             |  26.20 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-U554ACHN.js   | main-manager-login-component       |  14.80 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-JIXMTYHF.js   | shell-component                    |  11.80 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-2HP35RHU.js   | instructor-dashboard-component     |   3.94 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.320 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.270 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-37CHIKI4.js   | school-login-component             |  26.20 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-U554ACHN.js   | main-manager-login-component       |  14.80 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-JIXMTYHF.js   | shell-component                    |  11.80 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-YHUHLNWC.js   | instructor-dashboard-component     |   4.00 kB | 
-chunk-7O5NMNQQ.js   | moderator-dashboard-component      |   3.91 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.204 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.333 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-37CHIKI4.js   | school-login-component             |  26.20 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-U554ACHN.js   | main-manager-login-component       |  14.80 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-JIXMTYHF.js   | shell-component                    |  11.80 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-GSG7OEMV.js   | school-manager-dashboard-component |   4.04 kB | 
-chunk-YHUHLNWC.js   | instructor-dashboard-component     |   4.00 kB | 
-chunk-4KEQVJ6N.js   | moderator-dashboard-component      |   3.97 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.244 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.265 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-37CHIKI4.js   | school-login-component             |  26.20 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-U554ACHN.js   | main-manager-login-component       |  14.80 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-JIXMTYHF.js   | shell-component                    |  11.80 kB | 
-chunk-2D5CWOXL.js   | main-manager-dashboard-component   |   4.20 kB | 
-chunk-BDOVEY7Z.js   | school-manager-dashboard-component |   4.10 kB | 
-chunk-YHUHLNWC.js   | instructor-dashboard-component     |   4.00 kB | 
-chunk-4KEQVJ6N.js   | moderator-dashboard-component      |   3.97 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.200 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.297 seconds]
-
-Initial chunk files | Names                              |  Raw size
-styles.css          | styles                             | 650.07 kB | 
-polyfills.js        | polyfills                          |  88.09 kB | 
-main.js             | main                               |  17.23 kB | 
-chunk-3YSRE3LW.js   | -                                  |   5.48 kB | 
-chunk-Y7J3ORFP.js   | -                                  |   1.07 kB | 
-chunk-SHAOKUVO.js   | -                                  | 938 bytes | 
-chunk-LCPJVVX6.js   | -                                  | 184 bytes | 
-
-                    | Initial total                      | 763.04 kB
-
-Lazy chunk files    | Names                              |  Raw size
-chunk-44XULY7Q.js   | schools-list-component             |  26.73 kB | 
-chunk-37CHIKI4.js   | school-login-component             |  26.20 kB | 
-chunk-IKTHFZ7M.js   | users-list-component               |  25.57 kB | 
-chunk-KUYOQXX5.js   | user-school-roles-list-component   |  19.67 kB | 
-chunk-LOJQMTOS.js   | user-form-component                |  16.74 kB | 
-chunk-U554ACHN.js   | main-manager-login-component       |  14.80 kB | 
-chunk-7YWRXKPU.js   | school-form-component              |  14.00 kB | 
-chunk-JIXMTYHF.js   | shell-component                    |  11.80 kB | 
-chunk-LM6UORCC.js   | main-manager-dashboard-component   |   4.26 kB | 
-chunk-BDOVEY7Z.js   | school-manager-dashboard-component |   4.10 kB | 
-chunk-YHUHLNWC.js   | instructor-dashboard-component     |   4.00 kB | 
-chunk-4KEQVJ6N.js   | moderator-dashboard-component      |   3.97 kB | 
-chunk-LPWYSJP5.js   | -                                  |   3.60 kB | 
-chunk-JMWSKPIY.js   | unauthorized-component             |   3.10 kB | 
-chunk-Z6KSLTAG.js   | -                                  |   1.19 kB | 
-
-Application bundle generation complete. [0.390 seconds]
-
-Page reload sent to client(s).
-Warning: Running a server with --disable-host-check is a security risk. See https://medium.com/webpack/webpack-dev-server-middleware-security-issues-1489d950874a for more information.
-The "disableHostCheck" option will not be used because it is not supported by the "@angular-devkit/build-angular:application" builder.
-- Building...
-
 Initial chunk files | Names                            |  Raw size
 styles.css          | styles                           | 714.78 kB | 
 polyfills.js        | polyfills                        |  88.09 kB | 
-main.js             | main                             |  21.37 kB | 
+main.js             | main                             |  22.88 kB | 
 chunk-P22VZGJM.js   | -                                |   5.48 kB | 
 chunk-OYAQZ2GH.js   | -                                |   1.53 kB | 
 chunk-SHAOKUVO.js   | -                                | 938 bytes | 
 chunk-H7IPDY5L.js   | -                                | 183 bytes | 
 
-                    | Initial total                    | 832.34 kB
+                    | Initial total                    | 833.85 kB
 
 Lazy chunk files    | Names                            |  Raw size
-chunk-SRFLWZG2.js   | visit-detail-component           |  83.40 kB | 
+chunk-A5237KFW.js   | visit-detail-component           |  84.70 kB | 
 chunk-X2SY6S22.js   | visit-form-component             |  53.42 kB | 
+chunk-X4OIQ6BL.js   | plan-list-component              |  42.95 kB | 
+chunk-NNSM3FRJ.js   | plan-detail-component            |  41.34 kB | 
 chunk-KLT44BUF.js   | schools-list-component           |  32.97 kB | 
 chunk-T5W562OQ.js   | users-list-component             |  29.02 kB | 
 chunk-C2V6ZHM4.js   | school-login-component           |  26.20 kB | 
@@ -514,15 +24,103 @@ chunk-N2LSQ4TB.js   | user-form-component              |  18.71 kB |
 chunk-GUWX2KXD.js   | rubric-viewer-component          |  17.06 kB | 
 chunk-X2VQKC62.js   | school-form-component            |  16.23 kB | 
 chunk-S5B6VJLN.js   | main-manager-login-component     |  14.99 kB | 
-chunk-KQLGWYGF.js   | shell-component                  |  14.47 kB | 
-chunk-XFPD3TZM.js   | -                                |   6.58 kB | 
-chunk-B64GTEJC.js   | -                                |   6.20 kB | 
-...and 10 more lazy chunks files. Use "--verbose" to show all the files.
+chunk-VW6SM3TP.js   | shell-component                  |  14.60 kB | 
+...and 14 more lazy chunks files. Use "--verbose" to show all the files.
 
-Application bundle generation complete. [4.775 seconds]
+Application bundle generation complete. [12.091 seconds]
 
 Watch mode enabled. Watching for file changes...
+Re-optimizing dependencies because lockfile has changed
   ➜  Local:   http://localhost:4200/
   ➜  Network: http://172.30.64.1:4200/
   ➜  Network: http://192.168.0.104:4200/
   ➜  Network: http://172.26.0.1:4200/
+Application bundle generation failed. [1.294 seconds]
+
+Initial chunk files | Names                            |  Raw size
+styles.css          | styles                           | 714.78 kB | 
+polyfills.js        | polyfills                        |  88.09 kB | 
+main.js             | main                             |  22.88 kB | 
+chunk-P22VZGJM.js   | -                                |   5.48 kB | 
+chunk-OYAQZ2GH.js   | -                                |   1.53 kB | 
+chunk-SHAOKUVO.js   | -                                | 938 bytes | 
+chunk-H7IPDY5L.js   | -                                | 183 bytes | 
+
+                    | Initial total                    | 833.85 kB
+
+Lazy chunk files    | Names                            |  Raw size
+chunk-A5237KFW.js   | visit-detail-component           |  84.70 kB | 
+chunk-X2SY6S22.js   | visit-form-component             |  53.42 kB | 
+chunk-X4OIQ6BL.js   | plan-list-component              |  42.95 kB | 
+chunk-NNSM3FRJ.js   | plan-detail-component            |  41.34 kB | 
+chunk-KLT44BUF.js   | schools-list-component           |  32.97 kB | 
+chunk-T5W562OQ.js   | users-list-component             |  29.02 kB | 
+chunk-C2V6ZHM4.js   | school-login-component           |  26.20 kB | 
+chunk-IPUUWHPV.js   | visits-list-component            |  24.94 kB | 
+chunk-OTF4BNAR.js   | rubric-editor-component          |  24.80 kB | 
+chunk-DV2EJHA6.js   | user-school-roles-list-component |  22.91 kB | 
+chunk-N2LSQ4TB.js   | user-form-component              |  18.71 kB | 
+chunk-GUWX2KXD.js   | rubric-viewer-component          |  17.06 kB | 
+chunk-X2VQKC62.js   | school-form-component            |  16.23 kB | 
+chunk-S5B6VJLN.js   | main-manager-login-component     |  14.99 kB | 
+chunk-VW6SM3TP.js   | shell-component                  |  14.60 kB | 
+...and 14 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [0.644 seconds]
+
+Page reload sent to client(s).
+
+No output file changes.
+
+Application bundle generation complete. [0.587 seconds]
+
+
+No output file changes.
+
+Application bundle generation complete. [0.506 seconds]
+
+Application bundle generation failed. [0.376 seconds]
+
+Application bundle generation failed. [0.796 seconds]
+
+Application bundle generation failed. [0.355 seconds]
+
+Application bundle generation failed. [0.396 seconds]
+
+Initial chunk files | Names                            |  Raw size
+styles.css          | styles                           | 714.78 kB | 
+polyfills.js        | polyfills                        |  88.09 kB | 
+main.js             | main                             |  22.88 kB | 
+chunk-P22VZGJM.js   | -                                |   5.48 kB | 
+chunk-OYAQZ2GH.js   | -                                |   1.53 kB | 
+chunk-SHAOKUVO.js   | -                                | 938 bytes | 
+chunk-H7IPDY5L.js   | -                                | 183 bytes | 
+
+                    | Initial total                    | 833.85 kB
+
+Lazy chunk files    | Names                            |  Raw size
+chunk-A5237KFW.js   | visit-detail-component           |  84.70 kB | 
+chunk-X2SY6S22.js   | visit-form-component             |  53.42 kB | 
+chunk-X4OIQ6BL.js   | plan-list-component              |  42.95 kB | 
+chunk-NNSM3FRJ.js   | plan-detail-component            |  41.34 kB | 
+chunk-KLT44BUF.js   | schools-list-component           |  32.97 kB | 
+chunk-T5W562OQ.js   | users-list-component             |  29.02 kB | 
+chunk-C2V6ZHM4.js   | school-login-component           |  26.20 kB | 
+chunk-IPUUWHPV.js   | visits-list-component            |  24.94 kB | 
+chunk-OTF4BNAR.js   | rubric-editor-component          |  24.80 kB | 
+chunk-DV2EJHA6.js   | user-school-roles-list-component |  22.91 kB | 
+chunk-N2LSQ4TB.js   | user-form-component              |  18.71 kB | 
+chunk-GUWX2KXD.js   | rubric-viewer-component          |  17.06 kB | 
+chunk-X2VQKC62.js   | school-form-component            |  16.23 kB | 
+chunk-S5B6VJLN.js   | main-manager-login-component     |  14.99 kB | 
+chunk-VW6SM3TP.js   | shell-component                  |  14.60 kB | 
+...and 14 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [0.508 seconds]
+
+Page reload sent to client(s).
+
+No output file changes.
+
+Application bundle generation complete. [0.558 seconds]
+

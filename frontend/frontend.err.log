@@ -11,271 +11,281 @@ case.
 
 - Changes detected. Rebuilding...
 
-- Changes detected. Rebuilding...
+X [ERROR] TS2551: Property 'toastr' does not exist on type 'AccountSettingsComponent'. Did you mean 'toast'? [plugin angular-compiler]
 
-- Changes detected. Rebuilding...
+    src/app/features/account/account-settings/account-settings.component.ts:67:15:
+      67 │           this.toastr.success(res.message || 'Signature saved succ...
+         ╵                ~~~~~~
 
-- Changes detected. Rebuilding...
+  'toast' is declared here.
 
-X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
-
-    src/app/app.config.ts:44:29:
-      44 │           useFactory: (http: HttpClient) => new TranslateHttpLoade...
-         ╵                              ~~~~~~~~~~
-
-
-X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
-
-    src/app/app.config.ts:45:17:
-      45 │           deps: [HttpClient]
-         ╵                  ~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:23:19:
+      23 │   private readonly toast = inject(ToastService);
+         ╵                    ~~~~~
 
 
-- Changes detected. Rebuilding...
+X [ERROR] TS2551: Property 'toastr' does not exist on type 'AccountSettingsComponent'. Did you mean 'toast'? [plugin angular-compiler]
 
-X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
+    src/app/features/account/account-settings/account-settings.component.ts:69:15:
+      69 │           this.toastr.error(res.errors?.[0] || 'Failed to save sig...
+         ╵                ~~~~~~
 
-    src/app/app.config.ts:44:29:
-      44 │           useFactory: (http: HttpClient) => new TranslateHttpLoade...
-         ╵                              ~~~~~~~~~~
+  'toast' is declared here.
 
-
-X [ERROR] TS2304: Cannot find name 'HttpClient'. [plugin angular-compiler]
-
-    src/app/app.config.ts:45:17:
-      45 │           deps: [HttpClient]
-         ╵                  ~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:23:19:
+      23 │   private readonly toast = inject(ToastService);
+         ╵                    ~~~~~
 
 
-- Changes detected. Rebuilding...
+X [ERROR] TS2551: Property 'toastr' does not exist on type 'AccountSettingsComponent'. Did you mean 'toast'? [plugin angular-compiler]
 
-- Changes detected. Rebuilding...
+    src/app/features/account/account-settings/account-settings.component.ts:74:13:
+      74 │         this.toastr.error('An error occurred while saving.');
+         ╵              ~~~~~~
 
-- Changes detected. Rebuilding...
+  'toast' is declared here.
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, FormsModule, ReactiveFormsModule, (not statically analyzable), TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, DropdownModule, TagModule, TooltipModule, ConfirmDialogModule, DialogModule]'. [plugin angular-compiler]
-
-    src/app/features/schools/schools-list/schools-list.component.ts:25:11:
-      25 │   imports: [
-         ╵            ^
-
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/schools/schools-list/schools-list.component.ts:26:52:
-      26 │     CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe,
-         ╵                                                     ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:23:19:
+      23 │   private readonly toast = inject(ToastService);
+         ╵                    ~~~~~
 
 
 - Changes detected. Rebuilding...
 
 - Changes detected. Rebuilding...
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, FormsModule, ReactiveFormsModule, (not statically analyzable), TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, InputNumberModule, DropdownModule, TagModule, TooltipModule, ConfirmDialogModule, DialogModule]'. [plugin angular-compiler]
-
-    src/app/features/users/users-list/users-list.component.ts:27:11:
-      27 │   imports: [
-         ╵            ^
-
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/users/users-list/users-list.component.ts:28:52:
-      28 │     CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe,
-         ╵                                                     ~~~~~~~~~~~~~
-
-
 - Changes detected. Rebuilding...
 
 - Changes detected. Rebuilding...
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, FormsModule, ReactiveFormsModule, (not statically analyzable), TableModule, ButtonModule, DropdownModule, InputGroupModule, InputGroupAddonModule, TooltipModule, ConfirmDialogModule, DialogModule]'. [plugin angular-compiler]
+X [ERROR] NG9: Property 'existingSignatureDataUrl' does not exist on type 'AccountSettingsComponent'. [plugin angular-compiler]
 
-    src/app/features/user-school-roles/user-school-roles-list/user-school-roles-list.component.ts:23:11:
-      23 │   imports: [
-         ╵            ^
+    src/app/features/account/account-settings/account-settings.component.html:12:48:
+      12 │ ... class="signature-card__preview" *ngIf="existingSignatureDataUrl">
+         ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
 
+  Error occurs in the template of component AccountSettingsComponent.
 
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/user-school-roles/user-school-roles-list/user-school-roles-list.component.ts:24:52:
-      24 │     CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe,
-         ╵                                                     ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-- Changes detected. Rebuilding...
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-- Changes detected. Rebuilding...
+    src/app/features/account/account-settings/account-settings.component.html:34:14:
+      34 │               [label]="'ACCOUNT.SIGNATURE.CLEAR' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, ReactiveFormsModule, RouterLink, (not statically analyzable), ButtonModule, InputTextModule, PasswordModule, DropdownModule]'. [plugin angular-compiler]
+  Error occurs in the template of component AccountSettingsComponent.
 
-    src/app/features/users/user-form/user-form.component.ts:18:11:
-      18 │   imports: [
-         ╵            ^
-
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/users/user-form/user-form.component.ts:19:51:
-      19 │     CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe,
-         ╵                                                    ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-- Changes detected. Rebuilding...
+X [ERROR] NG8002: Can't bind to 'outlined' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-- Changes detected. Rebuilding...
+    src/app/features/account/account-settings/account-settings.component.html:36:14:
+      36 │               [outlined]="true"
+         ╵               ~~~~~~~~~~~~~~~~~
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, ReactiveFormsModule, RouterLink, (not statically analyzable), ButtonModule, InputTextModule, DropdownModule]'. [plugin angular-compiler]
+  Error occurs in the template of component AccountSettingsComponent.
 
-    src/app/features/schools/school-form/school-form.component.ts:17:11:
-      17 │   imports: [
-         ╵            ^
-
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/schools/school-form/school-form.component.ts:18:51:
-      18 │     CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe,
-         ╵                                                    ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-- Changes detected. Rebuilding...
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-- Changes detected. Rebuilding...
+    src/app/features/account/account-settings/account-settings.component.html:42:14:
+      42 │               [label]="'ACCOUNT.SIGNATURE.SAVE' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, RouterOutlet, RouterLink, RouterLinkActive, (not statically analyzable)]'. [plugin angular-compiler]
+  Error occurs in the template of component AccountSettingsComponent.
 
-    src/app/shared/layout/shell/shell.component.ts:25:11:
-      25 │   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActi...
-         ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+X [ERROR] NG8002: Can't bind to 'loading' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-    src/app/shared/layout/shell/shell.component.ts:25:70:
-      25 │ ...odule, RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
-         ╵                                                       ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.html:44:14:
+      44 │               [loading]="isSaving"
+         ╵               ~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 - Changes detected. Rebuilding...
 
-- Changes detected. Rebuilding...
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, ReactiveFormsModule, (not statically analyzable), RouterLink]'. [plugin angular-compiler]
+    src/app/features/account/account-settings/account-settings.component.html:34:14:
+      34 │               [label]="'ACCOUNT.SIGNATURE.CLEAR' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    src/app/features/auth/school-login/school-login.component.ts:12:11:
-      12 │   imports: [CommonModule, ReactiveFormsModule, TranslatePipe, Rout...
-         ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Error occurs in the template of component AccountSettingsComponent.
 
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/auth/school-login/school-login.component.ts:12:47:
-      12 │ ...s: [CommonModule, ReactiveFormsModule, TranslatePipe, RouterLink],
-         ╵                                           ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-- Changes detected. Rebuilding...
+X [ERROR] NG8002: Can't bind to 'outlined' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-- Changes detected. Rebuilding...
+    src/app/features/account/account-settings/account-settings.component.html:36:14:
+      36 │               [outlined]="true"
+         ╵               ~~~~~~~~~~~~~~~~~
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, ReactiveFormsModule, (not statically analyzable), RouterLink]'. [plugin angular-compiler]
+  Error occurs in the template of component AccountSettingsComponent.
 
-    src/app/features/auth/main-manager-login/main-manager-login.component.ts:11:11:
-      11 │   imports: [CommonModule, ReactiveFormsModule, TranslatePipe, Rout...
-         ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/auth/main-manager-login/main-manager-login.component.ts:11:47:
-      11 │ ...s: [CommonModule, ReactiveFormsModule, TranslatePipe, RouterLink],
-         ╵                                           ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-- Changes detected. Rebuilding...
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-- Changes detected. Rebuilding...
+    src/app/features/account/account-settings/account-settings.component.html:42:14:
+      42 │               [label]="'ACCOUNT.SIGNATURE.SAVE' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
+  Error occurs in the template of component AccountSettingsComponent.
 
-    src/app/features/dashboards/instructor-dashboard/instructor-dashboard.component.ts:9:11:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+X [ERROR] NG8002: Can't bind to 'loading' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-    src/app/features/dashboards/instructor-dashboard/instructor-dashboard.component.ts:9:26:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵                           ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.html:44:14:
+      44 │               [loading]="isSaving"
+         ╵               ~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 - Changes detected. Rebuilding...
 
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
+
+    src/app/features/account/account-settings/account-settings.component.html:34:14:
+      34 │               [label]="'ACCOUNT.SIGNATURE.CLEAR' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8002: Can't bind to 'outlined' since it isn't a known property of 'button'. [plugin angular-compiler]
+
+    src/app/features/account/account-settings/account-settings.component.html:36:14:
+      36 │               [outlined]="true"
+         ╵               ~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
+
+    src/app/features/account/account-settings/account-settings.component.html:42:14:
+      42 │               [label]="'ACCOUNT.SIGNATURE.SAVE' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8002: Can't bind to 'loading' since it isn't a known property of 'button'. [plugin angular-compiler]
+
+    src/app/features/account/account-settings/account-settings.component.html:44:14:
+      44 │               [loading]="isSaving"
+         ╵               ~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 - Changes detected. Rebuilding...
 
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-    src/app/features/dashboards/moderator-dashboard/moderator-dashboard.component.ts:9:11:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.html:34:14:
+      34 │               [label]="'ACCOUNT.SIGNATURE.CLEAR' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
+X [ERROR] NG8002: Can't bind to 'outlined' since it isn't a known property of 'button'. [plugin angular-compiler]
 
-    src/app/features/dashboards/moderator-dashboard/moderator-dashboard.component.ts:9:26:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵                           ~~~~~~~~~~~~~
+    src/app/features/account/account-settings/account-settings.component.html:36:14:
+      36 │               [outlined]="true"
+         ╵               ~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8002: Can't bind to 'label' since it isn't a known property of 'button'. [plugin angular-compiler]
+
+    src/app/features/account/account-settings/account-settings.component.html:42:14:
+      42 │               [label]="'ACCOUNT.SIGNATURE.SAVE' | translate"
+         ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8002: Can't bind to 'loading' since it isn't a known property of 'button'. [plugin angular-compiler]
+
+    src/app/features/account/account-settings/account-settings.component.html:44:14:
+      44 │               [loading]="isSaving"
+         ╵               ~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component AccountSettingsComponent.
+
+    src/app/features/account/account-settings/account-settings.component.ts:13:15:
+      13 │   templateUrl: './account-settings.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 - Changes detected. Rebuilding...
-
-- Changes detected. Rebuilding...
-
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
-
-    src/app/features/dashboards/school-manager-dashboard/school-manager-dashboard.component.ts:9:11:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/dashboards/school-manager-dashboard/school-manager-dashboard.component.ts:9:26:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵                           ~~~~~~~~~~~~~
-
-
-- Changes detected. Rebuilding...
-
-- Changes detected. Rebuilding...
-
-X [ERROR] TS-991010: 'imports' must be an array of components, directives, pipes, or NgModules.
-  Value is of type '[CommonModule, (not statically analyzable)]'. [plugin angular-compiler]
-
-    src/app/features/dashboards/main-manager-dashboard/main-manager-dashboard.component.ts:9:11:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-X [ERROR] TS2304: Cannot find name 'TranslatePipe'. [plugin angular-compiler]
-
-    src/app/features/dashboards/main-manager-dashboard/main-manager-dashboard.component.ts:9:26:
-      9 │   imports: [CommonModule, TranslatePipe],
-        ╵                           ~~~~~~~~~~~~~
-
 
 - Changes detected. Rebuilding...
 

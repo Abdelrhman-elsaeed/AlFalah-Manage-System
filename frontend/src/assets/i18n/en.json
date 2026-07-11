@@ -8,7 +8,10 @@
     "SIGNATURE": {
       "LABEL": "My Signature (Hand-drawn)",
       "DESCRIPTION": "This signature will be used in visit reports.",
-      "CLEAR": "Clear Signature"
+      "CLEAR": "Clear Signature",
+      "SAVE": "Save Signature",
+      "CURRENT_TITLE": "Currently Saved Signature",
+      "CURRENT_HINT": "This is your currently saved signature. Redraw and Save to replace it."
     }
   },
   "AUTH": {

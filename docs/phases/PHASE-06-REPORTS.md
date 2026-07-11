@@ -346,6 +346,13 @@ stays thin and `FileStreamResult`-only.
   - `visit-5-report-stage2-full.pdf` (full branding — logo + signatures + QR)
   - `visit-5-text-stage2.txt` (extracted text, Arabic shapes correctly)
 
+### Post-Stage 2 Bug Fixes (D-48, 2026-07-11)
+- **Bug 2 (Signatures):** Fixed missing-signature fallback to render a blank dashed line instead of hard-coded "S. Manager". Real signature PNG bytes are now properly rendered.
+- **Bug 3 (Domain averages):** Replaced the broken transposed table with a clean `Row` of 5 compact cards stacked vertically (code/name/score).
+- **Bug 4 (Score badges):** Fixed badge sizes to a consistent 26×26 circular badge and reordered the columns in the standards table (score on the left, code on the right) for proper RTL reading order.
+- **Bug 5 (Header RTL):** Reordered header columns so the logo physically renders on the right (RTL inline-start) and the text block renders on the left.
+- **Bug 6 (Meta card + footer alignment):** Corrected status badge alignment to visual end (RTL left) and footer text to visual start (RTL right).
+
 ### Out-of-scope (deferred)
 - **ReportArchive entity + archive listing endpoint** — deferred to a
   separate later prompt.

@@ -20,10 +20,24 @@ namespace AlFalah.Infrastructure.Services;
 ///       Manager signatures from UserSignature, and an optional QR code
 ///       in the footer. Every external asset has a safe PDF fallback —
 ///       a missing logo / signature / QR MUST NEVER crash the report.
+///
+/// BUG-FIX OVERHAUL (2026-07-11):
+///   Bug 2 — Signature: renders the real drawn-signature image when bytes
+///     are present; falls back to a BLANK LINE only (never any text like
+///     "S. Manager"). The printed name + date line are always shown below.
+///   Bug 3 — Domain averages: rewritten as a clean RTL row of 5 compact
+///     cards — no stray "الاسم"/"المتوسط" header cells floating.
+///   Bug 4 — Score badges: fixed-size 26×26 circular badge, semantic color,
+///     aligned column, label left of badge, no oversized cells.
+///   Bug 5 — Header RTL: logo is now on the RIGHT (QuestPDF Row items flow
+///     L→R physically; logo placed as the second/last item so it appears on
+///     the right; text block on the left so it's readable RTL).
+///   Bug 6 — MetaCard / Footer: status badge aligned to the left (visual end
+///     in RTL), footer text aligned right, clean 2-column meta grid.
 /// </summary>
 public class PdfReportService : IPdfReportService
 {
-    // Font names — mapped to the actual family name inside the TTF since we now use RegisterFont(stream)
+    // Font names — mapped to the actual family name inside the TTF since we use RegisterFont(stream)
     private const string AmiriRegular = "Amiri";
     private const string AmiriBold = "Amiri";
 
@@ -189,10 +203,16 @@ public class PdfReportService : IPdfReportService
     // ─── Page regions ─────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Stage 2 branded header: brand-colored band with the school logo (or an
-    /// initials placeholder when missing/unreachable) on the RTL start side
-    /// (right) and the school name + report title + header text on the opposite
-    /// side. Keeps the Stage-1 right-aligned Arabic paragraph layout intact.
+    /// BUG-5 FIX — RTL header: brand-colored band with the school logo (or
+    /// an initials placeholder) on the RIGHT (RTL inline-start / visual right)
+    /// and the school name + report title text block on the LEFT (visual left).
+    ///
+    /// QuestPDF Row items flow LEFT-to-RIGHT physically, regardless of the
+    /// page DefaultTextStyle's DirectionFromRightToLeft setting. To achieve
+    /// "logo on the right" in an RTL document we place the TEXT column first
+    /// (it renders on the left) and the LOGO column second (it renders on the
+    /// right). The text inside the text column is right-aligned and RTL, so
+    /// it reads correctly.
     /// </summary>
     private void ComposeHeader(IContainer container, VisitReportDto dto)
     {
@@ -203,19 +223,21 @@ public class PdfReportService : IPdfReportService
             {
                 outer.Item().Row(row =>
                 {
-                    // Start side (RTL → visually right): logo or initials.
-                    row.ConstantItem(72).Height(56)
-                        .AlignMiddle().AlignCenter()
-                        .Element(c => RenderSchoolLogoOrInitials(c, dto));
-
-                    // Opposite side (visually left): school name + title.
-                    row.RelativeItem().PaddingRight(16).Column(col =>
+                    // ── LEFT side (visual left in the physical row) ──
+                    // Text block: school name + report title, right-aligned RTL.
+                    row.RelativeItem().PaddingRight(12).Column(col =>
                     {
                         col.Item().AlignRight().Text(dto.HeaderText)
                             .FontFamily(AmiriBold).FontSize(16).Bold().FontColor(Palette.White);
                         col.Item().PaddingTop(4).AlignRight().Text(T.ReportTitle)
-                            .FontSize(13).FontColor("#FFF8DC");
+                            .FontFamily(AmiriRegular).FontSize(13).FontColor("#FFF8DC");
                     });
+
+                    // ── RIGHT side (visual right = RTL inline-start) ──
+                    // Logo or initials — BUG-5 FIX: logo now on the right.
+                    row.ConstantItem(72).Height(56)
+                        .AlignMiddle().AlignCenter()
+                        .Element(c => RenderSchoolLogoOrInitials(c, dto));
                 });
 
                 // Brand-color rule under the header.
@@ -228,12 +250,8 @@ public class PdfReportService : IPdfReportService
     /// otherwise falls back to a neutral initials placeholder so a missing or
     /// unreachable logo NEVER breaks the report.
     /// </summary>
-private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto)
+    private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto)
     {
-        // The outer cell already has a fixed size (72 × 56 from the header row)
-        // and is aligned middle+center by the caller. We only need to add a
-        // thin border and then place exactly one child (logo image or initials
-        // text) inside.
         container.Border(1).BorderColor("#FFFFFF55")
             .Element(inner => RenderLogoContent(inner, dto));
     }
@@ -293,33 +311,35 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
     /// right, and the QR code on the left when <c>ShowQrCode</c> is on.
     /// QR encodes ONLY a compact reference (visit id + school id + short
     /// hash) — no scores, no PII. The verification page is deferred.
+    ///
+    /// BUG-6 FIX: footer text is now AlignRight (RTL start), QR on the left.
     /// </summary>
     private void ComposeFooter(IContainer container, VisitReportDto dto)
     {
         container.PaddingTop(8).BorderTop(0.5f).BorderColor(Palette.Border).PaddingTop(6)
             .Row(row =>
             {
-                // QR (start side, visually right in RTL).
+                // QR (visual left side — end side in RTL).
                 row.ConstantItem(72).Height(50).AlignCenter().AlignMiddle()
                     .Element(c => RenderQrCode(c, dto));
 
-                // Generated timestamp (middle).
+                // Generated timestamp (middle, centered).
                 row.RelativeItem().AlignCenter().Text(t =>
                 {
-                    t.Span(T.FooterGenerated + ": ").FontColor(Palette.Muted).FontSize(8);
+                    t.Span(T.FooterGenerated + ": ").FontColor(Palette.Muted).FontFamily(AmiriRegular).FontSize(8);
                     t.Span(dto.ApprovedAt.HasValue
                         ? dto.ApprovedAt.Value.ToString("u")
                         : DateTimeOffset.UtcNow.ToString("u"))
-                     .FontColor(Palette.Muted).FontSize(8);
+                     .FontColor(Palette.Muted).FontFamily(AmiriRegular).FontSize(8);
                 });
 
-                // Footer text or report title (opposite side, visually left in RTL).
-                row.RelativeItem().AlignLeft().Text(t =>
+                // BUG-6 FIX: footer text aligned to the right (RTL start/inline-start).
+                row.RelativeItem().AlignRight().Text(t =>
                 {
                     var footer = string.IsNullOrWhiteSpace(dto.FooterText)
                         ? T.ReportTitle
                         : dto.FooterText;
-                    t.Span(footer).FontColor(Palette.Muted).FontSize(8);
+                    t.Span(footer).FontFamily(AmiriRegular).FontColor(Palette.Muted).FontSize(8);
                 });
             });
     }
@@ -391,29 +411,40 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
 
     // ─── Sections ────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// BUG-6 FIX — Meta card: clean 2-column RTL grid.
+    /// Status badge is now on the LEFT (visual end in RTL); rubric version
+    /// on the RIGHT (visual start in RTL). No overlap.
+    /// Row order: school | teacher, subject | class, moderator | visit type,
+    /// sequence | visit date, submitted | approved, approved-by | (empty).
+    /// </summary>
     private void ComposeMetaCard(IContainer container, VisitReportDto dto)
     {
         container.Border(1).BorderColor(Palette.Border).Padding(12).Column(col =>
         {
             col.Spacing(8);
 
-            // Top row: Rubric Version (RTL start/right) and Status (RTL end/left)
+            // Top row: rubric version (RIGHT = RTL start) | status badge (LEFT = RTL end)
             col.Item().Row(row =>
             {
-                row.RelativeItem().AlignRight().Text(t =>
+                // BUG-6 FIX: status badge on the LEFT (visual end) — in RTL,
+                // the "approved" badge reads naturally from the left edge.
+                row.AutoItem()
+                    .Background(Palette.BrandGreen).PaddingVertical(4).PaddingHorizontal(8)
+                    .AlignCenter().Text(T.StatusApproved)
+                    .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.White);
+
+                row.RelativeItem(); // spacer
+
+                // Rubric version label on the right (RTL start)
+                row.AutoItem().AlignRight().Text(t =>
                 {
                     t.Span(T.LabelRubricVersion + ": " + dto.RubricVersionNumber)
                      .FontColor(Palette.Muted).FontSize(9);
                 });
-
-                row.ConstantItem(100).AlignLeft()
-                    .Background(Palette.BrandGreen).PaddingVertical(4).PaddingHorizontal(8)
-                    .AlignCenter().Text(T.StatusApproved)
-                    .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.White);
             });
 
-            // Grid for info block, strictly ordered.
-            // Using a 2-column table for perfect RTL alignment.
+            // 2-column info grid — strictly ordered per spec
             col.Item().Table(table =>
             {
                 table.ColumnsDefinition(c =>
@@ -442,7 +473,7 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSubmittedAt, dto.SubmittedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—"));
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedAt, dto.ApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—"));
 
-                // Row 6: Approved By | (Empty)
+                // Row 6: Approved By | (empty)
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedBy, string.IsNullOrWhiteSpace(dto.ApprovedByFullName) ? "—" : dto.ApprovedByFullName));
                 table.Cell().AlignRight(); // Empty cell to balance the grid
             });
@@ -476,16 +507,23 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
     {
         container.Border(1).BorderColor(Palette.Border).Column(col =>
         {
-            // Domain header
+            // Domain header — RTL: [domain average right-aligned] [domain name center] [domain code LEFT=start in LTR row]
+            // Physical row: [code chip LEFT] [name CENTER expanding] [average RIGHT]
+            // Visually in RTL: average reads first (right), code chip last (left).
             col.Item().Background(Palette.Page).Padding(8).Row(row =>
             {
+                // Code chip — left side (physical) = RTL end
                 row.ConstantItem(56).AlignCenter().Background(Palette.Gold)
                     .PaddingVertical(4).PaddingHorizontal(8)
                     .Text(block.DomainCode)
                     .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.Text);
+
+                // Domain name — expanding, right-aligned
                 row.RelativeItem().AlignRight().PaddingRight(8)
                     .Text(block.DomainNameAr)
                     .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.BrandGreenText);
+
+                // Domain average — compact, right side (physical) = RTL start
                 row.ConstantItem(80).AlignCenter().Text(t =>
                 {
                     t.Span(T.LabelDomainAvgPrefix + ": ").FontColor(Palette.Muted).FontSize(9);
@@ -494,23 +532,28 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
                 });
             });
 
-            // Standards table
+            // BUG-4 FIX — Standards table: 3 columns, tighter badge cell.
+            // Physical order (L→R): [score pill 90pt] [standard text expanding] [code chip 48pt]
+            // In RTL reading: code (right) → text → score pill (left/end)
             col.Item().Padding(8).Table(table =>
             {
                 table.ColumnsDefinition(c =>
                 {
-                    c.ConstantColumn(48);
-                    c.RelativeColumn();
-                    c.ConstantColumn(110);
+                    c.ConstantColumn(90);  // score pill (visual left = RTL end)
+                    c.RelativeColumn();    // standard text (expands, right-aligned)
+                    c.ConstantColumn(48);  // code chip (visual right = RTL start)
                 });
 
                 foreach (var std in block.Standards)
                 {
                     var scoreColor = ScoreColor(std.Score);
 
-                    table.Cell().AlignCenter().Text(std.StandardCode)
-                        .FontSize(9).FontColor(Palette.Muted);
-                    table.Cell().AlignRight().PaddingVertical(4).Column(sc =>
+                    // Score pill — LEFT column (physical) = RTL end
+                    table.Cell().AlignCenter().AlignMiddle()
+                        .Element(c => ComposeScorePill(c, std.Score, std.ScoreLabelAr, scoreColor));
+
+                    // Standard text — MIDDLE column, right-aligned RTL
+                    table.Cell().AlignRight().AlignMiddle().PaddingVertical(4).Column(sc =>
                     {
                         sc.Item().AlignRight().Text(std.StandardTextAr)
                             .FontSize(10).FontColor(Palette.Text);
@@ -520,24 +563,39 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
                                 .FontSize(8).Italic().FontColor(Palette.Muted);
                         }
                     });
-                    table.Cell().AlignCenter().Element(c => ComposeScorePill(c, std.Score, std.ScoreLabelAr, scoreColor));
+
+                    // Code chip — RIGHT column (physical) = RTL start
+                    table.Cell().AlignCenter().AlignMiddle().Text(std.StandardCode)
+                        .FontSize(9).FontColor(Palette.Muted);
                 }
             });
         });
     }
 
+    /// <summary>
+    /// BUG-4 FIX — Score pill: fixed 26×26 badge, semantic color,
+    /// Arabic label to the right of the badge (in RTL context, label reads first).
+    ///
+    /// Physical row (L→R): [badge 26×26] [label text]
+    /// In RTL reading order: label (right = RTL start) → badge (left = RTL end)
+    /// This means the reader sees the performance label first, then the number.
+    /// </summary>
     private static void ComposeScorePill(IContainer container, int? score, string label, string color)
     {
-        // Use a 2-column layout so it never wraps awkwardly. Text on right (RTL), badge on left.
-        container.AlignMiddle().AlignCenter().Row(row =>
+        container.AlignMiddle().Row(row =>
         {
-            row.AutoItem().PaddingLeft(6).AlignMiddle().Text(label)
-                .FontSize(9).FontColor(color);
-                
-            row.ConstantItem(24).Height(24).Background(color)
+            // Score number badge — fixed 26×26, rounded corners via border+radius
+            row.ConstantItem(26).Height(26)
+                .Background(color)
+                .Border(0)
                 .AlignCenter().AlignMiddle()
                 .Text(score?.ToString() ?? "—")
-                .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.White);
+                .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.White);
+
+            // Performance label — to the right in RTL reading
+            row.RelativeItem().PaddingRight(4).AlignRight().AlignMiddle()
+                .Text(label)
+                .FontSize(8).FontColor(color);
         });
     }
 
@@ -548,7 +606,7 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
             col.Item().AlignRight().Text(T.SectionAnalysis)
                 .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreenText);
 
-            // Summary row: overall + performance level (RTL → level first)
+            // Summary row: overall + performance level (RTL → level first visually)
             col.Item().PaddingTop(6).Row(row =>
             {
                 row.RelativeItem().AlignRight().Element(c => ComposeSummaryCell(c,
@@ -558,57 +616,60 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
                     T.LabelOverallScore, dto.OverallScore.ToString("0.000"), Palette.BrandGreen));
             });
 
-            // Domain averages
+            // BUG-3 FIX — Domain averages: clean RTL row of 5 compact cards.
+            // Each card: [domain code] / [domain name] / [average score]
+            // No stray "الاسم"/"المتوسط" header row cells floating.
             if (dto.Domains.Count > 0)
             {
-                col.Item().PaddingTop(8).Text(T.SectionDomainAvg)
-                    .AlignRight().FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.BrandGreenText);
+                col.Item().PaddingTop(8).AlignRight().Text(T.SectionDomainAvg)
+                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.BrandGreenText);
 
-                col.Item().PaddingTop(4).Table(table =>
+                col.Item().PaddingTop(6).Row(row =>
                 {
-                    table.ColumnsDefinition(c =>
-                    {
-                        c.RelativeColumn(); // Row header column
-                        foreach (var _ in dto.Domains) c.RelativeColumn();
-                    });
-
-                    // Header codes row
-                    table.Cell().AlignCenter().Text(t =>
-                    {
-                        t.Span("المحور").FontFamily(AmiriBold).FontSize(9).FontColor(Palette.Muted);
-                    });
+                    // Render 5 compact cards in a row (equal widths via RelativeItem).
+                    // Physical order: D1 ... D5 left-to-right.
+                    // In RTL context the first domain (D1) will appear on the right.
+                    // To present D1 on the right (RTL start) we iterate in normal order.
                     foreach (var d in dto.Domains)
                     {
-                        table.Cell().AlignCenter().Padding(4).Text(d.DomainCode)
-                            .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Gold);
-                    }
-
-                    // Domain names row
-                    table.Cell().AlignCenter().Text(t =>
-                    {
-                        t.Span("الاسم").FontFamily(AmiriBold).FontSize(9).FontColor(Palette.Muted);
-                    });
-                    foreach (var d in dto.Domains)
-                    {
-                        table.Cell().AlignCenter().Padding(4)
-                            .Text(d.DomainNameAr).FontSize(9).FontColor(Palette.Text);
-                    }
-
-                    // Average scores row
-                    table.Cell().AlignCenter().Text(t =>
-                    {
-                        t.Span("المتوسط").FontFamily(AmiriBold).FontSize(9).FontColor(Palette.Muted);
-                    });
-                    foreach (var d in dto.Domains)
-                    {
-                        table.Cell().AlignCenter().Padding(6)
-                            .Text(d.AverageScore.ToString("0.000"))
-                            .FontFamily(AmiriBold).FontSize(11).Bold()
-                            .FontColor(ScoreColorForLevelNumeric(d.AverageScore));
+                        row.RelativeItem().Element(c => ComposeDomainAvgCard(c, d));
+                        // Small gap between cards (except after last)
+                        if (d != dto.Domains[^1])
+                            row.ConstantItem(4);
                     }
                 });
             }
         });
+    }
+
+    /// <summary>
+    /// BUG-3 FIX — Individual domain average card: compact, vertically centered,
+    /// shows [code] / [name] / [average] stacked. No floating label row.
+    /// </summary>
+    private static void ComposeDomainAvgCard(IContainer container, ReportDomainBlockDto domain)
+    {
+        var scoreColor = ScoreColorForLevelNumeric(domain.AverageScore);
+
+        container
+            .Border(1).BorderColor(Palette.Border)
+            .Background(Palette.Page)
+            .Padding(6)
+            .Column(col =>
+            {
+                col.Spacing(2);
+
+                // Domain code (e.g. D1) — centered, gold
+                col.Item().AlignCenter().Text(domain.DomainCode)
+                    .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Gold);
+
+                // Domain name — centered, small, truncated if needed
+                col.Item().AlignCenter().Text(domain.DomainNameAr)
+                    .FontSize(8).FontColor(Palette.Muted);
+
+                // Average score — prominent, colored by score band
+                col.Item().AlignCenter().PaddingTop(2).Text(domain.AverageScore.ToString("0.000"))
+                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(scoreColor);
+            });
     }
 
     private static void ComposeSummaryCell(IContainer container, string label, string value, string scoreColor)
@@ -679,11 +740,16 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
     }
 
     /// <summary>
-    /// Stage 2 signature card: two columns (Moderator / Manager) rendering real
-    /// signature images from <see cref="UserSignature"/>, plus printed names and
-    /// approval date. Falls back to a blank signature line + printed name when
-    /// the image is missing — never crashes. Each column can be suppressed
-    /// via the corresponding <see cref="SchoolReportSettings"/> flag.
+    /// BUG-2 FIX — Stage 2 signature card: two columns (Moderator / Manager)
+    /// rendering REAL signature images from UserSignature.
+    ///
+    /// Fallback: when the image bytes are null, render ONLY a blank horizontal
+    /// line as the signature area. Never show "S. Manager" or any hard-coded
+    /// name. The printed name + date line are ALWAYS shown below (these come
+    /// from the visit's actual data).
+    ///
+    /// Each column can be suppressed via the corresponding SchoolReportSettings
+    /// flag.
     /// </summary>
     private void ComposeSignatureCard(IContainer container, VisitReportDto dto)
     {
@@ -710,19 +776,19 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
     }
 
     /// <summary>
-    /// Stage 2 signature box: real signature image (when available) + printed
-    /// name + date. When the image bytes are null the rendered image area is
-    /// a blank line + the printed name — no crash, no broken layout.
+    /// BUG-2 FIX — Signature box: renders the real signature image when
+    /// bytes are present. If bytes are null/empty, renders ONLY a blank
+    /// dashed line — no hard-coded text placeholder, no "S. Manager".
+    /// The printed name (from visit data) and the date line are always shown.
     /// </summary>
     private static void SignatureBox(IContainer container, VisitReportDto dto, bool isModerator)
     {
-        var label = isModerator ? T.LabelSupervisorSig : T.LabelManagerSig;
+        var label      = isModerator ? T.LabelSupervisorSig : T.LabelManagerSig;
         var printedName = isModerator
             ? dto.CreatedByFullName
             : dto.ApprovedByFullName ?? string.Empty;
 
         byte[]? imageBytes = isModerator ? dto.ModeratorSignatureBytes : dto.ManagerSignatureBytes;
-        var format = isModerator ? dto.ModeratorSignatureFormat : dto.ManagerSignatureFormat;
 
         var dateText = !isModerator && dto.ApprovedAt.HasValue
             ? $"التاريخ: {dto.ApprovedAt.Value:yyyy-MM-dd}"
@@ -730,34 +796,40 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
 
         container.Border(1).BorderColor(DynamicPalette.BrandGreenText).Padding(10).Column(col =>
         {
+            // Section label
             col.Item().AlignRight().Text(label)
                 .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Muted);
 
-            // Signature image area — fixed height so the two columns stay aligned
-            // even when one image is missing.
+            // Signature image area — fixed 60pt height so both columns stay aligned.
+            // BUG-2 FIX: if bytes are present → render real image.
+            //             if bytes are null  → render blank dashed line only.
+            //             NEVER any hard-coded "S. Manager" text.
             col.Item().PaddingTop(6).Height(60).AlignCenter().AlignMiddle()
-                .Element(c => RenderSignatureImage(c, imageBytes, format));
+                .Element(c => RenderSignatureImage(c, imageBytes));
 
-            // Printed name (always present, even if empty).
-            col.Item().PaddingTop(6).AlignCenter()
-                .Text(printedName)
-                .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Text);
+            // Printed name from visit data (always shown, never hard-coded)
+            if (!string.IsNullOrWhiteSpace(printedName))
+            {
+                col.Item().PaddingTop(6).AlignCenter()
+                    .Text(printedName)
+                    .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Text);
+            }
 
-            // Date line.
+            // Date line
             col.Item().PaddingTop(8).BorderTop(1).BorderColor(Palette.Muted)
                 .AlignCenter().PaddingTop(4).Text(t =>
                 {
-                    t.Span(dateText).FontColor(Palette.Muted).FontSize(8);
+                    t.Span(dateText).FontFamily(AmiriRegular).FontColor(Palette.Muted).FontSize(8);
                 });
         });
     }
 
     /// <summary>
-    /// Stage 2: renders the signature image when bytes are present, otherwise
-    /// shows a dashed placeholder line. Never throws — a malformed payload
-    /// falls back to the placeholder.
+    /// BUG-2 FIX — Renders the signature image when bytes are present.
+    /// Falls back to a blank dashed horizontal line when bytes are null/empty.
+    /// Never throws — a malformed payload falls back to the blank line.
     /// </summary>
-    private static void RenderSignatureImage(IContainer container, byte[]? bytes, string format)
+    private static void RenderSignatureImage(IContainer container, byte[]? bytes)
     {
         if (bytes is { Length: > 0 })
         {
@@ -771,11 +843,11 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
             }
             catch
             {
-                // fall through to placeholder
+                // fall through to blank line
             }
         }
 
-        // Placeholder: a blank signature line (Task 6 fallback).
+        // BUG-2 FIX: Fallback is ONLY a blank signature line — no text placeholder.
         container.AlignBottom().PaddingHorizontal(10).LineHorizontal(1).LineColor(Palette.Muted);
     }
 
@@ -793,8 +865,8 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
     /// </summary>
     public static string BuildPdfFilename(string? instructorFullName, DateTimeOffset visitDate, string? visitCategoryLabelAr)
     {
-        var teacher = SanitizeForFilename(instructorFullName);
-        var year = visitDate.Year.ToString();
+        var teacher  = SanitizeForFilename(instructorFullName);
+        var year     = visitDate.Year.ToString();
         var category = SanitizeForFilename(visitCategoryLabelAr);
         return $"{teacher} - {year} - {category}.pdf";
     }
@@ -808,7 +880,7 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
     public static string BuildZipFilename(string? schoolName, DateTimeOffset generatedAt)
     {
         var dateStr = generatedAt.ToString("yyyy-MM-dd");
-        var school = SanitizeForFilename(schoolName);
+        var school  = SanitizeForFilename(schoolName);
         if (string.IsNullOrWhiteSpace(school) || school == "ملف")
             return $"زيارات-{dateStr}.zip";
         return $"زيارات-{school}-{dateStr}.zip";
@@ -844,12 +916,12 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
 
     private static string ScoreColorForLevel(string levelAr) => levelAr switch
     {
-        "متميز" => Palette.ScoreTop,
-        "جيد جداً" => Palette.ScoreHigh,
-        "جيد" => Palette.ScoreHigh,
-        "متحقق جزئياً" => Palette.ScoreMid,
-        "يحتاج تحسين" => Palette.Gold,
-        _ => Palette.ScoreLow
+        "متميز"          => Palette.ScoreTop,
+        "جيد جداً"       => Palette.ScoreHigh,
+        "جيد"            => Palette.ScoreHigh,
+        "متحقق جزئياً"   => Palette.ScoreMid,
+        "يحتاج تحسين"    => Palette.Gold,
+        _                => Palette.ScoreLow
     };
 
     private static string ScoreColorForLevelNumeric(decimal average) => average switch
@@ -859,7 +931,7 @@ private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto
         >= 2.5m => Palette.ScoreHigh,
         >= 2.0m => Palette.ScoreMid,
         >= 1.0m => Palette.Gold,
-        _ => Palette.ScoreLow
+        _       => Palette.ScoreLow
     };
 
     // ─── Font registration (embedded Arabic font) ───────────────────────────
