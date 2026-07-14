@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅
-**Last updated:** 2026-07-11
+**Last updated:** 2026-07-15
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -57,6 +57,9 @@
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-07-15 | **Visit-form teacher auto-fill 403 fixed:** changed only `GET /api/v1/teachers/{userId}/teaching` from the administrative `User.View` gate to `Visit.Create`, so in-scope Moderators and School Managers can load the selected Instructor's teaching data. `TeacherService` school scoping remains authoritative; the visit form now suppresses the global Unauthorized redirect solely for this background fetch and uses its existing manual fallback on a real 403. Live verification: School Manager + Moderator receive 200 for an in-scope Instructor. | Codex |
+| 2026-07-15 | **Teachers management completion audit:** restored the required manager class-chip editor in the teacher profile (scoped `PUT /teachers/{userId}/teaching`) and removed classes from the teacher add/edit form, where they were out of scope. The Instructor self-service teaching editor and visit-form auto-fill/fallback remain intact. Frontend production build green; backend Release build green with one pre-existing nullable warning. i18n parity preserved (361/361 leaf keys). | Codex |
+| 2026-07-15 | **Development database/account baseline verified**: applied EF migrations were already current through `AddTeacherProfileClasses`; the active schema uses the intentional `Users`/`Roles` Identity table names (not `AspNetUsers`/`AspNetRoles`). Hardened the Development seeder idempotently to ensure all five role accounts, Identity-hashed dev passwords, school assignments, the instructor profile, and sample school ID 1. Verified `http://localhost:5264`, all five login endpoints (HTTP 200 + JWT), and DI registrations for `ITeacherService`, `IComplaintService`, and `IDashboardService`. No business logic, migration files, visits, or manually-created data changed. | Codex |
 | 2026-07-14 | **Teacher profile subject/classes enhancement completed**: reused `ApplicationUser` + `InstructorProfile`; completed the teacher form fields and scoped school handling; added table-backed `InstructorClass` storage through the single additive migration `AddTeacherProfileClasses`; exposed self-only `/account/teaching` and manager-scoped `/teachers/{userId}/teaching`; auto-fills subject and class choices in the visit form with a manual fallback. Scoring, analysis, approval visibility, and existing scope gates were not changed. i18n parity: ar/en 358/358 leaf keys. | Team |
 | 2026-07-10 | Initial spec kit created from project prompt + README | Team |
 | 2026-07-10 | Phase 1 marked COMPLETED; gap-fix items recorded | Team |
@@ -94,7 +97,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅
-**Last updated:** 2026-07-11
+**Last updated:** 2026-07-15
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -150,6 +153,9 @@
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-07-15 | **D-36 critical Instructor visibility fix:** removed Instructor `Visit.View`, `Rubric.View`, plan, and follow-up permissions through the idempotent role-permission sync; added server-scoped `GET /api/v1/visits/my-approved-reports` (own + Approved only); blocked Instructor-only callers from the supervisor visit list/detail/analysis/view-status/export and non-approved PDFs; added the minimal تقاريري page/sidebar and route guard for `/visits`. Backend Release and frontend production builds pass; ar/en parity preserved. | Codex |
+| 2026-07-15 | **Visit-form teacher auto-fill 403 fixed:** changed only `GET /api/v1/teachers/{userId}/teaching` from the administrative `User.View` gate to `Visit.Create`, so in-scope Moderators and School Managers can load the selected Instructor's teaching data. `TeacherService` school scoping remains authoritative; the visit form now suppresses the global Unauthorized redirect solely for this background fetch and uses its existing manual fallback on a real 403. Live verification: School Manager + Moderator receive 200 for an in-scope Instructor. | Codex |
+| 2026-07-15 | **Teachers management completion audit:** restored the required manager class-chip editor in the teacher profile (scoped `PUT /teachers/{userId}/teaching`) and removed classes from the teacher add/edit form, where they were out of scope. The Instructor self-service teaching editor and visit-form auto-fill/fallback remain intact. Frontend production build green; backend Release build green with one pre-existing nullable warning. i18n parity preserved (361/361 leaf keys). | Codex |
 | 2026-07-15 | **DI reliability hot-fix (no phase started):** completed the scoped registrations for `ITeacherService → TeacherService`, `IComplaintService → ComplaintService`, and `IDashboardService → DashboardService`; kept AccountController's intended `ITeacherService` dependency and all API/visibility behavior unchanged. Added a DI regression test for the controller-facing services. Backend build passed (0 warnings, 0 errors), startup completed migrations/seeding and bound on `http://localhost:5264`, tests passed 67/67, and `AddTeacherProfileClasses` is applied. | Team |
 | 2026-07-10 | Initial spec kit created from project prompt + README | Team |
 | 2026-07-10 | Phase 1 marked COMPLETED; gap-fix items recorded | Team |

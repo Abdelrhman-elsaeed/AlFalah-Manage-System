@@ -1,6 +1,6 @@
 # 03 — Roles & Permissions
 
-**Status:** Baseline · **Last updated:** 2026-07-10
+**Status:** Baseline · **Last updated:** 2026-07-15
 
 > Roles are **database-driven**. Do **not** hardcode role logic using only enums.
 > Required model: ApplicationUser, ApplicationRole, Permission, RolePermission, UserSchoolRole.
@@ -128,14 +128,23 @@ this Moderator's own reports.
 ## 5) Instructor / معلم
 **Scope:** Own account only. Must have `ApplicationUser`; `InstructorProfile` links
 to `ApplicationUser` and `SchoolId`.
-**Can view:** own evaluation results, detailed report, numeric score, performance
-level, strengths, weaknesses, improvement plans, follow-ups, comparison between
-visits, moderator notes, moderator name, attachments/reports, latest evaluation,
-performance development.
-**Can do:** view report; download approved PDF if allowed; submit complaint/review
-request; when Instructor opens a report, system records that the report was viewed.
-**Restrictions:** cannot edit evaluations; cannot see other instructors; cannot see
-other teachers' data.
+**Can view:** only his own **Approved** evaluation reports and their approved PDF:
+numeric score, performance level, strengths, weaknesses, moderator notes/name, and
+the attached report. The dedicated report feed is server-filtered by
+`Visit.InstructorId == currentUserId` **and** `Status == Approved`; query
+parameters can never broaden that scope.
+**Can do:** view the read-only approved report; download its approved PDF; submit
+a complaint/review request; when Instructor opens a report, the system records the
+view.
+**Navigation:** exactly **الرئيسية** (Instructor dashboard), **تقاريري**
+(own approved reports), and **إعدادات الحساب**; a complaint entry may be shown
+when its UI route is available. The Instructor never sees supervisor **الزيارات**,
+its filters/export/actions, or **أداة التقييم**, teachers, users, assignments,
+schools, or supervisor complaints.
+**Restrictions:** cannot edit evaluations; cannot see other instructors or any
+non-approved visit. The generic supervisor visit endpoints (list, detail,
+analysis, view-status, and ZIP export) return 403 for an Instructor-only caller;
+the Instructor must use the dedicated report feed and report endpoint.
 **Dashboard:** latest evaluation, performance trend, strengths, improvement points,
 improvement plans, follow-ups, attachments/reports, report view status, request
 review/complaint button.

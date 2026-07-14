@@ -1,6 +1,6 @@
 # Phase 1 — Foundation
 
-**Status:** COMPLETED ✅ (gap-fix DONE) · **Last updated:** 2026-07-10
+**Status:** COMPLETED ✅ (gap-fix DONE; Development data baseline verified) · **Last updated:** 2026-07-15
 
 ## Goal
 Establish the full backend + frontend skeleton, identity, JWT + refresh tokens,
@@ -124,7 +124,7 @@ See [../02-DOMAIN-MODEL.md](../02-DOMAIN-MODEL.md).
 - [x] `School.IsActive` + `Role.IsActive` checks added to school-login & refresh; inactive user/role/school cannot login
 
 ## Verification evidence
-- Swagger lists all **8** endpoints at `https://localhost:7002/swagger`.
+- Swagger lists all **8** endpoints at `http://localhost:5264/swagger`.
 - Deactivating school #1 → login rejected.
 - Reuse of an old (rotated) refresh token → **401**.
 
@@ -135,6 +135,16 @@ See [../02-DOMAIN-MODEL.md](../02-DOMAIN-MODEL.md).
 | School Manager | school_manager_1 |
 | Moderator | moderator_1 |
 > Sample School: مدرسة الفلاح النموذجية — الرياض (Id: 1). Change all credentials in production.
+
+### Development data baseline verification (2026-07-15)
+
+The completed Foundation phase was re-verified against `AlFalahDb` without
+starting a new phase. EF migrations were already fully applied. The idempotent
+Development seeder now ensures all five documented roles have working accounts:
+SuperAdmin, MainManager, SchoolManager, Moderator, and Instructor. The three
+school-scoped accounts have active `UserSchoolRole` rows for sample school ID 1;
+the Instructor also has an `InstructorProfile`. Passwords remain Identity-hashed.
+No existing visits or manually-created data were restored or deleted.
 
 ## Dependencies
 None (foundation).

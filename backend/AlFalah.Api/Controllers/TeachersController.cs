@@ -163,8 +163,12 @@ public class TeachersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), 404)]
     public async Task<IActionResult> GetTeaching(string userId, CancellationToken cancellationToken)
     {
-        if (!_currentUser.HasPermission(PermissionNames.UserView))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لعرض بيانات المعلم."));
+        // This is the visit-form auto-fill read, not user administration.
+        // Every caller allowed to create a visit must be able to read the
+        // selected in-scope Instructor's subject/classes. TeacherService still
+        // enforces ActiveSchoolId scope (global callers bypass it).
+        if (!_currentUser.HasPermission(PermissionNames.VisitCreate))
+            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإنشاء زيارة أو عرض بيانات المعلم المقيَّم."));
 
         try
         {

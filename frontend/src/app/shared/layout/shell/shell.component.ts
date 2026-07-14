@@ -75,7 +75,31 @@ export class ShellComponent {
       });
     }
 
-    // Task 1: Add Account Settings link for all authenticated users
+    const isInstructorOnly =
+      roles.includes('Instructor') &&
+      !roles.includes('SchoolManager') &&
+      !roles.includes('Moderator') &&
+      !roles.includes('MainManager') &&
+      !roles.includes('SuperAdmin');
+
+    // D-36: Instructor navigation is intentionally a distinct, minimal surface.
+    // Supervisor visits, filters/export, rubric, staff, and admin modules must
+    // not become visible merely because a broad permission is accidentally seeded.
+    if (isInstructorOnly) {
+      out.push({
+        labelKey: 'NAV.MY_REPORTS',
+        icon: 'pi pi-file',
+        route: '/instructor/reports'
+      });
+      out.push({
+        labelKey: 'ACCOUNT.TITLE',
+        icon: 'pi pi-user-edit',
+        route: '/account/settings'
+      });
+      return out;
+    }
+
+    // Account Settings link for all other authenticated users.
     out.push({
       labelKey: 'ACCOUNT.TITLE',
       icon: 'pi pi-user-edit',

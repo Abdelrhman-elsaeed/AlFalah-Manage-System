@@ -63,6 +63,11 @@
 }
 .profile-cell .value--muted { color: var(--text-muted); font-weight: 500; }
 .profile-cell--full { grid-column: 1 / -1; }
+.profile-cell--editing > :not(.classes-editor) { display: none; }
+.classes-heading { display: flex; justify-content: flex-end; }
+.classes-editor { display: grid; gap: var(--space-2); }
+.classes-hint { color: var(--text-muted); font-size: 0.82rem; }
+.classes-actions { display: flex; align-items: center; gap: var(--space-2); }
 .class-chip {
   display: inline-flex;
   align-items: center;
@@ -76,6 +81,8 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
+:host ::ng-deep .classes-editor .p-chips,
+:host ::ng-deep .classes-editor .p-chips-multiple-container { width: 100%; }
 @media (max-width: 960px) { .profile-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .profile-grid { grid-template-columns: 1fr; } }
 

@@ -47,6 +47,15 @@ public interface IVisitService
 
     Task<PagedResult<VisitListItemDto>> ListAsync(VisitListQuery query, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Instructor-facing feed of the caller's approved reports only. The caller
+    /// identity and <c>Approved</c> status are imposed server-side; neither can
+    /// be widened by query parameters.
+    /// </summary>
+    Task<PagedResult<VisitListItemDto>> ListInstructorApprovedReportsAsync(
+        VisitListQuery query,
+        CancellationToken cancellationToken = default);
+
     // ─── Phase 5: approval / reopen / instructor visibility ─────────────────
 
     /// <summary>

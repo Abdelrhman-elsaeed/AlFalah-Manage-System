@@ -167,7 +167,9 @@ export class VisitFormComponent implements OnInit {
     if (!userId) return;
 
     this.teachingLoading.set(true);
-    this.teachersService.getTeaching(userId).subscribe({
+    // A rejected background auto-fill must leave the visit form usable. The
+    // error handler below exposes the existing manual subject/class fallback.
+    this.teachersService.getTeaching(userId, true).subscribe({
       next: response => {
         this.teachingLoading.set(false);
         if (this.form.controls['instructorId'].value !== userId) return;

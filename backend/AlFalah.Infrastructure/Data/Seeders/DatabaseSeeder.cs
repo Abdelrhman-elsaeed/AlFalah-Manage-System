@@ -36,8 +36,8 @@ public class DatabaseSeeder
         await SeedRolesAsync();
         await SeedPermissionsAsync();
         await SyncRolePermissionsAsync();
-        await SeedSuperAdminAsync();
-        await SeedSampleDataAsync();
+        var sampleSchool = await EnsureSampleSchoolAsync();
+        await SeedDevAccountsAsync(sampleSchool);
         await SeedRubricAsync();
 
         _logger.LogInformation("Database seeding completed.");
@@ -278,12 +278,8 @@ public class DatabaseSeeder
             [RoleNames.Instructor] = new[]
             {
                 PermissionNames.ReportView, PermissionNames.ReportDownload,
-                PermissionNames.PlanView, PermissionNames.FollowUpView,
                 PermissionNames.ComplaintCreate, PermissionNames.ComplaintView,
                 PermissionNames.DashboardInstructor,
-                PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
-                PermissionNames.VisitView,   // Phase 4: instructor can SEE that a visit exists.
-                                            // Visibility of RESULTS is Phase 5.
             },
         };
     }
@@ -356,6 +352,220 @@ public class DatabaseSeeder
     }
 
     // ─── Super Admin user ─────────────────────────────────────────────────────
+
+    // Development-only credentials. Passwords are always passed through ASP.NET
+    // Core Identity; these values are never written to the database in plaintext.
+    private const string SuperAdminPassword = "AlFalah@SuperAdmin2024!";
+    private const string MainManagerPassword = "AlFalah@MainManager2024!";
+    private const string SchoolManagerPassword = "AlFalah@Manager2024!";
+    private const string ModeratorPassword = "AlFalah@Moderator2024!";
+    private const string InstructorPassword = "AlFalah@Instructor2024!";
+
+    private async Task<School> EnsureSampleSchoolAsync()
+    {
+        var school = await _context.Schools
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s =>
+                s.Name == "مدرسة الفلاح النموذجية"
+                && s.Stage == SchoolStage.Primary
+                && s.City == "الرياض"
+                && s.LocationDetails == "حي النخيل");
+
+        if (school == null)
+        {
+            school = new School
+            {
+                Name = "مدرسة الفلاح النموذجية",
+                Stage = SchoolStage.Primary,
+                City = "الرياض",
+                LocationDetails = "حي النخيل",
+                IsActive = true
+            };
+            _context.Schools.Add(school);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Sample school created: {SchoolName} (Id: {SchoolId})", school.Name, school.Id);
+        }
+        else if (school.IsDeleted || !school.IsActive)
+        {
+            school.IsDeleted = false;
+            school.DeletedAt = null;
+            school.DeletedByUserId = null;
+            school.IsActive = true;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Sample school restored: {SchoolName} (Id: {SchoolId})", school.Name, school.Id);
+        }
+
+        return school;
+    }
+
+    private async Task SeedDevAccountsAsync(School sampleSchool)
+    {
+        var superAdmin = await EnsureDevUserAsync(
+            "superadmin", "superadmin@alfalah.edu.sa", "مدير", "النظام",
+            RoleNames.SuperAdmin, SuperAdminPassword);
+
+        await EnsureDevUserAsync(
+            "main_manager_1", "mainmanager1@alfalah.edu.sa", "مدير", "المدارس العام",
+            RoleNames.MainManager, MainManagerPassword);
+
+        var schoolManager = await EnsureDevUserAsync(
+            "school_manager_1", "manager1@alfalah.edu.sa", "أحمد", "العمري",
+            RoleNames.SchoolManager, SchoolManagerPassword);
+
+        var moderator = await EnsureDevUserAsync(
+            "moderator_1", "moderator1@alfalah.edu.sa", "سارة", "الحربي",
+            RoleNames.Moderator, ModeratorPassword);
+
+        var instructor = await EnsureDevUserAsync(
+            "instructor_1", "instructor1@alfalah.edu.sa", "معلم", "تجريبي",
+            RoleNames.Instructor, InstructorPassword);
+
+        await EnsureSchoolAssignmentAsync(schoolManager, sampleSchool, RoleNames.SchoolManager);
+        await EnsureSchoolAssignmentAsync(moderator, sampleSchool, RoleNames.Moderator);
+        await EnsureSchoolAssignmentAsync(instructor, sampleSchool, RoleNames.Instructor);
+
+        if (sampleSchool.ManagerUserId != schoolManager.Id)
+        {
+            sampleSchool.ManagerUserId = schoolManager.Id;
+            await _context.SaveChangesAsync();
+        }
+
+        await EnsureInstructorProfileAsync(instructor, sampleSchool);
+
+        _logger.LogInformation(
+            "Development accounts ensured: {SuperAdmin}, {MainManager}, {SchoolManager}, {Moderator}, {Instructor}",
+            superAdmin.UserName, "main_manager_1", schoolManager.UserName, moderator.UserName, instructor.UserName);
+    }
+
+    private async Task<ApplicationUser> EnsureDevUserAsync(
+        string username,
+        string email,
+        string firstName,
+        string lastName,
+        string roleName,
+        string password)
+    {
+        var normalizedUsername = username.ToUpperInvariant();
+        var user = await _context.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUsername);
+
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                UserName = username,
+                Email = email,
+                EmailConfirmed = true,
+                FirstName = firstName,
+                LastName = lastName,
+                PreferredLanguage = "ar",
+                IsActive = true
+            };
+
+            EnsureIdentitySuccess(
+                await _userManager.CreateAsync(user, password),
+                $"create {username}");
+        }
+        else
+        {
+            user.Email = email;
+            user.EmailConfirmed = true;
+            user.FirstName = firstName;
+            user.LastName = lastName;
+            user.PreferredLanguage = "ar";
+            user.IsActive = true;
+            user.IsDeleted = false;
+            user.DeletedAt = null;
+            user.DeletedByUserId = null;
+            EnsureIdentitySuccess(await _userManager.UpdateAsync(user), $"update {username}");
+        }
+
+        if (!await _userManager.CheckPasswordAsync(user, password))
+        {
+            if (!string.IsNullOrEmpty(user.PasswordHash))
+                EnsureIdentitySuccess(await _userManager.RemovePasswordAsync(user), $"reset password for {username}");
+
+            EnsureIdentitySuccess(await _userManager.AddPasswordAsync(user, password), $"set password for {username}");
+        }
+
+        if (!await _userManager.IsInRoleAsync(user, roleName))
+            EnsureIdentitySuccess(await _userManager.AddToRoleAsync(user, roleName), $"assign {roleName} to {username}");
+
+        return user;
+    }
+
+    private async Task EnsureSchoolAssignmentAsync(ApplicationUser user, School school, string roleName)
+    {
+        var role = await _roleManager.FindByNameAsync(roleName)
+            ?? throw new InvalidOperationException($"Seed role '{roleName}' was not found.");
+
+        var assignment = await _context.UserSchoolRoles
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(x => x.UserId == user.Id && x.SchoolId == school.Id && x.RoleId == role.Id);
+
+        if (assignment == null)
+        {
+            _context.UserSchoolRoles.Add(new UserSchoolRole
+            {
+                UserId = user.Id,
+                SchoolId = school.Id,
+                RoleId = role.Id,
+                IsActive = true,
+                IsDeleted = false
+            });
+        }
+        else
+        {
+            assignment.IsActive = true;
+            assignment.IsDeleted = false;
+            assignment.DeletedAt = null;
+            assignment.DeletedByUserId = null;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task EnsureInstructorProfileAsync(ApplicationUser instructor, School school)
+    {
+        var profile = await _context.InstructorProfiles
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(x => x.UserId == instructor.Id);
+
+        if (profile == null)
+        {
+            _context.InstructorProfiles.Add(new InstructorProfile
+            {
+                UserId = instructor.Id,
+                SchoolId = school.Id,
+                Stage = school.Stage,
+                SubjectSpecialization = "الرياضيات",
+                EmployeeNumber = "DEV-INSTRUCTOR-1",
+                IsActive = true,
+                IsDeleted = false
+            });
+        }
+        else
+        {
+            profile.SchoolId = school.Id;
+            profile.Stage = school.Stage;
+            profile.IsActive = true;
+            profile.IsDeleted = false;
+            profile.DeletedAt = null;
+            profile.DeletedByUserId = null;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private static void EnsureIdentitySuccess(IdentityResult result, string operation)
+    {
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(
+                $"Identity seed operation failed ({operation}): {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
+    }
 
     private async Task SeedSuperAdminAsync()
     {

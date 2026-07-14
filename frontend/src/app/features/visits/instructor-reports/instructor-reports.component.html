@@ -1,0 +1,43 @@
+<div class="page" dir="rtl">
+  <app-list-page-header titleKey="REPORTS.INSTRUCTOR_TITLE" subtitleKey="REPORTS.INSTRUCTOR_APPROVED_LIST"></app-list-page-header>
+
+  <section class="surface-card table-card">
+    <p-table [value]="reports()" [lazy]="true" [loading]="loading()"
+             [paginator]="true" [rows]="20" [totalRecords]="totalCount()"
+             (onLazyLoad)="load($event)" [rowsPerPageOptions]="[10,20,50]"
+             styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>{{ 'VISITS.VISIT_CATEGORY' | translate }}</th>
+          <th>{{ 'VISITS.VISIT_SEQUENCE' | translate }}</th>
+          <th>{{ 'VISITS.VISIT_DATE' | translate }}</th>
+          <th>{{ 'VISITS.STATUS' | translate }}</th>
+          <th class="table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center muted">{{ 'REPORTS.NO_APPROVED_VISITS' | translate }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-report>
+        <tr>
+          <td>{{ report.id }}</td>
+          <td>{{ report.visitCategoryLabelAr }}</td>
+          <td><span class="chip">{{ report.visitSequenceLabelAr }}</span></td>
+          <td>{{ report.visitDate | date:'mediumDate' }}</td>
+          <td><p-tag severity="success" [value]="report.statusLabelAr"></p-tag></td>
+          <td class="table-actions-col">
+            <button pButton pTooltip="{{ 'REPORTS.OPEN' | translate }}" tooltipPosition="top"
+                    type="button" icon="pi pi-eye"
+                    class="p-button-text p-button-sm p-button-icon-only"
+                    (click)="openReport(report)"></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+</div>

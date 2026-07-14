@@ -72,12 +72,6 @@
         <input id="user-email" pInputText type="email" formControlName="email" />
       </div>
 
-      <div class="field field--full" *ngIf="isInstructor()">
-        <label for="teacher-classes">{{ 'TEACHERS.CLASSES' | translate }}</label>
-        <p-chips inputId="teacher-classes" formControlName="classes" [allowDuplicate]="false" separator="," styleClass="w-100"></p-chips>
-        <small class="field__hint">{{ 'TEACHERS.CLASSES_HINT' | translate }}</small>
-      </div>
-
       <div class="field" *ngIf="!isEdit()">
         <label for="user-role">{{ 'USERS.ROLE' | translate }} *</label>
         <p-dropdown inputId="user-role" [options]="roleOptions" formControlName="role" appendTo="body" styleClass="w-100"></p-dropdown>

@@ -170,7 +170,9 @@ export class VisitDetailComponent implements OnInit {
     if (v) this.router.navigate(['/visits', v.id, 'improvement-plans']);
   }
 
-  goBack(): void { this.router.navigate(['/visits']); }
+  goBack(): void {
+    this.router.navigate(this.isInstructor() ? ['/instructor/reports'] : ['/visits']);
+  }
 
   // Group scores by domain code for the read-only grid.
   groupedScores(): Array<{ domainCode: string; domainNameAr: string; scores: any[] }> {
@@ -341,7 +343,10 @@ export class VisitDetailComponent implements OnInit {
    *  a "مسودة — غير معتمدة" watermark on non-Approved visits. The visibility
    *  gates (school-scope / moderator own-only / instructor own-only) remain
    *  enforced server-side. Front-end gate is UX only. */
-  readonly canShowPdfDownload = computed(() => this.visit() !== null);
+  readonly canShowPdfDownload = computed(() =>
+    this.visit() !== null &&
+    (!this.isInstructor() || this.instructorSeesFullResult())
+  );
 
   /** Phase 6 / Stage 1 — Download the visit's PDF report.
    *  Records a ReportViewLog on the backend (mirrors the /report endpoint).

@@ -1,6 +1,6 @@
 # Phase 5 — Approval & Instructor Visibility
 
-**Status:** COMPLETED ✅ (D-36 closed 2026-07-10; D-37 closed 2026-07-10) · **Last updated:** 2026-07-10
+**Status:** COMPLETED ✅ (D-36 re-hardened 2026-07-15; D-37 closed 2026-07-10) · **Last updated:** 2026-07-15
 
 ## Goal
 School Manager approval workflow and controlled instructor visibility.
@@ -24,11 +24,12 @@ School Manager approval workflow and controlled instructor visibility.
 - After approval, Instructor can view the result.
 - When Instructor views the report, create a **ReportViewLog**.
 - Visit can be reopened and edited even after approval; every reopen/edit is audited.
-- D-36 (security): the gate that hides scores/analysis from a non-approved
-  Instructor is enforced **server-side in `VisitService.GetByIdAsync`**, not
-  in the UI. The dedicated `GET /api/v1/visits/{id}/report` endpoint is the
-  only path that returns the full result to an Instructor — and it is the
-  only path that writes a `ReportViewLog` row.
+- D-36 (security): Instructor-only callers are rejected from the generic
+  supervisor visit surface (`GET /api/v1/visits`, detail, analysis,
+  view-status, and ZIP export) **server-side**. The dedicated
+  `GET /api/v1/visits/my-approved-reports` feed fixes the query to own +
+  Approved; `GET /api/v1/visits/{id}/report` is the only full-result path and
+  writes a `ReportViewLog` row. Instructor PDF access is also own + Approved.
 
 ## State machine (Phase 5 — verbatim)
 
@@ -79,6 +80,8 @@ Invalid transitions throw `InvalidOperationException` → HTTP 400 with Arabic
   (record every view; expose "first viewed / last viewed / count" via the
   view-status endpoint).
 - Instructor cannot edit anything (enforced in backend, not just UI).
+- Instructor cannot access the supervisor list, filters, export, or rubric
+  editor; the frontend route/sidebar is defense in depth only.
 
 ## Audit
 
@@ -111,7 +114,10 @@ writes an `AuditLog` row:
 - Permissions enforced (401 / 403). ✅
 - Frontend flows work end-to-end (SM approves → Instructor sees result → view logged). ✅
 - No D-19 regression (ar/en key parity). ✅
-- D-36 close (2026-07-10) — backend `GetByIdAsync` rejects instructor cross-record access (403) and strips scores/analysis when status != Approved (safe pending payload); frontend `visit-detail` calls `/report` for instructors and `getById` for managers/moderators/admins. ✅
+- D-36 re-hardening (2026-07-15) — Instructor-only callers receive 403 from
+  the generic supervisor list/detail/analysis/view-status/export endpoints;
+  `GET /my-approved-reports`, `/report`, and instructor PDF all enforce own +
+  Approved in the backend. ✅
 - D-36 close — view-status increments as instructors view reports (live-verified: 0 → 2 → 5 across test runs). ✅
 - D-37 close (2026-07-10) — backend `VisitService` enforces Moderator own-visits-only: list query filters `Where(v => v.CreatedByUserId == currentUserId)` for Moderator-only callers; detail / analysis / view-status endpoints call `EnsureModeratorCanAccessCreatedByVisit` and return 403 Arabic when the visit was created by another user. School Manager / Super Admin / Main Manager / Instructor behaviour unchanged (no D-24/D-28/D-36 regression). Live-verified with two moderators in the same school. ✅
 

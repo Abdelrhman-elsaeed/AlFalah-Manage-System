@@ -1,6 +1,6 @@
 # 05 — API Endpoints
 
-**Status:** Phase 6 Stage 1 (PDF Reports) added · **Last updated:** 2026-07-10
+**Status:** Phase 6 Stage 1 (PDF Reports) added · **Last updated:** 2026-07-15
 
 > **Base URL (dev):** `http://localhost:5264` · **Swagger:** `http://localhost:5264/swagger`
 
@@ -103,6 +103,7 @@ docs/09 verbatim and is computed and persisted ONCE on submit (immutable in Phas
 | POST   | `/api/v1/visits/{id}/submit` | Validate 25/25 → `Draft → PendingApproval` + persist analysis snapshot | `Visit.Edit` |
 | DELETE | `/api/v1/visits/{id}`        | Soft delete (Draft only) | `Visit.Delete` |
 | GET    | `/api/v1/visits/{id}/analysis` | Analysis snapshot only; 404 if not submitted | `Visit.View` |
+| GET    | `/api/v1/visits/my-approved-reports` | Instructor-only own + Approved report list. | Instructor role; server-scoped |
 
 **Seeded visit permissions** (`DatabaseSeeder.GetRolePermissionMap`):
 
@@ -116,8 +117,8 @@ docs/09 verbatim and is computed and persisted ONCE on submit (immutable in Phas
 | Visit.Approve    | ✅ | ✅ | ✅ | — | — |
 | Visit.Reopen     | ✅ | ✅ | ✅ | — | — |
 
-`Visit.View` is granted to **Instructor** in Phase 4 so they can see that a visit exists;
-**seeing scores/analysis** is Phase 5 (instructor visibility of results).
+Instructor has no generic supervisor visit permission. The Phase 5 dedicated
+report feed and report endpoint enforce own + Approved visibility in the backend.
 
 **Analysis snapshot shape** (verbatim from docs/09):
 
@@ -165,7 +166,12 @@ Draft ─────────► PendingApproval ─────────
   - `POST /api/v1/visits/{id}/reopen` body `{ "reason": "..." }` — `Approved → Reopened`. `reason` is **required**. Resubmit recomputes a NEW `VisitAnalysis` snapshot on the SAME `RubricVersionId`.
 - **Direct edit path**: `PUT /api/v1/visits/{id}` while `PendingApproval` is allowed ONLY for the visit's School Manager / SuperAdmin / MainManager; Moderators cannot edit at this stage. After direct edit the SM calls `/approve`.
 - **Instructor result visibility** (gated in service by `Status == Approved` AND `Visit.InstructorId == current user`):
+  - `GET /api/v1/visits/my-approved-reports` — paged list of the caller's own
+    Approved reports only; filter parameters cannot widen it.
   - `GET /api/v1/visits/{id}/report` — full result (visit meta + 25 scores + analysis snapshot). On success records a `ReportViewLog` row. Returns 403 otherwise.
+- **Supervisor surface exclusion:** Instructor-only callers receive 403 from the
+  generic list/detail/analysis/view-status/ZIP-export endpoints, even if a stale
+  token still carries a former `Visit.View` claim.
 - **Report view status** (manager / moderator):
   - `GET /api/v1/visits/{id}/view-status` — `{ hasBeenViewed, firstViewedAt, lastViewedAt, viewCount }`. Aggregated over all `ReportViewLog` rows for the visit.
 - **Audit**: every approve / reject / direct-edit / reopen / edit-after-reject / edit-after-reopen / resubmit-after-reopen writes an `AuditLog` row (`Action`, `EntityName="Visit"`, `EntityId`, `OldValues`/`NewValues` JSON, `Reason`, `UserId`, `SchoolId`, `CreatedAt`, `IpAddress`).
@@ -197,9 +203,10 @@ Draft ─────────► PendingApproval ─────────
 | Visit.Approve    | ✅ | ✅ | ✅ | — | — |
 | Visit.Reopen     | ✅ | ✅ | ✅ | — | — |
 
-`Visit.View` is granted to **Instructor** in Phase 4 so they can see that a visit exists;
-**seeing scores/analysis** is gated by `GET /api/v1/visits/{id}/report` which enforces
-`Status == Approved` AND `Visit.InstructorId == current user` (Phase 5).
+Instructor uses `GET /api/v1/visits/my-approved-reports` and
+`GET /api/v1/visits/{id}/report`; both enforce `Status == Approved` AND
+`Visit.InstructorId == current user` in the backend. Generic supervisor visit
+endpoints reject an Instructor-only caller with 403.
 
 **State machine invalid-transition responses** (Arabic 400 with descriptive message):
 - `Draft → Approved/Rejected/Reopened`     — "لا يمكن [الإجراء] في حالتها الحالية. يجب أن تكون ..."
@@ -278,16 +285,18 @@ All write endpoints gate the **service** behind `SchoolScopeGuard` + Moderator o
 Teacher create/edit continues to use `POST /api/v1/users` and
 `PUT /api/v1/users/{id}` with `Role = Instructor`. The extended request and
 detail shapes carry `FullName`, `EmployeeNumber`, `SchoolId`, `Subject`,
-`Stage`, `PhoneNumber`, `Email`, and `Classes[]`. `SchoolManager` is forced to
-their `ActiveSchoolId`; global roles may choose a school. All school changes
-and reads are enforced server-side through `SchoolScopeGuard`.
+`Stage`, `PhoneNumber`, and `Email`. Class labels are intentionally excluded
+from this form and are maintained in the teacher profile or self-only account
+settings. `SchoolManager` is forced to their `ActiveSchoolId`; global roles
+may choose a school. All school changes and reads are enforced server-side
+through `SchoolScopeGuard`.
 
 | Method | Route | Permission / scope | Description |
 |---|---|---|---|
 | GET | `/api/v1/account/teaching` | Authenticated Instructor, self-only | Current teacher's subject, stage, and class labels. |
 | PUT | `/api/v1/account/teaching` | Authenticated Instructor, self-only | Save own subject and class labels; never accepts another user id. |
-| GET | `/api/v1/teachers/{userId}/teaching` | `User.View`, school-scoped | Teaching payload for manager edit and visit-form auto-fill. Cross-school is 403. |
-| PUT | `/api/v1/teachers/{userId}/teaching` | `User.Edit`, school-scoped | Set an in-scope teacher's subject, stage, and class labels. Cross-school is 403. |
+| GET | `/api/v1/teachers/{userId}/teaching` | `Visit.Create`, school-scoped | Teaching payload for manager edit and visit-form auto-fill. Any visit creator may read an in-scope Instructor's subject/classes; cross-school remains 403. |
+| PUT | `/api/v1/teachers/{userId}/teaching` | `User.Edit`, school-scoped | Save class labels from the manager-facing teacher profile (and the teaching payload when needed) for an in-scope teacher. Cross-school is 403. |
 
 The visit form calls the scoped teacher GET after choosing an Instructor. It
 sets `Visit.Subject` from `SubjectSpecialization` as read-only when present and

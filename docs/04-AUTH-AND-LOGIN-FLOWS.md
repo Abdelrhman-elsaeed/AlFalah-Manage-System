@@ -1,6 +1,6 @@
 # 04 — Auth & Login Flows
 
-**Status:** Baseline · **Last updated:** 2026-07-10
+**Status:** Baseline + verified Development seed · **Last updated:** 2026-07-15
 
 There are **two** login experiences.
 
@@ -42,6 +42,23 @@ There are **two** login experiences.
 
 **Endpoint:**
 - `POST /api/v1/auth/main-manager-login`
+
+## Development baseline accounts (DEV ONLY)
+
+The Development seeder ensures these five accounts idempotently. Passwords are
+passed to ASP.NET Core Identity and stored only as Identity hashes. School users
+are assigned to the active sample school (ID 1).
+
+| Role | Username | Password |
+|------|----------|----------|
+| Super Admin | `superadmin` | `AlFalah@SuperAdmin2024!` |
+| Main Manager | `main_manager_1` | `AlFalah@MainManager2024!` |
+| School Manager | `school_manager_1` | `AlFalah@Manager2024!` |
+| Moderator | `moderator_1` | `AlFalah@Moderator2024!` |
+| Instructor | `instructor_1` | `AlFalah@Instructor2024!` |
+
+These credentials are for local development only and must be changed before
+production use.
 
 ## Other auth endpoints
 - `POST /api/v1/auth/refresh`

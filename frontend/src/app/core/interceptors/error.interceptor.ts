@@ -13,6 +13,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
 import { ApiResponse } from '../models/api-response.model';
+import { SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
 
 /**
  * Global HTTP error interceptor.
@@ -71,7 +72,7 @@ export class ErrorInterceptor implements HttpInterceptor {
 
         // ── 403 ────────────────────────────────────────────────────────────────
         if (error.status === 403) {
-          if (!silent) {
+          if (!silent && !req.context.get(SUPPRESS_FORBIDDEN_REDIRECT)) {
             this.router.navigate(['/unauthorized']);
           }
           return throwError(() => error);

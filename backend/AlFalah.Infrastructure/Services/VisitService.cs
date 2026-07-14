@@ -403,6 +403,7 @@ public class VisitService : IVisitService
 
     public async Task<VisitDetailDto> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
+        EnsureSupervisorVisitSurfaceAccess();
         var visit = await LoadVisitAsync(id, includeAnalysis: true, cancellationToken);
 
         var effectiveSchoolId = _scopeGuard.ResolveAllowedSchoolId(visit.SchoolId);
@@ -511,6 +512,7 @@ public class VisitService : IVisitService
 
     public async Task<VisitAnalysisDto?> GetAnalysisAsync(int id, CancellationToken cancellationToken = default)
     {
+        EnsureSupervisorVisitSurfaceAccess();
         var visit = await _context.Visits
             .AsNoTracking()
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken)
@@ -556,6 +558,7 @@ public class VisitService : IVisitService
 
     public async Task<PagedResult<VisitListItemDto>> ListAsync(VisitListQuery query, CancellationToken cancellationToken = default)
     {
+        EnsureSupervisorVisitSurfaceAccess();
         // School-scope resolve: client-supplied schoolId is ignored for school-scoped callers.
         var effectiveSchoolId = _scopeGuard.ResolveAllowedSchoolId(null);
 
@@ -609,6 +612,80 @@ public class VisitService : IVisitService
         };
 
         var rows = await q
+            .OrderByDescending(v => v.VisitDate)
+            .ThenByDescending(v => v.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var items = rows.Select(v => new VisitListItemDto
+        {
+            Id = v.Id,
+            SchoolId = v.SchoolId,
+            SchoolName = v.School.Name,
+            InstructorId = v.InstructorId,
+            InstructorFullName = v.Instructor.FullName,
+            CreatedByUserId = v.CreatedByUserId,
+            CreatedByFullName = v.CreatedByUser.FullName,
+            RubricVersionId = v.RubricVersionId,
+            RubricVersionNumber = v.RubricVersion.VersionNumber,
+            VisitCategory = ((int)v.VisitCategory).ToString(),
+            VisitCategoryLabelAr = v.VisitCategory.ToArabicString(),
+            VisitSequence = ((int)v.VisitSequence).ToString(),
+            VisitSequenceLabelAr = v.VisitSequence.ToArabicString(),
+            Status = ((int)v.Status).ToString(),
+            StatusLabelAr = StatusLabelAr(v.Status),
+            VisitDate = v.VisitDate,
+            Subject = v.Subject,
+            GradeClass = v.GradeClass,
+            CreatedAt = v.CreatedAt,
+            SubmittedAt = v.SubmittedAt,
+            ScoredStandardsCount = v.Scores.Count(s => s.Score.HasValue),
+            TotalStandardsCount = v.Scores.Count
+        }).ToList();
+
+        return new PagedResult<VisitListItemDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<PagedResult<VisitListItemDto>> ListInstructorApprovedReportsAsync(
+        VisitListQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureInstructorOnlyCaller();
+
+        var currentUserId = _currentUser.UserId
+            ?? throw new UnauthorizedAccessException("يجب تسجيل الدخول لعرض التقارير.");
+        var effectiveSchoolId = _scopeGuard.ResolveAllowedSchoolId(null);
+
+        var reports = _context.Visits
+            .AsNoTracking()
+            .Include(v => v.School)
+            .Include(v => v.Instructor)
+            .Include(v => v.CreatedByUser)
+            .Include(v => v.RubricVersion)
+            .Include(v => v.Scores)
+            .Where(v => v.InstructorId == currentUserId && v.Status == VisitStatus.Approved)
+            .AsQueryable();
+
+        if (effectiveSchoolId.HasValue)
+            reports = reports.Where(v => v.SchoolId == effectiveSchoolId.Value);
+
+        var totalCount = await reports.CountAsync(cancellationToken);
+        var page = query.Page < 1 ? 1 : query.Page;
+        var pageSize = query.PageSize switch
+        {
+            < 1 => 20,
+            > 100 => 100,
+            _ => query.PageSize
+        };
+
+        var rows = await reports
             .OrderByDescending(v => v.VisitDate)
             .ThenByDescending(v => v.Id)
             .Skip((page - 1) * pageSize)
@@ -1036,6 +1113,7 @@ public class VisitService : IVisitService
     /// </summary>
     public async Task<ReportViewStatusDto> GetReportViewStatusAsync(int id, CancellationToken cancellationToken = default)
     {
+        EnsureSupervisorVisitSurfaceAccess();
         var visit = await _context.Visits
             .AsNoTracking()
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken)
@@ -1125,11 +1203,7 @@ public class VisitService : IVisitService
         // D-36 close: instructors can only get a PDF of their OWN visit.
         // (PDF download is treated as a "view" — a ReportViewLog is written,
         // mirroring the existing /report endpoint semantics.)
-        var isInstructorOnlyCaller =
-            _currentUser.IsInRole(RoleNames.Instructor)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager)
-            && !_currentUser.IsInRole(RoleNames.Moderator)
-            && !_currentUser.IsGlobalAdmin();
+        var isInstructorOnlyCaller = IsInstructorOnlyCaller();
 
         if (isInstructorOnlyCaller)
         {
@@ -1138,6 +1212,9 @@ public class VisitService : IVisitService
             if (visit.InstructorId != currentUserId)
                 throw new UnauthorizedSchoolAccessException(
                     "لا تملك صلاحية إنشاء تقرير لزيارات المعلمين الآخرين.");
+            if (visit.Status != VisitStatus.Approved)
+                throw new UnauthorizedSchoolAccessException(
+                    "لا يمكن للمعلم تحميل تقرير الزيارة قبل اعتماد مدير المدرسة.");
         }
 
         // Record a view log (matches the existing /report endpoint semantics;
@@ -1179,6 +1256,7 @@ public class VisitService : IVisitService
     /// </summary>
     public async Task<List<int>> ListScopedVisitIdsForExportAsync(VisitListQuery query, CancellationToken cancellationToken = default)
     {
+        EnsureSupervisorVisitSurfaceAccess();
         var effectiveSchoolId = _scopeGuard.ResolveAllowedSchoolId(null);
 
         var q = _context.Visits
@@ -1797,6 +1875,45 @@ public class VisitService : IVisitService
         if (!_currentUser.IsInRole(RoleNames.Moderator))
             return false;
         if (_currentUser.IsInRole(RoleNames.SchoolManager))
+            return false;
+        if (_currentUser.IsGlobalAdmin())
+            return false;
+        return true;
+    }
+
+    /// <summary>
+    /// D-36: Instructor-only callers cannot use the supervisor visit surface
+    /// (list, detail, analysis, view-status, or bulk export). Their sole read
+    /// path is the own-approved report feed and report endpoint.
+    /// </summary>
+    private void EnsureSupervisorVisitSurfaceAccess()
+    {
+        if (!IsInstructorOnlyCaller())
+            return;
+
+        _logger.LogWarning(
+            "Instructor supervisor-surface access denied: user={UserId}",
+            _currentUser.UserId);
+        throw new UnauthorizedSchoolAccessException(
+            "صفحة الزيارات للمشرفين غير متاحة لحساب المعلم. استخدم صفحة تقاريري المعتمدة.");
+    }
+
+    private void EnsureInstructorOnlyCaller()
+    {
+        if (IsInstructorOnlyCaller())
+            return;
+
+        throw new UnauthorizedSchoolAccessException(
+            "تقارير المعلم المعتمدة متاحة لحساب المعلم فقط.");
+    }
+
+    private bool IsInstructorOnlyCaller()
+    {
+        if (!_currentUser.IsInRole(RoleNames.Instructor))
+            return false;
+        if (_currentUser.IsInRole(RoleNames.SchoolManager))
+            return false;
+        if (_currentUser.IsInRole(RoleNames.Moderator))
             return false;
         if (_currentUser.IsGlobalAdmin())
             return false;

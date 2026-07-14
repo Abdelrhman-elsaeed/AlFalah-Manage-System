@@ -53,7 +53,26 @@
         <span class="value" dir="ltr">{{ p.email || '—' }}</span>
       </div>
       <!-- D-74 — classes list cell (full-width on its own row for chip rendering). -->
-      <div class="profile-cell profile-cell--full">
+      <div class="profile-cell profile-cell--full" [class.profile-cell--editing]="editingClasses()">
+        <div class="classes-heading" *ngIf="canManageTeaching() && !editingClasses()">
+          <button pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-sm"
+                  [label]="'TEACHERS.EDIT_CLASSES' | translate"
+                  (click)="beginClassesEdit()"></button>
+        </div>
+        <div class="classes-editor" *ngIf="editingClasses()">
+          <span class="label">{{ 'TEACHERS.HEADER_CLASSES' | translate }}</span>
+          <p-chips [ngModel]="editableClasses()" (ngModelChange)="editableClasses.set($event)"
+                   [allowDuplicate]="false" separator="," styleClass="w-100"></p-chips>
+          <small class="classes-hint">{{ 'TEACHERS.CLASSES_HINT' | translate }}</small>
+          <div class="classes-actions">
+            <button pButton type="button" class="p-button-text"
+                    [label]="'COMMON.CANCEL' | translate" [disabled]="savingClasses()"
+                    (click)="cancelClassesEdit()"></button>
+            <button pButton type="button" icon="pi pi-save"
+                    [label]="'COMMON.SAVE' | translate" [loading]="savingClasses()"
+                    (click)="saveClasses()"></button>
+          </div>
+        </div>
         <span class="label">{{ 'TEACHERS.HEADER_CLASSES' | translate }}</span>
         <span class="value" *ngIf="p.classes && p.classes.length > 0; else noClasses">
           <span class="class-chip" *ngFor="let c of p.classes">{{ c }}</span>

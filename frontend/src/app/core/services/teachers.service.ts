@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
@@ -13,6 +13,7 @@ import {
   TeacherTeachingUpsertRequest,
   TeacherVisitSummary
 } from '../models/teacher.models';
+import { SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
 
 /**
  * D-71 — Teachers Management + Teacher Profile service (frontend mirror of
@@ -56,8 +57,11 @@ export class TeachersService {
   }
 
   /** GET /api/v1/teachers/{userId}/teaching — Subject + Classes for auto-fill + manager edit (Users.View scoped). */
-  getTeaching(userId: string): Observable<ApiResponse<TeacherTeaching>> {
-    return this.http.get<ApiResponse<TeacherTeaching>>(`${this.base}/${userId}/teaching`);
+  getTeaching(userId: string, suppressForbiddenRedirect = false): Observable<ApiResponse<TeacherTeaching>> {
+    const context = suppressForbiddenRedirect
+      ? new HttpContext().set(SUPPRESS_FORBIDDEN_REDIRECT, true)
+      : undefined;
+    return this.http.get<ApiResponse<TeacherTeaching>>(`${this.base}/${userId}/teaching`, { context });
   }
 
   /** PUT /api/v1/teachers/{userId}/teaching — manager sets a teacher's Subject + Classes (Users.Edit scoped). */

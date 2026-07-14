@@ -130,6 +130,9 @@
     "HEADER_PHONE": "رقم الجوال",
     "HEADER_EMAIL": "البريد الإلكتروني",
     "HEADER_CLASSES": "الفصول",
+    "EDIT_CLASSES": "تعديل الفصول",
+    "CLASSES_SAVE_SUCCESS": "تم حفظ الفصول",
+    "CLASSES_SAVE_FAILED": "تعذر حفظ الفصول",
     "NEW_VISIT_FOR_TEACHER": "زيارة جديدة",
     "NEW_VISIT_FOR_TEACHER_HINT": "بدء زيارة لهذا المعلم",
     "OPEN_VISIT": "فتح الزيارة",
@@ -216,6 +219,7 @@
     "TEACHERS": "المعلمون",
     "VISITS": "الزيارات",
     "REPORTS": "التقارير",
+    "MY_REPORTS": "تقاريري",
     "IMPROVEMENT_PLANS": "خطط التطوير",
     "COMPLAINTS": "الشكاوى والمراجعات",
     "SETTINGS": "الإعدادات",
@@ -390,6 +394,10 @@
 
   "REPORTS": {
     "TITLE": "التقارير",
+    "INSTRUCTOR_TITLE": "تقاريري",
+    "INSTRUCTOR_APPROVED_LIST": "الزيارات المعتمدة الخاصة بي",
+    "NO_APPROVED_VISITS": "لا توجد زيارات معتمدة لعرضها.",
+    "OPEN": "فتح التقرير",
     "PDF_TITLE": "تقرير الزيارة (PDF)",
     "PDF_NOT_AVAILABLE": "التقرير غير متاح لهذه الزيارة حتى اعتمادها."
   },

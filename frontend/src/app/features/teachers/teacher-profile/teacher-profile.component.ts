@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
+import { ChipsModule } from 'primeng/chips';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -21,8 +23,8 @@ import {
   selector: 'app-teacher-profile',
   standalone: true,
   imports: [
-    CommonModule, TranslateModule,
-    ButtonModule, TableModule, TagModule, TooltipModule, ChartModule
+    CommonModule, FormsModule, TranslateModule,
+    ButtonModule, ChipsModule, TableModule, TagModule, TooltipModule, ChartModule
   ],
   templateUrl: './teacher-profile.component.html',
   styleUrls: ['./teacher-profile.component.css']
@@ -39,6 +41,9 @@ export class TeacherProfileComponent implements OnInit {
   readonly visits = signal<TeacherVisitSummary[]>([]);
   readonly progress = signal<TeacherProgress | null>(null);
   readonly loading = signal(false);
+  readonly editingClasses = signal(false);
+  readonly savingClasses = signal(false);
+  readonly editableClasses = signal<string[]>([]);
 
   // The radar chart payload — built reactively from `progress()`.
   readonly radarData = computed(() => {
@@ -118,6 +123,10 @@ export class TeacherProfileComponent implements OnInit {
   );
 
   readonly visitCount = computed(() => this.visits().length);
+  readonly canManageTeaching = computed(() =>
+    this.auth.hasPermission('User.Edit')
+    && !this.auth.hasRole('MainManager')
+    && !this.auth.hasRole('Moderator'));
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('userId');
@@ -166,6 +175,50 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   goBack(): void { this.router.navigate(['/teachers']); }
+
+  beginClassesEdit(): void {
+    this.editableClasses.set([...(this.profile()?.classes ?? [])]);
+    this.editingClasses.set(true);
+  }
+
+  cancelClassesEdit(): void {
+    this.editingClasses.set(false);
+    this.editableClasses.set([]);
+  }
+
+  saveClasses(): void {
+    const profile = this.profile();
+    if (!profile) return;
+
+    const classes = [...new Set(this.editableClasses()
+      .map(classLabel => classLabel.trim())
+      .filter(Boolean))];
+
+    this.savingClasses.set(true);
+    this.teachersService.updateTeaching(profile.userId, {
+      subject: profile.subject,
+      stage: profile.stage,
+      classes
+    }).subscribe({
+      next: response => {
+        this.savingClasses.set(false);
+        if (!response.isSuccess || !response.data) {
+          this.toast.error('TEACHERS.CLASSES_SAVE_FAILED', response.message || '');
+          return;
+        }
+
+        this.profile.update(current => current
+          ? { ...current, subject: response.data!.subject, stage: response.data!.stage, classes: response.data!.classes }
+          : current);
+        this.editingClasses.set(false);
+        this.toast.success('TEACHERS.CLASSES_SAVE_SUCCESS', response.message || '');
+      },
+      error: () => {
+        this.savingClasses.set(false);
+        this.toast.error('TEACHERS.CLASSES_SAVE_FAILED');
+      }
+    });
+  }
 
   startNewVisitForTeacher(): void {
     const id = this.userId();

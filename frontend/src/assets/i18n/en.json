@@ -130,6 +130,9 @@
     "HEADER_PHONE": "Mobile Number",
     "HEADER_EMAIL": "Email",
     "HEADER_CLASSES": "Classes",
+    "EDIT_CLASSES": "Edit classes",
+    "CLASSES_SAVE_SUCCESS": "Classes saved",
+    "CLASSES_SAVE_FAILED": "Could not save classes",
     "NEW_VISIT_FOR_TEACHER": "New Visit",
     "NEW_VISIT_FOR_TEACHER_HINT": "Start a visit for this teacher",
     "OPEN_VISIT": "Open visit",
@@ -216,6 +219,7 @@
     "TEACHERS": "Teachers",
     "VISITS": "Visits",
     "REPORTS": "Reports",
+    "MY_REPORTS": "My Reports",
     "IMPROVEMENT_PLANS": "Improvement Plans",
     "COMPLAINTS": "Complaints & Reviews",
     "SETTINGS": "Settings",
@@ -390,6 +394,10 @@
 
   "REPORTS": {
     "TITLE": "Reports",
+    "INSTRUCTOR_TITLE": "My Reports",
+    "INSTRUCTOR_APPROVED_LIST": "My approved visits",
+    "NO_APPROVED_VISITS": "There are no approved visits to display.",
+    "OPEN": "Open report",
     "PDF_TITLE": "Visit Report (PDF)",
     "PDF_NOT_AVAILABLE": "The report is not available until this visit has been approved."
   },

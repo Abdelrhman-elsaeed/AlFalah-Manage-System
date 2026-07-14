@@ -86,13 +86,25 @@ export const routes: Routes = [
       {
         path: 'instructor',
         canActivate: [roleGuard],
-        data: { roles: ['Instructor', 'SuperAdmin'] },
+        data: { roles: ['Instructor'] },
         children: [
           {
             path: 'dashboard',
             loadComponent: () => import('./features/dashboards/instructor-dashboard/instructor-dashboard.component')
               .then(m => m.InstructorDashboardComponent),
             title: 'لوحة المعلم'
+          },
+          {
+            path: 'reports',
+            loadComponent: () => import('./features/visits/instructor-reports/instructor-reports.component')
+              .then(m => m.InstructorReportsComponent),
+            title: 'تقاريري — مدارس الفلاح'
+          },
+          {
+            path: 'reports/:id',
+            loadComponent: () => import('./features/visits/visit-detail/visit-detail.component')
+              .then(m => m.VisitDetailComponent),
+            title: 'تقرير الزيارة — مدارس الفلاح'
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
@@ -196,8 +208,11 @@ export const routes: Routes = [
       // ─── Phase 4: Visits (permission-gated) ────────────────────────────
       {
         path: 'visits',
-        canActivate: [permissionGuard],
-        data: { permissions: ['Visit.View'] },
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+          permissions: ['Visit.View']
+        },
         children: [
           {
             path: '',

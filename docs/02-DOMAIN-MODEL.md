@@ -1,6 +1,6 @@
 # 02 — Domain Model (Phase 1 Entities)
 
-**Status:** Baseline + Phase 2 + Phase 3 + Phase 4 + Phase 5 entities · **Last updated:** 2026-07-10
+**Status:** Baseline + Phase 2 + Phase 3 + Phase 4 + Phase 5 entities · **Last updated:** 2026-07-15
 
 > All entities below are **Phase 1** entities. Phase 2/3/4 additions are noted inline.
 > Future entities are listed at the end.
@@ -154,6 +154,9 @@ UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId.
 - Subject is one value (`SubjectSpecialization`); classes are many
   `InstructorClass` rows, which avoids CSV parsing and preserves an additive,
   queryable model for visit-form auto-fill.
+- Teacher create/edit writes the teacher identity/profile fields only. Class
+  labels are edited by an authorized manager in the teacher profile or by the
+  Instructor through their self-only account settings endpoint.
 - A Visit continues to snapshot its chosen `Subject` and `GradeClass`; teacher
   profile changes do not rewrite historical visits.
 

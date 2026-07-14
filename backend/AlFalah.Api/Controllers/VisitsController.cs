@@ -93,6 +93,25 @@ public class VisitsController : ControllerBase
 
     // ─── GET detail ──────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// GET /api/v1/visits/my-approved-reports — Instructor-only report feed.
+    /// Scope is fixed in the service to the caller's own Approved visits.
+    /// </summary>
+    [HttpGet("my-approved-reports")]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<VisitListItemDto>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 403)]
+    public async Task<IActionResult> ListMyApprovedReports(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _visitService.ListInstructorApprovedReportsAsync(
+            new VisitListQuery { Page = page, PageSize = pageSize },
+            cancellationToken);
+
+        return Ok(ApiResponse<PagedResult<VisitListItemDto>>.Success(result));
+    }
+
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 403)]

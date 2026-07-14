@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { ChipsModule } from 'primeng/chips';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -19,7 +18,7 @@ import { PhaseTwoRole, SchoolStage, UserDetail } from '../../../core/models/phas
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink, TranslateModule,
-    ButtonModule, ChipsModule, DropdownModule, InputTextModule, PasswordModule
+    ButtonModule, DropdownModule, InputTextModule, PasswordModule
   ],
   templateUrl: './user-form.component.html',
   styleUrls: ['./user-form.component.css']
@@ -55,8 +54,7 @@ export class UserFormComponent implements OnInit {
     schoolId: [null],
     employeeNumber: [''],
     subject: [''],
-    stage: [null],
-    classes: [[] as string[]]
+    stage: [null]
   });
 
   readonly roleOptions = [
@@ -118,8 +116,7 @@ export class UserFormComponent implements OnInit {
       schoolId: user.schools[0]?.schoolId ?? null,
       employeeNumber: user.employeeNumber ?? '',
       subject: user.subject ?? '',
-      stage: user.stage ?? null,
-      classes: user.classes ?? []
+      stage: user.stage ?? null
     });
     this.setInstructorMode(instructor);
   }
@@ -153,7 +150,6 @@ export class UserFormComponent implements OnInit {
           employeeNumber: value.employeeNumber.trim(),
           subject: value.subject.trim(),
           stage: value.stage as SchoolStage,
-          classes: (value.classes as string[]).map(c => c.trim()).filter(Boolean),
           schoolId: value.schoolId ?? undefined
         }
       : {};

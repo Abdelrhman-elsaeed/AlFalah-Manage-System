@@ -38,6 +38,18 @@ export class VisitsService {
     return this.http.get<ApiResponse<PagedResult<VisitListItem>>>(this.base, { params });
   }
 
+  /** GET /api/v1/visits/my-approved-reports — Instructor-owned Approved reports only. */
+  listMyApprovedReports(page = 1, pageSize = 20): Observable<ApiResponse<PagedResult<VisitListItem>>> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+
+    return this.http.get<ApiResponse<PagedResult<VisitListItem>>>(
+      `${this.base}/my-approved-reports`,
+      { params }
+    );
+  }
+
   /** GET /api/v1/visits/:id — full detail */
   getById(id: number): Observable<ApiResponse<VisitDetail>> {
     return this.http.get<ApiResponse<VisitDetail>>(`${this.base}/${id}`);
