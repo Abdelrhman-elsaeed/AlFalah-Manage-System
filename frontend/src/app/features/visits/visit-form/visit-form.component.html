@@ -87,14 +87,25 @@
         <div class="form-field">
           <label>{{ 'VISITS.SUBJECT' | translate }}</label>
           <input pInputText formControlName="subject"
+                 [readonly]="hasTeacherSubject()"
                  [placeholder]="'VISITS.SUBJECT_PLACEHOLDER' | translate" />
         </div>
 
         <div class="form-field">
           <label>{{ 'VISITS.GRADE_CLASS' | translate }}</label>
-          <input pInputText formControlName="gradeClass"
-                 [placeholder]="'VISITS.GRADE_CLASS_PLACEHOLDER' | translate" />
+          <p-dropdown *ngIf="hasTeacherClasses(); else freeTextClass"
+                      [options]="classOptions()" optionLabel="label" optionValue="value"
+                      formControlName="gradeClass" [showClear]="true" appendTo="body"></p-dropdown>
+          <ng-template #freeTextClass>
+            <input pInputText formControlName="gradeClass"
+                   [placeholder]="'VISITS.GRADE_CLASS_PLACEHOLDER' | translate" />
+          </ng-template>
         </div>
+
+        <p class="teaching-fallback form-field--full" *ngIf="showTeachingFallback()">
+          <i class="pi pi-info-circle"></i>
+          <span>{{ 'VISITS.TEACHING_FALLBACK_HINT' | translate }}</span>
+        </p>
 
         <div class="form-field form-field--full">
           <label>{{ 'VISITS.NOTES' | translate }}</label>

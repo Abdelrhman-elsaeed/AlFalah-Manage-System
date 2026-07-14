@@ -270,6 +270,31 @@ All write endpoints gate the **service** behind `SchoolScopeGuard` + Moderator o
 | Instructor (own approved visit) | ✅ view-only | ❌ 403 | ❌ 403 | ❌ 403 |
 
 ### Phase 8 — Complaints
+### Teacher Teaching Profile Enhancement (additive)
+
+> This completed enhancement does not start Phase 8 and does not alter its
+> complaints scope.
+
+Teacher create/edit continues to use `POST /api/v1/users` and
+`PUT /api/v1/users/{id}` with `Role = Instructor`. The extended request and
+detail shapes carry `FullName`, `EmployeeNumber`, `SchoolId`, `Subject`,
+`Stage`, `PhoneNumber`, `Email`, and `Classes[]`. `SchoolManager` is forced to
+their `ActiveSchoolId`; global roles may choose a school. All school changes
+and reads are enforced server-side through `SchoolScopeGuard`.
+
+| Method | Route | Permission / scope | Description |
+|---|---|---|---|
+| GET | `/api/v1/account/teaching` | Authenticated Instructor, self-only | Current teacher's subject, stage, and class labels. |
+| PUT | `/api/v1/account/teaching` | Authenticated Instructor, self-only | Save own subject and class labels; never accepts another user id. |
+| GET | `/api/v1/teachers/{userId}/teaching` | `User.View`, school-scoped | Teaching payload for manager edit and visit-form auto-fill. Cross-school is 403. |
+| PUT | `/api/v1/teachers/{userId}/teaching` | `User.Edit`, school-scoped | Set an in-scope teacher's subject, stage, and class labels. Cross-school is 403. |
+
+The visit form calls the scoped teacher GET after choosing an Instructor. It
+sets `Visit.Subject` from `SubjectSpecialization` as read-only when present and
+offers only that teacher's `InstructorClass` labels for `Visit.GradeClass`.
+When either value is missing, free-text entry remains available; no visit or
+scoring workflow is blocked or changed.
+
 - Instructor complaint, visibility rules, reopen from complaint
 
 ### Phase 9 — Dashboards & Exports

@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  color: var(--text);
+  font-family: 'Tajawal', 'Cairo', sans-serif;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.page-header__primary {
+  min-width: 160px;
+}
+
+.text-dim { color: var(--text-dim); }
+.empty { text-align: center; padding: 3rem; color: var(--text-dim); }
+
+.text-center { text-align: center; }
+.table-actions-col { width: 1%; white-space: nowrap; }
+.table-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.visit-count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  border: 1px solid var(--brand-300);
+  font-variant-numeric: tabular-nums;
+}

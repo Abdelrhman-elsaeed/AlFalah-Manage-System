@@ -14,4 +14,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Required so Domain types that inherit from Microsoft.AspNetCore.Identity.* (ApplicationUser)
+         can be loaded by downstream projects that reference the Domain assembly.
+         Without this, AlFalah.Domain.dll fails with FileLoadException → downstream consumers
+         (Infrastructure, Api) see the domain as empty (no InstructorProfile.Stage,
+         no DbContext.InstructorClasses, etc.) — pre-existing baseline gap that D-74 fixes. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>

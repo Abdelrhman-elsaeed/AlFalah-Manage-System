@@ -64,6 +64,7 @@ public static class PermissionNames
     public const string ComplaintView = "Complaint.View";
     public const string ComplaintCreate = "Complaint.Create";
     public const string ComplaintManage = "Complaint.Manage";
+    public const string ComplaintDelete = "Complaint.Delete";
 
     // Dashboard permissions
     public const string DashboardMainManager = "Dashboard.MainManager";

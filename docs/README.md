@@ -57,6 +57,7 @@
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-07-14 | **Teacher profile subject/classes enhancement completed**: reused `ApplicationUser` + `InstructorProfile`; completed the teacher form fields and scoped school handling; added table-backed `InstructorClass` storage through the single additive migration `AddTeacherProfileClasses`; exposed self-only `/account/teaching` and manager-scoped `/teachers/{userId}/teaching`; auto-fills subject and class choices in the visit form with a manual fallback. Scoring, analysis, approval visibility, and existing scope gates were not changed. i18n parity: ar/en 358/358 leaf keys. | Team |
 | 2026-07-10 | Initial spec kit created from project prompt + README | Team |
 | 2026-07-10 | Phase 1 marked COMPLETED; gap-fix items recorded | Team |
 | 2026-07-10 | Phase 1 gap-fix completed: forgot/reset-password endpoints, refresh-token rotation (ReplacedByToken), School.IsActive + Role.IsActive login checks | Team |
@@ -149,6 +150,7 @@
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-07-15 | **DI reliability hot-fix (no phase started):** completed the scoped registrations for `ITeacherService → TeacherService`, `IComplaintService → ComplaintService`, and `IDashboardService → DashboardService`; kept AccountController's intended `ITeacherService` dependency and all API/visibility behavior unchanged. Added a DI regression test for the controller-facing services. Backend build passed (0 warnings, 0 errors), startup completed migrations/seeding and bound on `http://localhost:5264`, tests passed 67/67, and `AddTeacherProfileClasses` is applied. | Team |
 | 2026-07-10 | Initial spec kit created from project prompt + README | Team |
 | 2026-07-10 | Phase 1 marked COMPLETED; gap-fix items recorded | Team |
 | 2026-07-10 | Phase 1 gap-fix completed: forgot/reset-password endpoints, refresh-token rotation (ReplacedByToken), School.IsActive + Role.IsActive login checks | Team |

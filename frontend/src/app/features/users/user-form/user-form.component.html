@@ -1,10 +1,10 @@
 <div class="page page--form" dir="rtl">
   <header class="page-header">
     <div class="page-header__titles">
-      <h1 class="page-header__title">{{ (isEdit() ? 'USERS.EDIT' : 'USERS.NEW') | translate }}</h1>
-      <p class="page-header__subtitle">{{ 'USERS.TITLE' | translate }}</p>
+      <h1 class="page-header__title">{{ (isInstructor() ? (isEdit() ? 'TEACHERS.EDIT_FORM' : 'TEACHERS.NEW_FORM') : (isEdit() ? 'USERS.EDIT' : 'USERS.NEW')) | translate }}</h1>
+      <p class="page-header__subtitle">{{ (isInstructor() ? 'TEACHERS.FORM_SUBTITLE' : 'USERS.TITLE') | translate }}</p>
     </div>
-    <a routerLink="/users" class="page-header__back">
+    <a [routerLink]="isInstructor() ? ['/teachers'] : ['/users']" class="page-header__back">
       <i class="pi pi-arrow-right"></i>
       <span>{{ 'COMMON.BACK' | translate }}</span>
     </a>
@@ -12,30 +12,54 @@
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="surface-card form-card">
     <div class="grid">
-      <div class="field">
+      <div class="field" *ngIf="!isEdit()">
         <label for="user-username">{{ 'USERS.USERNAME' | translate }} *</label>
         <input id="user-username" pInputText type="text" formControlName="username" />
       </div>
 
       <div class="field" *ngIf="!isEdit()">
         <label for="user-password">{{ 'USERS.PASSWORD' | translate }} *</label>
-        <p-password inputId="user-password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-100"
-                    inputStyleClass="w-100"></p-password>
+        <p-password inputId="user-password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-100" inputStyleClass="w-100"></p-password>
       </div>
 
-      <div class="field">
-        <label for="user-first">{{ 'USERS.FIRST_NAME' | translate }} *</label>
-        <input id="user-first" pInputText type="text" formControlName="firstName" />
+      <div class="field field--full" *ngIf="isInstructor(); else standardName">
+        <label for="teacher-full-name">{{ 'TEACHERS.FULL_NAME' | translate }} *</label>
+        <input id="teacher-full-name" pInputText type="text" formControlName="fullName" />
+        <small class="field__error" *ngIf="form.controls['fullName'].touched && form.controls['fullName'].invalid">{{ 'TEACHERS.REQUIRED_FIELD' | translate }}</small>
       </div>
 
-      <div class="field">
-        <label for="user-last">{{ 'USERS.LAST_NAME' | translate }} *</label>
-        <input id="user-last" pInputText type="text" formControlName="lastName" />
+      <ng-template #standardName>
+        <div class="field">
+          <label for="user-first">{{ 'USERS.FIRST_NAME' | translate }} *</label>
+          <input id="user-first" pInputText type="text" formControlName="firstName" />
+        </div>
+        <div class="field">
+          <label for="user-last">{{ 'USERS.LAST_NAME' | translate }} *</label>
+          <input id="user-last" pInputText type="text" formControlName="lastName" />
+        </div>
+      </ng-template>
+
+      <div class="field" *ngIf="isInstructor()">
+        <label for="teacher-employee-number">{{ 'TEACHERS.EMPLOYEE_NUMBER' | translate }} *</label>
+        <input id="teacher-employee-number" pInputText type="text" formControlName="employeeNumber" />
       </div>
 
-      <div class="field">
-        <label for="user-email">{{ 'USERS.EMAIL' | translate }}</label>
-        <input id="user-email" pInputText type="email" formControlName="email" />
+      <div class="field" *ngIf="isInstructor() || !isEdit()">
+        <label for="user-school">{{ (isInstructor() ? 'TEACHERS.SCHOOL' : 'USERS.SCHOOL') | translate }} <span *ngIf="isInstructor()">*</span></label>
+        <p-dropdown inputId="user-school" [options]="availableSchools()" formControlName="schoolId"
+                    optionLabel="name" optionValue="id" [filter]="true" filterBy="name"
+                    [showClear]="!isInstructor() && !isSchoolManager()" appendTo="body" styleClass="w-100"></p-dropdown>
+      </div>
+
+      <div class="field" *ngIf="isInstructor()">
+        <label for="teacher-subject">{{ 'TEACHERS.SUBJECT' | translate }} *</label>
+        <input id="teacher-subject" pInputText type="text" formControlName="subject" />
+      </div>
+
+      <div class="field" *ngIf="isInstructor()">
+        <label for="teacher-stage">{{ 'TEACHERS.STAGE' | translate }} *</label>
+        <p-dropdown inputId="teacher-stage" [options]="stageOptions" formControlName="stage"
+                    optionLabel="label" optionValue="value" appendTo="body" styleClass="w-100"></p-dropdown>
       </div>
 
       <div class="field">
@@ -44,36 +68,35 @@
       </div>
 
       <div class="field">
-        <label for="user-lang">{{ 'USERS.PREFERRED_LANGUAGE' | translate }}</label>
-        <p-dropdown inputId="user-lang" [options]="languageOptions" formControlName="preferredLanguage" styleClass="w-100"></p-dropdown>
+        <label for="user-email">{{ 'USERS.EMAIL' | translate }}</label>
+        <input id="user-email" pInputText type="email" formControlName="email" />
+      </div>
+
+      <div class="field field--full" *ngIf="isInstructor()">
+        <label for="teacher-classes">{{ 'TEACHERS.CLASSES' | translate }}</label>
+        <p-chips inputId="teacher-classes" formControlName="classes" [allowDuplicate]="false" separator="," styleClass="w-100"></p-chips>
+        <small class="field__hint">{{ 'TEACHERS.CLASSES_HINT' | translate }}</small>
       </div>
 
       <div class="field" *ngIf="!isEdit()">
         <label for="user-role">{{ 'USERS.ROLE' | translate }} *</label>
-        <p-dropdown inputId="user-role" [options]="roleOptions" formControlName="role" styleClass="w-100"></p-dropdown>
-      </div>
-
-      <div class="field" *ngIf="!isEdit()">
-        <label for="user-school">{{ 'USERS.SCHOOL' | translate }}</label>
-        <p-dropdown inputId="user-school" [options]="availableSchools()" formControlName="schoolId"
-                  optionLabel="name" optionValue="id"
-                  [placeholder]="'COMMON.OPTIONAL' | translate"
-                  [filter]="true" filterBy="name"
-                  [showClear]="true" styleClass="w-100"></p-dropdown>
+        <p-dropdown inputId="user-role" [options]="roleOptions" formControlName="role" appendTo="body" styleClass="w-100"></p-dropdown>
       </div>
 
       <div class="field" *ngIf="isEdit()">
         <label for="user-role-edit">{{ 'USERS.ROLE' | translate }}</label>
-        <p-dropdown inputId="user-role-edit" [options]="roleOptions" formControlName="role" styleClass="w-100" [disabled]="true"></p-dropdown>
-        <small class="field__hint">لتغيير الدور، عطّل المستخدم وأنشئ حساباً جديداً.</small>
+        <p-dropdown inputId="user-role-edit" [options]="roleOptions" formControlName="role" [disabled]="true" styleClass="w-100"></p-dropdown>
+      </div>
+
+      <div class="field" *ngIf="!isInstructor()">
+        <label for="user-lang">{{ 'USERS.PREFERRED_LANGUAGE' | translate }}</label>
+        <p-dropdown inputId="user-lang" [options]="languageOptions" formControlName="preferredLanguage" appendTo="body" styleClass="w-100"></p-dropdown>
       </div>
     </div>
 
     <div class="actions">
-      <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-text"
-              routerLink="/users"></button>
-      <button pButton type="submit" [label]="'COMMON.SAVE' | translate" [loading]="saving()"
-              [disabled]="form.invalid"></button>
+      <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-text" [routerLink]="isInstructor() ? ['/teachers'] : ['/users']"></button>
+      <button pButton type="submit" [label]="'COMMON.SAVE' | translate" [loading]="saving()"></button>
     </div>
   </form>
 </div>

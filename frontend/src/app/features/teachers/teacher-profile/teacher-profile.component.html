@@ -1,0 +1,124 @@
+<div class="page" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <button pButton type="button" icon="pi pi-arrow-right"
+              class="p-button-text p-button-sm back-link"
+              [label]="'TEACHERS.PROFILE_BACK' | translate"
+              (click)="goBack()"></button>
+      <h1 class="page-header__title">
+        <i class="pi pi-id-card"></i>
+        {{ 'TEACHERS.PROFILE' | translate }}
+      </h1>
+      <p class="page-header__subtitle" *ngIf="profile() as p">{{ p.fullName }}</p>
+    </div>
+    <div class="page-header__actions">
+      <button *ngIf="canCreateVisit()" pButton type="button" icon="pi pi-plus"
+              [label]="'TEACHERS.NEW_VISIT_FOR_TEACHER' | translate"
+              class="page-header__primary"
+              [pTooltip]="'TEACHERS.NEW_VISIT_FOR_TEACHER_HINT' | translate" tooltipPosition="bottom"
+              (click)="startNewVisitForTeacher()"></button>
+    </div>
+  </header>
+
+  <!-- Header card (الاسم الكامل / الرقم الوظيفي / المدرسة / المادة — المرحلة / الجوال / البريد الإلكتروني) -->
+  <section class="surface-card profile-card" *ngIf="profile() as p">
+    <div class="profile-grid">
+      <div class="profile-cell">
+        <span class="label">{{ 'TEACHERS.HEADER_FULL_NAME' | translate }}</span>
+        <span class="value">{{ p.fullName }}</span>
+      </div>
+      <div class="profile-cell">
+        <span class="label">{{ 'TEACHERS.HEADER_EMPLOYEE_NUMBER' | translate }}</span>
+        <span class="value">{{ p.employeeNumber || '—' }}</span>
+      </div>
+      <div class="profile-cell">
+        <span class="label">{{ 'TEACHERS.HEADER_SCHOOL' | translate }}</span>
+        <span class="value">{{ p.schoolName }}</span>
+      </div>
+      <div class="profile-cell">
+        <span class="label">{{ 'TEACHERS.HEADER_SUBJECT_STAGE' | translate }}</span>
+        <span class="value">
+          <ng-container *ngIf="p.subject; else dashSubject">{{ p.subject }}</ng-container>
+          <ng-template #dashSubject>—</ng-template>
+          <span class="meta-sep"> — </span>
+          {{ p.schoolStageLabelAr }}
+        </span>
+      </div>
+      <div class="profile-cell">
+        <span class="label">{{ 'TEACHERS.HEADER_PHONE' | translate }}</span>
+        <span class="value" dir="ltr">{{ p.phoneNumber || '—' }}</span>
+      </div>
+      <div class="profile-cell">
+        <span class="label">{{ 'TEACHERS.HEADER_EMAIL' | translate }}</span>
+        <span class="value" dir="ltr">{{ p.email || '—' }}</span>
+      </div>
+      <!-- D-74 — classes list cell (full-width on its own row for chip rendering). -->
+      <div class="profile-cell profile-cell--full">
+        <span class="label">{{ 'TEACHERS.HEADER_CLASSES' | translate }}</span>
+        <span class="value" *ngIf="p.classes && p.classes.length > 0; else noClasses">
+          <span class="class-chip" *ngFor="let c of p.classes">{{ c }}</span>
+        </span>
+        <ng-template #noClasses><span class="value value--muted">—</span></ng-template>
+      </div>
+    </div>
+  </section>
+
+  <!-- Visits + Progress — side-by-side cards (desktop parity) -->
+  <div class="profile-grid-2col">
+    <section class="surface-card visits-card">
+      <header class="card-header">
+        <h2 class="card-title">
+          <i class="pi pi-clipboard"></i>
+          {{ 'TEACHERS.VISITS_TITLE' | translate: { count: visitCount() } }}
+        </h2>
+      </header>
+      <p-table [value]="visits()" styleClass="p-datatable-sm visits-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>{{ 'TEACHERS.VISIT_DATE' | translate }}</th>
+            <th>{{ 'TEACHERS.VISIT_LESSON' | translate }}</th>
+            <th>{{ 'TEACHERS.VISIT_CATEGORY' | translate }}</th>
+            <th>{{ 'TEACHERS.VISIT_STATUS' | translate }}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-v>
+          <tr [class.visits-table__row--clickable]="canViewVisit()"
+              [attr.tabindex]="canViewVisit() ? 0 : null"
+              [attr.role]="canViewVisit() ? 'link' : null"
+              [attr.aria-label]="canViewVisit() ? ('TEACHERS.OPEN_VISIT' | translate) : null"
+              (click)="openVisit(v.id)"
+              (keydown.enter)="openVisit(v.id)"
+              (keydown.space)="openVisit(v.id); $event.preventDefault()">
+            <td>{{ v.visitDate | date:'mediumDate' }}</td>
+            <td>{{ v.lesson }}</td>
+            <td>{{ v.visitCategoryLabelAr }}</td>
+            <td>
+              <p-tag [severity]="statusSeverity(v.status)" [value]="v.statusLabelAr"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="empty">{{ 'TEACHERS.VISITS_EMPTY' | translate }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </section>
+
+    <section class="surface-card progress-card">
+      <header class="card-header">
+        <h2 class="card-title">
+          <i class="pi pi-chart-line"></i>
+          {{ 'TEACHERS.PROGRESS_TITLE' | translate }}
+        </h2>
+      </header>
+      <ng-container *ngIf="radarData(); else emptyProgress">
+        <p-chart type="radar" [data]="radarData()!" [options]="radarOptions" height="360px"></p-chart>
+        <p class="progress-hint">{{ 'TEACHERS.PROGRESS_LEGEND_HINT' | translate }}</p>
+      </ng-container>
+      <ng-template #emptyProgress>
+        <div class="empty empty-progress">{{ 'TEACHERS.PROGRESS_EMPTY' | translate }}</div>
+      </ng-template>
+    </section>
+  </div>
+</div>

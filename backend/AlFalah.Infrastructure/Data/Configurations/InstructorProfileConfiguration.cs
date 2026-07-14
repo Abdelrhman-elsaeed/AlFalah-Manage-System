@@ -14,6 +14,8 @@ public class InstructorProfileConfiguration : IEntityTypeConfiguration<Instructo
         builder.Property(x => x.QualificationAr).HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.QualificationEn).HasMaxLength(200);
         builder.Property(x => x.EmployeeNumber).HasMaxLength(50);
+        // D-74 — store Stage explicitly on the profile (small int enum).
+        builder.Property(x => x.Stage);
 
         builder.HasOne(x => x.User)
             .WithMany()

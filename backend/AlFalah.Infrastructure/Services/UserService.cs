@@ -254,6 +254,34 @@ public class UserService : IUserService
             })
             .ToListAsync(cancellationToken);
 
+        // D-74 — Surface teacher-profile fields when the user has the Instructor
+        // role. Resolved from the FIRST active Instructor assignment (mirrors
+        // TeacherService.ResolveTeacherInScopeAsync — one profile per user per
+        // school; the schools list above carries the school summary).
+        InstructorProfile? profile = null;
+        List<string> classes = new();
+        SchoolStage? stage = null;
+        if (roles.Any(r => r == RoleNames.Instructor))
+        {
+            profile = await _context.InstructorProfiles
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Where(p => p.UserId == userId && p.IsActive)
+                .OrderBy(p => p.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (profile != null)
+            {
+                classes = await _context.InstructorClasses
+                    .AsNoTracking()
+                    .Where(c => c.InstructorProfileId == profile.Id)
+                    .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
+                    .Select(c => c.ClassLabel)
+                    .ToListAsync(cancellationToken);
+                stage = profile.Stage;
+            }
+        }
+
         return new UserDetailDto
         {
             UserId = user.Id,
@@ -268,7 +296,11 @@ public class UserService : IUserService
             Roles = roles.ToList(),
             Schools = schools,
             CreatedAt = user.CreatedAt,
-            LastLoginAt = user.LastLoginAt
+            LastLoginAt = user.LastLoginAt,
+            EmployeeNumber = profile?.EmployeeNumber,
+            Subject = profile?.SubjectSpecialization,
+            Stage = stage,
+            Classes = classes
         };
     }
 
@@ -291,14 +323,16 @@ public class UserService : IUserService
         if (existing != null)
             throw new InvalidOperationException("اسم المستخدم مستخدم بالفعل.");
 
+        var (firstName, lastName) = ResolveNameParts(request.FullName, request.FirstName, request.LastName);
+
         var user = new ApplicationUser
         {
             UserName = request.Username,
             Email = request.Email,
             PhoneNumber = request.PhoneNumber,
             EmailConfirmed = true, // Phase 2: no email confirmation flow yet
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName.Trim(),
+            FirstName = firstName,
+            LastName = lastName,
             PreferredLanguage = string.IsNullOrEmpty(request.PreferredLanguage) ? "ar" : request.PreferredLanguage,
             IsActive = true
         };
@@ -354,6 +388,14 @@ public class UserService : IUserService
                 CreatedByUserId = _currentUser.UserId
             });
 
+            // D-74 — For Instructor creates, upsert the teacher-profile rows
+            // (InstructorProfile + InstructorClasses) in the same unit-of-work
+            // so a half-failed create cannot leave a User without a profile.
+            if (request.Role == RoleNames.Instructor)
+            {
+                await UpsertInstructorProfileAsync(user.Id, school.Id, request.EmployeeNumber, request.Subject, request.Stage, request.Classes, cancellationToken);
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
         }
 
@@ -367,13 +409,17 @@ public class UserService : IUserService
     {
         // SECURITY (D-24): a school-scoped caller may only modify users assigned
         // to his school. Reuse GetByIdAsync's check by reading first.
-        await GetByIdAsync(userId, cancellationToken);
+        var current = await GetByIdAsync(userId, cancellationToken);
+
+        if (request.SchoolId.HasValue && request.SchoolId.Value > 0)
+            await _scopeGuard.EnsureCanMutateSchoolAsync(request.SchoolId.Value, cancellationToken);
 
         var user = await _userManager.FindByIdAsync(userId)
             ?? throw new KeyNotFoundException("المستخدم غير موجود.");
 
-        user.FirstName = request.FirstName.Trim();
-        user.LastName = request.LastName.Trim();
+        var (firstName, lastName) = ResolveNameParts(request.FullName, request.FirstName, request.LastName);
+        user.FirstName = firstName;
+        user.LastName = lastName;
         user.Email = request.Email;
         user.PhoneNumber = request.PhoneNumber;
         user.PreferredLanguage = string.IsNullOrEmpty(request.PreferredLanguage) ? "ar" : request.PreferredLanguage;
@@ -383,6 +429,39 @@ public class UserService : IUserService
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             throw new ArgumentException(errors);
+        }
+
+        // D-74 — For Instructor updates, upsert the teacher-profile rows. The
+        // SchoolId is taken from the user's FIRST active Instructor assignment
+        // (mirrors the teacher's first school — matches the rest of the UI).
+        // Cross-school safety: a SchoolManager can only edit teachers in his
+        // own school — GetByIdAsync's check above already enforces that.
+        if (current.Roles.Any(r => r == RoleNames.Instructor))
+        {
+            var profileSchoolId = await _context.InstructorProfiles
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Where(p => p.UserId == userId)
+                .Select(p => (int?)p.SchoolId)
+                .FirstOrDefaultAsync(cancellationToken);
+            var currentSchoolId = profileSchoolId ?? current.Schools.FirstOrDefault()?.SchoolId;
+            var effectiveSchoolId = request.SchoolId ?? currentSchoolId;
+
+            if (effectiveSchoolId.HasValue && effectiveSchoolId.Value > 0)
+            {
+                if (request.SchoolId.HasValue && request.SchoolId.Value != currentSchoolId)
+                    await MoveInstructorAssignmentAsync(userId, currentSchoolId, request.SchoolId.Value, cancellationToken);
+
+                await UpsertInstructorProfileAsync(
+                    userId,
+                    effectiveSchoolId.Value,
+                    request.EmployeeNumber,
+                    request.Subject,
+                    request.Stage,
+                    request.Classes,
+                    cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
         }
 
         return await GetByIdAsync(userId, cancellationToken);
@@ -419,5 +498,176 @@ public class UserService : IUserService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("User deactivated: {UserId} (by {ByUserId})", userId, _currentUser.UserId);
+    }
+
+    /// <summary>
+    /// D-74 — Upsert the <see cref="InstructorProfile"/> + <see cref="InstructorClass"/>
+    /// rows for an Instructor user. Always keyed to the user's first active
+    /// Instructor assignment's school (one profile per user, consistent with
+    /// the existing <c>UX_InstructorProfile_User</c> unique index on UserId).
+    ///
+    /// Strategy: load the existing profile row (if any), update its scalar
+    /// fields, then fully replace the class list with the incoming labels —
+    /// delete missing rows + insert new ones in the same unit-of-work.
+    /// </summary>
+    private async Task UpsertInstructorProfileAsync(
+        string userId,
+        int schoolId,
+        string? employeeNumber,
+        string? subject,
+        SchoolStage? stage,
+        List<string>? classes,
+        CancellationToken cancellationToken)
+    {
+        var profile = await _context.InstructorProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+
+        if (profile == null)
+        {
+            profile = new InstructorProfile
+            {
+                UserId = userId,
+                SchoolId = schoolId,
+                EmployeeNumber = string.IsNullOrWhiteSpace(employeeNumber) ? null : employeeNumber.Trim(),
+                SubjectSpecialization = string.IsNullOrWhiteSpace(subject) ? null : subject.Trim(),
+                Stage = stage,
+                IsActive = true
+            };
+            _context.InstructorProfiles.Add(profile);
+            // Save immediately so the new profile gets an Id we can FK against
+            // for the class rows below (avoids relying on graph-fixup ordering).
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        else
+        {
+            // Only update fields the caller actually sent. EmployeeNumber / Subject
+            // are blankable; treat null as "do not touch" so a partial payload
+            // doesn't accidentally wipe existing values. Stage: null means "leave
+            // it alone" too (the form only sends it on a full edit).
+            if (employeeNumber != null)
+                profile.EmployeeNumber = string.IsNullOrWhiteSpace(employeeNumber) ? null : employeeNumber.Trim();
+            if (subject != null)
+                profile.SubjectSpecialization = string.IsNullOrWhiteSpace(subject) ? null : subject.Trim();
+            if (stage.HasValue)
+                profile.Stage = stage;
+            profile.SchoolId = schoolId;
+            profile.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
+        // D-74 — Class labels: only touch the table when the caller sent a
+        // non-null list (null means "don't change classes"). Normalize, dedupe
+        // (case-insensitive to mirror the DB collation), preserve order.
+        if (classes != null)
+        {
+            var existing = await _context.InstructorClasses
+                .Where(c => c.InstructorProfileId == profile.Id)
+                .ToListAsync(cancellationToken);
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var normalized = new List<string>();
+            foreach (var raw in classes)
+            {
+                if (string.IsNullOrWhiteSpace(raw)) continue;
+                var trimmed = raw.Trim();
+                if (trimmed.Length > 50) trimmed = trimmed.Substring(0, 50);
+                if (seen.Add(trimmed)) normalized.Add(trimmed);
+            }
+
+            // Drop rows whose label isn't in the new set.
+            foreach (var row in existing)
+            {
+                if (!normalized.Any(n => string.Equals(n, row.ClassLabel, StringComparison.OrdinalIgnoreCase)))
+                {
+                    row.IsDeleted = true;
+                    row.DeletedAt = DateTimeOffset.UtcNow;
+                    row.DeletedByUserId = _currentUser.UserId;
+                }
+            }
+
+            // Insert any new labels.
+            var existingLabels = existing
+                .Where(r => !r.IsDeleted)
+                .Select(r => r.ClassLabel)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var sortOrder = 0;
+            foreach (var label in normalized)
+            {
+                if (existingLabels.Contains(label)) { sortOrder++; continue; }
+                _context.InstructorClasses.Add(new InstructorClass
+                {
+                    InstructorProfileId = profile.Id,
+                    ClassLabel = label,
+                    SortOrder = sortOrder
+                });
+                sortOrder++;
+            }
+        }
+    }
+
+    private async Task MoveInstructorAssignmentAsync(
+        string userId,
+        int? currentSchoolId,
+        int targetSchoolId,
+        CancellationToken cancellationToken)
+    {
+        var targetSchoolExists = await _context.Schools
+            .AnyAsync(s => s.Id == targetSchoolId, cancellationToken);
+        if (!targetSchoolExists)
+            throw new KeyNotFoundException("المدرسة المختارة غير موجودة.");
+
+        var instructorRole = await _roleManager.FindByNameAsync(RoleNames.Instructor)
+            ?? throw new InvalidOperationException("دور المعلم غير مهيأ في قاعدة البيانات.");
+
+        var assignments = await _context.UserSchoolRoles
+            .IgnoreQueryFilters()
+            .Where(r => r.UserId == userId && r.RoleId == instructorRole.Id)
+            .ToListAsync(cancellationToken);
+
+        var target = assignments.FirstOrDefault(r => r.SchoolId == targetSchoolId);
+        var source = currentSchoolId.HasValue
+            ? assignments.FirstOrDefault(r => r.SchoolId == currentSchoolId.Value)
+            : assignments.FirstOrDefault(r => r.IsActive && !r.IsDeleted);
+
+        if (target != null)
+        {
+            target.IsDeleted = false;
+            target.DeletedAt = null;
+            target.DeletedByUserId = null;
+            target.IsActive = true;
+            target.UpdatedAt = DateTimeOffset.UtcNow;
+            target.UpdatedByUserId = _currentUser.UserId;
+
+            if (source != null && source.Id != target.Id)
+            {
+                source.IsActive = false;
+                source.UpdatedAt = DateTimeOffset.UtcNow;
+                source.UpdatedByUserId = _currentUser.UserId;
+            }
+            return;
+        }
+
+        if (source == null)
+            throw new KeyNotFoundException("لم يتم العثور على تعيين نشط لهذا المعلم.");
+
+        source.SchoolId = targetSchoolId;
+        source.IsActive = true;
+        source.UpdatedAt = DateTimeOffset.UtcNow;
+        source.UpdatedByUserId = _currentUser.UserId;
+    }
+
+    private static (string FirstName, string LastName) ResolveNameParts(
+        string? fullName,
+        string firstName,
+        string lastName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return (firstName.Trim(), lastName.Trim());
+
+        var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 2)
+            return (parts[0], lastName.Trim());
+
+        return (parts[0], string.Join(' ', parts.Skip(1)));
     }
 }

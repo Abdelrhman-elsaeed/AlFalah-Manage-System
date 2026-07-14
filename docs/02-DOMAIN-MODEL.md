@@ -132,6 +132,31 @@ See [09-RUBRIC-AND-EVALUATION.md](09-RUBRIC-AND-EVALUATION.md). Rubric versionin
 Main Manager edits create a new `RubricVersion`; existing visits keep their
 original `RubricVersionId` so old reports remain historically accurate.
 
+## InstructorProfile / InstructorClass (Teacher profile enhancement)
+`InstructorProfile` remains the teacher profile for an `ApplicationUser` with an
+active `Instructor` `UserSchoolRole`; no parallel teacher table exists.
+
+**InstructorProfile additions:** `Stage` (`SchoolStage`, nullable for legacy
+rows; required by new teacher create/edit flows) and the existing
+`SubjectSpecialization` / `EmployeeNumber` fields are completed by the UI and
+DTO contracts. `SchoolId` is the teacher's active school. Moving a teacher to
+another school updates both this profile and the active Instructor assignment,
+with `SchoolScopeGuard` enforcing the caller's scope.
+
+**InstructorClass (migration `AddTeacherProfileClasses`):** Id,
+InstructorProfileId, ClassLabel (max 50, Arabic_CI_AS), SortOrder, CreatedAt,
+UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId.
+
+**Rules:**
+- One active class label per profile (filtered unique index on
+  `(InstructorProfileId, ClassLabel)` where `IsDeleted = 0`).
+- Class rows are soft-deleted when removed from the teacher's submitted list.
+- Subject is one value (`SubjectSpecialization`); classes are many
+  `InstructorClass` rows, which avoids CSV parsing and preserves an additive,
+  queryable model for visit-form auto-fill.
+- A Visit continues to snapshot its chosen `Subject` and `GradeClass`; teacher
+  profile changes do not rewrite historical visits.
+
 ## Visit (Phase 4 + Phase 5 approval fields)
 **Fields:** Id, SchoolId, InstructorId (the evaluated teacher's user id), CreatedByUserId
 (Moderator/SchoolManager who created it), RubricVersionId (SNAPSHOT — the active version at creation),

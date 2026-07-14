@@ -117,6 +117,10 @@ export interface UserDetail {
   schools: UserSchoolBrief[];
   createdAt: string;
   lastLoginAt?: string;
+  employeeNumber?: string | null;
+  subject?: string | null;
+  stage?: SchoolStage | null;
+  classes: string[];
 }
 
 export interface UserCreateRequest {
@@ -129,6 +133,11 @@ export interface UserCreateRequest {
   preferredLanguage?: 'ar' | 'en';
   role: PhaseTwoRole;
   schoolId?: number;
+  fullName?: string;
+  employeeNumber?: string;
+  subject?: string;
+  stage?: SchoolStage;
+  classes?: string[];
 }
 
 export interface UserUpdateRequest {
@@ -137,6 +146,12 @@ export interface UserUpdateRequest {
   email?: string;
   phoneNumber?: string;
   preferredLanguage?: 'ar' | 'en';
+  fullName?: string;
+  schoolId?: number;
+  employeeNumber?: string;
+  subject?: string;
+  stage?: SchoolStage;
+  classes?: string[];
 }
 
 export interface UserListQuery extends PagedQuery {

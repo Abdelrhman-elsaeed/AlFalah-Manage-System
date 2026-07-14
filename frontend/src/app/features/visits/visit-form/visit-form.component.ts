@@ -16,6 +16,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { VisitsService } from '../../../core/services/visits.service';
 import { UsersService } from '../../../core/services/users.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { TeachersService } from '../../../core/services/teachers.service';
 import {
   VISIT_CATEGORIES, VISIT_SEQUENCES,
   VisitDetail, VisitScoreInput, VisitScore, CreateVisitRequest, UpdateVisitRequest,
@@ -56,6 +57,7 @@ export class VisitFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
+  private readonly teachersService = inject(TeachersService);
   private readonly translate = inject(TranslateService);
 
   readonly categories = VISIT_CATEGORIES;
@@ -72,6 +74,16 @@ export class VisitFormComponent implements OnInit {
   readonly instructorsLoading = signal(false);
   readonly rubricVersionNumber = signal<number | null>(null);
   readonly isReadOnly = signal(false);
+  readonly teachingLoading = signal(false);
+  readonly teachingLoaded = signal(false);
+  readonly teacherSubject = signal<string | null>(null);
+  readonly teacherClasses = signal<string[]>([]);
+  readonly teachingUnavailable = signal(false);
+  readonly hasTeacherSubject = computed(() => !!this.teacherSubject());
+  readonly hasTeacherClasses = computed(() => this.teacherClasses().length > 0);
+  readonly classOptions = computed(() => this.teacherClasses().map(label => ({ label, value: label })));
+  readonly showTeachingFallback = computed(() =>
+    this.teachingLoaded() && (!this.hasTeacherSubject() || !this.hasTeacherClasses()));
 
   // Phase 5: rejection / reopen banners (visible when editing a returned visit)
   readonly rejectionReason = signal<string | null>(null);
@@ -123,6 +135,7 @@ export class VisitFormComponent implements OnInit {
       this.visitId.set(Number(idParam));
       this.loadExistingVisit(this.visitId()!);
     } else {
+      this.form.controls['instructorId'].valueChanges.subscribe(userId => this.loadTeachingForInstructor(userId));
       this.loadInstructors();
     }
   }
@@ -136,9 +149,43 @@ export class VisitFormComponent implements OnInit {
           this.instructors.set(
             resp.data.items.map(u => ({ userId: u.userId, fullName: u.fullName }))
           );
+          const preselectedInstructorId = this.route.snapshot.queryParamMap.get('instructorId');
+          if (!this.isEdit() && preselectedInstructorId) {
+            this.form.controls['instructorId'].setValue(preselectedInstructorId);
+          }
         }
       },
       error: () => this.instructorsLoading.set(false)
+    });
+  }
+
+  private loadTeachingForInstructor(userId: string | null): void {
+    this.teacherSubject.set(null);
+    this.teacherClasses.set([]);
+    this.teachingLoaded.set(false);
+    this.teachingUnavailable.set(false);
+    if (!userId) return;
+
+    this.teachingLoading.set(true);
+    this.teachersService.getTeaching(userId).subscribe({
+      next: response => {
+        this.teachingLoading.set(false);
+        if (this.form.controls['instructorId'].value !== userId) return;
+
+        const teaching = response.isSuccess ? response.data : null;
+        const subject = teaching?.subject?.trim() || null;
+        this.teacherSubject.set(subject);
+        this.teacherClasses.set(teaching?.classes ?? []);
+        this.teachingLoaded.set(true);
+        this.teachingUnavailable.set(!response.isSuccess);
+        this.form.patchValue({ subject: subject ?? '', gradeClass: '' }, { emitEvent: false });
+      },
+      error: () => {
+        if (this.form.controls['instructorId'].value !== userId) return;
+        this.teachingLoading.set(false);
+        this.teachingLoaded.set(true);
+        this.teachingUnavailable.set(true);
+      }
     });
   }
 

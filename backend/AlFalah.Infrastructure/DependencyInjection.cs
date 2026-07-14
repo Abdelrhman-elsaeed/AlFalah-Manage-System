@@ -67,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<AuditLogWriter>();
         services.AddScoped<SchoolScopeGuard>();
         services.AddScoped<SchoolLookupService>();
         services.AddScoped<ISchoolService, SchoolService>();
@@ -74,6 +75,9 @@ public static class DependencyInjection
         services.AddScoped<IUserSchoolRoleService, UserSchoolRoleService>();
         services.AddScoped<IRubricService, RubricService>();
         services.AddScoped<IVisitService, VisitService>();
+        services.AddScoped<ITeacherService, TeacherService>();
+        services.AddScoped<IComplaintService, ComplaintService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IImprovementPlanService, ImprovementPlanService>();
         services.AddScoped<IPdfReportService, PdfReportService>();
         // D-41 / Task 6 — bulk ZIP export of visits (uses System.IO.Compression.ZipArchive;

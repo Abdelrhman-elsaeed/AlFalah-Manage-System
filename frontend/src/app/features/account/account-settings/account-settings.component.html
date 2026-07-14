@@ -46,4 +46,34 @@
       </button>
     </div>
   </section>
+
+  <section class="surface-card teaching-card" *ngIf="isInstructor()">
+    <header class="teaching-card__header">
+      <div>
+        <h2>{{ 'TEACHING.TITLE' | translate }}</h2>
+        <p>{{ 'TEACHING.DESCRIPTION' | translate }}</p>
+      </div>
+      <i class="pi pi-book"></i>
+    </header>
+
+    <form [formGroup]="teachingForm" (ngSubmit)="saveTeaching()" class="teaching-card__form">
+      <div class="teaching-card__field">
+        <label for="my-subject">{{ 'TEACHING.SUBJECT' | translate }} *</label>
+        <input id="my-subject" pInputText formControlName="subject" />
+        <small class="teaching-card__error" *ngIf="teachingForm.controls.subject.touched && teachingForm.controls.subject.invalid">{{ 'TEACHING.SUBJECT_REQUIRED' | translate }}</small>
+      </div>
+      <div class="teaching-card__field">
+        <label for="my-classes">{{ 'TEACHING.CLASSES' | translate }}</label>
+        <p-chips inputId="my-classes" formControlName="classes" [allowDuplicate]="false" separator="," styleClass="w-100"></p-chips>
+        <small>{{ 'TEACHING.CLASSES_HINT' | translate }}</small>
+      </div>
+      <p class="teaching-card__notice" *ngIf="teachingLoaded() && (!teachingForm.controls.subject.value || !(teachingForm.controls.classes.value?.length))">
+        <i class="pi pi-info-circle"></i>
+        {{ 'TEACHING.INCOMPLETE_HINT' | translate }}
+      </p>
+      <div class="teaching-card__actions">
+        <button pButton type="submit" icon="pi pi-save" [label]="'TEACHING.SAVE' | translate" [loading]="teachingSaving()" [disabled]="teachingLoading()"></button>
+      </div>
+    </form>
+  </section>
 </div>

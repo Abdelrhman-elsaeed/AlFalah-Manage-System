@@ -1,0 +1,207 @@
+<div class="page page--narrow" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ 'COMPLAINTS.TITLE' | translate }}</h1>
+      <p class="page-header__subtitle">{{ 'COMPLAINTS.LIST' | translate }}</p>
+    </div>
+    <div class="page-header__action">
+      <button pButton type="button" icon="pi pi-refresh"
+              class="p-button-outlined"
+              [label]="'COMMON.RETRY' | translate"
+              [loading]="loading()"
+              (click)="load()"></button>
+    </div>
+  </header>
+
+  <!-- Status filter toolbar -->
+  <section class="complaints-toolbar surface-card">
+    <label class="toolbar-label">{{ 'COMPLAINTS.STATUS' | translate }}</label>
+    <app-clearable-select [options]="statusOptions"
+                          optionValue="value"
+                          [placeholder]="'COMPLAINTS.ALL_STATUSES' | translate"
+                          [(ngModel)]="statusFilter"
+                          (onDropdownChange)="load()"
+                          (cleared)="load()"
+                          [itemTpl]="statusItemTpl"
+                          [selectedItemTpl]="statusSelectedItemTpl"
+                          appendTo="body"
+                          styleClass="w-full"></app-clearable-select>
+  </section>
+
+  <ng-template #statusItemTpl let-opt>
+    <span>{{ opt.labelKey | translate }}</span>
+  </ng-template>
+  <ng-template #statusSelectedItemTpl let-opt>
+    <span *ngIf="opt">{{ opt.labelKey | translate }}</span>
+  </ng-template>
+
+  <section class="surface-card table-card">
+    <p-table [value]="complaints()" [loading]="loading()" [paginator]="true" [rows]="10"
+             [rowsPerPageOptions]="[10, 25, 50]" dataKey="id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>{{ 'COMPLAINTS.SUBJECT' | translate }}</th>
+          <th>{{ 'COMPLAINTS.VISIT' | translate }}</th>
+          <th>{{ 'COMPLAINTS.INSTRUCTOR' | translate }}</th>
+          <th>{{ 'COMPLAINTS.MODERATOR' | translate }}</th>
+          <th>{{ 'COMPLAINTS.CREATED_AT' | translate }}</th>
+          <th class="text-center">{{ 'COMPLAINTS.STATUS' | translate }}</th>
+          <th class="text-center">{{ 'COMMON.ACTIONS' | translate }}</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-c>
+        <tr>
+          <td>{{ c.id }}</td>
+          <td class="complaint-subject">{{ c.subject }}</td>
+          <td>#{{ c.visitId }} <span *ngIf="c.visitSubject">· {{ c.visitSubject }}</span></td>
+          <td>{{ c.instructorFullName }}</td>
+          <td>{{ c.moderatorFullName }}</td>
+          <td>{{ c.createdAt | date:'yyyy-MM-dd HH:mm' }}</td>
+          <td class="text-center">
+            <p-tag [severity]="severity(c.status)" [value]="c.statusLabelAr"></p-tag>
+          </td>
+          <td class="text-center">
+            <div class="table-actions">
+              <button pButton type="button" icon="pi pi-eye"
+                      class="p-button-sm p-button-icon-only p-button-outlined"
+                      [pTooltip]="'COMPLAINTS.DETAILS' | translate" tooltipPosition="top"
+                      (click)="openDetail(c)"></button>
+              <button pButton type="button" icon="pi pi-clipboard"
+                      class="p-button-sm p-button-icon-only p-button-outlined p-button-info"
+                      [pTooltip]="'COMPLAINTS.GO_TO_VISIT' | translate" tooltipPosition="top"
+                      (click)="goToVisit(c)"></button>
+              <button *ngIf="canDelete()" pButton type="button" icon="pi pi-trash"
+                      class="p-button-sm p-button-icon-only p-button-outlined p-button-danger"
+                      [pTooltip]="'COMMON.DELETE' | translate" tooltipPosition="top"
+                      (click)="confirmDelete(c)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="empty-row">{{ 'COMPLAINTS.EMPTY' | translate }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+</div>
+
+<!-- Detail dialog -->
+<p-dialog [visible]="detailVisible()" (visibleChange)="$event ? null : closeDetail()"
+          [modal]="true" [style]="{ width: '640px' }"
+          [header]="'COMPLAINTS.DETAILS' | translate" dir="rtl">
+  <ng-container *ngIf="selected() as c">
+    <div class="complaint-detail">
+      <div class="detail-row">
+        <span class="label">{{ 'COMPLAINTS.SUBJECT' | translate }}</span>
+        <span class="value">{{ c.subject }}</span>
+      </div>
+      <div class="detail-row detail-row--body">
+        <span class="label">{{ 'COMPLAINTS.BODY' | translate }}</span>
+        <p class="value body-text">{{ c.body }}</p>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-row">
+          <span class="label">{{ 'COMPLAINTS.VISIT' | translate }}</span>
+          <a class="value link" (click)="goToVisit(c)">#{{ c.visitId }}</a>
+        </div>
+        <div class="detail-row">
+          <span class="label">{{ 'COMPLAINTS.INSTRUCTOR' | translate }}</span>
+          <span class="value">{{ c.instructorFullName }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">{{ 'COMPLAINTS.MODERATOR' | translate }}</span>
+          <span class="value">{{ c.moderatorFullName }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">{{ 'COMPLAINTS.STATUS' | translate }}</span>
+          <p-tag [severity]="severity(c.status)" [value]="c.statusLabelAr"></p-tag>
+        </div>
+        <div class="detail-row" *ngIf="c.handledByFullName">
+          <span class="label">{{ 'COMPLAINTS.HANDLED_BY' | translate }}</span>
+          <span class="value">{{ c.handledByFullName }} · {{ c.handledAt | date:'yyyy-MM-dd HH:mm' }}</span>
+        </div>
+        <div class="detail-row" *ngIf="c.visitReopenedAt">
+          <span class="label">{{ 'COMPLAINTS.REOPEN_VISIT' | translate }}</span>
+          <span class="value">{{ c.visitReopenedAt | date:'yyyy-MM-dd HH:mm' }} · {{ c.visitReopenReason }}</span>
+        </div>
+      </div>
+
+      <div class="detail-row detail-row--body" *ngIf="c.resolutionNote">
+        <span class="label">{{ 'COMPLAINTS.RESOLUTION_NOTE' | translate }}</span>
+        <p class="value body-text">{{ c.resolutionNote }}</p>
+      </div>
+
+      <!-- Handling controls (SM / SuperAdmin only — backend re-enforces) -->
+      <div class="handle-box" *ngIf="canHandle() && nextStatusOptions().length > 0">
+        <h4 class="handle-title">{{ 'COMPLAINTS.CHANGE_STATUS' | translate }}</h4>
+        <div class="handle-controls">
+          <p-dropdown [options]="nextStatusOptions()"
+                      optionValue="value"
+                      [placeholder]="'COMPLAINTS.NEXT_STATUS' | translate"
+                      [ngModel]="nextStatus()"
+                      (ngModelChange)="nextStatus.set($event)"
+                      [showClear]="false"
+                      appendTo="body">
+            <ng-template pTemplate="selectedItem" let-opt>
+              <span *ngIf="opt">{{ opt.labelKey | translate }}</span>
+            </ng-template>
+            <ng-template pTemplate="item" let-opt>
+              <span>{{ opt.labelKey | translate }}</span>
+            </ng-template>
+          </p-dropdown>
+          <textarea pInputTextarea rows="3" maxlength="2000"
+                    [placeholder]="'COMPLAINTS.RESOLUTION_NOTE_PLACEHOLDER' | translate"
+                    [ngModel]="resolutionNote()"
+                    (ngModelChange)="resolutionNote.set($event)"></textarea>
+          <button pButton type="button" icon="pi pi-check"
+                  [label]="'COMMON.SAVE' | translate"
+                  [loading]="statusSaving()"
+                  [disabled]="nextStatus() === null"
+                  (click)="saveStatus()"></button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template pTemplate="footer">
+    <button *ngIf="canReopenVisit() && selected() && selected()!.status !== 5"
+            pButton type="button" icon="pi pi-history"
+            class="p-button-warning"
+            [label]="'COMPLAINTS.REOPEN_VISIT' | translate"
+            (click)="openReopenDialog()"></button>
+    <button pButton type="button" class="p-button-text"
+            [label]="'COMMON.CLOSE' | translate"
+            (click)="closeDetail()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Reopen-visit-from-complaint dialog -->
+<p-dialog [visible]="reopenDialogVisible()" (visibleChange)="$event ? null : reopenDialogVisible.set(false)"
+          [modal]="true" [style]="{ width: '480px' }"
+          [header]="'COMPLAINTS.REOPEN_VISIT' | translate" dir="rtl">
+  <div class="reason-dialog">
+    <label class="reason-dialog__label">{{ 'COMPLAINTS.REOPEN_REASON' | translate }}</label>
+    <textarea pInputTextarea rows="4" maxlength="1000"
+              class="reason-dialog__textarea"
+              [placeholder]="'COMPLAINTS.REOPEN_REASON_PLACEHOLDER' | translate"
+              [ngModel]="reopenReason()"
+              (ngModelChange)="reopenReason.set($event)"
+              [disabled]="reopenSaving()"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" class="p-button-text"
+            [label]="'COMMON.CANCEL' | translate"
+            [disabled]="reopenSaving()"
+            (click)="reopenDialogVisible.set(false)"></button>
+    <button pButton type="button"
+            [label]="'COMPLAINTS.REOPEN_VISIT' | translate"
+            [loading]="reopenSaving()"
+            [disabled]="!reopenReason().trim()"
+            (click)="submitReopen()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>

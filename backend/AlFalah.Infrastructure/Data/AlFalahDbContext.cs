@@ -27,6 +27,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     // People
     public DbSet<InstructorProfile> InstructorProfiles => Set<InstructorProfile>();
+    // D-74 — Teacher's class labels (auto-fill source for the visit form).
+    public DbSet<InstructorClass> InstructorClasses => Set<InstructorClass>();
 
     // System
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -49,6 +51,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     // Phase 7: Improvement Plans & Follow-ups
     public DbSet<ImprovementPlan> ImprovementPlans => Set<ImprovementPlan>();
     public DbSet<PlanFollowUp> PlanFollowUps => Set<PlanFollowUp>();
+
+    // Phase 8: Complaints
+    public DbSet<Complaint> Complaints => Set<Complaint>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -73,6 +78,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         builder.Entity<ApplicationUser>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<UserSchoolRole>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<InstructorProfile>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<InstructorClass>().HasQueryFilter(x => !x.IsDeleted);
 
         // Rubric soft-delete filters (Phase 3)
         builder.Entity<RubricVersion>().HasQueryFilter(x => !x.IsDeleted);
@@ -121,6 +127,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case School s: s.UpdatedAt = now; break;
                 case ApplicationUser u: u.UpdatedAt = now; break;
                 case InstructorProfile i: i.UpdatedAt = now; break;
+                case InstructorClass ic: ic.UpdatedAt = now; break;
                 case UserSchoolRole usr: usr.UpdatedAt = now; break;
                 case Visit v: v.UpdatedAt = now; break;
                 case VisitScore vs: vs.UpdatedAt = now; break;

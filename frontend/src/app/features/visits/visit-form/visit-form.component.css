@@ -68,6 +68,19 @@
 .form-field { display: flex; flex-direction: column; gap: 4px; }
 .form-field--full { grid-column: 1 / -1; }
 .form-field label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+.teaching-fallback {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--text);
+  background: var(--brand-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+.teaching-fallback .pi { color: var(--brand-700); margin-top: 2px; }
 /* D-34: p-calendar in form fields must expand to its container so the input
    grows but the trigger icon stays inline (PrimeNG's default flex layout). */
 :host ::ng-deep .form-field input.p-inputtext,
