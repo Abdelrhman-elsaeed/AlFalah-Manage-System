@@ -13,6 +13,7 @@
 
   /* Accent — Saudi gold */
   --gold: #D4AF37;
+  --gold-700: #9A7416;
   --gold-bg: rgba(212, 175, 55, 0.10);
   --gold-border: rgba(212, 175, 55, 0.40);
 
@@ -247,7 +248,7 @@ a:hover { color: var(--brand-900); text-decoration: underline; }
   padding: var(--space-4);
   box-shadow: var(--shadow-sm);
 }
-.table-card { padding: var(--space-3); }
+.table-card { padding: var(--space-3); border-top: 3px solid rgba(212, 175, 55, 0.72); box-shadow: var(--shadow-md); }
 .table-card .p-datatable { border-radius: var(--radius-md); overflow: hidden; }
 
 /* ─── PrimeNG Global Overrides (light) ───────────────────────────────────── */
@@ -425,12 +426,11 @@ textarea.p-inputtext {
   background-color: var(--bg-surface) !important;
 }
 .p-datatable .p-datatable-thead > tr > th {
-  background-color: var(--brand-50) !important;
-  background-image: none !important;
+  background: linear-gradient(180deg, #eff8f3 0%, var(--brand-50) 100%) !important;
   color: var(--brand-900) !important;
   border-bottom: 1px solid var(--border-strong) !important;
   font-weight: 700;
-  padding: 0.85rem 1rem !important;
+  padding: 0.9rem 1rem !important;
   text-align: start;
 }
 .p-datatable .p-datatable-tbody > tr {
@@ -443,7 +443,7 @@ textarea.p-inputtext {
   background-image: none !important;
   color: var(--text) !important;
   border-bottom: 1px solid var(--border) !important;
-  padding: 0.75rem 1rem !important;
+  padding: 0.82rem 1rem !important;
   vertical-align: middle;
   text-align: start; /* Match header alignment for RTL */
 }
@@ -489,6 +489,7 @@ textarea.p-inputtext {
   padding: 0;
   flex: 0 0 2.2rem;
 }
+.table-actions .p-button { border-radius: 9px; }
 
 /* Paginator — RTL-aware, light surface */
 .p-paginator {
@@ -604,8 +605,10 @@ textarea.p-inputtext {
   padding: 0.5rem 1rem;
   border-radius: var(--radius-md);
   font-weight: 600;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
+.p-button:enabled:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.p-button:enabled:active { transform: translateY(0); box-shadow: none; }
 .p-button .p-button-icon { margin-inline-end: 0 !important; margin-inline-start: 0 !important; font-size: 1rem; }
 /* D-41: unified icon size across buttons + section headers.
    Standard 1rem in buttons, 1.1rem for section headers. */
@@ -663,6 +666,20 @@ h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
 }
 .p-button.p-button-text { color: var(--brand-700); }
 .p-button.p-button-text:enabled:hover { background: var(--brand-50); color: var(--brand-900); }
+
+.p-button.app-back-button,
+.app-back-button.p-button {
+  color: var(--text-strong) !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: var(--shadow-sm);
+}
+.p-button.app-back-button:enabled:hover,
+.app-back-button.p-button:enabled:hover {
+  color: var(--brand-900) !important;
+  border-color: var(--gold) !important;
+  background: var(--gold-bg) !important;
+}
 
 /* p-button-danger — subtle red (not the gloomy dark red from before) */
 .p-button.p-button-danger {
@@ -724,4 +741,10 @@ h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
 /* Progress spinner */
 .p-progress-spinner-circle {
   stroke: var(--brand-500) !important;
+}
+.p-datatable .p-datatable-tbody > tr:nth-child(even) > td {
+  background-color: #fbfcfa !important;
+}
+.p-datatable .p-datatable-tbody > tr:hover > td:first-child {
+  box-shadow: inset -3px 0 0 var(--gold);
 }

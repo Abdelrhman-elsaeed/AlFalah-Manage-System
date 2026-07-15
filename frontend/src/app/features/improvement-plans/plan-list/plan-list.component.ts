@@ -252,9 +252,11 @@ export class PlanListComponent implements OnInit {
       this.plansService.createPlan(body).subscribe({
         next: (resp) => {
           this.submitting.set(false);
-          if (resp.isSuccess) {
+          if (resp.isSuccess && resp.data) {
             this.toast.success(this.t('COMMON.SUCCESS'), this.t('PLANS.SAVE_SUCCESS'));
             this.planDialogVisible.set(false);
+            this.statusFilter.set('all');
+            this.plans.update(current => [resp.data!, ...current.filter(plan => plan.id !== resp.data!.id)]);
             this.loadPlans();
           } else {
             this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('PLANS.SAVE_FAILED'));

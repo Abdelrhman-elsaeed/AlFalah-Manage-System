@@ -11,7 +11,7 @@
     <div class="page-header__action">
       <button pButton type="button" icon="pi pi-arrow-right"
               [label]="'COMMON.BACK' | translate"
-              class="p-button-text" (click)="cancel()"></button>
+              class="p-button-text app-back-button" (click)="cancel()"></button>
     </div>
   </header>
 
@@ -174,8 +174,8 @@
         </header>
 
         <div class="standards">
-          <div class="standard-row" *ngFor="let s of d.scores; trackBy: trackStandard">
-            <div class="std-code">{{ s.standardCode }}</div>
+          <div class="standard-row" *ngFor="let s of d.scores; trackBy: trackStandard; let standardIndex = index">
+            <div class="std-code">{{ standardIndex + 1 }}</div>
             <div class="std-text">{{ s.standardTextAr }}</div>
             <div class="std-actions">
               <!-- Segmented score button group (5 values 0..4) -->

@@ -93,6 +93,24 @@ public class VisitPriorityStandardDto
     public int Score { get; set; }
 }
 
+/// <summary>
+/// Live follow-up data for an improvement plan created from this visit.
+/// These rows are projected at read time because they can be added after the
+/// immutable visit analysis snapshot was created.
+/// </summary>
+public class VisitPlanFollowUpDto
+{
+    public int PlanId { get; set; }
+    public string? DomainNameAr { get; set; }
+    public string Goal { get; set; } = string.Empty;
+    public int FollowUpId { get; set; }
+    public DateTimeOffset FollowDate { get; set; }
+    public string ProgressNote { get; set; } = string.Empty;
+    public string? EvidenceNote { get; set; }
+    public int? ProgressScore { get; set; }
+    public string CreatedByFullName { get; set; } = string.Empty;
+}
+
 /// <summary>Full detail returned by GET /api/v1/visits/{id}.</summary>
 public class VisitDetailDto
 {
@@ -141,6 +159,7 @@ public class VisitDetailDto
 
     public List<VisitScoreDto> Scores { get; set; } = new();
     public VisitAnalysisDto? Analysis { get; set; }
+    public List<VisitPlanFollowUpDto> PlanFollowUps { get; set; } = new();
 }
 
 // ─── Write DTOs ──────────────────────────────────────────────────────────────
@@ -238,6 +257,7 @@ public class InstructorReportDto
     public string? ApprovedByFullName { get; set; }
     public List<VisitScoreDto> Scores { get; set; } = new();
     public VisitAnalysisDto? Analysis { get; set; }
+    public List<VisitPlanFollowUpDto> PlanFollowUps { get; set; } = new();
 }
 
 /// <summary>

@@ -475,7 +475,7 @@ public class VisitService : IVisitService
                 visit.Id);
         }
 
-        return await MapDetailAsync(visit);
+        return await MapDetailAsync(visit, cancellationToken);
     }
 
     /// <summary>
@@ -1046,6 +1046,8 @@ public class VisitService : IVisitService
             };
         }
 
+        var planFollowUps = await LoadPlanFollowUpsForVisitAsync(visit.Id, cancellationToken);
+
         return new InstructorReportDto
         {
             VisitId = visit.Id,
@@ -1086,7 +1088,8 @@ public class VisitService : IVisitService
                     Score = s.Score,
                     EvidenceNote = s.EvidenceNote
                 }).ToList(),
-            Analysis = analysisDto
+            Analysis = analysisDto,
+            PlanFollowUps = planFollowUps
         };
     }
 
@@ -1324,6 +1327,19 @@ public class VisitService : IVisitService
             ApprovedAt = visit.ApprovedAt,
             RubricVersionNumber = visit.RubricVersion.VersionNumber,
         };
+
+        dto.PlanFollowUps = (await LoadPlanFollowUpsForVisitAsync(visit.Id, cancellationToken))
+            .Select(followUp => new ReportPlanFollowUpDto
+            {
+                DomainNameAr = followUp.DomainNameAr,
+                Goal = followUp.Goal,
+                FollowDate = followUp.FollowDate,
+                ProgressNote = followUp.ProgressNote,
+                EvidenceNote = followUp.EvidenceNote,
+                ProgressScore = followUp.ProgressScore,
+                CreatedByFullName = followUp.CreatedByFullName
+            })
+            .ToList();
 
         // Snapshot fields — exactly the persisted JSON, no recompute.
         if (visit.Analysis != null)
@@ -1660,7 +1676,7 @@ public class VisitService : IVisitService
         return visit;
     }
 
-    private async Task<VisitDetailDto> MapDetailAsync(Visit visit)
+    private async Task<VisitDetailDto> MapDetailAsync(Visit visit, CancellationToken cancellationToken)
     {
         VisitAnalysisDto? analysisDto = null;
         if (visit.Analysis != null)
@@ -1688,6 +1704,8 @@ public class VisitService : IVisitService
                 ComputedAt = visit.Analysis.ComputedAt
             };
         }
+
+        var planFollowUps = await LoadPlanFollowUpsForVisitAsync(visit.Id, cancellationToken);
 
         return new VisitDetailDto
         {
@@ -1741,8 +1759,35 @@ public class VisitService : IVisitService
                     Score = s.Score,
                     EvidenceNote = s.EvidenceNote
                 }).ToList(),
-            Analysis = analysisDto
+            Analysis = analysisDto,
+            PlanFollowUps = planFollowUps
         };
+    }
+
+    private Task<List<VisitPlanFollowUpDto>> LoadPlanFollowUpsForVisitAsync(
+        int visitId,
+        CancellationToken cancellationToken)
+    {
+        return _context.PlanFollowUps
+            .AsNoTracking()
+            .Where(followUp => followUp.ImprovementPlan.VisitId == visitId)
+            .OrderByDescending(followUp => followUp.FollowDate)
+            .ThenByDescending(followUp => followUp.Id)
+            .Select(followUp => new VisitPlanFollowUpDto
+            {
+                PlanId = followUp.ImprovementPlanId,
+                DomainNameAr = followUp.ImprovementPlan.Domain != null
+                    ? followUp.ImprovementPlan.Domain.NameAr
+                    : null,
+                Goal = followUp.ImprovementPlan.Goal,
+                FollowUpId = followUp.Id,
+                FollowDate = followUp.FollowDate,
+                ProgressNote = followUp.ProgressNote,
+                EvidenceNote = followUp.EvidenceNote,
+                ProgressScore = followUp.ProgressScore,
+                CreatedByFullName = followUp.CreatedByUser.FirstName + " " + followUp.CreatedByUser.LastName
+            })
+            .ToListAsync(cancellationToken);
     }
 
     private async Task<int> ResolveTargetSchoolIdAsync(string instructorId, CancellationToken cancellationToken)

@@ -74,7 +74,7 @@
         <input id="user-email" pInputText type="email" formControlName="email" />
       </div>
 
-      <div class="field" *ngIf="!isEdit()">
+      <div class="field" *ngIf="!isEdit() && !isInstructor()">
         <label for="user-role">{{ 'USERS.ROLE' | translate }} *</label>
         <app-clearable-select inputId="user-role" [options]="roleOptions" formControlName="role"
                               [clearable]="false" appendTo="body" styleClass="w-100"></app-clearable-select>

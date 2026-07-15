@@ -52,6 +52,20 @@ public sealed class ImprovementPlanOwnershipTests
     }
 
     [Fact]
+    public async Task CreatePlan_AppearsImmediatelyInCurrentPlansForTheSameVisit()
+    {
+        await using var context = CreateContext();
+        await SeedVisitGraphAsync(context);
+        var service = CreateService(context);
+
+        var created = await service.CreatePlanAsync(ValidRequest(10));
+        var currentPlans = await service.GetPlansForVisitAsync(100);
+
+        currentPlans.Should().ContainSingle(plan => plan.Id == created.Id);
+        currentPlans.Single(plan => plan.Id == created.Id).Status.Should().Be("active");
+    }
+
+    [Fact]
     public async Task P01_CreatePlan_Rejects_Domain_From_A_Different_Rubric_Snapshot()
     {
         await using var context = CreateContext();

@@ -24,6 +24,22 @@
 
 .text-center { text-align: center; }
 .muted { color: var(--text-muted); }
+.instructor-name { color: var(--text-strong); font-weight: 700; }
+.row-index {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-border);
+  color: var(--brand-900);
+  font-weight: 800;
+}
+.row-action { white-space: nowrap; }
+.row-action--view { color: var(--brand-900); }
+:host ::ng-deep .table-actions-col { min-width: 245px; }
 
 .chip {
   display: inline-block;

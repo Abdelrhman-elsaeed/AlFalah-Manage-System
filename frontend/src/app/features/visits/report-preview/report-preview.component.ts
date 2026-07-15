@@ -33,7 +33,7 @@ export class ReportPreviewComponent implements OnInit {
   readonly radarData = computed<ChartData<'radar'> | null>(() => {
     const domains = this.report()?.analysis?.domainAverages;
     return domains?.length ? {
-      labels: domains.map(d => `${d.domainCode} — ${d.domainNameAr}`),
+      labels: domains.map(d => d.domainNameAr),
       datasets: [{ label: this.translate.instant('VISITS.DOMAIN_AVERAGE_CHART_LABEL'), data: domains.map(d => d.averageScore),
         borderColor: '#0F7132', backgroundColor: 'rgba(15,113,50,.18)',
         pointBackgroundColor: '#D4AF37', pointBorderColor: '#0F7132' }]
@@ -52,8 +52,12 @@ export class ReportPreviewComponent implements OnInit {
       : this.visits.getById(id)) as Observable<ApiResponse<InstructorReport | VisitDetail>>;
     request.subscribe({
       next: response => {
-        if (response.isSuccess && response.data) this.report.set(this.instructorOnly()
-          ? mapInstructorReport(response.data as InstructorReport) : response.data as VisitDetail);
+        if (response.isSuccess && response.data) {
+          const report = this.instructorOnly()
+            ? mapInstructorReport(response.data as InstructorReport)
+            : response.data as VisitDetail;
+          this.report.set({ ...report, planFollowUps: report.planFollowUps ?? [] });
+        }
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
@@ -83,6 +87,7 @@ function mapInstructorReport(r: InstructorReport): VisitDetail {
     gradeClass: r.gradeClass, lessonTitle: r.lessonTitle, presentCount: r.presentCount,
     absentCount: r.absentCount, notes: null, createdAt: r.visitDate, updatedAt: r.visitDate,
     submittedAt: r.submittedAt, approvedByFullName: r.approvedByFullName,
-    approvedAt: r.approvedAt, isReadOnly: true, scores: r.scores, analysis: r.analysis
+    approvedAt: r.approvedAt, isReadOnly: true, scores: r.scores, analysis: r.analysis,
+    planFollowUps: r.planFollowUps ?? []
   };
 }

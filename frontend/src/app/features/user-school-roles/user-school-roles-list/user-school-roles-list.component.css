@@ -14,7 +14,8 @@
   min-width: 160px;
 }
 
-.muted { color: var(--text-dim); margin-inline-start: 0.4rem; }
+.muted { color: var(--text-dim); display: inline-flex; align-items: center; gap: 0.3rem; direction: ltr; }
+.user-identity { display: inline-flex; flex-direction: column; gap: 0.15rem; }
 .empty { text-align: center; padding: 3rem; color: var(--text-dim); }
 
 

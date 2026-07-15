@@ -15,60 +15,9 @@ case.
 
 - Changes detected. Rebuilding...
 
-X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
-
-    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
-      525 │   return {
-          ╵   ~~~~~~
-
-
-X [ERROR] TS2739: Type '{ visitCategory: any; visitSequence: any; visitDate: string; subject: any; gradeClass: any; notes: any; scores: VisitScoreInput[]; }' is missing the following properties from type 'UpdateVisitRequest': lessonTitle, presentCount [plugin angular-compiler]
-
-    src/app/features/visits/visit-form/visit-form.component.ts:316:12:
-      316 │       const body: UpdateVisitRequest = {
-          ╵             ~~~~
-
-
-X [ERROR] TS2739: Type '{ instructorId: any; visitCategory: any; visitSequence: any; visitDate: string; subject: any; gradeClass: any; notes: any; scores: VisitScoreInput[]; }' is missing the following properties from type 'CreateVisitRequest': lessonTitle, presentCount [plugin angular-compiler]
-
-    src/app/features/visits/visit-form/visit-form.component.ts:330:12:
-      330 │       const body: CreateVisitRequest = {
-          ╵             ~~~~
-
-
-X [ERROR] TS2739: Type '{ visitCategory: any; visitSequence: any; visitDate: string; subject: any; gradeClass: any; notes: any; scores: VisitScoreInput[]; }' is missing the following properties from type 'UpdateVisitRequest': lessonTitle, presentCount [plugin angular-compiler]
-
-    src/app/features/visits/visit-form/visit-form.component.ts:399:10:
-      399 │     const body: UpdateVisitRequest = {
-          ╵           ~~~~
-
-
 - Changes detected. Rebuilding...
 
-X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
-
-    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
-      525 │   return {
-          ╵   ~~~~~~
-
-
 - Changes detected. Rebuilding...
-
-X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
-
-    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
-      525 │   return {
-          ╵   ~~~~~~
-
-
-- Changes detected. Rebuilding...
-
-X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
-
-    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
-      525 │   return {
-          ╵   ~~~~~~
-
 
 - Changes detected. Rebuilding...
 
@@ -76,37 +25,7 @@ X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; inst
 
 - Changes detected. Rebuilding...
 
-X [ERROR] TS2349: This expression is not callable.
-  Each member of the union type '{ (observerOrNext?: Partial<Observer<ApiResponse<InstructorReport>>> | ((value: ApiResponse<InstructorReport>) => void) | undefined): Subscription; (next?: ((value: ApiResponse<...>) => void) | ... 1 more ... | undefined, error?: ((error: any) => void) | ... 1 more ... | undefined, complete?: (() => void) | ... 1 mo...' has signatures, but none of those signatures are compatible with each other. [plugin angular-compiler]
-
-    src/app/features/visits/report-preview/report-preview.component.ts:48:12:
-      48 │     request.subscribe({
-         ╵             ~~~~~~~~~
-
-
-X [ERROR] TS7006: Parameter 'response' implicitly has an 'any' type. [plugin angular-compiler]
-
-    src/app/features/visits/report-preview/report-preview.component.ts:49:12:
-      49 │       next: response => {
-         ╵             ~~~~~~~~
-
-
 - Changes detected. Rebuilding...
-
-X [ERROR] TS2349: This expression is not callable.
-  Each member of the union type '{ (observerOrNext?: Partial<Observer<ApiResponse<InstructorReport>>> | ((value: ApiResponse<InstructorReport>) => void) | undefined): Subscription; (next?: ((value: ApiResponse<...>) => void) | ... 1 more ... | undefined, error?: ((error: any) => void) | ... 1 more ... | undefined, complete?: (() => void) | ... 1 mo...' has signatures, but none of those signatures are compatible with each other. [plugin angular-compiler]
-
-    src/app/features/visits/report-preview/report-preview.component.ts:48:12:
-      48 │     request.subscribe({
-         ╵             ~~~~~~~~~
-
-
-X [ERROR] TS7006: Parameter 'response' implicitly has an 'any' type. [plugin angular-compiler]
-
-    src/app/features/visits/report-preview/report-preview.component.ts:49:12:
-      49 │       next: response => {
-         ╵             ~~~~~~~~
-
 
 - Changes detected. Rebuilding...
 
@@ -129,6 +48,27 @@ X [ERROR] TS7006: Parameter 'response' implicitly has an 'any' type. [plugin ang
 - Changes detected. Rebuilding...
 
 - Changes detected. Rebuilding...
+
+X [ERROR] NG5002: Can't have multiple template bindings on one element. Use only one attribute prefixed with * [plugin angular-compiler]
+
+    src/app/shared/components/clearable-select/clearable-select.component.ts:74:24:
+      74 │ ...          *ngTemplateOutlet="itemTpl; context: { $implicit: opt...
+         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG5002: Can't have multiple template bindings on one element. Use only one attribute prefixed with * [plugin angular-compiler]
+
+    src/app/shared/components/clearable-select/clearable-select.component.ts:79:24:
+      79 │ ...          *ngTemplateOutlet="selectedItemTpl; context: { $impli...
+         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG5002: Can't have multiple template bindings on one element. Use only one attribute prefixed with * [plugin angular-compiler]
+
+    src/app/shared/components/clearable-select/clearable-select.component.ts:84:24:
+      84 │                         *ngTemplateOutlet="emptyTpl"></ng-container>
+         ╵                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 - Changes detected. Rebuilding...
 

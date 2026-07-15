@@ -65,6 +65,18 @@ export interface VisitPriorityStandard {
   score: number;
 }
 
+export interface VisitPlanFollowUp {
+  planId: number;
+  domainNameAr?: string | null;
+  goal: string;
+  followUpId: number;
+  followDate: string;
+  progressNote: string;
+  evidenceNote?: string | null;
+  progressScore?: number | null;
+  createdByFullName: string;
+}
+
 export interface VisitAnalysis {
   id: number;
   visitId: number;
@@ -116,6 +128,7 @@ export interface VisitDetail {
   isReadOnly: boolean;
   scores: VisitScore[];
   analysis?: VisitAnalysis | null;
+  planFollowUps: VisitPlanFollowUp[];
 }
 
 // Write DTOs
@@ -260,4 +273,5 @@ export interface InstructorReport {
   approvedByFullName?: string | null;
   scores: VisitScore[];
   analysis?: VisitAnalysis | null;
+  planFollowUps: VisitPlanFollowUp[];
 }

@@ -104,7 +104,7 @@ export class ShellComponent implements OnInit {
       labelKey: 'NAV.CATEGORIES.SETTINGS',
       icon: 'pi pi-cog',
       items: [
-        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-user-edit', route: '/account/settings' }
+        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
       ]
     }
   ];
@@ -126,7 +126,7 @@ export class ShellComponent implements OnInit {
     if (this.isInstructorOnly()) {
       items.push(
         { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
-        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-user-edit', route: '/account/settings' }
+        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
       );
     }
     return items;
@@ -154,7 +154,6 @@ export class ShellComponent implements OnInit {
   }
 
   toggleCategory(category: NavCategory): void {
-    if (this.categoryContainsActiveRoute(category)) return;
     this.expandedCategoryIds.update(current => {
       const next = new Set(current);
       if (next.has(category.id)) next.delete(category.id);

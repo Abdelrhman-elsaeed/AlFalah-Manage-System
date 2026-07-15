@@ -11,7 +11,7 @@ import {
   HostBinding
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { DropdownModule } from 'primeng/dropdown';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -39,7 +39,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
 @Component({
   selector: 'app-clearable-select',
   standalone: true,
-  imports: [CommonModule, FormsModule, DropdownModule, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, DropdownModule, TranslateModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
@@ -63,20 +63,27 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
                   [appendTo]="appendTo"
                   [emptyMessage]="emptyMessage"
                   [loading]="loading"
-                  [disabled]="disabled"
                   [showClear]="false"
-                  [ngModel]="value()"
-                  (ngModelChange)="writeValue($event); onChangeInternal($event)"
+                  [formControl]="control"
                   (onChange)="onDropdownChange.emit($event)"
                   (onFilter)="onFilter.emit($event)">
-        <ng-template *ngIf="itemTpl" pTemplate="item" let-opt>
-          <ng-container *ngTemplateOutlet="itemTpl; context: { $implicit: opt }"></ng-container>
+        <ng-template pTemplate="item" let-opt>
+          <ng-container *ngIf="itemTpl; else defaultItem">
+            <ng-container *ngTemplateOutlet="itemTpl; context: { $implicit: opt }"></ng-container>
+          </ng-container>
+          <ng-template #defaultItem>{{ displayLabel(opt) }}</ng-template>
         </ng-template>
-        <ng-template *ngIf="selectedItemTpl" pTemplate="selectedItem" let-opt>
-          <ng-container *ngTemplateOutlet="selectedItemTpl; context: { $implicit: opt }"></ng-container>
+        <ng-template pTemplate="selectedItem" let-opt>
+          <ng-container *ngIf="selectedItemTpl; else defaultSelectedItem">
+            <ng-container *ngTemplateOutlet="selectedItemTpl; context: { $implicit: opt }"></ng-container>
+          </ng-container>
+          <ng-template #defaultSelectedItem>{{ displayLabel(opt) }}</ng-template>
         </ng-template>
-        <ng-template *ngIf="emptyTpl" pTemplate="empty">
-          <ng-container *ngTemplateOutlet="emptyTpl"></ng-container>
+        <ng-template pTemplate="empty">
+          <ng-container *ngIf="emptyTpl; else defaultEmpty">
+            <ng-container *ngTemplateOutlet="emptyTpl"></ng-container>
+          </ng-container>
+          <ng-template #defaultEmpty>{{ emptyMessage }}</ng-template>
         </ng-template>
       </p-dropdown>
 
@@ -177,13 +184,22 @@ export class ClearableSelectComponent implements ControlValueAccessor {
 
   /** Holds the bound value (drives ControlValueAccessor). */
   readonly value = signal<any>(null);
+  readonly control = new FormControl<any>(null);
 
   // CVA callbacks — registered by Angular via writeValue/registerOnChange/registerOnTouched.
   private onChange = (_: any) => {};
   private onTouched = () => {};
   protected disabled = false;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef) {
+    this.control.valueChanges.subscribe(val => {
+      const next = val ?? null;
+      this.value.set(next);
+      this.onChange(next);
+      this.onTouched();
+      this.cdr.markForCheck();
+    });
+  }
 
   @HostBinding('attr.dir')
   get hostDir(): string | null {
@@ -196,6 +212,7 @@ export class ClearableSelectComponent implements ControlValueAccessor {
     // p-dropdown treats `null` / `undefined` as "nothing selected"; preserve that.
     const next = (val === undefined ? null : val) ?? null;
     this.value.set(next);
+    this.control.setValue(next, { emitEvent: false });
     this.cdr.markForCheck();
   }
 
@@ -207,24 +224,24 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   }
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    if (isDisabled) {
+      this.control.disable({ emitEvent: false });
+    } else {
+      this.control.enable({ emitEvent: false });
+    }
     this.cdr.markForCheck();
   }
 
-  /** Called by (ngModelChange) on the internal p-dropdown. */
-  onChangeInternal(val: any): void {
-    this.value.set(val ?? null);
-    this.onChange(val ?? null);
-    this.onTouched();
-    this.cdr.markForCheck();
+  displayLabel(option: any): any {
+    if (option === null || option === undefined) return '';
+    return this.optionLabel ? option?.[this.optionLabel] : (option?.label ?? option);
   }
 
   /** Called when the external clear button is pressed. */
   clear(event?: Event): void {
     if (event) event.stopPropagation();
     if (this.disabled) return;
-    this.value.set(null);
-    this.onChange(null);
-    this.onTouched();
+    this.control.setValue(null);
     this.cleared.emit();
     this.cdr.markForCheck();
   }

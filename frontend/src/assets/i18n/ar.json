@@ -35,7 +35,7 @@
     "UNAUTHORIZED": "غير مصرح"
   },
   "ACCOUNT": {
-    "TITLE": "إعدادات الحساب",
+    "TITLE": "التوقيع",
     "SIGNATURE": {
       "LABEL": "توقيعي (رسم باليد)",
       "DESCRIPTION": "سيتم استخدام هذا التوقيع في تقارير الزيارات.",
@@ -67,6 +67,7 @@
     "SUCCESS_LOGIN": "تم تسجيل الدخول بنجاح.",
     "WELCOME": "مرحباً، {{name}}",
     "BRAND_SUBTITLE": "نظام متكامل لتقييم أداء المعلمين ودعم نموهم المهني",
+    "BRAND_NAME": "مدارس الفلاح",
     "FEATURE_RUBRIC": "تقييم شامل بأداة ديناميكية",
     "FEATURE_PLANS": "خطط تطوير مخصصة",
     "FEATURE_REPORTS": "تقارير رسمية احترافية",
@@ -477,6 +478,10 @@
     "CREATED_BY": "أنشأها",
     "SUBMITTED_AT": "تاريخ الإرسال",
     "ANALYSIS_TITLE": "تحليل الزيارة",
+    "REPORT_TOOLS": "التقرير",
+    "WORKFLOW_TOOLS": "إدارة الزيارة",
+    "PLAN_FOLLOWUPS": "متابعة خطط التحسين",
+    "NO_PLAN_FOLLOWUPS": "لم تُضف متابعات لخطط التحسين المرتبطة بهذه الزيارة بعد.",
     "DOMAIN_AVERAGES": "متوسطات المحاور",
     "DOMAIN_AVERAGE_CHART_LABEL": "متوسط المحور",
     "OVERALL_SCORE": "المتوسط العام",

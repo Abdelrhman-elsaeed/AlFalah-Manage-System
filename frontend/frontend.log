@@ -1,269 +1,315 @@
 Initial chunk files | Names                            |  Raw size
 styles.css          | styles                           | 714.78 kB | 
 polyfills.js        | polyfills                        |  88.09 kB | 
-main.js             | main                             |  25.13 kB | 
+main.js             | main                             |  23.37 kB | 
 chunk-P22VZGJM.js   | -                                |   5.48 kB | 
 chunk-OYAQZ2GH.js   | -                                |   1.53 kB | 
 chunk-SHAOKUVO.js   | -                                | 938 bytes | 
 chunk-5O5BLJEN.js   | -                                | 256 bytes | 
 chunk-H7IPDY5L.js   | -                                | 183 bytes | 
 
-                    | Initial total                    | 836.35 kB
+                    | Initial total                    | 834.59 kB
 
 Lazy chunk files    | Names                            |  Raw size
-chunk-MXX6HMXG.js   | visit-detail-component           |  94.21 kB | 
-chunk-TMONIX7U.js   | visit-form-component             |  57.25 kB | 
+chunk-H6AY6DBD.js   | visit-detail-component           |  99.00 kB | 
+chunk-BKCHDW72.js   | visit-form-component             |  63.62 kB | 
+chunk-6YTBNKC2.js   | plan-list-component              |  48.31 kB | 
+chunk-672FOCHA.js   | plan-detail-component            |  48.04 kB | 
 chunk-7RBFFTEI.js   | -                                |  46.25 kB | 
-chunk-I2LESG3Q.js   | plan-list-component              |  45.97 kB | 
-chunk-YJVPF2YT.js   | plan-detail-component            |  44.93 kB | 
-chunk-FXX72WDG.js   | complaints-list-component        |  41.30 kB | 
-chunk-OHCYZ3SZ.js   | teacher-profile-component        |  35.25 kB | 
-chunk-C4XLHUSO.js   | schools-list-component           |  32.67 kB | 
-chunk-F2PCVGA5.js   | users-list-component             |  29.08 kB | 
-chunk-7X5RHY57.js   | user-form-component              |  27.64 kB | 
-chunk-JY5FT2R3.js   | school-login-component           |  25.50 kB | 
-chunk-DG27623N.js   | visits-list-component            |  25.20 kB | 
-chunk-DOYBF534.js   | rubric-editor-component          |  24.80 kB | 
-chunk-UO6NQUQU.js   | shell-component                  |  24.32 kB | 
-chunk-3NHR5NGY.js   | user-school-roles-list-component |  22.83 kB | 
-...and 23 more lazy chunks files. Use "--verbose" to show all the files.
-
-Application bundle generation complete. [5.103 seconds]
-
-Watch mode enabled. Watching for file changes...
-Re-optimizing dependencies because vite config has changed
-  ➜  Local:   http://localhost:4200/
-  ➜  Network: http://192.168.0.102:4200/
-  ➜  Network: http://172.27.240.1:4200/
-  ➜  Network: http://172.26.0.1:4200/
-Initial chunk files | Names               | Raw size
-main.js             | main                | 25.13 kB | 
-
-Lazy chunk files    | Names               | Raw size
-chunk-5A2KQHO3.js   | plan-list-component | 45.91 kB | 
-
-Application bundle generation complete. [2.196 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names                   | Raw size
-main.js             | main                    | 25.15 kB | 
-
-Lazy chunk files    | Names                   | Raw size
-chunk-6QIYYSSB.js   | shell-component         | 24.33 kB | 
-chunk-ISEFF6W5.js   | teachers-list-component | 18.58 kB | 
-
-Application bundle generation complete. [0.864 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [1.111 seconds]
-
-Application bundle generation failed. [0.585 seconds]
-
-Application bundle generation failed. [0.489 seconds]
-
-Application bundle generation failed. [0.429 seconds]
-
-Initial chunk files | Names                            |  Raw size
-styles.css          | styles                           | 714.78 kB | 
-polyfills.js        | polyfills                        |  88.09 kB | 
-main.js             | main                             |  25.15 kB | 
-chunk-P22VZGJM.js   | -                                |   5.48 kB | 
-chunk-OYAQZ2GH.js   | -                                |   1.53 kB | 
-chunk-SHAOKUVO.js   | -                                | 938 bytes | 
-chunk-5O5BLJEN.js   | -                                | 256 bytes | 
-chunk-H7IPDY5L.js   | -                                | 183 bytes | 
-
-                    | Initial total                    | 836.37 kB
-
-Lazy chunk files    | Names                            |  Raw size
-chunk-CRHARCKF.js   | visit-detail-component           |  96.22 kB | 
-chunk-V3UQSVU3.js   | visit-form-component             |  63.62 kB | 
-chunk-7RBFFTEI.js   | -                                |  46.25 kB | 
-chunk-5A2KQHO3.js   | plan-list-component              |  45.91 kB | 
-chunk-YJVPF2YT.js   | plan-detail-component            |  44.93 kB | 
-chunk-FXX72WDG.js   | complaints-list-component        |  41.30 kB | 
-chunk-OHCYZ3SZ.js   | teacher-profile-component        |  35.25 kB | 
-chunk-C4XLHUSO.js   | schools-list-component           |  32.67 kB | 
-chunk-F2PCVGA5.js   | users-list-component             |  29.08 kB | 
-chunk-7X5RHY57.js   | user-form-component              |  27.64 kB | 
-chunk-JY5FT2R3.js   | school-login-component           |  25.50 kB | 
-chunk-PDS5YQZ4.js   | visits-list-component            |  25.20 kB | 
-chunk-DOYBF534.js   | rubric-editor-component          |  24.80 kB | 
-chunk-6QIYYSSB.js   | shell-component                  |  24.33 kB | 
-chunk-3NHR5NGY.js   | user-school-roles-list-component |  22.83 kB | 
-...and 23 more lazy chunks files. Use "--verbose" to show all the files.
-
-Application bundle generation complete. [0.564 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names                | Raw size
-main.js             | main                 | 25.15 kB | 
-
-Lazy chunk files    | Names                | Raw size
-chunk-GQKRCFC7.js   | visit-form-component | 63.62 kB | 
-
-Application bundle generation complete. [0.791 seconds]
-
-Page reload sent to client(s).
-Application bundle generation failed. [0.750 seconds]
-
-Application bundle generation failed. [0.444 seconds]
-
-Initial chunk files | Names                            |  Raw size
-styles.css          | styles                           | 714.78 kB | 
-polyfills.js        | polyfills                        |  88.09 kB | 
-main.js             | main                             |  25.70 kB | 
-chunk-P22VZGJM.js   | -                                |   5.48 kB | 
-chunk-OYAQZ2GH.js   | -                                |   1.53 kB | 
-chunk-SHAOKUVO.js   | -                                | 938 bytes | 
-chunk-5O5BLJEN.js   | -                                | 256 bytes | 
-chunk-H7IPDY5L.js   | -                                | 183 bytes | 
-
-                    | Initial total                    | 836.92 kB
-
-Lazy chunk files    | Names                            |  Raw size
-chunk-CR35DNH7.js   | visit-detail-component           |  97.39 kB | 
-chunk-GQKRCFC7.js   | visit-form-component             |  63.62 kB | 
-chunk-7RBFFTEI.js   | -                                |  46.25 kB | 
-chunk-5A2KQHO3.js   | plan-list-component              |  45.91 kB | 
-chunk-YJVPF2YT.js   | plan-detail-component            |  44.93 kB | 
-chunk-FXX72WDG.js   | complaints-list-component        |  41.30 kB | 
-chunk-OHCYZ3SZ.js   | teacher-profile-component        |  35.25 kB | 
+chunk-MYFDLBYX.js   | teacher-profile-component        |  44.29 kB | 
+chunk-OWGJZPOL.js   | complaints-list-component        |  41.28 kB | 
 chunk-IKMYTLNJ.js   | schools-list-component           |  32.67 kB | 
 chunk-ZVIP6QJI.js   | users-list-component             |  29.08 kB | 
 chunk-7X5RHY57.js   | user-form-component              |  27.64 kB | 
 chunk-JY5FT2R3.js   | school-login-component           |  25.50 kB | 
-chunk-PDS5YQZ4.js   | visits-list-component            |  25.20 kB | 
+chunk-ITVNJCFO.js   | visits-list-component            |  25.20 kB | 
 chunk-DOYBF534.js   | rubric-editor-component          |  24.80 kB | 
 chunk-6QIYYSSB.js   | shell-component                  |  24.33 kB | 
 chunk-V2L5ST4L.js   | user-school-roles-list-component |  22.83 kB | 
 ...and 24 more lazy chunks files. Use "--verbose" to show all the files.
 
-Application bundle generation complete. [0.601 seconds]
+Application bundle generation complete. [14.202 seconds]
+
+Watch mode enabled. Watching for file changes...
+  ➜  Local:   http://localhost:4200/
+  ➜  Network: http://192.168.0.105:4200/
+  ➜  Network: http://172.27.240.1:4200/
+  ➜  Network: http://172.26.0.1:4200/
+Initial chunk files | Names                    | Raw size
+main.js             | main                     | 23.37 kB | 
+
+Lazy chunk files    | Names                    | Raw size
+chunk-7AFGB6QM.js   | visit-detail-component   | 99.04 kB | 
+chunk-YXZKHSXZ.js   | visit-form-component     | 63.62 kB | 
+chunk-U6HKRFIN.js   | visits-list-component    | 25.20 kB | 
+chunk-JKP2NYRB.js   | report-preview-component | 22.81 kB | 
+chunk-2QQK76AY.js   | -                        |  1.17 kB | 
+
+Application bundle generation complete. [1.910 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                  |  Raw size
+main.js             | main                   |  23.37 kB | 
+
+Lazy chunk files    | Names                  |  Raw size
+chunk-MJPBHLNP.js   | visit-detail-component | 104.10 kB | 
+
+Application bundle generation complete. [0.632 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                  |  Raw size
+main.js             | main                   |  23.37 kB | 
+
+Lazy chunk files    | Names                  |  Raw size
+chunk-GBQZ5DGZ.js   | visit-detail-component | 104.45 kB | 
+
+Application bundle generation complete. [0.646 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                  |  Raw size
+main.js             | main                   |  23.37 kB | 
+
+Lazy chunk files    | Names                  |  Raw size
+chunk-MG7VAANP.js   | visit-detail-component | 106.23 kB | 
+
+Application bundle generation complete. [0.465 seconds]
 
 Page reload sent to client(s).
 Initial chunk files | Names                    | Raw size
-main.js             | main                     | 25.70 kB | 
+main.js             | main                     | 23.37 kB | 
 
 Lazy chunk files    | Names                    | Raw size
-chunk-7QOC6HJL.js   | visit-detail-component   | 99.03 kB | 
-chunk-BKCHDW72.js   | visit-form-component     | 63.62 kB | 
-chunk-ITVNJCFO.js   | visits-list-component    | 25.20 kB | 
-chunk-DISU5P6D.js   | report-preview-component | 22.72 kB | 
-chunk-YMEIHCBC.js   | -                        |  1.17 kB | 
+chunk-7PY32BIB.js   | report-preview-component | 26.92 kB | 
 
-Application bundle generation complete. [1.604 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names                 | Raw size
-main.js             | main                  | 25.70 kB | 
-
-Lazy chunk files    | Names                 | Raw size
-chunk-YKJQYIRC.js   | plan-list-component   | 48.17 kB | 
-chunk-CCOVL6A7.js   | plan-detail-component | 47.83 kB | 
-chunk-WY6A6WJ6.js   | -                     |  1.93 kB | 
-
-Application bundle generation complete. [1.348 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names                 | Raw size
-main.js             | main                  | 25.70 kB | 
-
-Lazy chunk files    | Names                 | Raw size
-chunk-DSVTJWR4.js   | plan-detail-component | 48.04 kB | 
-
-Application bundle generation complete. [0.723 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names                 | Raw size
-main.js             | main                  | 25.70 kB | 
-
-Lazy chunk files    | Names                 | Raw size
-chunk-672FOCHA.js   | plan-detail-component | 48.04 kB | 
-
-Application bundle generation complete. [0.761 seconds]
+Application bundle generation complete. [0.658 seconds]
 
 Page reload sent to client(s).
 Initial chunk files | Names               | Raw size
-main.js             | main                | 25.70 kB | 
+main.js             | main                | 23.37 kB | 
 
 Lazy chunk files    | Names               | Raw size
-chunk-EECWSPQ4.js   | plan-list-component | 48.33 kB | 
+chunk-3F6Z2N34.js   | plan-list-component | 48.71 kB | 
 
-Application bundle generation complete. [0.827 seconds]
-
-Page reload sent to client(s).
-
-No output file changes.
-
-Application bundle generation complete. [0.597 seconds]
-
-Initial chunk files | Names                     | Raw size
-main.js             | main                      | 25.70 kB | 
-
-Lazy chunk files    | Names                     | Raw size
-chunk-IADSFCNC.js   | teacher-profile-component | 35.53 kB | 
-
-Application bundle generation complete. [0.601 seconds]
+Application bundle generation complete. [0.753 seconds]
 
 Page reload sent to client(s).
-Initial chunk files | Names                     | Raw size
-main.js             | main                      | 25.70 kB | 
+Initial chunk files | Names           | Raw size
+main.js             | main            | 23.37 kB | 
 
-Lazy chunk files    | Names                     | Raw size
-chunk-3DAY7XOX.js   | teacher-profile-component | 42.62 kB | 
+Lazy chunk files    | Names           | Raw size
+chunk-4AYJ3JH3.js   | shell-component | 24.79 kB | 
 
-Application bundle generation complete. [0.446 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names                     | Raw size
-main.js             | main                      | 25.70 kB | 
-
-Lazy chunk files    | Names                     | Raw size
-chunk-MYFDLBYX.js   | teacher-profile-component | 44.29 kB | 
-
-Application bundle generation complete. [0.415 seconds]
+Application bundle generation complete. [0.503 seconds]
 
 Page reload sent to client(s).
-Initial chunk files | Names                     | Raw size
-main.js             | main                      | 25.70 kB | 
+Initial chunk files | Names  |  Raw size
+styles.css          | styles | 715.10 kB | 
 
-Lazy chunk files    | Names                     | Raw size
-chunk-OWGJZPOL.js   | complaints-list-component | 41.28 kB | 
+Application bundle generation complete. [0.274 seconds]
 
-Application bundle generation complete. [0.711 seconds]
+HMR update sent to client(s).
+Initial chunk files | Names  |  Raw size
+styles.css          | styles | 715.78 kB | 
+
+Application bundle generation complete. [0.311 seconds]
+
+HMR update sent to client(s).
+Initial chunk files | Names                 | Raw size
+main.js             | main                  | 23.37 kB | 
+
+Lazy chunk files    | Names                 | Raw size
+chunk-3SDUMAUY.js   | visits-list-component | 26.22 kB | 
+
+Application bundle generation complete. [0.630 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                  |  Raw size
+main.js             | main                   |  23.37 kB | 
+
+Lazy chunk files    | Names                  |  Raw size
+chunk-73MOO23U.js   | visit-detail-component | 108.34 kB | 
+
+Application bundle generation complete. [0.724 seconds]
 
 Page reload sent to client(s).
 Initial chunk files | Names               | Raw size
-main.js             | main                | 25.70 kB | 
+main.js             | main                | 23.37 kB | 
 
 Lazy chunk files    | Names               | Raw size
-chunk-6YTBNKC2.js   | plan-list-component | 48.31 kB | 
+chunk-GOUO2XRZ.js   | user-form-component | 27.83 kB | 
 
-Application bundle generation complete. [1.336 seconds]
+Application bundle generation complete. [0.577 seconds]
 
 Page reload sent to client(s).
-Initial chunk files | Names                  | Raw size
-main.js             | main                   | 25.70 kB | 
+Initial chunk files | Names                            | Raw size
+main.js             | main                             | 23.37 kB | 
 
-Lazy chunk files    | Names                  | Raw size
-chunk-H6AY6DBD.js   | visit-detail-component | 99.00 kB | 
+Lazy chunk files    | Names                            | Raw size
+chunk-LK3JGBTQ.js   | user-school-roles-list-component | 22.92 kB | 
 
-Application bundle generation complete. [1.218 seconds]
+Application bundle generation complete. [0.451 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                            | Raw size
+main.js             | main                             | 23.37 kB | 
+
+Lazy chunk files    | Names                            | Raw size
+chunk-ZJO6UUG7.js   | user-school-roles-list-component | 23.08 kB | 
+
+Application bundle generation complete. [0.471 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                        | Raw size
+main.js             | main                         | 23.37 kB | 
+
+Lazy chunk files    | Names                        | Raw size
+chunk-VG6RXH26.js   | school-login-component       | 28.79 kB | 
+chunk-DF5YUSTD.js   | main-manager-login-component | 16.32 kB | 
+
+Application bundle generation complete. [0.602 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                     |  Raw size
+main.js             | main                      |  23.37 kB | 
+
+Lazy chunk files    | Names                     |  Raw size
+chunk-B3ZPX3YQ.js   | visit-detail-component    | 108.58 kB | 
+chunk-HM5EWIW4.js   | visit-form-component      |  63.64 kB | 
+chunk-3R6BL36B.js   | plan-detail-component     |  48.06 kB | 
+chunk-K2O6JUZ7.js   | teacher-profile-component |  44.31 kB | 
+chunk-RDDR5EY3.js   | report-preview-component  |  27.09 kB | 
+
+Application bundle generation complete. [1.119 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                            | Raw size
+main.js             | main                             | 23.37 kB | 
+
+Lazy chunk files    | Names                            | Raw size
+chunk-FIPBEZE5.js   | visit-form-component             | 63.64 kB | 
+chunk-LUEAMRRJ.js   | plan-list-component              | 48.71 kB | 
+chunk-GOAWCHZW.js   | complaints-list-component        | 41.28 kB | 
+chunk-YKZXJ37S.js   | schools-list-component           | 32.67 kB | 
+chunk-LQNIJW6V.js   | users-list-component             | 29.08 kB | 
+chunk-K7KMTVXA.js   | school-login-component           | 28.79 kB | 
+chunk-AFBOF2VO.js   | user-form-component              | 27.83 kB | 
+chunk-6TMKCRMY.js   | visits-list-component            | 26.22 kB | 
+chunk-PIWGX5TL.js   | user-school-roles-list-component | 23.08 kB | 
+chunk-FYBGSDLS.js   | school-form-component            | 16.20 kB | 
+chunk-P5KUTO6L.js   | -                                | 11.54 kB | 
+
+Application bundle generation complete. [1.420 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                            | Raw size
+main.js             | main                             | 23.37 kB | 
+
+Lazy chunk files    | Names                            | Raw size
+chunk-OIFEAZC3.js   | visit-form-component             | 63.64 kB | 
+chunk-2VZ26OL6.js   | plan-list-component              | 48.71 kB | 
+chunk-IPC7ASC7.js   | complaints-list-component        | 41.28 kB | 
+chunk-ET4C7MV7.js   | schools-list-component           | 32.67 kB | 
+chunk-W6NEREZI.js   | users-list-component             | 29.08 kB | 
+chunk-5AOCG5LL.js   | school-login-component           | 28.79 kB | 
+chunk-CSK4EDNK.js   | user-form-component              | 27.83 kB | 
+chunk-BAEEJBQI.js   | visits-list-component            | 26.22 kB | 
+chunk-SXFBROLV.js   | user-school-roles-list-component | 23.08 kB | 
+chunk-HNL6347S.js   | school-form-component            | 16.20 kB | 
+chunk-W6ZEJXMD.js   | -                                | 11.43 kB | 
+
+Application bundle generation complete. [1.349 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names               | Raw size
+main.js             | main                | 23.37 kB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-MQEDVDWS.js   | plan-list-component | 48.76 kB | 
+
+Application bundle generation complete. [0.471 seconds]
+
+Page reload sent to client(s).
+Application bundle generation failed. [1.468 seconds]
+
+Initial chunk files | Names                     |  Raw size
+styles.css          | styles                    | 715.78 kB | 
+polyfills.js        | polyfills                 |  88.09 kB | 
+main.js             | main                      |  23.37 kB | 
+chunk-P22VZGJM.js   | -                         |   5.48 kB | 
+chunk-OYAQZ2GH.js   | -                         |   1.53 kB | 
+chunk-SHAOKUVO.js   | -                         | 938 bytes | 
+chunk-5O5BLJEN.js   | -                         | 256 bytes | 
+chunk-H7IPDY5L.js   | -                         | 183 bytes | 
+
+                    | Initial total             | 835.59 kB
+
+Lazy chunk files    | Names                     |  Raw size
+chunk-B3ZPX3YQ.js   | visit-detail-component    | 108.58 kB | 
+chunk-NERLRG2K.js   | visit-form-component      |  63.64 kB | 
+chunk-63JSA5PN.js   | plan-list-component       |  48.76 kB | 
+chunk-3R6BL36B.js   | plan-detail-component     |  48.06 kB | 
+chunk-7RBFFTEI.js   | -                         |  46.25 kB | 
+chunk-K2O6JUZ7.js   | teacher-profile-component |  44.31 kB | 
+chunk-VUNKVYQD.js   | complaints-list-component |  41.28 kB | 
+chunk-H2E2ILJC.js   | schools-list-component    |  32.67 kB | 
+chunk-EGELYHEQ.js   | users-list-component      |  29.08 kB | 
+chunk-JAM35XYR.js   | school-login-component    |  28.79 kB | 
+chunk-U76FJVCH.js   | user-form-component       |  27.83 kB | 
+chunk-RDDR5EY3.js   | report-preview-component  |  27.09 kB | 
+chunk-LSE5VYCT.js   | visits-list-component     |  26.22 kB | 
+chunk-DOYBF534.js   | rubric-editor-component   |  24.80 kB | 
+chunk-4AYJ3JH3.js   | shell-component           |  24.79 kB | 
+...and 24 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [1.063 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                            | Raw size
+main.js             | main                             | 23.37 kB | 
+
+Lazy chunk files    | Names                            | Raw size
+chunk-6WVLUQYL.js   | visit-form-component             | 63.64 kB | 
+chunk-TUEVLKQ3.js   | plan-list-component              | 48.76 kB | 
+chunk-RBHGE7UV.js   | complaints-list-component        | 41.28 kB | 
+chunk-526Y7XN3.js   | schools-list-component           | 32.67 kB | 
+chunk-NGS2IR6C.js   | users-list-component             | 29.08 kB | 
+chunk-NJI4DWFX.js   | school-login-component           | 28.79 kB | 
+chunk-2D4EYYF4.js   | user-form-component              | 27.83 kB | 
+chunk-DEPJXOQ5.js   | visits-list-component            | 26.22 kB | 
+chunk-QXFFPLE7.js   | user-school-roles-list-component | 23.08 kB | 
+chunk-ZASKDC3X.js   | school-form-component            | 16.20 kB | 
+chunk-RCZSENXI.js   | -                                | 14.02 kB | 
+
+Application bundle generation complete. [2.620 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                            | Raw size
+main.js             | main                             | 23.37 kB | 
+
+Lazy chunk files    | Names                            | Raw size
+chunk-6GJ4S6I3.js   | visit-form-component             | 63.64 kB | 
+chunk-YKZ3PRXL.js   | plan-list-component              | 48.76 kB | 
+chunk-6S3EFIOV.js   | complaints-list-component        | 41.28 kB | 
+chunk-WCZM3K4B.js   | schools-list-component           | 32.67 kB | 
+chunk-FYFDCBAZ.js   | users-list-component             | 29.08 kB | 
+chunk-5JVUXLAR.js   | school-login-component           | 28.79 kB | 
+chunk-XI56K7YT.js   | user-form-component              | 27.83 kB | 
+chunk-4R4T7D33.js   | visits-list-component            | 26.22 kB | 
+chunk-VJS6L27X.js   | user-school-roles-list-component | 23.08 kB | 
+chunk-R7SD6QUX.js   | school-form-component            | 16.20 kB | 
+chunk-WSJMBIPC.js   | -                                | 13.99 kB | 
+
+Application bundle generation complete. [1.111 seconds]
 
 Page reload sent to client(s).
 Initial chunk files | Names                    | Raw size
-main.js             | main                     | 25.70 kB | 
+main.js             | main                     | 23.37 kB | 
 
 Lazy chunk files    | Names                    | Raw size
-chunk-ZJGETIYS.js   | report-preview-component | 22.77 kB | 
+chunk-NPJVJM6A.js   | visit-form-component     | 63.68 kB | 
+chunk-IQWS266X.js   | report-preview-component | 27.06 kB | 
+chunk-37T3NPZZ.js   | visits-list-component    | 26.23 kB | 
 
-Application bundle generation complete. [0.844 seconds]
-
-Page reload sent to client(s).
-Initial chunk files | Names | Raw size
-main.js             | main  | 23.37 kB | 
-
-Application bundle generation complete. [0.584 seconds]
+Application bundle generation complete. [2.659 seconds]
 
 Page reload sent to client(s).

@@ -69,6 +69,7 @@ public class PdfReportService : IPdfReportService
         public const string SectionImprovements= "مجالات التحسين";
         public const string SectionPriorities  = "معايير ذات أولوية";
         public const string SectionRecommendations = "التوصيات";
+        public const string SectionFollowUps     = "متابعة خطط التحسين";
         public const string SectionSignatures  = "التوقيع والاعتماد";
         public const string SectionDomainAvg   = "متوسطات المحاور";
         public const string LabelOverallScore  = "المتوسط العام";
@@ -82,7 +83,7 @@ public class PdfReportService : IPdfReportService
         // D-41 / Task 3 — clear Arabic watermark stamped on PDFs generated
         // for non-Approved visits. Must be unambiguous so the document
         // cannot be mistaken for an official report.
-        public const string DraftWatermark    = "مسودة — غير معتمدة";
+        public const string DraftWatermark    = "نسخة غير معتمدة";
     }
 
     // ── Brand palette (Saudi light identity — same tokens as the frontend) ──
@@ -310,6 +311,9 @@ public class PdfReportService : IPdfReportService
             if (dto.PriorityStandards.Count > 0)
                 col.Item().Element(c => ComposePrioritiesBlock(c, dto));
 
+            if (dto.PlanFollowUps.Count > 0)
+                col.Item().Element(c => ComposeFollowUpsBlock(c, dto));
+
             col.Item().Element(c => ComposeSignatureCard(c, dto));
         });
     }
@@ -406,14 +410,16 @@ public class PdfReportService : IPdfReportService
     {
         container
             .Padding(0)
-            .Background("#B91C1C")
+            .Background(Palette.Page)
+            .BorderBottom(1)
+            .BorderColor(Palette.Gold)
             .PaddingVertical(6)
             .AlignCenter()
             .Text(T.DraftWatermark)
             .FontFamily(AmiriBold)
             .FontSize(14)
             .Bold()
-            .FontColor("#FFFFFF")
+            .FontColor(Palette.Muted)
             .LetterSpacing(0.5f);
     }
 
@@ -557,11 +563,12 @@ public class PdfReportService : IPdfReportService
                 {
                     c.ConstantColumn(90);  // score pill (visual left = RTL end)
                     c.RelativeColumn();    // standard text (expands, right-aligned)
-                    c.ConstantColumn(48);  // code chip (visual right = RTL start)
+                    c.ConstantColumn(34);  // row number (visual right = RTL start)
                 });
 
-                foreach (var std in block.Standards)
+                for (var standardIndex = 0; standardIndex < block.Standards.Count; standardIndex++)
                 {
+                    var std = block.Standards[standardIndex];
                     var scoreColor = ScoreColor(std.Score);
 
                     // Score pill — LEFT column (physical) = RTL end
@@ -581,8 +588,8 @@ public class PdfReportService : IPdfReportService
                     });
 
                     // Code chip — RIGHT column (physical) = RTL start
-                    table.Cell().AlignCenter().AlignMiddle().Text(std.StandardCode)
-                        .FontSize(9).FontColor(Palette.Muted);
+                    table.Cell().AlignCenter().AlignMiddle().Text((standardIndex + 1).ToString())
+                        .FontFamily(AmiriBold).FontSize(9).Bold().FontColor(Palette.Muted);
                 }
             });
         });
@@ -765,6 +772,37 @@ public class PdfReportService : IPdfReportService
             {
                 col.Item().PaddingTop(4).AlignRight().Text($"• {recommendation}")
                     .FontFamily(AmiriRegular).FontSize(10).FontColor(Palette.Text);
+            }
+        });
+    }
+
+    private static void ComposeFollowUpsBlock(IContainer container, VisitReportDto dto)
+    {
+        container.PaddingTop(8).Column(col =>
+        {
+            col.Item().AlignRight().Text(T.SectionFollowUps)
+                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreenText);
+
+            foreach (var followUp in dto.PlanFollowUps)
+            {
+                col.Item().PaddingTop(6)
+                    .Border(1).BorderColor(Palette.Border)
+                    .Background(Palette.Page).Padding(8)
+                    .Column(card =>
+                    {
+                        card.Item().AlignRight().Text(t =>
+                        {
+                            t.Span(followUp.FollowDate.ToString("yyyy/MM/dd") + "  ")
+                                .FontFamily(AmiriBold).Bold().FontColor(Palette.BrandGreen);
+                            if (followUp.ProgressScore.HasValue)
+                                t.Span($"({followUp.ProgressScore.Value}%)").FontColor(Palette.Gold);
+                        });
+                        card.Item().AlignRight().PaddingTop(3).Text(followUp.ProgressNote)
+                            .FontFamily(AmiriRegular).FontSize(10).FontColor(Palette.Text);
+                        if (!string.IsNullOrWhiteSpace(followUp.EvidenceNote))
+                            card.Item().AlignRight().PaddingTop(2).Text(followUp.EvidenceNote!)
+                                .FontFamily(AmiriRegular).FontSize(8).FontColor(Palette.Muted);
+                    });
             }
         });
     }

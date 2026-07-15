@@ -63,6 +63,7 @@ public class VisitReportDto
     public List<ReportImprovementDto> ImprovementAreas { get; set; } = new();
     public List<ReportPriorityStandardDto> PriorityStandards { get; set; } = new();
     public List<string> Recommendations { get; set; } = new();
+    public List<ReportPlanFollowUpDto> PlanFollowUps { get; set; } = new();
 
     // ─── Phase 6 / Stage 2: branding + signatures + QR ───────────────────
 
@@ -161,4 +162,15 @@ public class ReportPriorityStandardDto
     public string StandardCode { get; set; } = string.Empty;
     public string StandardTextAr { get; set; } = string.Empty;
     public int Score { get; set; }
+}
+
+public class ReportPlanFollowUpDto
+{
+    public string? DomainNameAr { get; set; }
+    public string Goal { get; set; } = string.Empty;
+    public DateTimeOffset FollowDate { get; set; }
+    public string ProgressNote { get; set; } = string.Empty;
+    public string? EvidenceNote { get; set; }
+    public int? ProgressScore { get; set; }
+    public string CreatedByFullName { get; set; } = string.Empty;
 }

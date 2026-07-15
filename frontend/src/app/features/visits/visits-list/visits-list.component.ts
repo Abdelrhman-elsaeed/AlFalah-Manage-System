@@ -47,6 +47,7 @@ export class VisitsListComponent implements OnInit {
   readonly visits = signal<VisitListItem[]>([]);
   readonly totalCount = signal(0);
   readonly loading = signal(false);
+  readonly firstRow = signal(0);
 
   readonly statuses = VISIT_STATUSES.map(option => ({
     ...option,
@@ -73,6 +74,7 @@ export class VisitsListComponent implements OnInit {
   }
 
   load(event?: TableLazyLoadEvent): void {
+    this.firstRow.set(event?.first ?? 0);
     const page = (event?.first ?? 0) / (event?.rows ?? 20) + 1;
     const pageSize = event?.rows ?? 20;
     this.loading.set(true);
@@ -135,7 +137,7 @@ export class VisitsListComponent implements OnInit {
    * D-41 / Task 3 — print/PDF download for a single visit row.
    * Triggers a Blob download via the same endpoint the detail page uses
    * (`/api/v1/visits/{id}/report/pdf`). Backend stamps a
-   * "مسودة — غير معتمدة" watermark on non-Approved visits.
+   * a subtle non-approved notice on reports that are not yet official.
    */
   printVisit(v: VisitListItem): void {
     if (this.pdfPrinting() !== null) return;

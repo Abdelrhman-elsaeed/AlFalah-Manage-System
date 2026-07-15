@@ -46,6 +46,7 @@
   top: -100px;
   right: -100px;
   border-radius: 50%;
+  animation: glowDrift 8s ease-in-out infinite alternate;
 }
 
 .brand-panel::after {
@@ -57,6 +58,7 @@
   bottom: -50px;
   left: -50px;
   border-radius: 50%;
+  animation: glowDrift 10s ease-in-out infinite alternate-reverse;
 }
 
 .brand-content {
@@ -80,11 +82,23 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+  animation: logoFloat 4s ease-in-out infinite;
 }
 
 .logo-svg {
   width: 60px;
   height: 60px;
+}
+
+.brand-kicker {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  color: #fff7cf;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 18px rgba(212, 175, 55, 0.55);
+  animation: kickerGlow 2.8s ease-in-out infinite alternate;
 }
 
 .brand-title {
@@ -93,6 +107,12 @@
   margin-bottom: 0.75rem;
   line-height: 1.4;
   color: #fff;
+  background: linear-gradient(100deg, #fff 15%, #fff1ad 42%, #fff 64%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleShine 5s linear infinite;
 }
 
 .brand-subtitle {
@@ -120,7 +140,11 @@
   border-radius: 10px;
   padding: 0.6rem 1rem;
   transition: background 0.2s;
+  animation: featureReveal 0.55s ease both;
 }
+.feature-item:nth-child(2) { animation-delay: 0.1s; }
+.feature-item:nth-child(3) { animation-delay: 0.2s; }
+.feature-item:nth-child(4) { animation-delay: 0.3s; }
 
 .feature-item:hover {
   background: rgba(255, 255, 255, 0.10);
@@ -150,6 +174,7 @@
   border-radius: var(--radius-lg);
   padding: 2.5rem;
   box-shadow: var(--shadow-md);
+  animation: cardEnter 0.6s cubic-bezier(.2,.75,.25,1) both;
 }
 
 /* ─── Form Header ─────────────────────────────────────────────────────────── */
@@ -294,7 +319,26 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  position: relative;
+  overflow: hidden;
 }
+.btn-login::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  transform: translateX(320%) skewX(-18deg);
+  animation: buttonShine 4.2s ease-in-out infinite;
+}
+
+@keyframes titleShine { to { background-position: -220% center; } }
+@keyframes logoFloat { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(2deg); } }
+@keyframes glowDrift { to { transform: translate(45px, 30px) scale(1.1); } }
+@keyframes kickerGlow { to { text-shadow: 0 0 26px rgba(255, 236, 137, .9); transform: translateY(-1px); } }
+@keyframes featureReveal { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes cardEnter { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes buttonShine { 0%,65% { transform: translateX(320%) skewX(-18deg); } 85%,100% { transform: translateX(-320%) skewX(-18deg); } }
 .btn-login:hover:not(:disabled) {
   background: var(--brand-700);
   border-color: var(--brand-700);
@@ -342,4 +386,9 @@
   .brand-panel { padding: 2rem; min-height: 200px; }
   .brand-features { display: none; }
   .form-panel { width: 100%; padding: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-panel::before, .brand-panel::after, .logo-circle, .brand-kicker,
+  .brand-title, .feature-item, .form-card, .btn-login::after { animation: none !important; }
 }

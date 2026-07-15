@@ -79,10 +79,10 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-v>
+      <ng-template pTemplate="body" let-v let-rowIndex="rowIndex">
         <tr>
-          <td>{{ v.id }}</td>
-          <td>{{ v.instructorFullName }}</td>
+          <td><span class="row-index">{{ firstRow() + rowIndex + 1 }}</span></td>
+          <td><strong class="instructor-name">{{ v.instructorFullName }}</strong></td>
           <td><span class="muted">{{ v.visitCategoryLabelAr }}</span></td>
           <td><span class="chip">{{ v.visitSequenceLabelAr }}</span></td>
           <td>{{ v.visitDate | date:'mediumDate' }}</td>
@@ -97,14 +97,16 @@
           </td>
           <td class="table-actions-col">
             <div class="table-actions">
-              <button pButton pTooltip="{{ 'COMMON.EDIT' | translate }}"
+              <button pButton pTooltip="{{ 'VISITS.DETAILS' | translate }}"
                       tooltipPosition="top" type="button" icon="pi pi-eye"
-                      class="p-button-secondary p-button-text p-button-sm p-button-icon-only"
+                      [label]="'VISITS.DETAILS' | translate"
+                      class="p-button-secondary p-button-sm row-action row-action--view"
                       (click)="goToDetail(v)"></button>
               <button pButton pTooltip="{{ 'VISITS.PRINT_PDF_TOOLTIP' | translate }}"
                       tooltipPosition="top" type="button" icon="pi pi-file-pdf"
+                      [label]="'VISITS.DOWNLOAD_PDF' | translate"
                       [disabled]="pdfPrinting() === v.id"
-                      class="p-button-text p-button-sm p-button-icon-only"
+                      class="p-button-outlined p-button-sm row-action"
                       (click)="printVisit(v)"></button>
               <button *ngIf="isDraft(v.status) && canCreate()"
                       pButton pTooltip="{{ 'VISITS.DELETE_DRAFT' | translate }}"

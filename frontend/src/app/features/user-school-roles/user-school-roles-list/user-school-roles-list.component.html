@@ -37,8 +37,10 @@
       <ng-template pTemplate="body" let-row>
         <tr>
           <td>
-            <strong>{{ row.fullName }}</strong>
-            <small class="muted">({{ row.username }})</small>
+            <span class="user-identity">
+              <strong>{{ row.fullName }}</strong>
+              <small class="muted"><i class="pi pi-at"></i>{{ row.username }}</small>
+            </span>
           </td>
           <td>{{ row.schoolName }}</td>
           <td>{{ row.role }}</td>

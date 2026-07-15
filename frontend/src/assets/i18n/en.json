@@ -35,7 +35,7 @@
     "UNAUTHORIZED": "Unauthorized"
   },
   "ACCOUNT": {
-    "TITLE": "Account Settings",
+    "TITLE": "Signature",
     "SIGNATURE": {
       "LABEL": "My Signature (Hand-drawn)",
       "DESCRIPTION": "This signature will be used in visit reports.",
@@ -67,6 +67,7 @@
     "SUCCESS_LOGIN": "Logged in successfully.",
     "WELCOME": "Welcome, {{name}}",
     "BRAND_SUBTITLE": "An integrated system for evaluating teachers and supporting professional growth",
+    "BRAND_NAME": "Al-Falah Schools",
     "FEATURE_RUBRIC": "Comprehensive dynamic-rubric evaluation",
     "FEATURE_PLANS": "Tailored development plans",
     "FEATURE_REPORTS": "Professional official reports",
@@ -477,6 +478,10 @@
     "CREATED_BY": "Created by",
     "SUBMITTED_AT": "Submitted at",
     "ANALYSIS_TITLE": "Visit Analysis",
+    "REPORT_TOOLS": "Report",
+    "WORKFLOW_TOOLS": "Visit management",
+    "PLAN_FOLLOWUPS": "Improvement Plan Follow-ups",
+    "NO_PLAN_FOLLOWUPS": "No follow-ups have been added to this visit's improvement plans yet.",
     "DOMAIN_AVERAGES": "Domain Averages",
     "DOMAIN_AVERAGE_CHART_LABEL": "Domain average",
     "OVERALL_SCORE": "Overall Score",

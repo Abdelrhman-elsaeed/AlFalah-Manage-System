@@ -13,27 +13,33 @@
     <div class="page-header__action">
       <button pButton type="button" icon="pi pi-arrow-right"
               [label]="'COMMON.BACK' | translate"
-              class="p-button-text" (click)="goBack()"></button>
-      <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-file-pdf"
-              [label]="'VISITS.DOWNLOAD_PDF' | translate"
-              [loading]="pdfDownloading()"
-              class="p-button-outlined p-button-success"
-              (click)="downloadReportPdf()"></button>
-      <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-eye"
-              [label]="'VISITS.REPORT_PREVIEW' | translate"
-              class="p-button-outlined p-button-success"
-              (click)="goReportPreview()"></button>
-      <button *ngIf="canSubmitComplaint()" pButton type="button" icon="pi pi-flag"
-              [label]="'COMPLAINTS.SUBMIT' | translate"
-              class="p-button-outlined p-button-danger"
-              (click)="openComplaintDialog()"></button>
-      <button *ngIf="canViewPlans() && visit() && (isApproved() || !isInstructor())" pButton type="button" icon="pi pi-list"
-              [label]="'PLANS.TITLE' | translate"
-              class="p-button-outlined"
-              (click)="goImprovementPlans()"></button>
-      <button *ngIf="visit()?.isReadOnly === false" pButton type="button" icon="pi pi-pencil"
-              [label]="'COMMON.EDIT' | translate"
-              (click)="goEdit()"></button>
+              class="p-button-text app-back-button" (click)="goBack()"></button>
+      <div class="action-cluster action-cluster--reports">
+        <span class="action-cluster__label">{{ 'VISITS.REPORT_TOOLS' | translate }}</span>
+        <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-eye"
+                [label]="'VISITS.REPORT_PREVIEW' | translate"
+                class="p-button-outlined p-button-sm"
+                (click)="goReportPreview()"></button>
+        <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-file-pdf"
+                [label]="'VISITS.DOWNLOAD_PDF' | translate"
+                [loading]="pdfDownloading()"
+                class="p-button-outlined p-button-sm"
+                (click)="downloadReportPdf()"></button>
+        <button *ngIf="canViewPlans() && visit() && (isApproved() || !isInstructor())" pButton type="button" icon="pi pi-list"
+                [label]="'PLANS.TITLE' | translate"
+                class="p-button-outlined p-button-sm"
+                (click)="goImprovementPlans()"></button>
+      </div>
+      <div class="action-cluster action-cluster--workflow" *ngIf="canSubmitComplaint() || visit()?.isReadOnly === false">
+        <span class="action-cluster__label">{{ 'VISITS.WORKFLOW_TOOLS' | translate }}</span>
+        <button *ngIf="visit()?.isReadOnly === false" pButton type="button" icon="pi pi-pencil"
+                [label]="'COMMON.EDIT' | translate" class="p-button-sm"
+                (click)="goEdit()"></button>
+        <button *ngIf="canSubmitComplaint()" pButton type="button" icon="pi pi-flag"
+                [label]="'COMPLAINTS.SUBMIT' | translate"
+                class="p-button-text p-button-danger p-button-sm"
+                (click)="openComplaintDialog()"></button>
+      </div>
     </div>
   </header>
 
@@ -201,7 +207,7 @@
             <div class="standards">
               <div class="standard-row" *ngFor="let s of d.scores; trackBy: trackStandard; let i = index"
                    [class.standard-row--zebra]="i % 2 === 1">
-                <span class="std-code">{{ s.standardCode }}</span>
+                <span class="std-index">{{ i + 1 }}</span>
                 <span class="std-text">{{ s.standardTextAr }}</span>
                 <span class="std-evidence" *ngIf="s.evidenceNote">{{ s.evidenceNote }}</span>
                 <span class="std-score"
@@ -313,9 +319,9 @@
               {{ 'VISITS.PRIORITY_STANDARDS' | translate }}
             </h3>
             <ul class="bullet-list bullet-list--danger">
-              <li *ngFor="let p of a.priorityStandards">
+              <li *ngFor="let p of a.priorityStandards; let priorityIndex = index">
                 <span class="bullet-icon"><i class="pi pi-flag-fill"></i></span>
-                <span class="bullet-code">{{ p.standardCode }}</span>
+                <span class="bullet-index">{{ priorityIndex + 1 }}</span>
                 <span class="bullet-text">{{ p.standardTextAr }}</span>
                 <span class="bullet-score bullet-score--danger">{{ p.score }}</span>
               </li>
@@ -325,6 +331,34 @@
           <div class="analysis-section" *ngIf="a.recommendations.length > 0">
             <h3 class="subsection-title success-title"><i class="pi pi-lightbulb"></i>{{ 'VISITS.RECOMMENDATIONS' | translate }}</h3>
             <ul class="bullet-list bullet-list--success"><li *ngFor="let recommendation of a.recommendations"><span class="bullet-icon"><i class="pi pi-arrow-left"></i></span><span class="bullet-text">{{ recommendation }}</span></li></ul>
+          </div>
+
+          <div class="analysis-section followups-panel">
+            <h3 class="subsection-title followups-title">
+              <i class="pi pi-calendar-clock"></i>
+              {{ 'VISITS.PLAN_FOLLOWUPS' | translate }}
+            </h3>
+            <p class="followups-empty" *ngIf="v.planFollowUps.length === 0">
+              {{ 'VISITS.NO_PLAN_FOLLOWUPS' | translate }}
+            </p>
+            <div class="followups-grid" *ngIf="v.planFollowUps.length > 0">
+              <article class="followup-item" *ngFor="let followUp of v.planFollowUps">
+                <header class="followup-item__header">
+                  <span class="followup-item__date">
+                    <i class="pi pi-calendar"></i>
+                    {{ followUp.followDate | date:'yyyy/MM/dd' }}
+                  </span>
+                  <span class="followup-item__score" *ngIf="followUp.progressScore !== null && followUp.progressScore !== undefined">
+                    {{ followUp.progressScore }}%
+                  </span>
+                </header>
+                <strong class="followup-item__domain">{{ followUp.domainNameAr || ('PLANS.GENERAL_PLAN' | translate) }}</strong>
+                <p class="followup-item__note">{{ followUp.progressNote }}</p>
+                <p class="followup-item__evidence" *ngIf="followUp.evidenceNote">
+                  <i class="pi pi-paperclip"></i> {{ followUp.evidenceNote }}
+                </p>
+              </article>
+            </div>
           </div>
         </section>
       </ng-container>

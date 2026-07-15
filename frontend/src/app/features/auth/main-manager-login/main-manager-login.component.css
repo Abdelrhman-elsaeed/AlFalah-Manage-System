@@ -17,6 +17,7 @@
     radial-gradient(circle at 0% 100%, rgba(212, 175, 55, 0.10) 0%, transparent 50%),
     var(--bg-page);
   z-index: -1;
+  animation: managerBackdrop 10s ease-in-out infinite alternate;
 }
 
 .login-container-mm {
@@ -31,6 +32,7 @@
   border-radius: var(--radius-lg);
   padding: 2.5rem;
   box-shadow: var(--shadow-md);
+  animation: managerCardEnter .6s cubic-bezier(.2,.75,.25,1) both;
 }
 
 .form-header-mm {
@@ -49,6 +51,7 @@
   margin-bottom: 1rem;
   box-shadow: 0 4px 14px rgba(212, 175, 55, 0.40);
   color: #1E293B;
+  animation: managerBadgeFloat 4s ease-in-out infinite;
 }
 
 .mm-badge-icon {
@@ -137,7 +140,15 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  position: relative;
+  overflow: hidden;
 }
+.btn-login-mm::after { content:''; position:absolute; inset:0; width:35%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); transform:translateX(320%) skewX(-18deg); animation:managerButtonShine 4.2s ease-in-out infinite; }
+@keyframes managerBackdrop { to { filter: saturate(1.15); transform: scale(1.03); } }
+@keyframes managerCardEnter { from { opacity:0; transform:translateY(18px) scale(.985); } to { opacity:1; transform:none; } }
+@keyframes managerBadgeFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-7px); } }
+@keyframes managerButtonShine { 0%,65% { transform:translateX(320%) skewX(-18deg); } 85%,100% { transform:translateX(-320%) skewX(-18deg); } }
+@media (prefers-reduced-motion: reduce) { .login-bg-mm,.form-card-mm,.mm-badge,.btn-login-mm::after { animation:none!important; } }
 .btn-login-mm:hover:not(:disabled) {
   background: var(--brand-700);
   border-color: var(--brand-700);

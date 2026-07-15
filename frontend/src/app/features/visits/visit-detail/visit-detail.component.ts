@@ -138,7 +138,7 @@ export class VisitDetailComponent implements OnInit {
       const visit = instructorPath
         ? mapInstructorReportToVisitDetail(resp.data as InstructorReport)
         : (resp.data as VisitDetail);
-      this.visit.set(visit);
+      this.visit.set({ ...visit, planFollowUps: visit.planFollowUps ?? [] });
       // The instructor report endpoint writes ReportViewLog before returning
       // success. This explicit flag prevents the complaint surface from being
       // enabled from any non-recording or supervisor detail path.
@@ -298,7 +298,7 @@ export class VisitDetailComponent implements OnInit {
     this.visitsService.approve(id).subscribe({
       next: (resp) => {
         if (resp.isSuccess && resp.data) {
-          this.visit.set(resp.data);
+          this.visit.set({ ...resp.data, planFollowUps: resp.data.planFollowUps ?? [] });
           this.toast.success(
             this.translate.instant('VISITS.APPROVE_SUCCESS_TITLE'),
             resp.message || this.translate.instant('VISITS.APPROVE_SUCCESS_DESC'));
@@ -362,7 +362,7 @@ export class VisitDetailComponent implements OnInit {
     this.reasonDialogMode.set(null);
     this.reasonValue.set('');
     if (resp.isSuccess && resp.data) {
-      this.visit.set(resp.data);
+      this.visit.set({ ...resp.data, planFollowUps: resp.data.planFollowUps ?? [] });
       if (mode === 'reject') {
         this.toast.success(
           this.translate.instant('VISITS.REJECT_SUCCESS_TITLE'),
@@ -566,7 +566,8 @@ function mapInstructorReportToVisitDetail(r: InstructorReport): VisitDetail {
     reopenedAt: null,
     isReadOnly: true,                  // instructors cannot edit (Phase 5)
     scores: r.scores ?? [],
-    analysis: r.analysis ?? null
+    analysis: r.analysis ?? null,
+    planFollowUps: r.planFollowUps ?? []
   };
 }
 

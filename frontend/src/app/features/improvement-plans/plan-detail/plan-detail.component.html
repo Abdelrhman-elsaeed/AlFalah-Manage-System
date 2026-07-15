@@ -10,7 +10,7 @@
     </div>
     <div class="page-header__action">
       <button pButton type="button" icon="pi pi-arrow-right"
-              [label]="'FOLLOWUPS.BACK_TO_LIST' | translate" class="p-button-text"
+              [label]="'FOLLOWUPS.BACK_TO_LIST' | translate" class="p-button-text app-back-button"
               (click)="goBack()"></button>
       <button *ngIf="canEdit() && !p.isReadOnly" pButton type="button" icon="pi pi-plus"
               [label]="'FOLLOWUPS.ADD' | translate" class="page-header__primary"

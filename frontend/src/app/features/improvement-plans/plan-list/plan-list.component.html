@@ -12,10 +12,10 @@
     </div>
     <div class="page-header__action">
       <button pButton type="button" icon="pi pi-arrow-right"
-              [label]="'PLANS.BACK_TO_VISIT' | translate" class="p-button-text"
+              [label]="'PLANS.BACK_TO_VISIT' | translate" class="p-button-text app-back-button"
               (click)="goBack()"></button>
       <button *ngIf="canCreate()" pButton type="button" icon="pi pi-plus"
-              [label]="'PLANS.NEW' | translate" class="page-header__primary"
+              [label]="'PLANS.NEW' | translate" class="page-header__primary plan-create-button"
               (click)="openCreateDialog()"></button>
     </div>
   </header>
@@ -45,7 +45,8 @@
         <div class="plans-filter">
           <label for="statusFilter">{{ 'PLANS.FILTER_BY_STATUS' | translate }}</label>
           <app-clearable-select inputId="statusFilter" [options]="statusOptions"
-                                optionValue="value" [(ngModel)]="statusFilter"
+                                optionLabel="labelKey" optionValue="value" [ngModel]="statusFilter()"
+                                (ngModelChange)="statusFilter.set($event ?? 'all')"
                                 [clearable]="false" [itemTpl]="statusOptionTpl"
                                 [selectedItemTpl]="statusOptionTpl"
                                 styleClass="w-12rem"></app-clearable-select>
@@ -168,7 +169,7 @@
       <div *ngIf="dialogMode() === 'edit'" class="field">
         <label for="status">{{ 'PLANS.STATUS' | translate }}</label>
         <app-clearable-select inputId="status" [options]="editableStatusOptions"
-                              optionValue="value" formControlName="status" [clearable]="false"
+                              optionLabel="labelKey" optionValue="value" formControlName="status" [clearable]="false"
                               [itemTpl]="statusOptionTpl" [selectedItemTpl]="statusOptionTpl"
                               styleClass="w-full"></app-clearable-select>
       </div>
