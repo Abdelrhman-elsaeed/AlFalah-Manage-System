@@ -14,7 +14,9 @@ namespace AlFalah.Tests.Security;
 /// Unit tests for the security helpers that back every visibility gate:
 /// <see cref="SchoolScopeGuard"/>, the mainManager block in
 /// <see cref="ComplaintService"/>, and the role checks in
-/// <see cref="VisitService"/>. The HTTP-level integration (200 vs 403 vs 404)
+/// <see cref="VisitService"/>. D-36 and D-75 call the real public service
+/// surfaces so the guards cannot be removed or moved after database access
+/// without failing this suite. The HTTP-level integration (200 vs 403 vs 404)
 /// is covered by manual role-matrix scripts (role_matrix.ps1) for full
 /// end-to-end coverage; this suite ensures the underlying guard logic is
 /// consistent and regression-safe.
@@ -99,6 +101,21 @@ public class VisibilityGateTests
         IsOwnInstructor(global, "INS-OTHER").Should().BeFalse();
     }
 
+    [Fact]
+    public async Task D36_Instructor_Is_Blocked_From_Real_Supervisor_Detail_Surface_Before_Data_Access()
+    {
+        var instructor = MakeUser(
+            roles: new[] { RoleNames.Instructor },
+            userId: "INS-1",
+            activeSchoolId: 1);
+        var service = MakeVisitService(instructor);
+
+        Func<Task> act = async () => await service.GetByIdAsync(123, default);
+
+        await act.Should().ThrowAsync<UnauthorizedSchoolAccessException>()
+            .WithMessage("*صفحة الزيارات للمشرفين*");
+    }
+
     // ─── D-37 — moderator own-created ────────────────────────────────────────
 
     [Fact]
@@ -162,6 +179,24 @@ public class VisibilityGateTests
         blocked.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task D75_Moderator_Is_Blocked_From_Real_Complaint_Surface_Even_With_SchoolManager_Role(
+        bool alsoSchoolManager)
+    {
+        var roles = alsoSchoolManager
+            ? new[] { RoleNames.Moderator, RoleNames.SchoolManager }
+            : new[] { RoleNames.Moderator };
+        var moderator = MakeUser(roles, userId: "MOD-1", activeSchoolId: 1);
+        var service = MakeComplaintService(moderator);
+
+        Func<Task> act = async () => await service.ListAsync(status: null, default);
+
+        await act.Should().ThrowAsync<UnauthorizedSchoolAccessException>()
+            .WithMessage("*غير متاح للمشرف*");
+    }
+
     // ─── Test doubles ────────────────────────────────────────────────────────
 
     private static ICurrentUserService MakeUser(
@@ -189,6 +224,24 @@ public class VisibilityGateTests
         // IS exercised for warning/info paths, so we wire a NullLogger.
         return new SchoolScopeGuard(context: null!, currentUser, logger: NullLogger<SchoolScopeGuard>.Instance);
     }
+
+    private static VisitService MakeVisitService(ICurrentUserService currentUser) => new(
+        context: null!,
+        userManager: null!,
+        roleManager: null!,
+        currentUser,
+        scopeGuard: null!,
+        logger: NullLogger<VisitService>.Instance,
+        httpContextAccessor: null!,
+        imageLoader: null!);
+
+    private static ComplaintService MakeComplaintService(ICurrentUserService currentUser) => new(
+        context: null!,
+        currentUser,
+        scopeGuard: null!,
+        visitService: null!,
+        httpContextAccessor: null!,
+        logger: NullLogger<ComplaintService>.Instance);
 
     private static bool IsOwnInstructor(ICurrentUserService currentUser, string visitInstructorId)
     {

@@ -1,6 +1,6 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
-**Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅
+**Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
 **Last updated:** 2026-07-15
 
 > This spec kit is the **single source of truth** and **project memory** for the
@@ -52,11 +52,12 @@
 | 7 | [phases/PHASE-07-IMPROVEMENT-PLANS.md](phases/PHASE-07-IMPROVEMENT-PLANS.md) | COMPLETED ✅ |
 | 8 | [phases/PHASE-08-COMPLAINTS.md](phases/PHASE-08-COMPLAINTS.md) | COMPLETED ✅ |
 | 9 | [phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md](phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md) | COMPLETED ✅ |
-| 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | Not started |
+| 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | IN PROGRESS |
 
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-07-15 | **P10 targeted hardening completed (ordered GAP 4):** confirmed the nullable EF navigation fix in `ImprovementPlanService` with a 0-warning full solution build. Added real-service regressions proving the D-36 Instructor supervisor-detail guard and D-75 Moderator complaint hard block, including a Moderator+SchoolManager caller. Backend tests now pass 70/70; frontend production build and 461/461 i18n parity remain green. Broader Phase 10 work remains in progress. | Codex |
 | 2026-07-15 | **Phase 8 complaint submission completed:** Instructor review requests are now submitted from the own Approved report only after its successful read records `ReportViewLog`; backend validation independently enforces Instructor ownership, Approved state, view proof, and school scope. School Manager retains active-school complaint handling. Main Manager and Moderator remain hard 403; Moderator's stale `Complaint.View` seed permission and superseded access comments were removed. Complaint UI messages now have Arabic/English parity. | Codex |
 | 2026-07-15 | **D-73 categorized sidebar completed:** replaced the flat shell list with الرئيسية plus collapsible التقييم / الأشخاص / الإدارة / الإعدادات categories. Items remain permission- and role-filtered, empty categories are hidden, and the active route's category auto-expands. Added the missing guarded `/teachers` and `/teachers/:userId` routes. Instructor-only navigation remains exactly الرئيسية + تقاريري + إعدادات الحساب, with no supervisor or complaint items. RTL/Saudi styling preserved. Backend build 0 warnings/errors, 67 tests pass, frontend build green, ar/en parity 427/427 with no duplicate top-level keys. | Codex |
 | 2026-07-15 | **Phase 9 dashboard UI completed:** all four role routes call their scoped `/api/v1/dashboard/{role}` endpoint and render Saudi-theme KPI cards, PrimeNG doughnut/bar/line charts, role-specific tables/insights, refresh, and scoped Excel/PDF exports. Main Manager remains global with no complaint widget; School Manager remains school-scoped; Moderator remains D-37 own-work-only and now has no complaint fields in JSON, Excel, or PDF (D-75); Instructor remains own-approved-only (D-36). Removed the stale placeholder factory. Backend build 0 warnings/errors, 67 tests pass, frontend build green, ar/en parity 422/422 with no duplicate top-level keys. | Codex |
