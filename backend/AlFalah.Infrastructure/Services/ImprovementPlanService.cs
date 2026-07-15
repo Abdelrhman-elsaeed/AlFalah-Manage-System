@@ -84,7 +84,7 @@ public class ImprovementPlanService : IImprovementPlanService
     {
         var visit = await _context.Visits
             .Include(v => v.School)
-            .Include(v => v.Analysis).ThenInclude(a => a.DomainAverages)
+            .Include(v => v.Analysis!).ThenInclude(a => a.DomainAverages)
             .FirstOrDefaultAsync(v => v.Id == visitId, cancellationToken)
             ?? throw new KeyNotFoundException("الزيارة غير موجودة.");
 
