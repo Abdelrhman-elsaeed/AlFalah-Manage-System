@@ -1,40 +1,36 @@
-import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
+import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 
 interface NavItem {
   labelKey: string;
   icon: string;
   route: string;
-  /** Roles allowed to see this item. SuperAdmin is always allowed. */
   roles?: string[];
-  /** Permissions required to see this item. Any of the listed permissions suffices. */
   permissions?: string[];
-  /** Optional tooltip key (defaults to labelKey). */
   tooltipKey?: string;
 }
 
-/**
- * Resolves the user's primary dashboard. Only ONE الرئيسية is shown in the sidebar.
- * Priority: SuperAdmin (sees all) → first role in: MainManager, SchoolManager, Moderator, Instructor.
- */
-function dashboardRouteForRoles(roles: readonly string[]): { route: string; labelKey: string } | null {
-  if (roles.includes('SuperAdmin')) return { route: '/main-manager/dashboard', labelKey: 'DASHBOARD.MAIN_MANAGER' };
-  if (roles.includes('MainManager')) return { route: '/main-manager/dashboard', labelKey: 'DASHBOARD.MAIN_MANAGER' };
-  if (roles.includes('SchoolManager')) return { route: '/school-manager/dashboard', labelKey: 'DASHBOARD.SCHOOL_MANAGER' };
-  if (roles.includes('Moderator')) return { route: '/moderator/dashboard', labelKey: 'DASHBOARD.MODERATOR' };
-  if (roles.includes('Instructor')) return { route: '/instructor/dashboard', labelKey: 'DASHBOARD.INSTRUCTOR' };
+interface NavCategory {
+  id: 'evaluation' | 'people' | 'administration' | 'settings';
+  labelKey: string;
+  icon: string;
+  items: NavItem[];
+}
+
+function dashboardRouteForRoles(roles: readonly string[]): string | null {
+  if (roles.includes('SuperAdmin') || roles.includes('MainManager')) return '/main-manager/dashboard';
+  if (roles.includes('SchoolManager')) return '/school-manager/dashboard';
+  if (roles.includes('Moderator')) return '/moderator/dashboard';
+  if (roles.includes('Instructor')) return '/instructor/dashboard';
   return null;
 }
 
-/**
- * Authenticated shell layout: topbar (RTL) + sidebar (right, RTL) + content area.
- * Sidebar shows EXACTLY ONE dashboard entry (resolved by the user's primary role),
- * then permission-gated admin items (Schools / Users / Assignments / Rubric).
- */
 @Component({
   selector: 'app-shell',
   standalone: true,
@@ -42,100 +38,163 @@ function dashboardRouteForRoles(roles: readonly string[]): { route: string; labe
   templateUrl: './shell.component.html',
   styleUrls: ['./shell.component.css']
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly currentUser = this.authService.currentUser;
+  readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());
 
-  /** Admin / domain items (no dashboards — those are dynamic below). */
-  private readonly adminItems: NavItem[] = [
-    { labelKey: 'NAV.SCHOOLS', icon: 'pi pi-building', route: '/schools', permissions: ['School.View'] },
-    { labelKey: 'NAV.USERS', icon: 'pi pi-users', route: '/users', permissions: ['User.View'] },
-    { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] },
-    { labelKey: 'NAV.VISITS', icon: 'pi pi-clipboard', route: '/visits', permissions: ['Visit.View'] },
-    { labelKey: 'COMPLAINTS.TITLE', icon: 'pi pi-flag', route: '/complaints', roles: ['SchoolManager', 'SuperAdmin'], permissions: ['Complaint.View'] },
-    { labelKey: 'NAV.RUBRIC', icon: 'pi pi-list-check', route: '/rubric', permissions: ['Rubric.View'] }
+  private readonly categories: NavCategory[] = [
+    {
+      id: 'evaluation',
+      labelKey: 'NAV.CATEGORIES.EVALUATION',
+      icon: 'pi pi-chart-line',
+      items: [
+        {
+          labelKey: 'NAV.VISITS',
+          icon: 'pi pi-clipboard',
+          route: '/visits',
+          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+          permissions: ['Visit.View']
+        },
+        {
+          labelKey: 'NAV.RUBRIC',
+          icon: 'pi pi-list-check',
+          route: '/rubric',
+          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+          permissions: ['Rubric.View']
+        }
+      ]
+    },
+    {
+      id: 'people',
+      labelKey: 'NAV.CATEGORIES.PEOPLE',
+      icon: 'pi pi-users',
+      items: [
+        {
+          labelKey: 'NAV.TEACHERS',
+          icon: 'pi pi-id-card',
+          route: '/teachers',
+          roles: ['SchoolManager', 'MainManager', 'SuperAdmin'],
+          permissions: ['User.View']
+        },
+        { labelKey: 'NAV.USERS', icon: 'pi pi-users', route: '/users', permissions: ['User.View'] },
+        { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] }
+      ]
+    },
+    {
+      id: 'administration',
+      labelKey: 'NAV.CATEGORIES.ADMINISTRATION',
+      icon: 'pi pi-building',
+      items: [
+        { labelKey: 'NAV.SCHOOLS', icon: 'pi pi-building', route: '/schools', permissions: ['School.View'] },
+        {
+          labelKey: 'NAV.COMPLAINTS',
+          icon: 'pi pi-flag',
+          route: '/complaints',
+          roles: ['SchoolManager', 'SuperAdmin'],
+          permissions: ['Complaint.View']
+        }
+      ]
+    },
+    {
+      id: 'settings',
+      labelKey: 'NAV.CATEGORIES.SETTINGS',
+      icon: 'pi pi-cog',
+      items: [
+        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-user-edit', route: '/account/settings' }
+      ]
+    }
   ];
 
-  /**
-   * Dashboard item is dynamic — exactly ONE entry, resolved by the current user's primary role.
-   * If SuperAdmin, the MainManager dashboard is shown (admins can navigate via the topbar
-   * user-info menu if they want to swap roles; out of scope here).
-   */
-  readonly visibleItems = computed<NavItem[]>(() => {
+  readonly isInstructorOnly = computed(() => {
     const roles = this.authService.roles();
-    const permissions = this.authService.permissions();
+    return roles.includes('Instructor')
+      && !roles.some(role => ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'].includes(role));
+  });
 
-    const out: NavItem[] = [];
-    const dashboard = dashboardRouteForRoles(roles);
-    if (dashboard) {
-      out.push({
-        labelKey: 'NAV.DASHBOARD',
-        icon: 'pi pi-home',
-        route: dashboard.route
-      });
+  /** Top-level links stay outside accordion categories by design. */
+  readonly topItems = computed<NavItem[]>(() => {
+    const dashboardRoute = dashboardRouteForRoles(this.authService.roles());
+    const items: NavItem[] = dashboardRoute
+      ? [{ labelKey: 'NAV.DASHBOARD', icon: 'pi pi-home', route: dashboardRoute }]
+      : [];
+
+    // D-36/D-73: exactly the minimal Instructor navigation surface.
+    if (this.isInstructorOnly()) {
+      items.push(
+        { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
+        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-user-edit', route: '/account/settings' }
+      );
     }
+    return items;
+  });
 
-    const isInstructorOnly =
-      roles.includes('Instructor') &&
-      !roles.includes('SchoolManager') &&
-      !roles.includes('Moderator') &&
-      !roles.includes('MainManager') &&
-      !roles.includes('SuperAdmin');
+  readonly visibleCategories = computed<NavCategory[]>(() => {
+    if (this.isInstructorOnly()) return [];
+    return this.categories
+      .map(category => ({
+        ...category,
+        items: category.items.filter(item => this.canSee(item))
+      }))
+      .filter(category => category.items.length > 0);
+  });
 
-    // D-36: Instructor navigation is intentionally a distinct, minimal surface.
-    // Supervisor visits, filters/export, rubric, staff, and admin modules must
-    // not become visible merely because a broad permission is accidentally seeded.
-    if (isInstructorOnly) {
-      out.push({
-        labelKey: 'NAV.MY_REPORTS',
-        icon: 'pi pi-file',
-        route: '/instructor/reports'
-      });
-      out.push({
-        labelKey: 'ACCOUNT.TITLE',
-        icon: 'pi pi-user-edit',
-        route: '/account/settings'
-      });
-      return out;
-    }
+  readonly activeSchoolName = computed(() => this.currentUser()?.activeSchoolName ?? null);
+  readonly primaryRoleLabel = computed<string | null>(() => this.authService.roles()[0] ?? null);
 
-    // Account Settings link for all other authenticated users.
-    out.push({
-      labelKey: 'ACCOUNT.TITLE',
-      icon: 'pi pi-user-edit',
-      route: '/account/settings'
+  ngOnInit(): void {
+    this.expandActiveCategory(this.router.url);
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(event => this.expandActiveCategory(event.urlAfterRedirects));
+  }
+
+  toggleCategory(category: NavCategory): void {
+    if (this.categoryContainsActiveRoute(category)) return;
+    this.expandedCategoryIds.update(current => {
+      const next = new Set(current);
+      if (next.has(category.id)) next.delete(category.id);
+      else next.add(category.id);
+      return next;
     });
+  }
 
-    const isSuperAdmin = roles.includes('SuperAdmin');
+  isCategoryExpanded(category: NavCategory): boolean {
+    return this.expandedCategoryIds().has(category.id);
+  }
 
-    for (const item of this.adminItems) {
-      if (isSuperAdmin) {
-        out.push(item);
-        continue;
-      }
-      if (item.roles && !item.roles.some(role => roles.includes(role))) continue;
-      if (item.permissions && item.permissions.length > 0) {
-        if (item.permissions.some(p => permissions.includes(p))) out.push(item);
-      } else {
-        out.push(item);
-      }
-    }
-    return out;
-  });
-
-  readonly activeSchoolName = computed(() =>
-    this.currentUser()?.activeSchoolName ?? null
-  );
-
-  /** First role displayed in the topbar — drives the user-info badge label. */
-  readonly primaryRoleLabel = computed<string | null>(() => {
-    const roles = this.authService.roles();
-    if (roles.length === 0) return null;
-    return roles[0];
-  });
+  categoryContainsActiveRoute(category: NavCategory): boolean {
+    return category.items.some(item => this.routeMatches(item.route, this.router.url));
+  }
 
   logout(): void {
     this.authService.logout();
+  }
+
+  private canSee(item: NavItem): boolean {
+    const roles = this.authService.roles();
+    const permissions = this.authService.permissions();
+    if (roles.includes('SuperAdmin')) return true;
+    if (item.roles && !item.roles.some(role => roles.includes(role))) return false;
+    return !item.permissions || item.permissions.some(permission => permissions.includes(permission));
+  }
+
+  private expandActiveCategory(url: string): void {
+    const active = this.visibleCategories().find(category =>
+      category.items.some(item => this.routeMatches(item.route, url)));
+    if (!active) return;
+    this.expandedCategoryIds.update(current => {
+      if (current.has(active.id)) return current;
+      return new Set([...current, active.id]);
+    });
+  }
+
+  private routeMatches(route: string, url: string): boolean {
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    return cleanUrl === route || cleanUrl.startsWith(`${route}/`);
   }
 }

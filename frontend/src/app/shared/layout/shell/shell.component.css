@@ -108,6 +108,12 @@
   box-shadow: var(--shadow-md);
 }
 
+.shell-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
 .shell-sidebar__list {
   list-style: none;
   padding: 0;
@@ -115,6 +121,76 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.shell-sidebar__list--top {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.shell-sidebar__category {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shell-sidebar__category-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.66);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.shell-sidebar__category-toggle:hover,
+.shell-sidebar__category-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  outline: none;
+}
+
+.shell-sidebar__category.is-active-category .shell-sidebar__category-toggle {
+  color: var(--gold);
+}
+
+.shell-sidebar__category-title {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.shell-sidebar__category-icon {
+  width: 1rem;
+  flex: 0 0 1rem;
+  text-align: center;
+  font-size: 0.86rem;
+}
+
+.shell-sidebar__category-chevron {
+  font-size: 0.78rem;
+  transition: transform 0.18s ease;
+}
+
+.shell-sidebar__category-toggle.is-expanded .shell-sidebar__category-chevron {
+  transform: rotate(180deg);
+}
+
+.shell-sidebar__list--nested {
+  position: relative;
+  margin-inline-start: 0.65rem;
+  padding-inline-start: 0.55rem;
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .shell-sidebar__link {
@@ -147,6 +223,11 @@
   font-weight: 700;
 }
 
+.shell-sidebar__link--nested {
+  padding-block: 0.56rem;
+  font-size: 0.84rem;
+}
+
 .shell-content {
   flex: 1;
   min-width: 0;
@@ -157,8 +238,12 @@
 /* ─── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .shell-sidebar { width: 64px; padding: var(--space-4) var(--space-2); }
-  .shell-sidebar__label { display: none; }
+  .shell-sidebar__label,
+  .shell-sidebar__category-label,
+  .shell-sidebar__category-chevron { display: none; }
   .shell-sidebar__link { justify-content: center; }
+  .shell-sidebar__category-toggle { justify-content: center; padding-inline: 0.5rem; }
+  .shell-sidebar__list--nested { margin-inline-start: 0; padding-inline-start: 0; border-inline-start: 0; }
   .shell-topbar__user-info { display: none; }
   .shell-topbar__logout-label { display: none; }
 }

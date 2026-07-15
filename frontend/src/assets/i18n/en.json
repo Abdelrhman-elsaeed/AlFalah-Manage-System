@@ -273,11 +273,18 @@
     "REPORTS": "Reports",
     "MY_REPORTS": "My Reports",
     "IMPROVEMENT_PLANS": "Improvement Plans",
-    "COMPLAINTS": "Complaints & Reviews",
+    "COMPLAINTS": "Complaints",
     "SETTINGS": "Settings",
     "AUDIT_LOG": "Audit Log",
     "ROLES": "Roles & Permissions",
-    "RUBRIC": "Rubric"
+    "RUBRIC": "Rubric",
+    "MAIN_NAVIGATION": "Main navigation",
+    "CATEGORIES": {
+      "EVALUATION": "Evaluation",
+      "PEOPLE": "People",
+      "ADMINISTRATION": "Administration",
+      "SETTINGS": "Settings"
+    }
   },
   "RUBRIC": {
     "VIEWER_TITLE": "Evaluation Rubric",

@@ -141,6 +141,30 @@ export const routes: Routes = [
         ]
       },
 
+      // ─── Teachers: manager-facing list and profile ─────────────────────
+      {
+        path: 'teachers',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['SchoolManager', 'MainManager', 'SuperAdmin'],
+          permissions: ['User.View']
+        },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./features/teachers/teachers-list/teachers-list.component')
+              .then(m => m.TeachersListComponent),
+            title: 'المعلمون — مدارس الفلاح'
+          },
+          {
+            path: ':userId',
+            loadComponent: () => import('./features/teachers/teacher-profile/teacher-profile.component')
+              .then(m => m.TeacherProfileComponent),
+            title: 'ملف المعلم — مدارس الفلاح'
+          }
+        ]
+      },
+
       // ─── Phase 2: Users (permission-gated) ───────────────────────────────
       {
         path: 'users',

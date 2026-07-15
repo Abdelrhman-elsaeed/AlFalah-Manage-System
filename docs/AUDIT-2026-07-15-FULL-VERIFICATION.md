@@ -47,3 +47,4 @@ migrations, Angular routes/pages/shell and automated checks.
 | Requested gap | Status | Verification |
 |---|---|---|
 | GAP 1 — P9 real dashboards | **Completed 2026-07-15** | Four scoped API-backed dashboards; PrimeNG charts; Excel/PDF buttons; no Main Manager complaint widget; no Moderator complaint data in DTO/Excel/PDF; backend build 0 warnings/errors; 67 tests pass; frontend build green; ar/en 422/422. |
+| GAP 2 — D-73 categorized sidebar | **Completed 2026-07-15** | Categorized, role/permission-filtered, empty categories hidden, active category auto-expanded; Instructor exactly الرئيسية + تقاريري + إعدادات الحساب; guarded teacher routes added; backend build 0 warnings/errors; 67 tests pass; frontend build green; ar/en 427/427. |

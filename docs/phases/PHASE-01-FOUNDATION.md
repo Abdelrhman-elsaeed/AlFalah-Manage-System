@@ -146,5 +146,13 @@ school-scoped accounts have active `UserSchoolRole` rows for sample school ID 1;
 the Instructor also has an `InstructorProfile`. Passwords remain Identity-hashed.
 No existing visits or manually-created data were restored or deleted.
 
+### Shell navigation completion (D-73 — 2026-07-15)
+
+The basic Phase 1 shell was upgraded from a flat list to the categorized,
+permission-filtered navigation documented in `06-FRONTEND-ARCHITECTURE.md`.
+Empty categories are hidden, the active category auto-expands, and Instructor
+navigation remains the dedicated three-item minimal surface. The shell change
+does not replace backend/route authorization.
+
 ## Dependencies
 None (foundation).

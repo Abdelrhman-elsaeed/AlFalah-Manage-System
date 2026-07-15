@@ -87,3 +87,18 @@ src/app/features
 - Main Manager has no complaint widget; Moderator has no complaint surface;
   Instructor data is own + Approved. These are server contracts, not UI-only
   filters.
+
+## D-73 categorized sidebar (2026-07-15)
+
+- Top: **الرئيسية** (one role-resolved dashboard only).
+- **التقييم:** الزيارات، أداة التقييم.
+- **الأشخاص:** المعلمون، المستخدمون، تعيينات المستخدمين.
+- **الإدارة:** المدارس، الشكاوى.
+- **الإعدادات:** إعدادات الحساب.
+- Every item is role/permission-filtered; an empty category is not rendered.
+  The active route's category is automatically expanded.
+- Instructor-only navigation is the documented exception: exactly الرئيسية،
+  تقاريري، إعدادات الحساب, with no category headers or supervisor/complaint
+  items.
+- `/teachers` and `/teachers/:userId` are lazy standalone routes protected by
+  `roleGuard` (SchoolManager/MainManager/SuperAdmin) and `User.View`.

@@ -273,11 +273,18 @@
     "REPORTS": "التقارير",
     "MY_REPORTS": "تقاريري",
     "IMPROVEMENT_PLANS": "خطط التطوير",
-    "COMPLAINTS": "الشكاوى والمراجعات",
+    "COMPLAINTS": "الشكاوى",
     "SETTINGS": "الإعدادات",
     "AUDIT_LOG": "سجل التدقيق",
     "ROLES": "الأدوار والصلاحيات",
-    "RUBRIC": "أداة التقييم"
+    "RUBRIC": "أداة التقييم",
+    "MAIN_NAVIGATION": "التنقل الرئيسي",
+    "CATEGORIES": {
+      "EVALUATION": "التقييم",
+      "PEOPLE": "الأشخاص",
+      "ADMINISTRATION": "الإدارة",
+      "SETTINGS": "الإعدادات"
+    }
   },
   "RUBRIC": {
     "VIEWER_TITLE": "أداة التقييم",
