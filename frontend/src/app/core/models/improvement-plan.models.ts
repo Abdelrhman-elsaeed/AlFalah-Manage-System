@@ -34,7 +34,6 @@ export interface ImprovementPlan {
 }
 
 export interface CreatePlanRequest {
-  instructorId: string;
   visitId: number;
   domainId?: number;
   goal: string;

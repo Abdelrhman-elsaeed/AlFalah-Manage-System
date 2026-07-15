@@ -30,7 +30,6 @@ public class ImprovementPlanDto
 
 public class CreatePlanRequestDto
 {
-    public string InstructorId { get; set; } = string.Empty;
     public int VisitId { get; set; }
     public int? DomainId { get; set; }
     public string Goal { get; set; } = string.Empty;

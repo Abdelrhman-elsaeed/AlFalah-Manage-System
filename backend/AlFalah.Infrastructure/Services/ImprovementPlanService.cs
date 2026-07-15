@@ -214,11 +214,26 @@ public class ImprovementPlanService : IImprovementPlanService
 
         await EnsureUserCanMutateVisitAsync(visit, cancellationToken);
 
+        if (request.DomainId.HasValue)
+        {
+            var domainBelongsToVisitRubric = await _context.RubricDomains
+                .AnyAsync(
+                    domain => domain.Id == request.DomainId.Value
+                        && domain.RubricVersionId == visit.RubricVersionId,
+                    cancellationToken);
+
+            if (!domainBelongsToVisitRubric)
+            {
+                throw new InvalidOperationException(
+                    "النطاق المحدد لا ينتمي إلى نسخة أداة التقييم الخاصة بهذه الزيارة.");
+            }
+        }
+
         var plan = new ImprovementPlan
         {
             SchoolId = visit.SchoolId,
-            InstructorId = request.InstructorId,
-            VisitId = request.VisitId,
+            InstructorId = visit.InstructorId,
+            VisitId = visit.Id,
             DomainId = request.DomainId,
             Goal = request.Goal,
             Actions = request.Actions,

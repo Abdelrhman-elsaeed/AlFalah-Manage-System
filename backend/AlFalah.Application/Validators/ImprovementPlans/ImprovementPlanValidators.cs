@@ -7,9 +7,6 @@ public class CreatePlanRequestDtoValidator : AbstractValidator<CreatePlanRequest
 {
     public CreatePlanRequestDtoValidator()
     {
-        RuleFor(x => x.InstructorId)
-            .NotEmpty().WithMessage("يجب اختيار المعلم المُقيَّم.");
-
         RuleFor(x => x.VisitId)
             .GreaterThan(0).WithMessage("معرف الزيارة غير صحيح.");
 

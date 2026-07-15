@@ -236,7 +236,6 @@ export class PlanListComponent implements OnInit {
 
     if (this.dialogMode() === 'create') {
       const body = {
-        instructorId: this.visit()?.instructorId || '',
         visitId: this.visitId(),
         domainId: formVal.domainId,
         goal: formVal.goal,
