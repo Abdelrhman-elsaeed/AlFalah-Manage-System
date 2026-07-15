@@ -99,19 +99,20 @@
             <div class="table-actions">
               <button pButton pTooltip="{{ 'VISITS.DETAILS' | translate }}"
                       tooltipPosition="top" type="button" icon="pi pi-eye"
-                      [label]="'VISITS.DETAILS' | translate"
-                      class="p-button-secondary p-button-sm row-action row-action--view"
+                      [attr.aria-label]="'VISITS.DETAILS' | translate"
+                      class="p-button-secondary p-button-sm p-button-icon-only row-action row-action--view"
                       (click)="goToDetail(v)"></button>
               <button pButton pTooltip="{{ 'VISITS.PRINT_PDF_TOOLTIP' | translate }}"
                       tooltipPosition="top" type="button" icon="pi pi-file-pdf"
-                      [label]="'VISITS.DOWNLOAD_PDF' | translate"
+                      [attr.aria-label]="'VISITS.DOWNLOAD_PDF' | translate"
                       [disabled]="pdfPrinting() === v.id"
-                      class="p-button-outlined p-button-sm row-action"
+                      class="p-button-outlined p-button-sm p-button-icon-only row-action"
                       (click)="printVisit(v)"></button>
               <button *ngIf="isDraft(v.status) && canCreate()"
                       pButton pTooltip="{{ 'VISITS.DELETE_DRAFT' | translate }}"
                       tooltipPosition="top" type="button" icon="pi pi-trash"
-                      class="p-button-text p-button-sm p-button-danger p-button-icon-only"
+                      [attr.aria-label]="'VISITS.DELETE_DRAFT' | translate"
+                      class="p-button-outlined p-button-sm p-button-danger p-button-icon-only row-action row-action--delete"
                       (click)="confirmDelete(v, $event)"></button>
             </div>
           </td>

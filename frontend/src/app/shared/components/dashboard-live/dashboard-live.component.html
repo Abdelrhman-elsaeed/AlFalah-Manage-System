@@ -5,7 +5,7 @@
       <p class="page-header__subtitle">{{ 'DASHBOARD.LIVE_SUBTITLE' | translate }}</p>
     </div>
 
-    <div class="dashboard-actions">
+    <div class="dashboard-actions" [attr.aria-label]="'DASHBOARD.EXPORT_CENTER' | translate">
       <button
         pButton
         type="button"
@@ -42,12 +42,31 @@
   </section>
 
   <ng-container *ngIf="data()">
+    <section class="dashboard-brief" aria-live="polite">
+      <div class="dashboard-brief__intro">
+        <span class="dashboard-brief__eyebrow"><i class="pi pi-sparkles"></i>{{ 'DASHBOARD.EXECUTIVE_BRIEF' | translate }}</span>
+        <h2>{{ 'DASHBOARD.EXECUTIVE_TITLE' | translate }}</h2>
+        <p>{{ 'DASHBOARD.EXECUTIVE_DESC' | translate }}</p>
+      </div>
+      <div class="dashboard-brief__highlights">
+        <article *ngFor="let item of highlights(); let i = index" class="brief-highlight" [style.animation-delay.ms]="i * 80">
+          <span class="brief-highlight__icon"><i class="pi" [ngClass]="item.icon"></i></span>
+          <span class="brief-highlight__content">
+            <small>{{ item.labelKey | translate }}</small>
+            <strong>{{ item.value }}</strong>
+          </span>
+        </article>
+      </div>
+    </section>
+
     <section class="metrics-grid" [attr.aria-label]="'DASHBOARD.KEY_METRICS' | translate">
-      <article *ngFor="let metric of metrics()" class="surface-card metric-card" [ngClass]="'metric-card--' + metric.tone">
+      <article *ngFor="let metric of metrics(); let i = index" class="surface-card metric-card"
+               [style.animation-delay.ms]="i * 55" [ngClass]="'metric-card--' + metric.tone">
         <span class="metric-card__icon"><i class="pi" [ngClass]="metric.icon" aria-hidden="true"></i></span>
         <div class="metric-card__body">
           <span class="metric-card__label">{{ metric.labelKey | translate }}</span>
           <strong class="metric-card__value">{{ metric.value }}</strong>
+          <span class="metric-card__pulse" aria-hidden="true"></span>
         </div>
       </article>
     </section>
@@ -60,6 +79,10 @@
         </div>
         <div class="chart-wrap chart-wrap--doughnut">
           <p-chart type="doughnut" [data]="statusChart" [options]="doughnutOptions"></p-chart>
+          <div class="chart-center-label">
+            <strong>{{ statusRows().length }}</strong>
+            <span>{{ 'DASHBOARD.STATUS_TYPES' | translate }}</span>
+          </div>
         </div>
         <div class="status-tags">
           <p-tag
@@ -79,6 +102,20 @@
           <p-chart [type]="performanceChartType()" [data]="performanceChart" [options]="cartesianOptions"></p-chart>
         </div>
       </article>
+    </section>
+
+    <section *ngIf="role === 'main-manager'" class="surface-card school-map-card">
+      <div class="section-heading section-heading--split">
+        <span class="section-heading__title">
+          <span class="section-heading__icon"><i class="pi pi-map-marker"></i></span>
+          <span>
+            <h2>{{ 'DASHBOARD.MAP.TITLE' | translate }}</h2>
+            <small>{{ 'DASHBOARD.MAP.SUBTITLE' | translate }}</small>
+          </span>
+        </span>
+        <span class="map-scope"><i class="pi pi-info-circle"></i>{{ 'DASHBOARD.MAP.CITY_LEVEL' | translate }}</span>
+      </div>
+      <app-school-map [markers]="schoolMapPoints()"></app-school-map>
     </section>
 
     <section *ngIf="planAnalytics() as plans" class="surface-card analytics-card">
@@ -113,7 +150,13 @@
             <td><strong>{{ row.name }}</strong></td>
             <td class="text-center">{{ row.visits }}</td>
             <td class="text-center">{{ row.approved }}</td>
-            <td class="text-center">{{ row.average === null ? '—' : (row.average | number:'1.0-2') }}</td>
+            <td class="text-center">
+              <span class="score-meter" *ngIf="row.average !== null; else noAverage">
+                <span class="score-meter__track"><span [style.width.%]="(row.average / 4) * 100"></span></span>
+                <strong>{{ row.average | number:'1.0-2' }}</strong>
+              </span>
+              <ng-template #noAverage>—</ng-template>
+            </td>
           </tr>
         </ng-template>
       </p-table>

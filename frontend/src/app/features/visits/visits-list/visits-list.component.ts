@@ -136,8 +136,8 @@ export class VisitsListComponent implements OnInit {
   /**
    * D-41 / Task 3 — print/PDF download for a single visit row.
    * Triggers a Blob download via the same endpoint the detail page uses
-   * (`/api/v1/visits/{id}/report/pdf`). Backend stamps a
-   * a subtle non-approved notice on reports that are not yet official.
+   * (`/api/v1/visits/{id}/report/pdf`). All visible visit states download
+   * through the same normal report layout.
    */
   printVisit(v: VisitListItem): void {
     if (this.pdfPrinting() !== null) return;

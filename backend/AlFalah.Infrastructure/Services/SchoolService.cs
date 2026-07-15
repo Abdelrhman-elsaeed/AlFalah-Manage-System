@@ -28,6 +28,7 @@ public class SchoolService : ISchoolService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ICurrentUserService _currentUser;
     private readonly SchoolScopeGuard _scopeGuard;
+    private readonly ISchoolLocationRepository _locationRepository;
     private readonly ILogger<SchoolService> _logger;
 
     public SchoolService(
@@ -35,12 +36,14 @@ public class SchoolService : ISchoolService
         UserManager<ApplicationUser> userManager,
         ICurrentUserService currentUser,
         SchoolScopeGuard scopeGuard,
+        ISchoolLocationRepository locationRepository,
         ILogger<SchoolService> logger)
     {
         _context = context;
         _userManager = userManager;
         _currentUser = currentUser;
         _scopeGuard = scopeGuard;
+        _locationRepository = locationRepository;
         _logger = logger;
     }
 
@@ -90,6 +93,11 @@ public class SchoolService : ISchoolService
                 Name = s.Name,
                 Stage = s.Stage.ToString(),
                 City = s.City,
+                SchoolLocationId = s.SchoolLocationId,
+                SchoolLocationName = s.Location != null ? s.Location.NameAr : null,
+                RegionName = s.Location != null ? s.Location.RegionNameAr : null,
+                Latitude = s.Location != null ? s.Location.Latitude : null,
+                Longitude = s.Location != null ? s.Location.Longitude : null,
                 LocationDetails = s.LocationDetails,
                 LogoUrl = s.LogoUrl,
                 IsActive = s.IsActive,
@@ -117,6 +125,7 @@ public class SchoolService : ISchoolService
         var school = await _context.Schools
             .AsNoTracking()
             .Include(s => s.Manager)
+            .Include(s => s.Location)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("المدرسة غير موجودة.");
 
@@ -126,6 +135,11 @@ public class SchoolService : ISchoolService
             Name = school.Name,
             Stage = school.Stage.ToString(),
             City = school.City,
+            SchoolLocationId = school.SchoolLocationId,
+            SchoolLocationName = school.Location?.NameAr,
+            RegionName = school.Location?.RegionNameAr,
+            Latitude = school.Location?.Latitude,
+            Longitude = school.Location?.Longitude,
             LocationDetails = school.LocationDetails,
             LogoUrl = school.LogoUrl,
             IsActive = school.IsActive,
@@ -147,12 +161,13 @@ public class SchoolService : ISchoolService
             throw new UnauthorizedSchoolAccessException("إنشاء المدارس متاح للمدير العام ومدير النظام فقط.");
 
         var stage = Enum.Parse<SchoolStage>(request.Stage, false);
+        var location = await GetRequiredLocationAsync(request.SchoolLocationId, cancellationToken);
 
         // Rule: same Name allowed only if City/LocationDetails differ.
         // A duplicate on (Name, City, LocationDetails) is rejected.
         var duplicate = await _context.Schools
             .AnyAsync(s => s.Name == request.Name
-                       && s.City == request.City
+                       && s.SchoolLocationId == request.SchoolLocationId
                        && (s.LocationDetails ?? string.Empty) == (request.LocationDetails ?? string.Empty),
                 cancellationToken);
 
@@ -167,7 +182,8 @@ public class SchoolService : ISchoolService
         {
             Name = request.Name.Trim(),
             Stage = stage,
-            City = request.City.Trim(),
+            City = location.NameAr,
+            SchoolLocationId = location.Id,
             LocationDetails = request.LocationDetails?.Trim(),
             LogoUrl = request.LogoUrl,
             ManagerUserId = request.ManagerUserId,
@@ -193,12 +209,13 @@ public class SchoolService : ISchoolService
             ?? throw new KeyNotFoundException("المدرسة غير موجودة.");
 
         var stage = Enum.Parse<SchoolStage>(request.Stage, false);
+        var location = await GetRequiredLocationAsync(request.SchoolLocationId, cancellationToken);
 
         // Uniqueness check excluding this row.
         var duplicate = await _context.Schools
             .AnyAsync(s => s.Id != id
                        && s.Name == request.Name
-                       && s.City == request.City
+                       && s.SchoolLocationId == request.SchoolLocationId
                        && (s.LocationDetails ?? string.Empty) == (request.LocationDetails ?? string.Empty),
                 cancellationToken);
         if (duplicate)
@@ -235,7 +252,8 @@ public class SchoolService : ISchoolService
 
         school.Name = request.Name.Trim();
         school.Stage = stage;
-        school.City = request.City.Trim();
+        school.City = location.NameAr;
+        school.SchoolLocationId = location.Id;
         school.LocationDetails = request.LocationDetails?.Trim();
         school.LogoUrl = request.LogoUrl;
 
@@ -349,6 +367,10 @@ public class SchoolService : ISchoolService
         if (!roles.Contains(RoleNames.SchoolManager))
             throw new InvalidOperationException("المستخدم المختار لا يملك دور مدير المدرسة.");
     }
+
+    private async Task<SchoolLocation> GetRequiredLocationAsync(int locationId, CancellationToken cancellationToken) =>
+        await _locationRepository.GetByIdAsync(locationId, cancellationToken)
+        ?? throw new KeyNotFoundException("موقع المدرسة المحدد غير موجود أو غير نشط.");
 
     private async Task EnsureUserSchoolRoleActiveAsync(string userId, int schoolId, string roleName, CancellationToken cancellationToken)
     {

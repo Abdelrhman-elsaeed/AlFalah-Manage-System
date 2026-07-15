@@ -139,7 +139,18 @@ public class DashboardService : IDashboardService
         // Per-school comparison — one row per school (even those with 0 visits)
         var schools = await _context.Schools.AsNoTracking()
             .Where(s => !s.IsDeleted)
-            .Select(s => new { s.Id, s.Name })
+            .Select(s => new
+            {
+                s.Id,
+                s.Name,
+                s.City,
+                s.LocationDetails,
+                s.SchoolLocationId,
+                SchoolLocationName = s.Location != null ? s.Location.NameAr : null,
+                RegionName = s.Location != null ? s.Location.RegionNameAr : null,
+                Latitude = s.Location != null ? (decimal?)s.Location.Latitude : null,
+                Longitude = s.Location != null ? (decimal?)s.Location.Longitude : null
+            })
             .ToListAsync(cancellationToken);
 
         var schoolVisitGroups = await visitQuery
@@ -173,6 +184,13 @@ public class DashboardService : IDashboardService
             {
                 SchoolId = s.Id,
                 SchoolName = s.Name,
+                City = s.City,
+                LocationDetails = s.LocationDetails,
+                SchoolLocationId = s.SchoolLocationId,
+                SchoolLocationName = s.SchoolLocationName,
+                RegionName = s.RegionName,
+                Latitude = s.Latitude,
+                Longitude = s.Longitude,
                 VisitsCount = vg?.Visits ?? 0,
                 ApprovedVisitsCount = vg?.Approved ?? 0,
                 AverageOverallScore = vg?.AvgScore is null ? null : Math.Round(vg.AvgScore.Value, 3),
@@ -813,6 +831,7 @@ public class DashboardService : IDashboardService
         string title, object dashboard, CancellationToken cancellationToken)
     {
         using var wb = new XLWorkbook();
+        BuildExcelVisualSheet(wb, title, dashboard);
         BuildExcelSummarySheet(wb, title, dashboard);
 
         if (dashboard is MainManagerDashboardDto mm)
@@ -839,6 +858,9 @@ public class DashboardService : IDashboardService
             BuildPerformanceTrendSheet(wb, ins.PerformanceTrend);
         }
 
+        foreach (var worksheet in wb.Worksheets.Skip(2))
+            StyleExcelDataSheet(worksheet);
+
         using var ms = new MemoryStream();
         wb.SaveAs(ms);
         var bytes = ms.ToArray();
@@ -852,14 +874,53 @@ public class DashboardService : IDashboardService
         });
     }
 
+    private static void StyleExcelDataSheet(IXLWorksheet sheet)
+    {
+        var lastRow = sheet.LastRowUsed()?.RowNumber() ?? 1;
+        var lastColumn = sheet.LastColumnUsed()?.ColumnNumber() ?? 1;
+        var header = sheet.Range(1, 1, 1, lastColumn);
+        header.Style
+            .Fill.SetBackgroundColor(XLColor.FromHtml("#15603D"))
+            .Font.SetFontColor(XLColor.White)
+            .Font.SetBold()
+            .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+            .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+        sheet.Row(1).Height = 24;
+        if (lastRow > 1)
+        {
+            sheet.Range(1, 1, lastRow, lastColumn).SetAutoFilter();
+            for (var row = 2; row <= lastRow; row++)
+            {
+                if (row % 2 == 0)
+                    sheet.Range(row, 1, row, lastColumn).Style.Fill.BackgroundColor = XLColor.FromHtml("#F5F9F6");
+                sheet.Range(row, 1, row, lastColumn).Style.Border.BottomBorder = XLBorderStyleValues.Hair;
+                sheet.Range(row, 1, row, lastColumn).Style.Border.BottomBorderColor = XLColor.FromHtml("#DDE6E0");
+            }
+        }
+        sheet.SheetView.FreezeRows(1);
+        sheet.TabColor = XLColor.FromHtml("#1E8E4E");
+        sheet.Columns().AdjustToContents();
+        foreach (var column in sheet.ColumnsUsed())
+        {
+            if (column.Width > 42) column.Width = 42;
+            if (column.Width < 12) column.Width = 12;
+        }
+    }
+
     private void BuildExcelSummarySheet(XLWorkbook wb, string title, object dashboard)
     {
         var sheet = wb.AddWorksheet("ملخص");
         sheet.RightToLeft = true;
         sheet.Cell(1, 1).Value = title;
-        sheet.Cell(1, 1).Style.Font.Bold = true;
-        sheet.Cell(1, 1).Style.Font.FontSize = 14;
         sheet.Range(1, 1, 1, 4).Merge();
+        sheet.Range(1, 1, 1, 4).Style
+            .Fill.SetBackgroundColor(XLColor.FromHtml("#15603D"))
+            .Font.SetFontColor(XLColor.White)
+            .Font.SetBold()
+            .Font.SetFontSize(16)
+            .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+            .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+        sheet.Row(1).Height = 30;
         var row = 3;
 
         void Add(string label, string value)
@@ -922,7 +983,89 @@ public class DashboardService : IDashboardService
                 break;
         }
 
-        sheet.Columns().AdjustToContents();
+        var summaryRange = sheet.Range(3, 1, Math.Max(3, row - 1), 2);
+        summaryRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        summaryRange.Style.Border.OutsideBorderColor = XLColor.FromHtml("#D9E4DD");
+        sheet.Range(3, 1, Math.Max(3, row - 1), 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#E8F5EE");
+        sheet.Range(3, 1, Math.Max(3, row - 1), 1).Style.Font.Bold = true;
+        sheet.Range(3, 2, Math.Max(3, row - 1), 2).Style.Font.FontColor = XLColor.FromHtml("#15603D");
+        sheet.Column(1).Width = 38;
+        sheet.Column(2).Width = 24;
+        sheet.SheetView.FreezeRows(2);
+        sheet.TabColor = XLColor.FromHtml("#D4AF37");
+    }
+
+    private static void BuildExcelVisualSheet(XLWorkbook wb, string title, object dashboard)
+    {
+        var sheet = wb.AddWorksheet("لوحة المؤشرات");
+        sheet.RightToLeft = true;
+        sheet.TabColor = XLColor.FromHtml("#15603D");
+        sheet.Range(1, 1, 2, 8).Merge();
+        sheet.Cell(1, 1).Value = title;
+        sheet.Range(1, 1, 2, 8).Style
+            .Fill.SetBackgroundColor(XLColor.FromHtml("#15603D"))
+            .Font.SetFontColor(XLColor.White)
+            .Font.SetBold()
+            .Font.SetFontSize(20)
+            .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+            .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+        sheet.Row(1).Height = 26;
+        sheet.Row(2).Height = 18;
+
+        var metrics = ExportMetrics(dashboard).Take(8).ToList();
+        for (var i = 0; i < metrics.Count; i++)
+        {
+            var startRow = 4 + (i / 4) * 3;
+            var startColumn = 1 + (i % 4) * 2;
+            sheet.Range(startRow, startColumn, startRow, startColumn + 1).Merge();
+            sheet.Range(startRow + 1, startColumn, startRow + 1, startColumn + 1).Merge();
+            sheet.Cell(startRow, startColumn).Value = metrics[i].Label;
+            sheet.Cell(startRow + 1, startColumn).Value = metrics[i].Value;
+            sheet.Range(startRow, startColumn, startRow + 1, startColumn + 1).Style
+                .Fill.SetBackgroundColor(i % 2 == 0 ? XLColor.FromHtml("#E8F5EE") : XLColor.FromHtml("#FFF8E1"))
+                .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetOutsideBorderColor(XLColor.FromHtml("#D9E4DD"))
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+            sheet.Cell(startRow, startColumn).Style.Font.FontColor = XLColor.FromHtml("#64748B");
+            sheet.Cell(startRow + 1, startColumn).Style.Font.Bold = true;
+            sheet.Cell(startRow + 1, startColumn).Style.Font.FontSize = 16;
+            sheet.Cell(startRow + 1, startColumn).Style.Font.FontColor = XLColor.FromHtml("#15603D");
+        }
+
+        var statuses = dashboard switch
+        {
+            MainManagerDashboardDto d => d.VisitsByStatus,
+            SchoolManagerDashboardDto d => d.VisitsByStatus,
+            ModeratorDashboardDto d => d.VisitsByStatus,
+            _ => new List<VisitStatusCountDto>()
+        };
+        var chartRow = 11;
+        sheet.Range(chartRow, 1, chartRow, 8).Merge();
+        sheet.Cell(chartRow, 1).Value = "التوزيع التشغيلي للزيارات";
+        sheet.Range(chartRow, 1, chartRow, 8).Style
+            .Fill.SetBackgroundColor(XLColor.FromHtml("#F0F4F1"))
+            .Font.SetBold()
+            .Font.SetFontColor(XLColor.FromHtml("#15603D"));
+        var maxStatus = Math.Max(1, statuses.Select(x => x.Count).DefaultIfEmpty(0).Max());
+        for (var i = 0; i < statuses.Count; i++)
+        {
+            var row = chartRow + i + 1;
+            sheet.Cell(row, 1).Value = statuses[i].StatusLabelAr;
+            sheet.Cell(row, 2).Value = statuses[i].Count;
+            var filled = (int)Math.Round(statuses[i].Count / (double)maxStatus * 6);
+            for (var block = 0; block < 6; block++)
+            {
+                sheet.Cell(row, block + 3).Value = string.Empty;
+                sheet.Cell(row, block + 3).Style.Fill.BackgroundColor = block < filled
+                    ? XLColor.FromHtml(block < 4 ? "#1E8E4E" : "#D4AF37")
+                    : XLColor.FromHtml("#EDF1EE");
+            }
+            sheet.Row(row).Height = 20;
+        }
+        sheet.Columns(1, 8).Width = 15;
+        sheet.Column(1).Width = 28;
+        sheet.SheetView.FreezeRows(2);
     }
 
     private void BuildVisitsByStatusSheet(XLWorkbook wb, string name, List<VisitStatusCountDto> rows)
@@ -945,22 +1088,26 @@ public class DashboardService : IDashboardService
         var sheet = wb.AddWorksheet("مقارنة المدارس");
         sheet.RightToLeft = true;
         sheet.Cell(1, 1).Value = "المدرسة";
-        sheet.Cell(1, 2).Value = "الزيارات";
-        sheet.Cell(1, 3).Value = "المعتمدة";
-        sheet.Cell(1, 4).Value = "متوسط الدرجة";
-        sheet.Cell(1, 5).Value = "المستوى";
-        sheet.Cell(1, 6).Value = "المعلمون";
-        sheet.Cell(1, 7).Value = "المشرفون";
+        sheet.Cell(1, 2).Value = "المدينة";
+        sheet.Cell(1, 3).Value = "تفاصيل الموقع";
+        sheet.Cell(1, 4).Value = "الزيارات";
+        sheet.Cell(1, 5).Value = "المعتمدة";
+        sheet.Cell(1, 6).Value = "متوسط الدرجة";
+        sheet.Cell(1, 7).Value = "المستوى";
+        sheet.Cell(1, 8).Value = "المعلمون";
+        sheet.Cell(1, 9).Value = "المشرفون";
         sheet.Row(1).Style.Font.Bold = true;
         for (var i = 0; i < rows.Count; i++)
         {
             sheet.Cell(i + 2, 1).Value = rows[i].SchoolName;
-            sheet.Cell(i + 2, 2).Value = rows[i].VisitsCount;
-            sheet.Cell(i + 2, 3).Value = rows[i].ApprovedVisitsCount;
-            sheet.Cell(i + 2, 4).Value = rows[i].AverageOverallScore?.ToString("0.000") ?? "—";
-            sheet.Cell(i + 2, 5).Value = rows[i].PerformanceLevelAr ?? "—";
-            sheet.Cell(i + 2, 6).Value = rows[i].InstructorsCount;
-            sheet.Cell(i + 2, 7).Value = rows[i].ModeratorsCount;
+            sheet.Cell(i + 2, 2).Value = rows[i].City;
+            sheet.Cell(i + 2, 3).Value = rows[i].LocationDetails ?? "—";
+            sheet.Cell(i + 2, 4).Value = rows[i].VisitsCount;
+            sheet.Cell(i + 2, 5).Value = rows[i].ApprovedVisitsCount;
+            sheet.Cell(i + 2, 6).Value = rows[i].AverageOverallScore?.ToString("0.000") ?? "—";
+            sheet.Cell(i + 2, 7).Value = rows[i].PerformanceLevelAr ?? "—";
+            sheet.Cell(i + 2, 8).Value = rows[i].InstructorsCount;
+            sheet.Cell(i + 2, 9).Value = rows[i].ModeratorsCount;
         }
         sheet.Columns().AdjustToContents();
     }
@@ -1088,6 +1235,51 @@ public class DashboardService : IDashboardService
 
     // ─── PDF export ────────────────────────────────────────────────────────
 
+    private static IReadOnlyList<(string Label, string Value)> ExportMetrics(object dashboard) => dashboard switch
+    {
+        MainManagerDashboardDto d => new (string, string)[]
+        {
+            ("المدارس", d.SchoolsCount.ToString()),
+            ("المدارس النشطة", d.ActiveSchoolsCount.ToString()),
+            ("المعلمون", d.InstructorsCount.ToString()),
+            ("المشرفون", d.ModeratorsCount.ToString()),
+            ("الزيارات", d.VisitsCount.ToString()),
+            ("التقييمات المعتمدة", d.ApprovedEvaluationsCount.ToString()),
+            ("متوسط الأداء", d.AverageOverallScore?.ToString("0.00") ?? "—"),
+            ("خطط التحسين النشطة", d.ImprovementPlans.TotalActive.ToString())
+        },
+        SchoolManagerDashboardDto d => new (string, string)[]
+        {
+            ("المعلمون", d.InstructorsCount.ToString()),
+            ("المشرفون", d.ModeratorsCount.ToString()),
+            ("زيارات الشهر", d.VisitsThisMonthCount.ToString()),
+            ("بانتظار الاعتماد", d.EvaluationsPendingApprovalCount.ToString()),
+            ("يحتاجون إلى تحسين", d.InstructorsNeedingImprovementCount.ToString()),
+            ("الشكاوى", d.ComplaintsCount.ToString()),
+            ("الخطط النشطة", d.ImprovementPlans.TotalActive.ToString()),
+            ("متوسط تقدم الخطط", d.ImprovementPlans.AverageLatestProgressScore?.ToString("0.0") ?? "—")
+        },
+        ModeratorDashboardDto d => new (string, string)[]
+        {
+            ("زيارات اليوم", d.TodaysVisitsCount.ToString()),
+            ("المسودات", d.DraftVisitsCount.ToString()),
+            ("بانتظار الاعتماد", d.EvaluationsPendingApprovalCount.ToString()),
+            ("الزيارات المعتمدة", d.ApprovedVisitsCount.ToString()),
+            ("المعلمون المقيمون", d.InstructorsEvaluatedCount.ToString()),
+            ("متوسط الأداء", d.AverageOverallScore?.ToString("0.00") ?? "—"),
+            ("خطط التحسين المفتوحة", d.OpenImprovementPlansCount.ToString())
+        },
+        InstructorDashboardDto d => new (string, string)[]
+        {
+            ("الزيارات المعتمدة", d.ApprovedVisitsCount.ToString()),
+            ("آخر تقييم", d.LatestEvaluation?.OverallScore.ToString("0.00") ?? "—"),
+            ("خطط التحسين المفتوحة", d.OpenImprovementPlansCount.ToString()),
+            ("المتابعات", d.TotalFollowUpsCount.ToString()),
+            ("مشاهدات التقارير", d.ReportViewedCount.ToString())
+        },
+        _ => Array.Empty<(string, string)>()
+    };
+
     private async Task<DashboardExportResult> BuildPdfExportAsync(
         string title, object dashboard, CancellationToken cancellationToken)
     {
@@ -1096,8 +1288,8 @@ public class DashboardService : IDashboardService
             container.Page(page =>
             {
                 page.Size(PageSizes.A4.Landscape());
-                page.Margin(20);
-                page.PageColor(Colors.White);
+                page.Margin(22);
+                page.PageColor("#F6F8F6");
                 page.DefaultTextStyle(t => t.FontSize(10).DirectionFromRightToLeft());
 
                 page.Header().Element(c => ComposePdfHeader(c, title));
@@ -1125,13 +1317,13 @@ public class DashboardService : IDashboardService
 
     private void ComposePdfHeader(IContainer container, string title)
     {
-        container.PaddingBottom(8).BorderBottom(1).BorderColor(Colors.Grey.Lighten2)
+        container.Background("#15603D").PaddingVertical(12).PaddingHorizontal(14)
             .Row(row =>
             {
                 row.RelativeItem().AlignRight().Text(title)
-                    .FontSize(14).Bold().FontColor(Colors.Green.Darken3);
-                row.ConstantItem(140).AlignLeft().Text(DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm"))
-                    .FontSize(9).FontColor(Colors.Grey.Medium);
+                    .FontSize(18).Bold().FontColor(Colors.White);
+                row.ConstantItem(140).AlignLeft().Text(DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
+                    .FontSize(9).FontColor("#F7E8A7");
             });
     }
 
@@ -1141,28 +1333,56 @@ public class DashboardService : IDashboardService
         {
             col.Spacing(10);
 
-            col.Item().Element(c => ComposePdfSummary(c, dashboard));
+            col.Item().Element(c => ComposePdfKpiGrid(c, dashboard));
 
             switch (dashboard)
             {
                 case MainManagerDashboardDto mm:
-                    col.Item().Element(c => ComposePdfSchoolComparison(c, mm.SchoolComparison));
                     col.Item().Element(c => ComposePdfVisitsByStatus(c, mm.VisitsByStatus));
+                    col.Item().Element(c => ComposePdfSchoolComparison(c, mm.SchoolComparison));
                     break;
                 case SchoolManagerDashboardDto sm:
+                    col.Item().Element(c => ComposePdfVisitsByStatus(c, sm.VisitsByStatus));
                     col.Item().Element(c => ComposePdfSubjectPerformance(c, sm.SubjectPerformance));
                     col.Item().Element(c => ComposePdfModeratorPerformance(c, sm.ModeratorPerformance));
                     col.Item().Element(c => ComposePdfInstructorsNeedingImprovement(c, sm.InstructorsNeedingImprovement));
-                    col.Item().Element(c => ComposePdfVisitsByStatus(c, sm.VisitsByStatus));
                     break;
                 case ModeratorDashboardDto mod:
-                    col.Item().Element(c => ComposePdfTopInstructors(c, mod.TopInstructors));
                     col.Item().Element(c => ComposePdfVisitsByStatus(c, mod.VisitsByStatus));
+                    col.Item().Element(c => ComposePdfTopInstructors(c, mod.TopInstructors));
                     break;
                 case InstructorDashboardDto ins:
                     col.Item().Element(c => ComposePdfPerformanceTrend(c, ins.PerformanceTrend));
                     col.Item().Element(c => ComposePdfInstructorLatest(c, ins.LatestEvaluation));
                     break;
+            }
+        });
+    }
+
+    private static void ComposePdfKpiGrid(IContainer container, object dashboard)
+    {
+        var metrics = ExportMetrics(dashboard);
+        container.Column(column =>
+        {
+            column.Spacing(6);
+            column.Item().AlignRight().Text("الملخص التنفيذي")
+                .FontSize(12).Bold().FontColor("#15603D");
+            foreach (var group in metrics.Chunk(4))
+            {
+                column.Item().Row(row =>
+                {
+                    foreach (var metric in group)
+                    {
+                        row.RelativeItem().PaddingHorizontal(3).Background(Colors.White)
+                            .Border(1).BorderColor("#D9E4DD").Padding(8).Column(card =>
+                            {
+                                card.Item().AlignRight().Text(metric.Label).FontSize(8).FontColor(Colors.Grey.Medium);
+                                card.Item().PaddingTop(2).AlignRight().Text(metric.Value).FontSize(15).Bold().FontColor("#15603D");
+                                card.Item().PaddingTop(4).Height(3).Background("#D4AF37");
+                            });
+                    }
+                    for (var i = group.Length; i < 4; i++) row.RelativeItem();
+                });
             }
         });
     }
@@ -1206,24 +1426,25 @@ public class DashboardService : IDashboardService
 
     private void ComposePdfVisitsByStatus(IContainer container, List<VisitStatusCountDto> rows)
     {
+        var maximum = Math.Max(1, rows.Select(row => row.Count).DefaultIfEmpty(0).Max());
         container.Column(col =>
         {
             col.Spacing(4);
-            col.Item().PaddingTop(6).Text("الزيارات حسب الحالة").SemiBold();
-            col.Item().Table(t =>
+            col.Item().PaddingTop(6).Text("التوزيع التشغيلي للزيارات").SemiBold().FontColor("#15603D");
+            foreach (var item in rows)
             {
-                t.ColumnsDefinition(d => { d.RelativeColumn(); d.ConstantColumn(80); });
-                t.Header(h =>
+                col.Item().Background(Colors.White).Border(1).BorderColor("#E3E9E5")
+                    .PaddingVertical(5).PaddingHorizontal(8).Row(row =>
                 {
-                    h.Cell().Text("الحالة").SemiBold();
-                    h.Cell().AlignLeft().Text("العدد").SemiBold();
+                    row.ConstantItem(150).AlignRight().Text(item.StatusLabelAr).FontSize(8);
+                    row.ConstantItem(34).AlignCenter().Text(item.Count.ToString()).Bold().FontColor("#15603D");
+                    row.RelativeItem().Height(9).AlignMiddle().Row(bar =>
+                    {
+                        bar.RelativeItem(Math.Max(0.01f, item.Count)).Background("#1E8E4E");
+                        bar.RelativeItem(Math.Max(0.01f, maximum - item.Count)).Background("#E8EFEA");
+                    });
                 });
-                foreach (var r in rows)
-                {
-                    t.Cell().Text(r.StatusLabelAr);
-                    t.Cell().AlignLeft().Text(r.Count.ToString());
-                }
-            });
+            }
         });
     }
 
@@ -1232,12 +1453,28 @@ public class DashboardService : IDashboardService
         container.Column(col =>
         {
             col.Spacing(4);
-            col.Item().PaddingTop(6).Text("مقارنة المدارس").SemiBold();
+            col.Item().PaddingTop(6).Text("مقارنة المدارس").SemiBold().FontColor("#15603D");
+            foreach (var item in rows.Where(row => row.AverageOverallScore.HasValue)
+                         .OrderByDescending(row => row.AverageOverallScore).Take(6))
+            {
+                var score = Math.Clamp(item.AverageOverallScore!.Value, 0m, 4m);
+                col.Item().Row(row =>
+                {
+                    row.ConstantItem(170).AlignRight().Text(item.SchoolName).FontSize(8);
+                    row.ConstantItem(38).AlignCenter().Text(score.ToString("0.00")).Bold().FontColor("#15603D");
+                    row.RelativeItem().Height(8).AlignMiddle().Row(bar =>
+                    {
+                        bar.RelativeItem(Math.Max(0.01f, (float)score)).Background(score >= 3m ? "#1E8E4E" : "#D4AF37");
+                        bar.RelativeItem(Math.Max(0.01f, 4f - (float)score)).Background("#E8EFEA");
+                    });
+                });
+            }
             col.Item().Table(t =>
             {
                 t.ColumnsDefinition(d =>
                 {
                     d.RelativeColumn(3);
+                    d.RelativeColumn(2);
                     d.ConstantColumn(60);
                     d.ConstantColumn(60);
                     d.ConstantColumn(60);
@@ -1248,6 +1485,7 @@ public class DashboardService : IDashboardService
                 t.Header(h =>
                 {
                     h.Cell().Text("المدرسة").SemiBold();
+                    h.Cell().Text("المدينة").SemiBold();
                     h.Cell().AlignLeft().Text("الزيارات").SemiBold();
                     h.Cell().AlignLeft().Text("المعتمدة").SemiBold();
                     h.Cell().AlignLeft().Text("متوسط").SemiBold();
@@ -1258,6 +1496,7 @@ public class DashboardService : IDashboardService
                 foreach (var r in rows)
                 {
                     t.Cell().Text(r.SchoolName);
+                    t.Cell().Text(r.City);
                     t.Cell().AlignLeft().Text(r.VisitsCount.ToString());
                     t.Cell().AlignLeft().Text(r.ApprovedVisitsCount.ToString());
                     t.Cell().AlignLeft().Text(r.AverageOverallScore?.ToString("0.00") ?? "—");

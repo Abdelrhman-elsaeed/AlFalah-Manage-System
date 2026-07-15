@@ -60,6 +60,13 @@
 .field__muted { color: var(--text-dim); font-weight: 400; }
 .field__error { color: var(--danger); font-size: 0.8rem; }
 .field__hint  { color: var(--text-dim); font-size: 0.8rem; }
+.field--location { grid-column: 1 / -1; }
+.location-picker { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: center; }
+.location-picker__add { white-space: nowrap; }
+.location-dialog { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.location-dialog__wide { grid-column: 1 / -1; }
+:host ::ng-deep .location-dialog .p-inputnumber,
+:host ::ng-deep .location-dialog .p-inputnumber-input { width: 100%; }
 
 /* ─── Actions footer ───────────────────────────────────────────────────── */
 .actions {
@@ -73,4 +80,8 @@
 
 @media (max-width: 720px) {
   .grid { grid-template-columns: 1fr; }
+  .field--location { grid-column: auto; }
+  .location-picker,
+  .location-dialog { grid-template-columns: 1fr; }
+  .location-dialog__wide { grid-column: auto; }
 }

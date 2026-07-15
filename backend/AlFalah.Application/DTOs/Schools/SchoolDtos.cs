@@ -22,6 +22,11 @@ public class SchoolListItemDto
     public string Name { get; set; } = string.Empty;
     public string Stage { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
+    public int? SchoolLocationId { get; set; }
+    public string? SchoolLocationName { get; set; }
+    public string? RegionName { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
     public string? LocationDetails { get; set; }
     public string? LogoUrl { get; set; }
     public bool IsActive { get; set; }
@@ -40,6 +45,11 @@ public class SchoolDetailDto
     public string Name { get; set; } = string.Empty;
     public string Stage { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
+    public int? SchoolLocationId { get; set; }
+    public string? SchoolLocationName { get; set; }
+    public string? RegionName { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
     public string? LocationDetails { get; set; }
     public string? LogoUrl { get; set; }
     public bool IsActive { get; set; }
@@ -58,7 +68,7 @@ public class SchoolCreateRequestDto
 {
     public string Name { get; set; } = string.Empty;
     public string Stage { get; set; } = "Primary";
-    public string City { get; set; } = string.Empty;
+    public int SchoolLocationId { get; set; }
     public string? LocationDetails { get; set; }
     public string? LogoUrl { get; set; }
     /// <summary>Manager is OPTIONAL at create time. Activation is blocked until assigned.</summary>
@@ -73,7 +83,7 @@ public class SchoolUpdateRequestDto
 {
     public string Name { get; set; } = string.Empty;
     public string Stage { get; set; } = "Primary";
-    public string City { get; set; } = string.Empty;
+    public int SchoolLocationId { get; set; }
     public string? LocationDetails { get; set; }
     public string? LogoUrl { get; set; }
     public string? ManagerUserId { get; set; }

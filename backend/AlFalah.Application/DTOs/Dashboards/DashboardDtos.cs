@@ -29,6 +29,13 @@ public class SchoolComparisonRowDto
 {
     public int SchoolId { get; set; }
     public string SchoolName { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string? LocationDetails { get; set; }
+    public int? SchoolLocationId { get; set; }
+    public string? SchoolLocationName { get; set; }
+    public string? RegionName { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
     public int VisitsCount { get; set; }
     public int ApprovedVisitsCount { get; set; }
     /// <summary>Average overall score across the school's approved visits (null if none).</summary>

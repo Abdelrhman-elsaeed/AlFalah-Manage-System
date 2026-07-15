@@ -22,6 +22,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     // Organization
     public DbSet<School> Schools => Set<School>();
+    public DbSet<SchoolLocation> SchoolLocations => Set<SchoolLocation>();
     public DbSet<SchoolReportSettings> SchoolReportSettings => Set<SchoolReportSettings>();
     public DbSet<UserSignature> UserSignatures => Set<UserSignature>();
 
@@ -75,6 +76,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         // Soft-deleted rows are excluded from all queries by default. Services that
         // need to see deleted rows must use IgnoreQueryFilters().
         builder.Entity<School>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<SchoolLocation>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<ApplicationUser>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<UserSchoolRole>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<InstructorProfile>().HasQueryFilter(x => !x.IsDeleted);
@@ -125,6 +127,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
             switch (entry.Entity)
             {
                 case School s: s.UpdatedAt = now; break;
+                case SchoolLocation sl: sl.UpdatedAt = now; break;
                 case ApplicationUser u: u.UpdatedAt = now; break;
                 case InstructorProfile i: i.UpdatedAt = now; break;
                 case InstructorClass ic: ic.UpdatedAt = now; break;

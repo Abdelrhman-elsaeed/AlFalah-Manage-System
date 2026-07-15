@@ -178,6 +178,39 @@ a:hover { color: var(--brand-900); text-decoration: underline; }
 .list-page-header__subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
 .list-page-header__action { min-width: 160px; display: flex; justify-content: flex-end; }
 
+/* Shared title/action composition for detail, form, and dashboard pages. */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  width: 100%;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+.page-header__titles { min-width: 0; text-align: start; }
+.page-header__title { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-strong); }
+.page-header__subtitle { margin: 0.2rem 0 0; font-size: 0.86rem; color: var(--text-muted); }
+.page-header__action,
+.page-header__actions,
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+@media (max-width: 720px) {
+  .page-header,
+  .list-page-header { align-items: flex-start; flex-wrap: wrap; }
+  .page-header__action,
+  .page-header__actions,
+  .dashboard-actions,
+  .list-page-header__action { width: 100%; margin-inline-start: 0; justify-content: flex-start; }
+}
+
 .list-toolbar {
   display: flex;
   gap: var(--space-3);
@@ -329,13 +362,20 @@ textarea.p-inputtext {
   align-items: center;
   position: relative;
   min-width: 12rem;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .p-dropdown .p-dropdown-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
   padding: 0.4rem 2.6rem 0.4rem 0.75rem !important;
   background: transparent !important;
   color: var(--text-strong) !important;
   border: 0 !important;
   text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 [dir="rtl"] .p-dropdown .p-dropdown-label {
   padding: 0.4rem 0.75rem 0.4rem 2.6rem !important;

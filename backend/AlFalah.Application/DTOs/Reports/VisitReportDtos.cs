@@ -114,11 +114,9 @@ public class VisitReportDto
     public string QrPayload { get; set; } = string.Empty;
 
     /// <summary>
-    /// D-41 / Task 3 — when true, the PDF renderer stamps a clear Arabic
-    /// watermark ("مسودة — غير معتمدة") on every page so the document cannot
-    /// be mistaken for an official report. Set by the service for any visit
-    /// whose status is NOT Approved; the controller / renderer never infers
-    /// it from elsewhere. Defaults to false (Approved / official).
+    /// Legacy status flag populated by the visit service. Non-approved reports
+    /// render normally; the PDF builder uses this only to avoid displaying an
+    /// inaccurate "Approved" badge.
     /// </summary>
     public bool IsDraftWatermark { get; set; }
 }

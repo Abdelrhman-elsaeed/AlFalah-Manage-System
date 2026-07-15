@@ -50,6 +50,9 @@ Phases 4–8 (data to aggregate).
 - All four pages share a standalone Angular 17 component with PrimeNG
   `p-chart` (doughnut plus role-appropriate bar/line chart), responsive RTL
   cards/tables, Saudi design tokens, refresh, and scoped Excel/PDF buttons.
+- The Main Manager school comparison includes a zoomable/pannable Saudi map.
+  Marker coordinates come from each school's managed `SchoolLocation`, school
+  names stay visible on their markers, and dashboard data refreshes every 60 seconds.
 - The obsolete `dashboard-placeholders.ts` file was deleted.
 - No migration or rubric/scoring change. D-24/D-28/D-36/D-37/D-53/D-65/D-75
   gates remain in place.

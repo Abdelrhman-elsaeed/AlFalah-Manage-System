@@ -31,6 +31,69 @@ function dashboardRouteForRoles(roles: readonly string[]): string | null {
   return null;
 }
 
+export const SHELL_NAV_CATEGORIES: NavCategory[] = [
+  {
+    id: 'evaluation',
+    labelKey: 'NAV.CATEGORIES.EVALUATION',
+    icon: 'pi pi-chart-line',
+    items: [
+      {
+        labelKey: 'NAV.VISITS',
+        icon: 'pi pi-clipboard',
+        route: '/visits',
+        roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+        permissions: ['Visit.View']
+      },
+      {
+        labelKey: 'NAV.RUBRIC',
+        icon: 'pi pi-list-check',
+        route: '/rubric',
+        roles: ['MainManager', 'SuperAdmin'],
+        permissions: ['Rubric.View']
+      }
+    ]
+  },
+  {
+    id: 'people',
+    labelKey: 'NAV.CATEGORIES.PEOPLE',
+    icon: 'pi pi-users',
+    items: [
+      {
+        labelKey: 'NAV.TEACHERS',
+        icon: 'pi pi-id-card',
+        route: '/teachers',
+        roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+        permissions: ['Instructor.View']
+      },
+      { labelKey: 'NAV.USERS', icon: 'pi pi-users', route: '/users', permissions: ['User.View'] },
+      { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] }
+    ]
+  },
+  {
+    id: 'administration',
+    labelKey: 'NAV.CATEGORIES.ADMINISTRATION',
+    icon: 'pi pi-building',
+    items: [
+      { labelKey: 'NAV.SCHOOLS', icon: 'pi pi-building', route: '/schools', permissions: ['School.View'] },
+      {
+        labelKey: 'NAV.COMPLAINTS',
+        icon: 'pi pi-flag',
+        route: '/complaints',
+        roles: ['SchoolManager', 'SuperAdmin'],
+        permissions: ['Complaint.View']
+      }
+    ]
+  },
+  {
+    id: 'settings',
+    labelKey: 'NAV.CATEGORIES.SETTINGS',
+    icon: 'pi pi-cog',
+    items: [
+      { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
+    ]
+  }
+];
+
 @Component({
   selector: 'app-shell',
   standalone: true,
@@ -46,68 +109,7 @@ export class ShellComponent implements OnInit {
   readonly currentUser = this.authService.currentUser;
   readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());
 
-  private readonly categories: NavCategory[] = [
-    {
-      id: 'evaluation',
-      labelKey: 'NAV.CATEGORIES.EVALUATION',
-      icon: 'pi pi-chart-line',
-      items: [
-        {
-          labelKey: 'NAV.VISITS',
-          icon: 'pi pi-clipboard',
-          route: '/visits',
-          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
-          permissions: ['Visit.View']
-        },
-        {
-          labelKey: 'NAV.RUBRIC',
-          icon: 'pi pi-list-check',
-          route: '/rubric',
-          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
-          permissions: ['Rubric.View']
-        }
-      ]
-    },
-    {
-      id: 'people',
-      labelKey: 'NAV.CATEGORIES.PEOPLE',
-      icon: 'pi pi-users',
-      items: [
-        {
-          labelKey: 'NAV.TEACHERS',
-          icon: 'pi pi-id-card',
-          route: '/teachers',
-          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
-          permissions: ['Instructor.View']
-        },
-        { labelKey: 'NAV.USERS', icon: 'pi pi-users', route: '/users', permissions: ['User.View'] },
-        { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] }
-      ]
-    },
-    {
-      id: 'administration',
-      labelKey: 'NAV.CATEGORIES.ADMINISTRATION',
-      icon: 'pi pi-building',
-      items: [
-        { labelKey: 'NAV.SCHOOLS', icon: 'pi pi-building', route: '/schools', permissions: ['School.View'] },
-        {
-          labelKey: 'NAV.COMPLAINTS',
-          icon: 'pi pi-flag',
-          route: '/complaints',
-          roles: ['SchoolManager', 'SuperAdmin'],
-          permissions: ['Complaint.View']
-        }
-      ]
-    },
-    {
-      id: 'settings',
-      labelKey: 'NAV.CATEGORIES.SETTINGS',
-      icon: 'pi pi-cog',
-      items: [
-        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
-      ]
-    }
-  ];
+  private readonly categories = SHELL_NAV_CATEGORIES;
 
   readonly isInstructorOnly = computed(() => {
     const roles = this.authService.roles();

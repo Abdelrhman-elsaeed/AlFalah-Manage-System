@@ -3,6 +3,7 @@ using AlFalah.Domain.Entities;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Data.Seeders;
 using AlFalah.Infrastructure.Services;
+using AlFalah.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -70,6 +71,8 @@ public static class DependencyInjection
         services.AddScoped<AuditLogWriter>();
         services.AddScoped<SchoolScopeGuard>();
         services.AddScoped<SchoolLookupService>();
+        services.AddScoped<ISchoolLocationRepository, SchoolLocationRepository>();
+        services.AddScoped<ISchoolLocationService, SchoolLocationService>();
         services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserSchoolRoleService, UserSchoolRoleService>();

@@ -12,9 +12,8 @@ public class SchoolCreateRequestValidator : AbstractValidator<SchoolCreateReques
             .NotEmpty().WithMessage("اسم المدرسة مطلوب.")
             .MaximumLength(200).WithMessage("يجب ألا يتجاوز اسم المدرسة 200 حرف.");
 
-        RuleFor(x => x.City)
-            .NotEmpty().WithMessage("المدينة مطلوبة.")
-            .MaximumLength(100).WithMessage("يجب ألا يتجاوز اسم المدينة 100 حرف.");
+        RuleFor(x => x.SchoolLocationId)
+            .GreaterThan(0).WithMessage("موقع المدرسة مطلوب.");
 
         RuleFor(x => x.LocationDetails)
             .MaximumLength(500).WithMessage("يجب ألا تتجاوز تفاصيل الموقع 500 حرف.");
@@ -47,9 +46,8 @@ public class SchoolUpdateRequestValidator : AbstractValidator<SchoolUpdateReques
             .NotEmpty().WithMessage("اسم المدرسة مطلوب.")
             .MaximumLength(200);
 
-        RuleFor(x => x.City)
-            .NotEmpty().WithMessage("المدينة مطلوبة.")
-            .MaximumLength(100);
+        RuleFor(x => x.SchoolLocationId)
+            .GreaterThan(0).WithMessage("موقع المدرسة مطلوب.");
 
         RuleFor(x => x.LocationDetails)
             .MaximumLength(500);

@@ -13,6 +13,7 @@ public class School
     public SchoolStage Stage { get; set; }
     public string City { get; set; } = string.Empty;
     public string? LocationDetails { get; set; }
+    public int? SchoolLocationId { get; set; }
 
     /// <summary>
     /// FK to ApplicationUser. Nullable at DB level, required by business before activation.
@@ -33,5 +34,6 @@ public class School
     public ApplicationUser? Manager { get; set; }
     public ApplicationUser? DeletedByUser { get; set; }
     public SchoolReportSettings? ReportSettings { get; set; }
+    public SchoolLocation? Location { get; set; }
     public ICollection<UserSchoolRole> UserSchoolRoles { get; set; } = new List<UserSchoolRole>();
 }

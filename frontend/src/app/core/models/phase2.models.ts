@@ -27,6 +27,11 @@ export interface SchoolListItem {
   name: string;
   stage: string;
   city: string;
+  schoolLocationId?: number;
+  schoolLocationName?: string;
+  regionName?: string;
+  latitude?: number;
+  longitude?: number;
   locationDetails?: string;
   logoUrl?: string;
   isActive: boolean;
@@ -41,6 +46,11 @@ export interface SchoolDetail {
   name: string;
   stage: string;
   city: string;
+  schoolLocationId?: number;
+  schoolLocationName?: string;
+  regionName?: string;
+  latitude?: number;
+  longitude?: number;
   locationDetails?: string;
   logoUrl?: string;
   isActive: boolean;
@@ -55,7 +65,7 @@ export interface SchoolDetail {
 export interface SchoolCreateRequest {
   name: string;
   stage: SchoolStage;
-  city: string;
+  schoolLocationId: number;
   locationDetails?: string;
   logoUrl?: string;
   managerUserId?: string;
@@ -65,7 +75,7 @@ export interface SchoolCreateRequest {
 export interface SchoolUpdateRequest {
   name: string;
   stage: SchoolStage;
-  city: string;
+  schoolLocationId: number;
   locationDetails?: string;
   logoUrl?: string;
   managerUserId?: string;
@@ -121,6 +131,25 @@ export interface UserDetail {
   subject?: string | null;
   stage?: SchoolStage | null;
   classes: string[];
+}
+
+export interface SchoolLocation {
+  id: number;
+  nameAr: string;
+  nameEn?: string;
+  regionNameAr: string;
+  regionNameEn?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface SchoolLocationCreateRequest {
+  nameAr: string;
+  nameEn?: string;
+  regionNameAr: string;
+  regionNameEn?: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface UserCreateRequest {

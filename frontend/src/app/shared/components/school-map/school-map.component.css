@@ -1,0 +1,31 @@
+:host { display: block; }
+.map-shell { position: relative; overflow: hidden; border: 1px solid rgba(15, 113, 50, 0.18); border-radius: var(--radius-lg); background: #eef4ef; }
+.map-canvas { width: 100%; min-height: 560px; z-index: 1; }
+.show-all {
+  position: absolute;
+  z-index: 500;
+  inset: 0.75rem auto auto 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid rgba(15, 113, 50, 0.24);
+  border-radius: 10px;
+  color: var(--brand-900);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+}
+.show-all:hover { background: #fff; box-shadow: var(--shadow-md); }
+.map-empty { position: absolute; z-index: 450; inset: auto 50% 1rem auto; display: flex; align-items: center; gap: 0.5rem; transform: translateX(50%); padding: 0.55rem 0.85rem; border-radius: 999px; color: var(--text-muted); background: rgba(255,255,255,.94); box-shadow: var(--shadow-sm); }
+:host ::ng-deep .leaflet-control-zoom { border: 0; box-shadow: var(--shadow-md); }
+:host ::ng-deep .leaflet-control-zoom a { color: var(--brand-900); }
+:host ::ng-deep .school-map-tooltip { padding: 0; border: 1px solid rgba(15,113,50,.2); border-radius: 10px; background: rgba(255,255,255,.96); box-shadow: 0 6px 18px rgba(15, 55, 34, .14); }
+:host ::ng-deep .school-map-tooltip::before { border-top-color: rgba(255,255,255,.96); }
+:host ::ng-deep .school-map-tooltip__content { display: flex; min-width: 7.5rem; max-width: 13rem; flex-direction: column; gap: 0.12rem; padding: 0.42rem 0.6rem; text-align: right; font-family: 'Tajawal', 'Cairo', sans-serif; }
+:host ::ng-deep .school-map-tooltip__content strong { overflow: hidden; color: var(--text-strong); font-size: 0.76rem; text-overflow: ellipsis; white-space: nowrap; }
+:host ::ng-deep .school-map-tooltip__content small { color: var(--text-muted); font-size: 0.65rem; }
+:host ::ng-deep .school-leaflet-marker { filter: drop-shadow(0 4px 6px rgba(15,113,50,.35)); transition: stroke-width .18s ease, r .18s ease; }
+@media (max-width: 640px) { .map-canvas { min-height: 480px; } .show-all span { display: none; } }

@@ -15,7 +15,7 @@ namespace AlFalah.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/rubric")]
-[Authorize]
+[Authorize(Roles = RoleNames.SuperAdmin + "," + RoleNames.MainManager)]
 public class RubricController : ControllerBase
 {
     private readonly IRubricService _rubricService;

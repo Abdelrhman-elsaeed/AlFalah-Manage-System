@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ChartData } from 'chart.js';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { Observable } from 'rxjs';
+import { Observable, interval } from 'rxjs';
 import {
   DashboardRole,
   DashboardRoleCode,
@@ -19,6 +20,7 @@ import {
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { DashboardService, downloadDashboardBlob } from '../../../core/services/dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { SchoolMapComponent, SchoolMapMarker } from '../school-map/school-map.component';
 
 type DashboardRoleName = 'main-manager' | 'school-manager' | 'moderator' | 'instructor';
 type DashboardData = MainManagerDashboard | SchoolManagerDashboard | ModeratorDashboard | InstructorDashboard;
@@ -38,10 +40,16 @@ interface RankingRow {
   average: number | null;
 }
 
+interface DashboardHighlight {
+  labelKey: string;
+  value: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-dashboard-live',
   standalone: true,
-  imports: [CommonModule, TranslateModule, ButtonModule, ChartModule, TableModule, TagModule],
+  imports: [CommonModule, TranslateModule, ButtonModule, ChartModule, TableModule, TagModule, SchoolMapComponent],
   templateUrl: './dashboard-live.component.html',
   styleUrls: ['./dashboard-live.component.css']
 })
@@ -51,6 +59,7 @@ export class DashboardLiveComponent implements OnInit {
   private readonly dashboard = inject(DashboardService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly data = signal<DashboardData | null>(null);
   readonly loading = signal(false);
@@ -154,6 +163,68 @@ export class DashboardLiveComponent implements OnInit {
     return [];
   });
 
+  readonly highlights = computed<DashboardHighlight[]>(() => {
+    const data = this.data();
+    if (!data) return [];
+    const total = this.statusRows().reduce((sum, row) => sum + row.count, 0);
+    const approved = this.statusRows().find(row => row.status === 4)?.count ?? 0;
+    const approvalRate = total === 0 ? 0 : Math.round((approved / total) * 100);
+
+    if (this.role === 'main-manager') {
+      const d = data as MainManagerDashboard;
+      const best = [...d.schoolComparison]
+        .filter(row => row.averageOverallScore !== null)
+        .sort((a, b) => (b.averageOverallScore ?? 0) - (a.averageOverallScore ?? 0))[0];
+      return [
+        { labelKey: 'DASHBOARD.HIGHLIGHT.APPROVAL_RATE', value: `${approvalRate}%`, icon: 'pi-verified' },
+        { labelKey: 'DASHBOARD.HIGHLIGHT.TOP_SCHOOL', value: best?.schoolName ?? '—', icon: 'pi-trophy' },
+        { labelKey: 'DASHBOARD.HIGHLIGHT.ACTIVE_COVERAGE', value: `${d.activeSchoolsCount}/${d.schoolsCount}`, icon: 'pi-map-marker' }
+      ];
+    }
+    if (this.role === 'school-manager') {
+      const d = data as SchoolManagerDashboard;
+      return [
+        { labelKey: 'DASHBOARD.HIGHLIGHT.APPROVAL_RATE', value: `${approvalRate}%`, icon: 'pi-verified' },
+        { labelKey: 'DASHBOARD.HIGHLIGHT.PENDING_REVIEW', value: String(d.evaluationsPendingApprovalCount), icon: 'pi-clock' },
+        { labelKey: 'DASHBOARD.HIGHLIGHT.SUPPORT_LOAD', value: String(d.instructorsNeedingImprovementCount), icon: 'pi-bolt' }
+      ];
+    }
+    if (this.role === 'moderator') {
+      const d = data as ModeratorDashboard;
+      return [
+        { labelKey: 'DASHBOARD.HIGHLIGHT.APPROVAL_RATE', value: `${approvalRate}%`, icon: 'pi-verified' },
+        { labelKey: 'DASHBOARD.HIGHLIGHT.TODAY_FOCUS', value: String(d.todaysVisitsCount), icon: 'pi-calendar' },
+        { labelKey: 'DASHBOARD.HIGHLIGHT.WORK_IN_PROGRESS', value: String(d.draftVisitsCount + d.evaluationsPendingApprovalCount), icon: 'pi-spinner' }
+      ];
+    }
+
+    const d = data as InstructorDashboard;
+    const trend = d.performanceTrend;
+    const delta = trend.length < 2 ? null : trend[trend.length - 1].overallScore - trend[trend.length - 2].overallScore;
+    return [
+      { labelKey: 'DASHBOARD.HIGHLIGHT.LATEST_SCORE', value: this.score(d.latestEvaluation?.overallScore ?? null), icon: 'pi-star' },
+      { labelKey: 'DASHBOARD.HIGHLIGHT.TREND_CHANGE', value: delta === null ? '—' : `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`, icon: 'pi-chart-line' },
+      { labelKey: 'DASHBOARD.HIGHLIGHT.FOLLOWUP_ACTIVITY', value: String(d.totalFollowUpsCount), icon: 'pi-history' }
+    ];
+  });
+
+  readonly schoolMapPoints = computed<SchoolMapMarker[]>(() => {
+    if (this.role !== 'main-manager') return [];
+    const rows = (this.data() as MainManagerDashboard | null)?.schoolComparison ?? [];
+    return rows
+      .filter(row => row.latitude !== null && row.longitude !== null)
+      .map(row => ({
+        id: row.schoolId,
+        name: row.schoolName,
+        city: row.schoolLocationName || row.city || this.translate.instant('DASHBOARD.MAP.UNKNOWN_CITY'),
+        region: row.regionName,
+        locationDetails: row.locationDetails,
+        latitude: row.latitude!,
+        longitude: row.longitude!,
+        average: row.averageOverallScore,
+      }));
+  });
+
   readonly planAnalytics = computed<ImprovementPlanAnalytics | null>(() => {
     const data = this.data();
     if (this.role === 'main-manager') return (data as MainManagerDashboard | null)?.improvementPlans ?? null;
@@ -217,7 +288,9 @@ export class DashboardLiveComponent implements OnInit {
         tension: 0.32,
         pointBackgroundColor: '#D4AF37',
         pointBorderColor: '#0F7132',
-        pointRadius: isLine ? 4 : 0
+        pointRadius: isLine ? 4 : 0,
+        borderRadius: isLine ? 0 : 8,
+        borderSkipped: false
       }]
     } as ChartData<'bar' | 'line'>;
   });
@@ -250,6 +323,9 @@ export class DashboardLiveComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    interval(60_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.load());
   }
 
   load(): void {
@@ -336,4 +412,5 @@ export class DashboardLiveComponent implements OnInit {
     const locale = this.translate.currentLang === 'en' ? 'en-SA' : 'ar-SA';
     return new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).format(new Date(value));
   }
+
 }

@@ -44,7 +44,8 @@ Permissions.Manage, Auth.Login, Audit.View
 - **Soft delete (Phase 2):** `IsDeleted=true` excludes the row from queries (global filter).
 
 ## School
-**Fields:** Id, Name, Stage, City, LocationDetails, ManagerUserId (nullable initially),
+**Fields:** Id, Name, Stage, SchoolLocationId (nullable for migrated legacy rows),
+City (legacy display value synchronized from the selected location), LocationDetails, ManagerUserId (nullable initially),
 LogoUrl, IsActive, CreatedAt, UpdatedAt, **IsDeleted**, **DeletedAt**, **DeletedByUserId**
 **Rules:**
 - Each school has exactly **one** School Manager (business validation).
@@ -53,6 +54,15 @@ LogoUrl, IsActive, CreatedAt, UpdatedAt, **IsDeleted**, **DeletedAt**, **Deleted
 - The same `Name` is allowed if `City`/`Location` is different.
 - One stage only.
 - **Soft delete (Phase 2):** `IsDeleted=true` hides the row from all queries via global query filter. Hard delete is not used in this layer.
+
+## SchoolLocation
+**Fields:** Id, NameAr, NameEn, RegionNameAr, RegionNameEn, Latitude, Longitude,
+IsActive, CreatedAt, UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId
+**Rules:**
+- A location is reusable by many schools; schools select it from the managed catalog instead of relying on a hardcoded city-to-coordinate map.
+- Main Manager and Super Admin may add locations. All authenticated users may read active locations for school forms.
+- Coordinates are constrained to Saudi Arabia and stored at `decimal(9,6)` precision.
+- New and updated schools require an active `SchoolLocation`; `School.City` remains synchronized for compatibility with existing filters and exports.
 
 ## RefreshToken
 **Fields:** Id, UserId, Token, ExpiresAt, IsRevoked, CreatedAt, RevokedAt

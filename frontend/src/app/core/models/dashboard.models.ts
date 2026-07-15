@@ -26,6 +26,13 @@ export interface VisitStatusCount {
 export interface SchoolComparisonRow {
   schoolId: number;
   schoolName: string;
+  city: string;
+  locationDetails: string | null;
+  schoolLocationId: number | null;
+  schoolLocationName: string | null;
+  regionName: string | null;
+  latitude: number | null;
+  longitude: number | null;
   visitsCount: number;
   approvedVisitsCount: number;
   averageOverallScore: number | null;

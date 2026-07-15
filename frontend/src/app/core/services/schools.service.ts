@@ -10,6 +10,8 @@ import {
   SchoolDetail,
   SchoolListItem,
   SchoolListQuery,
+  SchoolLocation,
+  SchoolLocationCreateRequest,
   SchoolUpdateRequest
 } from '../models/phase2.models';
 
@@ -17,6 +19,7 @@ import {
 export class SchoolsService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/api/v1/schools`;
+  private readonly locationsBase = `${environment.apiUrl}/api/v1/school-locations`;
 
   list(query: SchoolListQuery): Observable<ApiResponse<PagedResult<SchoolListItem>>> {
     let params = new HttpParams()
@@ -58,5 +61,13 @@ export class SchoolsService {
 
   deactivate(id: number): Observable<ApiResponse<void>> {
     return this.http.post<ApiResponse<void>>(`${this.base}/${id}/deactivate`, {});
+  }
+
+  listLocations(): Observable<ApiResponse<SchoolLocation[]>> {
+    return this.http.get<ApiResponse<SchoolLocation[]>>(this.locationsBase);
+  }
+
+  createLocation(body: SchoolLocationCreateRequest): Observable<ApiResponse<SchoolLocation>> {
+    return this.http.post<ApiResponse<SchoolLocation>>(this.locationsBase, body);
   }
 }

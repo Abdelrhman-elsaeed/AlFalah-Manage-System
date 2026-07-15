@@ -39,7 +39,8 @@
 }
 .row-action { white-space: nowrap; }
 .row-action--view { color: var(--brand-900); }
-:host ::ng-deep .table-actions-col { min-width: 245px; }
+.row-action--delete { background: var(--danger-bg) !important; }
+:host ::ng-deep .table-actions-col { width: 132px; min-width: 132px; }
 
 .chip {
   display: inline-block;

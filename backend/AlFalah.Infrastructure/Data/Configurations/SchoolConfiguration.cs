@@ -39,6 +39,7 @@ public class SchoolConfiguration : IEntityTypeConfiguration<School>
         builder.HasIndex(x => x.IsActive);
         builder.HasIndex(x => x.Stage);
         builder.HasIndex(x => x.City);
+        builder.HasIndex(x => x.SchoolLocationId);
         builder.HasIndex(x => x.IsDeleted);
         builder.HasIndex(x => new { x.Name, x.City, x.LocationDetails });
     }

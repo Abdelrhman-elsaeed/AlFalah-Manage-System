@@ -80,10 +80,6 @@ public class PdfReportService : IPdfReportService
 
         public const string FooterGenerated   = "تاريخ إنشاء التقرير";
         public const string LabelDomainAvgPrefix = "متوسط المحور";
-        // D-41 / Task 3 — clear Arabic watermark stamped on PDFs generated
-        // for non-Approved visits. Must be unambiguous so the document
-        // cannot be mistaken for an official report.
-        public const string DraftWatermark    = "نسخة غير معتمدة";
     }
 
     // ── Brand palette (Saudi light identity — same tokens as the frontend) ──
@@ -186,17 +182,6 @@ public class PdfReportService : IPdfReportService
                      .DirectionFromRightToLeft()
                      .FontColor(Palette.Text));
 
-                // D-41 / Task 3 — when the visit is not Approved, draw a
-                // translucent Arabic watermark banner across the top of every
-                // page (red band, white text, RTL-aligned). page.Foreground
-                // renders ABOVE content but does NOT cover the page header /
-                // footer, so the watermark stays visible at the very top of
-                // each page where it cannot be missed.
-                if (dto.IsDraftWatermark)
-                {
-                    page.Foreground().Element(c => ComposeDraftWatermark(c));
-                }
-
                 page.Header().Element(c => ComposeHeader(c, dto));
                 page.Content().Element(c => ComposeContent(c, dto));
                 page.Footer().Element(c => ComposeFooter(c, dto));
@@ -234,7 +219,7 @@ public class PdfReportService : IPdfReportService
                     // Text block: school name + report title, right-aligned RTL.
                     row.RelativeItem().PaddingRight(12).Column(col =>
                     {
-                        col.Item().AlignRight().Text(dto.HeaderText)
+                        col.Item().AlignRight().Text(SafeDisplayText(dto.HeaderText, dto.SchoolName))
                             .FontFamily(AmiriBold).FontSize(16).Bold().FontColor(Palette.White);
                         col.Item().PaddingTop(4).AlignRight().Text(T.ReportTitle)
                             .FontFamily(AmiriRegular).FontSize(13).FontColor("#FFF8DC");
@@ -348,9 +333,7 @@ public class PdfReportService : IPdfReportService
                 // BUG-6 FIX: footer text aligned to the right (RTL start/inline-start).
                 row.RelativeItem().AlignRight().Text(t =>
                 {
-                    var footer = string.IsNullOrWhiteSpace(dto.FooterText)
-                        ? T.ReportTitle
-                        : dto.FooterText;
+                    var footer = SafeDisplayText(dto.FooterText, T.ReportTitle);
                     t.Span(footer).FontFamily(AmiriRegular).FontColor(Palette.Muted).FontSize(8);
                 });
             });
@@ -394,35 +377,6 @@ public class PdfReportService : IPdfReportService
         }
     }
 
-    /// <summary>
-    /// D-41 / Task 3 — Arabic draft watermark. Renders a translucent red band
-    /// across the very top of every page with the text "مسودة — غير معتمدة" in
-    /// bold white. Used when the visit is NOT Approved so the document cannot
-    /// be mistaken for an official report.
-    ///
-    /// Implementation note: QuestPDF exposes a single <c>page.Foreground()</c>
-    /// layer that draws above content but does NOT cover the page header /
-    /// footer. We render the watermark there, with <c>PaddingTop</c> set to
-    /// 0 so it sits flush against the top edge — clearly visible, impossible
-    /// to crop out.
-    /// </summary>
-    private static void ComposeDraftWatermark(IContainer container)
-    {
-        container
-            .Padding(0)
-            .Background(Palette.Page)
-            .BorderBottom(1)
-            .BorderColor(Palette.Gold)
-            .PaddingVertical(6)
-            .AlignCenter()
-            .Text(T.DraftWatermark)
-            .FontFamily(AmiriBold)
-            .FontSize(14)
-            .Bold()
-            .FontColor(Palette.Muted)
-            .LetterSpacing(0.5f);
-    }
-
     // ─── Sections ────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -444,10 +398,13 @@ public class PdfReportService : IPdfReportService
             {
                 // BUG-6 FIX: status badge on the LEFT (visual end) — in RTL,
                 // the "approved" badge reads naturally from the left edge.
-                row.AutoItem()
-                    .Background(Palette.BrandGreen).PaddingVertical(4).PaddingHorizontal(8)
-                    .AlignCenter().Text(T.StatusApproved)
-                    .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.White);
+                if (!dto.IsDraftWatermark)
+                {
+                    row.AutoItem()
+                        .Background(Palette.BrandGreen).PaddingVertical(4).PaddingHorizontal(8)
+                        .AlignCenter().Text(T.StatusApproved)
+                        .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.White);
+                }
 
                 row.RelativeItem(); // spacer
 
@@ -988,6 +945,15 @@ public class PdfReportService : IPdfReportService
         if (s.Length > 80) s = s.Substring(0, 80).Trim();
         if (s.Length == 0) return "ملف";
         return s;
+    }
+
+    private static string SafeDisplayText(string? value, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return fallback;
+        var questionMarks = value.Count(character => character is '?' or '�');
+        return questionMarks >= 3 && questionMarks >= value.Length / 4
+            ? fallback
+            : value;
     }
 
     private static string ScoreColor(int? score) => score switch

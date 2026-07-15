@@ -111,10 +111,14 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
       position: relative;
       min-width: 12rem;
       width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     .clearable-select > .p-dropdown {
       flex: 1;
       min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     .clearable-select__btn {
       display: inline-flex;

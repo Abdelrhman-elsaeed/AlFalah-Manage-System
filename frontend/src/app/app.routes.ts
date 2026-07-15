@@ -226,8 +226,8 @@ export const routes: Routes = [
       // ─── Phase 3: Rubric (permission-gated) ──────────────────────────────
       {
         path: 'rubric',
-        canActivate: [permissionGuard],
-        data: { permissions: ['Rubric.View'] },
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['MainManager', 'SuperAdmin'], permissions: ['Rubric.View'] },
         children: [
           {
             path: '',
