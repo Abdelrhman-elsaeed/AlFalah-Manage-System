@@ -209,7 +209,21 @@
     "MAIN_MANAGER": "Main Manager Dashboard",
     "SCHOOL_MANAGER": "School Manager Dashboard",
     "MODERATOR": "Moderator Dashboard",
-    "INSTRUCTOR": "Instructor Dashboard"
+    "INSTRUCTOR": "Instructor Dashboard",
+    "LIVE_SUBTITLE": "Live, role-scoped operational indicators",
+    "REFRESH": "Refresh",
+    "EXCEL": "Excel",
+    "PDF": "PDF",
+    "VISITS_BY_STATUS": "Visits by status",
+    "SCHOOL_COMPARISON": "School comparison",
+    "MODERATOR_PERFORMANCE": "Moderator performance",
+    "TOP_INSTRUCTORS": "Top instructors",
+    "LATEST_EVALUATION": "Latest evaluation",
+    "NAME": "Name",
+    "VISITS": "Visits",
+    "APPROVED": "Approved",
+    "AVERAGE": "Average",
+    "METRIC": { "SCHOOLS": "Schools", "INSTRUCTORS": "Instructors", "VISITS": "Visits", "APPROVED": "Approved evaluations", "MODERATORS": "Moderators", "PENDING": "Pending approval", "COMPLAINTS": "Complaints", "TODAY": "Today's visits", "DRAFTS": "Drafts", "PLANS": "Open plans", "FOLLOWUPS": "Follow-ups", "VIEWS": "Report views" }
   },
   "NAV": {
     "DASHBOARD": "Dashboard",

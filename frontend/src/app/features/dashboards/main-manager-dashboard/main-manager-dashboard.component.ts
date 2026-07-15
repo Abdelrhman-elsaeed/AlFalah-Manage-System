@@ -1,15 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
-import { AuthService } from '../../../core/services/auth.service';
+import { Component } from '@angular/core';
+import { DashboardLiveComponent } from '../../../shared/components/dashboard-live/dashboard-live.component';
 
-@Component({
-  selector: 'app-main-manager-dashboard',
-  standalone: true,
-  imports: [CommonModule, TranslateModule],
-  templateUrl: './main-manager-dashboard.component.html',
-  styleUrls: ['./dashboard-card.css']
-})
-export class MainManagerDashboardComponent {
-  authService = inject(AuthService);
-}
+@Component({ selector: 'app-main-manager-dashboard', standalone: true, imports: [DashboardLiveComponent], template: '<app-dashboard-live role="main-manager" />' })
+export class MainManagerDashboardComponent {}
