@@ -1,9 +1,10 @@
 # 09 — Rubric & Evaluation
 
-**Status:** Phase 3 IMPLEMENTED + seeded (5 domains / 25 standards verbatim) · **Last updated:** 2026-07-10
+**Status:** Phase 3 IMPLEMENTED + seeded baseline (5 domains / 25 standards verbatim) + dynamic visit snapshots · **Last updated:** 2026-07-15
 
 ## Structure
-- **5 domains**, **25 standards**.
+- The seeded baseline has **5 domains** and **25 standards**.
+- Rubric versions are dynamic: a visit snapshots **N** standards from the active version; create, update, progress, and submit derive N from that snapshot and never hard-code 25 (D-65 / locked D2).
 - Score from **0 to 4**.
 
 ## Score labels (exact Arabic)
@@ -27,7 +28,7 @@
 
 ## Analysis rules
 - **Domain average** = average of standard scores in that domain.
-- **Overall score** = average of all scored standards.
+- **Overall score (current historical behavior before desktop-parity Phase 2)** = average of all scored standards. Locked decision D1 changes the current rubric-version behavior to equal-weight domain averages in desktop-parity Phase 2 without mutating historical snapshots.
 - **Strengths** = domains with average **>= 3.0**.
 - **Improvement areas** = domains with average **< 2.5**.
 - **Priority standards** = individual standards with score **<= 1.5**.

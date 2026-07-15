@@ -2,7 +2,7 @@
   <header class="page-header">
     <div class="page-header__titles">
       <h1 class="page-header__title">
-        {{ (isEdit() ? 'VISITS.EDIT_DRAFT' : 'VISITS.NEW') | translate }}
+        {{ (isEdit() ? 'VISITS.OBSERVATION_TITLE' : 'VISITS.NEW') | translate }}
       </h1>
       <p class="page-header__subtitle">
         {{ 'VISITS.DETAILS' | translate }}
@@ -56,7 +56,7 @@
     <form [formGroup]="form" class="form-card surface-card">
       <div class="form-grid">
         <div class="form-field">
-          <label>{{ 'VISITS.INSTRUCTOR' | translate }}</label>
+          <label>{{ 'VISITS.INSTRUCTOR' | translate }} *</label>
           <app-clearable-select [options]="instructors()" optionLabel="fullName" optionValue="userId"
                                 formControlName="instructorId" [filter]="true" filterBy="fullName"
                                 [clearable]="false"
@@ -64,40 +64,40 @@
                                 [emptyMessage]="'VISITS.NO_INSTRUCTORS_AVAILABLE' | translate"
                                 [loading]="instructorsLoading()"
                                 appendTo="body"></app-clearable-select>
+          <small class="field-hint" *ngIf="teacherLocked()">{{ 'VISITS.INSTRUCTOR_LOCKED_HINT' | translate }}</small>
         </div>
 
         <div class="form-field">
-          <label>{{ 'VISITS.VISIT_CATEGORY' | translate }}</label>
+          <label>{{ 'VISITS.VISIT_CATEGORY' | translate }} *</label>
           <app-clearable-select [options]="categories" optionLabel="label" optionValue="value"
                                 formControlName="visitCategory" [clearable]="false"
                                 appendTo="body"></app-clearable-select>
         </div>
 
         <div class="form-field">
-          <label>{{ 'VISITS.VISIT_SEQUENCE' | translate }}</label>
+          <label>{{ 'VISITS.VISIT_SEQUENCE' | translate }} *</label>
           <app-clearable-select [options]="sequences" optionLabel="label" optionValue="value"
                                 formControlName="visitSequence" [clearable]="false"
                                 appendTo="body"></app-clearable-select>
         </div>
 
         <div class="form-field">
-          <label>{{ 'VISITS.VISIT_DATE' | translate }}</label>
+          <label>{{ 'VISITS.VISIT_DATE' | translate }} *</label>
           <p-calendar formControlName="visitDate" dateFormat="yy-mm-dd"
                       [showIcon]="true" appendTo="body"></p-calendar>
         </div>
 
         <div class="form-field">
-          <label>{{ 'VISITS.SUBJECT' | translate }}</label>
+          <label>{{ 'VISITS.SUBJECT' | translate }} *</label>
           <input pInputText formControlName="subject"
-                 [readonly]="hasTeacherSubject()"
                  [placeholder]="'VISITS.SUBJECT_PLACEHOLDER' | translate" />
         </div>
 
         <div class="form-field">
-          <label>{{ 'VISITS.GRADE_CLASS' | translate }}</label>
+          <label>{{ 'VISITS.GRADE_CLASS' | translate }} *</label>
           <app-clearable-select *ngIf="hasTeacherClasses(); else freeTextClass"
                                 [options]="classOptions()" optionLabel="label" optionValue="value"
-                                formControlName="gradeClass" appendTo="body"></app-clearable-select>
+                                formControlName="gradeClass" [clearable]="false" appendTo="body"></app-clearable-select>
           <ng-template #freeTextClass>
             <input pInputText formControlName="gradeClass"
                    [placeholder]="'VISITS.GRADE_CLASS_PLACEHOLDER' | translate" />
@@ -108,6 +108,35 @@
           <i class="pi pi-info-circle"></i>
           <span>{{ 'VISITS.TEACHING_FALLBACK_HINT' | translate }}</span>
         </p>
+
+        <div class="form-field form-field--full">
+          <label>{{ 'VISITS.LESSON_TITLE' | translate }} *</label>
+          <input pInputText formControlName="lessonTitle"
+                 [placeholder]="'VISITS.LESSON_TITLE_PLACEHOLDER' | translate" />
+          <small class="field-error" *ngIf="form.controls['lessonTitle'].touched && form.controls['lessonTitle'].invalid">
+            {{ 'VISITS.LESSON_TITLE_REQUIRED' | translate }}
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.PRESENT_COUNT' | translate }} *</label>
+          <p-inputNumber inputId="presentCount" formControlName="presentCount" [min]="0"
+                         [useGrouping]="false" styleClass="w-full"
+                         [placeholder]="'0'"></p-inputNumber>
+          <small class="field-error" *ngIf="form.controls['presentCount'].touched && form.controls['presentCount'].invalid">
+            {{ 'VISITS.PRESENT_COUNT_REQUIRED' | translate }}
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.ABSENT_COUNT' | translate }}</label>
+          <p-inputNumber inputId="absentCount" formControlName="absentCount" [min]="0"
+                         [useGrouping]="false" styleClass="w-full"
+                         [placeholder]="'0'"></p-inputNumber>
+          <small class="field-error" *ngIf="form.controls['absentCount'].touched && form.controls['absentCount'].invalid">
+            {{ 'VISITS.COUNT_INVALID' | translate }}
+          </small>
+        </div>
 
         <div class="form-field form-field--full">
           <label>{{ 'VISITS.NOTES' | translate }}</label>
@@ -129,11 +158,19 @@
         </div>
       </header>
 
+      <div class="score-legend" role="note" [attr.aria-label]="'VISITS.SCORE_LEGEND' | translate">
+        <strong>{{ 'VISITS.SCORE_LEGEND' | translate }}:</strong>
+        <span *ngFor="let v of scoreValues; let i = index" class="score-legend__item score-legend__item--v{{ v }}">
+          <span class="score-legend__value">{{ v }}</span>
+          <span>{{ scoreLabels[i] }}</span>
+        </span>
+      </div>
+
       <div class="domain-block" *ngFor="let d of domainsGrouped(); trackBy: trackDomain">
         <header class="domain-header">
           <span class="domain-code">{{ d.domainCode }}</span>
           <h3 class="domain-name">{{ d.domainNameAr }}</h3>
-          <span class="domain-count">{{ 'VISITS.STANDARDS_COUNT' | translate: { count: domainStandardCount(d) } }}</span>
+          <span class="domain-count">{{ domainScoredCount(d) }}/{{ domainStandardCount(d) }}</span>
         </header>
 
         <div class="standards">
@@ -157,29 +194,16 @@
                   {{ v }}
                 </button>
               </div>
-              <!-- Collapsible evidence note toggle -->
-              <button type="button"
-                      class="note-toggle"
-                      [class.note-toggle--active]="isNoteOpen(s.rubricStandardId) || hasNoteContent(s)"
-                      [disabled]="isReadOnly()"
-                      [pTooltip]="(isNoteOpen(s.rubricStandardId) ? 'VISITS.NOTE_HIDE' : (hasNoteContent(s) ? 'VISITS.NOTE_ADDED' : 'VISITS.ADD_NOTE')) | translate"
-                      tooltipPosition="top"
-                      (click)="toggleNote(s.rubricStandardId)">
-                <i class="pi pi-comment"
-                   [class.pi-comment]="!hasNoteContent(s)"
-                   [class.pi-comment-fill]="hasNoteContent(s)"
-                   [class.pi-times]="isNoteOpen(s.rubricStandardId)"></i>
-              </button>
+              <span class="selected-score-label" *ngIf="s.control.value !== null">
+                {{ selectedScoreLabel(s.control.value) }}
+              </span>
             </div>
-            <!-- Optional evidence note, expanded only when toggled -->
-            <div class="std-note-row" *ngIf="isNoteOpen(s.rubricStandardId) || hasNoteContent(s)"
-                 [class.std-note-row--open]="isNoteOpen(s.rubricStandardId)">
-              <ng-container *ngIf="isNoteOpen(s.rubricStandardId)">
-                <input pInputText class="note-input"
-                       [formControl]="s.noteControl"
-                       [placeholder]="'VISITS.EVIDENCE_NOTE_PLACEHOLDER' | translate"
-                       [attr.aria-label]="'VISITS.EVIDENCE_NOTE' | translate" />
-              </ng-container>
+            <div class="std-note-row std-note-row--open">
+              <input pInputText class="note-input"
+                     [formControl]="s.noteControl"
+                     [readonly]="isReadOnly()"
+                     [placeholder]="'VISITS.EVIDENCE_NOTE_PLACEHOLDER' | translate"
+                     [attr.aria-label]="'VISITS.EVIDENCE_NOTE' | translate" />
             </div>
           </div>
         </div>

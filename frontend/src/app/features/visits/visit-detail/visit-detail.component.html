@@ -124,6 +124,17 @@
             <span class="value">{{ v.gradeClass || '—' }}</span>
           </div>
           <div class="meta-cell">
+            <span class="label">{{ 'VISITS.LESSON_TITLE' | translate }}</span>
+            <span class="value">{{ v.lessonTitle || '—' }}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="label">{{ 'VISITS.ATTENDANCE' | translate }}</span>
+            <span class="value">
+              {{ 'VISITS.PRESENT_COUNT' | translate }}: {{ v.presentCount }} ·
+              {{ 'VISITS.ABSENT_COUNT' | translate }}: {{ v.absentCount }}
+            </span>
+          </div>
+          <div class="meta-cell">
             <span class="label">{{ 'VISITS.CREATED_BY' | translate }}</span>
             <span class="value">{{ v.createdByFullName }}</span>
           </div>
@@ -188,6 +199,7 @@
                    [class.standard-row--zebra]="i % 2 === 1">
                 <span class="std-code">{{ s.standardCode }}</span>
                 <span class="std-text">{{ s.standardTextAr }}</span>
+                <span class="std-evidence" *ngIf="s.evidenceNote">{{ s.evidenceNote }}</span>
                 <span class="std-score"
                       [class.std-score--none]="s.score === null || s.score === undefined"
                       [class.std-score--low]="(s.score ?? -1) <= 1"

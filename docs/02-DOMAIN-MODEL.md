@@ -164,14 +164,16 @@ UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId.
 **Fields:** Id, SchoolId, InstructorId (the evaluated teacher's user id), CreatedByUserId
 (Moderator/SchoolManager who created it), RubricVersionId (SNAPSHOT — the active version at creation),
 VisitCategory (enum), VisitSequence (enum), Status (VisitStatus, default Draft),
-VisitDate, Subject (nullable), GradeClass (nullable), Notes (nullable), SubmittedAt (nullable),
+VisitDate, Subject (required for new visits), GradeClass (required for new visits),
+LessonTitle (required for new visits, nullable only for legacy rows), PresentCount (required, >= 0),
+AbsentCount (optional input, stored as 0 when omitted), Notes (nullable), SubmittedAt (nullable),
 **ApprovedByUserId (nullable), ApprovedAt (nullable), RejectionReason (nullable), ReopenReason (nullable),
 ReopenedByUserId (nullable), ReopenedAt (nullable) (Phase 5)**,
 CreatedAt, UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId
 **Rules:**
 - Always owned by one school; the `InstructorId` must have an active `UserSchoolRole` in `SchoolId` with role = Instructor.
 - `RubricVersionId` is set at create time and is **immutable** thereafter — historical accuracy.
-- On create, exactly 25 `VisitScore` rows are pre-generated from the snapshot's standards (scores null).
+- On create, one `VisitScore` row per standard in the snapshotted rubric version is pre-generated (scores null). The count is dynamic (D-65), never hard-coded to 25.
 - Phase 5 state machine:
   - `Draft → PendingApproval` on submit (creates VisitAnalysis).
   - `PendingApproval → Approved` on SM approve; `ApprovedByUserId` + `ApprovedAt` set.
@@ -186,7 +188,7 @@ CreatedAt, UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId
 **Fields:** Id, VisitId, RubricStandardId, Score (int 0..4, nullable), EvidenceNote (nullable),
 CreatedAt, UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId
 **Rules:**
-- Unique on `(VisitId, RubricStandardId)` — exactly 25 rows per visit.
+- Unique on `(VisitId, RubricStandardId)` — exactly one row per standard in the visit's rubric snapshot.
 - Score ∈ [0..4]; null only allowed while visit is Draft.
 - Soft delete cascades from `Visit` via the service.
 - Phase 5: scores become mutable again when status = RejectedForChanges or Reopened (creator

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.ImprovementPlans;
 using AlFalah.Application.DTOs.Teachers;
+using AlFalah.Application.DTOs.Visits;
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
@@ -23,6 +24,56 @@ namespace AlFalah.Tests.Security;
 /// </summary>
 public sealed class ScopeVisibilityIntegrationTests
 {
+    [Fact]
+    public async Task Phase1_VisitMetadata_RoundTrips_With_Dynamic_Rubric_Count()
+    {
+        await using var context = await CreateSeededContextAsync();
+        var service = CreateVisitService(context, User(RoleNames.Moderator, "MOD-1", 1));
+
+        var created = await service.CreateAsync(new CreateVisitRequestDto
+        {
+            InstructorId = "TEACHER-A",
+            VisitCategory = (int)VisitCategory.ClassroomOrPeriodic,
+            VisitSequence = (int)VisitSequence.First,
+            VisitDate = new DateTimeOffset(2026, 7, 15, 8, 0, 0, TimeSpan.Zero),
+            Subject = "الرياضيات",
+            GradeClass = "الصف الأول",
+            LessonTitle = "الجمع حتى 100",
+            PresentCount = 24,
+            AbsentCount = 2,
+            Notes = "ملاحظة أولية"
+        });
+
+        created.LessonTitle.Should().Be("الجمع حتى 100");
+        created.PresentCount.Should().Be(24);
+        created.AbsentCount.Should().Be(2);
+        created.Scores.Should().HaveCount(2, "the active rubric snapshot has two dynamic standards");
+
+        var updated = await service.UpdateAsync(created.Id, new UpdateVisitRequestDto
+        {
+            VisitCategory = (int)VisitCategory.ClassroomOrPeriodic,
+            VisitSequence = (int)VisitSequence.First,
+            VisitDate = created.VisitDate,
+            Subject = "الرياضيات",
+            GradeClass = "الصف الأول",
+            LessonTitle = "الجمع والطرح حتى 100",
+            PresentCount = 23,
+            AbsentCount = null,
+            Notes = "ملاحظة محدثة",
+            Scores = created.Scores.Select(score => new VisitScoreInputDto
+            {
+                RubricStandardId = score.RubricStandardId,
+                Score = 3,
+                EvidenceNote = "شاهد صفّي"
+            }).ToList()
+        });
+
+        updated.LessonTitle.Should().Be("الجمع والطرح حتى 100");
+        updated.PresentCount.Should().Be(23);
+        updated.AbsentCount.Should().Be(0, "an omitted absence count defaults to zero");
+        updated.Scores.Should().OnlyContain(score => score.Score == 3 && score.EvidenceNote == "شاهد صفّي");
+    }
+
     [Fact]
     public async Task D36_Instructor_Cannot_Use_VisitDetail_But_Can_Open_Own_Approved_Report()
     {
@@ -179,6 +230,22 @@ public sealed class ScopeVisibilityIntegrationTests
                 Code = "D1",
                 NameAr = "بيئة التعلم",
                 SortOrder = 1
+            },
+            new RubricStandard
+            {
+                Id = 11,
+                RubricDomainId = 10,
+                Code = "D1-S1",
+                TextAr = "المعيار الأول",
+                SortOrder = 1
+            },
+            new RubricStandard
+            {
+                Id = 12,
+                RubricDomainId = 10,
+                Code = "D1-S2",
+                TextAr = "المعيار الثاني",
+                SortOrder = 2
             });
         context.UserSchoolRoles.AddRange(
             Assignment(1, "TEACHER-A", 1, instructorRole.Id),

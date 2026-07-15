@@ -9,9 +9,9 @@ namespace AlFalah.Application.Interfaces;
 /// Phase 4 invariants:
 ///  - School-scoping is enforced for every read/write (via <c>SchoolScopeGuard</c>).
 ///  - On create: <c>RubricVersionId</c> is SNAPSHOTTED from the currently active version,
-///    and exactly 25 <c>VisitScore</c> rows are pre-generated with null scores.
+///    and one <c>VisitScore</c> row per snapshot standard is generated with a null score.
 ///  - On draft save: partial scores are accepted (each must be 0..4 or null).
-///  - On submit: ALL 25 standards must be scored (no nulls); on success the visit
+///  - On submit: all N snapshot standards must be scored (no nulls); on success the visit
 ///    transitions Draft → PendingApproval, <c>SubmittedAt</c> is set, and the
 ///    <c>VisitAnalysis</c> snapshot is computed + persisted ONCE.
 ///

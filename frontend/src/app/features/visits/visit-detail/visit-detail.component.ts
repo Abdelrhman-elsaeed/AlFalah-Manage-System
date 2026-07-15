@@ -543,6 +543,9 @@ function mapInstructorReportToVisitDetail(r: InstructorReport): VisitDetail {
     visitDate: r.visitDate,
     subject: r.subject ?? null,
     gradeClass: r.gradeClass ?? null,
+    lessonTitle: r.lessonTitle ?? null,
+    presentCount: r.presentCount,
+    absentCount: r.absentCount,
     notes: null,
     createdAt: r.visitDate,             // best-effort; backend doesn't expose for instructors
     updatedAt: r.visitDate,

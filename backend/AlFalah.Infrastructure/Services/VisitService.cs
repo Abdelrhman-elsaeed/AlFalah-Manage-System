@@ -18,7 +18,7 @@ namespace AlFalah.Infrastructure.Services;
 /// Phase 4 visits + scoring + analysis service.
 /// Implements <see cref="IVisitService"/>.
 /// All rules are enforced server-side: school-scoping, snapshot-on-create,
-/// the 25/25 submit gate, and the docs/09 analysis engine.
+/// the dynamic snapshot submit gate, and the docs/09 analysis engine.
 /// </summary>
 public class VisitService : IVisitService
 {
@@ -75,9 +75,8 @@ public class VisitService : IVisitService
             .OrderBy(x => x.Domain.SortOrder).ThenBy(x => x.Standard.SortOrder)
             .ToList();
 
-        if (standards.Count != 25)
-            throw new InvalidOperationException(
-                $"عدد المعايير في الإصدار النشط ({standards.Count}) لا يساوي 25. يرجى مراجعة الإصدار.");
+        if (standards.Count == 0)
+            throw new InvalidOperationException("لا يحتوي الإصدار النشط على معايير تقييم.");
 
         var now = DateTimeOffset.UtcNow;
 
@@ -93,12 +92,15 @@ public class VisitService : IVisitService
             VisitDate = request.VisitDate,
             Subject = request.Subject,
             GradeClass = request.GradeClass,
+            LessonTitle = request.LessonTitle.Trim(),
+            PresentCount = request.PresentCount,
+            AbsentCount = request.AbsentCount ?? 0,
             Notes = request.Notes,
             CreatedAt = now,
             UpdatedAt = now
         };
 
-        // Pre-generate the 25 score rows (all null) — keeps the "exactly 25 rows per visit" invariant.
+        // Pre-generate one score row per standard in the snapshotted rubric.
         foreach (var s in standards)
         {
             visit.Scores.Add(new VisitScore
@@ -115,6 +117,10 @@ public class VisitService : IVisitService
         if (request.Scores != null && request.Scores.Count > 0)
         {
             var stdIds = standards.Select(x => x.Standard.Id).ToHashSet();
+            if (request.Scores.Count > stdIds.Count
+                || request.Scores.Select(s => s.RubricStandardId).Distinct().Count() != request.Scores.Count)
+                throw new InvalidOperationException("قائمة درجات المعايير تحتوي على عناصر مكررة أو زائدة.");
+
             foreach (var input in request.Scores)
             {
                 if (!stdIds.Contains(input.RubricStandardId))
@@ -168,16 +174,26 @@ public class VisitService : IVisitService
         visit.VisitDate = request.VisitDate;
         visit.Subject = request.Subject;
         visit.GradeClass = request.GradeClass;
+        visit.LessonTitle = request.LessonTitle.Trim();
+        visit.PresentCount = request.PresentCount;
+        visit.AbsentCount = request.AbsentCount ?? 0;
         visit.Notes = request.Notes;
         visit.UpdatedAt = DateTimeOffset.UtcNow;
 
-        // Upsert all 25 scores (request.Scores must have exactly 25 — validator enforces).
+        // Upsert all rows in the visit's dynamic rubric snapshot.
         var scoreDict = visit.Scores.ToDictionary(s => s.RubricStandardId);
         var stdIdsInVersion = await _context.RubricStandards
             .Where(s => visit.Scores.Select(vs => vs.RubricStandardId).Contains(s.Id))
             .Select(s => s.Id)
             .ToListAsync(cancellationToken);
         var stdSet = stdIdsInVersion.ToHashSet();
+
+        var requestedStandardIds = request.Scores.Select(s => s.RubricStandardId).ToList();
+        if (requestedStandardIds.Count != stdSet.Count
+            || requestedStandardIds.Distinct().Count() != requestedStandardIds.Count
+            || requestedStandardIds.Any(id => !stdSet.Contains(id)))
+            throw new InvalidOperationException(
+                $"يجب إرسال درجة لكل معيار في إصدار الزيارة ({stdSet.Count} معياراً) دون تكرار.");
 
         foreach (var input in request.Scores)
         {
@@ -247,11 +263,12 @@ public class VisitService : IVisitService
             throw new InvalidOperationException(
                 $"لا يمكن إرسال الزيارة في حالتها الحالية ({visit.Status}).");
 
-        // 25/25 gate: every score must be present (no null).
+        // Dynamic N/N gate: every snapshotted standard must have a score.
+        var totalStandards = visit.Scores.Count;
         var missing = visit.Scores.Count(s => !s.Score.HasValue);
         if (missing > 0)
             throw new InvalidOperationException(
-                $"لا يمكن إرسال الزيارة قبل تقييم جميع المعايير. تبقى {missing} من 25 معياراً بدون درجة.");
+                $"لا يمكن إرسال الزيارة قبل تقييم جميع المعايير. تم تقييم {totalStandards - missing} من {totalStandards} معياراً.");
 
         // Capture audit state (Phase 5): before-image of analysis if we're recomputing
         var previousAnalysis = visit.Analysis;
@@ -488,6 +505,9 @@ public class VisitService : IVisitService
             VisitDate = visit.VisitDate,
             Subject = visit.Subject,
             GradeClass = visit.GradeClass,
+            LessonTitle = visit.LessonTitle,
+            PresentCount = visit.PresentCount,
+            AbsentCount = visit.AbsentCount,
             // Notes / CreatedByFullName / approval metadata intentionally still
             // returned (they are not the "result" — they are visit-level context).
             Notes = visit.Notes,
@@ -732,7 +752,7 @@ public class VisitService : IVisitService
     /// <summary>
     /// Computes the analysis snapshot following docs/09 exactly:
     ///  - Domain average = mean of standard scores in that domain (UNEVEN distribution respected).
-    ///  - Overall score = mean of all 25 scored standards.
+    ///  - Overall score = mean of all scored standards (Phase 2 changes the weighting model).
     ///  - Performance level thresholds: متميز >=3.5, جيد جداً >=3.0, جيد >=2.5,
     ///    متحقق جزئياً >=2.0, يحتاج تحسين >=1.0, غير مشاهد <1.0.
     ///  - Strengths = domains with average >= 3.0.
@@ -758,9 +778,8 @@ public class VisitService : IVisitService
             })
             .ToList();
 
-        if (standardsWithDomain.Count != 25)
-            throw new InvalidOperationException(
-                $"عدد المعايير المُقيَّمة ({standardsWithDomain.Count}) لا يساوي 25.");
+        if (standardsWithDomain.Count == 0)
+            throw new InvalidOperationException("لا توجد معايير مُقيَّمة لحساب التحليل.");
 
         // Domain averages — respect uneven distribution (D1=6 / D2=4 / D3=6 / D4=3 / D5=6).
         var domainGroups = standardsWithDomain
@@ -776,7 +795,8 @@ public class VisitService : IVisitService
             AverageScore = Math.Round(g.Average(x => (decimal)x.Score.Score!.Value), 3)
         }).ToList();
 
-        // Overall = mean of all 25 standard scores.
+        // Phase 1 keeps the existing standard-weighted formula; Phase 2 replaces
+        // it with the locked equal-domain weighting decision.
         var overall = Math.Round(
             standardsWithDomain.Average(x => (decimal)x.Score.Score!.Value),
             3);
@@ -1037,7 +1057,7 @@ public class VisitService : IVisitService
             "Instructor report viewed: visit={VisitId} instructor={InstructorId}", visit.Id, currentUserId);
 
         // Build the instructor-facing DTO — carries the same shape as the manager's
-        // detail (visit meta + 25 scores + analysis), minus the notes / creator fields
+        // detail (visit meta + dynamic snapshot scores + analysis), minus creator fields
         // that the instructor is not authorized to see.
         VisitAnalysisDto? analysisDto = null;
         if (visit.Analysis != null)
@@ -1083,6 +1103,9 @@ public class VisitService : IVisitService
             VisitDate = visit.VisitDate,
             Subject = visit.Subject,
             GradeClass = visit.GradeClass,
+            LessonTitle = visit.LessonTitle,
+            PresentCount = visit.PresentCount,
+            AbsentCount = visit.AbsentCount,
             SubmittedAt = visit.SubmittedAt,
             ApprovedAt = visit.ApprovedAt,
             ApprovedByFullName = visit.ApprovedByUser?.FullName,
@@ -1327,6 +1350,10 @@ public class VisitService : IVisitService
             InstructorFullName = visit.Instructor.FullName,
             Subject = visit.Subject,
             GradeClass = visit.GradeClass,
+            LessonTitle = visit.LessonTitle,
+            PresentCount = visit.PresentCount,
+            AbsentCount = visit.AbsentCount,
+            Notes = visit.Notes,
             CreatedByFullName = visit.CreatedByUser.FullName,
             ApprovedByFullName = visit.ApprovedByUser?.FullName,
             VisitCategoryLabelAr = visit.VisitCategory.ToArabicString(),
@@ -1706,6 +1733,9 @@ public class VisitService : IVisitService
             VisitDate = visit.VisitDate,
             Subject = visit.Subject,
             GradeClass = visit.GradeClass,
+            LessonTitle = visit.LessonTitle,
+            PresentCount = visit.PresentCount,
+            AbsentCount = visit.AbsentCount,
             Notes = visit.Notes,
             CreatedAt = visit.CreatedAt,
             UpdatedAt = visit.UpdatedAt,

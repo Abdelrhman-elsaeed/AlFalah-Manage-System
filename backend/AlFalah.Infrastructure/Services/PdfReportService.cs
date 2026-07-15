@@ -50,6 +50,10 @@ public class PdfReportService : IPdfReportService
         public const string LabelInstructor    = "المعلم المُقيَّم";
         public const string LabelSubject       = "المادة";
         public const string LabelGradeClass    = "الصف";
+        public const string LabelLessonTitle   = "عنوان الدرس";
+        public const string LabelPresentCount  = "عدد الحاضرين";
+        public const string LabelAbsentCount   = "عدد الغائبين";
+        public const string LabelNotes         = "ملاحظات المشرف العامة";
         public const string LabelModerator     = "المشرف الزائر";
         public const string LabelCategory      = "نوع الزيارة";
         public const string LabelSequence      = "التسلسل";
@@ -415,8 +419,9 @@ public class PdfReportService : IPdfReportService
     /// BUG-6 FIX — Meta card: clean 2-column RTL grid.
     /// Status badge is now on the LEFT (visual end in RTL); rubric version
     /// on the RIGHT (visual start in RTL). No overlap.
-    /// Row order: school | teacher, subject | class, moderator | visit type,
-    /// sequence | visit date, submitted | approved, approved-by | (empty).
+    /// Row order: school | teacher, subject | class, lesson | attendance,
+    /// moderator | visit type, sequence | visit date, submitted | approved,
+    /// approved-by | supervisor notes.
     /// </summary>
     private void ComposeMetaCard(IContainer container, VisitReportDto dto)
     {
@@ -461,21 +466,28 @@ public class PdfReportService : IPdfReportService
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSubject, dto.Subject ?? "—"));
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelGradeClass, dto.GradeClass ?? "—"));
 
-                // Row 3: Moderator | Visit Type
+                // Row 3: Lesson title | attendance
+                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelLessonTitle, dto.LessonTitle ?? "—"));
+                table.Cell().AlignRight().Element(c => MetaCell(
+                    c,
+                    $"{T.LabelPresentCount} / {T.LabelAbsentCount}",
+                    $"{dto.PresentCount} / {dto.AbsentCount}"));
+
+                // Row 4: Moderator | Visit Type
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelModerator, dto.CreatedByFullName));
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelCategory, dto.VisitCategoryLabelAr));
 
-                // Row 4: Sequence | Visit Date
+                // Row 5: Sequence | Visit Date
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSequence, dto.VisitSequenceLabelAr));
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelVisitDate, dto.VisitDate.ToString("yyyy-MM-dd")));
 
-                // Row 5: Submitted Date | Approved Date
+                // Row 6: Submitted Date | Approved Date
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSubmittedAt, dto.SubmittedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—"));
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedAt, dto.ApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—"));
 
-                // Row 6: Approved By | (empty)
+                // Row 7: Approved By | supervisor notes
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedBy, string.IsNullOrWhiteSpace(dto.ApprovedByFullName) ? "—" : dto.ApprovedByFullName));
-                table.Cell().AlignRight(); // Empty cell to balance the grid
+                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelNotes, string.IsNullOrWhiteSpace(dto.Notes) ? "—" : dto.Notes));
             });
         });
     }

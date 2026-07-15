@@ -27,7 +27,7 @@ public class VisitListItemDto
     public string? GradeClass { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? SubmittedAt { get; set; }
-    public int ScoredStandardsCount { get; set; } // for list — partial drafts show N/25
+    public int ScoredStandardsCount { get; set; } // for list — partial drafts show scored/total
     public int TotalStandardsCount { get; set; }
 }
 
@@ -113,6 +113,9 @@ public class VisitDetailDto
     public DateTimeOffset VisitDate { get; set; }
     public string? Subject { get; set; }
     public string? GradeClass { get; set; }
+    public string? LessonTitle { get; set; }
+    public int PresentCount { get; set; }
+    public int AbsentCount { get; set; }
     public string? Notes { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
@@ -153,6 +156,9 @@ public class CreateVisitRequestDto
     public DateTimeOffset VisitDate { get; set; }
     public string? Subject { get; set; }
     public string? GradeClass { get; set; }
+    public string LessonTitle { get; set; } = string.Empty;
+    public int PresentCount { get; set; }
+    public int? AbsentCount { get; set; }
     public string? Notes { get; set; }
     /// <summary>Optional initial scores (partial). Validated: each score ∈ [0,4] or null.</summary>
     public List<VisitScoreInputDto>? Scores { get; set; }
@@ -169,8 +175,11 @@ public class UpdateVisitRequestDto
     public DateTimeOffset VisitDate { get; set; }
     public string? Subject { get; set; }
     public string? GradeClass { get; set; }
+    public string LessonTitle { get; set; } = string.Empty;
+    public int PresentCount { get; set; }
+    public int? AbsentCount { get; set; }
     public string? Notes { get; set; }
-    /// <summary>All 25 scores are upserted (any row may carry a null Score to mark "not yet scored").</summary>
+    /// <summary>All snapshotted scores are upserted (a null Score means "not yet scored").</summary>
     public List<VisitScoreInputDto> Scores { get; set; } = new();
 }
 
@@ -199,7 +208,7 @@ public class VisitListQuery : PagedQuery
 /// <summary>
 /// Result returned from the instructor-facing "open the report" endpoint.
 /// Carries the visit metadata (without the creator's name etc. that the
-/// instructor is not authorized to see), the 25 <see cref="VisitScoreDto"/>s,
+/// instructor is not authorized to see), the snapshotted <see cref="VisitScoreDto"/> rows,
 /// and the <see cref="VisitAnalysisDto"/> snapshot.
 /// </summary>
 public class InstructorReportDto
@@ -220,6 +229,9 @@ public class InstructorReportDto
     public DateTimeOffset VisitDate { get; set; }
     public string? Subject { get; set; }
     public string? GradeClass { get; set; }
+    public string? LessonTitle { get; set; }
+    public int PresentCount { get; set; }
+    public int AbsentCount { get; set; }
     public DateTimeOffset? SubmittedAt { get; set; }
     public DateTimeOffset? ApprovedAt { get; set; }
     public string? ApprovedByFullName { get; set; }

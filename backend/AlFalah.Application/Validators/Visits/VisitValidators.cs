@@ -23,10 +23,23 @@ public class CreateVisitRequestValidator : AbstractValidator<CreateVisitRequestD
                 .NotEmpty().WithMessage("تاريخ الزيارة مطلوب.");
 
             RuleFor(x => x.Subject)
+                .NotEmpty().WithMessage("المادة الدراسية مطلوبة.")
                 .MaximumLength(200).WithMessage("المادة يجب أن لا تتجاوز 200 حرف.");
 
             RuleFor(x => x.GradeClass)
+                .NotEmpty().WithMessage("الصف الدراسي مطلوب.")
                 .MaximumLength(100).WithMessage("الصف يجب أن لا يتجاوز 100 حرف.");
+
+            RuleFor(x => x.LessonTitle)
+                .NotEmpty().WithMessage("عنوان الدرس مطلوب.")
+                .MaximumLength(300).WithMessage("عنوان الدرس يجب أن لا يتجاوز 300 حرف.");
+
+            RuleFor(x => x.PresentCount)
+                .GreaterThanOrEqualTo(0).WithMessage("عدد الحاضرين يجب أن يكون صفراً أو أكثر.");
+
+            RuleFor(x => x.AbsentCount)
+                .GreaterThanOrEqualTo(0).When(x => x.AbsentCount.HasValue)
+                .WithMessage("عدد الغائبين يجب أن يكون صفراً أو أكثر.");
 
             RuleFor(x => x.Notes)
                 .MaximumLength(2000).WithMessage("الملاحظات يجب أن لا تتجاوز 2000 حرف.");
@@ -35,9 +48,6 @@ public class CreateVisitRequestValidator : AbstractValidator<CreateVisitRequestD
             RuleForEach(x => x.Scores).SetValidator(new VisitScoreInputValidator())
                 .When(x => x.Scores != null && x.Scores.Count > 0);
 
-            RuleFor(x => x.Scores)
-                .Must(s => s == null || s.Count <= 25)
-                .WithMessage("لا يمكن أن يتجاوز عدد المعايير 25 معياراً.");
         }
     }
 
@@ -57,19 +67,31 @@ public class CreateVisitRequestValidator : AbstractValidator<CreateVisitRequestD
                 .NotEmpty().WithMessage("تاريخ الزيارة مطلوب.");
 
             RuleFor(x => x.Subject)
+                .NotEmpty().WithMessage("المادة الدراسية مطلوبة.")
                 .MaximumLength(200).WithMessage("المادة يجب أن لا تتجاوز 200 حرف.");
 
             RuleFor(x => x.GradeClass)
+                .NotEmpty().WithMessage("الصف الدراسي مطلوب.")
                 .MaximumLength(100).WithMessage("الصف يجب أن لا يتجاوز 100 حرف.");
+
+            RuleFor(x => x.LessonTitle)
+                .NotEmpty().WithMessage("عنوان الدرس مطلوب.")
+                .MaximumLength(300).WithMessage("عنوان الدرس يجب أن لا يتجاوز 300 حرف.");
+
+            RuleFor(x => x.PresentCount)
+                .GreaterThanOrEqualTo(0).WithMessage("عدد الحاضرين يجب أن يكون صفراً أو أكثر.");
+
+            RuleFor(x => x.AbsentCount)
+                .GreaterThanOrEqualTo(0).When(x => x.AbsentCount.HasValue)
+                .WithMessage("عدد الغائبين يجب أن يكون صفراً أو أكثر.");
 
             RuleFor(x => x.Notes)
                 .MaximumLength(2000).WithMessage("الملاحظات يجب أن لا تتجاوز 2000 حرف.");
 
-            // Scores must be exactly 25 to allow a clean PUT pattern (frontend always sends all 25 rows)
+            // The service compares this collection with the visit's snapshotted
+            // rubric. Rubric versions are dynamic, so validation must not assume 25.
             RuleFor(x => x.Scores)
-                .NotEmpty().WithMessage("يجب إرسال درجات المعايير.")
-                .Must(s => s.Count == 25)
-                .WithMessage("يجب إرسال درجات جميع المعايير الخمسة والعشرين.");
+                .NotNull().WithMessage("يجب إرسال درجات المعايير.");
 
             RuleForEach(x => x.Scores).SetValidator(new VisitScoreInputValidator());
         }

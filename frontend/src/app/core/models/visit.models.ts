@@ -96,6 +96,9 @@ export interface VisitDetail {
   visitDate: string;
   subject?: string | null;
   gradeClass?: string | null;
+  lessonTitle?: string | null;
+  presentCount: number;
+  absentCount: number;
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -123,6 +126,9 @@ export interface CreateVisitRequest {
   visitDate: string;
   subject?: string | null;
   gradeClass?: string | null;
+  lessonTitle: string;
+  presentCount: number;
+  absentCount?: number | null;
   notes?: string | null;
   scores?: VisitScoreInput[];
 }
@@ -133,6 +139,9 @@ export interface UpdateVisitRequest {
   visitDate: string;
   subject?: string | null;
   gradeClass?: string | null;
+  lessonTitle: string;
+  presentCount: number;
+  absentCount?: number | null;
   notes?: string | null;
   scores: VisitScoreInput[];
 }
@@ -242,6 +251,9 @@ export interface InstructorReport {
   visitDate: string;
   subject?: string | null;
   gradeClass?: string | null;
+  lessonTitle?: string | null;
+  presentCount: number;
+  absentCount: number;
   submittedAt?: string | null;
   approvedAt?: string | null;
   approvedByFullName?: string | null;

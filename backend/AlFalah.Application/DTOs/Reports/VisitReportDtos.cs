@@ -37,6 +37,10 @@ public class VisitReportDto
     public string InstructorFullName { get; set; } = string.Empty;
     public string? Subject { get; set; }
     public string? GradeClass { get; set; }
+    public string? LessonTitle { get; set; }
+    public int PresentCount { get; set; }
+    public int AbsentCount { get; set; }
+    public string? Notes { get; set; }
     public string CreatedByFullName { get; set; } = string.Empty;
     public string? ApprovedByFullName { get; set; }
 

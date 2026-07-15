@@ -6,6 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { CalendarModule } from 'primeng/calendar';
 import { TooltipModule } from 'primeng/tooltip';
@@ -41,7 +42,7 @@ interface DomainGroup {
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    ButtonModule, InputTextModule, InputTextareaModule, ClearableSelectComponent, CalendarModule,
+    ButtonModule, InputTextModule, InputTextareaModule, InputNumberModule, ClearableSelectComponent, CalendarModule,
     TooltipModule, ProgressBarModule, ConfirmDialogModule
   ],
   providers: [ConfirmationService],
@@ -78,6 +79,7 @@ export class VisitFormComponent implements OnInit {
   readonly visit = signal<VisitDetail | null>(null);
   readonly instructors = signal<{ userId: string; fullName: string }[]>([]);
   readonly instructorsLoading = signal(false);
+  readonly teacherLocked = signal(false);
   readonly rubricVersionNumber = signal<number | null>(null);
   readonly isReadOnly = signal(false);
   readonly teachingLoading = signal(false);
@@ -103,12 +105,15 @@ export class VisitFormComponent implements OnInit {
     visitCategory: [2, Validators.required],
     visitSequence: [1, Validators.required],
     visitDate: [new Date(), Validators.required],
-    subject: [''],
-    gradeClass: [''],
+    subject: ['', [Validators.required, Validators.maxLength(200)]],
+    gradeClass: ['', [Validators.required, Validators.maxLength(100)]],
+    lessonTitle: ['', [Validators.required, Validators.maxLength(300)]],
+    presentCount: [null, [Validators.required, Validators.min(0)]],
+    absentCount: [null, Validators.min(0)],
     notes: ['']
   });
 
-  // Domain-grouped scores (5 domains × {6,4,6,3,6} standards = 25)
+  // Domain-grouped scores from the visit's immutable rubric snapshot.
   readonly domainsGrouped = signal<DomainGroup[]>([]);
   readonly allScoreControls = computed(() => this.domainsGrouped().flatMap(d => d.scores.map(s => s.control)));
 
@@ -130,9 +135,6 @@ export class VisitFormComponent implements OnInit {
     this.translate.instant('RUBRIC.SCORE_LABEL_4')
   ];
   readonly scoreValues: number[] = [0, 1, 2, 3, 4];
-
-  // Tracks which standards have their evidence note expanded (collapsible per row).
-  readonly noteExpanded = signal<Set<number>>(new Set());
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -158,6 +160,8 @@ export class VisitFormComponent implements OnInit {
           const preselectedInstructorId = this.route.snapshot.queryParamMap.get('instructorId');
           if (!this.isEdit() && preselectedInstructorId) {
             this.form.controls['instructorId'].setValue(preselectedInstructorId);
+            this.form.controls['instructorId'].disable({ emitEvent: false });
+            this.teacherLocked.set(true);
           }
         }
       },
@@ -183,10 +187,11 @@ export class VisitFormComponent implements OnInit {
         const teaching = response.isSuccess ? response.data : null;
         const subject = teaching?.subject?.trim() || null;
         this.teacherSubject.set(subject);
-        this.teacherClasses.set(teaching?.classes ?? []);
+        const classes = teaching?.classes ?? [];
+        this.teacherClasses.set(classes);
         this.teachingLoaded.set(true);
         this.teachingUnavailable.set(!response.isSuccess);
-        this.form.patchValue({ subject: subject ?? '', gradeClass: '' }, { emitEvent: false });
+        this.form.patchValue({ subject: subject ?? '', gradeClass: classes[0] ?? '' }, { emitEvent: false });
       },
       error: () => {
         if (this.form.controls['instructorId'].value !== userId) return;
@@ -219,6 +224,9 @@ export class VisitFormComponent implements OnInit {
             visitDate: new Date(v.visitDate),
             subject: v.subject ?? '',
             gradeClass: v.gradeClass ?? '',
+            lessonTitle: v.lessonTitle ?? '',
+            presentCount: v.presentCount,
+            absentCount: v.absentCount,
             notes: v.notes ?? ''
           });
 
@@ -238,15 +246,6 @@ export class VisitFormComponent implements OnInit {
   }
 
   buildScoreGroups(scores: VisitScore[]): void {
-    // Auto-expand any standard that already has an evidence note (round-trip edit).
-    const autoExpanded = new Set<number>();
-    for (const s of scores) {
-      if (s.evidenceNote && s.evidenceNote.trim().length > 0) {
-        autoExpanded.add(s.rubricStandardId);
-      }
-    }
-    this.noteExpanded.set(autoExpanded);
-
     // Group by domain code
     const groups = new Map<string, DomainGroup>();
     for (const s of scores) {
@@ -279,25 +278,6 @@ export class VisitFormComponent implements OnInit {
     s.control.markAsDirty();
   }
 
-  isNoteOpen(rubricStandardId: number): boolean {
-    return this.noteExpanded().has(rubricStandardId);
-  }
-
-  toggleNote(rubricStandardId: number): void {
-    const next = new Set(this.noteExpanded());
-    if (next.has(rubricStandardId)) {
-      next.delete(rubricStandardId);
-    } else {
-      next.add(rubricStandardId);
-    }
-    this.noteExpanded.set(next);
-  }
-
-  hasNoteContent(s: { noteControl: FormControl<string> }): boolean {
-    const v = s.noteControl.value;
-    return !!v && v.trim().length > 0;
-  }
-
   // ─── Actions ──────────────────────────────────────────────────────────────
 
   saveDraft(): void {
@@ -311,15 +291,19 @@ export class VisitFormComponent implements OnInit {
 
     this.saving.set(true);
     const scores = this.collectScores();
+    const values = this.form.getRawValue();
 
     if (this.isEdit()) {
       const body: UpdateVisitRequest = {
-        visitCategory: this.form.value.visitCategory,
-        visitSequence: this.form.value.visitSequence,
-        visitDate: new Date(this.form.value.visitDate).toISOString(),
-        subject: this.form.value.subject,
-        gradeClass: this.form.value.gradeClass,
-        notes: this.form.value.notes,
+        visitCategory: values.visitCategory,
+        visitSequence: values.visitSequence,
+        visitDate: new Date(values.visitDate).toISOString(),
+        subject: values.subject,
+        gradeClass: values.gradeClass,
+        lessonTitle: values.lessonTitle,
+        presentCount: Number(values.presentCount),
+        absentCount: values.absentCount === null || values.absentCount === '' ? null : Number(values.absentCount),
+        notes: values.notes,
         scores
       };
       this.visitsService.update(this.visitId()!, body).subscribe({
@@ -328,13 +312,16 @@ export class VisitFormComponent implements OnInit {
       });
     } else {
       const body: CreateVisitRequest = {
-        instructorId: this.form.value.instructorId,
-        visitCategory: this.form.value.visitCategory,
-        visitSequence: this.form.value.visitSequence,
-        visitDate: new Date(this.form.value.visitDate).toISOString(),
-        subject: this.form.value.subject,
-        gradeClass: this.form.value.gradeClass,
-        notes: this.form.value.notes,
+        instructorId: values.instructorId,
+        visitCategory: values.visitCategory,
+        visitSequence: values.visitSequence,
+        visitDate: new Date(values.visitDate).toISOString(),
+        subject: values.subject,
+        gradeClass: values.gradeClass,
+        lessonTitle: values.lessonTitle,
+        presentCount: Number(values.presentCount),
+        absentCount: values.absentCount === null || values.absentCount === '' ? null : Number(values.absentCount),
+        notes: values.notes,
         scores
       };
       this.visitsService.create(body).subscribe({
@@ -351,7 +338,7 @@ export class VisitFormComponent implements OnInit {
         this.translate.instant('VISITS.SAVE_SUCCESS_TITLE'),
         resp.message || this.translate.instant('VISITS.SAVE_SUCCESS_DESC'));
       if (isCreate) {
-        // After create, redirect to edit page so the user can score all 25 standards
+        // After create, redirect to observation mode for the snapshotted standards.
         this.router.navigate(['/visits', resp.data.id, 'edit']);
       } else {
         // Reload to pick up fresh state (in case rubricVersion etc. changed)
@@ -396,13 +383,17 @@ export class VisitFormComponent implements OnInit {
     // Save first (to ensure latest), then submit
     this.saving.set(true);
     const scores = this.collectScores();
+    const values = this.form.getRawValue();
     const body: UpdateVisitRequest = {
-      visitCategory: this.form.value.visitCategory,
-      visitSequence: this.form.value.visitSequence,
-      visitDate: new Date(this.form.value.visitDate).toISOString(),
-      subject: this.form.value.subject,
-      gradeClass: this.form.value.gradeClass,
-      notes: this.form.value.notes,
+      visitCategory: values.visitCategory,
+      visitSequence: values.visitSequence,
+      visitDate: new Date(values.visitDate).toISOString(),
+      subject: values.subject,
+      gradeClass: values.gradeClass,
+      lessonTitle: values.lessonTitle,
+      presentCount: Number(values.presentCount),
+      absentCount: values.absentCount === null || values.absentCount === '' ? null : Number(values.absentCount),
+      notes: values.notes,
       scores
     };
     this.visitsService.update(this.visitId()!, body).subscribe({
@@ -457,6 +448,13 @@ export class VisitFormComponent implements OnInit {
 
   // Helper to know how many standards are in a domain (header label).
   domainStandardCount(domain: DomainGroup): number { return domain.scores.length; }
+  domainScoredCount(domain: DomainGroup): number {
+    return domain.scores.filter(s => s.control.value !== null && s.control.value !== undefined).length;
+  }
+
+  selectedScoreLabel(value: number | null): string {
+    return value === null || value === undefined ? '' : this.scoreLabels[value] ?? '';
+  }
 
   isEmpty(): boolean { return this.domainsGrouped().length === 0; }
 

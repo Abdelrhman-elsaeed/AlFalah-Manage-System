@@ -899,6 +899,13 @@ was required.
 
 ## Phase 1 — Complete the core visit data path
 
+**Implementation status (2026-07-15): COMPLETED.** Lesson/attendance metadata now
+round-trips through API, Angular detail/observation, instructor report, and PDF;
+scoring has a persistent exact-label legend, inline evidence, and dynamic per-domain
+plus overall progress. Teacher-profile entry locks the teacher, scoped teaching
+auto-fill handles background 403 without redirecting, and all N-standard gates are
+derived from the visit's rubric snapshot.
+
 ### P1.1 Wire the stranded fields end to end
 
 - **Change:** add `LessonTitle`, `PresentCount`, `AbsentCount` to request/detail/report DTOs, validators, service mappings, Angular models/forms, detail page, teacher visit label, report preview, and PDF. Reuse the existing entity columns/migration.

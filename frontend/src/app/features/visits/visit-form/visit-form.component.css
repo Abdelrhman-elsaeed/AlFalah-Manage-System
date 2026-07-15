@@ -68,6 +68,8 @@
 .form-field { display: flex; flex-direction: column; gap: 4px; }
 .form-field--full { grid-column: 1 / -1; }
 .form-field label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+.field-hint { color: var(--brand-700); font-size: 0.78rem; }
+.field-error { color: var(--danger); font-size: 0.78rem; }
 .teaching-fallback {
   display: flex;
   align-items: flex-start;
@@ -101,6 +103,34 @@
 }
 .progress-text--done { color: var(--brand-700); }
 .progress-text i { color: inherit; }
+
+.score-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-2);
+}
+.score-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  border: 1px solid currentColor;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.score-legend__value { font-weight: 800; }
+.score-legend__item--v0 { color: #6b7280; }
+.score-legend__item--v1 { color: #ef4444; }
+.score-legend__item--v2 { color: #f97316; }
+.score-legend__item--v3 { color: #a16207; }
+.score-legend__item--v4 { color: #15803d; }
 
 /* Domain block — slim header, dense body */
 .domain-block {
@@ -171,6 +201,13 @@
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
+}
+.selected-score-label {
+  min-width: 7rem;
+  color: var(--text-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 /* ─── Segmented score button group ───────────────────────────────────────── */
@@ -264,7 +301,7 @@
 
 .std-note-row {
   flex-basis: 100%;
-  display: none;
+  display: block;
   padding: 0 0 var(--space-2) 0;
 }
 .std-note-row--open { display: block; }

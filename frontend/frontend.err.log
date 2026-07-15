@@ -13,3 +13,64 @@ case.
 
 - Changes detected. Rebuilding...
 
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
+
+    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
+      525 │   return {
+          ╵   ~~~~~~
+
+
+X [ERROR] TS2739: Type '{ visitCategory: any; visitSequence: any; visitDate: string; subject: any; gradeClass: any; notes: any; scores: VisitScoreInput[]; }' is missing the following properties from type 'UpdateVisitRequest': lessonTitle, presentCount [plugin angular-compiler]
+
+    src/app/features/visits/visit-form/visit-form.component.ts:316:12:
+      316 │       const body: UpdateVisitRequest = {
+          ╵             ~~~~
+
+
+X [ERROR] TS2739: Type '{ instructorId: any; visitCategory: any; visitSequence: any; visitDate: string; subject: any; gradeClass: any; notes: any; scores: VisitScoreInput[]; }' is missing the following properties from type 'CreateVisitRequest': lessonTitle, presentCount [plugin angular-compiler]
+
+    src/app/features/visits/visit-form/visit-form.component.ts:330:12:
+      330 │       const body: CreateVisitRequest = {
+          ╵             ~~~~
+
+
+X [ERROR] TS2739: Type '{ visitCategory: any; visitSequence: any; visitDate: string; subject: any; gradeClass: any; notes: any; scores: VisitScoreInput[]; }' is missing the following properties from type 'UpdateVisitRequest': lessonTitle, presentCount [plugin angular-compiler]
+
+    src/app/features/visits/visit-form/visit-form.component.ts:399:10:
+      399 │     const body: UpdateVisitRequest = {
+          ╵           ~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
+
+    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
+      525 │   return {
+          ╵   ~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
+
+    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
+      525 │   return {
+          ╵   ~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; instructorId: string; instructorFullName: string; createdByUserId: string; createdByFullName: string; rubricVersionId: number; rubricVersionNumber: number; ... 23 more ...; analysis: VisitAnalysis | null; }' is missing the following properties from type 'VisitDetail': presentCount, absentCount [plugin angular-compiler]
+
+    src/app/features/visits/visit-detail/visit-detail.component.ts:525:2:
+      525 │   return {
+          ╵   ~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
