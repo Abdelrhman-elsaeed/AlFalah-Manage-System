@@ -1,18 +1,19 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-unauthorized',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslateModule],
   template: `
     <div class="page" dir="rtl">
       <div class="content">
         <div class="icon">🔒</div>
-        <h1>غير مصرح</h1>
-        <p>ليس لديك صلاحية للوصول إلى هذه الصفحة.</p>
-        <a routerLink="/auth/school-login" class="btn-back">العودة إلى تسجيل الدخول</a>
+        <h1>{{ 'ERRORS.UNAUTHORIZED' | translate }}</h1>
+        <p>{{ 'ERRORS.FORBIDDEN' | translate }}</p>
+        <a routerLink="/auth/school-login" class="btn-back">{{ 'AUTH.BACK_TO_SCHOOL_LOGIN' | translate }}</a>
       </div>
     </div>
   `,
@@ -32,7 +33,7 @@ import { RouterLink } from '@angular/router';
     .btn-back{
       display:inline-block; padding:.75rem 1.75rem;
       background: var(--brand-500);
-      color: #fff;
+      color: var(--text-on-brand);
       border-radius: var(--radius-md);
       text-decoration:none;
       font-weight: 700;

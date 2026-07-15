@@ -30,9 +30,8 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
  *   4. Implements ControlValueAccessor — works with [(ngModel)] AND
  *      [formControl].
  *
- * Use this anywhere a dropdown MAY be empty (filters, optional form
- * fields). Do NOT use for REQUIRED form fields — for those, keep a plain
- * <p-dropdown [showClear]="false">.
+ * Use this for every application dropdown. Optional fields and filters keep
+ * the default external clear action; required fields set [clearable]="false".
  *
  * Inputs mirror the relevant subset of p-dropdown. Add more inputs
  * here if a new use case needs them.
@@ -52,6 +51,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
   template: `
     <span class="clearable-select" [class.has-value]="value() !== null && value() !== undefined">
       <p-dropdown [options]="options"
+                  [inputId]="inputId"
                   [optionLabel]="optionLabel"
                   [optionValue]="optionValue"
                   [optionDisabled]="optionDisabled"
@@ -63,6 +63,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
                   [appendTo]="appendTo"
                   [emptyMessage]="emptyMessage"
                   [loading]="loading"
+                  [disabled]="disabled"
                   [showClear]="false"
                   [ngModel]="value()"
                   (ngModelChange)="writeValue($event); onChangeInternal($event)"
@@ -79,7 +80,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
         </ng-template>
       </p-dropdown>
 
-      <button *ngIf="value() !== null && value() !== undefined"
+      <button *ngIf="clearable && !disabled && value() !== null && value() !== undefined"
               type="button"
               class="clearable-select__btn"
               [attr.aria-label]="'COMMON.CLEAR' | translate"
@@ -91,12 +92,18 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
     </span>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      min-width: 0;
+    }
     .clearable-select {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
       position: relative;
       min-width: 12rem;
+      width: 100%;
     }
     .clearable-select > .p-dropdown {
       flex: 1;
@@ -136,6 +143,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
 export class ClearableSelectComponent implements ControlValueAccessor {
   /** Same as p-dropdown: list of options. */
   @Input() options: any[] | null = [];
+  @Input() inputId: string | undefined;
   /**
    * The option property to render. Leave undefined so PrimeNG auto-resolves
    * (PrimeNG falls back to "label" then to the value's own string form).
@@ -152,6 +160,8 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   @Input() appendTo: string | HTMLElement | null = 'body';
   @Input() emptyMessage = '';
   @Input() loading = false;
+  /** Required selects still use the unified wrapper but can suppress clearing. */
+  @Input() clearable = true;
 
   /** Optional PrimeNG pTemplate bodies. Pass via @ViewChild + let-property. */
   @Input() itemTpl: TemplateRef<any> | null = null;
@@ -171,7 +181,7 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   // CVA callbacks — registered by Angular via writeValue/registerOnChange/registerOnTouched.
   private onChange = (_: any) => {};
   private onTouched = () => {};
-  private disabled = false;
+  protected disabled = false;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -197,6 +207,7 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   }
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    this.cdr.markForCheck();
   }
 
   /** Called by (ngModelChange) on the internal p-dropdown. */

@@ -2,14 +2,14 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -29,7 +29,7 @@ import { UserListItem, PhaseTwoRole } from '../../../core/models/phase2.models';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, InputNumberModule, DropdownModule,
+    TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, InputNumberModule, ClearableSelectComponent,
     TagModule, TooltipModule, ConfirmDialogModule, DialogModule,
     ListPageHeaderComponent, ListToolbarComponent, ListToolbarFieldComponent
   ],
@@ -45,6 +45,7 @@ export class UsersListComponent implements OnInit {
   private readonly confirm = inject(ConfirmationService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   users = signal<UserListItem[]>([]);
   totalCount = signal(0);
@@ -65,14 +66,14 @@ export class UsersListComponent implements OnInit {
   });
 
   readonly roleOptions = [
-    { label: 'مدير المدرسة', value: 'SchoolManager' },
-    { label: 'مشرف', value: 'Moderator' },
-    { label: 'معلم', value: 'Instructor' }
+    { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
+    { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
   ];
 
   readonly isActiveOptions = [
-    { label: 'نشط', value: true },
-    { label: 'غير نشط', value: false }
+    { label: this.translate.instant('USERS.ACTIVE'), value: true },
+    { label: this.translate.instant('USERS.INACTIVE'), value: false }
   ];
 
   ngOnInit(): void {
@@ -111,11 +112,11 @@ export class UsersListComponent implements OnInit {
   confirmDeactivate(user: UserListItem, event: Event): void {
     this.confirm.confirm({
       target: event.target as EventTarget,
-      message: 'هل تريد تعطيل هذا المستخدم؟',
-      header: 'تأكيد التعطيل',
+      message: this.translate.instant('USERS.CONFIRM_DEACTIVATE'),
+      header: this.translate.instant('USERS.DEACTIVATE_CONFIRM_TITLE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'نعم، عطّل',
-      rejectLabel: 'إلغاء',
+      acceptLabel: this.translate.instant('USERS.DEACTIVATE_ACCEPT'),
+      rejectLabel: this.translate.instant('COMMON.CANCEL'),
       accept: () => this.deactivateUser(user.userId)
     });
   }
@@ -124,7 +125,7 @@ export class UsersListComponent implements OnInit {
     this.usersService.deactivate(id).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success('تم التعطيل', response.message || 'تم تعطيل المستخدم بنجاح.');
+          this.toast.success(this.translate.instant('USERS.DEACTIVATED'), response.message || this.translate.instant('USERS.DEACTIVATE_SUCCESS'));
           this.loadUsers();
         }
       }
@@ -166,7 +167,7 @@ export class UsersListComponent implements OnInit {
     }).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success('تم التعيين', response.message || 'تم تعيين المستخدم للمدرسة.');
+          this.toast.success(this.translate.instant('COMMON.SUCCESS'), response.message || this.translate.instant('USERS.ASSIGN_SUCCESS'));
           this.assignDialogVisible.set(false);
           this.loadUsers();
         }

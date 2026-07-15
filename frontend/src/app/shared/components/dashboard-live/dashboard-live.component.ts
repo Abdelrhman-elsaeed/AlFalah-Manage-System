@@ -285,7 +285,7 @@ export class DashboardLiveComponent implements OnInit {
         if (result.ok) {
           this.toast.success(this.translate.instant('DASHBOARD.EXPORT_SUCCESS'));
         } else {
-          this.toast.error(this.translate.instant('COMMON.ERROR'), result.message);
+          this.toast.error(this.translate.instant('COMMON.ERROR'), this.translate.instant(result.message));
         }
         this.exporting.set(null);
       },

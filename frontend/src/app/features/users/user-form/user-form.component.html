@@ -46,9 +46,10 @@
 
       <div class="field" *ngIf="isInstructor() || !isEdit()">
         <label for="user-school">{{ (isInstructor() ? 'TEACHERS.SCHOOL' : 'USERS.SCHOOL') | translate }} <span *ngIf="isInstructor()">*</span></label>
-        <p-dropdown inputId="user-school" [options]="availableSchools()" formControlName="schoolId"
-                    optionLabel="name" optionValue="id" [filter]="true" filterBy="name"
-                    [showClear]="!isInstructor() && !isSchoolManager()" appendTo="body" styleClass="w-100"></p-dropdown>
+        <app-clearable-select inputId="user-school" [options]="availableSchools()" formControlName="schoolId"
+                              optionLabel="name" optionValue="id" [filter]="true" filterBy="name"
+                              [clearable]="!isInstructor() && !isSchoolManager()"
+                              appendTo="body" styleClass="w-100"></app-clearable-select>
       </div>
 
       <div class="field" *ngIf="isInstructor()">
@@ -58,8 +59,9 @@
 
       <div class="field" *ngIf="isInstructor()">
         <label for="teacher-stage">{{ 'TEACHERS.STAGE' | translate }} *</label>
-        <p-dropdown inputId="teacher-stage" [options]="stageOptions" formControlName="stage"
-                    optionLabel="label" optionValue="value" appendTo="body" styleClass="w-100"></p-dropdown>
+        <app-clearable-select inputId="teacher-stage" [options]="stageOptions" formControlName="stage"
+                              optionLabel="label" optionValue="value" [clearable]="false"
+                              appendTo="body" styleClass="w-100"></app-clearable-select>
       </div>
 
       <div class="field">
@@ -74,17 +76,20 @@
 
       <div class="field" *ngIf="!isEdit()">
         <label for="user-role">{{ 'USERS.ROLE' | translate }} *</label>
-        <p-dropdown inputId="user-role" [options]="roleOptions" formControlName="role" appendTo="body" styleClass="w-100"></p-dropdown>
+        <app-clearable-select inputId="user-role" [options]="roleOptions" formControlName="role"
+                              [clearable]="false" appendTo="body" styleClass="w-100"></app-clearable-select>
       </div>
 
       <div class="field" *ngIf="isEdit()">
         <label for="user-role-edit">{{ 'USERS.ROLE' | translate }}</label>
-        <p-dropdown inputId="user-role-edit" [options]="roleOptions" formControlName="role" [disabled]="true" styleClass="w-100"></p-dropdown>
+        <app-clearable-select inputId="user-role-edit" [options]="roleOptions" formControlName="role"
+                              [clearable]="false" styleClass="w-100"></app-clearable-select>
       </div>
 
       <div class="field" *ngIf="!isInstructor()">
         <label for="user-lang">{{ 'USERS.PREFERRED_LANGUAGE' | translate }}</label>
-        <p-dropdown inputId="user-lang" [options]="languageOptions" formControlName="preferredLanguage" appendTo="body" styleClass="w-100"></p-dropdown>
+        <app-clearable-select inputId="user-lang" [options]="languageOptions" formControlName="preferredLanguage"
+                              [clearable]="false" appendTo="body" styleClass="w-100"></app-clearable-select>
       </div>
     </div>
 

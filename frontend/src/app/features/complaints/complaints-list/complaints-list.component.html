@@ -138,20 +138,15 @@
       <div class="handle-box" *ngIf="canHandle() && nextStatusOptions().length > 0">
         <h4 class="handle-title">{{ 'COMPLAINTS.CHANGE_STATUS' | translate }}</h4>
         <div class="handle-controls">
-          <p-dropdown [options]="nextStatusOptions()"
-                      optionValue="value"
-                      [placeholder]="'COMPLAINTS.NEXT_STATUS' | translate"
-                      [ngModel]="nextStatus()"
-                      (ngModelChange)="nextStatus.set($event)"
-                      [showClear]="false"
-                      appendTo="body">
-            <ng-template pTemplate="selectedItem" let-opt>
-              <span *ngIf="opt">{{ opt.labelKey | translate }}</span>
-            </ng-template>
-            <ng-template pTemplate="item" let-opt>
-              <span>{{ opt.labelKey | translate }}</span>
-            </ng-template>
-          </p-dropdown>
+          <app-clearable-select [options]="nextStatusOptions()"
+                                optionValue="value"
+                                [placeholder]="'COMPLAINTS.NEXT_STATUS' | translate"
+                                [ngModel]="nextStatus()"
+                                (ngModelChange)="nextStatus.set($event)"
+                                [clearable]="false"
+                                [itemTpl]="statusItemTpl"
+                                [selectedItemTpl]="statusSelectedItemTpl"
+                                appendTo="body"></app-clearable-select>
           <textarea pInputTextarea rows="3" maxlength="2000"
                     [placeholder]="'COMPLAINTS.RESOLUTION_NOTE_PLACEHOLDER' | translate"
                     [ngModel]="resolutionNote()"

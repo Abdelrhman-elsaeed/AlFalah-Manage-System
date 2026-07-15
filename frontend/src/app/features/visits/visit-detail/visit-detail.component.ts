@@ -149,7 +149,9 @@ export class VisitDetailComponent implements OnInit {
         this.loadViewStatus(id);
       }
     } else {
-      this.toast.error('خطأ', resp.message || 'تعذر تحميل الزيارة.');
+      this.toast.error(
+        this.translate.instant('COMMON.ERROR'),
+        resp.message || this.translate.instant('VISITS.LOAD_FAILED'));
     }
     this.loading.set(false);
   }
@@ -179,10 +181,9 @@ export class VisitDetailComponent implements OnInit {
 
   scoreLabelAr(score: number | null): string {
     if (score === null || score === undefined) return '—';
-    return [
-      'غير مشاهد', 'يحتاج تحسين', 'متحقق جزئياً',
-      'متحقق بدرجة جيدة', 'متميز'
-    ][score] ?? String(score);
+    const key = `RUBRIC.SCORE_LABEL_${score}`;
+    const translated = this.translate.instant(key);
+    return translated === key ? String(score) : translated;
   }
 
   goEdit(): void {
@@ -279,11 +280,11 @@ export class VisitDetailComponent implements OnInit {
     const v = this.visit();
     if (!v) return;
     this.confirm.confirm({
-      message: 'VISITS.APPROVE_CONFIRM_MESSAGE',
-      header: 'VISITS.APPROVE_CONFIRM_TITLE',
+      message: this.translate.instant('VISITS.APPROVE_CONFIRM_MESSAGE'),
+      header: this.translate.instant('VISITS.APPROVE_CONFIRM_TITLE'),
       icon: 'pi pi-check-circle',
-      acceptLabel: 'VISITS.APPROVE',
-      rejectLabel: 'COMMON.CANCEL',
+      acceptLabel: this.translate.instant('VISITS.APPROVE'),
+      rejectLabel: this.translate.instant('COMMON.CANCEL'),
       accept: () => this.doApprove(v.id)
     });
   }
@@ -293,10 +294,12 @@ export class VisitDetailComponent implements OnInit {
       next: (resp) => {
         if (resp.isSuccess && resp.data) {
           this.visit.set(resp.data);
-          this.toast.success('VISITS.APPROVE_SUCCESS_TITLE', resp.message || 'VISITS.APPROVE_SUCCESS_DESC');
+          this.toast.success(
+            this.translate.instant('VISITS.APPROVE_SUCCESS_TITLE'),
+            resp.message || this.translate.instant('VISITS.APPROVE_SUCCESS_DESC'));
           this.loadViewStatus(id);
         } else {
-          this.toast.error('VISITS.APPROVE_FAILED', resp.message || '');
+          this.toast.error(this.translate.instant('VISITS.APPROVE_FAILED'), resp.message || '');
         }
       }
     });
@@ -325,9 +328,9 @@ export class VisitDetailComponent implements OnInit {
     const reason = this.reasonValue().trim();
     if (!reason) {
       if (mode === 'reject') {
-        this.toast.warn('VISITS.REJECT_REASON_REQUIRED', '');
+        this.toast.warn(this.translate.instant('VISITS.REJECT_REASON_REQUIRED'), '');
       } else {
-        this.toast.warn('VISITS.REOPEN_REASON_REQUIRED', '');
+        this.toast.warn(this.translate.instant('VISITS.REOPEN_REASON_REQUIRED'), '');
       }
       return;
     }
@@ -356,17 +359,21 @@ export class VisitDetailComponent implements OnInit {
     if (resp.isSuccess && resp.data) {
       this.visit.set(resp.data);
       if (mode === 'reject') {
-        this.toast.success('VISITS.REJECT_SUCCESS_TITLE', resp.message || 'VISITS.REJECT_SUCCESS_DESC');
+        this.toast.success(
+          this.translate.instant('VISITS.REJECT_SUCCESS_TITLE'),
+          resp.message || this.translate.instant('VISITS.REJECT_SUCCESS_DESC'));
       } else {
-        this.toast.success('VISITS.REOPEN_SUCCESS_TITLE', resp.message || 'VISITS.REOPEN_SUCCESS_DESC');
+        this.toast.success(
+          this.translate.instant('VISITS.REOPEN_SUCCESS_TITLE'),
+          resp.message || this.translate.instant('VISITS.REOPEN_SUCCESS_DESC'));
         // After reopen, view-status is irrelevant until next approval
         this.viewStatus.set(null);
       }
     } else {
       if (mode === 'reject') {
-        this.toast.error('VISITS.REJECT_FAILED', resp.message || '');
+        this.toast.error(this.translate.instant('VISITS.REJECT_FAILED'), resp.message || '');
       } else {
-        this.toast.error('VISITS.REOPEN_FAILED', resp.message || '');
+        this.toast.error(this.translate.instant('VISITS.REOPEN_FAILED'), resp.message || '');
       }
     }
   }
@@ -434,7 +441,9 @@ export class VisitDetailComponent implements OnInit {
         const blob = resp.body;
         if (!blob) {
           this.pdfDownloading.set(false);
-          this.toast.error('VISITS.PDF_DOWNLOAD_FAILED_TITLE', 'VISITS.PDF_DOWNLOAD_FAILED_DESC');
+          this.toast.error(
+            this.translate.instant('VISITS.PDF_DOWNLOAD_FAILED_TITLE'),
+            this.translate.instant('VISITS.PDF_DOWNLOAD_FAILED_DESC'));
           return;
         }
         const headerName = filenameFromContentDisposition(resp.headers.get('Content-Disposition'));

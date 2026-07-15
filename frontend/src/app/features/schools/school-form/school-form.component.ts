@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { ToastService } from '../../../core/services/toast.service';
 import { SchoolsService } from '../../../core/services/schools.service';
 import { UsersService } from '../../../core/services/users.service';
@@ -16,7 +16,7 @@ import { SchoolDetail, SchoolStage } from '../../../core/models/phase2.models';
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink, TranslateModule,
-    ButtonModule, InputTextModule, DropdownModule
+    ButtonModule, InputTextModule, ClearableSelectComponent
   ],
   templateUrl: './school-form.component.html',
   styleUrls: ['./school-form.component.css']
@@ -45,9 +45,9 @@ export class SchoolFormComponent implements OnInit {
   schoolId = signal<number | null>(null);
 
   readonly stageOptions = [
-    { label: 'ابتدائي', value: 'Primary' },
-    { label: 'متوسط', value: 'Intermediate' },
-    { label: 'ثانوي', value: 'Secondary' }
+    { label: this.translate.instant('SCHOOLS.STAGE.PRIMARY'), value: 'Primary' },
+    { label: this.translate.instant('SCHOOLS.STAGE.INTERMEDIATE'), value: 'Intermediate' },
+    { label: this.translate.instant('SCHOOLS.STAGE.SECONDARY'), value: 'Secondary' }
   ];
 
   availableManagers = signal<{ userId: string; fullName: string }[]>([]);
@@ -132,7 +132,9 @@ export class SchoolFormComponent implements OnInit {
               this.translate.instant('SCHOOLS.AFTER_CREATE_DESC')
             );
           } else {
-            this.toast.success('تم الحفظ', response.message || 'تم حفظ المدرسة بنجاح.');
+            this.toast.success(
+              this.translate.instant('COMMON.SUCCESS'),
+              response.message || this.translate.instant('SCHOOLS.SAVE_SUCCESS'));
           }
           this.router.navigate(['/schools']);
         }

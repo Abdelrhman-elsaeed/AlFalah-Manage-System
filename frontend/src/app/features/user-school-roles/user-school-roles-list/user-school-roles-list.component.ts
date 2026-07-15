@@ -1,13 +1,13 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmationService } from 'primeng/api';
@@ -26,7 +26,7 @@ import { UserSchoolRoleDetail, PhaseTwoRole } from '../../../core/models/phase2.
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    TableModule, ButtonModule, DropdownModule, InputGroupModule, InputGroupAddonModule, TooltipModule, ConfirmDialogModule, DialogModule,
+    TableModule, ButtonModule, ClearableSelectComponent, InputGroupModule, InputGroupAddonModule, TooltipModule, ConfirmDialogModule, DialogModule,
     ListPageHeaderComponent, ListToolbarComponent, ListToolbarFieldComponent
   ],
   providers: [ConfirmationService],
@@ -41,6 +41,7 @@ export class UserSchoolRolesListComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmationService);
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
 
   assignments = signal<UserSchoolRoleDetail[]>([]);
   loading = signal(false);
@@ -51,9 +52,9 @@ export class UserSchoolRolesListComponent implements OnInit {
   lookupsLoading = signal(false);
 
   readonly roleOptions = [
-    { label: 'مدير المدرسة', value: 'SchoolManager' },
-    { label: 'مشرف', value: 'Moderator' },
-    { label: 'معلم', value: 'Instructor' }
+    { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
+    { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
   ];
 
   createVisible = signal(false);
@@ -140,7 +141,9 @@ export class UserSchoolRolesListComponent implements OnInit {
     }).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success('تم التعيين', response.message || 'تم التعيين بنجاح.');
+          this.toast.success(
+            this.translate.instant('COMMON.SUCCESS'),
+            response.message || this.translate.instant('USER_SCHOOL_ROLES.CREATE_SUCCESS'));
           this.createVisible.set(false);
           this.load();
         }
@@ -151,11 +154,11 @@ export class UserSchoolRolesListComponent implements OnInit {
   confirmRemove(row: UserSchoolRoleDetail, event: Event): void {
     this.confirm.confirm({
       target: event.target as EventTarget,
-      message: 'هل تريد إلغاء هذا التعيين؟',
-      header: 'تأكيد الإزالة',
+      message: this.translate.instant('USER_SCHOOL_ROLES.CONFIRM_REMOVE'),
+      header: this.translate.instant('USER_SCHOOL_ROLES.REMOVE_CONFIRM_TITLE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'نعم، أزل',
-      rejectLabel: 'إلغاء',
+      acceptLabel: this.translate.instant('USER_SCHOOL_ROLES.REMOVE_ACCEPT'),
+      rejectLabel: this.translate.instant('COMMON.CANCEL'),
       accept: () => this.remove(row.id)
     });
   }
@@ -164,7 +167,9 @@ export class UserSchoolRolesListComponent implements OnInit {
     this.usrService.delete(id).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success('تمت الإزالة', response.message || 'تم إلغاء التعيين.');
+          this.toast.success(
+            this.translate.instant('COMMON.SUCCESS'),
+            response.message || this.translate.instant('USER_SCHOOL_ROLES.REMOVE_SUCCESS'));
           this.load();
         }
       }

@@ -89,7 +89,7 @@ export function downloadDashboardBlob(
 ): { ok: true; filename: string } | { ok: false; message: string } {
   const blob = resp.body;
   if (!blob) {
-    return { ok: false, message: 'فشل تنزيل الملف.' };
+    return { ok: false, message: 'DASHBOARD.EXPORT_FAILED' };
   }
   const filename = filenameFromContentDisposition(resp.headers.get('Content-Disposition')) ?? fallbackFilename;
   const url = window.URL.createObjectURL(blob);

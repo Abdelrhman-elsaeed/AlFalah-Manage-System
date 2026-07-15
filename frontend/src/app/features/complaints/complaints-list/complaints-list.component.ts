@@ -7,7 +7,6 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
 import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TooltipModule } from 'primeng/tooltip';
@@ -34,7 +33,7 @@ import {
   standalone: true,
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    TableModule, TagModule, ButtonModule, DialogModule, DropdownModule,
+    TableModule, TagModule, ButtonModule, DialogModule,
     ClearableSelectComponent,
     InputTextareaModule, TooltipModule, ConfirmDialogModule
   ],

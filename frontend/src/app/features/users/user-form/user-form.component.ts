@@ -2,9 +2,9 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { AuthService } from '../../../core/services/auth.service';
@@ -18,7 +18,7 @@ import { PhaseTwoRole, SchoolStage, UserDetail } from '../../../core/models/phas
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink, TranslateModule,
-    ButtonModule, DropdownModule, InputTextModule, PasswordModule
+    ButtonModule, ClearableSelectComponent, InputTextModule, PasswordModule
   ],
   templateUrl: './user-form.component.html',
   styleUrls: ['./user-form.component.css']
@@ -31,6 +31,7 @@ export class UserFormComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   readonly isEdit = signal(false);
   readonly saving = signal(false);
@@ -58,18 +59,18 @@ export class UserFormComponent implements OnInit {
   });
 
   readonly roleOptions = [
-    { label: 'مدير المدرسة', value: 'SchoolManager' },
-    { label: 'مشرف', value: 'Moderator' },
-    { label: 'معلم', value: 'Instructor' }
+    { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
+    { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
   ];
   readonly stageOptions: { label: string; value: SchoolStage }[] = [
-    { label: 'ابتدائي', value: 'Primary' },
-    { label: 'متوسط', value: 'Intermediate' },
-    { label: 'ثانوي', value: 'Secondary' }
+    { label: this.translate.instant('SCHOOLS.STAGE.PRIMARY'), value: 'Primary' },
+    { label: this.translate.instant('SCHOOLS.STAGE.INTERMEDIATE'), value: 'Intermediate' },
+    { label: this.translate.instant('SCHOOLS.STAGE.SECONDARY'), value: 'Secondary' }
   ];
   readonly languageOptions = [
-    { label: 'العربية', value: 'ar' },
-    { label: 'English', value: 'en' }
+    { label: this.translate.instant('USERS.LANGUAGE_ARABIC'), value: 'ar' },
+    { label: this.translate.instant('USERS.LANGUAGE_ENGLISH'), value: 'en' }
   ];
 
   readonly availableSchools = signal<{ id: number; name: string }[]>([]);
@@ -80,6 +81,7 @@ export class UserFormComponent implements OnInit {
     if (id) {
       this.isEdit.set(true);
       this.userId.set(id);
+      this.form.controls['role'].disable({ emitEvent: false });
       this.form.controls['password'].clearValidators();
       this.form.controls['password'].updateValueAndValidity();
       this.loadUser(id);
@@ -166,7 +168,7 @@ export class UserFormComponent implements OnInit {
         next: response => {
           this.saving.set(false);
           if (response.isSuccess) {
-            this.toast.success('TEACHERS.SAVE_SUCCESS_TITLE', response.message || '');
+            this.toast.success(this.translate.instant('TEACHERS.SAVE_SUCCESS_TITLE'), response.message || '');
             this.router.navigate(this.isInstructor() ? ['/teachers'] : ['/users']);
           }
         },
@@ -190,7 +192,7 @@ export class UserFormComponent implements OnInit {
       next: response => {
         this.saving.set(false);
         if (response.isSuccess) {
-          this.toast.success('TEACHERS.SAVE_SUCCESS_TITLE', response.message || '');
+          this.toast.success(this.translate.instant('TEACHERS.SAVE_SUCCESS_TITLE'), response.message || '');
           this.router.navigate(this.isInstructor() ? ['/teachers'] : ['/users']);
         }
       },

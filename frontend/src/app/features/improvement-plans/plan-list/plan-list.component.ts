@@ -2,18 +2,19 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 // PrimeNG
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { CalendarModule } from 'primeng/calendar';
 import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService } from 'primeng/api';
 
 // Services & Models
@@ -29,8 +30,8 @@ import { VisitDetail } from '../../../core/models/visit.models';
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, FormsModule, TranslateModule, RouterModule,
-    TableModule, ButtonModule, DialogModule, DropdownModule, InputTextModule,
-    InputTextareaModule, CalendarModule, TagModule, ConfirmDialogModule
+    TableModule, ButtonModule, DialogModule, ClearableSelectComponent, InputTextModule,
+    InputTextareaModule, CalendarModule, TagModule, ConfirmDialogModule, TooltipModule
   ],
   providers: [ConfirmationService],
   templateUrl: './plan-list.component.html',
@@ -45,6 +46,7 @@ export class PlanListComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmationService);
+  private readonly translate = inject(TranslateService);
 
   readonly visitId = signal<number>(0);
   readonly visit = signal<VisitDetail | null>(null);
@@ -54,6 +56,13 @@ export class PlanListComponent implements OnInit {
 
   // Filter
   readonly statusFilter = signal<string>('all');
+  readonly statusOptions = [
+    { labelKey: 'PLANS.STATUS_ALL', value: 'all' },
+    { labelKey: 'PLANS.STATUS_ACTIVE', value: 'active' },
+    { labelKey: 'PLANS.STATUS_COMPLETED', value: 'completed' },
+    { labelKey: 'PLANS.STATUS_CANCELLED', value: 'cancelled' }
+  ];
+  readonly editableStatusOptions = this.statusOptions.filter(option => option.value !== 'all');
 
   // Plan Dialog
   readonly planDialogVisible = signal(false);
@@ -137,7 +146,7 @@ export class PlanListComponent implements OnInit {
           this.loadPlans();
           this.loadSuggestions();
         } else {
-          this.toast.error('خطأ', resp.message || 'تعذر تحميل بيانات الزيارة.');
+          this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('PLANS.LOAD_VISIT_FAILED'));
           this.loading.set(false);
         }
       },
@@ -146,6 +155,7 @@ export class PlanListComponent implements OnInit {
   }
 
   loadPlans(): void {
+    this.loading.set(true);
     this.plansService.getPlansForVisit(this.visitId()).subscribe({
       next: (resp) => {
         if (resp.isSuccess && resp.data) {
@@ -240,14 +250,17 @@ export class PlanListComponent implements OnInit {
         next: (resp) => {
           this.submitting.set(false);
           if (resp.isSuccess) {
-            this.toast.success('نجاح', 'تم حفظ خطة التحسين بنجاح.');
+            this.toast.success(this.t('COMMON.SUCCESS'), this.t('PLANS.SAVE_SUCCESS'));
             this.planDialogVisible.set(false);
             this.loadPlans();
           } else {
-            this.toast.error('خطأ', resp.message || 'تعذر حفظ الخطة.');
+            this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('PLANS.SAVE_FAILED'));
           }
         },
-        error: () => this.submitting.set(false)
+        error: (error) => {
+          this.submitting.set(false);
+          this.toast.error(this.t('COMMON.ERROR'), error?.error?.message || this.t('PLANS.SAVE_FAILED'));
+        }
       });
     } else {
       const body = {
@@ -263,36 +276,42 @@ export class PlanListComponent implements OnInit {
         next: (resp) => {
           this.submitting.set(false);
           if (resp.isSuccess) {
-            this.toast.success('نجاح', 'تم تحديث خطة التحسين بنجاح.');
+            this.toast.success(this.t('COMMON.SUCCESS'), this.t('PLANS.UPDATE_SUCCESS'));
             this.planDialogVisible.set(false);
             this.loadPlans();
           } else {
-            this.toast.error('خطأ', resp.message || 'تعذر تحديث الخطة.');
+            this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('PLANS.UPDATE_FAILED'));
           }
         },
-        error: () => this.submitting.set(false)
+        error: (error) => {
+          this.submitting.set(false);
+          this.toast.error(this.t('COMMON.ERROR'), error?.error?.message || this.t('PLANS.UPDATE_FAILED'));
+        }
       });
     }
   }
 
   confirmDelete(plan: ImprovementPlan): void {
     this.confirm.confirm({
-      message: 'هل أنت متأكد من حذف خطة التحسين هذه؟ سيتم إخفاء جميع المتابعات الخاصة بها.',
-      header: 'تأكيد الحذف',
+      message: this.t('PLANS.DELETE_CONFIRM'),
+      header: this.t('PLANS.DELETE_CONFIRM_TITLE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'نعم، احذف',
-      rejectLabel: 'إلغاء',
+      acceptLabel: this.t('PLANS.DELETE_ACCEPT'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.plansService.deletePlan(plan.id).subscribe({
           next: (resp) => {
             if (resp.isSuccess) {
-              this.toast.success('نجاح', 'تم حذف الخطة بنجاح.');
+              this.toast.success(this.t('COMMON.SUCCESS'), this.t('PLANS.DELETE_SUCCESS'));
               this.loadPlans();
             } else {
-              this.toast.error('خطأ', resp.message || 'تعذر حذف الخطة.');
+              this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('PLANS.DELETE_FAILED'));
             }
-          }
+          },
+          error: (error) => this.toast.error(
+            this.t('COMMON.ERROR'),
+            error?.error?.message || this.t('PLANS.DELETE_FAILED'))
         });
       }
     });
@@ -304,10 +323,10 @@ export class PlanListComponent implements OnInit {
     return 'info'; // active
   }
 
-  statusLabel(status: string): string {
-    if (status === 'completed') return 'مكتملة';
-    if (status === 'cancelled') return 'ملغاة';
-    return 'نشطة';
+  statusLabelKey(status: string): string {
+    if (status === 'completed') return 'PLANS.STATUS_COMPLETED';
+    if (status === 'cancelled') return 'PLANS.STATUS_CANCELLED';
+    return 'PLANS.STATUS_ACTIVE';
   }
 
   goBack(): void {
@@ -318,5 +337,9 @@ export class PlanListComponent implements OnInit {
     const d = new Date(date);
     d.setMonth(d.getMonth() + months);
     return d;
+  }
+
+  private t(key: string): string {
+    return this.translate.instant(key);
   }
 }

@@ -1,15 +1,16 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { SchoolLookup } from '../../../core/models/auth.models';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 
 @Component({
   selector: 'app-school-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslateModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule, RouterLink, ClearableSelectComponent],
   templateUrl: './school-login.component.html',
   styleUrls: ['./school-login.component.css']
 })
@@ -19,6 +20,10 @@ export class SchoolLoginComponent implements OnInit {
   loading = signal(false);
   schoolsLoading = signal(true);
   errorMessage = signal('');
+  readonly schoolOptions = computed(() => this.schools().map(school => ({
+    id: school.id,
+    label: `${school.name} — ${school.city} (${this.translate.instant(`SCHOOLS.STAGE.${school.stage.toUpperCase()}`)})`
+  })));
 
   constructor(
     private fb: FormBuilder,

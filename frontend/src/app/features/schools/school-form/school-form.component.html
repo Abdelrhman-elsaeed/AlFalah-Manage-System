@@ -22,7 +22,8 @@
 
       <div class="field">
         <label for="school-stage">{{ 'SCHOOLS.STAGE_LABEL' | translate }} *</label>
-        <p-dropdown inputId="school-stage" [options]="stageOptions" formControlName="stage" styleClass="w-100"></p-dropdown>
+        <app-clearable-select inputId="school-stage" [options]="stageOptions" formControlName="stage"
+                              [clearable]="false" styleClass="w-100"></app-clearable-select>
       </div>
 
       <div class="field">
@@ -48,11 +49,11 @@
           {{ 'SCHOOLS.MANAGER' | translate }}
           <span class="field__muted">({{ 'COMMON.OPTIONAL' | translate }})</span>
         </label>
-        <p-dropdown inputId="school-manager" [options]="availableManagers()" formControlName="managerUserId"
-                  optionLabel="fullName" optionValue="userId"
-                  [placeholder]="(isEdit() ? 'COMMON.SELECT' : 'COMMON.OPTIONAL') | translate"
-                  [filter]="true" filterBy="fullName"
-                  [showClear]="true" styleClass="w-100"></p-dropdown>
+        <app-clearable-select inputId="school-manager" [options]="availableManagers()" formControlName="managerUserId"
+                              optionLabel="fullName" optionValue="userId"
+                              [placeholder]="(isEdit() ? 'COMMON.SELECT' : 'COMMON.OPTIONAL') | translate"
+                              [filter]="true" filterBy="fullName"
+                              styleClass="w-100"></app-clearable-select>
         <small class="field__hint">{{ 'SCHOOLS.MANAGER_REQUIRED_HINT' | translate }}</small>
       </div>
     </div>

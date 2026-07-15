@@ -57,25 +57,27 @@
       <div class="form-grid">
         <div class="form-field">
           <label>{{ 'VISITS.INSTRUCTOR' | translate }}</label>
-          <p-dropdown [options]="instructors()" optionLabel="fullName" optionValue="userId"
-                      formControlName="instructorId" [filter]="true" filterBy="fullName"
-                      [showClear]="false"
-                      [placeholder]="'VISITS.INSTRUCTOR_PLACEHOLDER' | translate"
-                      [emptyMessage]="'VISITS.NO_INSTRUCTORS_AVAILABLE' | translate"
-                      [loading]="instructorsLoading()"
-                      appendTo="body"></p-dropdown>
+          <app-clearable-select [options]="instructors()" optionLabel="fullName" optionValue="userId"
+                                formControlName="instructorId" [filter]="true" filterBy="fullName"
+                                [clearable]="false"
+                                [placeholder]="'VISITS.INSTRUCTOR_PLACEHOLDER' | translate"
+                                [emptyMessage]="'VISITS.NO_INSTRUCTORS_AVAILABLE' | translate"
+                                [loading]="instructorsLoading()"
+                                appendTo="body"></app-clearable-select>
         </div>
 
         <div class="form-field">
           <label>{{ 'VISITS.VISIT_CATEGORY' | translate }}</label>
-          <p-dropdown [options]="categories" optionLabel="labelAr" optionValue="value"
-                      formControlName="visitCategory" appendTo="body"></p-dropdown>
+          <app-clearable-select [options]="categories" optionLabel="label" optionValue="value"
+                                formControlName="visitCategory" [clearable]="false"
+                                appendTo="body"></app-clearable-select>
         </div>
 
         <div class="form-field">
           <label>{{ 'VISITS.VISIT_SEQUENCE' | translate }}</label>
-          <p-dropdown [options]="sequences" optionLabel="labelAr" optionValue="value"
-                      formControlName="visitSequence" appendTo="body"></p-dropdown>
+          <app-clearable-select [options]="sequences" optionLabel="label" optionValue="value"
+                                formControlName="visitSequence" [clearable]="false"
+                                appendTo="body"></app-clearable-select>
         </div>
 
         <div class="form-field">
@@ -93,9 +95,9 @@
 
         <div class="form-field">
           <label>{{ 'VISITS.GRADE_CLASS' | translate }}</label>
-          <p-dropdown *ngIf="hasTeacherClasses(); else freeTextClass"
-                      [options]="classOptions()" optionLabel="label" optionValue="value"
-                      formControlName="gradeClass" [showClear]="true" appendTo="body"></p-dropdown>
+          <app-clearable-select *ngIf="hasTeacherClasses(); else freeTextClass"
+                                [options]="classOptions()" optionLabel="label" optionValue="value"
+                                formControlName="gradeClass" appendTo="body"></app-clearable-select>
           <ng-template #freeTextClass>
             <input pInputText formControlName="gradeClass"
                    [placeholder]="'VISITS.GRADE_CLASS_PLACEHOLDER' | translate" />

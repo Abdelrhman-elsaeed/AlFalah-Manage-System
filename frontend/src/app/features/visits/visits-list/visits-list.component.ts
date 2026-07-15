@@ -2,11 +2,11 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -28,7 +28,7 @@ import {
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    TableModule, ButtonModule, InputTextModule, DropdownModule, TagModule, TooltipModule,
+    TableModule, ButtonModule, InputTextModule, ClearableSelectComponent, TagModule, TooltipModule,
     ConfirmDialogModule, CalendarModule,
     ListPageHeaderComponent, ListToolbarComponent, ListToolbarFieldComponent
   ],
@@ -42,13 +42,20 @@ export class VisitsListComponent implements OnInit {
   private readonly confirm = inject(ConfirmationService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   readonly visits = signal<VisitListItem[]>([]);
   readonly totalCount = signal(0);
   readonly loading = signal(false);
 
-  readonly statuses = VISIT_STATUSES;
-  readonly categories = VISIT_CATEGORIES;
+  readonly statuses = VISIT_STATUSES.map(option => ({
+    ...option,
+    label: this.translate.instant(option.labelKey)
+  }));
+  readonly categories = VISIT_CATEGORIES.map(option => ({
+    ...option,
+    label: this.translate.instant(option.labelKey)
+  }));
 
   readonly statusFilter = signal<number | null>(null);
   readonly categoryFilter = signal<number | null>(null);
@@ -104,11 +111,11 @@ export class VisitsListComponent implements OnInit {
   confirmDelete(v: VisitListItem, event: Event): void {
     this.confirm.confirm({
       target: event.target as EventTarget,
-      message: 'هل تريد حذف هذه الزيارة؟',
-      header: 'تأكيد الحذف',
+      message: this.t('VISITS.CONFIRM_DELETE'),
+      header: this.t('VISITS.DELETE_CONFIRM_TITLE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'نعم، احذف',
-      rejectLabel: 'إلغاء',
+      acceptLabel: this.t('VISITS.DELETE_ACCEPT'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       accept: () => this.deleteVisit(v.id)
     });
   }
@@ -117,7 +124,7 @@ export class VisitsListComponent implements OnInit {
     this.visitsService.softDelete(id).subscribe({
       next: (resp) => {
         if (resp.isSuccess) {
-          this.toast.success('تم الحذف', resp.message || 'تم حذف الزيارة بنجاح.');
+          this.toast.success(this.t('VISITS.DELETE_SUCCESS_TITLE'), resp.message || this.t('VISITS.DELETE_SUCCESS_DESC'));
           this.load();
         }
       }
@@ -138,19 +145,19 @@ export class VisitsListComponent implements OnInit {
         const blob = resp.body;
         if (!blob) {
           this.pdfPrinting.set(null);
-          this.toast.error('VISITS.PDF_DOWNLOAD_FAILED_TITLE', 'VISITS.PDF_DOWNLOAD_FAILED_DESC');
+          this.toast.error(this.t('VISITS.PDF_DOWNLOAD_FAILED_TITLE'), this.t('VISITS.PDF_DOWNLOAD_FAILED_DESC'));
           return;
         }
         const headerName = filenameFromContentDisposition(resp.headers.get('Content-Disposition'));
         const filename = headerName ?? this.visitsService.suggestedPdfFilename(v);
         triggerBlobDownload(blob, filename);
-        this.toast.success('VISITS.PDF_DOWNLOAD_SUCCESS_TITLE', 'VISITS.PDF_DOWNLOAD_SUCCESS_DESC');
+        this.toast.success(this.t('VISITS.PDF_DOWNLOAD_SUCCESS_TITLE'), this.t('VISITS.PDF_DOWNLOAD_SUCCESS_DESC'));
         this.pdfPrinting.set(null);
       },
       error: (err) => {
         this.pdfPrinting.set(null);
         const detail = extractApiErrorMessage(err) ?? 'VISITS.PDF_DOWNLOAD_FAILED_DESC';
-        this.toast.error('VISITS.PDF_DOWNLOAD_FAILED_TITLE', detail);
+        this.toast.error(this.t('VISITS.PDF_DOWNLOAD_FAILED_TITLE'), detail);
       }
     });
   }
@@ -174,19 +181,19 @@ export class VisitsListComponent implements OnInit {
         const blob = resp.body;
         if (!blob) {
           this.bulkExporting.set(false);
-          this.toast.error('VISITS.EXPORT_ALL_FAILED_TITLE', 'VISITS.EXPORT_ALL_FAILED_DESC');
+          this.toast.error(this.t('VISITS.EXPORT_ALL_FAILED_TITLE'), this.t('VISITS.EXPORT_ALL_FAILED_DESC'));
           return;
         }
         const headerName = filenameFromContentDisposition(resp.headers.get('Content-Disposition'));
         const filename = headerName ?? 'visits.zip';
         triggerBlobDownload(blob, filename);
-        this.toast.success('VISITS.EXPORT_ALL_SUCCESS_TITLE', 'VISITS.EXPORT_ALL_SUCCESS_DESC');
+        this.toast.success(this.t('VISITS.EXPORT_ALL_SUCCESS_TITLE'), this.t('VISITS.EXPORT_ALL_SUCCESS_DESC'));
         this.bulkExporting.set(false);
       },
       error: (err) => {
         this.bulkExporting.set(false);
         const detail = extractApiErrorMessage(err) ?? 'VISITS.EXPORT_ALL_FAILED_DESC';
-        this.toast.error('VISITS.EXPORT_ALL_FAILED_TITLE', detail);
+        this.toast.error(this.t('VISITS.EXPORT_ALL_FAILED_TITLE'), detail);
       }
     });
   }
@@ -201,6 +208,10 @@ export class VisitsListComponent implements OnInit {
   }
 
   isDraft(status: string): boolean { return Number(status) === 1; }
+
+  private t(key: string): string {
+    return this.translate.instant(key);
+  }
 }
 
 /**

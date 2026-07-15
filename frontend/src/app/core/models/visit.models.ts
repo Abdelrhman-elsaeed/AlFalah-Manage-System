@@ -159,48 +159,48 @@ export interface VisitListQuery {
 
 export interface VisitCategoryOption {
   value: number;
-  labelAr: string;
+  labelKey: string;
 }
 
 export interface VisitSequenceOption {
   value: number;
-  labelAr: string;
+  labelKey: string;
 }
 
 export interface VisitStatusOption {
   value: number;
-  labelAr: string;
+  labelKey: string;
 }
 
 // Enums — verbatim from docs/11
 export const VISIT_CATEGORIES: VisitCategoryOption[] = [
-  { value: 1, labelAr: 'استطلاعية / توجيهية' },
-  { value: 2, labelAr: 'زيارة صفية أو دورية' },
-  { value: 3, labelAr: 'زيارة تبادلية' },
-  { value: 4, labelAr: 'زيارة التثبيت / الترسيم للمعلمين الجدد' },
-  { value: 5, labelAr: 'زيارة المتابعة والدعم' },
-  { value: 6, labelAr: 'زيارة مفاجئة / تفتيشية' },
-  { value: 7, labelAr: 'زيارة طارئة' },
-  { value: 8, labelAr: 'زيارة التحقق / متابعة قانونية' },
-  { value: 9, labelAr: 'زيارة اللجان المركزية' }
+  { value: 1, labelKey: 'VISITS.CATEGORY_1' },
+  { value: 2, labelKey: 'VISITS.CATEGORY_2' },
+  { value: 3, labelKey: 'VISITS.CATEGORY_3' },
+  { value: 4, labelKey: 'VISITS.CATEGORY_4' },
+  { value: 5, labelKey: 'VISITS.CATEGORY_5' },
+  { value: 6, labelKey: 'VISITS.CATEGORY_6' },
+  { value: 7, labelKey: 'VISITS.CATEGORY_7' },
+  { value: 8, labelKey: 'VISITS.CATEGORY_8' },
+  { value: 9, labelKey: 'VISITS.CATEGORY_9' }
 ];
 
 export const VISIT_SEQUENCES: VisitSequenceOption[] = [
-  { value: 1, labelAr: 'أولى' },
-  { value: 2, labelAr: 'ثانية' },
-  { value: 3, labelAr: 'ثالثة' },
-  { value: 4, labelAr: 'متابعة' }
+  { value: 1, labelKey: 'VISITS.SEQUENCE_1' },
+  { value: 2, labelKey: 'VISITS.SEQUENCE_2' },
+  { value: 3, labelKey: 'VISITS.SEQUENCE_3' },
+  { value: 4, labelKey: 'VISITS.SEQUENCE_4' }
 ];
 
 export const VISIT_STATUSES: VisitStatusOption[] = [
-  { value: 1, labelAr: 'مسودة' },
-  { value: 2, labelAr: 'مُرسلة' },
-  { value: 3, labelAr: 'بانتظار الاعتماد' },
-  { value: 4, labelAr: 'معتمدة' },
-  { value: 5, labelAr: 'مرفوضة للتعديل' },
-  { value: 6, labelAr: 'مُعاد فتحها' },
-  { value: 7, labelAr: 'قيد المراجعة بعد شكوى' },
-  { value: 8, labelAr: 'ملغاة' }
+  { value: 1, labelKey: 'VISITS.STATUS_1' },
+  { value: 2, labelKey: 'VISITS.STATUS_2' },
+  { value: 3, labelKey: 'VISITS.STATUS_3' },
+  { value: 4, labelKey: 'VISITS.STATUS_4' },
+  { value: 5, labelKey: 'VISITS.STATUS_5' },
+  { value: 6, labelKey: 'VISITS.STATUS_6' },
+  { value: 7, labelKey: 'VISITS.STATUS_7' },
+  { value: 8, labelKey: 'VISITS.STATUS_8' }
 ];
 
 // ─── Phase 5: Approval workflow + Instructor visibility ─────────────────────

@@ -1,6 +1,6 @@
 # Phase 7 — Improvement Plans & Follow-ups
 
-**Status:** COMPLETED ✅ · **Last updated:** 2026-07-11
+**Status:** COMPLETED ✅ · **Last updated:** 2026-07-15
 
 ## Goal
 Reproduce the old desktop system's improvement-plan and follow-up logic exactly.
@@ -86,3 +86,18 @@ Error mapping: `UnauthorizedSchoolAccessException` → **HTTP 403**, `KeyNotFoun
 ### Build evidence
 - `dotnet build AlFalah.slnx` → Build succeeded, 0 Warning(s), 0 Error(s) (Time Elapsed ~5–7s)
 - `cd frontend && npm run build` → Application bundle generation complete (15.7s); only 3 unrelated PrimeFlex library CSS warnings (organizationchart selector parser)
+
+## Whole-app UI completion verification (2026-07-15)
+
+- Plan and follow-up templates contain no hard-coded user-facing Arabic copy;
+  all labels, status text, dialogs, confirmations, validation, and toast messages
+  resolve through Arabic/English i18n.
+- Direct dropdowns were replaced by `app-clearable-select`, and all date fields
+  use PrimeNG calendars. Buttons, tags, and page styling consume the shared Saudi
+  theme tokens and preserve RTL.
+- D-70 verified: plan create/update closes the dialog and reloads plans; delete
+  reloads plans. D-71 verified: follow-up create/update closes the dialog and
+  reloads plan/follow-ups/progress; delete reloads the same aggregate.
+- Static repository scans find no native selects, no direct feature-level
+  `p-dropdown`, and no native date inputs. D-19 parity is 623/623 leaf keys with
+  no duplicate top-level keys and no missing literal translation keys.

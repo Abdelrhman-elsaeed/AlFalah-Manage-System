@@ -1,6 +1,6 @@
 # 06 — Frontend Architecture
 
-**Status:** Baseline · **Last updated:** 2026-07-10
+**Status:** Implemented · **Last updated:** 2026-07-15
 
 ## Angular structure
 ```
@@ -102,3 +102,18 @@ src/app/features
   items.
 - `/teachers` and `/teachers/:userId` are lazy standalone routes protected by
   `roleGuard` (SchoolManager/MainManager/SuperAdmin) and `User.View`.
+
+## Unified controls and localization (2026-07-15)
+
+- Feature pages use `app-clearable-select` instead of consuming PrimeNG
+  dropdowns or native selects directly. Optional values and filters are
+  clearable; required values explicitly disable clearing. The wrapper supports
+  `inputId` and Angular disabled-state propagation and is full-width by default.
+- Date fields use PrimeNG `p-calendar`; there are no native `type="date"`
+  controls in application templates.
+- User-facing copy is sourced from Arabic/English i18n resources. The completed
+  whole-app pass has 623/623 leaf-key parity, no missing literal translation
+  keys, and no duplicate top-level keys (D-19).
+- Improvement-plan and follow-up pages consume the shared Saudi design tokens,
+  PrimeNG buttons/tags, the unified select, and calendar controls while keeping
+  RTL layout and the dynamic rubric behavior (D-65).

@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -40,6 +40,7 @@ export class TeachersListComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmationService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   readonly teachers = signal<TeacherListItem[]>([]);
   readonly totalCount = signal(0);
@@ -103,11 +104,11 @@ export class TeachersListComponent implements OnInit {
   confirmDeactivate(t: TeacherListItem, event: Event): void {
     this.confirm.confirm({
       target: event.target as EventTarget,
-      message: 'TEACHERS.DELETE_CONFIRM',
-      header: 'TEACHERS.DELETE',
+      message: this.translate.instant('TEACHERS.DELETE_CONFIRM'),
+      header: this.translate.instant('TEACHERS.DELETE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'COMMON.YES',
-      rejectLabel: 'COMMON.CANCEL',
+      acceptLabel: this.translate.instant('COMMON.YES'),
+      rejectLabel: this.translate.instant('COMMON.CANCEL'),
       accept: () => this.deactivateTeacher(t.userId)
     });
   }
@@ -116,10 +117,12 @@ export class TeachersListComponent implements OnInit {
     this.usersService.deactivate(userId).subscribe({
       next: (resp) => {
         if (resp.isSuccess) {
-          this.toast.success('TEACHERS.DELETE_SUCCESS_TITLE', resp.message || 'TEACHERS.DELETE_FAILED');
+          this.toast.success(
+            this.translate.instant('TEACHERS.DELETE_SUCCESS_TITLE'),
+            resp.message || this.translate.instant('TEACHERS.DELETE_FAILED'));
           this.load();
         } else {
-          this.toast.error('TEACHERS.DELETE_FAILED', resp.message || '');
+          this.toast.error(this.translate.instant('TEACHERS.DELETE_FAILED'), resp.message || '');
         }
       }
     });

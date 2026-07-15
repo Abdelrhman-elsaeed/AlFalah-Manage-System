@@ -10,12 +10,12 @@
 
   <app-list-toolbar *ngIf="!isSchoolScoped">
     <app-list-toolbar-field [grow]="true" labelKey="USER_SCHOOL_ROLES.SCHOOL">
-      <p-dropdown [options]="schoolOptions()" [ngModel]="schoolFilter()"
-                  (onChange)="schoolFilter.set($event.value); load()"
-                  [placeholder]="'USER_SCHOOL_ROLES.SCHOOL' | translate"
-                  optionLabel="name" optionValue="id" [showClear]="true"
-                  [filter]="true" filterBy="name"
-                  appendTo="body"></p-dropdown>
+      <app-clearable-select [options]="schoolOptions()" [ngModel]="schoolFilter()"
+                            (ngModelChange)="schoolFilter.set($event); load()"
+                            [placeholder]="'USER_SCHOOL_ROLES.SCHOOL' | translate"
+                            optionLabel="name" optionValue="id"
+                            [filter]="true" filterBy="name"
+                            appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
   </app-list-toolbar>
 
@@ -79,35 +79,33 @@
       <form [formGroup]="form" (ngSubmit)="submit()">
         <div class="field">
           <label for="usr-user">{{ 'USER_SCHOOL_ROLES.USER' | translate }} *</label>
-          <p-dropdown inputId="usr-user" [options]="userOptions()" formControlName="userId"
-                    optionLabel="fullName" optionValue="userId"
-                    [placeholder]="'COMMON.SELECT' | translate"
-                    [filter]="true" filterBy="fullName"
-                    [showClear]="true"
-                    appendTo="body"
-                    [emptyMessage]="'USER_SCHOOL_ROLES.NO_USERS_AVAILABLE' | translate"
-                    [loading]="lookupsLoading()"
-                    styleClass="w-100"></p-dropdown>
+          <app-clearable-select inputId="usr-user" [options]="userOptions()" formControlName="userId"
+                                optionLabel="fullName" optionValue="userId"
+                                [placeholder]="'COMMON.SELECT' | translate"
+                                [filter]="true" filterBy="fullName"
+                                appendTo="body"
+                                [emptyMessage]="'USER_SCHOOL_ROLES.NO_USERS_AVAILABLE' | translate"
+                                [loading]="lookupsLoading()"
+                                styleClass="w-100"></app-clearable-select>
         </div>
 
         <div class="field">
           <label for="usr-school">{{ 'USER_SCHOOL_ROLES.SCHOOL' | translate }} *</label>
-          <p-dropdown inputId="usr-school" [options]="schoolOptions()" formControlName="schoolId"
-                    optionLabel="name" optionValue="id"
-                    [placeholder]="'COMMON.SELECT' | translate"
-                    [filter]="true" filterBy="name"
-                    [showClear]="true"
-                    appendTo="body"
-                    [emptyMessage]="'USER_SCHOOL_ROLES.NO_SCHOOLS_AVAILABLE' | translate"
-                    styleClass="w-100"></p-dropdown>
+          <app-clearable-select inputId="usr-school" [options]="schoolOptions()" formControlName="schoolId"
+                                optionLabel="name" optionValue="id"
+                                [placeholder]="'COMMON.SELECT' | translate"
+                                [filter]="true" filterBy="name"
+                                appendTo="body"
+                                [emptyMessage]="'USER_SCHOOL_ROLES.NO_SCHOOLS_AVAILABLE' | translate"
+                                styleClass="w-100"></app-clearable-select>
         </div>
 
         <div class="field">
           <label for="usr-role">{{ 'USER_SCHOOL_ROLES.ROLE' | translate }} *</label>
-          <p-dropdown inputId="usr-role" [options]="roleOptions" formControlName="role"
-                    optionLabel="label" optionValue="value"
-                    appendTo="body"
-                    styleClass="w-100"></p-dropdown>
+          <app-clearable-select inputId="usr-role" [options]="roleOptions" formControlName="role"
+                                optionLabel="label" optionValue="value" [clearable]="false"
+                                appendTo="body"
+                                styleClass="w-100"></app-clearable-select>
         </div>
       </form>
     </div>

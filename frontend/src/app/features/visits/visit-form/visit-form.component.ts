@@ -6,7 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { CalendarModule } from 'primeng/calendar';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -41,7 +41,7 @@ interface DomainGroup {
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    ButtonModule, InputTextModule, InputTextareaModule, DropdownModule, CalendarModule,
+    ButtonModule, InputTextModule, InputTextareaModule, ClearableSelectComponent, CalendarModule,
     TooltipModule, ProgressBarModule, ConfirmDialogModule
   ],
   providers: [ConfirmationService],
@@ -60,8 +60,14 @@ export class VisitFormComponent implements OnInit {
   private readonly teachersService = inject(TeachersService);
   private readonly translate = inject(TranslateService);
 
-  readonly categories = VISIT_CATEGORIES;
-  readonly sequences = VISIT_SEQUENCES;
+  readonly categories = VISIT_CATEGORIES.map(option => ({
+    ...option,
+    label: this.translate.instant(option.labelKey)
+  }));
+  readonly sequences = VISIT_SEQUENCES.map(option => ({
+    ...option,
+    label: this.translate.instant(option.labelKey)
+  }));
 
   readonly isEdit = signal(false);
   readonly visitId = signal<number | null>(null);
@@ -297,7 +303,9 @@ export class VisitFormComponent implements OnInit {
   saveDraft(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toast.warn('بيانات ناقصة', 'يرجى تعبئة جميع الحقول الإلزامية.');
+      this.toast.warn(
+        this.translate.instant('VISITS.FORM_INCOMPLETE_TITLE'),
+        this.translate.instant('VISITS.FORM_INCOMPLETE_DESC'));
       return;
     }
 
@@ -339,7 +347,9 @@ export class VisitFormComponent implements OnInit {
   handleSave(resp: { isSuccess: boolean; message?: string; data?: VisitDetail }, isCreate: boolean): void {
     this.saving.set(false);
     if (resp.isSuccess && resp.data) {
-      this.toast.success('تم الحفظ', resp.message || 'تم حفظ المسودة.');
+      this.toast.success(
+        this.translate.instant('VISITS.SAVE_SUCCESS_TITLE'),
+        resp.message || this.translate.instant('VISITS.SAVE_SUCCESS_DESC'));
       if (isCreate) {
         // After create, redirect to edit page so the user can score all 25 standards
         this.router.navigate(['/visits', resp.data.id, 'edit']);
@@ -356,21 +366,28 @@ export class VisitFormComponent implements OnInit {
         this.visitStatusNumber.set(Number(resp.data.status));
       }
     } else {
-      this.toast.error('فشل الحفظ', resp.message || 'تعذر حفظ المسودة.');
+      this.toast.error(
+        this.translate.instant('VISITS.SAVE_FAILED'),
+        resp.message || this.translate.instant('VISITS.SAVE_FAILED'));
     }
   }
 
   confirmSubmit(): void {
     if (!this.allScored()) {
-      this.toast.warn('لا يمكن الإرسال', `تم تقييم ${this.scoredCount()} من ${this.totalCount()} معياراً. يجب تقييم جميع المعايير الـ 25 أولاً.`);
+      this.toast.warn(
+        this.translate.instant('VISITS.SUBMIT_BLOCKED_TITLE'),
+        this.translate.instant('VISITS.SUBMIT_BLOCKED_DESC', {
+          scored: this.scoredCount(),
+          total: this.totalCount()
+        }));
       return;
     }
     this.confirm.confirm({
-      message: 'هل تريد إرسال الزيارة للاعتماد؟ لن تتمكن من تعديلها بعد الإرسال.',
-      header: 'تأكيد الإرسال',
+      message: this.translate.instant('VISITS.CONFIRM_SUBMIT'),
+      header: this.translate.instant('VISITS.SUBMIT_CONFIRM_TITLE'),
       icon: 'pi pi-send',
-      acceptLabel: 'نعم، أرسل',
-      rejectLabel: 'إلغاء',
+      acceptLabel: this.translate.instant('VISITS.SUBMIT_ACCEPT'),
+      rejectLabel: this.translate.instant('COMMON.CANCEL'),
       accept: () => this.submitNow()
     });
   }
@@ -392,7 +409,9 @@ export class VisitFormComponent implements OnInit {
       next: (resp) => {
         this.saving.set(false);
         if (!resp.isSuccess) {
-          this.toast.error('فشل الحفظ', resp.message || 'تعذر حفظ المسودة قبل الإرسال.');
+          this.toast.error(
+            this.translate.instant('VISITS.SAVE_FAILED'),
+            resp.message || this.translate.instant('VISITS.SAVE_BEFORE_SUBMIT_FAILED'));
           return;
         }
         this.submitting.set(true);
@@ -400,10 +419,14 @@ export class VisitFormComponent implements OnInit {
           next: (subResp) => {
             this.submitting.set(false);
             if (subResp.isSuccess && subResp.data) {
-              this.toast.success('تم الإرسال', subResp.message || 'تم إرسال الزيارة للاعتماد.');
+              this.toast.success(
+                this.translate.instant('VISITS.SUBMIT_SUCCESS_TITLE'),
+                subResp.message || this.translate.instant('VISITS.SUBMIT_SUCCESS_DESC'));
               this.router.navigate(['/visits', this.visitId()]);
             } else {
-              this.toast.error('فشل الإرسال', subResp.message || 'تعذر إرسال الزيارة.');
+              this.toast.error(
+                this.translate.instant('VISITS.SUBMIT_FAILED'),
+                subResp.message || this.translate.instant('VISITS.SUBMIT_FAILED'));
             }
           },
           error: () => this.submitting.set(false)

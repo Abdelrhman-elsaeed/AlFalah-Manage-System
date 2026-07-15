@@ -18,23 +18,23 @@
           </div>
         </div>
         <h1 class="brand-title">{{ 'APP.NAME' | translate }}</h1>
-        <p class="brand-subtitle">نظام متكامل لتقييم أداء المعلمين وتطويرهم المهني</p>
+        <p class="brand-subtitle">{{ 'AUTH.BRAND_SUBTITLE' | translate }}</p>
         <div class="brand-features">
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>تقييم شامل بـ 25 معياراً</span>
+            <span>{{ 'AUTH.FEATURE_RUBRIC' | translate }}</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>خطط تطوير مخصصة</span>
+            <span>{{ 'AUTH.FEATURE_PLANS' | translate }}</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>تقارير رسمية احترافية</span>
+            <span>{{ 'AUTH.FEATURE_REPORTS' | translate }}</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>متابعة مستمرة للأداء</span>
+            <span>{{ 'AUTH.FEATURE_FOLLOWUP' | translate }}</span>
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@
         <!-- Header -->
         <div class="form-header">
           <h2 class="form-title">{{ 'AUTH.SCHOOL_LOGIN' | translate }}</h2>
-          <p class="form-subtitle">سجّل دخولك للوصول إلى بياناتك المدرسية</p>
+          <p class="form-subtitle">{{ 'AUTH.SCHOOL_LOGIN_SUBTITLE' | translate }}</p>
         </div>
 
         <!-- Error Alert -->
@@ -70,16 +70,11 @@
             @if (schoolsLoading()) {
               <div class="loading-skeleton"></div>
             } @else {
-              <select id="schoolSelect" class="form-control" formControlName="schoolId"
-                [class.is-invalid]="schoolIdControl?.invalid && schoolIdControl?.touched">
-                <option value="">{{ 'AUTH.SELECT_SCHOOL_PLACEHOLDER' | translate }}</option>
-                @for (school of schools(); track school.id) {
-                  <option [value]="school.id">
-                    {{ school.name }} — {{ school.city }}
-                    ({{ 'SCHOOLS.STAGE.' + school.stage.toUpperCase() | translate }})
-                  </option>
-                }
-              </select>
+              <app-clearable-select inputId="schoolSelect" [options]="schoolOptions()"
+                                    optionLabel="label" optionValue="id" formControlName="schoolId"
+                                    [clearable]="false"
+                                    [placeholder]="'AUTH.SELECT_SCHOOL_PLACEHOLDER' | translate"
+                                    styleClass="w-full"></app-clearable-select>
             }
             @if (schoolIdControl?.invalid && schoolIdControl?.touched) {
               <div class="invalid-feedback">{{ 'AUTH.ERROR_SCHOOL_REQUIRED' | translate }}</div>

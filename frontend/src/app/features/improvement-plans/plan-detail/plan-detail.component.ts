@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -15,6 +15,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { ChartModule } from 'primeng/chart';
+import { TooltipModule } from 'primeng/tooltip';
 
 // Services & Models
 import { ImprovementPlansService } from '../../../core/services/improvement-plans.service';
@@ -28,7 +29,7 @@ import { ImprovementPlan, PlanFollowUp, PlanProgress } from '../../../core/model
   imports: [
     CommonModule, ReactiveFormsModule, FormsModule, TranslateModule, RouterModule,
     ButtonModule, DialogModule, InputTextModule, InputTextareaModule, CalendarModule,
-    TagModule, InputNumberModule, ConfirmDialogModule, ChartModule
+    TagModule, InputNumberModule, ConfirmDialogModule, ChartModule, TooltipModule
   ],
   providers: [ConfirmationService],
   templateUrl: './plan-detail.component.html',
@@ -42,6 +43,7 @@ export class PlanDetailComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmationService);
+  private readonly translate = inject(TranslateService);
 
   readonly planId = signal<number>(0);
   readonly plan = signal<ImprovementPlan | null>(null);
@@ -71,7 +73,7 @@ export class PlanDetailComponent implements OnInit {
       labels: labels,
       datasets: [
         {
-          label: 'مستوى التقدم (%)',
+          label: this.translate.instant('FOLLOWUPS.CHART_LABEL'),
           data: data,
           fill: false,
           borderColor: '#10b981',
@@ -132,7 +134,7 @@ export class PlanDetailComponent implements OnInit {
           this.plan.set(resp.data);
           this.loadProgress();
         } else {
-          this.toast.error('خطأ', resp.message || 'تعذر تحميل خطة التحسين.');
+          this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('FOLLOWUPS.LOAD_FAILED'));
           this.loading.set(false);
         }
       },
@@ -197,50 +199,59 @@ export class PlanDetailComponent implements OnInit {
         next: (resp) => {
           this.submitting.set(false);
           if (resp.isSuccess) {
-            this.toast.success('نجاح', 'تم إضافة المتابعة بنجاح.');
+            this.toast.success(this.t('COMMON.SUCCESS'), this.t('FOLLOWUPS.ADD_SUCCESS'));
             this.followUpDialogVisible.set(false);
             this.loadAll();
           } else {
-            this.toast.error('خطأ', resp.message || 'تعذر إضافة المتابعة.');
+            this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('FOLLOWUPS.ADD_FAILED'));
           }
         },
-        error: () => this.submitting.set(false)
+        error: (error) => {
+          this.submitting.set(false);
+          this.toast.error(this.t('COMMON.ERROR'), error?.error?.message || this.t('FOLLOWUPS.ADD_FAILED'));
+        }
       });
     } else {
       this.plansService.updateFollowUp(this.selectedFollowUpId()!, body).subscribe({
         next: (resp) => {
           this.submitting.set(false);
           if (resp.isSuccess) {
-            this.toast.success('نجاح', 'تم تحديث المتابعة بنجاح.');
+            this.toast.success(this.t('COMMON.SUCCESS'), this.t('FOLLOWUPS.UPDATE_SUCCESS'));
             this.followUpDialogVisible.set(false);
             this.loadAll();
           } else {
-            this.toast.error('خطأ', resp.message || 'تعذر تحديث المتابعة.');
+            this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('FOLLOWUPS.UPDATE_FAILED'));
           }
         },
-        error: () => this.submitting.set(false)
+        error: (error) => {
+          this.submitting.set(false);
+          this.toast.error(this.t('COMMON.ERROR'), error?.error?.message || this.t('FOLLOWUPS.UPDATE_FAILED'));
+        }
       });
     }
   }
 
   confirmDelete(fu: PlanFollowUp): void {
     this.confirm.confirm({
-      message: 'هل أنت متأكد من حذف هذه المتابعة؟',
-      header: 'تأكيد الحذف',
+      message: this.t('FOLLOWUPS.DELETE_CONFIRM'),
+      header: this.t('FOLLOWUPS.DELETE_CONFIRM_TITLE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'نعم، احذف',
-      rejectLabel: 'إلغاء',
+      acceptLabel: this.t('FOLLOWUPS.DELETE_ACCEPT'),
+      rejectLabel: this.t('COMMON.CANCEL'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.plansService.deleteFollowUp(fu.id).subscribe({
           next: (resp) => {
             if (resp.isSuccess) {
-              this.toast.success('نجاح', 'تم حذف المتابعة بنجاح.');
+              this.toast.success(this.t('COMMON.SUCCESS'), this.t('FOLLOWUPS.DELETE_SUCCESS'));
               this.loadAll();
             } else {
-              this.toast.error('خطأ', resp.message || 'تعذر حذف المتابعة.');
+              this.toast.error(this.t('COMMON.ERROR'), resp.message || this.t('FOLLOWUPS.DELETE_FAILED'));
             }
-          }
+          },
+          error: (error) => this.toast.error(
+            this.t('COMMON.ERROR'),
+            error?.error?.message || this.t('FOLLOWUPS.DELETE_FAILED'))
         });
       }
     });
@@ -265,10 +276,16 @@ export class PlanDetailComponent implements OnInit {
     return 'info'; // active
   }
 
-  statusLabel(status: string): string {
-    if (status === 'completed') return 'مكتملة';
-    if (status === 'cancelled') return 'ملغاة';
-    return 'نشطة';
+  statusLabelKey(status: string): string {
+    if (status === 'completed') return 'PLANS.STATUS_COMPLETED';
+    if (status === 'cancelled') return 'PLANS.STATUS_CANCELLED';
+    return 'PLANS.STATUS_ACTIVE';
+  }
+
+  progressStatusKey(score: number): string {
+    if (score >= 75) return 'FOLLOWUPS.PROGRESS_EXCELLENT';
+    if (score >= 50) return 'FOLLOWUPS.PROGRESS_IN_PROGRESS';
+    return 'FOLLOWUPS.PROGRESS_DELAYED';
   }
 
   goBack(): void {
@@ -278,5 +295,9 @@ export class PlanDetailComponent implements OnInit {
     } else {
       this.router.navigate(['/visits']);
     }
+  }
+
+  private t(key: string): string {
+    return this.translate.instant(key);
   }
 }

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { ChipsModule } from 'primeng/chips';
@@ -31,6 +31,7 @@ export class AccountSettingsComponent implements OnInit, AfterViewInit {
   private readonly auth = inject(AuthService);
   private readonly teachingService = inject(AccountTeachingService);
   private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
   readonly isInstructor = computed(() => this.auth.hasRole('Instructor'));
   readonly teachingLoading = signal(false);
@@ -101,7 +102,7 @@ export class AccountSettingsComponent implements OnInit, AfterViewInit {
         this.teachingSaving.set(false);
         if (response.isSuccess && response.data) {
           this.teachingForm.patchValue({ subject: response.data.subject ?? '', classes: response.data.classes ?? [] });
-          this.toast.success('TEACHING.SAVE_SUCCESS', response.message || '');
+          this.toast.success(this.translate.instant('TEACHING.SAVE_SUCCESS'), response.message || '');
         }
       },
       error: () => this.teachingSaving.set(false)
@@ -121,14 +122,14 @@ export class AccountSettingsComponent implements OnInit, AfterViewInit {
         this.isSaving = false;
         if (res.isSuccess) {
           this.existingSignatureDataUrl = dataUrl;
-          this.toast.success(res.message || 'تم حفظ التوقيع بنجاح');
+          this.toast.success(res.message || this.translate.instant('ACCOUNT.SIGNATURE.SAVE_SUCCESS'));
         } else {
-          this.toast.error(res.errors?.[0] || 'تعذر حفظ التوقيع');
+          this.toast.error(res.errors?.[0] || this.translate.instant('ACCOUNT.SIGNATURE.SAVE_FAILED'));
         }
       },
       error: err => {
         this.isSaving = false;
-        this.toast.error('حدث خطأ أثناء الحفظ.');
+        this.toast.error(this.translate.instant('ACCOUNT.SIGNATURE.SAVE_ERROR'));
         console.error(err);
       }
     });

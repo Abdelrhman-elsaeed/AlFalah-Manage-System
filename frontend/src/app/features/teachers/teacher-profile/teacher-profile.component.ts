@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { ChipsModule } from 'primeng/chips';
 import { TableModule } from 'primeng/table';
@@ -35,6 +35,7 @@ export class TeacherProfileComponent implements OnInit {
   private readonly teachersService = inject(TeachersService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
   readonly userId = signal<string | null>(null);
   readonly profile = signal<TeacherProfile | null>(null);
@@ -146,7 +147,7 @@ export class TeacherProfileComponent implements OnInit {
         if (resp.isSuccess && resp.data) {
           this.profile.set(resp.data);
         } else {
-          this.toast.error('TEACHERS.PROFILE_LOAD_FAILED', resp.message || '');
+          this.toast.error(this.translate.instant('TEACHERS.PROFILE_LOAD_FAILED'), resp.message || '');
         }
       }
     });
@@ -156,7 +157,7 @@ export class TeacherProfileComponent implements OnInit {
         if (resp.isSuccess && resp.data) {
           this.visits.set(resp.data);
         } else {
-          this.toast.error('TEACHERS.VISITS_LOAD_FAILED', resp.message || '');
+          this.toast.error(this.translate.instant('TEACHERS.VISITS_LOAD_FAILED'), resp.message || '');
         }
       }
     });
@@ -166,7 +167,7 @@ export class TeacherProfileComponent implements OnInit {
         if (resp.isSuccess && resp.data) {
           this.progress.set(resp.data);
         } else {
-          this.toast.error('TEACHERS.PROGRESS_LOAD_FAILED', resp.message || '');
+          this.toast.error(this.translate.instant('TEACHERS.PROGRESS_LOAD_FAILED'), resp.message || '');
         }
         this.loading.set(false);
       },
@@ -203,7 +204,7 @@ export class TeacherProfileComponent implements OnInit {
       next: response => {
         this.savingClasses.set(false);
         if (!response.isSuccess || !response.data) {
-          this.toast.error('TEACHERS.CLASSES_SAVE_FAILED', response.message || '');
+          this.toast.error(this.translate.instant('TEACHERS.CLASSES_SAVE_FAILED'), response.message || '');
           return;
         }
 
@@ -211,11 +212,11 @@ export class TeacherProfileComponent implements OnInit {
           ? { ...current, subject: response.data!.subject, stage: response.data!.stage, classes: response.data!.classes }
           : current);
         this.editingClasses.set(false);
-        this.toast.success('TEACHERS.CLASSES_SAVE_SUCCESS', response.message || '');
+        this.toast.success(this.translate.instant('TEACHERS.CLASSES_SAVE_SUCCESS'), response.message || '');
       },
       error: () => {
         this.savingClasses.set(false);
-        this.toast.error('TEACHERS.CLASSES_SAVE_FAILED');
+        this.toast.error(this.translate.instant('TEACHERS.CLASSES_SAVE_FAILED'));
       }
     });
   }

@@ -1,201 +1,168 @@
 <div class="page page--narrow" dir="rtl">
-  <!-- Page Header -->
   <header class="page-header" *ngIf="plan() as p">
     <div class="page-header__titles">
-      <h1 class="page-header__title">تفاصيل خطة التحسين</h1>
+      <h1 class="page-header__title">{{ 'FOLLOWUPS.DETAIL_TITLE' | translate }}</h1>
       <p class="page-header__subtitle">
-        <span>المعلم: {{ p.instructorFullName }}</span>
+        <span>{{ 'FOLLOWUPS.INSTRUCTOR' | translate }}: {{ p.instructorFullName }}</span>
         <span class="meta-sep">·</span>
-        <p-tag [severity]="statusSeverity(p.status)" [value]="statusLabel(p.status)"></p-tag>
+        <p-tag [severity]="statusSeverity(p.status)" [value]="statusLabelKey(p.status) | translate"></p-tag>
       </p>
     </div>
     <div class="page-header__action">
       <button pButton type="button" icon="pi pi-arrow-right"
-              label="العودة للقائمة" class="p-button-text" (click)="goBack()"></button>
+              [label]="'FOLLOWUPS.BACK_TO_LIST' | translate" class="p-button-text"
+              (click)="goBack()"></button>
       <button *ngIf="canEdit() && !p.isReadOnly" pButton type="button" icon="pi pi-plus"
-              label="إضافة متابعة" class="p-button-success" (click)="openCreateDialog()"></button>
+              [label]="'FOLLOWUPS.ADD' | translate" class="page-header__primary"
+              (click)="openCreateDialog()"></button>
     </div>
   </header>
 
   <ng-container *ngIf="loading(); else ready">
-    <div class="loading surface-card">جاري التحميل...</div>
+    <div class="loading surface-card">{{ 'COMMON.LOADING' | translate }}</div>
   </ng-container>
 
   <ng-template #ready>
     <ng-container *ngIf="plan() as p">
-      
-      <!-- Upper Section: Plan Details + Progress Summary Grid -->
-      <div class="grid col-12 px-0 mb-4 gap-4 flex-wrap align-items-stretch">
-        
-        <!-- Plan Information Card -->
-        <div class="surface-card p-4 col flex-grow-1 border-round shadow-1" style="min-width: 25rem;">
-          <h2 class="section-title mb-3"><i class="pi pi-file ml-2 text-primary"></i>بيانات خطة التحسين</h2>
-          
-          <div class="info-group mb-3">
-            <span class="info-label">المجال / المحور المرتبط:</span>
-            <span class="info-value font-bold">{{ p.domainNameAr || 'خطة عامة مشتركة' }}</span>
-          </div>
+      <div class="plan-summary-grid">
+        <section class="surface-card detail-card">
+          <h2 class="section-title"><i class="pi pi-file"></i>{{ 'FOLLOWUPS.PLAN_INFO' | translate }}</h2>
 
-          <div class="info-group mb-3">
-            <span class="info-label">الهدف الرئيسي:</span>
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.DOMAIN' | translate }}</span>
+            <span class="info-value font-bold">{{ p.domainNameAr || ('FOLLOWUPS.SHARED_GENERAL_PLAN' | translate) }}</span>
+          </div>
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.GOAL' | translate }}</span>
             <p class="info-paragraph">{{ p.goal }}</p>
           </div>
-
-          <div class="info-group mb-3">
-            <span class="info-label">الإجراءات والخطوات العملية:</span>
-            <p class="info-paragraph" style="white-space: pre-line;">{{ p.actions }}</p>
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.ACTIONS' | translate }}</span>
+            <p class="info-paragraph pre-line">{{ p.actions }}</p>
           </div>
-
-          <div class="info-group mb-3">
-            <span class="info-label">مؤشرات النجاح:</span>
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.SUCCESS_INDICATORS' | translate }}</span>
             <p class="info-paragraph">{{ p.successIndicators }}</p>
           </div>
-
-          <div class="grid col-12 px-0 py-2 border-top-1 surface-border mt-3 flex-wrap">
-            <div class="col-6">
-              <span class="info-label block">تاريخ البدء:</span>
+          <div class="date-summary">
+            <div>
+              <span class="info-label">{{ 'FOLLOWUPS.START_DATE' | translate }}</span>
               <span class="value">{{ p.startDate | date:'yyyy/MM/dd' }}</span>
             </div>
-            <div class="col-6">
-              <span class="info-label block">تاريخ الانتهاء المتوقع:</span>
+            <div>
+              <span class="info-label">{{ 'FOLLOWUPS.END_DATE' | translate }}</span>
               <span class="value">{{ p.endDate | date:'yyyy/MM/dd' }}</span>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Progress Metrics & Chart Card -->
-        <div class="surface-card p-4 col flex-grow-1 border-round shadow-1 flex flex-column justify-content-between" style="min-width: 25rem;">
-          <div>
-            <h2 class="section-title mb-3"><i class="pi pi-chart-line ml-2 text-primary"></i>مؤشر وتقدم الخطة</h2>
-            
-            <!-- Latest Progress Badge -->
-            <div class="flex align-items-center gap-3 p-3 surface-50 border-round mb-4 border-right-3"
-                 [ngClass]="'border-' + progressColorSeverity(progress()?.latestProgressColor)">
-              <div class="flex flex-column">
-                <span class="info-label">آخر نسبة إنجاز مسجلة:</span>
-                <span *ngIf="progress()?.latestProgressScore !== undefined; else noScore" class="font-bold text-3xl mt-1">
-                  {{ progress()?.latestProgressScore }}%
-                </span>
-                <ng-template #noScore>
-                  <span class="text-muted text-xl mt-1">لم تسجل نسب بعد</span>
-                </ng-template>
-              </div>
-              <p-tag *ngIf="progress()?.latestProgressScore !== undefined"
-                     [severity]="progressColorSeverity(progress()?.latestProgressColor)"
-                     [value]="progress()?.latestProgressScore! >= 75 ? 'ممتاز / مكتمل' : progress()?.latestProgressScore! >= 50 ? 'جاري التنفيذ' : 'متأخر'"
-                     styleClass="ml-auto"></p-tag>
+        <section class="surface-card detail-card progress-card">
+          <h2 class="section-title"><i class="pi pi-chart-line"></i>{{ 'FOLLOWUPS.PROGRESS_TITLE' | translate }}</h2>
+          <div class="latest-progress" [ngClass]="'latest-progress--' + progressColorSeverity(progress()?.latestProgressColor)">
+            <div>
+              <span class="info-label">{{ 'FOLLOWUPS.LATEST_SCORE' | translate }}</span>
+              <span *ngIf="progress()?.latestProgressScore != null; else noScore" class="latest-progress__score">
+                {{ progress()?.latestProgressScore }}%
+              </span>
+              <ng-template #noScore>
+                <span class="latest-progress__empty">{{ 'FOLLOWUPS.NO_SCORE' | translate }}</span>
+              </ng-template>
             </div>
+            <p-tag *ngIf="progress()?.latestProgressScore != null"
+                   [severity]="progressColorSeverity(progress()?.latestProgressColor)"
+                   [value]="progressStatusKey(progress()?.latestProgressScore!) | translate"></p-tag>
           </div>
 
-          <!-- Progress Line Chart -->
-          <div class="chart-wrapper flex-grow-1 flex align-items-center justify-content-center" style="min-height: 180px;">
-            <p-chart *ngIf="chartData()" type="line" [data]="chartData()!" [options]="chartOptions" styleClass="w-full"></p-chart>
-            
-            <div *ngIf="!chartData()" class="text-center text-muted p-4 surface-50 border-round w-full">
-              <i class="pi pi-chart-bar mb-2" style="font-size: 2rem;"></i>
-              <p class="m-0 text-sm">يلزم وجود متابعتين بأسعار إنجاز مسجلة على الأقل لرسم منحنى التقدم البياني.</p>
+          <div class="chart-wrapper">
+            <p-chart *ngIf="chartData()" type="line" [data]="chartData()!" [options]="chartOptions"></p-chart>
+            <div *ngIf="!chartData()" class="chart-empty">
+              <i class="pi pi-chart-bar"></i>
+              <p>{{ 'FOLLOWUPS.CHART_NEEDS_TWO' | translate }}</p>
             </div>
           </div>
-        </div>
-
+        </section>
       </div>
 
-      <!-- Follow-up Activity List -->
-      <div class="surface-card p-4 border-round shadow-1">
-        <h2 class="section-title mb-4"><i class="pi pi-history ml-2 text-primary"></i>سجل المتابعات والتقدم</h2>
+      <section class="surface-card followups-section">
+        <h2 class="section-title"><i class="pi pi-history"></i>{{ 'FOLLOWUPS.HISTORY' | translate }}</h2>
 
-        <!-- No Follow-ups State -->
-        <div *ngIf="p.followUps.length === 0" class="no-followups-box text-center p-5 surface-50 border-round">
-          <i class="pi pi-info-circle mb-3 text-muted" style="font-size: 2.5rem;"></i>
-          <p class="m-0">لم يتم تسجيل أي زيارات متابعة لهذه الخطة بعد.</p>
+        <div *ngIf="p.followUps.length === 0" class="no-followups-box">
+          <i class="pi pi-info-circle"></i>
+          <p>{{ 'FOLLOWUPS.EMPTY' | translate }}</p>
         </div>
 
-        <!-- Follow-ups List -->
-        <div *ngIf="p.followUps.length > 0" class="flex flex-column gap-3">
-          <div *ngFor="let fu of p.followUps" class="followup-card p-3 border-round border-1 surface-border hover-shadow">
-            <div class="flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
-              <div class="flex align-items-center gap-2">
-                <span class="font-bold text-primary">{{ fu.followDate | date:'yyyy/MM/dd' }}</span>
-                <span class="meta-sep text-muted">·</span>
-                <span class="text-sm text-muted">بواسطة: {{ fu.createdByFullName }}</span>
+        <div *ngIf="p.followUps.length > 0" class="followups-list">
+          <article *ngFor="let fu of p.followUps" class="followup-card">
+            <header class="followup-card__header">
+              <div class="followup-card__meta">
+                <strong>{{ fu.followDate | date:'yyyy/MM/dd' }}</strong>
+                <span class="meta-sep">·</span>
+                <span>{{ 'FOLLOWUPS.BY' | translate }}: {{ fu.createdByFullName }}</span>
               </div>
-              <div class="flex align-items-center gap-2">
-                <p-tag *ngIf="fu.progressScore !== null && fu.progressScore !== undefined"
+              <div class="table-actions">
+                <p-tag *ngIf="fu.progressScore != null"
                        [severity]="badgeColor(fu.progressScore)"
-                       [value]="'إنجاز: ' + fu.progressScore + '%'"></p-tag>
-                
-                <!-- Follow-up Actions -->
+                       [value]="'FOLLOWUPS.PROGRESS_VALUE' | translate:{ score: fu.progressScore }"></p-tag>
                 <button *ngIf="canEdit() && !p.isReadOnly" pButton type="button" icon="pi pi-pencil"
-                        class="p-button-text p-button-warning p-button-sm p-0 ml-1" (click)="openEditDialog(fu)"
-                        pTooltip="تعديل المتابعة" tooltipPosition="top"></button>
+                        class="p-button-text p-button-warning p-button-sm p-button-icon-only"
+                        (click)="openEditDialog(fu)"
+                        [pTooltip]="'FOLLOWUPS.EDIT' | translate" tooltipPosition="top"></button>
                 <button *ngIf="canDelete() && !p.isReadOnly" pButton type="button" icon="pi pi-trash"
-                        class="p-button-text p-button-danger p-button-sm p-0" (click)="confirmDelete(fu)"
-                        pTooltip="حذف المتابعة" tooltipPosition="top"></button>
+                        class="p-button-text p-button-danger p-button-sm p-button-icon-only"
+                        (click)="confirmDelete(fu)"
+                        [pTooltip]="'FOLLOWUPS.DELETE' | translate" tooltipPosition="top"></button>
               </div>
+            </header>
+            <div class="followup-card__body">
+              <strong>{{ 'FOLLOWUPS.PROGRESS_NOTE' | translate }}</strong>
+              <p class="pre-line">{{ fu.progressNote }}</p>
             </div>
-            
-            <div class="mb-2">
-              <strong class="block text-sm text-muted mb-1">ملاحظة التقدم:</strong>
-              <p class="m-0 text-sm font-semibold" style="white-space: pre-line;">{{ fu.progressNote }}</p>
+            <div *ngIf="fu.evidenceNote" class="followup-card__body">
+              <strong>{{ 'FOLLOWUPS.EVIDENCE' | translate }}</strong>
+              <p class="pre-line">{{ fu.evidenceNote }}</p>
             </div>
-            
-            <div *ngIf="fu.evidenceNote">
-              <strong class="block text-sm text-muted mb-1">دليل التقدم والشواهد:</strong>
-              <p class="m-0 text-xs text-muted" style="white-space: pre-line;">{{ fu.evidenceNote }}</p>
-            </div>
-          </div>
+          </article>
         </div>
-      </div>
-
+      </section>
     </ng-container>
   </ng-template>
 
-  <!-- Add/Edit Followup Dialog -->
-  <p-dialog [header]="dialogMode() === 'create' ? 'إضافة زيارة متابعة جديدة' : 'تعديل زيارة المتابعة'"
+  <p-dialog [header]="(dialogMode() === 'create' ? 'FOLLOWUPS.CREATE_DIALOG' : 'FOLLOWUPS.EDIT_DIALOG') | translate"
             [(visible)]="followUpDialogVisible" [modal]="true" [style]="{ width: '35rem' }"
             [draggable]="false" [resizable]="false">
-    <form [formGroup]="followUpForm" class="flex flex-column gap-3 mt-2" (ngSubmit)="saveFollowUp()">
-      
-      <!-- Follow Date -->
-      <div class="field flex flex-column gap-1">
-        <label for="followDate" class="font-semibold">تاريخ المتابعة <span class="text-danger">*</span></label>
-        <p-calendar id="followDate" formControlName="followDate" [showIcon]="true" dateFormat="yy/mm/dd"
-                    styleClass="w-full" appendTo="body"></p-calendar>
+    <form [formGroup]="followUpForm" class="dialog-form" (ngSubmit)="saveFollowUp()">
+      <div class="field">
+        <label for="followDate">{{ 'FOLLOWUPS.FOLLOW_DATE' | translate }} <span class="text-danger">*</span></label>
+        <p-calendar inputId="followDate" formControlName="followDate" [showIcon]="true"
+                    dateFormat="yy/mm/dd" styleClass="w-full" appendTo="body"></p-calendar>
       </div>
-
-      <!-- Progress Score (Optional) -->
-      <div class="field flex flex-column gap-1">
-        <label for="progressScore" class="font-semibold">نسبة التقدم / الإنجاز (%) (اختياري)</label>
-        <p-inputNumber id="progressScore" formControlName="progressScore" suffix="%" [min]="0" [max]="100"
-                       styleClass="w-full" class="w-full"></p-inputNumber>
-        <small class="text-muted">أدخل رقماً من 0 إلى 100 يعبر عن تقدم الخطة.</small>
+      <div class="field">
+        <label for="progressScore">{{ 'FOLLOWUPS.PROGRESS_SCORE' | translate }}</label>
+        <p-inputNumber inputId="progressScore" formControlName="progressScore" suffix="%"
+                       [min]="0" [max]="100" styleClass="w-full"></p-inputNumber>
+        <small>{{ 'FOLLOWUPS.PROGRESS_SCORE_HINT' | translate }}</small>
       </div>
-
-      <!-- Progress Note -->
-      <div class="field flex flex-column gap-1">
-        <label for="progressNote" class="font-semibold">ملاحظة التقدم <span class="text-danger">*</span></label>
+      <div class="field">
+        <label for="progressNote">{{ 'FOLLOWUPS.PROGRESS_NOTE' | translate }} <span class="text-danger">*</span></label>
         <textarea id="progressNote" pInputTextarea formControlName="progressNote" rows="3" class="w-full"
-                  placeholder="اكتب تفاصيل الزيارة والتطورات المرصودة"></textarea>
+                  [placeholder]="'FOLLOWUPS.PROGRESS_NOTE_PLACEHOLDER' | translate"></textarea>
         <small class="text-danger" *ngIf="followUpForm.get('progressNote')?.touched && followUpForm.get('progressNote')?.hasError('required')">
-          ملاحظة التقدم مطلوبة لتسجيل النشاط.
+          {{ 'FOLLOWUPS.PROGRESS_NOTE_REQUIRED' | translate }}
         </small>
       </div>
-
-      <!-- Evidence Note -->
-      <div class="field flex flex-column gap-1">
-        <label for="evidenceNote" class="font-semibold">الشواهد والأدلة (اختياري)</label>
+      <div class="field">
+        <label for="evidenceNote">{{ 'FOLLOWUPS.EVIDENCE_OPTIONAL' | translate }}</label>
         <textarea id="evidenceNote" pInputTextarea formControlName="evidenceNote" rows="2" class="w-full"
-                  placeholder="اذكر روابط أو عناوين الملفات الداعمة إن وجدت"></textarea>
+                  [placeholder]="'FOLLOWUPS.EVIDENCE_PLACEHOLDER' | translate"></textarea>
       </div>
-
-      <!-- Submit Actions -->
-      <div class="flex justify-content-end gap-2 mt-3">
-        <button pButton type="button" label="إلغاء" class="p-button-text" (click)="followUpDialogVisible.set(false)" [disabled]="submitting()"></button>
-        <button pButton type="submit" label="حفظ المتابعة" class="p-button-success" [loading]="submitting()"></button>
+      <div class="dialog-actions">
+        <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-text"
+                (click)="followUpDialogVisible.set(false)" [disabled]="submitting()"></button>
+        <button pButton type="submit" icon="pi pi-save" [label]="'FOLLOWUPS.SAVE' | translate"
+                [loading]="submitting()"></button>
       </div>
     </form>
   </p-dialog>
 
-  <!-- Global Confirm Dialog -->
   <p-confirmDialog appendTo="body"></p-confirmDialog>
 </div>

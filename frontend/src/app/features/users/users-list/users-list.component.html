@@ -18,17 +18,17 @@
     </app-list-toolbar-field>
 
     <app-list-toolbar-field labelKey="USERS.ROLE">
-      <p-dropdown [options]="roleOptions" [ngModel]="roleFilter()"
-                (onChange)="roleFilter.set($event.value); onFilter()"
-                [placeholder]="'USERS.ROLE' | translate" [showClear]="true"
-                appendTo="body"></p-dropdown>
+      <app-clearable-select [options]="roleOptions" [ngModel]="roleFilter()"
+                            (ngModelChange)="roleFilter.set($event); onFilter()"
+                            [placeholder]="'USERS.ROLE' | translate"
+                            appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
 
     <app-list-toolbar-field labelKey="COMMON.ACTIVE">
-      <p-dropdown [options]="isActiveOptions" [ngModel]="isActiveFilter()"
-                (onChange)="isActiveFilter.set($event.value); onFilter()"
-                [placeholder]="'COMMON.ACTIVE' | translate" [showClear]="true"
-                appendTo="body"></p-dropdown>
+      <app-clearable-select [options]="isActiveOptions" [ngModel]="isActiveFilter()"
+                            (ngModelChange)="isActiveFilter.set($event); onFilter()"
+                            [placeholder]="'COMMON.ACTIVE' | translate"
+                            appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
   </app-list-toolbar>
 
@@ -108,23 +108,22 @@
       <form [formGroup]="assignForm" (ngSubmit)="submitAssign()">
         <div class="field">
           <label for="assign-school">{{ 'USERS.SCHOOL' | translate }} *</label>
-          <p-dropdown inputId="assign-school" [options]="availableSchools()" formControlName="schoolId"
-                    optionLabel="name" optionValue="id"
-                    [placeholder]="'COMMON.SELECT' | translate"
-                    [filter]="true" filterBy="name"
-                    [showClear]="true"
-                    appendTo="body"
-                    [emptyMessage]="'USERS.NO_SCHOOLS_AVAILABLE' | translate"
-                    [loading]="schoolsLoading()"
-                    styleClass="w-100"></p-dropdown>
+          <app-clearable-select inputId="assign-school" [options]="availableSchools()" formControlName="schoolId"
+                                optionLabel="name" optionValue="id"
+                                [placeholder]="'COMMON.SELECT' | translate"
+                                [filter]="true" filterBy="name"
+                                appendTo="body"
+                                [emptyMessage]="'USERS.NO_SCHOOLS_AVAILABLE' | translate"
+                                [loading]="schoolsLoading()"
+                                styleClass="w-100"></app-clearable-select>
         </div>
 
         <div class="field">
           <label for="assign-role">{{ 'USERS.ROLE' | translate }} *</label>
-          <p-dropdown inputId="assign-role" [options]="roleOptions" formControlName="role"
-                    optionLabel="label" optionValue="value"
-                    appendTo="body"
-                    styleClass="w-100"></p-dropdown>
+          <app-clearable-select inputId="assign-role" [options]="roleOptions" formControlName="role"
+                                optionLabel="label" optionValue="value"
+                                [clearable]="false" appendTo="body"
+                                styleClass="w-100"></app-clearable-select>
         </div>
       </form>
     </div>

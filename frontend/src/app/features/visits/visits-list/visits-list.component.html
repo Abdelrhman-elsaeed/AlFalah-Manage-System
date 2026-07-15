@@ -15,17 +15,17 @@
 
   <app-list-toolbar>
     <app-list-toolbar-field labelKey="VISITS.STATUS">
-      <p-dropdown [options]="statuses" optionLabel="labelAr" optionValue="value"
-                  [ngModel]="statusFilter()" (onChange)="statusFilter.set($event.value)"
-                  [showClear]="true" [placeholder]="'VISITS.ALL_STATUSES' | translate"
-                  appendTo="body"></p-dropdown>
+      <app-clearable-select [options]="statuses" optionLabel="label" optionValue="value"
+                            [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)"
+                            [placeholder]="'VISITS.ALL_STATUSES' | translate"
+                            appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
 
     <app-list-toolbar-field labelKey="VISITS.VISIT_CATEGORY">
-      <p-dropdown [options]="categories" optionLabel="labelAr" optionValue="value"
-                  [ngModel]="categoryFilter()" (onChange)="categoryFilter.set($event.value)"
-                  [showClear]="true" [placeholder]="'VISITS.ALL_CATEGORIES' | translate"
-                  appendTo="body"></p-dropdown>
+      <app-clearable-select [options]="categories" optionLabel="label" optionValue="value"
+                            [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event)"
+                            [placeholder]="'VISITS.ALL_CATEGORIES' | translate"
+                            appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
 
     <app-list-toolbar-field labelKey="VISITS.FROM_DATE">

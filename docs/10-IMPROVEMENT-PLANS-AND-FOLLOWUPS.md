@@ -1,6 +1,6 @@
 # 10 — Improvement Plans & Follow-ups
 
-**Status:** Reference (not implemented in Phase 1) · **Last updated:** 2026-07-10
+**Status:** Implemented · **Last updated:** 2026-07-15
 
 > This module must follow the **old desktop system logic EXACTLY** when implemented later.
 > **Do not add new restrictions unless explicitly requested.**
@@ -143,3 +143,17 @@
   - < 50 → red / danger
 
 > Do not implement Improvement Plans or Follow-ups in Phase 1.
+
+## UI completion evidence (2026-07-15)
+
+- Plan status selection uses the unified clearable select; required values are
+  not clearable. Start, end, and follow-up dates use PrimeNG calendars.
+- Plan/follow-up labels, dialogs, confirmations, validation messages, and toasts
+  use `PLANS.*`, `FOLLOWUPS.*`, and shared i18n keys with Arabic/English parity.
+- D-70 is explicit in the mutation paths: a successful plan create/update closes
+  its dialog and reloads the plan list; delete also reloads the list.
+- D-71 is explicit in the mutation paths: a successful follow-up create/update
+  closes its dialog and reloads plan, follow-ups, and progress; delete performs
+  the same reload. Opening either dialog resets its form state.
+- The old behavior above remains unchanged, including non-blocking reversed-date
+  warnings, multiple plans, status-independent edits/follow-ups, and chart rules.

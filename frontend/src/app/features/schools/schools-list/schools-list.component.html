@@ -18,19 +18,17 @@
     </app-list-toolbar-field>
 
     <app-list-toolbar-field labelKey="SCHOOLS.STAGE_LABEL">
-      <p-dropdown [options]="stageOptions" [ngModel]="stageFilter()"
-                  (onChange)="stageFilter.set($event.value); onFilter()"
-                  [placeholder]="'SCHOOLS.STAGE_LABEL' | translate"
-                  [showClear]="true"
-                  appendTo="body"></p-dropdown>
+      <app-clearable-select [options]="stageOptions" [ngModel]="stageFilter()"
+                            (ngModelChange)="stageFilter.set($event); onFilter()"
+                            [placeholder]="'SCHOOLS.STAGE_LABEL' | translate"
+                            appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
 
     <app-list-toolbar-field labelKey="COMMON.ACTIVE">
-      <p-dropdown [options]="isActiveOptions" [ngModel]="isActiveFilter()"
-                  (onChange)="isActiveFilter.set($event.value); onFilter()"
-                  [placeholder]="'COMMON.ACTIVE' | translate"
-                  [showClear]="true"
-                  appendTo="body"></p-dropdown>
+      <app-clearable-select [options]="isActiveOptions" [ngModel]="isActiveFilter()"
+                            (ngModelChange)="isActiveFilter.set($event); onFilter()"
+                            [placeholder]="'COMMON.ACTIVE' | translate"
+                            appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
   </app-list-toolbar>
 
@@ -137,17 +135,16 @@
       <form [formGroup]="assignForm" (ngSubmit)="submitAssignManager()">
         <div class="field">
           <label for="assign-user">{{ 'USERS.FULL_NAME' | translate }} *</label>
-          <p-dropdown inputId="assign-user"
-                      [options]="availableManagers()"
-                      formControlName="userId"
-                      optionLabel="fullName" optionValue="userId"
-                      [placeholder]="'COMMON.SELECT' | translate"
-                      [filter]="true" filterBy="fullName"
-                      [showClear]="true"
-                      appendTo="body"
-                      [emptyMessage]="'SCHOOLS.NO_MANAGERS_AVAILABLE' | translate"
-                      [loading]="managersLoading()"
-                      styleClass="w-100"></p-dropdown>
+          <app-clearable-select inputId="assign-user"
+                                [options]="availableManagers()"
+                                formControlName="userId"
+                                optionLabel="fullName" optionValue="userId"
+                                [placeholder]="'COMMON.SELECT' | translate"
+                                [filter]="true" filterBy="fullName"
+                                appendTo="body"
+                                [emptyMessage]="'SCHOOLS.NO_MANAGERS_AVAILABLE' | translate"
+                                [loading]="managersLoading()"
+                                styleClass="w-100"></app-clearable-select>
         </div>
       </form>
     </div>

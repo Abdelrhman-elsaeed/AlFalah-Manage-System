@@ -8,7 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -27,7 +27,7 @@ import { SchoolListItem, SchoolStage } from '../../../core/models/phase2.models'
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, DropdownModule,
+    TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, ClearableSelectComponent,
     TagModule, TooltipModule, ConfirmDialogModule, DialogModule,
     ListPageHeaderComponent, ListToolbarComponent, ListToolbarFieldComponent
   ],
@@ -69,14 +69,14 @@ export class SchoolsListComponent implements OnInit {
   }
 
   readonly stageOptions = [
-    { label: 'ابتدائي', value: 'Primary' },
-    { label: 'متوسط', value: 'Intermediate' },
-    { label: 'ثانوي', value: 'Secondary' }
+    { label: this.translate.instant('SCHOOLS.STAGE.PRIMARY'), value: 'Primary' },
+    { label: this.translate.instant('SCHOOLS.STAGE.INTERMEDIATE'), value: 'Intermediate' },
+    { label: this.translate.instant('SCHOOLS.STAGE.SECONDARY'), value: 'Secondary' }
   ];
 
   readonly isActiveOptions = [
-    { label: 'نشطة', value: true },
-    { label: 'غير نشطة', value: false }
+    { label: this.translate.instant('SCHOOLS.ACTIVE'), value: true },
+    { label: this.translate.instant('SCHOOLS.INACTIVE'), value: false }
   ];
 
   ngOnInit(): void {
@@ -116,11 +116,11 @@ export class SchoolsListComponent implements OnInit {
   confirmDelete(school: SchoolListItem, event: Event): void {
     this.confirm.confirm({
       target: event.target as EventTarget,
-      message: 'هل تريد حذف هذه المدرسة؟ سيتم إخفاء المدرسة من القوائم مع الإبقاء على بياناتها.',
-      header: 'تأكيد الحذف',
+      message: `${this.translate.instant('SCHOOLS.CONFIRM_DELETE')} ${this.translate.instant('SCHOOLS.DELETE_WARNING')}`,
+      header: this.translate.instant('SCHOOLS.DELETE_CONFIRM_TITLE'),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'نعم، احذف',
-      rejectLabel: 'إلغاء',
+      acceptLabel: this.translate.instant('SCHOOLS.DELETE_ACCEPT'),
+      rejectLabel: this.translate.instant('COMMON.CANCEL'),
       accept: () => this.deleteSchool(school.id)
     });
   }
@@ -129,7 +129,7 @@ export class SchoolsListComponent implements OnInit {
     this.schoolsService.delete(id).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success('تم الحذف', response.message || 'تم حذف المدرسة بنجاح.');
+          this.toast.success(this.translate.instant('COMMON.SUCCESS'), response.message || this.translate.instant('SCHOOLS.DELETE_SUCCESS'));
           this.loadSchools();
         }
       }
@@ -144,7 +144,7 @@ export class SchoolsListComponent implements OnInit {
     action.subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success('تم التحديث', response.message || 'تم تحديث حالة المدرسة.');
+          this.toast.success(this.translate.instant('COMMON.SUCCESS'), response.message || this.translate.instant('SCHOOLS.STATUS_UPDATE_SUCCESS'));
           this.loadSchools();
         }
       }
@@ -187,7 +187,7 @@ export class SchoolsListComponent implements OnInit {
     this.schoolsService.assignManager(schoolId, this.assignForm.value).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success('تم التعيين', response.message || 'تم تعيين مدير المدرسة بنجاح.');
+          this.toast.success(this.translate.instant('COMMON.SUCCESS'), response.message || this.translate.instant('SCHOOLS.ASSIGN_SUCCESS'));
           this.assignDialogVisible.set(false);
           this.loadSchools();
         }

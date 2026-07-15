@@ -47,7 +47,7 @@ export class MainManagerLoginComponent {
           if (roles.includes('SuperAdmin') || roles.includes('MainManager')) {
             this.router.navigate(['/main-manager/dashboard']);
           } else {
-            this.errorMessage.set('هذا الحساب لا يملك صلاحية الوصول إلى لوحة المدير العام.');
+            this.errorMessage.set(this.translate.instant('AUTH.ERROR_MAIN_MANAGER_ROLE_REQUIRED'));
           }
         } else {
           this.errorMessage.set(response.message || this.translate.instant('AUTH.ERROR_INVALID_CREDENTIALS'));
