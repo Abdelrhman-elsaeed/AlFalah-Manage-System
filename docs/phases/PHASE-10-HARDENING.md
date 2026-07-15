@@ -52,3 +52,22 @@ All previous phases.
   exception.
 - The backend suite passes 70/70 tests. These items complete the ordered GAP 4;
   the broader Phase 10 production-readiness acceptance criteria remain in progress.
+
+## 2026-07-15 desktop-parity Phase 0 evidence
+
+- P0.1 removes client-writable plan `InstructorId`; plan `SchoolId`,
+  `InstructorId`, and `VisitId` are derived from the loaded visit. Optional
+  `DomainId` must belong to the visit's snapshotted rubric version or the API
+  returns an Arabic 400 `ApiResponse`. No migration was required.
+- P0.2 adds EF-backed service integration tests for visit detail, instructor
+  report, PDF payload authorization, plan CRUD, follow-up CRUD, teacher profile,
+  cross-school scope, approval visibility, Moderator own-created scope, and the
+  D-53/D-75 complaint hard blocks.
+- P0.3 confirms the Moderator teacher policy as read-only within
+  `ActiveSchoolId`. The canonical seed map grants `Instructor.View` but not
+  `User.View/Edit/Delete` or complaint permissions. Teacher endpoints, route,
+  and navigation consume `Instructor.View`; `/users` now has explicit permission
+  gates so it cannot become a bypass for teacher edit/deactivation.
+- Verification: backend Release build 0 warnings/errors; 87/87 backend tests;
+  frontend production build green; Arabic/English parity 623/623. D-24, D-28,
+  D-36, D-37, D-53, D-65, and D-75 remain unchanged. Phase 1 was not started.

@@ -21,6 +21,7 @@
     <ProjectReference Include="..\AlFalah.Domain\AlFalah.Domain.csproj" />
     <ProjectReference Include="..\AlFalah.Shared\AlFalah.Shared.csproj" />
     <ProjectReference Include="..\AlFalah.Infrastructure\AlFalah.Infrastructure.csproj" />
+    <ProjectReference Include="..\AlFalah.Api\AlFalah.Api.csproj" />
   </ItemGroup>
 
 </Project>

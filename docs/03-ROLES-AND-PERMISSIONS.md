@@ -99,6 +99,14 @@ requires logout/login again.
 - Upload evidence attachments
 - Print/export report
 
+**Teacher access policy (D-83):** the first permission above is implemented by
+the narrow `Instructor.View` permission, not `User.View`. A Moderator may open
+`المعلمون` and an in-scope teacher profile only when the teacher has an active
+Instructor assignment in the token's `ActiveSchoolId`; another school's teacher
+returns 403. The Moderator receives no user-directory, create, edit, deactivate,
+or delete permission. The profile's `زيارة جديدة` action reuses `Visit.Create`
+with that in-scope teacher preselected.
+
 **Restrictions:**
 - Evaluation result does not appear to Instructor until School Manager approves it.
 - **Must not access complaints anywhere**: no complaint route, sidebar item,

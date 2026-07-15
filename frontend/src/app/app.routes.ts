@@ -141,13 +141,13 @@ export const routes: Routes = [
         ]
       },
 
-      // ─── Teachers: manager-facing list and profile ─────────────────────
+      // ─── Teachers: school-scoped list and profile ──────────────────────
       {
         path: 'teachers',
         canActivate: [roleGuard, permissionGuard],
         data: {
-          roles: ['SchoolManager', 'MainManager', 'SuperAdmin'],
-          permissions: ['User.View']
+          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+          permissions: ['Instructor.View']
         },
         children: [
           {

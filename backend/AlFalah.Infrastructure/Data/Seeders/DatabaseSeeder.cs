@@ -263,6 +263,8 @@ public class DatabaseSeeder
 
             [RoleNames.Moderator] = new[]
             {
+                // P0.3: narrow teacher-directory/profile read. Deliberately do
+                // not grant User.View/User.Edit/User.Delete (no broad directory).
                 PermissionNames.InstructorView,
                 PermissionNames.VisitView, PermissionNames.VisitCreate,
                 PermissionNames.VisitEdit, PermissionNames.VisitDelete, PermissionNames.VisitSubmit,

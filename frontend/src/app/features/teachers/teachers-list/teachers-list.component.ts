@@ -51,7 +51,6 @@ export class TeachersListComponent implements OnInit {
   // VIEW-only here; only roles with user-management write perms get
   // edit/delete, and ONLY roles allowed to create Instructors get the
   // "+ إضافة معلم" button).
-  readonly canViewUsers = computed(() => this.auth.hasPermission('User.View'));
   readonly canCreateUsers = computed(() =>
     this.auth.hasPermission('User.Create')
     // MainManager + Moderator cannot create instructors per docs/03.

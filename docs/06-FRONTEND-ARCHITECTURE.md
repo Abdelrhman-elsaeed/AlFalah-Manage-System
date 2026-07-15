@@ -101,7 +101,9 @@ src/app/features
   تقاريري، إعدادات الحساب, with no category headers or supervisor/complaint
   items.
 - `/teachers` and `/teachers/:userId` are lazy standalone routes protected by
-  `roleGuard` (SchoolManager/MainManager/SuperAdmin) and `User.View`.
+  `roleGuard` (SchoolManager/Moderator/MainManager/SuperAdmin) and the narrow
+  `Instructor.View` permission. Moderator sees the `المعلمون` navigation item,
+  but no `/users` item or teacher edit/deactivate controls.
 
 ## Unified controls and localization (2026-07-15)
 

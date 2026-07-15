@@ -12,8 +12,8 @@ namespace AlFalah.Api.Controllers;
 /// D-71 — Teachers Management + Teacher Profile (additive, no new phase).
 ///
 /// Routes mirror the desktop reference's two screens:
-///  - GET    /api/v1/teachers                  → list (إدارة المعلمين)         — Users.View
-///  - GET    /api/v1/teachers/{userId}         → profile header                — Users.View
+///  - GET    /api/v1/teachers                  → list (إدارة المعلمين)         — Instructor.View
+///  - GET    /api/v1/teachers/{userId}         → profile header                — Instructor.View
 ///  - GET    /api/v1/teachers/{userId}/visits  → profile visits table (D-37)   — Visits.View
 ///  - GET    /api/v1/teachers/{userId}/progress → profile radar (D-37)         — Visits.View
 ///
@@ -53,7 +53,7 @@ public class TeachersController : ControllerBase
         [FromQuery] string? search = null,
         CancellationToken cancellationToken = default)
     {
-        if (!_currentUser.HasPermission(PermissionNames.UserView))
+        if (!_currentUser.HasPermission(PermissionNames.InstructorView))
             return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لعرض المعلمين."));
 
         var query = new TeacherListQuery
@@ -79,7 +79,7 @@ public class TeachersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), 404)]
     public async Task<IActionResult> GetProfile(string userId, CancellationToken cancellationToken)
     {
-        if (!_currentUser.HasPermission(PermissionNames.UserView))
+        if (!_currentUser.HasPermission(PermissionNames.InstructorView))
             return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لعرض ملف المعلم."));
 
         try

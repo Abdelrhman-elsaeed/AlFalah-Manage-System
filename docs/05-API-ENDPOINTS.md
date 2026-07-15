@@ -307,6 +307,13 @@ through `SchoolScopeGuard`.
 
 | Method | Route | Permission / scope | Description |
 |---|---|---|---|
+| GET | `/api/v1/teachers` | `Instructor.View`, school-scoped | Teacher-only directory. Moderator receives only active Instructors in `ActiveSchoolId`; this does not expose `/users`. |
+| GET | `/api/v1/teachers/{userId}` | `Instructor.View`, school-scoped | Teacher profile header. Cross-school teacher is 403. |
+| GET | `/api/v1/teachers/{userId}/visits` | `Visit.View`, school-scoped + D-37 | Moderator sees only visits they created for that teacher. |
+| GET | `/api/v1/teachers/{userId}/progress` | `Visit.View`, school-scoped + D-37 | Progress is built only from the Moderator's in-scope visits. |
+
+| Method | Route | Permission / scope | Description |
+|---|---|---|---|
 | GET | `/api/v1/account/teaching` | Authenticated Instructor, self-only | Current teacher's subject, stage, and class labels. |
 | PUT | `/api/v1/account/teaching` | Authenticated Instructor, self-only | Save own subject and class labels; never accepts another user id. |
 | GET | `/api/v1/teachers/{userId}/teaching` | `Visit.Create`, school-scoped | Teaching payload for manager edit and visit-form auto-fill. Any visit creator may read an in-scope Instructor's subject/classes; cross-school remains 403. |

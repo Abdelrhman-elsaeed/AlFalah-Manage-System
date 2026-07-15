@@ -77,8 +77,8 @@ export class ShellComponent implements OnInit {
           labelKey: 'NAV.TEACHERS',
           icon: 'pi pi-id-card',
           route: '/teachers',
-          roles: ['SchoolManager', 'MainManager', 'SuperAdmin'],
-          permissions: ['User.View']
+          roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+          permissions: ['Instructor.View']
         },
         { labelKey: 'NAV.USERS', icon: 'pi pi-users', route: '/users', permissions: ['User.View'] },
         { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] }

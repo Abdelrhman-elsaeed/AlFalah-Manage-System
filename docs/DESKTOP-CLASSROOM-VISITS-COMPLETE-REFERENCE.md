@@ -839,7 +839,7 @@ delta = latestDomainAverage - earliestDomainAverage
 | المتابعة | السجل، النسبة، الألوان، Line chart موجودة | اختلافات Layout طفيفة فقط | أعط الأولوية للمحتوى: معلومات الخطة أعلى، سجل واسع، بطاقة آخر تقدم واضحة، أفعال نصية. |
 | حالة الخطة | موجودة | يمكن إضافة متابعة لخطة مكتملة/ملغاة إذا سمحت الـAPI | **UNCLEAR — needs confirmation**. الأفضل Read-only عند مكتملة/ملغاة مع إعادة تنشيط صريحة. |
 | ملف المعلم | البيانات، الفصول، الزيارات، Radar موجودة | لا يوجد `التغير بين أول وآخر زيارة:` بالأرقام | أضف جدول Delta زمنيًا من الأقدم للأحدث مع `▲/▼/─`. |
-| وصول Moderator | منطق إنشاء الزيارة يتضمن Moderator | Route/Nav المعلمين مقصوران على Manager/Admin | المشرف لا يستطيع بدء الرحلة الطبيعية من ملف المعلم | امنح Moderator وصول `User.View` المقيد بالمدرسة/المعلمين اللازمين، أو وفر Picker/Profile آمنًا خاصًا به. **UNCLEAR — confirm policy**. |
+| وصول Moderator | منطق إنشاء الزيارة يتضمن Moderator | **تم في Phase 0:** Route/Nav المعلمين متاحان للمشرف بصلاحية `Instructor.View` الضيقة ومقيدان بـ`ActiveSchoolId` | لا توجد فجوة حالية؛ ملف المعلم يفتح مسار الزيارة مع المعلم محددًا مسبقًا | **CONFIRMED/IMPLEMENTED:** لا يمنح المشرف `User.View` ولا تعديل/تعطيل/حذف المعلمين، والمعلم خارج المدرسة يرجع 403. |
 | قائمة المعلمين | أعمدة وإجراءات موجودة | Empty state مقتضب، الإجراءات Icon-heavy | أضف الوصف وزر الإجراء؛ اعرض Labels/Tooltips واضحة، خصوصًا `ملف المعلم`. |
 | Dashboard | لوحات حية حسب الدور وتحليلات أوسع | تجربة القديم تعرض Quick action وأحدث الزيارات والمعلمين ببساطة | احتفظ بالتحليلات، لكن ضع `زيارة جديدة` وأحدث الزيارات والمسودات في الطبقة الأولى للمشرف. |
 | الحذف | الويب Soft delete ومقيد بالحالة/الصلاحية | القديم Hard delete ووعد Cascade غير صحيح | احتفظ بتصميم الويب، واعرض رسالة تطابق ما يحدث فعلاً. |
@@ -874,6 +874,10 @@ Angular form/model
 # SECTION 9 — Prioritized Implementation Plan
 
 ## Phase 0 — Security and data integrity
+
+**Implementation status (2026-07-15): COMPLETED.** P0.1–P0.3 only were
+implemented and verified; Phase 1 was intentionally not started. No migration
+was required.
 
 ### P0.1 Derive plan ownership from the visit
 
