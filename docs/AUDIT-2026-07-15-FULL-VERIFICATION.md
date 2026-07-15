@@ -41,3 +41,9 @@ migrations, Angular routes/pages/shell and automated checks.
 4. **Functional/UI:** rebuild the D-73 categorized sidebar and complete the visibility-specific navigation matrix.
 5. **Quality/UI:** remove the nullable warning, verify D-70/D-71 interaction behaviour, normalize remaining controls and move hard-coded UI text into i18n with ar/en parity.
 6. **Deployment verification:** apply/inspect migrations only against the configured development database; do not alter production.
+
+## Gap-completion progress
+
+| Requested gap | Status | Verification |
+|---|---|---|
+| GAP 1 — P9 real dashboards | **Completed 2026-07-15** | Four scoped API-backed dashboards; PrimeNG charts; Excel/PDF buttons; no Main Manager complaint widget; no Moderator complaint data in DTO/Excel/PDF; backend build 0 warnings/errors; 67 tests pass; frontend build green; ar/en 422/422. |

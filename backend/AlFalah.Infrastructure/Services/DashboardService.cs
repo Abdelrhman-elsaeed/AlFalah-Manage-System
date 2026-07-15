@@ -25,8 +25,8 @@ namespace AlFalah.Infrastructure.Services;
 ///  - <c>GetSchoolManagerDashboardAsync</c>   : scoped to caller's ActiveSchoolId
 ///    via <see cref="SchoolScopeGuard"/> — cross-school impossible.
 ///  - <c>GetModeratorDashboardAsync</c>       : scoped to ActiveSchoolId AND
-///    <c>Visit.CreatedByUserId == self</c> (D-37 pattern). Complaints listed
-///    are only those whose snapshotted <c>ModeratorUserId == self</c>.
+///    <c>Visit.CreatedByUserId == self</c> (D-37 pattern), with no complaint
+///    count, summary, export sheet, or PDF section (D-75).
 ///  - <c>GetInstructorDashboardAsync</c>      : scoped to
 ///    <c>Visit.InstructorId == self</c> AND <c>Visit.Status == Approved</c>
 ///    (D-36 pattern).
@@ -414,50 +414,6 @@ public class DashboardService : IDashboardService
             .Take(10)
             .ToList();
 
-        // D-75 — Moderator must NEVER see complaint content (same hard block as
-        // MainManager). Even the partial "own-visit" scope is removed: the
-        // dashboard must not leak complaint counts/subjects/instructor names
-        // tied to complaints. For a *pure* Moderator caller (Moderator role,
-// not also SM or SuperAdmin), we force zero + empty list. A Moderator
-        // who is ALSO SchoolManager keeps the SM-wide view.
-        var ownComplaints = IsComplaintsBlockedForCurrentCaller()
-            ? new List<ComplaintSummaryDto>()
-            : null;
-
-        if (ownComplaints == null)
-        {
-            var raw = await _context.Complaints.AsNoTracking()
-                .Where(c => c.SchoolId == schoolId
-                         && c.ModeratorUserId == currentUserId
-                         && !c.IsDeleted)
-                .OrderByDescending(c => c.CreatedAt)
-                .Take(20)
-                .Select(c => new
-                {
-                    c.Id,
-                    c.SchoolId,
-                    SchoolName = c.School.Name,
-                    c.VisitId,
-                    c.Status,
-                    c.CreatedAt,
-                    c.Instructor!.FirstName,
-                    c.Instructor!.LastName
-                })
-                .ToListAsync(cancellationToken);
-
-            ownComplaints = raw.Select(c => new ComplaintSummaryDto
-            {
-                Id = c.Id,
-                SchoolId = c.SchoolId,
-                SchoolName = c.SchoolName,
-                VisitId = c.VisitId,
-                Status = (int)c.Status,
-                StatusLabelAr = ComplaintStatusLabelAr(c.Status),
-                CreatedAt = c.CreatedAt,
-                InstructorFullName = $"{c.FirstName} {c.LastName}".Trim()
-            }).ToList();
-        }
-
         return new ModeratorDashboardDto
         {
             ModeratorUserId = currentUserId,
@@ -473,8 +429,6 @@ public class DashboardService : IDashboardService
             ApprovedVisitsCount = approvedVisitsCount,
             TopInstructors = topInstructors,
             VisitsByStatus = visitsByStatus,
-            OwnRelatedComplaintsCount = ownComplaints.Count,
-            OwnRelatedComplaints = ownComplaints,
             AppliedFilters = await BuildFilterEchoAsync(filter, cancellationToken)
         };
     }
@@ -682,22 +636,6 @@ public class DashboardService : IDashboardService
             throw new UnauthorizedAccessException("ليس لديك صلاحية لعرض لوحة المشرف.");
     }
 
-    /// <summary>
-    /// D-75 — returns true when the current caller is a *pure* Moderator (has
-    /// the Moderator role but is NOT a School Manager and NOT SuperAdmin).
-    /// Such callers must NEVER receive complaint data via any surface (KPI
-    /// card, table, Excel sheet, PDF section) — even though <c>ComplaintService</c>
-    /// gates the API endpoints, the dashboard aggregator is a separate path and
-    /// MUST be filtered too. A Moderator-who-is-also-SM is treated as SM.
-    /// </summary>
-    private bool IsComplaintsBlockedForCurrentCaller()
-    {
-        if (!_currentUser.IsInRole(RoleNames.Moderator)) return false;
-        if (_currentUser.IsInRole(RoleNames.SuperAdmin)) return false;
-        if (_currentUser.IsInRole(RoleNames.SchoolManager)) return false;
-        return true;
-    }
-
     private void EnsureCallerCanReadInstructorDashboard()
     {
         if (!_currentUser.HasPermission(PermissionNames.DashboardInstructor))
@@ -892,7 +830,6 @@ public class DashboardService : IDashboardService
         {
             BuildVisitsByStatusSheet(wb, "الزيارات حسب الحالة", mod.VisitsByStatus);
             BuildTopInstructorsSheet(wb, mod.TopInstructors);
-            BuildOwnComplaintsSheet(wb, mod.OwnRelatedComplaints);
         }
         else if (dashboard is InstructorDashboardDto ins)
         {
@@ -965,7 +902,6 @@ public class DashboardService : IDashboardService
                 Add("زيارات معتمدة", mod.ApprovedVisitsCount.ToString());
                 Add("متوسط الدرجة", mod.AverageOverallScore?.ToString("0.000") ?? "—");
                 Add("عدد المعلمين المُقيَّمين", mod.InstructorsEvaluatedCount.ToString());
-                Add("عدد الشكاوى المرتبطة", mod.OwnRelatedComplaintsCount.ToString());
                 break;
             case InstructorDashboardDto i:
                 Add("المعلم", i.InstructorFullName);
@@ -1104,27 +1040,6 @@ public class DashboardService : IDashboardService
         sheet.Columns().AdjustToContents();
     }
 
-    private void BuildOwnComplaintsSheet(XLWorkbook wb, List<ComplaintSummaryDto> rows)
-    {
-        var sheet = wb.AddWorksheet("الشكاوى المرتبطة");
-        sheet.RightToLeft = true;
-        sheet.Cell(1, 1).Value = "المعرّف";
-        sheet.Cell(1, 2).Value = "الزيارة";
-        sheet.Cell(1, 3).Value = "المعلم";
-        sheet.Cell(1, 4).Value = "الحالة";
-        sheet.Cell(1, 5).Value = "تاريخ التقديم";
-        sheet.Row(1).Style.Font.Bold = true;
-        for (var i = 0; i < rows.Count; i++)
-        {
-            sheet.Cell(i + 2, 1).Value = rows[i].Id;
-            sheet.Cell(i + 2, 2).Value = rows[i].VisitId;
-            sheet.Cell(i + 2, 3).Value = rows[i].InstructorFullName;
-            sheet.Cell(i + 2, 4).Value = rows[i].StatusLabelAr;
-            sheet.Cell(i + 2, 5).Value = rows[i].CreatedAt.ToString("yyyy-MM-dd");
-        }
-        sheet.Columns().AdjustToContents();
-    }
-
     private void BuildPerformanceTrendSheet(XLWorkbook wb, List<PerformanceTrendPointDto> rows)
     {
         var sheet = wb.AddWorksheet("اتجاه الأداء");
@@ -1240,7 +1155,6 @@ public class DashboardService : IDashboardService
                 case ModeratorDashboardDto mod:
                     col.Item().Element(c => ComposePdfTopInstructors(c, mod.TopInstructors));
                     col.Item().Element(c => ComposePdfVisitsByStatus(c, mod.VisitsByStatus));
-                    col.Item().Element(c => ComposePdfOwnComplaints(c, mod.OwnRelatedComplaints));
                     break;
                 case InstructorDashboardDto ins:
                     col.Item().Element(c => ComposePdfPerformanceTrend(c, ins.PerformanceTrend));
@@ -1274,7 +1188,7 @@ public class DashboardService : IDashboardService
                     col.Item().Text($"المدرسة: {mod.SchoolName} | المُقيِّم: {mod.ModeratorFullName}");
                     col.Item().Text($"زيارات اليوم: {mod.TodaysVisitsCount} | المسودة: {mod.DraftVisitsCount} | بانتظار الاعتماد: {mod.EvaluationsPendingApprovalCount}");
                     col.Item().Text($"المعتمدة: {mod.ApprovedVisitsCount} | متوسط الدرجة: {(mod.AverageOverallScore?.ToString("0.000") ?? "—")}");
-                    col.Item().Text($"خطط التطوير المفتوحة: {mod.OpenImprovementPlansCount} | شكاوى مرتبطة: {mod.OwnRelatedComplaintsCount}");
+                    col.Item().Text($"خطط التطوير المفتوحة: {mod.OpenImprovementPlansCount}");
                     break;
                 case InstructorDashboardDto i:
                     col.Item().Text($"المعلم: {i.InstructorFullName} | المدرسة: {i.SchoolName}");
@@ -1470,40 +1384,6 @@ public class DashboardService : IDashboardService
         });
     }
 
-    private void ComposePdfOwnComplaints(IContainer container, List<ComplaintSummaryDto> rows)
-    {
-        container.Column(col =>
-        {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("الشكاوى المرتبطة (بدون محتوى)").SemiBold();
-            if (rows.Count == 0)
-            {
-                col.Item().Text("لا توجد شكاوى مرتبطة.");
-                return;
-            }
-            col.Item().Table(t =>
-            {
-                t.ColumnsDefinition(d => { d.ConstantColumn(60); d.ConstantColumn(60); d.RelativeColumn(3); d.ConstantColumn(80); d.ConstantColumn(100); });
-                t.Header(h =>
-                {
-                    h.Cell().Text("المعرّف").SemiBold();
-                    h.Cell().Text("الزيارة").SemiBold();
-                    h.Cell().Text("المعلم").SemiBold();
-                    h.Cell().Text("الحالة").SemiBold();
-                    h.Cell().Text("التاريخ").SemiBold();
-                });
-                foreach (var r in rows)
-                {
-                    t.Cell().Text(r.Id.ToString());
-                    t.Cell().Text(r.VisitId.ToString());
-                    t.Cell().Text(r.InstructorFullName);
-                    t.Cell().Text(r.StatusLabelAr);
-                    t.Cell().Text(r.CreatedAt.ToString("yyyy-MM-dd"));
-                }
-            });
-        });
-    }
-
     private void ComposePdfPerformanceTrend(IContainer container, List<PerformanceTrendPointDto> rows)
     {
         container.Column(col =>
@@ -1566,16 +1446,6 @@ public class DashboardService : IDashboardService
         VisitStatus.Reopened => "معاد فتحها",
         VisitStatus.UnderReviewAfterComplaint => "قيد المراجعة بعد شكوى",
         VisitStatus.Cancelled => "ملغاة",
-        _ => s.ToString()
-    };
-
-    internal static string ComplaintStatusLabelAr(ComplaintStatus s) => s switch
-    {
-        ComplaintStatus.Open => "مفتوحة",
-        ComplaintStatus.InReview => "قيد المراجعة",
-        ComplaintStatus.Resolved => "تم حلها",
-        ComplaintStatus.Rejected => "مرفوضة",
-        ComplaintStatus.Closed => "مغلقة",
         _ => s.ToString()
     };
 

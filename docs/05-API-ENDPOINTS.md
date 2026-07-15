@@ -306,5 +306,20 @@ scoring workflow is blocked or changed.
 
 - Instructor complaint, visibility rules, reopen from complaint
 
-### Phase 9 — Dashboards & Exports
-- Role dashboards, Excel/PDF exports, filters
+### Phase 9 — Dashboards & Exports ✅ IMPLEMENTED
+
+All dashboard reads return `ApiResponse<T>` and all queries are scoped in
+`DashboardService`. File exports return their native binary response.
+
+| Method | Route | Scope |
+|---|---|---|
+| GET | `/api/v1/dashboard/main-manager` | Global Main Manager/Super Admin metrics; no complaint data |
+| GET | `/api/v1/dashboard/school-manager` | Caller `ActiveSchoolId`; school complaint count allowed |
+| GET | `/api/v1/dashboard/moderator` | Caller school + `CreatedByUserId == currentUserId`; no complaints (D-37/D-75) |
+| GET | `/api/v1/dashboard/instructor` | Current Instructor + Approved visits only (D-36) |
+| GET | `/api/v1/dashboard/export/excel?role=` | Same role service/scope as the selected dashboard; `.xlsx` |
+| GET | `/api/v1/dashboard/export/pdf?role=` | Same role service/scope as the selected dashboard; PDF |
+
+Supported narrowing parameters are `academicYear`, `semester`, `schoolId`,
+`subject`, `stage`, `moderatorUserId`, `fromDate`, and `toDate` where applicable.
+School-scoped callers cannot widen scope with query parameters.

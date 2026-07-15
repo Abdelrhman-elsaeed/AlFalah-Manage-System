@@ -183,10 +183,6 @@ public class ModeratorDashboardDto
     // Visits by status (own)
     public List<VisitStatusCountDto> VisitsByStatus { get; set; } = new();
 
-    // D-37: complaints related to this moderator's own visits only (count + list summary)
-    public int OwnRelatedComplaintsCount { get; set; }
-    public List<ComplaintSummaryDto> OwnRelatedComplaints { get; set; } = new();
-
     public DashboardFilterEchoDto AppliedFilters { get; set; } = new();
 }
 
@@ -244,7 +240,7 @@ public class PerformanceTrendPointDto
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// Shared filter echo + complaint summary (no content)
+// Shared filter echo
 // ════════════════════════════════════════════════════════════════════════════
 
 public class DashboardFilterEchoDto
@@ -257,19 +253,4 @@ public class DashboardFilterEchoDto
     public string? Stage { get; set; }
     public string? ModeratorUserId { get; set; }
     public string? ModeratorFullName { get; set; }
-}
-
-/// <summary>Complaint summary — NO body, NO subject detail (used for count-only badges
-/// and the Moderator's "own related complaints" list). The full DTO stays on the
-/// existing /api/v1/complaints endpoint (which Main Manager is hard-blocked from).</summary>
-public class ComplaintSummaryDto
-{
-    public int Id { get; set; }
-    public int SchoolId { get; set; }
-    public string SchoolName { get; set; } = string.Empty;
-    public int VisitId { get; set; }
-    public int Status { get; set; }
-    public string StatusLabelAr { get; set; } = string.Empty;
-    public DateTimeOffset CreatedAt { get; set; }
-    public string InstructorFullName { get; set; } = string.Empty;
 }

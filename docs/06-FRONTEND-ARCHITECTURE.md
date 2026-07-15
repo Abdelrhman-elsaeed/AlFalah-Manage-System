@@ -76,3 +76,14 @@ src/app/features
 ## Behavior
 - Role-based redirect after login for all 5 roles.
 - Keep Arabic UI labels in i18n; technical names in English.
+
+## Phase 9 dashboard implementation (2026-07-15)
+
+- The four former placeholders are live standalone components backed by the
+  scoped dashboard API endpoints.
+- A shared `DashboardLiveComponent` renders role-specific KPI cards,
+  PrimeNG doughnut/bar/line charts, tables/insights, refresh, and Excel/PDF
+  export actions while each route remains a distinct lazy-loaded component.
+- Main Manager has no complaint widget; Moderator has no complaint surface;
+  Instructor data is own + Approved. These are server contracts, not UI-only
+  filters.

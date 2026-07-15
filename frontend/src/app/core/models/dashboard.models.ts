@@ -81,17 +81,6 @@ export interface DashboardFilterEcho {
   moderatorFullName: string | null;
 }
 
-export interface ComplaintSummary {
-  id: number;
-  schoolId: number;
-  schoolName: string;
-  visitId: number;
-  status: number;
-  statusLabelAr: string;
-  createdAt: string;
-  instructorFullName: string;
-}
-
 // ─── 1) Main Manager dashboard ────────────────────────────────────────────
 
 export interface MainManagerDashboard {
@@ -145,8 +134,6 @@ export interface ModeratorDashboard {
   approvedVisitsCount: number;
   topInstructors: InstructorPerformanceRow[];
   visitsByStatus: VisitStatusCount[];
-  ownRelatedComplaintsCount: number;
-  ownRelatedComplaints: ComplaintSummary[];
   appliedFilters: DashboardFilterEcho;
 }
 

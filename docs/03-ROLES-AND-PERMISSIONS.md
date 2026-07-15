@@ -97,11 +97,12 @@ requires logout/login again.
 - Create improvement plans; add follow-ups
 - Upload evidence attachments
 - Print/export report
-- See complaints only for reports/evaluations created by this Moderator
 
 **Restrictions:**
 - Evaluation result does not appear to Instructor until School Manager approves it.
-- Must not see complaints created against other moderators' reports.
+- **Must not access complaints anywhere**: no complaint route, sidebar item,
+  dashboard count/content, Excel sheet, PDF section, or complaint API access
+  (D-75). School Manager handles school complaints.
 - Must not see private visit activity of other moderators.
 - Dashboard should only include his own work where relevant.
 - **Visibility scoping (enforced in the backend — see deviation D-37)**: a
@@ -122,8 +123,8 @@ requires logout/login again.
 
 **Dashboard:** all instructors in selected school (for visit creation), today's
 visits, draft visits, open improvement plans, evaluations pending approval, average
-performance of instructors evaluated by this Moderator, complaints related only to
-this Moderator's own reports.
+performance of instructors evaluated by this Moderator. No complaint widget or
+complaint data is exposed.
 
 ## 5) Instructor / معلم
 **Scope:** Own account only. Must have `ApplicationUser`; `InstructorProfile` links
