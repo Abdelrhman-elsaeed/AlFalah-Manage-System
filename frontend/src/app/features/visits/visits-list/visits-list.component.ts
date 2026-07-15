@@ -84,8 +84,8 @@ export class VisitsListComponent implements OnInit {
       pageSize,
       status: this.statusFilter() ?? undefined,
       visitCategory: this.categoryFilter() ?? undefined,
-      fromDate: this.fromDate()?.toISOString(),
-      toDate: this.toDate()?.toISOString()
+      fromDate: this.dateBoundary(this.fromDate(), false),
+      toDate: this.dateBoundary(this.toDate(), true)
     }).subscribe({
       next: (resp) => {
         if (resp.isSuccess && resp.data) {
@@ -176,8 +176,8 @@ export class VisitsListComponent implements OnInit {
     this.visitsService.exportAllZip({
       status: this.statusFilter() ?? undefined,
       visitCategory: this.categoryFilter() ?? undefined,
-      fromDate: this.fromDate()?.toISOString(),
-      toDate: this.toDate()?.toISOString()
+      fromDate: this.dateBoundary(this.fromDate(), false),
+      toDate: this.dateBoundary(this.toDate(), true)
     }).subscribe({
       next: (resp) => {
         const blob = resp.body;
@@ -213,6 +213,13 @@ export class VisitsListComponent implements OnInit {
 
   private t(key: string): string {
     return this.translate.instant(key);
+  }
+
+  private dateBoundary(value: Date | null, endOfDay: boolean): string | undefined {
+    if (!value) return undefined;
+    const boundary = new Date(value);
+    boundary.setHours(endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, endOfDay ? 999 : 0);
+    return boundary.toISOString();
   }
 }
 

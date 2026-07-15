@@ -75,6 +75,9 @@ public class TeacherVisitSummaryDto
     public string VisitCategoryLabelAr { get; set; } = string.Empty;
     public int Status { get; set; }
     public string StatusLabelAr { get; set; } = string.Empty;
+    public int ImprovementPlanCount { get; set; }
+    public int FollowUpCount { get; set; }
+    public int? LatestFollowUpScore { get; set; }
     /// <summary>Creator's full name — surfaced only to roles that can see other creators (School Manager + global admins).</summary>
     public string? CreatedByFullName { get; set; }
 }

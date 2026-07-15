@@ -365,10 +365,18 @@ public class VisitService : IVisitService
             _context.VisitAnalyses.Add(analysisEntity);
         }
 
-        // Transition status + set SubmittedAt.
-        visit.Status = VisitStatus.PendingApproval;
+        // A School Manager is the approving authority for their own visits.
+        // Their completed visit is therefore approved in the same transaction;
+        // only moderator-created visits enter the approval queue.
+        var managerOwnVisit = _currentUser.IsInRole(RoleNames.SchoolManager);
+        visit.Status = managerOwnVisit ? VisitStatus.Approved : VisitStatus.PendingApproval;
         visit.SubmittedAt = DateTimeOffset.UtcNow;
         visit.UpdatedAt = DateTimeOffset.UtcNow;
+        if (managerOwnVisit)
+        {
+            visit.ApprovedByUserId = _currentUser.UserId;
+            visit.ApprovedAt = DateTimeOffset.UtcNow;
+        }
 
         // Phase 5: on reopen→resubmit, write an audit row with the previous + new snapshot.
         if (isResubmitAfterReopen)

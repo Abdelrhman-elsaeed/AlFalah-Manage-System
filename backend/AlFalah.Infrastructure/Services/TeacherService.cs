@@ -323,7 +323,14 @@ public class TeacherService : ITeacherService
                 v.LessonTitle,
                 v.Subject,
                 v.CreatedByUserId,
-                CreatedByFullName = v.CreatedByUser.FullName
+                CreatedByFullName = v.CreatedByUser.FullName,
+                ImprovementPlanCount = _context.ImprovementPlans.Count(p => p.VisitId == v.Id && !p.IsDeleted),
+                FollowUpCount = _context.PlanFollowUps.Count(f => f.ImprovementPlan.VisitId == v.Id && !f.IsDeleted),
+                LatestFollowUpScore = _context.PlanFollowUps
+                    .Where(f => f.ImprovementPlan.VisitId == v.Id && !f.IsDeleted && f.ProgressScore.HasValue)
+                    .OrderByDescending(f => f.FollowDate)
+                    .Select(f => f.ProgressScore)
+                    .FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 
@@ -342,6 +349,9 @@ public class TeacherService : ITeacherService
             VisitCategoryLabelAr = ((VisitCategory)r.VisitCategory).ToArabicString(),
             Status = (int)r.Status,
             StatusLabelAr = StatusLabelAr((VisitStatus)r.Status),
+            ImprovementPlanCount = r.ImprovementPlanCount,
+            FollowUpCount = r.FollowUpCount,
+            LatestFollowUpScore = r.LatestFollowUpScore,
             // CreatedByFullName is surfaced only to roles that already see
             // other creators on the visits list (SM / global admins). For
             // Moderator + Instructor the field stays null because D-37 means

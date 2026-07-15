@@ -53,6 +53,9 @@ export interface TeacherVisitSummary {
   visitCategoryLabelAr: string;
   status: number;
   statusLabelAr: string;
+  improvementPlanCount: number;
+  followUpCount: number;
+  latestFollowUpScore?: number | null;
   createdByFullName?: string | null;
 }
 

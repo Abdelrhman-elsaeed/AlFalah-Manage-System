@@ -309,7 +309,7 @@ export const routes: Routes = [
       {
         path: 'complaints',
         canActivate: [roleGuard, permissionGuard],
-        data: { roles: ['SchoolManager', 'SuperAdmin'], permissions: ['Complaint.View'] },
+        data: { roles: ['SchoolManager', 'Instructor', 'SuperAdmin'], permissions: ['Complaint.View'] },
         loadComponent: () => import('./features/complaints/complaints-list/complaints-list.component')
           .then(m => m.ComplaintsListComponent),
         title: translatedTitle('ROUTE_TITLES.COMPLAINTS')

@@ -118,6 +118,20 @@
   outline: 2px solid var(--brand-500, #1E8E4E);
   outline-offset: -2px;
 }
+.visit-follow-up-cell { white-space: nowrap; }
+.follow-up-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .55rem;
+  border-radius: 999px;
+  font-size: .76rem;
+  font-weight: 700;
+}
+.follow-up-badge i { font-size: .8rem; }
+.follow-up-badge small { font-variant-numeric: tabular-nums; }
+.follow-up-badge--active { color: var(--brand-700); background: var(--brand-50); border: 1px solid var(--brand-300); }
+.follow-up-badge--empty { color: var(--text-muted); background: var(--bg-surface-2); border: 1px solid var(--border); }
 
 .progress-hint {
   margin: 0;

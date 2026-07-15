@@ -215,6 +215,17 @@ public class ComplaintService : IComplaintService
         if (!string.IsNullOrWhiteSpace(request.ResolutionNote))
             complaint.ResolutionNote = request.ResolutionNote.Trim();
 
+        _context.Notifications.Add(new Notification
+        {
+            SchoolId = complaint.SchoolId,
+            UserId = complaint.InstructorUserId,
+            Title = $"تحديث الشكوى: {StatusLabelAr(target)}",
+            Message = complaint.ResolutionNote ?? $"تم تحديث حالة شكواك إلى «{StatusLabelAr(target)}».",
+            Type = "Complaint.StatusChanged",
+            RelatedEntityType = "Complaint",
+            RelatedEntityId = complaint.Id.ToString()
+        });
+
         WriteAudit(complaint, "Complaint.StatusChange",
             reason: complaint.ResolutionNote ?? $"تغيير حالة الشكوى إلى {StatusLabelAr(target)}",
             oldValues: JsonSerializer.Serialize(new { status = (int)oldStatus }),

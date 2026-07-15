@@ -16,14 +16,14 @@
   <app-list-toolbar>
     <app-list-toolbar-field labelKey="VISITS.STATUS">
       <app-clearable-select [options]="statuses" optionLabel="label" optionValue="value"
-                            [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)"
+                            [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); onFilter()"
                             [placeholder]="'VISITS.ALL_STATUSES' | translate"
                             appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>
 
     <app-list-toolbar-field labelKey="VISITS.VISIT_CATEGORY">
       <app-clearable-select [options]="categories" optionLabel="label" optionValue="value"
-                            [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event)"
+                            [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event); onFilter()"
                             [placeholder]="'VISITS.ALL_CATEGORIES' | translate"
                             appendTo="body"></app-clearable-select>
     </app-list-toolbar-field>

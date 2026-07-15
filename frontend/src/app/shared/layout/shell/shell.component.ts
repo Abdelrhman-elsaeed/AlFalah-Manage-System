@@ -79,7 +79,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         labelKey: 'NAV.COMPLAINTS',
         icon: 'pi pi-flag',
         route: '/complaints',
-        roles: ['SchoolManager', 'SuperAdmin'],
+        roles: ['SchoolManager', 'Instructor', 'SuperAdmin'],
         permissions: ['Complaint.View']
       }
     ]
@@ -128,6 +128,7 @@ export class ShellComponent implements OnInit {
     if (this.isInstructorOnly()) {
       items.push(
         { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
+        { labelKey: 'NAV.COMPLAINT_RESULTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
         { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
       );
     }

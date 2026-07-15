@@ -74,6 +74,11 @@ export class ComplaintsListComponent implements OnInit {
   readonly reopenSaving = signal(false);
 
   // Capability flags (UX only — backend enforces)
+  readonly isInstructorOnly = computed(() => {
+    const roles = this.auth.roles();
+    return roles.includes('Instructor') && !roles.some(role =>
+      ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'].includes(role));
+  });
   readonly canHandle = computed(() => this.auth.hasPermission('Complaint.Manage'));
   readonly canDelete = computed(() => this.auth.hasPermission('Complaint.Delete'));
   readonly canReopenVisit = computed(() =>
