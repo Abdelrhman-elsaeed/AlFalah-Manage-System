@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ChartData, ChartOptions } from 'chart.js';
 import { Observable } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
@@ -22,6 +22,7 @@ export class ReportPreviewComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly visits = inject(VisitsService);
   private readonly auth = inject(AuthService);
+  private readonly translate = inject(TranslateService);
   readonly report = signal<VisitDetail | null>(null);
   readonly loading = signal(true);
   readonly instructorOnly = computed(() => {
@@ -33,7 +34,7 @@ export class ReportPreviewComponent implements OnInit {
     const domains = this.report()?.analysis?.domainAverages;
     return domains?.length ? {
       labels: domains.map(d => `${d.domainCode} — ${d.domainNameAr}`),
-      datasets: [{ label: 'متوسط المحور', data: domains.map(d => d.averageScore),
+      datasets: [{ label: this.translate.instant('VISITS.DOMAIN_AVERAGE_CHART_LABEL'), data: domains.map(d => d.averageScore),
         borderColor: '#0F7132', backgroundColor: 'rgba(15,113,50,.18)',
         pointBackgroundColor: '#D4AF37', pointBorderColor: '#0F7132' }]
     } : null;

@@ -83,7 +83,7 @@
               <div class="table-actions">
                 <button pButton type="button" icon="pi pi-eye"
                         [routerLink]="['/improvement-plans', plan.id]"
-                        class="p-button-text p-button-info p-button-sm p-button-icon-only"
+                        class="p-button-text p-button-sm p-button-icon-only"
                         [pTooltip]="'PLANS.DETAILS' | translate" tooltipPosition="top"></button>
                 <button *ngIf="canEdit() && !plan.isReadOnly" pButton type="button" icon="pi pi-pencil"
                         class="p-button-text p-button-warning p-button-sm p-button-icon-only"

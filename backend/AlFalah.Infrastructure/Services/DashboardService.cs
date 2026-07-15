@@ -449,12 +449,15 @@ public class DashboardService : IDashboardService
             .FirstOrDefaultAsync(u => u.Id == currentUserId, cancellationToken)
             ?? throw new KeyNotFoundException("المستخدم غير موجود.");
 
-        // Determine school: prefer the filter (and validate it matches an active
-        // assignment), otherwise pick any active assignment.
+        // Determine school through the shared scope guard. For an Instructor,
+        // a client-supplied schoolId can only narrow to ActiveSchoolId; it can
+        // never select another school. Global support callers may still choose
+        // an explicit school and otherwise fall back to an active assignment.
         int schoolId;
-        if (filter.SchoolId is not null)
+        var allowedSchoolId = _scopeGuard.ResolveAllowedSchoolId(filter.SchoolId);
+        if (allowedSchoolId is not null)
         {
-            schoolId = filter.SchoolId.Value;
+            schoolId = allowedSchoolId.Value;
         }
         else
         {

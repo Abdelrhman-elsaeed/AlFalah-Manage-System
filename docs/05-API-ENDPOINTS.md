@@ -335,7 +335,7 @@ All dashboard reads return `ApiResponse<T>` and all queries are scoped in
 | GET | `/api/v1/dashboard/main-manager` | Global Main Manager/Super Admin metrics; no complaint data |
 | GET | `/api/v1/dashboard/school-manager` | Caller `ActiveSchoolId`; school complaint count allowed |
 | GET | `/api/v1/dashboard/moderator` | Caller school + `CreatedByUserId == currentUserId`; no complaints (D-37/D-75) |
-| GET | `/api/v1/dashboard/instructor` | Current Instructor + Approved visits only (D-36) |
+| GET | `/api/v1/dashboard/instructor` | Current Instructor + Approved visits in token `ActiveSchoolId`; cross-school filter is coerced (D-24/D-36) |
 | GET | `/api/v1/dashboard/export/excel?role=` | Same role service/scope as the selected dashboard; `.xlsx` |
 | GET | `/api/v1/dashboard/export/pdf?role=` | Same role service/scope as the selected dashboard; PDF |
 

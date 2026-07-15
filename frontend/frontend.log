@@ -225,3 +225,45 @@ chunk-MYFDLBYX.js   | teacher-profile-component | 44.29 kB |
 Application bundle generation complete. [0.415 seconds]
 
 Page reload sent to client(s).
+Initial chunk files | Names                     | Raw size
+main.js             | main                      | 25.70 kB | 
+
+Lazy chunk files    | Names                     | Raw size
+chunk-OWGJZPOL.js   | complaints-list-component | 41.28 kB | 
+
+Application bundle generation complete. [0.711 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names               | Raw size
+main.js             | main                | 25.70 kB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-6YTBNKC2.js   | plan-list-component | 48.31 kB | 
+
+Application bundle generation complete. [1.336 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                  | Raw size
+main.js             | main                   | 25.70 kB | 
+
+Lazy chunk files    | Names                  | Raw size
+chunk-H6AY6DBD.js   | visit-detail-component | 99.00 kB | 
+
+Application bundle generation complete. [1.218 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                    | Raw size
+main.js             | main                     | 25.70 kB | 
+
+Lazy chunk files    | Names                    | Raw size
+chunk-ZJGETIYS.js   | report-preview-component | 22.77 kB | 
+
+Application bundle generation complete. [0.844 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 23.37 kB | 
+
+Application bundle generation complete. [0.584 seconds]
+
+Page reload sent to client(s).

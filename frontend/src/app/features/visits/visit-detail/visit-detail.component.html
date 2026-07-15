@@ -29,7 +29,7 @@
               (click)="openComplaintDialog()"></button>
       <button *ngIf="canViewPlans() && visit() && (isApproved() || !isInstructor())" pButton type="button" icon="pi pi-list"
               [label]="'PLANS.TITLE' | translate"
-              class="p-button-outlined p-button-info"
+              class="p-button-outlined"
               (click)="goImprovementPlans()"></button>
       <button *ngIf="visit()?.isReadOnly === false" pButton type="button" icon="pi pi-pencil"
               [label]="'COMMON.EDIT' | translate"

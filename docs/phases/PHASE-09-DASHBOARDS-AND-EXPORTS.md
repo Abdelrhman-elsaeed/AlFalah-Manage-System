@@ -44,13 +44,16 @@ Phases 4–8 (data to aggregate).
   Excel workbook, and PDF contain no complaint data at all (D-75).
 - `instructor-dashboard` calls `GET /api/v1/dashboard/instructor` and renders
   only the caller's approved evaluations, trend, strengths, improvement
-  points, plans, follow-ups, and report-view metrics (D-36).
+  points, plans, follow-ups, and report-view metrics (D-36). Its school is
+  resolved through `SchoolScopeGuard`; a client-supplied cross-school filter
+  is coerced to the token's `ActiveSchoolId` before querying.
 - All four pages share a standalone Angular 17 component with PrimeNG
   `p-chart` (doughnut plus role-appropriate bar/line chart), responsive RTL
   cards/tables, Saudi design tokens, refresh, and scoped Excel/PDF buttons.
 - The obsolete `dashboard-placeholders.ts` file was deleted.
 - No migration or rubric/scoring change. D-24/D-28/D-36/D-37/D-53/D-65/D-75
   gates remain in place.
-- Verification: backend build 0 warnings/errors; 67 tests pass; frontend
-  production build green; ar/en 422/422 leaf-key parity; zero duplicate
-  top-level i18n keys.
+- Desktop-parity closure verification: backend Release build 0 warnings/errors;
+  97/97 tests pass (including EF-backed Instructor school coercion and
+  complaint-free restricted contracts); frontend production build green;
+  ar/en 683/683 leaf-key parity; zero duplicate top-level i18n keys.

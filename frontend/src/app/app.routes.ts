@@ -1,7 +1,13 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { ResolveFn, Routes } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
+
+function translatedTitle(key: string): ResolveFn<string> {
+  return () => inject(TranslateService).get(key);
+}
 
 export const routes: Routes = [
   // Default redirect
@@ -15,13 +21,13 @@ export const routes: Routes = [
         path: 'school-login',
         loadComponent: () => import('./features/auth/school-login/school-login.component')
           .then(m => m.SchoolLoginComponent),
-        title: 'تسجيل الدخول — مدارس الفلاح'
+        title: translatedTitle('ROUTE_TITLES.SCHOOL_LOGIN')
       },
       {
         path: 'main-manager-login',
         loadComponent: () => import('./features/auth/main-manager-login/main-manager-login.component')
           .then(m => m.MainManagerLoginComponent),
-        title: 'دخول المدير العام — مدارس الفلاح'
+        title: translatedTitle('ROUTE_TITLES.MAIN_MANAGER_LOGIN')
       },
       { path: '', redirectTo: 'school-login', pathMatch: 'full' }
     ]
@@ -44,7 +50,7 @@ export const routes: Routes = [
             path: 'dashboard',
             loadComponent: () => import('./features/dashboards/main-manager-dashboard/main-manager-dashboard.component')
               .then(m => m.MainManagerDashboardComponent),
-            title: 'لوحة المدير العام'
+            title: translatedTitle('ROUTE_TITLES.MAIN_MANAGER_DASHBOARD')
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
@@ -60,7 +66,7 @@ export const routes: Routes = [
             path: 'dashboard',
             loadComponent: () => import('./features/dashboards/school-manager-dashboard/school-manager-dashboard.component')
               .then(m => m.SchoolManagerDashboardComponent),
-            title: 'لوحة مدير المدرسة'
+            title: translatedTitle('ROUTE_TITLES.SCHOOL_MANAGER_DASHBOARD')
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
@@ -76,7 +82,7 @@ export const routes: Routes = [
             path: 'dashboard',
             loadComponent: () => import('./features/dashboards/moderator-dashboard/moderator-dashboard.component')
               .then(m => m.ModeratorDashboardComponent),
-            title: 'لوحة المشرف'
+            title: translatedTitle('ROUTE_TITLES.MODERATOR_DASHBOARD')
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
@@ -92,19 +98,19 @@ export const routes: Routes = [
             path: 'dashboard',
             loadComponent: () => import('./features/dashboards/instructor-dashboard/instructor-dashboard.component')
               .then(m => m.InstructorDashboardComponent),
-            title: 'لوحة المعلم'
+            title: translatedTitle('ROUTE_TITLES.INSTRUCTOR_DASHBOARD')
           },
           {
             path: 'reports',
             loadComponent: () => import('./features/visits/instructor-reports/instructor-reports.component')
               .then(m => m.InstructorReportsComponent),
-            title: 'تقاريري — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.MY_REPORTS')
           },
           {
             path: 'reports/:id',
             loadComponent: () => import('./features/visits/visit-detail/visit-detail.component')
               .then(m => m.VisitDetailComponent),
-            title: 'تقرير الزيارة — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.VISIT_REPORT')
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
@@ -120,7 +126,7 @@ export const routes: Routes = [
         },
         loadComponent: () => import('./features/visits/report-preview/report-preview.component')
           .then(m => m.ReportPreviewComponent),
-        title: 'معاينة تقرير الزيارة — مدارس الفلاح'
+        title: translatedTitle('ROUTE_TITLES.VISIT_REPORT_PREVIEW')
       },
       {
         path: 'schools',
@@ -131,7 +137,7 @@ export const routes: Routes = [
             path: '',
             loadComponent: () => import('./features/schools/schools-list/schools-list.component')
               .then(m => m.SchoolsListComponent),
-            title: 'المدارس — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.SCHOOLS')
           },
           {
             path: 'new',
@@ -139,7 +145,7 @@ export const routes: Routes = [
             data: { permissions: ['School.Create'] },
             loadComponent: () => import('./features/schools/school-form/school-form.component')
               .then(m => m.SchoolFormComponent),
-            title: 'مدرسة جديدة — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.NEW_SCHOOL')
           },
           {
             path: ':id/edit',
@@ -147,7 +153,7 @@ export const routes: Routes = [
             data: { permissions: ['School.Edit'] },
             loadComponent: () => import('./features/schools/school-form/school-form.component')
               .then(m => m.SchoolFormComponent),
-            title: 'تعديل المدرسة — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.EDIT_SCHOOL')
           }
         ]
       },
@@ -165,13 +171,13 @@ export const routes: Routes = [
             path: '',
             loadComponent: () => import('./features/teachers/teachers-list/teachers-list.component')
               .then(m => m.TeachersListComponent),
-            title: 'المعلمون — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.TEACHERS')
           },
           {
             path: ':userId',
             loadComponent: () => import('./features/teachers/teacher-profile/teacher-profile.component')
               .then(m => m.TeacherProfileComponent),
-            title: 'ملف المعلم — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.TEACHER_PROFILE')
           }
         ]
       },
@@ -186,7 +192,7 @@ export const routes: Routes = [
             path: '',
             loadComponent: () => import('./features/users/users-list/users-list.component')
               .then(m => m.UsersListComponent),
-            title: 'المستخدمون — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.USERS')
           },
           {
             path: 'new',
@@ -194,7 +200,7 @@ export const routes: Routes = [
             data: { permissions: ['User.Create'] },
             loadComponent: () => import('./features/users/user-form/user-form.component')
               .then(m => m.UserFormComponent),
-            title: 'مستخدم جديد — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.NEW_USER')
           },
           {
             path: ':id/edit',
@@ -202,7 +208,7 @@ export const routes: Routes = [
             data: { permissions: ['User.Edit'] },
             loadComponent: () => import('./features/users/user-form/user-form.component')
               .then(m => m.UserFormComponent),
-            title: 'تعديل المستخدم — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.EDIT_USER')
           }
         ]
       },
@@ -214,7 +220,7 @@ export const routes: Routes = [
         data: { permissions: ['User.Edit'] },
         loadComponent: () => import('./features/user-school-roles/user-school-roles-list/user-school-roles-list.component')
           .then(m => m.UserSchoolRolesListComponent),
-        title: 'تعيينات المستخدمين — مدارس الفلاح'
+        title: translatedTitle('ROUTE_TITLES.USER_SCHOOL_ROLES')
       },
 
       // ─── Phase 3: Rubric (permission-gated) ──────────────────────────────
@@ -227,7 +233,7 @@ export const routes: Routes = [
             path: '',
             loadComponent: () => import('./features/rubric/rubric-viewer/rubric-viewer.component')
               .then(m => m.RubricViewerComponent),
-            title: 'أداة التقييم — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.RUBRIC')
           },
           {
             path: 'edit',
@@ -235,7 +241,7 @@ export const routes: Routes = [
             data: { permissions: ['Rubric.Manage'] },
             loadComponent: () => import('./features/rubric/rubric-editor/rubric-editor.component')
               .then(m => m.RubricEditorComponent),
-            title: 'تعديل أداة التقييم — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.EDIT_RUBRIC')
           }
         ]
       },
@@ -253,7 +259,7 @@ export const routes: Routes = [
             path: '',
             loadComponent: () => import('./features/visits/visits-list/visits-list.component')
               .then(m => m.VisitsListComponent),
-            title: 'الزيارات — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.VISITS')
           },
           {
             path: 'new',
@@ -261,7 +267,7 @@ export const routes: Routes = [
             data: { permissions: ['Visit.Create'] },
             loadComponent: () => import('./features/visits/visit-form/visit-form.component')
               .then(m => m.VisitFormComponent),
-            title: 'زيارة جديدة — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.NEW_VISIT')
           },
           {
             path: ':id',
@@ -269,7 +275,7 @@ export const routes: Routes = [
             data: { permissions: ['Visit.View'] },
             loadComponent: () => import('./features/visits/visit-detail/visit-detail.component')
               .then(m => m.VisitDetailComponent),
-            title: 'تفاصيل الزيارة — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.VISIT_DETAILS')
           },
           {
             path: ':id/edit',
@@ -277,7 +283,7 @@ export const routes: Routes = [
             data: { permissions: ['Visit.Edit'] },
             loadComponent: () => import('./features/visits/visit-form/visit-form.component')
               .then(m => m.VisitFormComponent),
-            title: 'تعديل الزيارة — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.EDIT_VISIT')
           }
         ]
       },
@@ -289,7 +295,7 @@ export const routes: Routes = [
         data: { permissions: ['Plan.View'] },
         loadComponent: () => import('./features/improvement-plans/plan-list/plan-list.component')
           .then(m => m.PlanListComponent),
-        title: 'خطط التحسين — مدارس الفلاح'
+        title: translatedTitle('ROUTE_TITLES.IMPROVEMENT_PLANS')
       },
       {
         path: 'improvement-plans/:id',
@@ -297,7 +303,7 @@ export const routes: Routes = [
         data: { permissions: ['Plan.View'] },
         loadComponent: () => import('./features/improvement-plans/plan-detail/plan-detail.component')
           .then(m => m.PlanDetailComponent),
-        title: 'تفاصيل خطة التحسين — مدارس الفلاح'
+        title: translatedTitle('ROUTE_TITLES.IMPROVEMENT_PLAN_DETAILS')
       },
 
       {
@@ -306,7 +312,7 @@ export const routes: Routes = [
         data: { roles: ['SchoolManager', 'SuperAdmin'], permissions: ['Complaint.View'] },
         loadComponent: () => import('./features/complaints/complaints-list/complaints-list.component')
           .then(m => m.ComplaintsListComponent),
-        title: 'الشكاوى والمراجعات — مدارس الفلاح'
+        title: translatedTitle('ROUTE_TITLES.COMPLAINTS')
       },
 
       // ─── Account Settings (Any authenticated user) ──────────────────────
@@ -317,7 +323,7 @@ export const routes: Routes = [
             path: 'settings',
             loadComponent: () => import('./features/account/account-settings/account-settings.component')
               .then(m => m.AccountSettingsComponent),
-            title: 'إعدادات الحساب — مدارس الفلاح'
+            title: translatedTitle('ROUTE_TITLES.ACCOUNT_SETTINGS')
           },
           { path: '', redirectTo: 'settings', pathMatch: 'full' }
         ]
@@ -337,7 +343,7 @@ export const routes: Routes = [
     path: 'unauthorized',
     loadComponent: () => import('./features/errors/unauthorized/unauthorized.component')
       .then(m => m.UnauthorizedComponent),
-    title: 'غير مصرح'
+    title: translatedTitle('ROUTE_TITLES.UNAUTHORIZED')
   },
 
   // Wildcard — 404

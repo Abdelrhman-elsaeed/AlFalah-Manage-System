@@ -1016,6 +1016,19 @@ to `ActiveSchoolId` and `CreatedByUserId == currentUserId`, and the profile's
 
 ## Phase 5 — UX and visual polish
 
+**Implementation status (2026-07-15): COMPLETED.** All four role dashboards
+are live against the existing scoped dashboard endpoints and provide
+role-specific cards, PrimeNG charts, and server-generated Excel/PDF exports.
+Main Manager and Moderator contracts remain complaint-free; School Manager is
+forced to the active school; Moderator is additionally own-created only; and
+Instructor is own + Approved + `ActiveSchoolId`, including coercion of a
+client-supplied cross-school filter. The D-73 categorized sidebar remains
+permission-filtered, with the Instructor surface limited to الرئيسية +
+تقاريري + إعدادات. Whole-app static scans find no direct feature
+PrimeNG/native selects, native date inputs, or blue `p-button-info` actions.
+Browser route titles and the remaining report chart label use matched ar/en
+keys while RTL and the Saudi light-green design system remain unchanged.
+
 ### P5.1 Restore scoring legibility
 
 - **Change:** persistent `مفتاح الدرجات:`, inline evidence, per-domain `${scored}/${total}`, selected level text, and semantic colors. Retain the current sticky footer.
@@ -1191,11 +1204,11 @@ Polish and complete the ASP.NET Core + Angular classroom-visit flow using the le
 - `ImprovementPlanService`: templates, plan/follow-up behavior, and client-supplied instructor link.
 - `PdfReportService`: current report strengths and missing desktop content.
 
-## Final product decisions still requiring confirmation
+## Final product decisions after desktop-parity closure
 
 1. **Login in the old MVP:** no executable screen exists; source starts at Dashboard.
-2. **Overall score:** equal-weight domains (desktop) or standard-weighted mean (current web).
-3. **Rubric size:** truly dynamic versions or formally fixed five domains/25 standards.
-4. **Moderator teacher access:** scoped profile/list access or a narrower visit-only selector.
-5. **Report signatures:** add teacher signature while retaining manager approval, or keep current signatories only.
-6. **Closed-plan behavior:** read-only after completed/cancelled or allow continued follow-up.
+2. **Overall score (D1): RESOLVED** — equal-weight domain averages for new snapshots; historical persisted snapshots are not rewritten.
+3. **Rubric size (D2): RESOLVED** — truly dynamic rubric versions and snapshot standard counts; no hardcoded 25 gate.
+4. **Moderator teacher access (D3): RESOLVED** — school-scoped profile/list access with own-created visit history and strict cross-school 403.
+5. **Report signatures (D4): RESOLVED** — evaluated Instructor signature is included while retaining supervisor and approving-manager signatures.
+6. **Closed-plan behavior (D5): RESOLVED** — completed/cancelled plans are read-only until explicit reactivation.

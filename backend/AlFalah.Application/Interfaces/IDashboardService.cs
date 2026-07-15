@@ -17,11 +17,10 @@ namespace AlFalah.Application.Interfaces;
 ///    <c>SchoolScopeGuard</c>).
 ///  - <see cref="GetModeratorDashboardAsync"/>: scoped to caller's
 ///    <c>ActiveSchoolId</c> AND <c>Visit.CreatedByUserId == self</c> (D-37).
-///    Complaints listed are ONLY those whose snapshotted
-///    <c>ModeratorUserId == self</c>.
+///    Contains no complaint count, summary, detail, or export content (D-75).
 ///  - <see cref="GetInstructorDashboardAsync"/>: scoped to
-///    <c>Visit.InstructorId == self</c> AND <c>Visit.Status == Approved</c>
-///    (D-36).
+///    <c>ActiveSchoolId</c>, <c>Visit.InstructorId == self</c>, and
+///    <c>Visit.Status == Approved</c> (D-36).
 /// </summary>
 public interface IDashboardService
 {
@@ -44,8 +43,8 @@ public interface IDashboardService
     // ─── Exports ──────────────────────────────────────────────────────────
     // The scope rules above apply to exports as well — a Moderator export
     // contains ONLY his own visits; a School Manager export contains ONLY
-    // his school's visits; a Main Manager export is global but the
-    // "complaints" sheet is empty / has only a NO-CONTENT header.
+    // his school's visits; Main Manager and Moderator exports contain no
+    // complaint sheet, count, summary, or detail content.
 
     Task<DashboardExportResult> ExportExcelAsync(
         DashboardRole role,

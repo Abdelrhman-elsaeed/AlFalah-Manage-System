@@ -87,6 +87,8 @@ src/app/features
 - Main Manager has no complaint widget; Moderator has no complaint surface;
   Instructor data is own + Approved. These are server contracts, not UI-only
   filters.
+- Browser route titles resolve matched `ROUTE_TITLES.*` ar/en keys instead of
+  embedding Arabic copy in `app.routes.ts`.
 
 ## D-73 categorized sidebar (2026-07-15)
 
@@ -117,6 +119,8 @@ src/app/features
   `inputId` and Angular disabled-state propagation and is full-width by default.
 - Date fields use PrimeNG `p-calendar`; there are no native `type="date"`
   controls in application templates.
+- Static desktop-parity closure scans also report zero direct feature
+  `p-dropdown`/`p-select`, native `<select>`, and `p-button-info` usages.
 - User-facing copy is sourced from Arabic/English i18n resources. The completed
   whole-app pass has 623/623 leaf-key parity, no missing literal translation
   keys, and no duplicate top-level keys (D-19).
