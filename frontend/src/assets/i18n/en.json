@@ -413,5 +413,15 @@
   },
   "FOLLOWUPS": {
     "TITLE": "Follow-ups"
+  },
+  "COMPLAINTS": {
+    "TITLE": "Complaints & Reviews",
+    "SUBMIT": "Request a review",
+    "SUBMIT_TITLE": "Submit a complaint or review request",
+    "SUBJECT": "Subject",
+    "BODY": "Details",
+    "SUBMIT_SUCCESS": "Request submitted",
+    "SUBMIT_SUCCESS_DESC": "Your request will be reviewed by the school management.",
+    "SUBMIT_FAILED": "Could not submit the request"
   }
 }

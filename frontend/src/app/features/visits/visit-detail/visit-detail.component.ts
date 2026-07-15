@@ -12,6 +12,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { ToastService } from '../../../core/services/toast.service';
 import { VisitsService, filenameFromContentDisposition } from '../../../core/services/visits.service';
+import { ComplaintsService } from '../../../core/services/complaints.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
   InstructorReport,
@@ -35,6 +36,7 @@ export class VisitDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly visitsService = inject(VisitsService);
+  private readonly complaintsService = inject(ComplaintsService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmationService);
@@ -52,6 +54,10 @@ export class VisitDetailComponent implements OnInit {
   readonly reasonDialogMode = signal<'reject' | 'reopen' | null>(null);
   readonly reasonValue = signal('');
   readonly reasonActionLoading = signal(false);
+  readonly complaintDialogVisible = signal(false);
+  readonly complaintSubject = signal('');
+  readonly complaintBody = signal('');
+  readonly complaintSubmitting = signal(false);
 
   // Role / capability signals
   readonly currentUserId = computed(() => this.auth.currentUser()?.userId);
@@ -64,6 +70,7 @@ export class VisitDetailComponent implements OnInit {
   readonly canReopen = computed(() => this.auth.hasPermission('Visit.Reopen'));
   readonly canEdit = computed(() => this.auth.hasPermission('Visit.Edit'));
   readonly canViewPlans = computed(() => this.auth.hasPermission('Plan.View'));
+  readonly canCreateComplaint = computed(() => this.auth.hasPermission('Complaint.Create'));
 
   readonly visitStatus = computed(() => Number(this.visit()?.status ?? 0));
 
@@ -77,6 +84,9 @@ export class VisitDetailComponent implements OnInit {
     this.isInstructor() &&
     this.isApproved() &&
     this.visit()?.instructorId === this.currentUserId()
+  );
+  readonly canSubmitComplaint = computed(() =>
+    this.instructorSeesFullResult() && this.canCreateComplaint()
   );
 
   ngOnInit(): void {
@@ -172,6 +182,38 @@ export class VisitDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(this.isInstructor() ? ['/instructor/reports'] : ['/visits']);
+  }
+
+  openComplaintDialog(): void {
+    if (!this.visit() || !this.canSubmitComplaint()) return;
+    this.complaintSubject.set('');
+    this.complaintBody.set('');
+    this.complaintDialogVisible.set(true);
+  }
+
+  cancelComplaintDialog(): void {
+    if (!this.complaintSubmitting()) this.complaintDialogVisible.set(false);
+  }
+
+  submitComplaint(): void {
+    const visit = this.visit();
+    const subject = this.complaintSubject().trim();
+    const body = this.complaintBody().trim();
+    if (!visit || !this.canSubmitComplaint() || !subject || !body) return;
+
+    this.complaintSubmitting.set(true);
+    this.complaintsService.create(visit.id, { subject, body }).subscribe({
+      next: response => {
+        this.complaintSubmitting.set(false);
+        if (!response.isSuccess) {
+          this.toast.error('COMPLAINTS.SUBMIT_FAILED', response.message || '');
+          return;
+        }
+        this.complaintDialogVisible.set(false);
+        this.toast.success('COMPLAINTS.SUBMIT_SUCCESS', 'COMPLAINTS.SUBMIT_SUCCESS_DESC');
+      },
+      error: () => this.complaintSubmitting.set(false)
+    });
   }
 
   // Group scores by domain code for the read-only grid.

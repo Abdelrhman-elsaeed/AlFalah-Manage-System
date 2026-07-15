@@ -53,6 +53,7 @@ export class ShellComponent {
     { labelKey: 'NAV.USERS', icon: 'pi pi-users', route: '/users', permissions: ['User.View'] },
     { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] },
     { labelKey: 'NAV.VISITS', icon: 'pi pi-clipboard', route: '/visits', permissions: ['Visit.View'] },
+    { labelKey: 'COMPLAINTS.TITLE', icon: 'pi pi-flag', route: '/complaints', roles: ['SchoolManager', 'SuperAdmin'], permissions: ['Complaint.View'] },
     { labelKey: 'NAV.RUBRIC', icon: 'pi pi-list-check', route: '/rubric', permissions: ['Rubric.View'] }
   ];
 
@@ -113,6 +114,7 @@ export class ShellComponent {
         out.push(item);
         continue;
       }
+      if (item.roles && !item.roles.some(role => roles.includes(role))) continue;
       if (item.permissions && item.permissions.length > 0) {
         if (item.permissions.some(p => permissions.includes(p))) out.push(item);
       } else {

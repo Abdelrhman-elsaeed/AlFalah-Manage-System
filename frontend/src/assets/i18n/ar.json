@@ -413,5 +413,15 @@
   },
   "FOLLOWUPS": {
     "TITLE": "المتابعات"
+  },
+  "COMPLAINTS": {
+    "TITLE": "الشكاوى والمراجعات",
+    "SUBMIT": "تقديم طلب مراجعة",
+    "SUBMIT_TITLE": "تقديم شكوى أو طلب مراجعة",
+    "SUBJECT": "الموضوع",
+    "BODY": "التفاصيل",
+    "SUBMIT_SUCCESS": "تم إرسال الطلب",
+    "SUBMIT_SUCCESS_DESC": "سيتم مراجعة طلبك من إدارة المدرسة.",
+    "SUBMIT_FAILED": "تعذر إرسال الطلب"
   }
 }

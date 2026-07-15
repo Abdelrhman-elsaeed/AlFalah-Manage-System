@@ -265,6 +265,15 @@ export const routes: Routes = [
         title: 'تفاصيل خطة التحسين — مدارس الفلاح'
       },
 
+      {
+        path: 'complaints',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SchoolManager', 'SuperAdmin'], permissions: ['Complaint.View'] },
+        loadComponent: () => import('./features/complaints/complaints-list/complaints-list.component')
+          .then(m => m.ComplaintsListComponent),
+        title: 'الشكاوى والمراجعات — مدارس الفلاح'
+      },
+
       // ─── Account Settings (Any authenticated user) ──────────────────────
       {
         path: 'account',

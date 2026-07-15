@@ -19,6 +19,10 @@
               [loading]="pdfDownloading()"
               class="p-button-outlined p-button-success"
               (click)="downloadReportPdf()"></button>
+      <button *ngIf="canSubmitComplaint()" pButton type="button" icon="pi pi-flag"
+              [label]="'COMPLAINTS.SUBMIT' | translate"
+              class="p-button-outlined p-button-danger"
+              (click)="openComplaintDialog()"></button>
       <button *ngIf="canViewPlans() && visit() && (isApproved() || !isInstructor())" pButton type="button" icon="pi pi-list"
               [label]="'PLANS.TITLE' | translate"
               class="p-button-outlined p-button-info"
@@ -340,6 +344,33 @@
             [loading]="reasonActionLoading()"
             [disabled]="!reasonValue().trim()"
             (click)="submitReasonDialog()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="complaintDialogVisible"
+          [modal]="true"
+          [closable]="!complaintSubmitting()"
+          [closeOnEscape]="!complaintSubmitting()"
+          [style]="{ width: '520px' }"
+          [header]="'COMPLAINTS.SUBMIT_TITLE' | translate"
+          dir="rtl">
+  <div class="complaint-dialog">
+    <label class="complaint-dialog__label" for="complaint-subject">{{ 'COMPLAINTS.SUBJECT' | translate }}</label>
+    <input pInputText id="complaint-subject" class="complaint-dialog__input"
+           [ngModel]="complaintSubject()" (ngModelChange)="complaintSubject.set($event)"
+           [disabled]="complaintSubmitting()" maxlength="200" />
+    <label class="complaint-dialog__label" for="complaint-body">{{ 'COMPLAINTS.BODY' | translate }}</label>
+    <textarea pInputTextarea id="complaint-body" class="complaint-dialog__textarea" rows="6"
+              [ngModel]="complaintBody()" (ngModelChange)="complaintBody.set($event)"
+              [disabled]="complaintSubmitting()" maxlength="4000"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" class="p-button-text" [label]="'COMMON.CANCEL' | translate"
+            [disabled]="complaintSubmitting()" (click)="cancelComplaintDialog()"></button>
+    <button pButton type="button" icon="pi pi-send" [label]="'COMPLAINTS.SUBMIT' | translate"
+            [loading]="complaintSubmitting()"
+            [disabled]="!complaintSubject().trim() || !complaintBody().trim()"
+            (click)="submitComplaint()"></button>
   </ng-template>
 </p-dialog>
 

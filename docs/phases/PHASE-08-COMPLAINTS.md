@@ -33,3 +33,10 @@ ComplaintStatus — see [../11-CONSTANTS-AND-ENUMS.md](../11-CONSTANTS-AND-ENUMS
 
 ## Dependencies
 Phase 5 (approval/visibility), Phase 6 (reports).
+
+## 2026-07-15 completion note
+- The backend blocks both Main Manager and Moderator access, including dashboard
+  payloads and exports; Moderator complaint access described above is superseded.
+- Instructors submit a review request only from their approved report after that
+  report endpoint has recorded a view. School Managers use the scoped
+  `/complaints` management route; Super Admin support remains available.
