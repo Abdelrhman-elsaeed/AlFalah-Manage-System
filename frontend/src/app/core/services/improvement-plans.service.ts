@@ -39,6 +39,10 @@ export class ImprovementPlansService {
     return this.http.put<ApiResponse<ImprovementPlan>>(`${this.base}/improvement-plans/${id}`, body);
   }
 
+  reactivatePlan(id: number): Observable<ApiResponse<ImprovementPlan>> {
+    return this.http.post<ApiResponse<ImprovementPlan>>(`${this.base}/improvement-plans/${id}/reactivate`, {});
+  }
+
   deletePlan(id: number): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.base}/improvement-plans/${id}`);
   }

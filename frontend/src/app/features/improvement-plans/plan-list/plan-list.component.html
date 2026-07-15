@@ -89,6 +89,10 @@
                         class="p-button-text p-button-warning p-button-sm p-button-icon-only"
                         (click)="openEditDialog(plan)"
                         [pTooltip]="'PLANS.EDIT' | translate" tooltipPosition="top"></button>
+                <button *ngIf="canEdit() && plan.isReadOnly && plan.status !== 'active'" pButton type="button" icon="pi pi-refresh"
+                        class="p-button-text p-button-success p-button-sm p-button-icon-only"
+                        (click)="confirmReactivate(plan)"
+                        [pTooltip]="'PLANS.REACTIVATE' | translate" tooltipPosition="top"></button>
                 <button *ngIf="canDelete() && !plan.isReadOnly" pButton type="button" icon="pi pi-trash"
                         class="p-button-text p-button-danger p-button-sm p-button-icon-only"
                         (click)="confirmDelete(plan)"

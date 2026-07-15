@@ -28,7 +28,7 @@ fallback template, and follow-up logic (progress colors 75/50, chart rules).
 
 ## Acceptance criteria
 - Suggestion fills Goal/Actions/SuccessIndicators/DomainId/dates; user saves manually.
-- Old behaviors preserved (multiple plans per visit/domain, edit regardless of status, etc.).
+- Multiple plans per visit/domain remain valid; locked D5 makes completed/cancelled plans read-only until explicit reactivation.
 
 ## Dependencies
 Phase 4/5 (visit analysis & approval), Phase 3 (domains).
@@ -41,17 +41,17 @@ Phase 4/5 (visit analysis & approval), Phase 3 (domains).
 - DbSets + global soft-delete query filters + auto-UpdatedAt on SaveChanges (in `AlFalahDbContext`)
 - 10 DTOs in `backend/AlFalah.Application/DTOs/ImprovementPlanDtos.cs`
 - `IImprovementPlanService` + `ImprovementPlanService` with **5 verbatim Arabic templates** + fallback (verified byte-for-byte against docs/10 §Suggestion templates)
-- 4 FluentValidation validators (no EndDate>=StartDate rule, only non-blocking warning)
-- `ImprovementPlansController` with **10 endpoints**, all thin, `ApiResponse<T>`, async + CT
+- 4 FluentValidation validators, including `EndDate >= StartDate` for create/update
+- `ImprovementPlansController` with **11 endpoints**, including explicit `POST /improvement-plans/{id}/reactivate`; all thin, `ApiResponse<T>`, async + CT
 - DI registration (`IImprovementPlanService → ImprovementPlanService` scoped)
 - Seeder grants `Plan.View/Create/Edit/Delete`: SchoolManager + Moderator + SuperAdmin + MainManager = full; Instructor = `Plan.View` only (D-36/D-37 enforced in service)
 - Migration `Phase7ImprovementPlans` (20260711131958) **applied** — 2 tables, 7 indexes, 6 FKs
 
 ### Frontend (✅ ng build --prod green)
 - `core/models/improvement-plan.models.ts` (all interfaces, nullable progressScore / evidenceNote handled)
-- `core/services/improvement-plans.service.ts` (10 methods matching controller)
+- `core/services/improvement-plans.service.ts` (11 methods matching controller)
 - `app.routes.ts` — `/visits/:visitId/improvement-plans` and `/improvement-plans/:id` both `permissionGuard` with `Plan.View`
-- `plan-list.component` — weak-domain chips prefill Goal/Actions/SuccessIndicators/DomainId + StartDate=today + EndDate=today+2months on click; plans `p-table` with status tags + row actions; **non-blocking warning** if `EndDate < StartDate` (save NOT blocked); status filter dropdown
+- `plan-list.component` — weak-domain chips prefill Goal/Actions/SuccessIndicators/DomainId + StartDate=today + EndDate=today+2months on click; plans `p-table` with status tags + row actions; `EndDate < StartDate` blocks save; closed plans expose only view/reactivate actions.
 - `plan-detail.component` — plan info card; follow-ups list ordered by FollowDate DESC with add/edit/delete; latest-progress badge colored by thresholds (≥75 green, ≥50&<75 gold, <50 red); **chronological line `p-chart`** shown only if ≥2 scored follow-ups
 - `visit-detail.component` — "خطط التحسين" button (permission-filtered via `canViewPlans()` = `Plan.View`) navigates to `/visits/{id}/improvement-plans`
 - i18n: `PLANS.*` + `FOLLOWUPS.*` merged into `ar.json` + `en.json` — D-19 parity preserved (16/16 top-level keys, no duplicates)
@@ -76,11 +76,11 @@ Error mapping: `UnauthorizedSchoolAccessException` → **HTTP 403**, `KeyNotFoun
 6. GET /api/v1/improvement-plans/{id}/progress → `latestProgressScore=80`, `latestProgressColor=success` (≥75), `chartData` = 2 points in chronological FollowDate ASC order.
 7. UI renders the latest-progress badge GREEN ("ممتاز / مكتمل") and the chronological line chart.
 
-### Old behavior preserved
+### Current desktop-parity behavior
 - ✅ Multiple plans per visit/domain (no uniqueness on `VisitId + DomainId`)
-- ✅ Editable in any status (active / completed / cancelled)
-- ✅ Follow-ups addable in any plan status
-- ✅ NO EndDate>=StartDate block (warning only — per docs/10 §Plan validation)
+- ✅ Completed/cancelled plans are read-only in the DTO, service, and UI (locked D5)
+- ✅ Explicit Reactivate endpoint/action restores active editing and follow-ups
+- ✅ `EndDate >= StartDate` enforced in the API validator and UI
 - ✅ Plan soft-delete: rows survive in DB with `IsDeleted=true`; on plan soft-delete the service cascades soft-delete to its follow-ups for consistency (no hard delete)
 
 ### Build evidence
@@ -101,3 +101,9 @@ Error mapping: `UnauthorizedSchoolAccessException` → **HTTP 403**, `KeyNotFoun
 - Static repository scans find no native selects, no direct feature-level
   `p-dropdown`, and no native date inputs. D-19 parity is 623/623 leaf keys with
   no duplicate top-level keys and no missing literal translation keys.
+
+## Desktop-parity Phase 3 verification (2026-07-15)
+
+- Golden EF test verifies the exact D1 goal, four-action text, success indicator, weak-domain score, and automatic suggestion selection.
+- D5 regression closes a plan, proves plan/follow-up writes are rejected, explicitly reactivates it, then successfully records a 75% follow-up.
+- Release test gate: 93/93 backend tests; production frontend build green; Arabic/English parity 645/645 with no duplicate keys.

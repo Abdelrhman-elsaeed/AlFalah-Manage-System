@@ -11,8 +11,7 @@
 - **Multiple plans per visit/domain are allowed.**
 - Plan status values: `active`, `completed`, `cancelled`.
 - Default plan status on create is **active**.
-- Plans can be **edited regardless of status**.
-- Follow-ups can be added **regardless of plan status**.
+- Locked D5 web behavior supersedes the desktop ambiguity: **completed/cancelled plans are read-only**. Editing, deleting, and follow-up create/update/delete require `active`; the explicit Reactivate action returns a closed plan to `active` first.
 - Follow-ups can be **edited/deleted**.
 - Plan deletion removed follow-ups in the old system, but in the new web app
   **prefer soft delete** for audit unless explicitly hard delete is requested.
@@ -47,7 +46,7 @@
 - StartDate required.
 - EndDate required.
 - SuccessIndicators required and non-empty.
-- Keep old behavior: **no strict `EndDate >= StartDate` enforcement** (non-blocking warning only).
+- `EndDate` must be greater than or equal to `StartDate` in both API validation and UI.
 - Keep old behavior: **no uniqueness** on `VisitId + DomainId`.
 
 ## Default dates
@@ -155,5 +154,6 @@
 - D-71 is explicit in the mutation paths: a successful follow-up create/update
   closes its dialog and reloads plan, follow-ups, and progress; delete performs
   the same reload. Opening either dialog resets its form state.
-- The old behavior above remains unchanged, including non-blocking reversed-date
-  warnings, multiple plans, status-independent edits/follow-ups, and chart rules.
+- Desktop-parity Phase 3 keeps multiple plans and all chart rules. Reversed dates
+  are blocked in UI/API; completed/cancelled plans are read-only until the explicit
+  Reactivate endpoint/action returns them to active (locked D5).

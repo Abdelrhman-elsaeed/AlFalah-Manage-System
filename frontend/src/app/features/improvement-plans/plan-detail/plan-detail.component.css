@@ -110,6 +110,7 @@
 .field small { color: var(--text-muted); }
 .field small.text-danger { color: var(--danger); }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+.read-only-notice { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); color: var(--text-strong); border-inline-start: 4px solid var(--warning); }
 
 @media (max-width: 850px) {
   .plan-summary-grid { grid-template-columns: 1fr; }

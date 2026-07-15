@@ -155,3 +155,41 @@ chunk-YMEIHCBC.js   | -                        |  1.17 kB |
 Application bundle generation complete. [1.604 seconds]
 
 Page reload sent to client(s).
+Initial chunk files | Names                 | Raw size
+main.js             | main                  | 25.70 kB | 
+
+Lazy chunk files    | Names                 | Raw size
+chunk-YKJQYIRC.js   | plan-list-component   | 48.17 kB | 
+chunk-CCOVL6A7.js   | plan-detail-component | 47.83 kB | 
+chunk-WY6A6WJ6.js   | -                     |  1.93 kB | 
+
+Application bundle generation complete. [1.348 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                 | Raw size
+main.js             | main                  | 25.70 kB | 
+
+Lazy chunk files    | Names                 | Raw size
+chunk-DSVTJWR4.js   | plan-detail-component | 48.04 kB | 
+
+Application bundle generation complete. [0.723 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                 | Raw size
+main.js             | main                  | 25.70 kB | 
+
+Lazy chunk files    | Names                 | Raw size
+chunk-672FOCHA.js   | plan-detail-component | 48.04 kB | 
+
+Application bundle generation complete. [0.761 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names               | Raw size
+main.js             | main                | 25.70 kB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-EECWSPQ4.js   | plan-list-component | 48.33 kB | 
+
+Application bundle generation complete. [0.827 seconds]
+
+Page reload sent to client(s).

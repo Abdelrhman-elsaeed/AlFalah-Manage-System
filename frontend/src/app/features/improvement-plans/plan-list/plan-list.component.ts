@@ -99,13 +99,13 @@ export class PlanListComponent implements OnInit {
   });
 
   // Check if EndDate < StartDate to show alert
-  readonly isDateRangeInvalid = computed(() => {
+  isDateRangeInvalid(): boolean {
     const val = this.planForm.value;
     if (!val.startDate || !val.endDate) return false;
     const start = new Date(val.startDate);
     const end = new Date(val.endDate);
     return end < start;
-  });
+  }
 
   constructor() {
     this.planForm = this.fb.group({
@@ -223,6 +223,10 @@ export class PlanListComponent implements OnInit {
   }
 
   savePlan(): void {
+    if (this.isDateRangeInvalid()) {
+      this.toast.warn(this.t('PLANS.DATE_WARNING_TITLE'), this.t('PLANS.DATE_WARNING_DESC'));
+      return;
+    }
     if (this.planForm.invalid) {
       this.planForm.markAllAsTouched();
       return;
@@ -336,6 +340,29 @@ export class PlanListComponent implements OnInit {
     const d = new Date(date);
     d.setMonth(d.getMonth() + months);
     return d;
+  }
+
+  confirmReactivate(plan: ImprovementPlan): void {
+    this.confirm.confirm({
+      message: this.t('PLANS.REACTIVATE_CONFIRM'),
+      header: this.t('PLANS.REACTIVATE_CONFIRM_TITLE'),
+      icon: 'pi pi-refresh',
+      acceptLabel: this.t('PLANS.REACTIVATE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
+      acceptButtonStyleClass: 'p-button-success',
+      accept: () => this.plansService.reactivatePlan(plan.id).subscribe({
+        next: response => {
+          if (response.isSuccess) {
+            this.toast.success(this.t('COMMON.SUCCESS'), this.t('PLANS.REACTIVATE_SUCCESS'));
+            this.loadPlans();
+          } else {
+            this.toast.error(this.t('COMMON.ERROR'), response.message || this.t('PLANS.REACTIVATE_FAILED'));
+          }
+        },
+        error: error => this.toast.error(
+          this.t('COMMON.ERROR'), error?.error?.message || this.t('PLANS.REACTIVATE_FAILED'))
+      })
+    });
   }
 
   private t(key: string): string {

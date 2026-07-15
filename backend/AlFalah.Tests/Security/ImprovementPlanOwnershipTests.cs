@@ -5,6 +5,7 @@ using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Services;
+using AlFalah.Application.Validators.ImprovementPlans;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +66,68 @@ public sealed class ImprovementPlanOwnershipTests
         (await context.ImprovementPlans.CountAsync()).Should().Be(0);
     }
 
+    [Fact]
+    public async Task Phase3_WeakDomain_Suggestion_Matches_Verbatim_Template()
+    {
+        await using var context = CreateContext();
+        await SeedVisitGraphAsync(context);
+        var suggestions = await CreateService(context).GetWeakDomainSuggestionsAsync(100);
+
+        suggestions.Should().ContainSingle();
+        var suggestion = suggestions.Single();
+        suggestion.DomainCode.Should().Be("D1");
+        suggestion.AverageScore.Should().Be(2.25m);
+        suggestion.PrefilledGoal.Should().Be("تحسين جودة بيئة التعلم وجعلها أكثر إثراءً وفاعلية للمتعلمين");
+        suggestion.PrefilledActions.Should().Be(
+            "- مراجعة توزيع المقاعد وترتيب الغرفة الصفية\n- إضافة مصادر تعلم متنوعة ومناسبة\n- تعزيز جانب القيم والهوية الوطنية في الديكور التعليمي\n- تطبيق استراتيجيات إدارة الوقت الصفي");
+        suggestion.PrefilledSuccessIndicators.Should().Be(
+            "ارتفاع متوسط درجات نطاق بيئة التعلم إلى 3.0 أو أعلى في الزيارة القادمة");
+    }
+
+    [Fact]
+    public async Task D5_ClosedPlan_Is_ReadOnly_Until_Explicit_Reactivation()
+    {
+        await using var context = CreateContext();
+        await SeedVisitGraphAsync(context);
+        var service = CreateService(context);
+        var created = await service.CreatePlanAsync(ValidRequest(10));
+
+        var closed = await service.UpdatePlanAsync(created.Id, UpdateRequest("completed"));
+        closed.Status.Should().Be("completed");
+        closed.IsReadOnly.Should().BeTrue();
+
+        await FluentActions.Awaiting(() => service.UpdatePlanAsync(created.Id, UpdateRequest("active")))
+            .Should().ThrowAsync<InvalidOperationException>().WithMessage("*للقراءة فقط*");
+        await FluentActions.Awaiting(() => service.AddFollowUpAsync(created.Id, new CreateFollowUpRequestDto
+        {
+            FollowDate = DateTimeOffset.UtcNow,
+            ProgressNote = "متابعة"
+        })).Should().ThrowAsync<InvalidOperationException>().WithMessage("*للقراءة فقط*");
+
+        var reactivated = await service.ReactivatePlanAsync(created.Id);
+        reactivated.Status.Should().Be("active");
+        reactivated.IsReadOnly.Should().BeFalse();
+        (await service.AddFollowUpAsync(created.Id, new CreateFollowUpRequestDto
+        {
+            FollowDate = DateTimeOffset.UtcNow,
+            ProgressNote = "متابعة بعد إعادة التنشيط",
+            ProgressScore = 75
+        })).ProgressScore.Should().Be(75);
+    }
+
+    [Fact]
+    public async Task Phase3_EndDate_Before_StartDate_Is_Rejected_By_Api_Validator()
+    {
+        var request = ValidRequest(10);
+        request.StartDate = DateTimeOffset.Parse("2026-09-01T00:00:00Z");
+        request.EndDate = DateTimeOffset.Parse("2026-08-31T00:00:00Z");
+
+        var result = await new CreatePlanRequestDtoValidator().ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.PropertyName == nameof(request.EndDate));
+    }
+
     private static AlFalahDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AlFalahDbContext>()
@@ -123,6 +186,27 @@ public sealed class ImprovementPlanOwnershipTests
                 RubricVersionId = visitRubric.Id,
                 Status = VisitStatus.Approved,
                 VisitDate = DateTimeOffset.UtcNow
+            },
+            new VisitAnalysis
+            {
+                Id = 1,
+                VisitId = 100,
+                OverallScore = 2.25m,
+                PerformanceLevelAr = "متحقق جزئياً",
+                StrengthsJson = "[]",
+                ImprovementAreasJson = "[]",
+                PriorityStandardsJson = "[]",
+                DomainAverages = new List<VisitDomainAverage>
+                {
+                    new()
+                    {
+                        Id = 1,
+                        RubricDomainId = 10,
+                        DomainCode = "D1",
+                        DomainNameAr = "بيئة التعلم",
+                        AverageScore = 2.25m
+                    }
+                }
             });
         await context.SaveChangesAsync();
     }
@@ -161,5 +245,15 @@ public sealed class ImprovementPlanOwnershipTests
         StartDate = DateTimeOffset.UtcNow,
         EndDate = DateTimeOffset.UtcNow.AddMonths(1),
         SuccessIndicators = "مؤشرات نجاح اختبارية"
+    };
+
+    private static UpdatePlanRequestDto UpdateRequest(string status) => new()
+    {
+        Goal = "هدف محدث",
+        Actions = "إجراءات محدثة",
+        StartDate = DateTimeOffset.UtcNow,
+        EndDate = DateTimeOffset.UtcNow.AddMonths(1),
+        SuccessIndicators = "مؤشرات محدثة",
+        Status = status
     };
 }

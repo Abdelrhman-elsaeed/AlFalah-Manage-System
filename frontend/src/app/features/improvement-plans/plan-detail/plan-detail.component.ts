@@ -282,6 +282,31 @@ export class PlanDetailComponent implements OnInit {
     return 'PLANS.STATUS_ACTIVE';
   }
 
+  confirmReactivate(): void {
+    const plan = this.plan();
+    if (!plan || plan.status === 'active') return;
+    this.confirm.confirm({
+      message: this.t('PLANS.REACTIVATE_CONFIRM'),
+      header: this.t('PLANS.REACTIVATE_CONFIRM_TITLE'),
+      icon: 'pi pi-refresh',
+      acceptLabel: this.t('PLANS.REACTIVATE'),
+      rejectLabel: this.t('COMMON.CANCEL'),
+      acceptButtonStyleClass: 'p-button-success',
+      accept: () => this.plansService.reactivatePlan(plan.id).subscribe({
+        next: response => {
+          if (response.isSuccess) {
+            this.toast.success(this.t('COMMON.SUCCESS'), this.t('PLANS.REACTIVATE_SUCCESS'));
+            this.loadAll();
+          } else {
+            this.toast.error(this.t('COMMON.ERROR'), response.message || this.t('PLANS.REACTIVATE_FAILED'));
+          }
+        },
+        error: error => this.toast.error(
+          this.t('COMMON.ERROR'), error?.error?.message || this.t('PLANS.REACTIVATE_FAILED'))
+      })
+    });
+  }
+
   progressStatusKey(score: number): string {
     if (score >= 75) return 'FOLLOWUPS.PROGRESS_EXCELLENT';
     if (score >= 50) return 'FOLLOWUPS.PROGRESS_IN_PROGRESS';

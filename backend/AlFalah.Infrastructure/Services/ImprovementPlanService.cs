@@ -262,6 +262,7 @@ public class ImprovementPlanService : IImprovementPlanService
             ?? throw new KeyNotFoundException("خطة التحسين غير موجودة.");
 
         await EnsureUserCanMutateVisitAsync(plan.Visit, cancellationToken);
+        EnsurePlanIsActive(plan);
 
         plan.Goal = request.Goal;
         plan.Actions = request.Actions;
@@ -285,6 +286,28 @@ public class ImprovementPlanService : IImprovementPlanService
         return await GetPlanByIdAsync(plan.Id, cancellationToken);
     }
 
+    public async Task<ImprovementPlanDto> ReactivatePlanAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var plan = await _context.ImprovementPlans
+            .Include(p => p.Visit)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+            ?? throw new KeyNotFoundException("خطة التحسين غير موجودة.");
+
+        await EnsureUserCanMutateVisitAsync(plan.Visit, cancellationToken);
+        if (plan.Status == PlanStatus.Active)
+            throw new InvalidOperationException("خطة التحسين نشطة بالفعل.");
+
+        plan.Status = PlanStatus.Active;
+        plan.UpdatedByUserId = _currentUser.UserId;
+        plan.UpdatedAt = DateTimeOffset.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Plan explicitly reactivated: id={PlanId} school={SchoolId} visit={VisitId} by={UserId}",
+            plan.Id, plan.SchoolId, plan.VisitId, _currentUser.UserId);
+
+        return await GetPlanByIdAsync(plan.Id, cancellationToken);
+    }
+
     public async Task SoftDeletePlanAsync(int id, CancellationToken cancellationToken = default)
     {
         var plan = await _context.ImprovementPlans
@@ -293,6 +316,7 @@ public class ImprovementPlanService : IImprovementPlanService
             ?? throw new KeyNotFoundException("خطة التحسين غير موجودة.");
 
         await EnsureUserCanMutateVisitAsync(plan.Visit, cancellationToken);
+        EnsurePlanIsActive(plan);
 
         var now = DateTimeOffset.UtcNow;
         var userId = _currentUser.UserId ?? "system";
@@ -329,6 +353,7 @@ public class ImprovementPlanService : IImprovementPlanService
             ?? throw new KeyNotFoundException("خطة التحسين غير موجودة.");
 
         await EnsureUserCanMutateVisitAsync(plan.Visit, cancellationToken);
+        EnsurePlanIsActive(plan);
 
         var followUp = new PlanFollowUp
         {
@@ -363,6 +388,7 @@ public class ImprovementPlanService : IImprovementPlanService
             ?? throw new KeyNotFoundException("المتابعة غير موجودة.");
 
         await EnsureUserCanMutateVisitAsync(followUp.ImprovementPlan.Visit, cancellationToken);
+        EnsurePlanIsActive(followUp.ImprovementPlan);
 
         followUp.FollowDate = request.FollowDate;
         followUp.ProgressNote = request.ProgressNote;
@@ -392,6 +418,7 @@ public class ImprovementPlanService : IImprovementPlanService
             ?? throw new KeyNotFoundException("المتابعة غير موجودة.");
 
         await EnsureUserCanMutateVisitAsync(followUp.ImprovementPlan.Visit, cancellationToken);
+        EnsurePlanIsActive(followUp.ImprovementPlan);
 
         var now = DateTimeOffset.UtcNow;
         var userId = _currentUser.UserId ?? "system";
@@ -547,6 +574,8 @@ public class ImprovementPlanService : IImprovementPlanService
 
     private bool ComputeIsReadOnly(ImprovementPlan plan)
     {
+        if (plan.Status != PlanStatus.Active) return true;
+
         if (_currentUser.IsInRole(RoleNames.Instructor)
             && !_currentUser.IsInRole(RoleNames.SchoolManager)
             && !_currentUser.IsInRole(RoleNames.Moderator)
@@ -566,5 +595,12 @@ public class ImprovementPlanService : IImprovementPlanService
         if (active is null || active.Value != plan.SchoolId) return true;
 
         return false;
+    }
+
+    private static void EnsurePlanIsActive(ImprovementPlan plan)
+    {
+        if (plan.Status != PlanStatus.Active)
+            throw new InvalidOperationException(
+                "الخطة المكتملة أو الملغاة للقراءة فقط. أعد تنشيط الخطة صراحةً قبل تعديلها أو إضافة متابعة.");
     }
 }

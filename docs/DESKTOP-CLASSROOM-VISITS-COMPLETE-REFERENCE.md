@@ -971,6 +971,8 @@ derived from the visit's rubric snapshot.
 
 ## Phase 3 — Improvement plans and follow-up
 
+**Implementation status (2026-07-15): COMPLETED.** Weak-domain chips retain the verbatim docs/10 goal/actions/indicator templates and today/+2-month defaults; save/dialog refresh paths D-70/D-71 remain explicit. Follow-up latest score, 75/50 colors, descending history, and the two-point chronological chart are covered. Locked D5 is enforced by the service and DTO: completed/cancelled plans reject every edit/delete/follow-up mutation until `POST /improvement-plans/{id}/reactivate` is explicitly invoked. The list/detail UI shows the read-only state and a confirmed Reactivate action. Reversed dates are rejected in API validation and blocked before UI save.
+
 ### P3.1 Finish parity polish, not a rewrite
 
 - **Change:** keep existing services/entities. Restore numbered template wording, make `متابعة` a visible labeled action, and keep weak-domain quick chips above the plan list.

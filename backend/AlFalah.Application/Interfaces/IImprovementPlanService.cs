@@ -11,6 +11,7 @@ public interface IImprovementPlanService
     Task<ImprovementPlanDto> GetPlanByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<ImprovementPlanDto> CreatePlanAsync(CreatePlanRequestDto request, CancellationToken cancellationToken = default);
     Task<ImprovementPlanDto> UpdatePlanAsync(int id, UpdatePlanRequestDto request, CancellationToken cancellationToken = default);
+    Task<ImprovementPlanDto> ReactivatePlanAsync(int id, CancellationToken cancellationToken = default);
     Task SoftDeletePlanAsync(int id, CancellationToken cancellationToken = default);
     
     Task<List<WeakDomainSuggestionDto>> GetWeakDomainSuggestionsAsync(int visitId, CancellationToken cancellationToken = default);

@@ -109,6 +109,19 @@ public class ImprovementPlansController : ControllerBase
         return Ok(ApiResponse<ImprovementPlanDto>.Success(result, "تم تحديث خطة التحسين بنجاح."));
     }
 
+    [HttpPost("improvement-plans/{id:int}/reactivate")]
+    [ProducesResponseType(typeof(ApiResponse<ImprovementPlanDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 403)]
+    [ProducesResponseType(typeof(ApiResponse), 404)]
+    public async Task<IActionResult> ReactivatePlan(int id, CancellationToken cancellationToken)
+    {
+        if (!_currentUser.HasPermission(PermissionNames.PlanEdit))
+            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإعادة تنشيط خطط التحسين."));
+
+        var result = await _planService.ReactivatePlanAsync(id, cancellationToken);
+        return Ok(ApiResponse<ImprovementPlanDto>.Success(result, "تمت إعادة تنشيط خطة التحسين بنجاح."));
+    }
+
     // ─── DELETE Soft Delete Plan ─────────────────────────────────────────────
 
     [HttpDelete("improvement-plans/{id:int}")]

@@ -22,7 +22,9 @@ public class CreatePlanRequestDtoValidator : AbstractValidator<CreatePlanRequest
             .NotEmpty().WithMessage("تاريخ البدء مطلوب.");
 
         RuleFor(x => x.EndDate)
-            .NotEmpty().WithMessage("تاريخ الانتهاء مطلوب.");
+            .NotEmpty().WithMessage("تاريخ الانتهاء مطلوب.")
+            .GreaterThanOrEqualTo(x => x.StartDate)
+            .WithMessage("يجب ألا يسبق تاريخ الانتهاء تاريخ البدء.");
 
         RuleFor(x => x.SuccessIndicators)
             .NotEmpty().WithMessage("مؤشرات النجاح مطلوبة.")
@@ -46,7 +48,9 @@ public class UpdatePlanRequestDtoValidator : AbstractValidator<UpdatePlanRequest
             .NotEmpty().WithMessage("تاريخ البدء مطلوب.");
 
         RuleFor(x => x.EndDate)
-            .NotEmpty().WithMessage("تاريخ الانتهاء مطلوب.");
+            .NotEmpty().WithMessage("تاريخ الانتهاء مطلوب.")
+            .GreaterThanOrEqualTo(x => x.StartDate)
+            .WithMessage("يجب ألا يسبق تاريخ الانتهاء تاريخ البدء.");
 
         RuleFor(x => x.SuccessIndicators)
             .NotEmpty().WithMessage("مؤشرات النجاح مطلوبة.")

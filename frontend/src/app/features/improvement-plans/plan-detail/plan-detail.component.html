@@ -15,6 +15,9 @@
       <button *ngIf="canEdit() && !p.isReadOnly" pButton type="button" icon="pi pi-plus"
               [label]="'FOLLOWUPS.ADD' | translate" class="page-header__primary"
               (click)="openCreateDialog()"></button>
+      <button *ngIf="canEdit() && p.isReadOnly && p.status !== 'active'" pButton type="button" icon="pi pi-refresh"
+              [label]="'PLANS.REACTIVATE' | translate" class="p-button-outlined p-button-success"
+              (click)="confirmReactivate()"></button>
     </div>
   </header>
 
@@ -24,6 +27,9 @@
 
   <ng-template #ready>
     <ng-container *ngIf="plan() as p">
+      <section *ngIf="p.isReadOnly && p.status !== 'active'" class="surface-card read-only-notice">
+        <i class="pi pi-lock"></i><span>{{ 'PLANS.READ_ONLY_NOTICE' | translate }}</span>
+      </section>
       <div class="plan-summary-grid">
         <section class="surface-card detail-card">
           <h2 class="section-title"><i class="pi pi-file"></i>{{ 'FOLLOWUPS.PLAN_INFO' | translate }}</h2>
