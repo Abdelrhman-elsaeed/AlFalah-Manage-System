@@ -49,6 +49,7 @@ export interface TeacherVisitSummary {
   visitSequence: number;
   visitSequenceLabelAr: string;
   lesson: string;
+  gradeClass?: string | null;
   visitCategory: number;
   visitCategoryLabelAr: string;
   status: number;

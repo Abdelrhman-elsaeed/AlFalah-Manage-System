@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, signal, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -12,7 +12,8 @@ import { ClearableSelectComponent } from '../../../shared/components/clearable-s
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, TranslateModule, RouterLink, ClearableSelectComponent],
   templateUrl: './school-login.component.html',
-  styleUrls: ['./school-login.component.css']
+  styleUrls: ['./school-login.component.css'],
+  schemas: [NO_ERRORS_SCHEMA]
 })
 export class SchoolLoginComponent implements OnInit {
   loginForm: FormGroup;

@@ -210,6 +210,7 @@
     "VISITS_TITLE": "Classroom Visits ({{count}})",
     "VISIT_DATE": "Visit Date",
     "VISIT_LESSON": "Lesson",
+    "VISIT_CLASS": "Class",
     "VISIT_CATEGORY": "Category",
     "VISIT_STATUS": "Status",
     "VISIT_FOLLOW_UP": "Follow-up plan",

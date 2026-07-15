@@ -60,6 +60,8 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
                   [filterBy]="filterBy"
                   [styleClass]="styleClass"
                   [style]="style"
+                  [panelStyle]="panelStyle"
+                  [scrollHeight]="scrollHeight"
                   [appendTo]="appendTo"
                   [emptyMessage]="emptyMessage"
                   [loading]="loading"
@@ -109,16 +111,23 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
       align-items: center;
       gap: 0.4rem;
       position: relative;
-      min-width: 12rem;
+      min-width: 0;
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
     }
     .clearable-select > .p-dropdown {
       flex: 1;
+      width: 100%;
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
+    }
+    .clearable-select ::ng-deep .p-dropdown-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
     }
     .clearable-select__btn {
       display: inline-flex;
@@ -168,6 +177,8 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   @Input() filterBy: string | undefined;
   @Input() styleClass = 'w-full';
   @Input() style: { [k: string]: string } | null = null;
+  @Input() panelStyle: { [k: string]: string } | null = null;
+  @Input() scrollHeight = '240px';
   @Input() appendTo: string | HTMLElement | null = 'body';
   @Input() emptyMessage = '';
   @Input() loading = false;

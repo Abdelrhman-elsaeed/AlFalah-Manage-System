@@ -39,6 +39,7 @@ public class DatabaseSeeder
         var sampleSchool = await EnsureSampleSchoolAsync();
         await SeedDevAccountsAsync(sampleSchool);
         await SeedRubricAsync();
+        await RetirePlaceholderStandardsAsync();
 
         _logger.LogInformation("Database seeding completed.");
     }
@@ -397,6 +398,27 @@ public class DatabaseSeeder
         }
 
         return school;
+    }
+
+    private async Task RetirePlaceholderStandardsAsync()
+    {
+        var placeholders = await _context.RubricStandards
+            .IgnoreQueryFilters()
+            .Where(s => !s.IsDeleted &&
+                (s.TextAr.Contains("كوكو") || s.TextAr.Contains("بوبو") ||
+                 s.TextAr.ToLower().Contains("koko") ||
+                 s.TextAr.ToLower().Contains("bobo")))
+            .ToListAsync();
+
+        if (placeholders.Count == 0) return;
+        foreach (var standard in placeholders)
+        {
+            standard.IsDeleted = true;
+            standard.DeletedAt = DateTimeOffset.UtcNow;
+            standard.DeletedByUserId = "system-rubric-cleanup";
+        }
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Retired {Count} placeholder rubric standards.", placeholders.Count);
     }
 
     private async Task SeedDevAccountsAsync(School sampleSchool)

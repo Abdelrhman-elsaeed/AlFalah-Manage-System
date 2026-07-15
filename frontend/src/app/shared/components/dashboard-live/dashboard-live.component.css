@@ -22,12 +22,32 @@
 }
 
 .dashboard-actions {
-  padding: 0.35rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(10px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.dashboard-actions .p-button {
+  border: 1px solid var(--brand-500) !important;
+  color: var(--brand-700) !important;
+  background: rgba(255,255,255,.96) !important;
+  box-shadow: none !important;
+}
+.dashboard-actions .p-button:hover {
+  background: var(--brand-50) !important;
+}
+.dashboard-actions .p-button.p-button-success {
+  color: #fff !important;
+  background: var(--brand-500) !important;
+  border-color: var(--brand-500) !important;
+}
+.dashboard-actions .p-button.p-button-danger {
+  background: rgba(210,45,45,.88) !important;
+  border-color: #d22d2d !important;
+  color: #fff !important;
 }
 
 .dashboard-brief {

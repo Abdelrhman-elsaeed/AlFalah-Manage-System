@@ -210,6 +210,7 @@
     "VISITS_TITLE": "الزيارات الصفية ({{count}})",
     "VISIT_DATE": "تاريخ الزيارة",
     "VISIT_LESSON": "الدرس",
+    "VISIT_CLASS": "الفصل",
     "VISIT_CATEGORY": "نوع الزيارة",
     "VISIT_STATUS": "الحالة",
     "VISIT_FOLLOW_UP": "خطة المتابعة",

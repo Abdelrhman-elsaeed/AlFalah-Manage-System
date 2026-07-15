@@ -71,6 +71,7 @@ public class TeacherVisitSummaryDto
     public string VisitSequenceLabelAr { get; set; } = string.Empty;
     /// <summary>Lesson / subject text (LessonTitle if set, otherwise Subject, otherwise category label).</summary>
     public string Lesson { get; set; } = string.Empty;
+    public string? GradeClass { get; set; }
     public int VisitCategory { get; set; }
     public string VisitCategoryLabelAr { get; set; } = string.Empty;
     public int Status { get; set; }

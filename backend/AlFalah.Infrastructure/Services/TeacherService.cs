@@ -322,6 +322,7 @@ public class TeacherService : ITeacherService
                 v.Status,
                 v.LessonTitle,
                 v.Subject,
+                v.GradeClass,
                 v.CreatedByUserId,
                 CreatedByFullName = v.CreatedByUser.FullName,
                 ImprovementPlanCount = _context.ImprovementPlans.Count(p => p.VisitId == v.Id && !p.IsDeleted),
@@ -345,6 +346,7 @@ public class TeacherService : ITeacherService
                 : (!string.IsNullOrWhiteSpace(r.Subject)
                     ? r.Subject!
                     : ((VisitCategory)r.VisitCategory).ToArabicString()),
+            GradeClass = r.GradeClass,
             VisitCategory = (int)r.VisitCategory,
             VisitCategoryLabelAr = ((VisitCategory)r.VisitCategory).ToArabicString(),
             Status = (int)r.Status,
@@ -386,14 +388,14 @@ public class TeacherService : ITeacherService
             })
             .ToListAsync(cancellationToken);
 
-        // Longitudinal comparison uses Approved visits only. This mirrors
-        // the web approval visibility contract: pending/rejected/reopened
-        // analyses never become part of the teacher's official trend.
+        // Managers and moderators need the complete working trend, including
+        // submitted visits still awaiting approval. Instructors never reach
+        // this management profile route, while moderator scope is restricted
+        // below to the caller's own visits.
         var q = _context.Visits
             .AsNoTracking()
             .Where(v => v.InstructorId == userId
                      && v.SchoolId == assignment.SchoolId
-                     && v.Status == VisitStatus.Approved
                      && v.Analysis != null);
 
         if (IsModeratorOnlyCaller())
@@ -403,7 +405,7 @@ public class TeacherService : ITeacherService
             q = q.Where(v => v.CreatedByUserId == currentUserId);
         }
 
-        // Pull each Approved visit + its persisted domain averages. Order is
+        // Pull each analyzed visit + its persisted domain averages. Order is
         // explicitly chronological so delta = latest - earliest.
         var visits = await q
             .OrderBy(v => v.VisitDate).ThenBy(v => v.Id)

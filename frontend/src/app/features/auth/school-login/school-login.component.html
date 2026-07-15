@@ -11,10 +11,8 @@
       <div class="brand-content">
         <div class="logo-wrapper">
           <div class="logo-circle">
-            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
-              <circle cx="30" cy="30" r="30" fill="rgba(255,255,255,0.15)"/>
+            <img src="assets/Logo.png" alt="شعار مدارس الفلاح" class="logo-image" />
               <text x="30" y="38" text-anchor="middle" fill="white" font-size="22" font-weight="bold" font-family="Arial">ف</text>
-            </svg>
           </div>
         </div>
         <span class="brand-kicker">{{ 'AUTH.BRAND_NAME' | translate }}</span>
@@ -71,11 +69,14 @@
             @if (schoolsLoading()) {
               <div class="loading-skeleton"></div>
             } @else {
-              <app-clearable-select inputId="schoolSelect" [options]="schoolOptions()"
+              <app-clearable-select class="school-select-field" inputId="schoolSelect" [options]="schoolOptions()"
                                     optionLabel="label" optionValue="id" formControlName="schoolId"
                                     [clearable]="false"
                                     [placeholder]="'AUTH.SELECT_SCHOOL_PLACEHOLDER' | translate"
-                                    styleClass="w-full"></app-clearable-select>
+                                    [filter]="true" filterBy="label" scrollHeight="220px"
+                                    [panelStyle]="{ 'max-width': '420px' }"
+                                    styleClass="login-school-select"
+                                    [style]="{ width: '100%', 'max-width': '100%' }"></app-clearable-select>
             }
             @if (schoolIdControl?.invalid && schoolIdControl?.touched) {
               <div class="invalid-feedback">{{ 'AUTH.ERROR_SCHOOL_REQUIRED' | translate }}</div>

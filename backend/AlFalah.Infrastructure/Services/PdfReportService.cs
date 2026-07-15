@@ -252,7 +252,11 @@ public class PdfReportService : IPdfReportService
     /// or the initials text on a fresh single-child container.</summary>
     private static void RenderLogoContent(IContainer container, VisitReportDto dto)
     {
-        if (dto.SchoolLogoBytes is { Length: > 0 } logoBytes)
+        var logoBytes = dto.SchoolLogoBytes is { Length: > 0 }
+            ? dto.SchoolLogoBytes
+            : TryLoadApplicationLogo();
+
+        if (logoBytes is { Length: > 0 })
         {
             try
             {
@@ -273,6 +277,31 @@ public class PdfReportService : IPdfReportService
         container
             .Text(string.IsNullOrWhiteSpace(dto.SchoolInitials) ? "؟" : dto.SchoolInitials)
             .FontFamily(AmiriBold).FontSize(20).Bold().FontColor("#FFF8DC");
+    }
+
+    private static byte[]? TryLoadApplicationLogo()
+    {
+        var candidates = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "Assets", "Logo.png"),
+            Path.Combine(Directory.GetCurrentDirectory(), "Assets", "Logo.png"),
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "frontend", "src", "assets", "Logo.png")),
+            Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "frontend", "src", "assets", "Logo.png"))
+        };
+
+        foreach (var path in candidates)
+        {
+            try
+            {
+                if (File.Exists(path)) return File.ReadAllBytes(path);
+            }
+            catch
+            {
+                // Branding is optional; continue to the safe initials fallback.
+            }
+        }
+
+        return null;
     }
 
     private void ComposeContent(IContainer container, VisitReportDto dto)
