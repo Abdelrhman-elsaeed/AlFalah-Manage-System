@@ -270,7 +270,6 @@ public class DatabaseSeeder
                 PermissionNames.PlanView, PermissionNames.PlanCreate, PermissionNames.PlanEdit, PermissionNames.PlanDelete,
                 PermissionNames.FollowUpView, PermissionNames.FollowUpCreate,
                 PermissionNames.FollowUpEdit, PermissionNames.FollowUpDelete,
-                PermissionNames.ComplaintView,
                 PermissionNames.DashboardModerator,
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
             },

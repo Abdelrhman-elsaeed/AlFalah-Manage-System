@@ -465,6 +465,19 @@
 }
 
 .complaint-dialog { display: flex; flex-direction: column; gap: var(--space-2); }
+.complaint-dialog__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid rgba(15, 113, 50, 0.22);
+  border-radius: var(--radius-md);
+  background: var(--brand-50);
+  color: var(--brand-900);
+  line-height: 1.7;
+}
+.complaint-dialog__hint .pi { margin-top: 0.25rem; color: var(--brand-700); }
 .complaint-dialog__label { color: var(--text-muted); font-size: 0.85rem; font-weight: 700; }
 .complaint-dialog__input,
 .complaint-dialog__textarea { width: 100%; font-family: inherit; }

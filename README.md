@@ -109,7 +109,7 @@ npm start
 - [x] Approval workflow (Phase 5 — incl. D-36 close: backend instructor gate on `GetByIdAsync` + frontend wiring to `/report`)
 - [ ] PDF reports with signatures (Phase 6)
 - [ ] Improvement plans + follow-ups (Phase 7)
-- [ ] Complaints workflow (Phase 8)
+- [x] Complaints workflow (Phase 8)
 - [ ] Dashboards with analytics (Phase 9)
 - [ ] Excel/PDF exports (Phase 9)
 - [ ] Full shell layout with sidebar (Phase 2)

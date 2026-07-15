@@ -6,10 +6,9 @@ namespace AlFalah.Application.Interfaces;
 /// Phase 8 — complaints workflow. ALL visibility is enforced server-side:
 ///  - Create: ONLY the visit's own Instructor, ONLY when the visit is Approved
 ///    AND a ReportViewLog proves the instructor viewed the report (D-36).
-///  - List/Detail: School Manager = his school; related Moderator = ONLY
-///    complaints on visits HE created (D-37 pattern); Instructor = own;
-///    SuperAdmin = global (support). **Main Manager = HARD 403** — even if a
-///    Complaint.* permission were ever leaked to him.
+///  - List/Detail: School Manager = his school; Instructor = own; SuperAdmin =
+///    global support. **Main Manager = HARD 403** and **Moderator = HARD 403**
+///    (D-75), even if a Complaint.* permission were ever leaked.
 ///  - Status transitions: Open → InReview → Resolved | Rejected → Closed.
 ///  - Reopen-from-complaint reuses Phase 5 <c>IVisitService.ReopenAsync</c>
 ///    (reason required, audited; resubmit recomputes the analysis snapshot on

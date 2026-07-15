@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { InputTextareaModule } from 'primeng/inputtextarea';
@@ -40,6 +40,7 @@ export class VisitDetailComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmationService);
+  private readonly translate = inject(TranslateService);
 
   readonly visit = signal<VisitDetail | null>(null);
   readonly loading = signal(false);
@@ -58,6 +59,7 @@ export class VisitDetailComponent implements OnInit {
   readonly complaintSubject = signal('');
   readonly complaintBody = signal('');
   readonly complaintSubmitting = signal(false);
+  readonly reportViewRecorded = signal(false);
 
   // Role / capability signals
   readonly currentUserId = computed(() => this.auth.currentUser()?.userId);
@@ -71,6 +73,11 @@ export class VisitDetailComponent implements OnInit {
   readonly canEdit = computed(() => this.auth.hasPermission('Visit.Edit'));
   readonly canViewPlans = computed(() => this.auth.hasPermission('Plan.View'));
   readonly canCreateComplaint = computed(() => this.auth.hasPermission('Complaint.Create'));
+  readonly isInstructorOnly = computed(() => {
+    const roles = this.auth.roles();
+    return roles.includes('Instructor')
+      && !roles.some(role => ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'].includes(role));
+  });
 
   readonly visitStatus = computed(() => Number(this.visit()?.status ?? 0));
 
@@ -86,7 +93,10 @@ export class VisitDetailComponent implements OnInit {
     this.visit()?.instructorId === this.currentUserId()
   );
   readonly canSubmitComplaint = computed(() =>
-    this.instructorSeesFullResult() && this.canCreateComplaint()
+    this.isInstructorOnly()
+    && this.instructorSeesFullResult()
+    && this.reportViewRecorded()
+    && this.canCreateComplaint()
   );
 
   ngOnInit(): void {
@@ -100,12 +110,13 @@ export class VisitDetailComponent implements OnInit {
 
   load(id: number): void {
     this.loading.set(true);
+    this.reportViewRecorded.set(false);
 
     // D-36 close: instructors MUST go through the dedicated /report endpoint so
     // the backend gate (status == Approved AND own visit) is enforced and every
     // successful view is recorded as a ReportViewLog row. Managers / moderators /
     // global admins continue to use the manager endpoint.
-    if (this.isInstructor()) {
+    if (this.isInstructorOnly()) {
       this.visitsService.getInstructorReport(id).subscribe({
         next: (resp) => this.handleLoadResponse(resp, id, true),
         error: () => this.loading.set(false)
@@ -128,6 +139,10 @@ export class VisitDetailComponent implements OnInit {
         ? mapInstructorReportToVisitDetail(resp.data as InstructorReport)
         : (resp.data as VisitDetail);
       this.visit.set(visit);
+      // The instructor report endpoint writes ReportViewLog before returning
+      // success. This explicit flag prevents the complaint surface from being
+      // enabled from any non-recording or supervisor detail path.
+      this.reportViewRecorded.set(instructorPath);
       // Manager / moderator: fetch report-view-status (irrelevant for instructors
       // — they are the viewer).
       if (!this.isInstructor() && this.isApproved()) {
@@ -206,13 +221,27 @@ export class VisitDetailComponent implements OnInit {
       next: response => {
         this.complaintSubmitting.set(false);
         if (!response.isSuccess) {
-          this.toast.error('COMPLAINTS.SUBMIT_FAILED', response.message || '');
+          this.toast.error(
+            this.translate.instant('COMPLAINTS.SUBMIT_FAILED'),
+            response.message || ''
+          );
           return;
         }
         this.complaintDialogVisible.set(false);
-        this.toast.success('COMPLAINTS.SUBMIT_SUCCESS', 'COMPLAINTS.SUBMIT_SUCCESS_DESC');
+        this.complaintSubject.set('');
+        this.complaintBody.set('');
+        this.toast.success(
+          this.translate.instant('COMPLAINTS.SUBMIT_SUCCESS'),
+          this.translate.instant('COMPLAINTS.SUBMIT_SUCCESS_DESC')
+        );
       },
-      error: () => this.complaintSubmitting.set(false)
+      error: (error) => {
+        this.complaintSubmitting.set(false);
+        this.toast.error(
+          this.translate.instant('COMPLAINTS.SUBMIT_FAILED'),
+          error?.error?.message || ''
+        );
+      }
     });
   }
 

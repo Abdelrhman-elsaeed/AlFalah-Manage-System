@@ -9,11 +9,11 @@ namespace AlFalah.Domain.Entities;
 /// Key invariants (docs/phases/PHASE-08-COMPLAINTS.md):
 ///  - Only the visit's OWN Instructor can create a complaint, and only when the
 ///    visit is Approved AND a ReportViewLog row proves they viewed the report.
-///  - <see cref="ModeratorUserId"/> snapshots the visit's CreatedByUserId so the
-///    related Moderator's scoped visibility (D-37 pattern) works without joins.
-///  - Visibility: School Manager = all complaints in HIS school; related
-///    Moderator = ONLY complaints on visits HE created; Instructor = own;
-///    SuperAdmin = support/global; **Main Manager = HARD-BLOCKED (403)**.
+///  - <see cref="ModeratorUserId"/> snapshots the report author for the School
+///    Manager's handling context and audit history; it grants no Moderator access.
+///  - Visibility: School Manager = all complaints in HIS school; Instructor =
+///    own; SuperAdmin = support/global; **Main Manager and Moderator are
+///    HARD-BLOCKED (403)**.
 ///  - Status state machine: Open → InReview → Resolved | Rejected → Closed.
 ///  - A complaint can trigger a Phase 5 visit reopen (reason required, audited);
 ///    the resubmit recomputes the analysis snapshot on the SAME RubricVersionId.
@@ -31,7 +31,7 @@ public class Complaint
     /// <summary>The submitting Instructor (must equal Visit.InstructorId).</summary>
     public string InstructorUserId { get; set; } = string.Empty;
 
-    /// <summary>The visit's creator (Visit.CreatedByUserId) — snapshot for moderator-scoped visibility.</summary>
+    /// <summary>The visit's creator (Visit.CreatedByUserId) — audit/handling-context snapshot only.</summary>
     public string ModeratorUserId { get; set; } = string.Empty;
 
     /// <summary>Short Arabic subject/title (required).</summary>

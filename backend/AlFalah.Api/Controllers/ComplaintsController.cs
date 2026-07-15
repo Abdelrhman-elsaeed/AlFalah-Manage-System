@@ -10,9 +10,9 @@ namespace AlFalah.Api.Controllers;
 
 /// <summary>
 /// Phase 8 — Complaints. Thin controller; ALL visibility rules (including the
-/// Main-Manager hard block) live in <see cref="IComplaintService"/> — the
-/// permission gates here are defense-in-depth only (MainManager has NO
-/// Complaint.* permission seeded, AND the service 403s him even if one leaks).
+/// Main-Manager and Moderator hard blocks) live in <see cref="IComplaintService"/> —
+/// the permission gates here are defense-in-depth only. The service still
+/// returns 403 if either role ever receives a stale/leaked Complaint permission.
 /// </summary>
 [ApiController]
 [Route("api/v1")]

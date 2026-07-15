@@ -355,6 +355,10 @@
           [header]="'COMPLAINTS.SUBMIT_TITLE' | translate"
           dir="rtl">
   <div class="complaint-dialog">
+    <p class="complaint-dialog__hint">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <span>{{ 'COMPLAINTS.SUBMIT_HINT' | translate }}</span>
+    </p>
     <label class="complaint-dialog__label" for="complaint-subject">{{ 'COMPLAINTS.SUBJECT' | translate }}</label>
     <input pInputText id="complaint-subject" class="complaint-dialog__input"
            [ngModel]="complaintSubject()" (ngModelChange)="complaintSubject.set($event)"

@@ -52,8 +52,9 @@
 aggregated reports; comparison between schools.
 **Filters:** Academic year, Semester, School, Subject, Stage, Moderator.
 **Restriction (critical):** Main Manager must **NOT** see teacher complaint/review
-request details. Complaints are visible only to: School Manager, related Moderator,
-the Instructor who submitted it, and Super Admin (for support if needed).
+request details. Complaint management is visible only to the School Manager and
+Super Admin support; the Instructor may submit from his own viewed approved report.
+Moderators have no complaint access anywhere (D-75).
 
 ## 3) School Manager / مدير المدرسة
 **Scope:** One school only.
@@ -135,11 +136,11 @@ the attached report. The dedicated report feed is server-filtered by
 `Visit.InstructorId == currentUserId` **and** `Status == Approved`; query
 parameters can never broaden that scope.
 **Can do:** view the read-only approved report; download its approved PDF; submit
-a complaint/review request; when Instructor opens a report, the system records the
-view.
+a complaint/review request from that report only after the successful report read
+has recorded the view.
 **Navigation:** exactly **الرئيسية** (Instructor dashboard), **تقاريري**
-(own approved reports), and **إعدادات الحساب**; a complaint entry may be shown
-when its UI route is available. The Instructor never sees supervisor **الزيارات**,
+(own approved reports), and **إعدادات الحساب**. Complaint submission is an action
+inside the approved report, not a sidebar entry. The Instructor never sees supervisor **الزيارات**,
 its filters/export/actions, or **أداة التقييم**, teachers, users, assignments,
 schools, or supervisor complaints.
 **Restrictions:** cannot edit evaluations; cannot see other instructors or any

@@ -276,11 +276,25 @@ All write endpoints gate the **service** behind `SchoolScopeGuard` + Moderator o
 | Moderator (NOT creator) | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
 | Instructor (own approved visit) | ✅ view-only | ❌ 403 | ❌ 403 | ❌ 403 |
 
-### Phase 8 — Complaints
+### Phase 8 — Complaints ✅ IMPLEMENTED
+
+All operations use `ApiResponse<T>`, async service methods, `CancellationToken`,
+and service-level scope checks. Main Manager and Moderator receive 403 on every
+complaint operation even if a stale permission reaches the controller.
+
+| Method | Route | Permission / scope | Description |
+|---|---|---|---|
+| POST | `/api/v1/visits/{visitId}/complaints` | `Complaint.Create`; Instructor-own, Approved, viewed report | Submit complaint/review request after `ReportViewLog` exists. |
+| GET | `/api/v1/complaints` | `Complaint.View`; School Manager active school / SuperAdmin support | List scoped complaints; optional status filter. |
+| GET | `/api/v1/complaints/{id}` | Same scope | Get complaint details. |
+| PUT | `/api/v1/complaints/{id}/status` | `Complaint.Manage`; School Manager active school / SuperAdmin | Apply the complaint status state machine. |
+| POST | `/api/v1/complaints/{id}/reopen-visit` | `Complaint.Manage` + `Visit.Reopen` | Reuse the visit reopen workflow and persist the linked reason/audit. |
+| DELETE | `/api/v1/complaints/{id}` | `Complaint.Delete`; School Manager / SuperAdmin | Soft-delete the complaint. |
+
 ### Teacher Teaching Profile Enhancement (additive)
 
-> This completed enhancement does not start Phase 8 and does not alter its
-> complaints scope.
+> This completed enhancement is independent of Phase 8 and does not alter its
+> complaint scope.
 
 Teacher create/edit continues to use `POST /api/v1/users` and
 `PUT /api/v1/users/{id}` with `Role = Instructor`. The extended request and
@@ -303,8 +317,6 @@ sets `Visit.Subject` from `SubjectSpecialization` as read-only when present and
 offers only that teacher's `InstructorClass` labels for `Visit.GradeClass`.
 When either value is missing, free-text entry remains available; no visit or
 scoring workflow is blocked or changed.
-
-- Instructor complaint, visibility rules, reopen from complaint
 
 ### Phase 9 — Dashboards & Exports ✅ IMPLEMENTED
 

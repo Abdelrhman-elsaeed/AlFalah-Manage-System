@@ -18,7 +18,7 @@ namespace AlFalah.Infrastructure.Services;
 ///  - Visibility: SM = school, Instructor = own, SuperAdmin = global.
 ///    **MainManager = HARD 403** AND **Moderator = HARD 403** (D-75) on every
 ///    read/write — even if a Complaint.* permission were ever leaked to those
-///    roles. A Moderator-who-is-also-SchoolManager keeps the SM-wide view.
+///    roles. SuperAdmin support is the only Moderator-role exception.
 ///  - Status machine: Open → InReview → Resolved | Rejected → Closed.
 ///  - Reopen-from-complaint delegates to Phase 5 <see cref="IVisitService.ReopenAsync"/>
 ///    so the state machine / audit / same-RubricVersionId recompute are reused
@@ -74,6 +74,11 @@ public class ComplaintService : IComplaintService
 
     public async Task<ComplaintDto> CreateAsync(int visitId, CreateComplaintRequestDto request, CancellationToken cancellationToken = default)
     {
+        EnsureNotMainManager();
+        EnsureNotModerator();
+        if (!_currentUser.IsInRole(RoleNames.Instructor))
+            throw new UnauthorizedSchoolAccessException("تقديم الشكوى متاح للمعلم صاحب التقرير فقط.");
+
         var currentUserId = _currentUser.UserId
             ?? throw new UnauthorizedAccessException("يجب تسجيل الدخول لتقديم شكوى.");
 
@@ -107,8 +112,8 @@ public class ComplaintService : IComplaintService
             SchoolId = visit.SchoolId,
             VisitId = visit.Id,
             InstructorUserId = currentUserId,
-            // Snapshot the visit's creator so the related-Moderator scoped
-            // visibility (D-37 pattern) works without re-joining Visits.
+            // Snapshot the visit's evaluator for complaint audit/handling context.
+            // This identifier never grants the Moderator complaint visibility (D-75).
             ModeratorUserId = visit.CreatedByUserId,
             Subject = request.Subject.Trim(),
             Body = request.Body.Trim(),
@@ -156,12 +161,7 @@ public class ComplaintService : IComplaintService
             {
                 // School Manager: ALL complaints in HIS school — no extra filter.
             }
-            else if (IsModeratorOnlyCaller())
-            {
-                // Related Moderator: ONLY complaints linked to visits HE created (D-37 pattern).
-                q = q.Where(c => c.ModeratorUserId == currentUserId);
-            }
-            else if (IsInstructorOnlyCaller())
+            else if (_currentUser.IsInRole(RoleNames.Instructor))
             {
                 q = q.Where(c => c.InstructorUserId == currentUserId);
             }
@@ -273,7 +273,7 @@ public class ComplaintService : IComplaintService
     public async Task SoftDeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var complaint = await LoadComplaintAsync(id, cancellationToken, track: true);
-        EnsureCanHandle(complaint); // SM (own school) / SuperAdmin; MainManager hard-blocked.
+        EnsureCanHandle(complaint); // SM (own school) / SuperAdmin; MainManager and Moderator hard-blocked.
 
         var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException("يجب تسجيل الدخول.");
         var now = DateTimeOffset.UtcNow;
@@ -318,16 +318,12 @@ public class ComplaintService : IComplaintService
     /// is otherwise focused on visits/plans). This mirrors the Main-Manager
     /// block: belt (no Complaint.* permission is seeded for Moderator) +
     /// suspenders (this hard 403 even if a permission ever leaks). SuperAdmin
-    /// and a user carrying BOTH Moderator + SchoolManager are exempt (a
-    /// Moderator-who-is-also-SM is treated as SM and keeps the school-wide view).
+    /// is the only exception because it is the documented support role.
     /// </summary>
     private void EnsureNotModerator()
     {
         if (!_currentUser.IsInRole(RoleNames.Moderator)) return;
         if (_currentUser.IsInRole(RoleNames.SuperAdmin)) return;
-        // A user carrying BOTH Moderator + SchoolManager is treated as SM and
-        // keeps the school-wide view. Only a *pure* Moderator is blocked.
-        if (_currentUser.IsInRole(RoleNames.SchoolManager)) return;
 
         _logger.LogWarning("Moderator blocked from complaints: user={UserId}", _currentUser.UserId);
         throw new UnauthorizedSchoolAccessException(
@@ -350,14 +346,7 @@ public class ComplaintService : IComplaintService
         if (_currentUser.IsInRole(RoleNames.SchoolManager))
             return;
 
-        if (IsModeratorOnlyCaller())
-        {
-            if (complaint.ModeratorUserId != currentUserId)
-                throw new UnauthorizedSchoolAccessException("لا تملك صلاحية الوصول إلى شكاوى زيارات المشرفين الآخرين.");
-            return;
-        }
-
-        if (IsInstructorOnlyCaller())
+        if (_currentUser.IsInRole(RoleNames.Instructor))
         {
             if (complaint.InstructorUserId != currentUserId)
                 throw new UnauthorizedSchoolAccessException("لا تملك صلاحية الوصول إلى شكاوى المعلمين الآخرين.");
@@ -385,23 +374,6 @@ public class ComplaintService : IComplaintService
             ?? throw new UnauthorizedSchoolAccessException("لا توجد مدرسة نشطة مرتبطة بحسابك. يرجى إعادة تسجيل الدخول.");
         if (active != complaint.SchoolId)
             throw UnauthorizedSchoolAccessException.OutsideScope(active, complaint.SchoolId);
-    }
-
-    private bool IsModeratorOnlyCaller()
-    {
-        if (!_currentUser.IsInRole(RoleNames.Moderator)) return false;
-        if (_currentUser.IsInRole(RoleNames.SchoolManager)) return false;
-        if (_currentUser.IsGlobalAdmin()) return false;
-        return true;
-    }
-
-    private bool IsInstructorOnlyCaller()
-    {
-        if (!_currentUser.IsInRole(RoleNames.Instructor)) return false;
-        if (_currentUser.IsInRole(RoleNames.SchoolManager)) return false;
-        if (_currentUser.IsInRole(RoleNames.Moderator)) return false;
-        if (_currentUser.IsGlobalAdmin()) return false;
-        return true;
     }
 
     // ─── Internals ───────────────────────────────────────────────────

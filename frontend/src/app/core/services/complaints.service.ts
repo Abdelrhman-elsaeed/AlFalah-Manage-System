@@ -20,7 +20,7 @@ export class ComplaintsService {
     return this.http.post<ApiResponse<Complaint>>(`${this.base}/visits/${visitId}/complaints`, body);
   }
 
-  /** Scoped list (SM = school, Moderator = own-visit complaints, Instructor = own; MainManager → 403). */
+  /** Scoped list (SM = school, Instructor = own, SuperAdmin = support; MainManager/Moderator → 403). */
   list(status?: number | null): Observable<ApiResponse<Complaint[]>> {
     let params = new HttpParams();
     if (status !== null && status !== undefined) params = params.set('status', String(status));

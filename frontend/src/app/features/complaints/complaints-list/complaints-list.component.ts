@@ -23,10 +23,11 @@ import {
 } from '../../../core/models/complaint.models';
 
 /**
- * Phase 8 — Complaints page. The SAME component serves every allowed role;
- * the BACKEND scopes the data (SM = school, Moderator = own-visit complaints,
- * Instructor = own, SuperAdmin = global; MainManager → 403 and has no nav
- * item / route permission anyway). UI gates below are UX only.
+ * Phase 8 — School-management complaints page. The backend scopes the data
+ * (SchoolManager = active school, SuperAdmin = support/global; MainManager and
+ * Moderator → 403 and have no nav/route). Instructors submit from their viewed
+ * approved report instead of receiving this management surface.
+ * UI gates below are UX only.
  */
 @Component({
   selector: 'app-complaints-list',

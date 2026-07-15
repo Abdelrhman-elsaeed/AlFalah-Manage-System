@@ -1,6 +1,6 @@
 # Phase 8 — Complaints
 
-**Status:** Not started · **Last updated:** 2026-07-10
+**Status:** COMPLETED ✅ · **Last updated:** 2026-07-15
 
 ## Goal
 Instructor complaint/review-request workflow with strict visibility rules.
@@ -9,7 +9,7 @@ Instructor complaint/review-request workflow with strict visibility rules.
 ### In
 - Instructor complaint after viewing an approved report
 - School Manager visibility (all complaints in his school)
-- Related Moderator visibility (only complaints linked to visits he created)
+- Moderator hard block: no complaint route, API read/write, dashboard, or export data (D-75)
 - Hide complaint details from Main Manager
 - Super Admin support access
 - Complaint can trigger visit reopen (store reason) + re-evaluation
@@ -19,7 +19,8 @@ Instructor complaint/review-request workflow with strict visibility rules.
 
 ## Visibility rules
 - School Manager sees all complaints in his school.
-- Related Moderator sees only complaints linked to visits created by him.
+- Moderator receives 403 for every complaint service operation, even if a stale
+  permission is present; Super Admin support is the only multi-role exception.
 - Instructor sees own complaints.
 - **Main Manager does NOT see complaint details.**
 - Super Admin can see for support if needed.
@@ -28,15 +29,21 @@ Instructor complaint/review-request workflow with strict visibility rules.
 ComplaintStatus — see [../11-CONSTANTS-AND-ENUMS.md](../11-CONSTANTS-AND-ENUMS.md).
 
 ## Acceptance criteria
-- Visibility enforced in backend; Main Manager blocked from complaint details.
+- Visibility enforced in backend; Main Manager and Moderator blocked from complaint details.
 - Reopen from complaint stores a reason and is audited.
+- Instructor submission is available only from his own Approved report after
+  `ReportViewLog` has been written by the report endpoint.
+- School Manager sees and handles all complaints in the active school.
 
 ## Dependencies
 Phase 5 (approval/visibility), Phase 6 (reports).
 
-## 2026-07-15 completion note
-- The backend blocks both Main Manager and Moderator access, including dashboard
-  payloads and exports; Moderator complaint access described above is superseded.
-- Instructors submit a review request only from their approved report after that
-  report endpoint has recorded a view. School Managers use the scoped
-  `/complaints` management route; Super Admin support remains available.
+## 2026-07-15 completion evidence
+- The approved-report UI calls `GET /api/v1/visits/{id}/report`; only a successful
+  response can expose the review-request dialog, so the server-written view log
+  necessarily exists before submission.
+- `ComplaintService.CreateAsync` independently checks Instructor role, own visit,
+  Approved state, view log, and school scope.
+- School Manager uses the scoped `/complaints` management route. Main Manager and
+  Moderator have neither route nor navigation and are hard-blocked in the service.
+- Moderator's canonical seed permissions no longer include `Complaint.View`.
