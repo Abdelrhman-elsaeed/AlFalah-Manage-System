@@ -36,3 +36,22 @@ Re-optimizing dependencies because vite config has changed
   ➜  Network: http://192.168.0.102:4200/
   ➜  Network: http://172.27.240.1:4200/
   ➜  Network: http://172.26.0.1:4200/
+Initial chunk files | Names               | Raw size
+main.js             | main                | 25.13 kB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-5A2KQHO3.js   | plan-list-component | 45.91 kB | 
+
+Application bundle generation complete. [2.196 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                   | Raw size
+main.js             | main                    | 25.15 kB | 
+
+Lazy chunk files    | Names                   | Raw size
+chunk-6QIYYSSB.js   | shell-component         | 24.33 kB | 
+chunk-ISEFF6W5.js   | teachers-list-component | 18.58 kB | 
+
+Application bundle generation complete. [0.864 seconds]
+
+Page reload sent to client(s).
