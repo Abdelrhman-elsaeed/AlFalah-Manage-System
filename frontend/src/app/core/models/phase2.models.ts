@@ -129,7 +129,7 @@ export interface UserDetail {
   lastLoginAt?: string;
   employeeNumber?: string | null;
   subject?: string | null;
-  stage?: SchoolStage | null;
+  stage?: SchoolStage | number | null;
   classes: string[];
 }
 
@@ -165,7 +165,7 @@ export interface UserCreateRequest {
   fullName?: string;
   employeeNumber?: string;
   subject?: string;
-  stage?: SchoolStage;
+  stage?: SchoolStage | number;
   classes?: string[];
 }
 
@@ -179,7 +179,7 @@ export interface UserUpdateRequest {
   schoolId?: number;
   employeeNumber?: string;
   subject?: string;
-  stage?: SchoolStage;
+  stage?: SchoolStage | number;
   classes?: string[];
 }
 

@@ -25,6 +25,7 @@ public class TeacherListItemDto
 {
     public string UserId { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
     public string? EmployeeNumber { get; set; }
     public int SchoolId { get; set; }
     public string SchoolName { get; set; } = string.Empty;
@@ -66,6 +67,8 @@ public class TeacherVisitSummaryDto
 {
     public int Id { get; set; }
     public DateTimeOffset VisitDate { get; set; }
+    public int VisitSequence { get; set; }
+    public string VisitSequenceLabelAr { get; set; } = string.Empty;
     /// <summary>Lesson / subject text (LessonTitle if set, otherwise Subject, otherwise category label).</summary>
     public string Lesson { get; set; } = string.Empty;
     public int VisitCategory { get; set; }

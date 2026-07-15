@@ -13,9 +13,13 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
             .MinimumLength(3).WithMessage("يجب ألا يقل اسم المستخدم عن 3 أحرف.")
             .MaximumLength(256).WithMessage("يجب ألا يتجاوز اسم المستخدم عن 256 حرفاً.");
 
+        // Instructor accounts use the employee number as their first password.
+        // Other account types continue to require a manually supplied password.
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("كلمة المرور مطلوبة.")
-            .MinimumLength(8).WithMessage("يجب ألا تقل كلمة المرور عن 8 أحرف.");
+            .NotEmpty().When(x => x.Role != RoleNames.Instructor)
+            .WithMessage("كلمة المرور مطلوبة.")
+            .MinimumLength(8).When(x => x.Role != RoleNames.Instructor)
+            .WithMessage("يجب ألا تقل كلمة المرور عن 8 أحرف.");
 
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("الاسم الأول مطلوب.")

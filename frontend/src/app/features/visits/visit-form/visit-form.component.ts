@@ -15,7 +15,6 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { ToastService } from '../../../core/services/toast.service';
 import { VisitsService } from '../../../core/services/visits.service';
-import { UsersService } from '../../../core/services/users.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TeachersService } from '../../../core/services/teachers.service';
 import {
@@ -52,7 +51,6 @@ interface DomainGroup {
 export class VisitFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly visitsService = inject(VisitsService);
-  private readonly usersService = inject(UsersService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmationService);
   private readonly route = inject(ActivatedRoute);
@@ -69,6 +67,18 @@ export class VisitFormComponent implements OnInit {
     ...option,
     label: this.translate.instant(option.labelKey)
   }));
+  readonly completedSequences = signal<Set<number>>(new Set());
+  readonly instructorVisitCount = signal(0);
+  readonly availableSequences = computed(() => this.sequences.map(option => ({
+    ...option,
+    disabled: this.completedSequences().has(option.value)
+      || (option.value === 7 && this.instructorVisitCount() < 6),
+    label: this.completedSequences().has(option.value)
+      ? `${option.label} (${this.translate.instant('VISITS.SEQUENCE_COMPLETED')})`
+      : (option.value === 7 && this.instructorVisitCount() < 6
+        ? `${option.label} (${this.translate.instant('VISITS.SEQUENCE_FOLLOWUP_AFTER_SIX')})`
+        : option.label)
+  })));
 
   readonly isEdit = signal(false);
   readonly visitId = signal<number | null>(null);
@@ -115,9 +125,15 @@ export class VisitFormComponent implements OnInit {
 
   // Domain-grouped scores from the visit's immutable rubric snapshot.
   readonly domainsGrouped = signal<DomainGroup[]>([]);
+  // FormControl values are not Angular signals; bump this revision whenever
+  // a score changes so the progress bar and submit action recompute.
+  readonly scoreRevision = signal(0);
   readonly allScoreControls = computed(() => this.domainsGrouped().flatMap(d => d.scores.map(s => s.control)));
 
-  readonly scoredCount = computed(() => this.allScoreControls().filter(c => c.value !== null && c.value !== undefined).length);
+  readonly scoredCount = computed(() => {
+    this.scoreRevision();
+    return this.allScoreControls().filter(c => c.value !== null && c.value !== undefined).length;
+  });
   readonly totalCount = computed(() => this.allScoreControls().length);
   readonly allScored = computed(() => this.scoredCount() === this.totalCount() && this.totalCount() > 0);
   readonly progressPercent = computed(() => {
@@ -128,13 +144,12 @@ export class VisitFormComponent implements OnInit {
   // Score labels (0..4) sourced from existing RUBRIC.SCORE_LABEL_0..4 i18n keys
   // (verbatim Arabic from docs/09; English mirrors in en.json). No new keys.
   readonly scoreLabels: string[] = [
-    this.translate.instant('RUBRIC.SCORE_LABEL_0'),
     this.translate.instant('RUBRIC.SCORE_LABEL_1'),
     this.translate.instant('RUBRIC.SCORE_LABEL_2'),
     this.translate.instant('RUBRIC.SCORE_LABEL_3'),
     this.translate.instant('RUBRIC.SCORE_LABEL_4')
   ];
-  readonly scoreValues: number[] = [0, 1, 2, 3, 4];
+  readonly scoreValues: number[] = [1, 2, 3, 4];
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -143,29 +158,60 @@ export class VisitFormComponent implements OnInit {
       this.visitId.set(Number(idParam));
       this.loadExistingVisit(this.visitId()!);
     } else {
-      this.form.controls['instructorId'].valueChanges.subscribe(userId => this.loadTeachingForInstructor(userId));
+      this.form.controls['instructorId'].valueChanges.subscribe(userId => {
+        this.loadTeachingForInstructor(userId);
+        this.loadVisitHistory(userId);
+      });
       this.loadInstructors();
     }
   }
 
   loadInstructors(): void {
     this.instructorsLoading.set(true);
-    this.usersService.list({ role: 'Instructor', isActive: true, pageSize: 100 }).subscribe({
+    // Use the teacher directory endpoint rather than the general users
+    // endpoint. Moderators are allowed to create visits and have
+    // `Instructor.View`, but intentionally do not have `User.View`.
+    // Calling /users here caused a 403 and the global interceptor redirected
+    // the otherwise-authorized moderator to the Unauthorized page.
+    this.teachersService.list({ page: 1, pageSize: 100 }).subscribe({
       next: (resp) => {
         this.instructorsLoading.set(false);
         if (resp.isSuccess && resp.data) {
           this.instructors.set(
-            resp.data.items.map(u => ({ userId: u.userId, fullName: u.fullName }))
+            resp.data.items
+              .filter(teacher => teacher.isActive)
+              .map(teacher => ({ userId: teacher.userId, fullName: teacher.fullName }))
           );
           const preselectedInstructorId = this.route.snapshot.queryParamMap.get('instructorId');
           if (!this.isEdit() && preselectedInstructorId) {
             this.form.controls['instructorId'].setValue(preselectedInstructorId);
             this.form.controls['instructorId'].disable({ emitEvent: false });
             this.teacherLocked.set(true);
+            this.loadVisitHistory(preselectedInstructorId);
           }
         }
       },
       error: () => this.instructorsLoading.set(false)
+    });
+  }
+
+  private loadVisitHistory(userId: string | null): void {
+    this.completedSequences.set(new Set());
+    this.instructorVisitCount.set(0);
+    if (!userId) return;
+
+    this.teachersService.getVisits(userId).subscribe({
+      next: response => {
+        if (!response.isSuccess || !response.data) return;
+        const activeVisits = response.data.filter(v => v.status !== 5 && v.status !== 8);
+        this.instructorVisitCount.set(activeVisits.length);
+        this.completedSequences.set(new Set(activeVisits.map(v => v.visitSequence)));
+        const selected = Number(this.form.controls['visitSequence'].value);
+        if (this.completedSequences().has(selected)) {
+          const next = this.sequences.find(option => !this.completedSequences().has(option.value));
+          this.form.controls['visitSequence'].setValue(next?.value ?? 4);
+        }
+      }
     });
   }
 
@@ -258,7 +304,8 @@ export class VisitFormComponent implements OnInit {
         });
       }
       groups.get(s.domainCode)!.scores.push({
-        control: new FormControl<number | null>(s.score, { nonNullable: false }),
+        // Zero is the legacy "not observed" value; reviewers now choose 1–4.
+        control: new FormControl<number | null>(s.score === 0 ? null : s.score, { nonNullable: false }),
         noteControl: new FormControl<string>(s.evidenceNote ?? '', { nonNullable: true }),
         standardCode: s.standardCode,
         standardTextAr: s.standardTextAr,
@@ -276,6 +323,7 @@ export class VisitFormComponent implements OnInit {
     // Toggle: clicking the same value again clears it (lets the user undo).
     s.control.setValue(s.control.value === value ? null : value);
     s.control.markAsDirty();
+    this.scoreRevision.update(revision => revision + 1);
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────
@@ -453,7 +501,7 @@ export class VisitFormComponent implements OnInit {
   }
 
   selectedScoreLabel(value: number | null): string {
-    return value === null || value === undefined ? '' : this.scoreLabels[value] ?? '';
+    return value === null || value === undefined ? '' : this.scoreLabels[value - 1] ?? '';
   }
 
   isEmpty(): boolean { return this.domainsGrouped().length === 0; }

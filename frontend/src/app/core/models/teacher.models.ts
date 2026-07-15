@@ -8,6 +8,7 @@ import { PagedResult, SchoolStage } from './phase2.models';
 export interface TeacherListItem {
   userId: string;
   fullName: string;
+  username: string;
   employeeNumber?: string | null;
   schoolId: number;
   schoolName: string;
@@ -45,6 +46,8 @@ export interface TeacherProfile {
 export interface TeacherVisitSummary {
   id: number;
   visitDate: string;
+  visitSequence: number;
+  visitSequenceLabelAr: string;
   lesson: string;
   visitCategory: number;
   visitCategoryLabelAr: string;

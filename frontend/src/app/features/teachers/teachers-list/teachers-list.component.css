@@ -18,6 +18,7 @@
 .empty { text-align: center; padding: 3rem; color: var(--text-dim); }
 
 .text-center { text-align: center; }
+.username-cell { direction: ltr; unicode-bidi: plaintext; white-space: nowrap; }
 .table-actions-col { width: 1%; white-space: nowrap; }
 .table-actions {
   display: inline-flex;

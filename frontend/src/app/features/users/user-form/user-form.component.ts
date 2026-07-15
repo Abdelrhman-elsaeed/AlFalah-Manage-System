@@ -93,6 +93,7 @@ export class UserFormComponent implements OnInit {
     }
 
     this.form.controls['role'].valueChanges.subscribe(role => this.setInstructorMode(role === 'Instructor'));
+    this.form.controls['employeeNumber'].valueChanges.subscribe(() => this.syncInstructorDefaultPassword());
     this.loadSchools();
   }
 
@@ -118,7 +119,7 @@ export class UserFormComponent implements OnInit {
       schoolId: user.schools[0]?.schoolId ?? null,
       employeeNumber: user.employeeNumber ?? '',
       subject: user.subject ?? '',
-      stage: user.stage ?? null
+      stage: this.normalizeStage(user.stage)
     });
     this.setInstructorMode(instructor);
   }
@@ -151,7 +152,7 @@ export class UserFormComponent implements OnInit {
           fullName: value.fullName.trim(),
           employeeNumber: value.employeeNumber.trim(),
           subject: value.subject.trim(),
-          stage: value.stage as SchoolStage,
+          stage: this.stageToApiValue(value.stage),
           schoolId: value.schoolId ?? undefined
         }
       : {};
@@ -210,7 +211,29 @@ export class UserFormComponent implements OnInit {
     this.form.controls['schoolId'].setValidators(required);
     this.form.controls['firstName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
     this.form.controls['lastName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
+    if (!this.isEdit()) {
+      this.form.controls['password'].setValidators(
+        instructor ? [Validators.required] : [Validators.required, Validators.minLength(8)]
+      );
+      this.syncInstructorDefaultPassword();
+    }
     Object.values(this.form.controls).forEach(control => control.updateValueAndValidity({ emitEvent: false }));
+  }
+
+  private syncInstructorDefaultPassword(): void {
+    if (this.isEdit() || !this.isInstructor()) return;
+    const employeeNumber = String(this.form.controls['employeeNumber'].value ?? '').trim();
+    this.form.controls['password'].setValue(employeeNumber, { emitEvent: false });
+  }
+
+  private normalizeStage(stage: SchoolStage | number | null | undefined): SchoolStage | null {
+    if (typeof stage === 'string') return stage;
+    return stage === 1 ? 'Primary' : stage === 2 ? 'Intermediate' : stage === 3 ? 'Secondary' : null;
+  }
+
+  private stageToApiValue(stage: SchoolStage | number | null | undefined): number | undefined {
+    if (typeof stage === 'number') return stage;
+    return stage === 'Primary' ? 1 : stage === 'Intermediate' ? 2 : stage === 'Secondary' ? 3 : undefined;
   }
 
   private syncNameParts(): void {

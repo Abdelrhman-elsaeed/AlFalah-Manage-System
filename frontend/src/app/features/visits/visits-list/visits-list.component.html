@@ -106,7 +106,7 @@
                       tooltipPosition="top" type="button" icon="pi pi-file-pdf"
                       [attr.aria-label]="'VISITS.DOWNLOAD_PDF' | translate"
                       [disabled]="pdfPrinting() === v.id"
-                      class="p-button-outlined p-button-sm p-button-icon-only row-action"
+                      class="p-button-sm p-button-icon-only row-action row-action--pdf"
                       (click)="printVisit(v)"></button>
               <button *ngIf="isDraft(v.status) && canCreate()"
                       pButton pTooltip="{{ 'VISITS.DELETE_DRAFT' | translate }}"
@@ -114,6 +114,8 @@
                       [attr.aria-label]="'VISITS.DELETE_DRAFT' | translate"
                       class="p-button-outlined p-button-sm p-button-danger p-button-icon-only row-action row-action--delete"
                       (click)="confirmDelete(v, $event)"></button>
+              <span *ngIf="!(isDraft(v.status) && canCreate())"
+                    class="row-action-spacer" aria-hidden="true"></span>
             </div>
           </td>
         </tr>

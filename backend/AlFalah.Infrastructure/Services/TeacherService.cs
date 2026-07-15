@@ -125,6 +125,7 @@ public class TeacherService : ITeacherService
             usersQuery = usersQuery.Where(u =>
                 u.FirstName.Contains(s) ||
                 u.LastName.Contains(s) ||
+                (u.UserName != null && u.UserName.Contains(s)) ||
                 (u.PhoneNumber != null && u.PhoneNumber.Contains(s)));
         }
 
@@ -209,6 +210,7 @@ public class TeacherService : ITeacherService
             {
                 UserId = u.Id,
                 FullName = u.FullName,
+                Username = u.UserName ?? string.Empty,
                 EmployeeNumber = prof?.EmployeeNumber,
                 SchoolId = sch?.Id ?? 0,
                 SchoolName = sch?.Name ?? string.Empty,
@@ -315,6 +317,7 @@ public class TeacherService : ITeacherService
             {
                 v.Id,
                 v.VisitDate,
+                v.VisitSequence,
                 v.VisitCategory,
                 v.Status,
                 v.LessonTitle,
@@ -328,6 +331,8 @@ public class TeacherService : ITeacherService
         {
             Id = r.Id,
             VisitDate = r.VisitDate,
+            VisitSequence = (int)r.VisitSequence,
+            VisitSequenceLabelAr = ((VisitSequence)r.VisitSequence).ToArabicString(),
             Lesson = !string.IsNullOrWhiteSpace(r.LessonTitle)
                 ? r.LessonTitle!
                 : (!string.IsNullOrWhiteSpace(r.Subject)

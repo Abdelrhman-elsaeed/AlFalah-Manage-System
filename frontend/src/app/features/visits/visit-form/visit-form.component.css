@@ -193,7 +193,8 @@
   color: var(--text);
   font-size: 0.9rem;
   line-height: 1.45;
-  text-align: end;
+  text-align: right;
+  direction: rtl;
 }
 
 .std-actions {
@@ -323,7 +324,7 @@
 
 @media (max-width: 720px) {
   .standard-row { gap: var(--space-2); padding: var(--space-2); }
-  .std-text { width: 100%; order: 3; text-align: start; }
+  .std-text { width: 100%; order: 3; text-align: right; direction: rtl; }
   .std-actions { width: 100%; order: 4; justify-content: space-between; }
 }
 

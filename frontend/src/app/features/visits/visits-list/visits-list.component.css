@@ -40,7 +40,7 @@
 .row-action { white-space: nowrap; }
 .row-action--view { color: var(--brand-900); }
 .row-action--delete { background: var(--danger-bg) !important; }
-:host ::ng-deep .table-actions-col { width: 132px; min-width: 132px; }
+:host ::ng-deep .table-actions-col { width: 148px; min-width: 148px; }
 
 .chip {
   display: inline-block;

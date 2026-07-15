@@ -64,6 +64,35 @@ public class VisitService : IVisitService
         // Instructor must belong to this school (active UserSchoolRole with role=Instructor).
         await EnsureInstructorInSchoolAsync(request.InstructorId, schoolId, cancellationToken);
 
+        // A sequence is a planned milestone for an instructor. Once it has
+        // been recorded, it cannot be created again (except after an explicit
+        // rejection/cancellation). This is enforced server-side so duplicate
+        // visits cannot be introduced by another client or a race in the UI.
+        var sequence = (VisitSequence)request.VisitSequence;
+        var sequenceAlreadyRecorded = await _context.Visits
+            .AsNoTracking()
+            .AnyAsync(v => v.InstructorId == request.InstructorId
+                        && v.SchoolId == schoolId
+                        && v.VisitSequence == sequence
+                        && v.Status != VisitStatus.RejectedForChanges
+                        && v.Status != VisitStatus.Cancelled,
+                cancellationToken);
+        if (sequenceAlreadyRecorded)
+            throw new InvalidOperationException("تم تسجيل هذه الزيارة لهذا المعلم من قبل. اختر تسلسلاً آخر.");
+
+        if (sequence == VisitSequence.FollowUp)
+        {
+            var recordedVisitCount = await _context.Visits
+                .AsNoTracking()
+                .CountAsync(v => v.InstructorId == request.InstructorId
+                              && v.SchoolId == schoolId
+                              && v.Status != VisitStatus.RejectedForChanges
+                              && v.Status != VisitStatus.Cancelled,
+                    cancellationToken);
+            if (recordedVisitCount < 6)
+                throw new InvalidOperationException("تتاح زيارة المتابعة بعد إكمال الزيارات الست للمعلم.");
+        }
+
         // Snapshot the currently active rubric version.
         var activeRubric = await _context.RubricVersions
             .AsNoTracking()
@@ -88,7 +117,7 @@ public class VisitService : IVisitService
             CreatedByUserId = _currentUser.UserId ?? throw new InvalidOperationException("لم يتم العثور على المستخدم الحالي."),
             RubricVersionId = activeRubric.Id,
             VisitCategory = (VisitCategory)request.VisitCategory,
-            VisitSequence = (VisitSequence)request.VisitSequence,
+            VisitSequence = sequence,
             Status = VisitStatus.Draft,
             VisitDate = request.VisitDate,
             Subject = request.Subject,

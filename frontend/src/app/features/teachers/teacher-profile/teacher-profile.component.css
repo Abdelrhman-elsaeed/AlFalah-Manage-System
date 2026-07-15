@@ -61,6 +61,7 @@
   word-break: break-word;
   font-weight: 600;
 }
+.profile-cell .value[dir="ltr"] { direction: ltr; text-align: end; }
 .profile-cell .value--muted { color: var(--text-muted); font-weight: 500; }
 .profile-cell--full { grid-column: 1 / -1; }
 .profile-cell--editing > :not(.classes-editor) { display: none; }

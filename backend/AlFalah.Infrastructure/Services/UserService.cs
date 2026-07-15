@@ -337,7 +337,25 @@ public class UserService : IUserService
             IsActive = true
         };
 
-        var createResult = await _userManager.CreateAsync(user, request.Password);
+        // Instructors receive a deterministic first-login password equal to
+        // their employee number. Identity's normal password policy is kept for
+        // all other roles; the instructor default is intentionally hashed
+        // directly because employee numbers are business identifiers and may
+        // not satisfy the generic complexity policy.
+        IdentityResult createResult;
+        if (request.Role == RoleNames.Instructor)
+        {
+            var initialPassword = request.EmployeeNumber?.Trim();
+            if (string.IsNullOrWhiteSpace(initialPassword))
+                throw new ArgumentException("الرقم الوظيفي مطلوب للمعلم.");
+
+            user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, initialPassword);
+            createResult = await _userManager.CreateAsync(user);
+        }
+        else
+        {
+            createResult = await _userManager.CreateAsync(user, request.Password);
+        }
         if (!createResult.Succeeded)
         {
             var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));

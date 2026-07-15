@@ -27,7 +27,10 @@ public enum VisitSequence
     First = 1,                          // أولى
     Second = 2,                         // ثانية
     Third = 3,                          // ثالثة
-    FollowUp = 4                        // متابعة
+    Fourth = 4,
+    Fifth = 5,
+    Sixth = 6,
+    FollowUp = 7                        // متابعة
 }
 
 public static class VisitCategoryExtensions
@@ -59,6 +62,9 @@ public static class VisitSequenceExtensions
         VisitSequence.First => "أولى",
         VisitSequence.Second => "ثانية",
         VisitSequence.Third => "ثالثة",
+        VisitSequence.Fourth => "رابعة",
+        VisitSequence.Fifth => "خامسة",
+        VisitSequence.Sixth => "سادسة",
         VisitSequence.FollowUp => "متابعة",
         _ => string.Empty
     };

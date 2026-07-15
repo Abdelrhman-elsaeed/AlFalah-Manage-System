@@ -19,7 +19,9 @@
 
       <div class="field" *ngIf="!isEdit()">
         <label for="user-password">{{ 'USERS.PASSWORD' | translate }} *</label>
-        <p-password inputId="user-password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-100" inputStyleClass="w-100"></p-password>
+        <p-password inputId="user-password" formControlName="password" [toggleMask]="true" [feedback]="false"
+                    [readonly]="isInstructor()" styleClass="w-100" inputStyleClass="w-100"></p-password>
+        <small class="field__hint" *ngIf="isInstructor()">{{ 'TEACHERS.DEFAULT_PASSWORD_HINT' | translate }}</small>
       </div>
 
       <div class="field field--full" *ngIf="isInstructor(); else standardName">

@@ -76,9 +76,13 @@
 
         <div class="form-field">
           <label>{{ 'VISITS.VISIT_SEQUENCE' | translate }} *</label>
-          <app-clearable-select [options]="sequences" optionLabel="label" optionValue="value"
+          <app-clearable-select [options]="availableSequences()" optionLabel="label" optionValue="value"
+                                optionDisabled="disabled"
                                 formControlName="visitSequence" [clearable]="false"
                                 appendTo="body"></app-clearable-select>
+          <small class="field-hint" *ngIf="instructorVisitCount() > 0">
+            {{ 'VISITS.SEQUENCE_PROGRESS' | translate:{ count: instructorVisitCount() } }}
+          </small>
         </div>
 
         <div class="form-field">
@@ -194,9 +198,6 @@
                   {{ v }}
                 </button>
               </div>
-              <span class="selected-score-label" *ngIf="s.control.value !== null">
-                {{ selectedScoreLabel(s.control.value) }}
-              </span>
             </div>
             <div class="std-note-row std-note-row--open">
               <input pInputText class="note-input"
@@ -225,15 +226,15 @@
         </span>
       </div>
       <div class="actions-bar__buttons">
-        <button pButton type="button" icon="pi pi-save"
-                [label]="'VISITS.SAVE_DRAFT' | translate"
-                [loading]="saving()"
-                (click)="saveDraft()"></button>
-        <button pButton type="button" icon="pi pi-send" class="p-button-success"
-                [label]="'VISITS.SUBMIT_FOR_APPROVAL' | translate"
-                [disabled]="!allScored() || !isEdit()"
-                [loading]="submitting()"
-                (click)="confirmSubmit()"></button>
+        <!-- One clear action per stage: create the visit details first,
+             then review/score the visit and submit it for approval. -->
+        <button pButton type="button"
+                [icon]="isEdit() ? 'pi pi-send' : 'pi pi-arrow-left'"
+                [class.p-button-success]="isEdit()"
+                [label]="(isEdit() ? 'VISITS.SUBMIT_FOR_APPROVAL' : 'COMMON.NEXT') | translate"
+                [disabled]="isEdit() && !allScored()"
+                [loading]="saving() || submitting()"
+                (click)="isEdit() ? confirmSubmit() : saveDraft()"></button>
       </div>
     </div>
   </ng-template>

@@ -212,7 +212,10 @@ export const VISIT_SEQUENCES: VisitSequenceOption[] = [
   { value: 1, labelKey: 'VISITS.SEQUENCE_1' },
   { value: 2, labelKey: 'VISITS.SEQUENCE_2' },
   { value: 3, labelKey: 'VISITS.SEQUENCE_3' },
-  { value: 4, labelKey: 'VISITS.SEQUENCE_4' }
+  { value: 4, labelKey: 'VISITS.SEQUENCE_4' },
+  { value: 5, labelKey: 'VISITS.SEQUENCE_5' },
+  { value: 6, labelKey: 'VISITS.SEQUENCE_6' },
+  { value: 7, labelKey: 'VISITS.SEQUENCE_7' }
 ];
 
 export const VISIT_STATUSES: VisitStatusOption[] = [

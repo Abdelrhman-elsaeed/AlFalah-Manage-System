@@ -503,7 +503,7 @@ textarea.p-inputtext {
 .p-datatable th.text-center, 
 .p-datatable td.text-center { text-align: center !important; }
 .p-datatable th.table-actions-col, 
-.p-datatable td.table-actions-col { text-align: center !important; width: 120px; white-space: nowrap; }
+.p-datatable td.table-actions-col { text-align: center !important; width: 148px; min-width: 148px; white-space: nowrap; }
 
 /* Action groups */
 .action-toolbar {
@@ -520,16 +520,64 @@ textarea.p-inputtext {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  min-height: 2.65rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--brand-50);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
 }
 .table-actions .p-button.p-button-icon-only,
 .actions-cell .p-button.p-button-icon-only {
   width: 2.2rem;
   height: 2.2rem;
-  padding: 0;
+  padding: 0 !important;
+  flex: 0 0 2.2rem;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: 1rem !important;
+}
+.table-actions .p-button {
+  border-radius: 0.65rem;
+  border-width: 1px;
+  font-weight: 700;
+  color: #fff !important;
+  border-color: var(--brand-700) !important;
+  background: var(--brand-700) !important;
+}
+.table-actions .p-button.p-button-danger { background: #dc2626 !important; border-color: #b91c1c !important; }
+.table-actions .p-button.p-button-icon-only {
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.14);
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+.table-actions .p-button.p-button-icon-only:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+}
+.table-actions .row-action--view {
+  color: #fff !important;
+  border-color: var(--brand-700) !important;
+  background: var(--brand-700) !important;
+}
+.table-actions .row-action--pdf {
+  color: #fff !important;
+  border-color: #b88708 !important;
+  background: #c99a20 !important;
+}
+.table-actions .row-action--delete {
+  color: #fff !important;
+  border-color: #b91c1c !important;
+  background: #dc2626 !important;
+}
+.row-action-spacer {
+  display: inline-block;
+  width: 2.2rem;
+  height: 2.2rem;
   flex: 0 0 2.2rem;
 }
-.table-actions .p-button { border-radius: 9px; }
 
 /* Paginator — RTL-aware, light surface */
 .p-paginator {
