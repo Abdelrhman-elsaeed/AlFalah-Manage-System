@@ -62,6 +62,7 @@ public class VisitReportDto
     public List<ReportStrengthDto> Strengths { get; set; } = new();
     public List<ReportImprovementDto> ImprovementAreas { get; set; } = new();
     public List<ReportPriorityStandardDto> PriorityStandards { get; set; } = new();
+    public List<string> Recommendations { get; set; } = new();
 
     // ─── Phase 6 / Stage 2: branding + signatures + QR ───────────────────
 
@@ -95,6 +96,10 @@ public class VisitReportDto
     /// <summary>Raw image bytes for the moderator/creator signature. Null when missing.</summary>
     public byte[]? ModeratorSignatureBytes { get; set; }
     public string ModeratorSignatureFormat { get; set; } = "png";
+
+    /// <summary>Raw image bytes for the evaluated instructor's signature. Null renders a blank line.</summary>
+    public byte[]? InstructorSignatureBytes { get; set; }
+    public string InstructorSignatureFormat { get; set; } = "png";
 
     /// <summary>Raw image bytes for the manager/approver signature. Null when missing.</summary>
     public byte[]? ManagerSignatureBytes { get; set; }

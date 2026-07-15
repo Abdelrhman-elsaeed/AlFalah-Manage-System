@@ -1,6 +1,6 @@
 # 09 — Rubric & Evaluation
 
-**Status:** Phase 3 IMPLEMENTED + seeded baseline (5 domains / 25 standards verbatim) + dynamic visit snapshots · **Last updated:** 2026-07-15
+**Status:** Desktop-parity Phase 2 implemented + seeded baseline + dynamic visit snapshots · **Last updated:** 2026-07-15
 
 ## Structure
 - The seeded baseline has **5 domains** and **25 standards**.
@@ -28,7 +28,7 @@
 
 ## Analysis rules
 - **Domain average** = average of standard scores in that domain.
-- **Overall score (current historical behavior before desktop-parity Phase 2)** = average of all scored standards. Locked decision D1 changes the current rubric-version behavior to equal-weight domain averages in desktop-parity Phase 2 without mutating historical snapshots.
+- **Overall score for newly computed analyses** = equal-weight average of the visit snapshot's domain averages, rounded to three decimals. A domain's weight is independent of its standard count (locked D1). Existing persisted `VisitAnalysis` snapshots are never recomputed.
 - **Strengths** = domains with average **>= 3.0**.
 - **Improvement areas** = domains with average **< 2.5**.
 - **Priority standards** = individual standards with score **<= 1.5**.
@@ -40,7 +40,7 @@
 - Old reports remain historically accurate.
 - All schools use the same active rubric version for now.
 
-> Not implemented in Phase 1. Keep architecture ready.
+Deterministic recommendations use each weak domain's exact first plan action; when there are no weak domains, the exact excellence fallback is returned. Recommendations are derived from the persisted improvement-area snapshot, so no historical scores are recomputed.
 See [10-IMPROVEMENT-PLANS-AND-FOLLOWUPS.md](10-IMPROVEMENT-PLANS-AND-FOLLOWUPS.md) for how
 weak domains (avg < 2.5) and priority standards (score <= 1.5) feed improvement plans.
 

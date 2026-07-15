@@ -45,19 +45,19 @@ public class VisitAnalysisEngineTests
         Score = score
     };
 
-    // ─── D-26 worked example: D1=6×4, D2=4×4, D3=6×4, D4=3×4, D5=[3,2,1,0,4,4] → overall 3.6 ───
+    // ─── Desktop-parity sample: equal-weight mean of the five domain averages ───
 
     [Fact]
-    public void D26_WorkedExample_Overall_3_6_Performance_Mumtaz()
+    public void EqualDomainWorkedExample_Overall_3_667_Performance_Mumtaz()
     {
-        // 6*4 + 4*4 + 6*4 + 3*4 + 14 = 90 / 25 = 3.6
+        // Domain means = [4, 4, 4, 4, 2.333]; their equal mean = 3.667.
         var input = Build(
             d1: 4, d2: 4, d3: 4, d4: 4,
             d5Base: 3, d5Extras: new[] { 2, 1, 0, 4, 4 });
 
         var result = VisitAnalysisEngine.Compute(input);
 
-        result.OverallScore.Should().Be(3.6m);
+        result.OverallScore.Should().Be(3.667m);
         result.PerformanceLevelAr.Should().Be("متميز");
     }
 
@@ -130,7 +130,7 @@ public class VisitAnalysisEngineTests
     [Fact]
     public void UnevenDistribution_D4_Averages_Over_Three_Standards()
     {
-        // D1=6×0, D2=4×0, D3=6×0, D4=3×3, D5=6×0 → D4-only strength, overall = 9/25 = 0.36
+        // D1=0, D2=0, D3=0, D4=3, D5=0 → equal-domain overall = 3/5 = 0.6.
         var input = Build(d1: 0, d2: 0, d3: 0, d4: 3, d5Base: 0,
             d5Extras: new[] { 0, 0, 0, 0, 0 });
 
@@ -140,7 +140,8 @@ public class VisitAnalysisEngineTests
         result.Strengths.Should().ContainSingle(s => s.DomainCode == "D4");
         result.ImprovementAreas.Select(i => i.DomainCode).Should()
             .BeEquivalentTo(new[] { "D1", "D2", "D3", "D5" });
-        result.PerformanceLevelAr.Should().Be("غير مشاهد"); // overall = 0.36
+        result.OverallScore.Should().Be(0.6m);
+        result.PerformanceLevelAr.Should().Be("غير مشاهد");
     }
 
     // ─── Strengths / Improvement thresholds ───
@@ -301,8 +302,8 @@ public class VisitAnalysisEngineTests
         result.DomainAverages.Should().HaveCount(5);
         result.DomainAverages.Single(d => d.DomainCode == "D1").AverageScore.Should().Be(4.0m);
         result.DomainAverages.Single(d => d.DomainCode == "D5").AverageScore.Should().Be(3.0m);
-        // Overall: (28 + 16 + 28 + 12 + 18) / 27 = 102/27 = 3.778
-        result.OverallScore.Should().Be(3.778m);
+        // Equal-domain overall: (4 + 4 + 4 + 4 + 3) / 5 = 3.8.
+        result.OverallScore.Should().Be(3.8m);
         result.PerformanceLevelAr.Should().Be("متميز");
     }
 
@@ -324,5 +325,15 @@ public class VisitAnalysisEngineTests
         result.Strengths.Should().BeEmpty();
         result.OverallScore.Should().Be(2.0m);
         result.PerformanceLevelAr.Should().Be("متحقق جزئياً");
+    }
+
+    [Fact]
+    public void Recommendations_Use_Exact_First_Action_And_Excellence_Fallback()
+    {
+        VisitRecommendationEngine.Build(new[] { ("D4", "التقويم") })
+            .Should().Equal("بخصوص التقويم: إعداد خطة تقويم تشمل التشخيصي والبنائي والختامي");
+
+        VisitRecommendationEngine.Build(Array.Empty<(string, string)>())
+            .Should().Equal("الاستمرار على نفس المستوى المتميز وتعزيز نقل الخبرات للزملاء");
     }
 }

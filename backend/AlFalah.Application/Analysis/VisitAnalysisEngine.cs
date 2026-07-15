@@ -4,7 +4,7 @@ namespace AlFalah.Application.Analysis;
 /// Visit analysis engine — verbatim implementation of docs/09 (DYNAMIC, no fixed count).
 ///  - Domain average = mean of standard scores in that domain (each domain divides
 ///    by ITS OWN standard count — uneven distribution respected; never a fixed divisor).
-///  - Overall score = mean of all scored standards in the snapshot (3 decimals).
+///  - Overall score = equal-weight mean of the domain averages (3 decimals).
 ///  - Performance level: متميز >=3.5, جيد جداً >=3.0, جيد >=2.5,
 ///    متحقق جزئياً >=2.0, يحتاج تحسين >=1.0, غير مشاهد <1.0 (highest first).
 ///  - Strengths = domains with average >= 3.0.
@@ -56,7 +56,10 @@ public static class VisitAnalysisEngine
             })
             .ToList();
 
-        var overall = Math.Round(standards.Average(s => (decimal)s.Score), 3);
+        // Every domain contributes equally, regardless of how many standards it owns.
+        // This is the locked desktop-parity formula (D1); persisted historical
+        // snapshots are never recomputed when rubric versions change.
+        var overall = Math.Round(domainAverages.Average(d => d.AverageScore), 3);
         var level = MapPerformanceLevel(overall);
 
         var strengths = domainAverages

@@ -19,6 +19,10 @@
               [loading]="pdfDownloading()"
               class="p-button-outlined p-button-success"
               (click)="downloadReportPdf()"></button>
+      <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-eye"
+              [label]="'VISITS.REPORT_PREVIEW' | translate"
+              class="p-button-outlined p-button-success"
+              (click)="goReportPreview()"></button>
       <button *ngIf="canSubmitComplaint()" pButton type="button" icon="pi pi-flag"
               [label]="'COMPLAINTS.SUBMIT' | translate"
               class="p-button-outlined p-button-danger"
@@ -316,6 +320,11 @@
                 <span class="bullet-score bullet-score--danger">{{ p.score }}</span>
               </li>
             </ul>
+          </div>
+
+          <div class="analysis-section" *ngIf="a.recommendations.length > 0">
+            <h3 class="subsection-title success-title"><i class="pi pi-lightbulb"></i>{{ 'VISITS.RECOMMENDATIONS' | translate }}</h3>
+            <ul class="bullet-list bullet-list--success"><li *ngFor="let recommendation of a.recommendations"><span class="bullet-icon"><i class="pi pi-arrow-left"></i></span><span class="bullet-text">{{ recommendation }}</span></li></ul>
           </div>
         </section>
       </ng-container>

@@ -66,6 +66,7 @@ public class VisitAnalysisDto
     public List<VisitStrengthDto> Strengths { get; set; } = new();
     public List<VisitImprovementDto> ImprovementAreas { get; set; } = new();
     public List<VisitPriorityStandardDto> PriorityStandards { get; set; } = new();
+    public List<string> Recommendations { get; set; } = new();
     public List<VisitDomainAverageDto> DomainAverages { get; set; } = new();
     public DateTimeOffset ComputedAt { get; set; }
 }

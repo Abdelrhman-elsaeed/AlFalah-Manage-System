@@ -68,11 +68,13 @@ public class PdfReportService : IPdfReportService
         public const string SectionStrengths   = "نقاط القوة";
         public const string SectionImprovements= "مجالات التحسين";
         public const string SectionPriorities  = "معايير ذات أولوية";
+        public const string SectionRecommendations = "التوصيات";
         public const string SectionSignatures  = "التوقيع والاعتماد";
         public const string SectionDomainAvg   = "متوسطات المحاور";
         public const string LabelOverallScore  = "المتوسط العام";
         public const string LabelPerformance   = "مستوى الأداء";
         public const string LabelSupervisorSig = "توقيع المشرف";
+        public const string LabelInstructorSig = "توقيع المعلم";
         public const string LabelManagerSig    = "اعتماد مدير المدرسة";
 
         public const string FooterGenerated   = "تاريخ إنشاء التقرير";
@@ -302,6 +304,8 @@ public class PdfReportService : IPdfReportService
 
             if (dto.ImprovementAreas.Count > 0)
                 col.Item().Element(c => ComposeImprovementsBlock(c, dto));
+
+            col.Item().Element(c => ComposeRecommendationsBlock(c, dto));
 
             if (dto.PriorityStandards.Count > 0)
                 col.Item().Element(c => ComposePrioritiesBlock(c, dto));
@@ -751,9 +755,23 @@ public class PdfReportService : IPdfReportService
         });
     }
 
+    private static void ComposeRecommendationsBlock(IContainer container, VisitReportDto dto)
+    {
+        container.PaddingTop(8).Column(col =>
+        {
+            col.Item().AlignRight().Text(T.SectionRecommendations)
+                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreen);
+            foreach (var recommendation in dto.Recommendations)
+            {
+                col.Item().PaddingTop(4).AlignRight().Text($"• {recommendation}")
+                    .FontFamily(AmiriRegular).FontSize(10).FontColor(Palette.Text);
+            }
+        });
+    }
+
     /// <summary>
-    /// BUG-2 FIX — Stage 2 signature card: two columns (Moderator / Manager)
-    /// rendering REAL signature images from UserSignature.
+    /// Signature card: supervisor, evaluated instructor, and approving manager.
+    /// Every available UserSignature image is rendered from real persisted data.
     ///
     /// Fallback: when the image bytes are null, render ONLY a blank horizontal
     /// line as the signature area. Never show "S. Manager" or any hard-coded
@@ -773,14 +791,18 @@ public class PdfReportService : IPdfReportService
             col.Item().PaddingTop(8).Row(row =>
             {
                 if (dto.ShowModeratorSignature)
-                    row.RelativeItem().Element(c => SignatureBox(c, dto, isModerator: true));
+                    row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Moderator));
                 else
                     row.RelativeItem();
 
-                row.ConstantItem(16);
+                row.ConstantItem(10);
+
+                row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Instructor));
+
+                row.ConstantItem(10);
 
                 if (dto.ShowManagerSignature)
-                    row.RelativeItem().Element(c => SignatureBox(c, dto, isModerator: false));
+                    row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Manager));
                 else
                     row.RelativeItem();
             });
@@ -793,16 +815,30 @@ public class PdfReportService : IPdfReportService
     /// dashed line — no hard-coded text placeholder, no "S. Manager".
     /// The printed name (from visit data) and the date line are always shown.
     /// </summary>
-    private static void SignatureBox(IContainer container, VisitReportDto dto, bool isModerator)
+    private enum SignatureParty { Moderator, Instructor, Manager }
+
+    private static void SignatureBox(IContainer container, VisitReportDto dto, SignatureParty party)
     {
-        var label      = isModerator ? T.LabelSupervisorSig : T.LabelManagerSig;
-        var printedName = isModerator
-            ? dto.CreatedByFullName
-            : dto.ApprovedByFullName ?? string.Empty;
+        var label = party switch
+        {
+            SignatureParty.Moderator => T.LabelSupervisorSig,
+            SignatureParty.Instructor => T.LabelInstructorSig,
+            _ => T.LabelManagerSig
+        };
+        var printedName = party switch
+        {
+            SignatureParty.Moderator => dto.CreatedByFullName,
+            SignatureParty.Instructor => dto.InstructorFullName,
+            _ => dto.ApprovedByFullName ?? string.Empty
+        };
+        byte[]? imageBytes = party switch
+        {
+            SignatureParty.Moderator => dto.ModeratorSignatureBytes,
+            SignatureParty.Instructor => dto.InstructorSignatureBytes,
+            _ => dto.ManagerSignatureBytes
+        };
 
-        byte[]? imageBytes = isModerator ? dto.ModeratorSignatureBytes : dto.ManagerSignatureBytes;
-
-        var dateText = !isModerator && dto.ApprovedAt.HasValue
+        var dateText = party == SignatureParty.Manager && dto.ApprovedAt.HasValue
             ? $"التاريخ: {dto.ApprovedAt.Value:yyyy-MM-dd}"
             : "التاريخ: ________________";
 

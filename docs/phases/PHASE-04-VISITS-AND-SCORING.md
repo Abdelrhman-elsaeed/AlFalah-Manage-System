@@ -1,6 +1,6 @@
 # Phase 4 — Visits & Scoring
 
-**Status:** COMPLETED ✅ + desktop-parity Phase 1 completed · **Last updated:** 2026-07-15
+**Status:** COMPLETED ✅ + desktop-parity Phases 1–2 completed · **Last updated:** 2026-07-15
 
 ## Goal
 Create and score classroom visits against the standards in the snapshotted rubric version, with analysis.
@@ -74,9 +74,9 @@ All four entities carry `IsDeleted` / `DeletedAt` / `DeletedByUserId` and have a
 
 ## Analysis engine (docs/09 verbatim — implemented in `VisitService.ComputeAnalysis`)
 
-Given 25 standards grouped by domain (distribution 6/4/6/3/6):
+Given a dynamic N-standard snapshot grouped by domain (the baseline distribution is 6/4/6/3/6):
 - **Domain average** = mean of that domain's standard scores (UNEVEN distribution respected; never a fixed /5 divisor).
-- **Overall score** = mean of all 25 standard scores (`decimal(6,3)`).
+- **Overall score** = equal-weight mean of the persisted domain averages (`decimal(6,3)`); domain standard counts do not change domain weight.
 - **Performance level** (highest → lowest, exclusive on the upper bound):
   - متميز ≥ 3.5
   - جيد جداً ≥ 3.0
@@ -86,7 +86,7 @@ Given 25 standards grouped by domain (distribution 6/4/6/3/6):
   - غير مشاهد < 1.0
 - **Strengths** = domains with average ≥ 3.0.
 - **Improvement areas** = domains with average < 2.5.
-- **Priority standards** = individual standards with score ≤ 1.
+- **Priority standards** = individual standards with score ≤ 1.5 (integer scores therefore 0 or 1).
 
 The snapshot (`VisitAnalysis` + `VisitDomainAverage[]`) is computed and persisted **once on submit**, then immutable in Phase 4. Phase 5 introduces reopen/approve which may rebuild the snapshot.
 
@@ -149,3 +149,5 @@ Phase 3 (rubric — reused for snapshot), Phase 2 (users/schools, school-scoping
 - ✅ Permissions enforced (401 unauthenticated, 403 missing permission).
 - ✅ Desktop-parity Phase 1: lesson/attendance fields round-trip through create/update/detail/instructor report/PDF; two-standard EF regression proves dynamic behavior; score legend, inline evidence, per-domain progress, teacher locking, and graceful teaching auto-fill fallback are implemented.
 - ✅ Phase 1 gate: Release build 0 warnings/errors; 88/88 backend tests; production frontend build; Arabic/English parity 634/634 with no duplicate top-level keys.
+- ✅ Desktop-parity Phase 2: submission delegates to the single tested equal-domain engine; exact deterministic recommendations flow through detail, Instructor report, preview, and PDF; the guarded preview reuses the D-36/D-37 scoped endpoints and includes radar/domain data plus print/plan actions; PDF retains embedded Amiri RTL branding and adds real Instructor signature beside supervisor/manager approval areas.
+- ✅ Phase 2 gate: Release build 0 warnings/errors; 90/90 backend tests (including real QuestPDF rendering); production frontend build; Arabic/English parity 639/639 with no duplicate keys.

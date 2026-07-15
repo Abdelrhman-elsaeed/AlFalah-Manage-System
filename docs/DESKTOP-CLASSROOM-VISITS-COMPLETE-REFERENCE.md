@@ -935,6 +935,8 @@ derived from the visit's rubric snapshot.
 
 ## Phase 2 — Analysis and reporting
 
+**Implementation status (2026-07-15): COMPLETED.** The submission service now delegates to the single pure analysis engine. New analyses use the locked equal-domain formula while historical persisted snapshots remain untouched. Golden uneven-domain and threshold tests cover the engine. Exact deterministic recommendations are derived from persisted weak domains and appear in detail, Instructor report, guarded in-app preview, and PDF. The preview uses the existing role-specific scoped endpoints, includes exact domain values plus radar data, printing, and plan navigation. PDF keeps embedded Amiri RTL branding/QR/draft behavior and now loads the evaluated Instructor's real signature alongside the supervisor and approving manager, with blank-line fallbacks only.
+
 ### P2.1 Decide and version the overall-score formula
 
 - **Recommended:** use equal-weight domain averages to match the desktop pedagogical model.

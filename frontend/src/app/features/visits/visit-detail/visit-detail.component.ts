@@ -196,6 +196,11 @@ export class VisitDetailComponent implements OnInit {
     if (v) this.router.navigate(['/visits', v.id, 'improvement-plans']);
   }
 
+  goReportPreview(): void {
+    const v = this.visit();
+    if (v) this.router.navigate(['/visit-reports', v.id, 'preview']);
+  }
+
   goBack(): void {
     this.router.navigate(this.isInstructor() ? ['/instructor/reports'] : ['/visits']);
   }

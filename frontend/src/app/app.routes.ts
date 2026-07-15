@@ -112,6 +112,17 @@ export const routes: Routes = [
 
       // ─── Phase 2: Schools (permission-gated) ────────────────────────────
       {
+        path: 'visit-reports/:id/preview',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Instructor', 'SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
+          permissions: ['Visit.View']
+        },
+        loadComponent: () => import('./features/visits/report-preview/report-preview.component')
+          .then(m => m.ReportPreviewComponent),
+        title: 'معاينة تقرير الزيارة — مدارس الفلاح'
+      },
+      {
         path: 'schools',
         canActivate: [permissionGuard],
         data: { permissions: ['School.View'] },

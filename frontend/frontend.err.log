@@ -74,3 +74,41 @@ X [ERROR] TS2739: Type '{ id: number; schoolId: number; schoolName: string; inst
 
 - Changes detected. Rebuilding...
 
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2349: This expression is not callable.
+  Each member of the union type '{ (observerOrNext?: Partial<Observer<ApiResponse<InstructorReport>>> | ((value: ApiResponse<InstructorReport>) => void) | undefined): Subscription; (next?: ((value: ApiResponse<...>) => void) | ... 1 more ... | undefined, error?: ((error: any) => void) | ... 1 more ... | undefined, complete?: (() => void) | ... 1 mo...' has signatures, but none of those signatures are compatible with each other. [plugin angular-compiler]
+
+    src/app/features/visits/report-preview/report-preview.component.ts:48:12:
+      48 │     request.subscribe({
+         ╵             ~~~~~~~~~
+
+
+X [ERROR] TS7006: Parameter 'response' implicitly has an 'any' type. [plugin angular-compiler]
+
+    src/app/features/visits/report-preview/report-preview.component.ts:49:12:
+      49 │       next: response => {
+         ╵             ~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2349: This expression is not callable.
+  Each member of the union type '{ (observerOrNext?: Partial<Observer<ApiResponse<InstructorReport>>> | ((value: ApiResponse<InstructorReport>) => void) | undefined): Subscription; (next?: ((value: ApiResponse<...>) => void) | ... 1 more ... | undefined, error?: ((error: any) => void) | ... 1 more ... | undefined, complete?: (() => void) | ... 1 mo...' has signatures, but none of those signatures are compatible with each other. [plugin angular-compiler]
+
+    src/app/features/visits/report-preview/report-preview.component.ts:48:12:
+      48 │     request.subscribe({
+         ╵             ~~~~~~~~~
+
+
+X [ERROR] TS7006: Parameter 'response' implicitly has an 'any' type. [plugin angular-compiler]
+
+    src/app/features/visits/report-preview/report-preview.component.ts:49:12:
+      49 │       next: response => {
+         ╵             ~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+

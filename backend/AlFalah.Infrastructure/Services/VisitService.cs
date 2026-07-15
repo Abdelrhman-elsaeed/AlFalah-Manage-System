@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AlFalah.Application.Analysis;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Reports;
 using AlFalah.Application.DTOs.Visits;
@@ -562,6 +563,7 @@ public class VisitService : IVisitService
             Strengths = DeserializeList<VisitStrengthDto>(analysis.StrengthsJson),
             ImprovementAreas = DeserializeList<VisitImprovementDto>(analysis.ImprovementAreasJson),
             PriorityStandards = DeserializeList<VisitPriorityStandardDto>(analysis.PriorityStandardsJson),
+            Recommendations = BuildRecommendations(analysis.ImprovementAreasJson),
             DomainAverages = analysis.DomainAverages
                 .OrderBy(d => d.DomainCode)
                 .Select(d => new VisitDomainAverageDto
@@ -765,91 +767,49 @@ public class VisitService : IVisitService
              List<VisitDomainAverageDto> DomainAverages)
         ComputeAnalysis(Visit visit)
     {
-        // Pull standards grouped by domain (load standards navigation eagerly here since
-        // LoadVisitAsync includes them on the Visit).
-        var standardsWithDomain = visit.Scores
+        var result = VisitAnalysisEngine.Compute(visit.Scores
             .Where(s => s.Score.HasValue)
-            .Select(s => new
+            .Select(s => new StandardScoreInput
             {
-                Score = s,
-                DomainId = s.RubricStandard.Domain.Id,
+                RubricDomainId = s.RubricStandard.Domain.Id,
+                RubricStandardId = s.RubricStandardId,
                 DomainCode = s.RubricStandard.Domain.Code,
-                DomainNameAr = s.RubricStandard.Domain.NameAr
+                DomainNameAr = s.RubricStandard.Domain.NameAr,
+                StandardCode = s.RubricStandard.Code,
+                StandardTextAr = s.RubricStandard.TextAr,
+                Score = s.Score!.Value
             })
-            .ToList();
+            .ToList());
 
-        if (standardsWithDomain.Count == 0)
-            throw new InvalidOperationException("لا توجد معايير مُقيَّمة لحساب التحليل.");
-
-        // Domain averages — respect uneven distribution (D1=6 / D2=4 / D3=6 / D4=3 / D5=6).
-        var domainGroups = standardsWithDomain
-            .GroupBy(x => new { x.DomainId, x.DomainCode, x.DomainNameAr })
-            .OrderBy(g => g.Key.DomainCode)
-            .ToList();
-
-        var domainAverages = domainGroups.Select(g => new VisitDomainAverageDto
-        {
-            RubricDomainId = g.Key.DomainId,
-            DomainCode = g.Key.DomainCode,
-            DomainNameAr = g.Key.DomainNameAr,
-            AverageScore = Math.Round(g.Average(x => (decimal)x.Score.Score!.Value), 3)
-        }).ToList();
-
-        // Phase 1 keeps the existing standard-weighted formula; Phase 2 replaces
-        // it with the locked equal-domain weighting decision.
-        var overall = Math.Round(
-            standardsWithDomain.Average(x => (decimal)x.Score.Score!.Value),
-            3);
-
-        // Performance level — apply highest-first thresholds from docs/09.
-        var level = MapPerformanceLevel(overall);
-
-        // Strengths = domains with avg >= 3.0
-        var strengths = domainAverages
-            .Where(d => d.AverageScore >= 3.0m)
-            .Select(d => new VisitStrengthDto
+        return (
+            result.OverallScore,
+            result.PerformanceLevelAr,
+            result.Strengths.Select(d => new VisitStrengthDto
             {
                 DomainCode = d.DomainCode,
                 DomainNameAr = d.DomainNameAr,
                 AverageScore = d.AverageScore
-            }).ToList();
-
-        // Improvement = domains with avg < 2.5
-        var improvements = domainAverages
-            .Where(d => d.AverageScore < 2.5m)
-            .Select(d => new VisitImprovementDto
+            }).ToList(),
+            result.ImprovementAreas.Select(d => new VisitImprovementDto
             {
                 DomainCode = d.DomainCode,
                 DomainNameAr = d.DomainNameAr,
                 AverageScore = d.AverageScore
-            }).ToList();
-
-        // Priority standards = individual standards with score <= 1.5
-        var priorities = standardsWithDomain
-            .Where(x => x.Score.Score!.Value <= 1)
-            .Select(x => new VisitPriorityStandardDto
+            }).ToList(),
+            result.PriorityStandards.Select(s => new VisitPriorityStandardDto
             {
-                DomainCode = x.DomainCode,
-                StandardCode = x.Score.RubricStandard.Code,
-                StandardTextAr = x.Score.RubricStandard.TextAr,
-                Score = x.Score.Score!.Value
-            })
-            .OrderBy(p => p.Score)
-            .ThenBy(p => p.StandardCode)
-            .ToList();
-
-        return (overall, level, strengths, improvements, priorities, domainAverages);
-    }
-
-    private static string MapPerformanceLevel(decimal overall)
-    {
-        // Ordered highest → lowest per docs/09.
-        if (overall >= 3.5m) return "متميز";
-        if (overall >= 3.0m) return "جيد جداً";
-        if (overall >= 2.5m) return "جيد";
-        if (overall >= 2.0m) return "متحقق جزئياً";
-        if (overall >= 1.0m) return "يحتاج تحسين";
-        return "غير مشاهد";
+                DomainCode = s.DomainCode,
+                StandardCode = s.StandardCode,
+                StandardTextAr = s.StandardTextAr,
+                Score = s.Score
+            }).ToList(),
+            result.DomainAverages.Select(d => new VisitDomainAverageDto
+            {
+                RubricDomainId = d.RubricDomainId,
+                DomainCode = d.DomainCode,
+                DomainNameAr = d.DomainNameAr,
+                AverageScore = d.AverageScore
+            }).ToList());
     }
 
     private static string StatusLabelAr(VisitStatus s) => s switch
@@ -1071,6 +1031,7 @@ public class VisitService : IVisitService
                 Strengths = DeserializeList<VisitStrengthDto>(visit.Analysis.StrengthsJson),
                 ImprovementAreas = DeserializeList<VisitImprovementDto>(visit.Analysis.ImprovementAreasJson),
                 PriorityStandards = DeserializeList<VisitPriorityStandardDto>(visit.Analysis.PriorityStandardsJson),
+                Recommendations = BuildRecommendations(visit.Analysis.ImprovementAreasJson),
                 DomainAverages = visit.Analysis.DomainAverages
                     .OrderBy(d => d.DomainCode)
                     .Select(d => new VisitDomainAverageDto
@@ -1385,6 +1346,8 @@ public class VisitService : IVisitService
                 DomainNameAr = i.DomainNameAr,
                 AverageScore = i.AverageScore
             }).ToList();
+            dto.Recommendations = VisitRecommendationEngine.Build(
+                improvements.Select(i => (i.DomainCode, i.DomainNameAr)));
 
             var priorities = DeserializeList<VisitPriorityStandardDto>(visit.Analysis.PriorityStandardsJson);
             dto.PriorityStandards = priorities.Select(p => new ReportPriorityStandardDto
@@ -1513,7 +1476,19 @@ public class VisitService : IVisitService
             }
         }
 
-        // 4) Manager (approver) signature — only if the flag is on AND the
+        // 4) Instructor signature is always offered beside the approval area.
+        // Missing signature data deliberately renders as an unsigned blank line.
+        if (!string.IsNullOrEmpty(visit.InstructorId))
+        {
+            var signature = await TryLoadUserSignatureAsync(visit.InstructorId, cancellationToken);
+            if (signature.HasValue)
+            {
+                dto.InstructorSignatureBytes = signature.Value.bytes;
+                dto.InstructorSignatureFormat = signature.Value.format;
+            }
+        }
+
+        // 5) Manager (approver) signature — only if the flag is on AND the
         //    visit has been approved (otherwise there's no approver).
         if (dto.ShowManagerSignature && !string.IsNullOrEmpty(visit.ApprovedByUserId))
         {
@@ -1525,7 +1500,7 @@ public class VisitService : IVisitService
             }
         }
 
-        // 5) QR payload — compact reference only (NO scores, NO PII).
+        // 6) QR payload — compact reference only (NO scores, NO PII).
         //    Verification page is deferred (out of Stage-2 scope).
         dto.QrPayload = BuildQrPayload(dto);
     }
@@ -1699,6 +1674,7 @@ public class VisitService : IVisitService
                 Strengths = DeserializeList<VisitStrengthDto>(visit.Analysis.StrengthsJson),
                 ImprovementAreas = DeserializeList<VisitImprovementDto>(visit.Analysis.ImprovementAreasJson),
                 PriorityStandards = DeserializeList<VisitPriorityStandardDto>(visit.Analysis.PriorityStandardsJson),
+                Recommendations = BuildRecommendations(visit.Analysis.ImprovementAreasJson),
                 DomainAverages = visit.Analysis.DomainAverages
                     .OrderBy(d => d.DomainCode)
                     .Select(d => new VisitDomainAverageDto
@@ -1909,6 +1885,13 @@ public class VisitService : IVisitService
         if (_currentUser.IsGlobalAdmin())
             return false;
         return true;
+    }
+
+    private static List<string> BuildRecommendations(string improvementAreasJson)
+    {
+        var improvements = DeserializeList<VisitImprovementDto>(improvementAreasJson);
+        return VisitRecommendationEngine.Build(
+            improvements.Select(i => (i.DomainCode, i.DomainNameAr)));
     }
 
     /// <summary>

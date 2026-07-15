@@ -73,6 +73,7 @@ export interface VisitAnalysis {
   strengths: VisitStrength[];
   improvementAreas: VisitImprovement[];
   priorityStandards: VisitPriorityStandard[];
+  recommendations: string[];
   domainAverages: VisitDomainAverage[];
   computedAt: string;
 }
