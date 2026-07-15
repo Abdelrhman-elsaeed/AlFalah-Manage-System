@@ -104,6 +104,10 @@ src/app/features
   `roleGuard` (SchoolManager/Moderator/MainManager/SuperAdmin) and the narrow
   `Instructor.View` permission. Moderator sees the `المعلمون` navigation item,
   but no `/users` item or teacher edit/deactivate controls.
+- The teacher profile combines identity/contact/subject/stage/classes, the
+  caller's in-scope visit history, an Approved-visit PrimeNG radar on dynamic
+  active-rubric axes, and a first-versus-latest delta table using `▲/▼/─` with
+  two-decimal scores. `زيارة جديدة` carries and locks the teacher selection.
 
 ## Unified controls and localization (2026-07-15)
 

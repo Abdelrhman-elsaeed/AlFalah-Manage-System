@@ -1,6 +1,6 @@
 # Phase 4 — Visits & Scoring
 
-**Status:** COMPLETED ✅ + desktop-parity Phases 1–2 completed · **Last updated:** 2026-07-15
+**Status:** COMPLETED ✅ + desktop-parity Phases 1–2 and teacher longitudinal Phase 4 completed · **Last updated:** 2026-07-15
 
 ## Goal
 Create and score classroom visits against the standards in the snapshotted rubric version, with analysis.
@@ -151,3 +151,11 @@ Phase 3 (rubric — reused for snapshot), Phase 2 (users/schools, school-scoping
 - ✅ Phase 1 gate: Release build 0 warnings/errors; 88/88 backend tests; production frontend build; Arabic/English parity 634/634 with no duplicate top-level keys.
 - ✅ Desktop-parity Phase 2: submission delegates to the single tested equal-domain engine; exact deterministic recommendations flow through detail, Instructor report, preview, and PDF; the guarded preview reuses the D-36/D-37 scoped endpoints and includes radar/domain data plus print/plan actions; PDF retains embedded Amiri RTL branding and adds real Instructor signature beside supervisor/manager approval areas.
 - ✅ Phase 2 gate: Release build 0 warnings/errors; 90/90 backend tests (including real QuestPDF rendering); production frontend build; Arabic/English parity 639/639 with no duplicate keys.
+- ✅ Desktop-parity Phase 4: teacher profile keeps the scoped visit history and
+  preselected visit entry, renders Approved-visit radar data on active dynamic
+  rubric axes, and shows chronological earliest-to-latest domain deltas with
+  `▲/▼/─`. EF-backed coverage proves PendingApproval and another Moderator's
+  Approved visit cannot enter the Moderator trend.
+- ✅ Phase 4 gate: Release build 0 warnings/errors; 94/94 backend tests;
+  production frontend build green; Arabic/English parity 653/653 with no
+  duplicate top-level keys.

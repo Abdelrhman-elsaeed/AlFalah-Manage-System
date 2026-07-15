@@ -13857,3 +13857,129 @@ dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
       Disposed connection to database '' on server '' (0ms).
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
       Request finished HTTP/1.1 GET http://localhost:5264/api/v1/auth/schools - 200 - application/json;+charset=utf-8 12.3686ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost:5264/api/v1/auth/schools - - -
+info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
+      CORS policy execution successful.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "GetSchools", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSchools() on controller AlFalah.Api.Controllers.AuthController (AlFalah.Api).
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 8.0.0 initialized 'AlFalahDbContext' using provider 'Microsoft.EntityFrameworkCore.SqlServer:8.0.0' with options: MigrationsAssembly=AlFalah.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null 
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [s].[Id], [s].[Name], [s].[City], [s].[Stage], [s].[LogoUrl]
+      FROM [Schools] AS [s]
+      WHERE [s].[IsDeleted] = CAST(0 AS bit) AND [s].[IsActive] = CAST(1 AS bit)
+      ORDER BY [s].[Name]
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb' (0ms).
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
+      Executing OkObjectResult, writing value of type 'AlFalah.Shared.Models.ApiResponse`1[[System.Collections.Generic.List`1[[AlFalah.Application.DTOs.Schools.SchoolLookupDto, AlFalah.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api) in 1271.6634ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api)'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AlFalahDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database '' on server '' (0ms).
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost:5264/api/v1/auth/schools - 200 - application/json;+charset=utf-8 1272.4715ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost:5264/api/v1/auth/schools - - -
+info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
+      CORS policy execution successful.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "GetSchools", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSchools() on controller AlFalah.Api.Controllers.AuthController (AlFalah.Api).
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 8.0.0 initialized 'AlFalahDbContext' using provider 'Microsoft.EntityFrameworkCore.SqlServer:8.0.0' with options: MigrationsAssembly=AlFalah.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null 
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [s].[Id], [s].[Name], [s].[City], [s].[Stage], [s].[LogoUrl]
+      FROM [Schools] AS [s]
+      WHERE [s].[IsDeleted] = CAST(0 AS bit) AND [s].[IsActive] = CAST(1 AS bit)
+      ORDER BY [s].[Name]
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb' (0ms).
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
+      Executing OkObjectResult, writing value of type 'AlFalah.Shared.Models.ApiResponse`1[[System.Collections.Generic.List`1[[AlFalah.Application.DTOs.Schools.SchoolLookupDto, AlFalah.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api) in 9.211ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api)'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AlFalahDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database '' on server '' (0ms).
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost:5264/api/v1/auth/schools - 200 - application/json;+charset=utf-8 9.5752ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost:5264/api/v1/auth/schools - - -
+info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
+      CORS policy execution successful.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "GetSchools", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSchools() on controller AlFalah.Api.Controllers.AuthController (AlFalah.Api).
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 8.0.0 initialized 'AlFalahDbContext' using provider 'Microsoft.EntityFrameworkCore.SqlServer:8.0.0' with options: MigrationsAssembly=AlFalah.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null 
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [s].[Id], [s].[Name], [s].[City], [s].[Stage], [s].[LogoUrl]
+      FROM [Schools] AS [s]
+      WHERE [s].[IsDeleted] = CAST(0 AS bit) AND [s].[IsActive] = CAST(1 AS bit)
+      ORDER BY [s].[Name]
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb' (0ms).
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
+      Executing OkObjectResult, writing value of type 'AlFalah.Shared.Models.ApiResponse`1[[System.Collections.Generic.List`1[[AlFalah.Application.DTOs.Schools.SchoolLookupDto, AlFalah.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api) in 4.4268ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'AlFalah.Api.Controllers.AuthController.GetSchools (AlFalah.Api)'
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AlFalahDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'AlFalahDb' on server '(localdb)\mssqllocaldb'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database '' on server '' (0ms).
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost:5264/api/v1/auth/schools - 200 - application/json;+charset=utf-8 5.4106ms

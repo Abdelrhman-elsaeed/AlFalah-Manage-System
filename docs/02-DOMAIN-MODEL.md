@@ -159,6 +159,12 @@ UpdatedAt, IsDeleted, DeletedAt, DeletedByUserId.
   Instructor through their self-only account settings endpoint.
 - A Visit continues to snapshot its chosen `Subject` and `GradeClass`; teacher
   profile changes do not rewrite historical visits.
+- Teacher longitudinal progress is derived from persisted `VisitDomainAverage`
+  snapshots for the caller's in-scope **Approved** visits. Radar axes come from
+  the active rubric domains dynamically. When at least two visits are available,
+  the API compares the chronologically earliest and latest visit and returns
+  `latest - earliest` per domain; domains missing from either historical
+  snapshot are reported as unavailable rather than as a zero score.
 
 ## Visit (Phase 4 + Phase 5 approval fields)
 **Fields:** Id, SchoolId, InstructorId (the evaluated teacher's user id), CreatedByUserId

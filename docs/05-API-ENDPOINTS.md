@@ -310,7 +310,7 @@ through `SchoolScopeGuard`.
 | GET | `/api/v1/teachers` | `Instructor.View`, school-scoped | Teacher-only directory. Moderator receives only active Instructors in `ActiveSchoolId`; this does not expose `/users`. |
 | GET | `/api/v1/teachers/{userId}` | `Instructor.View`, school-scoped | Teacher profile header. Cross-school teacher is 403. |
 | GET | `/api/v1/teachers/{userId}/visits` | `Visit.View`, school-scoped + D-37 | Moderator sees only visits they created for that teacher. |
-| GET | `/api/v1/teachers/{userId}/progress` | `Visit.View`, school-scoped + D-37 | Progress is built only from the Moderator's in-scope visits. |
+| GET | `/api/v1/teachers/{userId}/progress` | `Visit.View`, school-scoped + D-37 | Approved-visit radar data on dynamic active-rubric axes plus chronological first-to-latest domain deltas; Moderator receives only visits they created. |
 
 | Method | Route | Permission / scope | Description |
 |---|---|---|---|

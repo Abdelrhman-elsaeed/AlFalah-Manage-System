@@ -134,6 +134,50 @@
       <ng-container *ngIf="radarData(); else emptyProgress">
         <p-chart type="radar" [data]="radarData()!" [options]="radarOptions" height="360px"></p-chart>
         <p class="progress-hint">{{ 'TEACHERS.PROGRESS_LEGEND_HINT' | translate }}</p>
+        <section class="comparison" *ngIf="firstToLastComparison() as comparison">
+          <header class="comparison__header">
+            <h3>{{ 'TEACHERS.DELTA_TITLE' | translate }}</h3>
+            <span>
+              {{ comparison.firstVisitDate | date:'mediumDate' }}
+              <i class="pi pi-arrow-left" aria-hidden="true"></i>
+              {{ comparison.lastVisitDate | date:'mediumDate' }}
+            </span>
+          </header>
+          <div class="comparison__table-wrap">
+            <table class="comparison__table">
+              <thead>
+                <tr>
+                  <th>{{ 'TEACHERS.DELTA_DOMAIN' | translate }}</th>
+                  <th>{{ 'TEACHERS.DELTA_FIRST' | translate }}</th>
+                  <th>{{ 'TEACHERS.DELTA_LAST' | translate }}</th>
+                  <th>{{ 'TEACHERS.DELTA_CHANGE' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let domain of comparison.domainDeltas">
+                  <td><strong>{{ domain.domainCode }}</strong> — {{ domain.domainNameAr }}</td>
+                  <td>{{ domain.firstAverageScore === null ? '—' : (domain.firstAverageScore | number:'1.2-2') }}</td>
+                  <td>{{ domain.lastAverageScore === null ? '—' : (domain.lastAverageScore | number:'1.2-2') }}</td>
+                  <td>
+                    <span *ngIf="deltaState(domain.delta) === 'up'" class="delta delta--up"
+                          [attr.aria-label]="'TEACHERS.DELTA_IMPROVEMENT' | translate">
+                      ▲ +{{ domain.delta | number:'1.2-2' }}
+                    </span>
+                    <span *ngIf="deltaState(domain.delta) === 'down'" class="delta delta--down"
+                          [attr.aria-label]="'TEACHERS.DELTA_DECLINE' | translate">
+                      ▼ {{ domain.delta | number:'1.2-2' }}
+                    </span>
+                    <span *ngIf="deltaState(domain.delta) === 'same'" class="delta delta--same"
+                          [attr.aria-label]="'TEACHERS.DELTA_NO_CHANGE' | translate">
+                      ─ 0.00
+                    </span>
+                    <span *ngIf="deltaState(domain.delta) === 'unavailable'" class="delta delta--same">—</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </ng-container>
       <ng-template #emptyProgress>
         <div class="empty empty-progress">{{ 'TEACHERS.PROGRESS_EMPTY' | translate }}</div>

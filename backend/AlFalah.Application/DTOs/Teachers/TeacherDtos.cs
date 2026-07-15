@@ -97,7 +97,28 @@ public class TeacherDomainAverageDto
     public string DomainCode { get; set; } = string.Empty;
     public string DomainNameAr { get; set; } = string.Empty;
     /// <summary>Domain average, 0..4 (decimal).</summary>
-    public decimal AverageScore { get; set; }
+    public decimal? AverageScore { get; set; }
+}
+
+/// <summary>One active-rubric domain in the earliest-to-latest Approved-visit comparison.</summary>
+public class TeacherDomainDeltaDto
+{
+    public string DomainCode { get; set; } = string.Empty;
+    public string DomainNameAr { get; set; } = string.Empty;
+    public decimal? FirstAverageScore { get; set; }
+    public decimal? LastAverageScore { get; set; }
+    /// <summary>Latest minus earliest. Null when either snapshot lacks this active domain.</summary>
+    public decimal? Delta { get; set; }
+}
+
+/// <summary>Chronological comparison between the teacher's first and latest in-scope Approved visits.</summary>
+public class TeacherLongitudinalComparisonDto
+{
+    public int FirstVisitId { get; set; }
+    public DateTimeOffset FirstVisitDate { get; set; }
+    public int LastVisitId { get; set; }
+    public DateTimeOffset LastVisitDate { get; set; }
+    public List<TeacherDomainDeltaDto> DomainDeltas { get; set; } = new();
 }
 
 /// <summary>
@@ -113,6 +134,11 @@ public class TeacherProgressDto
     public List<TeacherDomainAverageDto> AxisLabels { get; set; } = new();
     /// <summary>One series per visit. Order = visit creation order (oldest first).</summary>
     public List<TeacherVisitProgressDto> Visits { get; set; } = new();
+    /// <summary>
+    /// Earliest-to-latest Approved-visit comparison. Null until at least two
+    /// Approved visits are visible to the caller.
+    /// </summary>
+    public TeacherLongitudinalComparisonDto? FirstToLastComparison { get; set; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -193,3 +193,35 @@ chunk-EECWSPQ4.js   | plan-list-component | 48.33 kB |
 Application bundle generation complete. [0.827 seconds]
 
 Page reload sent to client(s).
+
+No output file changes.
+
+Application bundle generation complete. [0.597 seconds]
+
+Initial chunk files | Names                     | Raw size
+main.js             | main                      | 25.70 kB | 
+
+Lazy chunk files    | Names                     | Raw size
+chunk-IADSFCNC.js   | teacher-profile-component | 35.53 kB | 
+
+Application bundle generation complete. [0.601 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                     | Raw size
+main.js             | main                      | 25.70 kB | 
+
+Lazy chunk files    | Names                     | Raw size
+chunk-3DAY7XOX.js   | teacher-profile-component | 42.62 kB | 
+
+Application bundle generation complete. [0.446 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names                     | Raw size
+main.js             | main                      | 25.70 kB | 
+
+Lazy chunk files    | Names                     | Raw size
+chunk-MYFDLBYX.js   | teacher-profile-component | 44.29 kB | 
+
+Application bundle generation complete. [0.415 seconds]
+
+Page reload sent to client(s).

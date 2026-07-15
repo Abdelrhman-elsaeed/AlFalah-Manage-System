@@ -355,15 +355,30 @@ public class TeacherService : ITeacherService
     {
         var (assignment, _) = await ResolveTeacherInScopeAsync(userId, cancellationToken);
 
-        // Visits in scope (D-37 enforced). Only SUBMITTED visits carry an
-        // analysis snapshot — Draft / PendingApproval visits have no
-        // VisitDomainAverage rows yet, so they contribute nothing to the
-        // radar. We do not error on empty progress — the UI renders an
-        // empty-state ("لا توجد زيارات مُرسلة بعد").
+        // The axes are the ACTIVE rubric domains, not a hard-coded list and
+        // not whichever domains happened to exist on the latest visit. This
+        // keeps the profile aligned with the current rubric while each score
+        // remains sourced from its immutable visit snapshot.
+        var axisLabels = await _context.RubricDomains
+            .AsNoTracking()
+            .Where(d => d.Version.IsActive)
+            .OrderBy(d => d.SortOrder).ThenBy(d => d.Code)
+            .Select(d => new TeacherDomainAverageDto
+            {
+                DomainCode = d.Code,
+                DomainNameAr = d.NameAr,
+                AverageScore = null
+            })
+            .ToListAsync(cancellationToken);
+
+        // Longitudinal comparison uses Approved visits only. This mirrors
+        // the web approval visibility contract: pending/rejected/reopened
+        // analyses never become part of the teacher's official trend.
         var q = _context.Visits
             .AsNoTracking()
             .Where(v => v.InstructorId == userId
                      && v.SchoolId == assignment.SchoolId
+                     && v.Status == VisitStatus.Approved
                      && v.Analysis != null);
 
         if (IsModeratorOnlyCaller())
@@ -373,8 +388,8 @@ public class TeacherService : ITeacherService
             q = q.Where(v => v.CreatedByUserId == currentUserId);
         }
 
-        // Pull each submitted visit + its domain averages. Order = visit
-        // creation order (oldest first) so the legend reads chronologically.
+        // Pull each Approved visit + its persisted domain averages. Order is
+        // explicitly chronological so delta = latest - earliest.
         var visits = await q
             .OrderBy(v => v.VisitDate).ThenBy(v => v.Id)
             .Select(v => new
@@ -394,26 +409,20 @@ public class TeacherService : ITeacherService
             })
             .ToListAsync(cancellationToken);
 
-        // Dynamic axis labels — use the LATEST visit's domain list so the
-        // radar axes match what the current rubric carries. Older visits may
-        // have a different domain count (D-21 carry-over: snapshot is
-        // immutable), so we explicitly map per-visit and align axis labels
-        // in the DTO; the chart builder reads `AxisLabels` for the ring and
-        // the per-visit averages for each polygon, padding with 0 where a
-        // snapshot didn't carry that domain.
-        var axisLabels = visits.LastOrDefault()?.DomainAverages
-            .Select(d => new TeacherDomainAverageDto
-            {
-                DomainCode = d.DomainCode,
-                DomainNameAr = d.DomainNameAr,
-                AverageScore = 0m
-            })
-            .ToList() ?? new List<TeacherDomainAverageDto>();
-
-        // Pre-build a Code → DomainNameAr lookup so older visits that lack a
-        // domain name still render its current Arabic label (axis names come
-        // from the active rubric, snapshot scores stay bound to their visit).
-        var axisLookup = axisLabels.ToDictionary(a => a.DomainCode, a => a.DomainNameAr);
+        // A missing active rubric is an invalid operational state, but the
+        // profile remains readable by falling back to the latest persisted
+        // snapshot instead of returning an empty radar ring.
+        if (axisLabels.Count == 0 && visits.Count > 0)
+        {
+            axisLabels = visits[^1].DomainAverages
+                .Select(d => new TeacherDomainAverageDto
+                {
+                    DomainCode = d.DomainCode,
+                    DomainNameAr = d.DomainNameAr,
+                    AverageScore = null
+                })
+                .ToList();
+        }
 
         var sequence = 0;
         var perVisit = visits.Select(v =>
@@ -432,12 +441,43 @@ public class TeacherService : ITeacherService
                     return new TeacherDomainAverageDto
                     {
                         DomainCode = axis.DomainCode,
-                        DomainNameAr = axisLookup.TryGetValue(axis.DomainCode, out var n) ? n : axis.DomainNameAr,
-                        AverageScore = persisted?.AverageScore ?? 0m
+                        DomainNameAr = axis.DomainNameAr,
+                        AverageScore = persisted?.AverageScore
                     };
                 }).ToList()
             };
         }).ToList();
+
+        TeacherLongitudinalComparisonDto? comparison = null;
+        if (visits.Count >= 2)
+        {
+            var first = visits[0];
+            var last = visits[^1];
+            comparison = new TeacherLongitudinalComparisonDto
+            {
+                FirstVisitId = first.Id,
+                FirstVisitDate = first.VisitDate,
+                LastVisitId = last.Id,
+                LastVisitDate = last.VisitDate,
+                DomainDeltas = axisLabels.Select(axis =>
+                {
+                    var firstAverage = first.DomainAverages
+                        .FirstOrDefault(d => d.DomainCode == axis.DomainCode)?.AverageScore;
+                    var lastAverage = last.DomainAverages
+                        .FirstOrDefault(d => d.DomainCode == axis.DomainCode)?.AverageScore;
+                    return new TeacherDomainDeltaDto
+                    {
+                        DomainCode = axis.DomainCode,
+                        DomainNameAr = axis.DomainNameAr,
+                        FirstAverageScore = firstAverage,
+                        LastAverageScore = lastAverage,
+                        Delta = firstAverage.HasValue && lastAverage.HasValue
+                            ? lastAverage.Value - firstAverage.Value
+                            : null
+                    };
+                }).ToList()
+            };
+        }
 
         _logger.LogInformation(
             "Teacher progress loaded: userId={UserId} school={SchoolId} visitCount={VisitCount} axisCount={AxisCount} caller={CallerId}",
@@ -447,7 +487,8 @@ public class TeacherService : ITeacherService
         {
             UserId = userId,
             AxisLabels = axisLabels,
-            Visits = perVisit
+            Visits = perVisit,
+            FirstToLastComparison = comparison
         };
     }
 

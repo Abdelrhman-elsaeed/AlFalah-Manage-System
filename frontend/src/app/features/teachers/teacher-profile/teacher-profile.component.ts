@@ -68,7 +68,7 @@ export class TeacherProfileComponent implements OnInit {
       const color = palette[idx % palette.length];
       return {
         label: v.legendLabel,
-        data: v.domainAverages.map(d => Number(d.averageScore)),
+        data: v.domainAverages.map(d => d.averageScore),
         borderColor: color,
         backgroundColor: hexToRgba(color, 0.18),
         borderWidth: 2,
@@ -124,6 +124,7 @@ export class TeacherProfileComponent implements OnInit {
   );
 
   readonly visitCount = computed(() => this.visits().length);
+  readonly firstToLastComparison = computed(() => this.progress()?.firstToLastComparison ?? null);
   readonly canManageTeaching = computed(() =>
     this.auth.hasPermission('User.Edit')
     && !this.auth.hasRole('MainManager')
@@ -247,6 +248,13 @@ export class TeacherProfileComponent implements OnInit {
 
   trackVisit(_idx: number, v: TeacherVisitSummary): number { return v.id; }
   trackSeries(_idx: number, v: TeacherVisitProgress): number { return v.visitId; }
+
+  deltaState(delta: number | null): 'up' | 'down' | 'same' | 'unavailable' {
+    if (delta === null || delta === undefined) return 'unavailable';
+    if (delta > 0) return 'up';
+    if (delta < 0) return 'down';
+    return 'same';
+  }
 }
 
 /** Converts #RRGGBB + alpha into an rgba() string for chart fill tints. */

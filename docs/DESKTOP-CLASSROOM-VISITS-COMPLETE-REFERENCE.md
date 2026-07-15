@@ -993,6 +993,15 @@ derived from the visit's rubric snapshot.
 
 ## Phase 4 — Teachers and longitudinal progress
 
+**Implementation status (2026-07-15): COMPLETED.** The existing scoped teacher
+profile now uses active-rubric domains as dynamic radar axes and includes only
+Approved visits in the official trend. A chronological first-to-latest table
+shows each domain's first score, latest score, and `latest - earliest` delta
+with `▲/▼/─`; a domain absent from either historical snapshot is shown as
+unavailable instead of being treated as zero. Moderator results remain forced
+to `ActiveSchoolId` and `CreatedByUserId == currentUserId`, and the profile's
+`زيارة جديدة` action keeps the teacher preselected and locked.
+
 ### P4.1 Add numeric first-to-last comparison
 
 - **Change:** under the existing Radar chart add `التغير بين أول وآخر زيارة:` with five rows, two decimals, `▲/▼/─`, earliest-to-latest ordering.

@@ -56,7 +56,23 @@ export interface TeacherVisitSummary {
 export interface TeacherDomainAverage {
   domainCode: string;
   domainNameAr: string;
-  averageScore: number;
+  averageScore: number | null;
+}
+
+export interface TeacherDomainDelta {
+  domainCode: string;
+  domainNameAr: string;
+  firstAverageScore: number | null;
+  lastAverageScore: number | null;
+  delta: number | null;
+}
+
+export interface TeacherLongitudinalComparison {
+  firstVisitId: number;
+  firstVisitDate: string;
+  lastVisitId: number;
+  lastVisitDate: string;
+  domainDeltas: TeacherDomainDelta[];
 }
 
 export interface TeacherVisitProgress {
@@ -70,6 +86,7 @@ export interface TeacherProgress {
   userId: string;
   axisLabels: TeacherDomainAverage[];
   visits: TeacherVisitProgress[];
+  firstToLastComparison?: TeacherLongitudinalComparison | null;
 }
 
 /**
