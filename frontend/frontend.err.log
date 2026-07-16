@@ -13,3 +13,126 @@ case.
 
 - Changes detected. Rebuilding...
 
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] NG5002: Unexpected closing tag ":svg:svg". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags [plugin angular-compiler]
+
+    src/app/features/auth/school-login/school-login.component.html:17:12:
+      17 │             </svg>
+         ╵             ~~~~~~
+
+  Error occurs in the template of component SchoolLoginComponent.
+
+    src/app/features/auth/school-login/school-login.component.ts:14:15:
+      14 │   templateUrl: './school-login.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] NG8001: 'text' is not a known element:
+1. If 'text' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. To allow any element add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component. [plugin angular-compiler]
+
+    src/app/features/auth/school-login/school-login.component.html:15:14:
+      15 │ ...          <text x="30" y="38" text-anchor="middle" fill="white"...
+         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component SchoolLoginComponent.
+
+    src/app/features/auth/school-login/school-login.component.ts:14:15:
+      14 │   templateUrl: './school-login.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] NG8001: 'text' is not a known element:
+1. If 'text' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. To allow any element add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component. [plugin angular-compiler]
+
+    src/app/features/auth/school-login/school-login.component.html:15:14:
+      15 │ ...          <text x="30" y="38" text-anchor="middle" fill="white"...
+         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component SchoolLoginComponent.
+
+    src/app/features/auth/school-login/school-login.component.ts:14:15:
+      14 │   templateUrl: './school-login.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] NG8001: 'text' is not a known element:
+1. If 'text' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. To allow any element add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component. [plugin angular-compiler]
+
+    src/app/features/auth/school-login/school-login.component.html:15:14:
+      15 │ ...          <text x="30" y="38" text-anchor="middle" fill="white"...
+         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component SchoolLoginComponent.
+
+    src/app/features/auth/school-login/school-login.component.ts:14:15:
+      14 │   templateUrl: './school-login.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] NG8001: 'text' is not a known element:
+1. If 'text' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. To allow any element add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component. [plugin angular-compiler]
+
+    src/app/features/auth/school-login/school-login.component.html:15:14:
+      15 │ ...          <text x="30" y="38" text-anchor="middle" fill="white"...
+         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component SchoolLoginComponent.
+
+    src/app/features/auth/school-login/school-login.component.ts:14:15:
+      14 │   templateUrl: './school-login.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+

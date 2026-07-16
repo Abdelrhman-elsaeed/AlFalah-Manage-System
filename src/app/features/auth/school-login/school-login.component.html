@@ -1,0 +1,146 @@
+<!-- School Login Page — Al-Falah Schools Evaluation System -->
+<div class="login-page" dir="rtl">
+
+  <!-- Background Gradient -->
+  <div class="login-bg"></div>
+
+  <div class="login-container">
+
+    <!-- Left Brand Panel -->
+    <div class="brand-panel">
+      <div class="brand-content">
+        <div class="logo-wrapper">
+          <div class="logo-circle">
+            <img src="assets/Logo.png" alt="شعار مدارس الفلاح" class="logo-image" />
+          </div>
+        </div>
+        <span class="brand-kicker">{{ 'AUTH.BRAND_NAME' | translate }}</span>
+        <h1 class="brand-title">{{ 'APP.NAME' | translate }}</h1>
+        <p class="brand-subtitle">{{ 'AUTH.BRAND_SUBTITLE' | translate }}</p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>{{ 'AUTH.FEATURE_RUBRIC' | translate }}</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>{{ 'AUTH.FEATURE_PLANS' | translate }}</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>{{ 'AUTH.FEATURE_REPORTS' | translate }}</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>{{ 'AUTH.FEATURE_FOLLOWUP' | translate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Login Form Panel -->
+    <div class="form-panel">
+      <div class="form-card">
+
+        <!-- Header -->
+        <div class="form-header">
+          <h2 class="form-title">{{ 'AUTH.SCHOOL_LOGIN' | translate }}</h2>
+          <p class="form-subtitle">{{ 'AUTH.SCHOOL_LOGIN_SUBTITLE' | translate }}</p>
+        </div>
+
+        <!-- Error Alert -->
+        @if (errorMessage()) {
+          <div class="alert alert-error">
+            <i class="pi pi-exclamation-circle alert-icon" aria-hidden="true"></i>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+
+          <!-- School Selection -->
+          <div class="form-group">
+            <label class="form-label" for="schoolSelect">
+              {{ 'AUTH.SELECT_SCHOOL' | translate }}
+              <span class="required">*</span>
+            </label>
+            @if (schoolsLoading()) {
+              <div class="loading-skeleton"></div>
+            } @else {
+              <app-clearable-select class="school-select-field" inputId="schoolSelect" [options]="schoolOptions()"
+                                    optionLabel="label" optionValue="id" formControlName="schoolId"
+                                    [clearable]="false"
+                                    [placeholder]="'AUTH.SELECT_SCHOOL_PLACEHOLDER' | translate"
+                                    [filter]="true" filterBy="label" scrollHeight="220px"
+                                    [appendTo]="null"
+                                    [panelStyle]="{ width: '100%', 'max-width': '100%' }"
+                                    panelStyleClass="login-school-select-panel"
+                                    styleClass="login-school-select"
+                                    [style]="{ width: '100%', 'max-width': '100%' }"></app-clearable-select>
+            }
+            @if (schoolIdControl?.invalid && schoolIdControl?.touched) {
+              <div class="invalid-feedback">{{ 'AUTH.ERROR_SCHOOL_REQUIRED' | translate }}</div>
+            }
+          </div>
+
+          <!-- Username -->
+          <div class="form-group">
+            <label class="form-label" for="username">
+              {{ 'AUTH.USERNAME' | translate }}
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <i class="pi pi-user input-icon" aria-hidden="true"></i>
+              <input id="username" type="text" class="form-control" formControlName="username"
+                [placeholder]="'AUTH.USERNAME' | translate"
+                [class.is-invalid]="usernameControl?.invalid && usernameControl?.touched"
+                autocomplete="username" />
+            </div>
+            @if (usernameControl?.invalid && usernameControl?.touched) {
+              <div class="invalid-feedback">{{ 'AUTH.ERROR_USERNAME_REQUIRED' | translate }}</div>
+            }
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="password">
+              {{ 'AUTH.PASSWORD' | translate }}
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <i class="pi pi-lock input-icon" aria-hidden="true"></i>
+              <input id="password" type="password" class="form-control" formControlName="password"
+                [placeholder]="'AUTH.PASSWORD' | translate"
+                [class.is-invalid]="passwordControl?.invalid && passwordControl?.touched"
+                autocomplete="current-password" />
+            </div>
+            @if (passwordControl?.invalid && passwordControl?.touched) {
+              <div class="invalid-feedback">{{ 'AUTH.ERROR_PASSWORD_REQUIRED' | translate }}</div>
+            }
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-login" [disabled]="loading()">
+            @if (loading()) {
+              <span class="spinner"></span>
+              {{ 'AUTH.LOGGING_IN' | translate }}
+            } @else {
+              {{ 'AUTH.LOGIN' | translate }}
+            }
+          </button>
+
+        </form>
+
+        <!-- Footer Links -->
+        <div class="form-footer">
+          <a routerLink="/auth/main-manager-login" class="link-muted">
+            {{ 'AUTH.MAIN_MANAGER_LOGIN' | translate }}
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

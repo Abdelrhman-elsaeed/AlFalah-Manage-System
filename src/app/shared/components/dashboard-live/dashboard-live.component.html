@@ -1,0 +1,200 @@
+<div class="dashboard-page" dir="rtl">
+  <header class="page-header dashboard-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ titleKey() | translate }}</h1>
+      <p class="page-header__subtitle">{{ 'DASHBOARD.LIVE_SUBTITLE' | translate }}</p>
+    </div>
+
+    <div class="dashboard-actions" [attr.aria-label]="'DASHBOARD.EXPORT_CENTER' | translate">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-refresh"
+        class="p-button-outlined"
+        [label]="'DASHBOARD.REFRESH' | translate"
+        [loading]="loading()"
+        (click)="load()">
+      </button>
+      <button
+        pButton
+        type="button"
+        icon="pi pi-file-excel"
+        class="p-button-outlined p-button-success"
+        [label]="'DASHBOARD.EXCEL' | translate"
+        [loading]="exporting() === 'excel'"
+        (click)="export('excel')">
+      </button>
+      <button
+        pButton
+        type="button"
+        icon="pi pi-file-pdf"
+        class="p-button-outlined p-button-danger"
+        [label]="'DASHBOARD.PDF' | translate"
+        [loading]="exporting() === 'pdf'"
+        (click)="export('pdf')">
+      </button>
+    </div>
+  </header>
+
+  <section *ngIf="loading() && !data()" class="surface-card dashboard-loading" aria-live="polite">
+    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+    <span>{{ 'COMMON.LOADING' | translate }}</span>
+  </section>
+
+  <ng-container *ngIf="data()">
+    <section class="dashboard-brief" aria-live="polite">
+      <div class="dashboard-brief__intro">
+        <span class="dashboard-brief__eyebrow"><i class="pi pi-sparkles"></i>{{ 'DASHBOARD.EXECUTIVE_BRIEF' | translate }}</span>
+        <h2>{{ 'DASHBOARD.EXECUTIVE_TITLE' | translate }}</h2>
+        <p>{{ 'DASHBOARD.EXECUTIVE_DESC' | translate }}</p>
+      </div>
+      <div class="dashboard-brief__highlights">
+        <article *ngFor="let item of highlights(); let i = index" class="brief-highlight" [style.animation-delay.ms]="i * 80">
+          <span class="brief-highlight__icon"><i class="pi" [ngClass]="item.icon"></i></span>
+          <span class="brief-highlight__content">
+            <small>{{ item.labelKey | translate }}</small>
+            <strong>{{ item.value }}</strong>
+          </span>
+        </article>
+      </div>
+    </section>
+
+    <section class="metrics-grid" [attr.aria-label]="'DASHBOARD.KEY_METRICS' | translate">
+      <article *ngFor="let metric of metrics(); let i = index" class="surface-card metric-card"
+               [style.animation-delay.ms]="i * 55" [ngClass]="'metric-card--' + metric.tone">
+        <span class="metric-card__icon"><i class="pi" [ngClass]="metric.icon" aria-hidden="true"></i></span>
+        <div class="metric-card__body">
+          <span class="metric-card__label">{{ metric.labelKey | translate }}</span>
+          <strong class="metric-card__value">{{ metric.value }}</strong>
+          <span class="metric-card__pulse" aria-hidden="true"></span>
+        </div>
+      </article>
+    </section>
+
+    <section class="charts-grid">
+      <article *ngIf="statusChartData() as statusChart" class="surface-card chart-card">
+        <div class="section-heading">
+          <span class="section-heading__icon"><i class="pi pi-chart-pie"></i></span>
+          <h2>{{ 'DASHBOARD.VISITS_BY_STATUS' | translate }}</h2>
+        </div>
+        <div class="chart-wrap chart-wrap--doughnut">
+          <p-chart type="doughnut" [data]="statusChart" [options]="doughnutOptions"></p-chart>
+          <div class="chart-center-label">
+            <strong>{{ statusRows().length }}</strong>
+            <span>{{ 'DASHBOARD.STATUS_TYPES' | translate }}</span>
+          </div>
+        </div>
+        <div class="status-tags">
+          <p-tag
+            *ngFor="let row of statusRows()"
+            [value]="row.statusLabelAr + ': ' + row.count"
+            [severity]="statusSeverity(row.status)">
+          </p-tag>
+        </div>
+      </article>
+
+      <article *ngIf="performanceChartData() as performanceChart" class="surface-card chart-card">
+        <div class="section-heading">
+          <span class="section-heading__icon"><i class="pi pi-chart-line"></i></span>
+          <h2>{{ performanceChartTitleKey() | translate }}</h2>
+        </div>
+        <div class="chart-wrap">
+          <p-chart [type]="performanceChartType()" [data]="performanceChart" [options]="cartesianOptions"></p-chart>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="role === 'main-manager'" class="surface-card school-map-card">
+      <div class="section-heading section-heading--split">
+        <span class="section-heading__title">
+          <span class="section-heading__icon"><i class="pi pi-map-marker"></i></span>
+          <span>
+            <h2>{{ 'DASHBOARD.MAP.TITLE' | translate }}</h2>
+            <small>{{ 'DASHBOARD.MAP.SUBTITLE' | translate }}</small>
+          </span>
+        </span>
+        <span class="map-scope"><i class="pi pi-info-circle"></i>{{ 'DASHBOARD.MAP.CITY_LEVEL' | translate }}</span>
+      </div>
+      <app-school-map [markers]="schoolMapPoints()"></app-school-map>
+    </section>
+
+    <section *ngIf="planAnalytics() as plans" class="surface-card analytics-card">
+      <div class="section-heading">
+        <span class="section-heading__icon"><i class="pi pi-list-check"></i></span>
+        <h2>{{ 'DASHBOARD.PLAN_ANALYTICS' | translate }}</h2>
+      </div>
+      <div class="analytics-grid">
+        <div><span>{{ 'DASHBOARD.PLAN.ACTIVE' | translate }}</span><strong>{{ plans.totalActive }}</strong></div>
+        <div><span>{{ 'DASHBOARD.PLAN.COMPLETED' | translate }}</span><strong>{{ plans.totalCompleted }}</strong></div>
+        <div><span>{{ 'DASHBOARD.PLAN.FOLLOWUPS' | translate }}</span><strong>{{ plans.totalFollowUps }}</strong></div>
+        <div><span>{{ 'DASHBOARD.PLAN.AVERAGE_PROGRESS' | translate }}</span><strong>{{ plans.averageLatestProgressScore ?? '—' }}</strong></div>
+      </div>
+    </section>
+
+    <section *ngIf="rankingRows().length" class="surface-card ranking-card">
+      <div class="section-heading">
+        <span class="section-heading__icon"><i class="pi pi-chart-bar"></i></span>
+        <h2>{{ rankingTitleKey() | translate }}</h2>
+      </div>
+      <p-table [value]="rankingRows()" [paginator]="rankingRows().length > 8" [rows]="8" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>{{ 'DASHBOARD.NAME' | translate }}</th>
+            <th class="text-center">{{ 'DASHBOARD.VISITS' | translate }}</th>
+            <th class="text-center">{{ 'DASHBOARD.APPROVED' | translate }}</th>
+            <th class="text-center">{{ 'DASHBOARD.AVERAGE' | translate }}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><strong>{{ row.name }}</strong></td>
+            <td class="text-center">{{ row.visits }}</td>
+            <td class="text-center">{{ row.approved }}</td>
+            <td class="text-center">
+              <span class="score-meter" *ngIf="row.average !== null; else noAverage">
+                <span class="score-meter__track"><span [style.width.%]="(row.average / 4) * 100"></span></span>
+                <strong>{{ row.average | number:'1.0-2' }}</strong>
+              </span>
+              <ng-template #noAverage>—</ng-template>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </section>
+
+    <ng-container *ngIf="instructorData() as instructor">
+      <section *ngIf="instructor.latestEvaluation as latest; else noApprovedEvaluation" class="surface-card latest-card">
+        <div class="section-heading">
+          <span class="section-heading__icon"><i class="pi pi-star"></i></span>
+          <h2>{{ 'DASHBOARD.LATEST_EVALUATION' | translate }}</h2>
+        </div>
+        <div class="latest-grid">
+          <div><span>{{ 'DASHBOARD.VISIT_TYPE' | translate }}</span><strong>{{ latest.visitCategoryLabelAr }}</strong></div>
+          <div><span>{{ 'DASHBOARD.MODERATOR_NAME' | translate }}</span><strong>{{ latest.moderatorFullName }}</strong></div>
+          <div><span>{{ 'DASHBOARD.AVERAGE' | translate }}</span><strong class="score-value">{{ latest.overallScore | number:'1.0-2' }}</strong></div>
+          <div><span>{{ 'DASHBOARD.PERFORMANCE_LEVEL' | translate }}</span><p-tag [value]="latest.performanceLevelAr" severity="success"></p-tag></div>
+        </div>
+      </section>
+
+      <ng-template #noApprovedEvaluation>
+        <section class="surface-card empty-card">
+          <i class="pi pi-chart-line"></i>
+          <span>{{ 'DASHBOARD.NO_APPROVED_EVALUATIONS' | translate }}</span>
+        </section>
+      </ng-template>
+
+      <section *ngIf="instructor.strengths.length || instructor.improvementPoints.length" class="insights-grid">
+        <article class="surface-card insight-card insight-card--success">
+          <div class="section-heading"><span class="section-heading__icon"><i class="pi pi-check-circle"></i></span><h2>{{ 'DASHBOARD.STRENGTHS' | translate }}</h2></div>
+          <ul><li *ngFor="let item of instructor.strengths">{{ item }}</li></ul>
+          <p *ngIf="!instructor.strengths.length" class="muted">{{ 'COMMON.NO_DATA' | translate }}</p>
+        </article>
+        <article class="surface-card insight-card insight-card--warning">
+          <div class="section-heading"><span class="section-heading__icon"><i class="pi pi-arrow-up-right"></i></span><h2>{{ 'DASHBOARD.IMPROVEMENT_POINTS' | translate }}</h2></div>
+          <ul><li *ngFor="let item of instructor.improvementPoints">{{ item }}</li></ul>
+          <p *ngIf="!instructor.improvementPoints.length" class="muted">{{ 'COMMON.NO_DATA' | translate }}</p>
+        </article>
+      </section>
+    </ng-container>
+  </ng-container>
+</div>

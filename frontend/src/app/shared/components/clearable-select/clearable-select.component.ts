@@ -109,7 +109,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
     .clearable-select {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.3rem;
       position: relative;
       min-width: 0;
       width: 100%;
@@ -136,12 +136,12 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
       background: transparent;
       border: 0;
       color: var(--text-muted);
-      font-size: 0.8rem;
-      padding: 0.25rem 0.45rem;
+      font-size: 0.74rem;
+      padding: 0.2rem 0.38rem;
       border-radius: var(--radius-sm);
       cursor: pointer;
       white-space: nowrap;
-      transition: background 0.15s, color 0.15s, opacity 0.15s;
+      transition: background var(--duration-fast), color var(--duration-fast), opacity var(--duration-fast);
       opacity: 0.85;
     }
     .clearable-select__btn:hover,
@@ -152,7 +152,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
       outline: none;
     }
     .clearable-select__btn .pi {
-      font-size: 0.8rem;
+      font-size: 0.72rem;
       line-height: 1;
     }
     [dir="rtl"] .clearable-select__label {

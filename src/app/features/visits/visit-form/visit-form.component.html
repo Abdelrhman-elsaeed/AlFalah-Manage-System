@@ -1,0 +1,243 @@
+<div class="page page--form" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">
+        {{ (isEdit() ? 'VISITS.OBSERVATION_TITLE' : 'VISITS.NEW') | translate }}
+      </h1>
+      <p class="page-header__subtitle">
+        {{ 'VISITS.DETAILS' | translate }}
+      </p>
+    </div>
+    <div class="page-header__action">
+      <button pButton type="button" icon="pi pi-arrow-right"
+              [label]="'COMMON.BACK' | translate"
+              class="p-button-text app-back-button" (click)="cancel()"></button>
+    </div>
+  </header>
+
+  <ng-container *ngIf="loading(); else ready">
+    <div class="loading surface-card">
+      <span>{{ 'COMMON.LOADING' | translate }}</span>
+    </div>
+  </ng-container>
+
+  <ng-template #ready>
+    <p class="readonly-notice surface-card" *ngIf="isReadOnly()">
+      <i class="pi pi-lock"></i>
+      <span>{{ 'VISITS.READONLY_NOTICE' | translate }}</span>
+    </p>
+
+    <!-- Phase 5: rejection banner (visible on edit-after-reject) -->
+    <p class="phase5-form-banner phase5-form-banner--reject surface-card" *ngIf="isRejected() && rejectionReason()">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>
+        <strong>{{ 'VISITS.REJECTION_BANNER_TITLE' | translate }}</strong>
+        — {{ 'VISITS.REJECTION_BANNER_DESC' | translate }} {{ rejectionReason() }}
+      </span>
+    </p>
+
+    <!-- Phase 5: reopen banner (visible on edit-after-reopen) -->
+    <p class="phase5-form-banner phase5-form-banner--reopen surface-card" *ngIf="isReopened() && reopenReason()">
+      <i class="pi pi-history"></i>
+      <span>
+        <strong>{{ 'VISITS.REOPEN_BANNER_TITLE' | translate }}</strong>
+        — {{ 'VISITS.REOPEN_BANNER_DESC' | translate }} {{ reopenReason() }}
+      </span>
+    </p>
+
+    <p class="snapshot-hint surface-card" *ngIf="rubricVersionNumber() as rv">
+      <i class="pi pi-info-circle"></i>
+      <span>
+        {{ 'VISITS.RUBRIC_VERSION_LABEL' | translate }}: <strong>{{ rv }}</strong>.
+        {{ 'VISITS.SNAPSHOT_HINT' | translate }}
+      </span>
+    </p>
+
+    <form [formGroup]="form" class="form-card surface-card">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>{{ 'VISITS.INSTRUCTOR' | translate }} *</label>
+          <app-clearable-select [options]="instructors()" optionLabel="fullName" optionValue="userId"
+                                formControlName="instructorId" [filter]="true" filterBy="fullName"
+                                [clearable]="false"
+                                [placeholder]="'VISITS.INSTRUCTOR_PLACEHOLDER' | translate"
+                                [emptyMessage]="'VISITS.NO_INSTRUCTORS_AVAILABLE' | translate"
+                                [loading]="instructorsLoading()"
+                                appendTo="body"></app-clearable-select>
+          <small class="field-hint" *ngIf="teacherLocked()">{{ 'VISITS.INSTRUCTOR_LOCKED_HINT' | translate }}</small>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.VISIT_CATEGORY' | translate }} *</label>
+          <app-clearable-select [options]="categories" optionLabel="label" optionValue="value"
+                                formControlName="visitCategory" [clearable]="false"
+                                appendTo="body"></app-clearable-select>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.VISIT_SEQUENCE' | translate }} *</label>
+          <app-clearable-select [options]="availableSequences()" optionLabel="label" optionValue="value"
+                                optionDisabled="disabled"
+                                formControlName="visitSequence" [clearable]="false"
+                                appendTo="body"></app-clearable-select>
+          <small class="field-hint" *ngIf="instructorVisitCount() > 0">
+            {{ 'VISITS.SEQUENCE_PROGRESS' | translate:{ count: instructorVisitCount() } }}
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.VISIT_DATE' | translate }} *</label>
+          <p-calendar formControlName="visitDate" dateFormat="yy-mm-dd"
+                      [showIcon]="true" appendTo="body"></p-calendar>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.SUBJECT' | translate }} *</label>
+          <input pInputText formControlName="subject"
+                 [placeholder]="'VISITS.SUBJECT_PLACEHOLDER' | translate" />
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.GRADE_CLASS' | translate }} *</label>
+          <app-clearable-select *ngIf="hasTeacherClasses(); else freeTextClass"
+                                [options]="classOptions()" optionLabel="label" optionValue="value"
+                                formControlName="gradeClass" [clearable]="false" appendTo="body"></app-clearable-select>
+          <ng-template #freeTextClass>
+            <input pInputText formControlName="gradeClass"
+                   [placeholder]="'VISITS.GRADE_CLASS_PLACEHOLDER' | translate" />
+          </ng-template>
+        </div>
+
+        <p class="teaching-fallback form-field--full" *ngIf="showTeachingFallback()">
+          <i class="pi pi-info-circle"></i>
+          <span>{{ 'VISITS.TEACHING_FALLBACK_HINT' | translate }}</span>
+        </p>
+
+        <div class="form-field form-field--full">
+          <label>{{ 'VISITS.LESSON_TITLE' | translate }} *</label>
+          <input pInputText formControlName="lessonTitle"
+                 [placeholder]="'VISITS.LESSON_TITLE_PLACEHOLDER' | translate" />
+          <small class="field-error" *ngIf="form.controls['lessonTitle'].touched && form.controls['lessonTitle'].invalid">
+            {{ 'VISITS.LESSON_TITLE_REQUIRED' | translate }}
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.PRESENT_COUNT' | translate }} *</label>
+          <p-inputNumber inputId="presentCount" formControlName="presentCount" [min]="0"
+                         [useGrouping]="false" styleClass="w-full"
+                         [placeholder]="'0'"></p-inputNumber>
+          <small class="field-error" *ngIf="form.controls['presentCount'].touched && form.controls['presentCount'].invalid">
+            {{ 'VISITS.PRESENT_COUNT_REQUIRED' | translate }}
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'VISITS.ABSENT_COUNT' | translate }}</label>
+          <p-inputNumber inputId="absentCount" formControlName="absentCount" [min]="0"
+                         [useGrouping]="false" styleClass="w-full"
+                         [placeholder]="'0'"></p-inputNumber>
+          <small class="field-error" *ngIf="form.controls['absentCount'].touched && form.controls['absentCount'].invalid">
+            {{ 'VISITS.COUNT_INVALID' | translate }}
+          </small>
+        </div>
+
+        <div class="form-field form-field--full">
+          <label>{{ 'VISITS.NOTES' | translate }}</label>
+          <textarea pInputTextarea formControlName="notes" rows="3"
+                    [placeholder]="'VISITS.NOTES_PLACEHOLDER' | translate"></textarea>
+        </div>
+      </div>
+    </form>
+
+    <section class="surface-card scoring-card" *ngIf="!isEmpty()">
+      <header class="scoring-header">
+        <div class="scoring-header__main">
+          <h2 class="section-title">{{ 'VISITS.SCORES_TITLE' | translate }}</h2>
+          <p class="progress-text" [class.progress-text--done]="allScored()">
+            <i [class]="allScored() ? 'pi pi-check-circle' : 'pi pi-pencil'"></i>
+            <span *ngIf="!allScored()">{{ 'VISITS.SCORING_PROGRESS' | translate: { scored: scoredCount(), total: totalCount() } }}</span>
+            <span *ngIf="allScored()">{{ 'VISITS.SCORING_PROGRESS_DONE' | translate }}</span>
+          </p>
+        </div>
+      </header>
+
+      <div class="score-legend" role="note" [attr.aria-label]="'VISITS.SCORE_LEGEND' | translate">
+        <strong>{{ 'VISITS.SCORE_LEGEND' | translate }}:</strong>
+        <span *ngFor="let v of scoreValues; let i = index" class="score-legend__item score-legend__item--v{{ v }}">
+          <span class="score-legend__value">{{ v }}</span>
+          <span>{{ scoreLabels[i] }}</span>
+        </span>
+      </div>
+
+      <div class="domain-block" *ngFor="let d of domainsGrouped(); trackBy: trackDomain">
+        <header class="domain-header">
+          <span class="domain-code">{{ d.domainCode }}</span>
+          <h3 class="domain-name">{{ d.domainNameAr }}</h3>
+          <span class="domain-count">{{ domainScoredCount(d) }}/{{ domainStandardCount(d) }}</span>
+        </header>
+
+        <div class="standards">
+          <div class="standard-row" *ngFor="let s of d.scores; trackBy: trackStandard; let standardIndex = index">
+            <div class="std-code">{{ standardIndex + 1 }}</div>
+            <div class="std-text">{{ s.standardTextAr }}</div>
+            <div class="std-actions">
+              <!-- Segmented score button group (5 values 0..4) -->
+              <div class="score-group" role="group"
+                   [attr.aria-label]="'VISITS.SCORES_TITLE' | translate">
+                <button *ngFor="let v of scoreValues; let i = index"
+                        type="button"
+                        class="score-btn score-btn--v{{ v }}"
+                        [class.score-btn--active]="s.control.value === v"
+                        [disabled]="isReadOnly()"
+                        [attr.aria-pressed]="s.control.value === v"
+                        [attr.aria-label]="'VISITS.SCORE_BUTTON_ARIA' | translate: { score: v, code: s.standardCode, label: scoreLabels[i] }"
+                        [pTooltip]="scoreLabels[i]"
+                        tooltipPosition="top"
+                        (click)="setScore(s, v)">
+                  {{ v }}
+                </button>
+              </div>
+            </div>
+            <div class="std-note-row std-note-row--open">
+              <input pInputText class="note-input"
+                     [formControl]="s.noteControl"
+                     [readonly]="isReadOnly()"
+                     [placeholder]="'VISITS.EVIDENCE_NOTE_PLACEHOLDER' | translate"
+                     [attr.aria-label]="'VISITS.EVIDENCE_NOTE' | translate" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sticky actions footer: always visible, holds progress + actions -->
+    <div class="actions-bar" *ngIf="!isReadOnly()">
+      <div class="actions-bar__progress">
+        <span class="actions-bar__progress-label">{{ 'VISITS.STICKY_PROGRESS_LABEL' | translate }}</span>
+        <div class="actions-bar__progress-track">
+          <div class="actions-bar__progress-fill"
+               [class.actions-bar__progress-fill--done]="allScored()"
+               [style.width.%]="progressPercent()"></div>
+        </div>
+        <span class="actions-bar__progress-text"
+              [class.actions-bar__progress-text--done]="allScored()">
+          {{ scoredCount() }}/{{ totalCount() }}
+        </span>
+      </div>
+      <div class="actions-bar__buttons">
+        <!-- One clear action per stage: create the visit details first,
+             then review/score the visit and submit it for approval. -->
+        <button pButton type="button"
+                [icon]="isEdit() ? 'pi pi-send' : 'pi pi-arrow-left'"
+                [class.p-button-success]="isEdit()"
+                [label]="(isEdit() ? 'VISITS.SUBMIT_FOR_APPROVAL' : 'COMMON.NEXT') | translate"
+                [disabled]="isEdit() && !allScored()"
+                [loading]="saving() || submitting()"
+                (click)="isEdit() ? confirmSubmit() : saveDraft()"></button>
+      </div>
+    </div>
+  </ng-template>
+</div>
+
+<p-confirmDialog></p-confirmDialog>

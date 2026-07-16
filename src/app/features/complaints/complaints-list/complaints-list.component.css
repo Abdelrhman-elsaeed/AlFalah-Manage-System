@@ -1,0 +1,81 @@
+:host { display: block; }
+
+.complaints-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+}
+
+.toolbar-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.table-card { padding: var(--space-3); }
+
+.complaint-subject {
+  font-weight: 600;
+  color: var(--text-strong);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-row {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--space-5);
+}
+
+/* ── Detail dialog ── */
+.complaint-detail { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.detail-row { display: flex; flex-direction: column; gap: 0.25rem; }
+.detail-row .label { color: var(--text-muted); font-size: 0.78rem; font-weight: 600; }
+.detail-row .value { color: var(--text-strong); font-size: 0.95rem; }
+.detail-row .link { color: var(--brand-700); cursor: pointer; text-decoration: underline; }
+
+.body-text {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+}
+
+.handle-box {
+  border-top: 1px dashed var(--border-strong);
+  padding-top: var(--space-3);
+}
+
+.handle-title {
+  margin: 0 0 var(--space-2);
+  font-size: 0.95rem;
+  color: var(--text-strong);
+}
+
+.handle-controls { display: flex; flex-direction: column; gap: var(--space-2); }
+.handle-controls textarea { width: 100%; }
+
+.reason-dialog { display: flex; flex-direction: column; gap: var(--space-2); }
+.reason-dialog__label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+.reason-dialog__textarea { width: 100%; }
+
+@media (max-width: 600px) {
+  .detail-grid { grid-template-columns: 1fr; }
+}

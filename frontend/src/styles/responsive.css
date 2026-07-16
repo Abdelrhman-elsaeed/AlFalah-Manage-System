@@ -1,0 +1,19 @@
+@media (max-width: 1100px) {
+  html { font-size: 13.75px; }
+}
+
+@media (max-width: 720px) {
+  html { font-size: 13.5px; }
+  .surface-card { padding: var(--space-3); }
+  .table-card { padding: 0.4rem; }
+  .p-dialog { width: min(94vw, 680px) !important; }
+}
+
+@media print {
+  html { font-size: 12px; }
+  body { background: #fff; }
+  .shell-topbar, .shell-sidebar, .actions-bar, .page-header__action, .page-header__actions { display: none !important; }
+  .shell, .shell-body, .shell-content { display: block !important; height: auto !important; overflow: visible !important; }
+  .shell-content { padding: 0 !important; }
+  .surface-card, .table-card { box-shadow: none !important; break-inside: avoid; }
+}

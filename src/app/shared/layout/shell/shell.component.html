@@ -1,0 +1,140 @@
+<div class="shell" dir="rtl">
+  <header
+    class="shell-topbar"
+    [class.is-hidden]="isTopbarHidden()"
+    [attr.aria-hidden]="isTopbarHidden()">
+    <div class="shell-topbar__brand">
+      <span class="shell-topbar__brand-mark" aria-hidden="true">
+        <i class="pi pi-graduation-cap"></i>
+      </span>
+      <span class="shell-topbar__brand-text">
+        <span class="shell-topbar__brand-name">{{ 'APP.NAME_SHORT' | translate }}</span>
+        <span class="shell-topbar__brand-tag">{{ 'APP.NAME' | translate }}</span>
+      </span>
+    </div>
+
+    <div class="shell-topbar__context">
+      <span class="shell-topbar__school-chip" *ngIf="activeSchoolName() as school">
+        <span class="shell-topbar__school-icon" aria-hidden="true">
+          <i class="pi pi-building"></i>
+        </span>
+        <span class="shell-topbar__school-copy">
+          <small>{{ 'NAV.ACTIVE_SCHOOL' | translate }}</small>
+          <strong>{{ school }}</strong>
+        </span>
+      </span>
+    </div>
+
+    <div class="shell-topbar__actions" *ngIf="currentUser() as user">
+      <div class="shell-topbar__user">
+        <span class="shell-topbar__avatar" aria-hidden="true">{{ userInitials() }}</span>
+        <span class="shell-topbar__user-info">
+          <span class="shell-topbar__user-name">{{ user.fullName }}</span>
+          <span class="shell-topbar__user-role" *ngIf="primaryRoleLabel() as role">{{ role }}</span>
+        </span>
+      </div>
+
+      <span class="shell-topbar__divider" aria-hidden="true"></span>
+
+      <button
+        type="button"
+        class="shell-topbar__logout"
+        (click)="logout()"
+        [pTooltip]="'AUTH.LOGOUT' | translate"
+        tooltipPosition="bottom"
+        tooltipAppendTo="body"
+        [attr.aria-label]="'AUTH.LOGOUT' | translate">
+        <i class="pi pi-sign-out" aria-hidden="true"></i>
+        <span class="shell-topbar__logout-label">{{ 'AUTH.LOGOUT' | translate }}</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="shell-body" [class.is-sidebar-collapsed]="isSidebarCollapsed()">
+    <aside class="shell-sidebar" [class.is-collapsed]="isSidebarCollapsed()">
+      <div class="shell-sidebar__controls">
+        <span class="shell-sidebar__menu-title">
+          <i class="pi pi-th-large" aria-hidden="true"></i>
+          <span>{{ 'NAV.MENU' | translate }}</span>
+        </span>
+
+        <button
+          type="button"
+          class="shell-sidebar__collapse-button"
+          (click)="toggleSidebar()"
+          [pTooltip]="(isSidebarCollapsed() ? 'NAV.EXPAND_SIDEBAR' : 'NAV.COLLAPSE_SIDEBAR') | translate"
+          tooltipPosition="left"
+          tooltipAppendTo="body"
+          [attr.aria-expanded]="!isSidebarCollapsed()"
+          [attr.aria-label]="(isSidebarCollapsed() ? 'NAV.EXPAND_SIDEBAR' : 'NAV.COLLAPSE_SIDEBAR') | translate">
+          <i
+            class="pi"
+            [class.pi-angle-double-left]="isSidebarCollapsed()"
+            [class.pi-angle-double-right]="!isSidebarCollapsed()"
+            aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <nav [attr.aria-label]="'NAV.MAIN_NAVIGATION' | translate">
+        <ul class="shell-sidebar__list shell-sidebar__list--top">
+          <li *ngFor="let item of topItems()">
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="is-active"
+              class="shell-sidebar__link"
+              [pTooltip]="(item.tooltipKey || item.labelKey) | translate"
+              tooltipPosition="left"
+              tooltipAppendTo="body">
+              <i [class]="item.icon" class="shell-sidebar__icon"></i>
+              <span class="shell-sidebar__label">{{ item.labelKey | translate }}</span>
+            </a>
+          </li>
+        </ul>
+
+        <div
+          *ngFor="let category of visibleCategories()"
+          class="shell-sidebar__category"
+          [class.is-active-category]="categoryContainsActiveRoute(category)">
+          <button
+            type="button"
+            class="shell-sidebar__category-toggle"
+            [class.is-expanded]="isCategoryExpanded(category)"
+            [attr.aria-expanded]="isCategoryExpanded(category)"
+            [attr.aria-controls]="'sidebar-category-' + category.id"
+            [pTooltip]="category.labelKey | translate"
+            tooltipPosition="left"
+            tooltipAppendTo="body"
+            (click)="toggleCategory(category)">
+            <span class="shell-sidebar__category-title">
+              <i [class]="category.icon" class="shell-sidebar__category-icon"></i>
+              <span class="shell-sidebar__category-label">{{ category.labelKey | translate }}</span>
+            </span>
+            <i class="pi pi-angle-down shell-sidebar__category-chevron" aria-hidden="true"></i>
+          </button>
+
+          <ul
+            *ngIf="isCategoryExpanded(category)"
+            class="shell-sidebar__list shell-sidebar__list--nested"
+            [id]="'sidebar-category-' + category.id">
+            <li *ngFor="let item of category.items">
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="is-active"
+                class="shell-sidebar__link shell-sidebar__link--nested"
+                [pTooltip]="(item.tooltipKey || item.labelKey) | translate"
+                tooltipPosition="left"
+                tooltipAppendTo="body">
+                <i [class]="item.icon" class="shell-sidebar__icon"></i>
+                <span class="shell-sidebar__label">{{ item.labelKey | translate }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="shell-content" (scroll)="onContentScroll($event)">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

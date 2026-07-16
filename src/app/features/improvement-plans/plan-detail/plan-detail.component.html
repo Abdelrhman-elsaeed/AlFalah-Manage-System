@@ -1,0 +1,174 @@
+<div class="page page--narrow" dir="rtl">
+  <header class="page-header" *ngIf="plan() as p">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ 'FOLLOWUPS.DETAIL_TITLE' | translate }}</h1>
+      <p class="page-header__subtitle">
+        <span>{{ 'FOLLOWUPS.INSTRUCTOR' | translate }}: {{ p.instructorFullName }}</span>
+        <span class="meta-sep">·</span>
+        <p-tag [severity]="statusSeverity(p.status)" [value]="statusLabelKey(p.status) | translate"></p-tag>
+      </p>
+    </div>
+    <div class="page-header__action">
+      <button pButton type="button" icon="pi pi-arrow-right"
+              [label]="'FOLLOWUPS.BACK_TO_LIST' | translate" class="p-button-text app-back-button"
+              (click)="goBack()"></button>
+      <button *ngIf="canEdit() && !p.isReadOnly" pButton type="button" icon="pi pi-plus"
+              [label]="'FOLLOWUPS.ADD' | translate" class="page-header__primary"
+              (click)="openCreateDialog()"></button>
+      <button *ngIf="canEdit() && p.isReadOnly && p.status !== 'active'" pButton type="button" icon="pi pi-refresh"
+              [label]="'PLANS.REACTIVATE' | translate" class="p-button-outlined p-button-success"
+              (click)="confirmReactivate()"></button>
+    </div>
+  </header>
+
+  <ng-container *ngIf="loading(); else ready">
+    <div class="loading surface-card">{{ 'COMMON.LOADING' | translate }}</div>
+  </ng-container>
+
+  <ng-template #ready>
+    <ng-container *ngIf="plan() as p">
+      <section *ngIf="p.isReadOnly && p.status !== 'active'" class="surface-card read-only-notice">
+        <i class="pi pi-lock"></i><span>{{ 'PLANS.READ_ONLY_NOTICE' | translate }}</span>
+      </section>
+      <div class="plan-summary-grid">
+        <section class="surface-card detail-card">
+          <h2 class="section-title"><i class="pi pi-file"></i>{{ 'FOLLOWUPS.PLAN_INFO' | translate }}</h2>
+
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.DOMAIN' | translate }}</span>
+            <span class="info-value font-bold">{{ p.domainNameAr || ('FOLLOWUPS.SHARED_GENERAL_PLAN' | translate) }}</span>
+          </div>
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.GOAL' | translate }}</span>
+            <p class="info-paragraph">{{ p.goal }}</p>
+          </div>
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.ACTIONS' | translate }}</span>
+            <p class="info-paragraph pre-line">{{ p.actions }}</p>
+          </div>
+          <div class="info-group">
+            <span class="info-label">{{ 'FOLLOWUPS.SUCCESS_INDICATORS' | translate }}</span>
+            <p class="info-paragraph">{{ p.successIndicators }}</p>
+          </div>
+          <div class="date-summary">
+            <div>
+              <span class="info-label">{{ 'FOLLOWUPS.START_DATE' | translate }}</span>
+              <span class="value">{{ p.startDate | date:'yyyy/MM/dd' }}</span>
+            </div>
+            <div>
+              <span class="info-label">{{ 'FOLLOWUPS.END_DATE' | translate }}</span>
+              <span class="value">{{ p.endDate | date:'yyyy/MM/dd' }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="surface-card detail-card progress-card">
+          <h2 class="section-title"><i class="pi pi-chart-line"></i>{{ 'FOLLOWUPS.PROGRESS_TITLE' | translate }}</h2>
+          <div class="latest-progress" [ngClass]="'latest-progress--' + progressColorSeverity(progress()?.latestProgressColor)">
+            <div>
+              <span class="info-label">{{ 'FOLLOWUPS.LATEST_SCORE' | translate }}</span>
+              <span *ngIf="progress()?.latestProgressScore != null; else noScore" class="latest-progress__score">
+                {{ progress()?.latestProgressScore }}%
+              </span>
+              <ng-template #noScore>
+                <span class="latest-progress__empty">{{ 'FOLLOWUPS.NO_SCORE' | translate }}</span>
+              </ng-template>
+            </div>
+            <p-tag *ngIf="progress()?.latestProgressScore != null"
+                   [severity]="progressColorSeverity(progress()?.latestProgressColor)"
+                   [value]="progressStatusKey(progress()?.latestProgressScore!) | translate"></p-tag>
+          </div>
+
+          <div class="chart-wrapper">
+            <p-chart *ngIf="chartData()" type="line" [data]="chartData()!" [options]="chartOptions"></p-chart>
+            <div *ngIf="!chartData()" class="chart-empty">
+              <i class="pi pi-chart-bar"></i>
+              <p>{{ 'FOLLOWUPS.CHART_NEEDS_TWO' | translate }}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="surface-card followups-section">
+        <h2 class="section-title"><i class="pi pi-history"></i>{{ 'FOLLOWUPS.HISTORY' | translate }}</h2>
+
+        <div *ngIf="p.followUps.length === 0" class="no-followups-box">
+          <i class="pi pi-info-circle"></i>
+          <p>{{ 'FOLLOWUPS.EMPTY' | translate }}</p>
+        </div>
+
+        <div *ngIf="p.followUps.length > 0" class="followups-list">
+          <article *ngFor="let fu of p.followUps" class="followup-card">
+            <header class="followup-card__header">
+              <div class="followup-card__meta">
+                <strong>{{ fu.followDate | date:'yyyy/MM/dd' }}</strong>
+                <span class="meta-sep">·</span>
+                <span>{{ 'FOLLOWUPS.BY' | translate }}: {{ fu.createdByFullName }}</span>
+              </div>
+              <div class="table-actions">
+                <p-tag *ngIf="fu.progressScore != null"
+                       [severity]="badgeColor(fu.progressScore)"
+                       [value]="'FOLLOWUPS.PROGRESS_VALUE' | translate:{ score: fu.progressScore }"></p-tag>
+                <button *ngIf="canEdit() && !p.isReadOnly" pButton type="button" icon="pi pi-pencil"
+                        class="p-button-text p-button-warning p-button-sm p-button-icon-only"
+                        (click)="openEditDialog(fu)"
+                        [pTooltip]="'FOLLOWUPS.EDIT' | translate" tooltipPosition="top"></button>
+                <button *ngIf="canDelete() && !p.isReadOnly" pButton type="button" icon="pi pi-trash"
+                        class="p-button-text p-button-danger p-button-sm p-button-icon-only"
+                        (click)="confirmDelete(fu)"
+                        [pTooltip]="'FOLLOWUPS.DELETE' | translate" tooltipPosition="top"></button>
+              </div>
+            </header>
+            <div class="followup-card__body">
+              <strong>{{ 'FOLLOWUPS.PROGRESS_NOTE' | translate }}</strong>
+              <p class="pre-line">{{ fu.progressNote }}</p>
+            </div>
+            <div *ngIf="fu.evidenceNote" class="followup-card__body">
+              <strong>{{ 'FOLLOWUPS.EVIDENCE' | translate }}</strong>
+              <p class="pre-line">{{ fu.evidenceNote }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </ng-container>
+  </ng-template>
+
+  <p-dialog [header]="(dialogMode() === 'create' ? 'FOLLOWUPS.CREATE_DIALOG' : 'FOLLOWUPS.EDIT_DIALOG') | translate"
+            [(visible)]="followUpDialogVisible" [modal]="true" [style]="{ width: '35rem' }"
+            [draggable]="false" [resizable]="false">
+    <form [formGroup]="followUpForm" class="dialog-form" (ngSubmit)="saveFollowUp()">
+      <div class="field">
+        <label for="followDate">{{ 'FOLLOWUPS.FOLLOW_DATE' | translate }} <span class="text-danger">*</span></label>
+        <p-calendar inputId="followDate" formControlName="followDate" [showIcon]="true"
+                    dateFormat="yy/mm/dd" styleClass="w-full" appendTo="body"></p-calendar>
+      </div>
+      <div class="field">
+        <label for="progressScore">{{ 'FOLLOWUPS.PROGRESS_SCORE' | translate }}</label>
+        <p-inputNumber inputId="progressScore" formControlName="progressScore" suffix="%"
+                       [min]="0" [max]="100" styleClass="w-full"></p-inputNumber>
+        <small>{{ 'FOLLOWUPS.PROGRESS_SCORE_HINT' | translate }}</small>
+      </div>
+      <div class="field">
+        <label for="progressNote">{{ 'FOLLOWUPS.PROGRESS_NOTE' | translate }} <span class="text-danger">*</span></label>
+        <textarea id="progressNote" pInputTextarea formControlName="progressNote" rows="3" class="w-full"
+                  [placeholder]="'FOLLOWUPS.PROGRESS_NOTE_PLACEHOLDER' | translate"></textarea>
+        <small class="text-danger" *ngIf="followUpForm.get('progressNote')?.touched && followUpForm.get('progressNote')?.hasError('required')">
+          {{ 'FOLLOWUPS.PROGRESS_NOTE_REQUIRED' | translate }}
+        </small>
+      </div>
+      <div class="field">
+        <label for="evidenceNote">{{ 'FOLLOWUPS.EVIDENCE_OPTIONAL' | translate }}</label>
+        <textarea id="evidenceNote" pInputTextarea formControlName="evidenceNote" rows="2" class="w-full"
+                  [placeholder]="'FOLLOWUPS.EVIDENCE_PLACEHOLDER' | translate"></textarea>
+      </div>
+      <div class="dialog-actions">
+        <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-text"
+                (click)="followUpDialogVisible.set(false)" [disabled]="submitting()"></button>
+        <button pButton type="submit" icon="pi pi-save" [label]="'FOLLOWUPS.SAVE' | translate"
+                [loading]="submitting()"></button>
+      </div>
+    </form>
+  </p-dialog>
+
+  <p-confirmDialog appendTo="body"></p-confirmDialog>
+</div>

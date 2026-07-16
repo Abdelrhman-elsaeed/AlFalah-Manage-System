@@ -1,0 +1,606 @@
+/* ─── PrimeNG Global Overrides (light) ───────────────────────────────────── */
+
+/* Inputs / dropdowns / textarea — white surface, green focus ring.
+   D-41: every control unified to the same 2.4rem height as buttons so
+   fields stack neatly without visual misalignment. */
+.p-inputtext,
+.p-inputtext-input,
+.p-password input,
+.p-inputnumber-input,
+textarea.p-inputtext,
+.p-dropdown,
+.p-multiselect {
+  width: 100%;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-height: var(--control-height);
+  height: var(--control-height);
+  padding: 0.4rem 0.75rem !important;
+  font-family: inherit;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast), background var(--duration-fast);
+}
+/* Textareas need to expand vertically but keep the same padding/border. */
+textarea.p-inputtext {
+  height: auto;
+  min-height: 4rem;
+}
+
+/* D-34: p-calendar inputs must NOT use width: 100% globally — it breaks the
+   flex layout that keeps the .p-datepicker-trigger icon inline with the input
+   (the trigger would otherwise wrap below as a detached floating button). The
+   toolbar fields handle their own .p-calendar layout; for free-standing
+   .p-calendar (visit form, etc.) PrimeNG's default `flex: 1 1 auto; width: 1%`
+   is correct. We only style background / border / radius here. */
+.p-calendar input {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-height: var(--control-height);
+  padding: 0.4rem 0.75rem !important;
+  font-family: inherit;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast), background var(--duration-fast);
+}
+.p-calendar-w-btn .p-inputtext { border-radius: 0 !important; }
+.p-calendar-w-btn .p-datepicker-trigger {
+  width: var(--control-height) !important; min-width: var(--control-height) !important;
+  flex: 0 0 var(--control-height) !important;
+  background: var(--brand-500) !important; color: #fff !important;
+  border-color: var(--brand-500) !important;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0 !important;
+}
+[dir="rtl"] .p-calendar-w-btn .p-inputtext { border-radius: 0 !important; }
+[dir="rtl"] .p-calendar-w-btn .p-datepicker-trigger { border-radius: var(--radius-md) 0 0 var(--radius-md) !important; }
+
+.p-inputtext:enabled:hover,
+.p-dropdown:not(.p-disabled):hover {
+  border-color: var(--brand-500) !important;
+}
+
+.p-inputtext:enabled:focus,
+.p-dropdown:not(.p-disabled).p-focus {
+  border-color: var(--brand-500) !important;
+  box-shadow: var(--focus-ring) !important;
+  outline: none;
+}
+
+.p-inputtext::placeholder { color: var(--text-dim) !important; }
+
+/* PrimeNG dropdown — trigger chevron + clear icon stay inline-end.
+   D-41: label reserves right/left padding for the chevron + clear "✕" so
+   they NEVER overlap the selected value (RTL-safe). */
+.p-dropdown {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  min-width: 10.5rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Every wrapped dropdown must follow its form/grid column width. */
+app-clearable-select,
+app-clearable-select .clearable-select,
+app-clearable-select p-dropdown,
+app-clearable-select .p-dropdown {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+app-clearable-select p-dropdown {
+  display: block;
+}
+.p-dropdown .p-dropdown-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0.4rem 2.6rem 0.4rem 0.75rem !important;
+  background: transparent !important;
+  color: var(--text-strong) !important;
+  border: 0 !important;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[dir="rtl"] .p-dropdown .p-dropdown-label {
+  padding: 0.4rem 0.75rem 0.4rem 2.6rem !important;
+}
+.p-dropdown .p-dropdown-trigger,
+.p-dropdown .p-dropdown-clear-icon {
+  color: var(--text-muted) !important;
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+  inset-inline-end: auto;
+}
+/* Clear "✕" sits at the inline-end of the field, before the chevron,
+   separated so they never collide. */
+.p-dropdown .p-dropdown-clear-icon {
+  inset-inline-end: 1.9rem !important;
+  margin-inline-start: 0 !important;
+  background: transparent;
+  border-radius: 999px;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+.p-dropdown .p-dropdown-clear-icon:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Dropdown panel — FIX 1: panel renders at body, but its own surface is light.
+   D-41: item height reduced to 2.2rem for a denser, more compact panel. */
+.p-dropdown-panel,
+.p-multiselect-panel,
+.p-autocomplete-panel {
+  background: var(--bg-elevated) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+.p-dropdown-items .p-dropdown-item,
+.p-multiselect-items .p-multiselect-item {
+  color: var(--text-strong) !important;
+  padding: 0.38rem 0.72rem !important;
+  min-height: 2rem;
+  border-radius: var(--radius-sm);
+  margin: 2px;
+}
+.p-dropdown-items .p-dropdown-item:hover,
+.p-multiselect-items .p-multiselect-item:hover {
+  background: var(--brand-50) !important;
+  color: var(--brand-900) !important;
+}
+.p-dropdown-items .p-dropdown-item.p-highlight,
+.p-multiselect-items .p-multiselect-item.p-highlight {
+  background: var(--brand-500) !important;
+  color: #fff !important;
+}
+
+/* Dropdown filter input (inside the panel) */
+.p-dropdown-filter,
+.p-dropdown-panel .p-dropdown-filter {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-strong) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0.4rem 0.6rem !important;
+  width: 100% !important;
+}
+
+/* Tags (p-tag) — token-driven; status: green=active, gold=warning, red=danger */
+.p-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem;
+  padding: 0.24rem 0.58rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+  vertical-align: middle;
+  min-height: 1.45rem;
+}
+.p-tag.p-tag-success { background: var(--success-bg); color: #15803D; border: 1px solid var(--success-border); }
+.p-tag.p-tag-warning { background: var(--warning-bg); color: #92580B; border: 1px solid var(--warning-border); }
+.p-tag.p-tag-danger  { background: var(--danger-bg);  color: var(--danger);  border: 1px solid var(--danger-border); }
+.p-tag.p-tag-info    { background: var(--info-bg);    color: var(--info);    border: 1px solid var(--info-border); }
+
+/* Tables — light header (brand tint), row hover (brand 6%), green-vs-red statuses */
+.p-datatable {
+  background-color: var(--bg-surface) !important;
+}
+.p-datatable .p-datatable-thead > tr > th {
+  background: linear-gradient(180deg, #eff8f3 0%, var(--brand-50) 100%) !important;
+  color: var(--brand-900) !important;
+  border-bottom: 1px solid var(--border-strong) !important;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 0.62rem 0.75rem !important;
+  text-align: start;
+}
+.p-datatable .p-datatable-tbody > tr {
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  color: var(--text);
+}
+.p-datatable .p-datatable-tbody > tr > td {
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 0.58rem 0.75rem !important;
+  font-size: 0.82rem;
+  vertical-align: middle;
+  text-align: start; /* Match header alignment for RTL */
+}
+.p-datatable .p-datatable-tbody > tr:hover > td {
+  background-color: rgba(15, 113, 50, 0.06) !important;
+  background-image: none !important;
+}
+.p-datatable .p-datatable-tfoot > tr > td {
+  background-color: var(--bg-surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-top: 1px solid var(--border) !important;
+}
+.p-datatable .p-sortable-column.p-highlight { color: var(--brand-700) !important; }
+
+/* Centered columns for badges/numeric/status/actions */
+.p-datatable th.text-center, 
+.p-datatable td.text-center { text-align: center !important; }
+.p-datatable th.table-actions-col, 
+.p-datatable td.table-actions-col { text-align: center !important; width: 1%; min-width: max-content; white-space: nowrap; }
+
+/* Action groups */
+.action-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+/* Table action cells — compact, clean, and consistent across all tables.
+   Keep the wrapper visually invisible and let the icon buttons carry the styling. */
+.table-actions,
+.actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: max-content;
+  min-height: auto;
+  padding: 0;
+  margin-inline: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.table-actions .p-button.p-button-icon-only,
+.actions-cell .p-button.p-button-icon-only {
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0 !important;
+  flex: 0 0 2.1rem;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: 0.98rem !important;
+  border-radius: 0.7rem !important;
+  border-width: 1px !important;
+  box-shadow: var(--shadow-xs);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.table-actions .p-button,
+.actions-cell .p-button {
+  font-weight: 700;
+}
+.table-actions .p-button:not(.p-button-warning):not(.p-button-danger):not(.p-button-success):not(.row-action--pdf):not(.row-action--delete),
+.actions-cell .p-button:not(.p-button-warning):not(.p-button-danger):not(.p-button-success):not(.row-action--pdf):not(.row-action--delete) {
+  color: var(--brand-800) !important;
+  border-color: rgba(15, 113, 50, 0.16) !important;
+  background: rgba(15, 113, 50, 0.09) !important;
+}
+.table-actions .p-button.p-button-warning,
+.table-actions .row-action--pdf,
+.actions-cell .p-button.p-button-warning,
+.actions-cell .row-action--pdf {
+  color: #9a6b00 !important;
+  border-color: rgba(184, 135, 8, 0.2) !important;
+  background: rgba(201, 154, 32, 0.14) !important;
+}
+.table-actions .p-button.p-button-success,
+.actions-cell .p-button.p-button-success {
+  color: #15703f !important;
+  border-color: rgba(21, 112, 63, 0.2) !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+}
+.table-actions .p-button.p-button-danger,
+.table-actions .row-action--delete,
+.actions-cell .p-button.p-button-danger,
+.actions-cell .row-action--delete {
+  color: #c81e1e !important;
+  border-color: rgba(185, 28, 28, 0.18) !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+}
+.table-actions .p-button.p-button-icon-only:hover:not(:disabled),
+.actions-cell .p-button.p-button-icon-only:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.table-actions .p-button:focus-visible,
+.actions-cell .p-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 113, 50, 0.14), var(--shadow-sm);
+}
+.table-actions .p-button:disabled,
+.actions-cell .p-button:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+}
+.row-action-spacer {
+  display: inline-block;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: 0 0 2.1rem;
+}
+
+/* Paginator — RTL-aware, light surface */
+.p-paginator {
+  background: var(--bg-surface) !important;
+  color: var(--text-muted) !important;
+  border-top: 1px solid var(--border) !important;
+  padding: 0.5rem 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-last {
+  background: var(--bg-surface) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-width: 2rem;
+  height: 2rem;
+  margin: 0 2px;
+}
+/* RTL mirror: prime icons caret-left/caret-right look wrong in RTL paginator */
+.p-paginator .p-paginator-prev .p-paginator-icon,
+.p-paginator .p-paginator-first .p-paginator-icon {
+  transform: scaleX(-1);
+}
+.p-paginator .p-paginator-next .p-paginator-icon,
+.p-paginator .p-paginator-last .p-paginator-icon {
+  transform: scaleX(-1);
+}
+.p-paginator .p-paginator-current {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  min-width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.p-paginator .p-dropdown {
+  min-width: 5rem;
+  background: var(--bg-surface) !important;
+}
+
+/* Dialog */
+.p-dialog {
+  background: var(--bg-surface) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+.p-dialog .p-dialog-header {
+  background: var(--bg-surface) !important;
+  color: var(--text-strong) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 0.8rem 1rem !important;
+}
+.p-dialog .p-dialog-content {
+  background: var(--bg-surface) !important;
+  color: var(--text) !important;
+  padding: 1rem !important;
+}
+.p-dialog .p-dialog-footer {
+  background: var(--bg-surface) !important;
+  border-top: 1px solid var(--border) !important;
+  padding: 0.7rem 1rem !important;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* Confirm dialog */
+.p-confirm-dialog .p-dialog-content { display: flex; align-items: center; gap: var(--space-3); }
+.p-confirm-dialog .p-confirm-dialog-icon { font-size: 1.5rem; }
+
+/* Toast — light card surface, status-colored inline-start border */
+.p-toast .p-toast-message {
+  background: var(--bg-surface);
+  color: var(--text-strong);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.p-toast .p-toast-message.p-toast-message-success { border-inline-start: 3px solid var(--success); }
+.p-toast .p-toast-message.p-toast-message-info    { border-inline-start: 3px solid var(--info); }
+.p-toast .p-toast-message.p-toast-message-warn    { border-inline-start: 3px solid var(--warning); }
+.p-toast .p-toast-message.p-toast-message-error   { border-inline-start: 3px solid var(--danger); }
+
+/* Tooltip */
+.p-tooltip .p-tooltip-text {
+  background: var(--text-strong) !important;
+  color: var(--bg-surface) !important;
+  border: 0;
+  font-size: 0.78rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Buttons — consistent gap & icon spacing (RTL) (D-31: ensure icon + label never touch) */
+.p-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: var(--control-height);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background-color var(--duration-fast), border-color var(--duration-fast), color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-normal);
+}
+.p-button:enabled:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.p-button:enabled:active { transform: translateY(0); box-shadow: none; }
+.p-button .p-button-icon { margin-inline-end: 0 !important; margin-inline-start: 0 !important; font-size: 1rem; }
+/* D-41: unified icon size across buttons + section headers.
+   Standard 1rem in buttons, 1.1rem for section headers. */
+.p-button .pi,
+.p-button .p-button-icon,
+i.pi { line-height: 1; }
+.p-button .pi { font-size: 1rem; }
+.section-header .pi,
+.subsection-title .pi,
+.page-header__title .pi,
+h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
+.p-button .p-button-icon-left  + .p-button-label,
+.p-button .p-button-label + .p-button-icon-right { margin-inline-start: 0.5rem; }
+.p-button .p-button-label + .p-button-icon-left { margin-inline-end: 0.5rem; }
+.p-button.p-button-sm { height: 2rem; padding: 0.4rem 0.7rem; font-size: 0.82rem; }
+.p-button.p-button-text { background: transparent; }
+
+/* D-31: defensive — any p-button that hosts both an icon and a label gets the gap
+   even if PrimeNG drops its own .p-button-label wrapper. */
+.p-button > i + span,
+.p-button > span + i,
+.p-button > .pi + .p-button-label,
+.p-button > .p-button-label + .pi { margin-inline-start: 0.5rem; }
+
+/* D-31 + D-41: icon-only button (no label) — fixed square size so it never collapses.
+   Default 2.5rem, .p-button-sm 2.2rem so table action icons all match. */
+.p-button.p-button-icon-only {
+  width: var(--control-height);
+  height: var(--control-height);
+  padding: 0;
+  flex: 0 0 auto;
+}
+.p-button.p-button-icon-only.p-button-sm { width: 2rem; height: 2rem; }
+.p-button.p-button-icon-only .pi,
+.p-button.p-button-icon-only .p-button-icon { font-size: 0.95rem; }
+
+/* Primary action — brand green */
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-danger):not(.p-button-warning):not(.p-button-success):not(.p-button-secondary) {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+  color: #fff;
+}
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-danger):not(.p-button-warning):not(.p-button-success):not(.p-button-secondary):enabled:hover {
+  background: var(--brand-700);
+  border-color: var(--brand-700);
+}
+.p-button.p-button-outlined {
+  color: var(--brand-700);
+  border-color: var(--brand-500);
+  background: transparent;
+}
+.p-button.p-button-outlined:enabled:hover {
+  background: var(--brand-50);
+  color: var(--brand-900);
+}
+.p-button.p-button-text { color: var(--brand-700); }
+.p-button.p-button-text:enabled:hover { background: var(--brand-50); color: var(--brand-900); }
+
+.p-button.app-back-button,
+.app-back-button.p-button {
+  color: var(--text-strong) !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: var(--shadow-sm);
+}
+.p-button.app-back-button:enabled:hover,
+.app-back-button.p-button:enabled:hover {
+  color: var(--brand-900) !important;
+  border-color: var(--gold) !important;
+  background: var(--gold-bg) !important;
+}
+
+/* p-button-danger — subtle red (not the gloomy dark red from before) */
+.p-button.p-button-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.p-button.p-button-danger:enabled:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
+.p-button.p-button-text.p-button-danger { color: var(--danger); background: transparent; }
+.p-button.p-button-text.p-button-danger:enabled:hover { background: var(--danger-bg); color: #B91C1C; }
+
+/* p-button-success — green */
+.p-button.p-button-success {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+.p-button.p-button-success:enabled:hover {
+  background: #15803D;
+  border-color: #15803D;
+}
+
+/* p-button-warning — gold */
+.p-button.p-button-warning {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: #1E293B;
+}
+.p-button.p-button-warning:enabled:hover {
+  background: #B8941F;
+  border-color: #B8941F;
+}
+.p-button.p-button-text.p-button-warning { color: var(--warning); background: transparent; }
+.p-button.p-button-text.p-button-warning:enabled:hover { background: var(--warning-bg); }
+
+/* p-button-secondary — neutral surface + border */
+.p-button.p-button-secondary {
+  background: var(--bg-surface-2);
+  border-color: var(--border-strong);
+  color: var(--text-strong);
+}
+.p-button.p-button-secondary:enabled:hover {
+  background: var(--border);
+  border-color: var(--text-muted);
+}
+.p-button.p-button-text.p-button-secondary { color: var(--text-muted); background: transparent; }
+.p-button.p-button-text.p-button-secondary:enabled:hover { background: var(--bg-surface-2); color: var(--text-strong); }
+
+/* Disabled state — readable on light bg */
+.p-button:disabled,
+.p-button.p-disabled {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+}
+
+/* Progress spinner */
+.p-progress-spinner-circle {
+  stroke: var(--brand-500) !important;
+}
+.p-datatable .p-datatable-tbody > tr:nth-child(even) > td {
+  background-color: #fbfcfa !important;
+}
+.p-datatable .p-datatable-tbody > tr:hover > td:first-child {
+  box-shadow: inset -3px 0 0 var(--gold);
+}
+
+
+/* Compact table behavior on smaller screens without changing data semantics. */
+.p-datatable .p-datatable-wrapper { scrollbar-width: thin; }
+.p-datatable .p-column-title { font-weight: 700; }
+.p-dialog .p-dialog-title { font-size: 1.05rem; font-weight: 800; }
+.p-toast { width: min(350px, calc(100vw - 2rem)) !important; }
+
+@media (max-width: 720px) {
+  .p-datatable .p-datatable-thead > tr > th,
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.52rem 0.6rem !important;
+    font-size: 0.78rem;
+  }
+  .p-paginator { justify-content: center; padding: 0.45rem !important; }
+  .p-paginator .p-paginator-current { width: 100%; order: -1; }
+}

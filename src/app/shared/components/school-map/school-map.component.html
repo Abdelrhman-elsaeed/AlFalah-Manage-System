@@ -1,0 +1,11 @@
+<div class="map-shell" dir="ltr">
+  <div #mapCanvas class="map-canvas" [attr.aria-label]="'DASHBOARD.MAP.ARIA' | translate"></div>
+  <button type="button" class="show-all" (click)="showAllSchools()">
+    <i class="pi pi-map"></i>
+    <span>{{ 'DASHBOARD.MAP.SHOW_ALL' | translate }}</span>
+  </button>
+  <div *ngIf="markers.length === 0" class="map-empty" dir="rtl">
+    <i class="pi pi-map-marker"></i>
+    <span>{{ 'DASHBOARD.MAP.NO_LOCATIONS' | translate }}</span>
+  </div>
+</div>

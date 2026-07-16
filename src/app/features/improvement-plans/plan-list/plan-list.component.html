@@ -1,0 +1,187 @@
+<div class="page page--narrow" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ 'PLANS.TITLE' | translate }}</h1>
+      <p class="page-header__subtitle" *ngIf="visit() as v">
+        <span>{{ 'PLANS.VISIT_INSTRUCTOR' | translate }}: {{ v.instructorFullName }}</span>
+        <span class="meta-sep">·</span>
+        <span>{{ 'PLANS.SCHOOL' | translate }}: {{ v.schoolName }}</span>
+        <span class="meta-sep">·</span>
+        <span>{{ 'PLANS.VISIT_DATE' | translate }}: {{ v.visitDate | date:'yyyy/MM/dd' }}</span>
+      </p>
+    </div>
+    <div class="page-header__action">
+      <button pButton type="button" icon="pi pi-arrow-right"
+              [label]="'PLANS.BACK_TO_VISIT' | translate" class="p-button-text app-back-button"
+              (click)="goBack()"></button>
+      <button *ngIf="canCreate()" pButton type="button" icon="pi pi-plus"
+              [label]="'PLANS.NEW' | translate" class="page-header__primary plan-create-button"
+              (click)="openCreateDialog()"></button>
+    </div>
+  </header>
+
+  <ng-container *ngIf="loading(); else ready">
+    <div class="loading surface-card">{{ 'COMMON.LOADING' | translate }}</div>
+  </ng-container>
+
+  <ng-template #ready>
+    <section *ngIf="suggestions().length > 0" class="suggestions-container surface-card mb-4">
+      <h3 class="suggestions-title">
+        <i class="pi pi-sparkles"></i>
+        {{ 'PLANS.WEAK_DOMAINS_TITLE' | translate }}
+      </h3>
+      <p class="suggestions-desc">{{ 'PLANS.WEAK_DOMAINS_DESC' | translate }}</p>
+      <div class="suggestions-chips">
+        <button *ngFor="let sug of suggestions()" pButton type="button"
+                [label]="sug.domainCode + ' - ' + sug.domainNameAr + ' (' + ('PLANS.AVERAGE' | translate) + ': ' + sug.averageScore + ')'"
+                class="p-button-outlined p-button-sm suggestion-chip"
+                (click)="onSuggestionClick(sug)"></button>
+      </div>
+    </section>
+
+    <section class="surface-card plans-card">
+      <div class="plans-toolbar">
+        <h2 class="plans-list-title">{{ 'PLANS.CURRENT' | translate }}</h2>
+        <div class="plans-filter">
+          <label for="statusFilter">{{ 'PLANS.FILTER_BY_STATUS' | translate }}</label>
+          <app-clearable-select inputId="statusFilter" [options]="statusOptions"
+                                optionLabel="labelKey" optionValue="value" [ngModel]="statusFilter()"
+                                (ngModelChange)="statusFilter.set($event ?? 'all')"
+                                [clearable]="false" [itemTpl]="statusOptionTpl"
+                                [selectedItemTpl]="statusOptionTpl"
+                                styleClass="w-12rem"></app-clearable-select>
+        </div>
+      </div>
+
+      <ng-template #statusOptionTpl let-option>
+        <span *ngIf="option">{{ option.labelKey | translate }}</span>
+      </ng-template>
+
+      <div *ngIf="filteredPlans().length === 0" class="no-plans-box">
+        <i class="pi pi-info-circle"></i>
+        <p>{{ 'PLANS.EMPTY_FILTER' | translate }}</p>
+      </div>
+
+      <p-table *ngIf="filteredPlans().length > 0" [value]="filteredPlans()" styleClass="p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>{{ 'PLANS.DOMAIN' | translate }}</th>
+            <th>{{ 'PLANS.GOAL' | translate }}</th>
+            <th>{{ 'PLANS.START_DATE' | translate }}</th>
+            <th>{{ 'PLANS.END_DATE' | translate }}</th>
+            <th>{{ 'PLANS.STATUS' | translate }}</th>
+            <th class="text-center table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-plan>
+          <tr>
+            <td><strong>{{ plan.domainNameAr || ('PLANS.GENERAL_PLAN' | translate) }}</strong></td>
+            <td><span class="text-truncate">{{ plan.goal }}</span></td>
+            <td>{{ plan.startDate | date:'yyyy/MM/dd' }}</td>
+            <td>{{ plan.endDate | date:'yyyy/MM/dd' }}</td>
+            <td><p-tag [severity]="statusSeverity(plan.status)" [value]="statusLabelKey(plan.status) | translate"></p-tag></td>
+            <td class="text-center table-actions-col">
+              <div class="table-actions">
+                <button pButton type="button" icon="pi pi-eye"
+                        [routerLink]="['/improvement-plans', plan.id]"
+                        class="p-button-text p-button-sm p-button-icon-only"
+                        [pTooltip]="'PLANS.DETAILS' | translate" tooltipPosition="top"></button>
+                <button *ngIf="canEdit() && !plan.isReadOnly" pButton type="button" icon="pi pi-pencil"
+                        class="p-button-text p-button-warning p-button-sm p-button-icon-only"
+                        (click)="openEditDialog(plan)"
+                        [pTooltip]="'PLANS.EDIT' | translate" tooltipPosition="top"></button>
+                <button *ngIf="canEdit() && plan.isReadOnly && plan.status !== 'active'" pButton type="button" icon="pi pi-refresh"
+                        class="p-button-text p-button-success p-button-sm p-button-icon-only"
+                        (click)="confirmReactivate(plan)"
+                        [pTooltip]="'PLANS.REACTIVATE' | translate" tooltipPosition="top"></button>
+                <button *ngIf="canDelete() && !plan.isReadOnly" pButton type="button" icon="pi pi-trash"
+                        class="p-button-text p-button-danger p-button-sm p-button-icon-only"
+                        (click)="confirmDelete(plan)"
+                        [pTooltip]="'PLANS.DELETE' | translate" tooltipPosition="top"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </section>
+  </ng-template>
+
+  <p-dialog [header]="(dialogMode() === 'create' ? 'PLANS.CREATE_DIALOG' : 'PLANS.EDIT_DIALOG') | translate"
+            [(visible)]="planDialogVisible" [modal]="true" [style]="{ width: '45rem' }"
+            [draggable]="false" [resizable]="false">
+    <form [formGroup]="planForm" class="dialog-form" (ngSubmit)="savePlan()">
+      <div class="field">
+        <label for="domainId">{{ 'PLANS.DOMAIN_OPTIONAL' | translate }}</label>
+        <app-clearable-select inputId="domainId" [options]="visitDomains()"
+                              optionLabel="nameAr" optionValue="id" formControlName="domainId"
+                              [placeholder]="'PLANS.DOMAIN_PLACEHOLDER' | translate"
+                              styleClass="w-full"></app-clearable-select>
+      </div>
+
+      <div class="field">
+        <label for="goal">{{ 'PLANS.GOAL_LABEL' | translate }} <span class="text-danger">*</span></label>
+        <textarea id="goal" pInputTextarea formControlName="goal" rows="3" class="w-full"
+                  [placeholder]="'PLANS.GOAL_PLACEHOLDER' | translate"></textarea>
+        <small class="text-danger" *ngIf="planForm.get('goal')?.touched && planForm.get('goal')?.hasError('required')">
+          {{ 'PLANS.GOAL_REQUIRED' | translate }}
+        </small>
+      </div>
+
+      <div class="field">
+        <label for="actions">{{ 'PLANS.ACTIONS_LABEL' | translate }} <span class="text-danger">*</span></label>
+        <textarea id="actions" pInputTextarea formControlName="actions" rows="5" class="w-full"
+                  [placeholder]="'PLANS.ACTIONS_PLACEHOLDER' | translate"></textarea>
+        <small class="text-danger" *ngIf="planForm.get('actions')?.touched && planForm.get('actions')?.hasError('required')">
+          {{ 'PLANS.ACTIONS_REQUIRED' | translate }}
+        </small>
+      </div>
+
+      <div class="field">
+        <label for="successIndicators">{{ 'PLANS.SUCCESS_INDICATORS' | translate }} <span class="text-danger">*</span></label>
+        <textarea id="successIndicators" pInputTextarea formControlName="successIndicators" rows="3" class="w-full"
+                  [placeholder]="'PLANS.SUCCESS_PLACEHOLDER' | translate"></textarea>
+        <small class="text-danger" *ngIf="planForm.get('successIndicators')?.touched && planForm.get('successIndicators')?.hasError('required')">
+          {{ 'PLANS.SUCCESS_REQUIRED' | translate }}
+        </small>
+      </div>
+
+      <div class="date-grid">
+        <div class="field">
+          <label for="startDate">{{ 'PLANS.START_DATE' | translate }} <span class="text-danger">*</span></label>
+          <p-calendar inputId="startDate" formControlName="startDate" [showIcon]="true"
+                      dateFormat="yy/mm/dd" styleClass="w-full" appendTo="body"></p-calendar>
+        </div>
+        <div class="field">
+          <label for="endDate">{{ 'PLANS.END_DATE' | translate }} <span class="text-danger">*</span></label>
+          <p-calendar inputId="endDate" formControlName="endDate" [showIcon]="true"
+                      dateFormat="yy/mm/dd" styleClass="w-full" appendTo="body"></p-calendar>
+        </div>
+      </div>
+
+      <div *ngIf="isDateRangeInvalid()" class="date-warning">
+        <i class="pi pi-exclamation-triangle"></i>
+        <div>
+          <strong>{{ 'PLANS.DATE_WARNING_TITLE' | translate }}</strong>
+          <span>{{ 'PLANS.DATE_WARNING_DESC' | translate }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="dialogMode() === 'edit'" class="field">
+        <label for="status">{{ 'PLANS.STATUS' | translate }}</label>
+        <app-clearable-select inputId="status" [options]="editableStatusOptions"
+                              optionLabel="labelKey" optionValue="value" formControlName="status" [clearable]="false"
+                              [itemTpl]="statusOptionTpl" [selectedItemTpl]="statusOptionTpl"
+                              styleClass="w-full"></app-clearable-select>
+      </div>
+
+      <div class="dialog-actions">
+        <button pButton type="button" [label]="'COMMON.CANCEL' | translate" class="p-button-text"
+                (click)="planDialogVisible.set(false)" [disabled]="submitting()"></button>
+        <button pButton type="submit" icon="pi pi-save" [label]="'COMMON.SAVE' | translate"
+                [loading]="submitting()"></button>
+      </div>
+    </form>
+  </p-dialog>
+
+  <p-confirmDialog appendTo="body"></p-confirmDialog>
+</div>
