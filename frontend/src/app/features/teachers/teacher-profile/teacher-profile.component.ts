@@ -53,15 +53,15 @@ export class TeacherProfileComponent implements OnInit {
 
     const labels = p.axisLabels.map(a => a.domainNameAr || a.domainCode);
 
-    // Saudi-theme-friendly palette: brand-green primary, then 4 distinct
-    // hues that work on the light theme without clashing.
+    // High-contrast palette: avoid adjacent green shades so overlapping visits
+    // remain distinguishable in both the chart and its RTL legend.
     const palette = [
-      '#1E8E4E', // brand green
-      '#0F7132', // deep brand
-      '#D4AF37', // gold
-      '#0EA5E9', // sky
-      '#A855F7', // violet
-      '#F97316'  // orange
+      '#2563EB', // blue
+      '#E76F51', // coral
+      '#B7791F', // amber
+      '#0F766E', // teal
+      '#7C3AED', // violet
+      '#C026D3'  // magenta
     ];
 
     const datasets = p.visits.map((v, idx) => {
@@ -70,12 +70,14 @@ export class TeacherProfileComponent implements OnInit {
         label: v.legendLabel,
         data: v.domainAverages.map(d => d.averageScore),
         borderColor: color,
-        backgroundColor: hexToRgba(color, 0.18),
-        borderWidth: 2,
-        pointBackgroundColor: color,
+        backgroundColor: hexToRgba(color, 0.11),
+        borderWidth: 2.5,
+        pointBackgroundColor: '#FFFFFF',
         pointBorderColor: color,
-        pointRadius: 3,
-        pointHoverRadius: 5
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        hoverBorderWidth: 3
       };
     });
 

@@ -15,6 +15,8 @@ public class VisitAnalysisConfiguration : IEntityTypeConfiguration<VisitAnalysis
         builder.Property(x => x.ImprovementAreasJson).IsRequired().HasColumnType("nvarchar(max)").IsUnicode(true);
         builder.Property(x => x.PriorityStandardsJson).IsRequired().HasColumnType("nvarchar(max)").IsUnicode(true);
         builder.Property(x => x.OverallScore).HasColumnType("decimal(6,3)");
+        builder.Property(x => x.TotalScore).HasColumnType("decimal(8,3)");
+        builder.Property(x => x.MaximumScore).HasColumnType("decimal(8,3)");
         builder.Property(x => x.DeletedByUserId).HasMaxLength(450);
 
         // FK: VisitId is already mapped on VisitConfiguration (HasOne + WithOne).

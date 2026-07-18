@@ -58,6 +58,8 @@ public class VisitReportDto
 
     // Snapshot fields — exactly the persisted JSON, no recompute.
     public decimal OverallScore { get; set; }
+    public decimal TotalScore { get; set; }
+    public decimal MaximumScore { get; set; }
     public string PerformanceLevelAr { get; set; } = string.Empty;
     public List<ReportStrengthDto> Strengths { get; set; } = new();
     public List<ReportImprovementDto> ImprovementAreas { get; set; } = new();
@@ -127,6 +129,8 @@ public class ReportDomainBlockDto
     public string DomainCode { get; set; } = string.Empty;
     public string DomainNameAr { get; set; } = string.Empty;
     public decimal AverageScore { get; set; }
+    /// <summary>Domain average converted to the 0-100 visit grading scale.</summary>
+    public decimal PercentageScore { get; set; }
     public List<ReportStandardScoreDto> Standards { get; set; } = new();
 }
 

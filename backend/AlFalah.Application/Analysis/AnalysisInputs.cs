@@ -22,6 +22,8 @@ public sealed class StandardScoreInput
 public sealed class VisitAnalysisResult
 {
     public decimal OverallScore { get; init; }
+    public decimal TotalScore { get; init; }
+    public decimal MaximumScore { get; init; }
     public string PerformanceLevelAr { get; init; } = string.Empty;
     public List<DomainAverageRow> DomainAverages { get; init; } = new();
     public List<DomainAverageRow> Strengths { get; init; } = new();

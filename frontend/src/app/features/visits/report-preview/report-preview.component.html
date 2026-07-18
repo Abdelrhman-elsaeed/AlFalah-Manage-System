@@ -30,12 +30,12 @@
 
     <ng-container *ngIf="visit.analysis as analysis">
       <section class="summary-grid">
-        <div><span>{{ 'VISITS.OVERALL_SCORE' | translate }}</span><strong>{{ analysis.overallScore | number:'1.3-3' }} / 4</strong></div>
+        <div><span>{{ 'VISITS.TOTAL_SCORE' | translate }}</span><strong>{{ analysis.totalScore | number:'1.0-3' }} / {{ analysis.maximumScore | number:'1.0-3' }}</strong><small>{{ 'VISITS.AVERAGE_SCORE' | translate }}: {{ analysis.overallScore | number:'1.2-3' }} / 4</small></div>
         <div><span>{{ 'VISITS.PERFORMANCE_LEVEL' | translate }}</span><strong>{{ analysis.performanceLevelAr }}</strong></div>
         <div><span>{{ 'VISITS.RUBRIC_VERSION_LABEL' | translate }}</span><strong>{{ visit.rubricVersionNumber }}</strong></div>
       </section>
       <section class="analysis-layout">
-        <div><h3>{{ 'VISITS.DOMAIN_AVERAGES' | translate }}</h3><div class="domain-row" *ngFor="let domain of analysis.domainAverages"><span>{{ domain.domainNameAr }}</span><strong>{{ domain.averageScore | number:'1.3-3' }}</strong></div></div>
+        <div><h3>{{ 'VISITS.DOMAIN_AVERAGES' | translate }}</h3><div class="domain-row" *ngFor="let domain of analysis.domainAverages"><span>{{ domain.domainNameAr }}</span><strong>{{ domain.percentageScore | number:'1.0-1' }}%</strong><small>{{ domain.averageScore | number:'1.2-3' }} / 4</small></div></div>
         <div class="radar" *ngIf="radarData() as chart"><p-chart type="radar" [data]="chart" [options]="radarOptions" height="300px"></p-chart></div>
       </section>
       <section><h3>{{ 'VISITS.RECOMMENDATIONS' | translate }}</h3><ul><li *ngFor="let recommendation of analysis.recommendations">{{ recommendation }}</li></ul></section>

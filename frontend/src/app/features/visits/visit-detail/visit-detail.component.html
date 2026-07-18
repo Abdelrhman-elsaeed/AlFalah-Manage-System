@@ -30,11 +30,24 @@
                 class="p-button-outlined p-button-sm"
                 (click)="goImprovementPlans()"></button>
       </div>
-      <div class="action-cluster action-cluster--workflow" *ngIf="canSubmitComplaint() || visit()?.isReadOnly === false">
-        <span class="action-cluster__label">{{ 'VISITS.WORKFLOW_TOOLS' | translate }}</span>
-        <button *ngIf="visit()?.isReadOnly === false" pButton type="button" icon="pi pi-pencil"
+      <div class="action-cluster action-cluster--workflow"
+           *ngIf="canSubmitComplaint() || canShowApproveActions() || canShowReopenAction() || canShowEditAction()">
+        <span class="action-cluster__label">{{ 'VISITS.ACTIONS' | translate }}</span>
+        <button *ngIf="canShowEditAction()" pButton type="button" icon="pi pi-pencil"
                 [label]="'COMMON.EDIT' | translate" class="p-button-sm"
                 (click)="goEdit()"></button>
+        <button *ngIf="canShowApproveActions()" pButton type="button" icon="pi pi-check-circle"
+                [label]="'VISITS.APPROVE' | translate"
+                class="p-button-success p-button-sm"
+                (click)="confirmApprove()"></button>
+        <button *ngIf="canShowApproveActions()" pButton type="button" icon="pi pi-undo"
+                [label]="'VISITS.REJECT' | translate"
+                class="p-button-warning p-button-sm"
+                (click)="openRejectDialog()"></button>
+        <button *ngIf="canShowReopenAction()" pButton type="button" icon="pi pi-history"
+                [label]="'VISITS.REOPEN' | translate"
+                class="p-button-warning p-button-sm"
+                (click)="openReopenDialog()"></button>
         <button *ngIf="canSubmitComplaint()" pButton type="button" icon="pi pi-flag"
                 [label]="'COMPLAINTS.SUBMIT' | translate"
                 class="p-button-text p-button-danger p-button-sm"
@@ -70,39 +83,6 @@
             <strong>{{ 'VISITS.REOPEN_BANNER_DESC' | translate }}</strong>
             {{ v.reopenReason }}
           </p>
-        </div>
-      </section>
-
-      <!-- Phase 5: School Manager action buttons -->
-      <section *ngIf="canShowApproveActions() || canShowReopenAction() || canDirectEdit()" class="phase5-actions surface-card">
-        <div class="phase5-actions__row" *ngIf="canShowApproveActions()">
-          <button pButton type="button" icon="pi pi-check-circle"
-                  [label]="'VISITS.APPROVE' | translate"
-                  class="p-button-success"
-                  (click)="confirmApprove()"></button>
-          <button pButton type="button" icon="pi pi-undo"
-                  [label]="'VISITS.REJECT' | translate"
-                  class="p-button-warning"
-                  (click)="openRejectDialog()"></button>
-          <button pButton type="button" icon="pi pi-pencil"
-                  [label]="'VISITS.DIRECT_EDIT' | translate"
-                  class="p-button-outlined"
-                  (click)="goEdit()"></button>
-        </div>
-        <div class="phase5-actions__row" *ngIf="canShowReopenAction()">
-          <button pButton type="button" icon="pi pi-history"
-                  [label]="'VISITS.REOPEN' | translate"
-                  class="p-button-warning"
-                  (click)="openReopenDialog()"></button>
-        </div>
-      </section>
-
-      <!-- Phase 5: moderator edit-after-reject / edit-after-reopen shortcut -->
-      <section *ngIf="canEditAfterRejectOrReopen() && visit()?.isReadOnly" class="phase5-actions surface-card">
-        <div class="phase5-actions__row">
-          <button pButton type="button" icon="pi pi-pencil"
-                  [label]="'COMMON.EDIT' | translate"
-                  (click)="goEdit()"></button>
         </div>
       </section>
 
@@ -259,8 +239,9 @@
 
           <div class="analysis-summary">
             <div class="summary-cell">
-              <span class="summary-label">{{ 'VISITS.OVERALL_SCORE' | translate }}</span>
-              <span class="summary-value summary-value--big">{{ a.overallScore | number:'1.2-3' }}</span>
+              <span class="summary-label">{{ 'VISITS.TOTAL_SCORE' | translate }}</span>
+              <span class="summary-value summary-value--big">{{ a.totalScore | number:'1.0-3' }} / {{ a.maximumScore | number:'1.0-3' }}</span>
+              <small class="summary-value__hint">{{ 'VISITS.AVERAGE_SCORE' | translate }}: {{ a.overallScore | number:'1.2-3' }} / 4</small>
             </div>
             <div class="summary-cell">
               <span class="summary-label">{{ 'VISITS.PERFORMANCE_LEVEL' | translate }}</span>
@@ -278,7 +259,8 @@
                    [class.avg-card--low]="d.averageScore < 2">
                 <span class="avg-code">{{ d.domainCode }}</span>
                 <span class="avg-name">{{ d.domainNameAr }}</span>
-                <span class="avg-score">{{ d.averageScore | number:'1.2-3' }}</span>
+                <span class="avg-score">{{ d.percentageScore | number:'1.0-1' }}%</span>
+                <small class="avg-score__hint">{{ d.averageScore | number:'1.2-3' }} / 4</small>
               </div>
             </div>
           </div>

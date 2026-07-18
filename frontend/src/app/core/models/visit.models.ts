@@ -44,6 +44,7 @@ export interface VisitDomainAverage {
   domainCode: string;
   domainNameAr: string;
   averageScore: number;
+  percentageScore: number;
 }
 
 export interface VisitStrength {
@@ -81,6 +82,8 @@ export interface VisitAnalysis {
   id: number;
   visitId: number;
   overallScore: number;
+  totalScore: number;
+  maximumScore: number;
   performanceLevelAr: string;
   strengths: VisitStrength[];
   improvementAreas: VisitImprovement[];

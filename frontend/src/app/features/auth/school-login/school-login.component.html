@@ -73,7 +73,8 @@
                                     [clearable]="false"
                                     [placeholder]="'AUTH.SELECT_SCHOOL_PLACEHOLDER' | translate"
                                     [filter]="true" filterBy="label" scrollHeight="220px"
-                                    [panelStyle]="{ 'max-width': '420px' }"
+                                    [appendTo]="null"
+                                    [panelStyle]="{ width: '100%', 'max-width': '100%' }"
                                     styleClass="login-school-select"
                                     [style]="{ width: '100%', 'max-width': '100%' }"></app-clearable-select>
             }

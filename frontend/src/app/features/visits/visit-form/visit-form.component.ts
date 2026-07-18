@@ -125,6 +125,7 @@ export class VisitFormComponent implements OnInit {
 
   // Domain-grouped scores from the visit's immutable rubric snapshot.
   readonly domainsGrouped = signal<DomainGroup[]>([]);
+  readonly expandedNoteIds = signal<Set<number>>(new Set());
   // FormControl values are not Angular signals; bump this revision whenever
   // a score changes so the progress bar and submit action recompute.
   readonly scoreRevision = signal(0);
@@ -315,6 +316,7 @@ export class VisitFormComponent implements OnInit {
     const list = Array.from(groups.values())
       .sort((a, b) => a.domainCode.localeCompare(b.domainCode))
       .map(g => ({ ...g, scores: g.scores.sort((x, y) => x.standardCode.localeCompare(y.standardCode)) }));
+    this.expandedNoteIds.set(new Set());
     this.domainsGrouped.set(list);
   }
 
@@ -324,6 +326,24 @@ export class VisitFormComponent implements OnInit {
     s.control.setValue(s.control.value === value ? null : value);
     s.control.markAsDirty();
     this.scoreRevision.update(revision => revision + 1);
+  }
+
+  isNoteExpanded(s: { rubricStandardId: number }): boolean {
+    return this.expandedNoteIds().has(s.rubricStandardId);
+  }
+
+  toggleNote(s: { rubricStandardId: number }): void {
+    this.expandedNoteIds.update(current => {
+      const next = new Set(current);
+      if (next.has(s.rubricStandardId)) next.delete(s.rubricStandardId);
+      else next.add(s.rubricStandardId);
+      return next;
+    });
+  }
+
+  noteToggleLabel(s: { rubricStandardId: number; noteControl: FormControl<string> }): string {
+    if (this.isNoteExpanded(s)) return 'VISITS.NOTE_HIDE';
+    return s.noteControl.value?.trim() ? 'VISITS.NOTE_ADDED' : 'VISITS.ADD_NOTE';
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────

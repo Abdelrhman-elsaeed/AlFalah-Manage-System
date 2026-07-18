@@ -54,6 +54,8 @@ public class VisitDomainAverageDto
     public string DomainCode { get; set; } = string.Empty;
     public string DomainNameAr { get; set; } = string.Empty;
     public decimal AverageScore { get; set; }
+    /// <summary>Domain average converted to the 0-100 visit grading scale.</summary>
+    public decimal PercentageScore { get; set; }
 }
 
 /// <summary>Analysis snapshot returned alongside a submitted visit.</summary>
@@ -62,6 +64,8 @@ public class VisitAnalysisDto
     public int Id { get; set; }
     public int VisitId { get; set; }
     public decimal OverallScore { get; set; }
+    public decimal TotalScore { get; set; }
+    public decimal MaximumScore { get; set; }
     public string PerformanceLevelAr { get; set; } = string.Empty;
     public List<VisitStrengthDto> Strengths { get; set; } = new();
     public List<VisitImprovementDto> ImprovementAreas { get; set; } = new();

@@ -58,6 +58,8 @@ public class VisitAnalysisEngineTests
         var result = VisitAnalysisEngine.Compute(input);
 
         result.OverallScore.Should().Be(3.667m);
+        result.TotalScore.Should().Be(90m);
+        result.MaximumScore.Should().Be(100m);
         result.PerformanceLevelAr.Should().Be("متميز");
     }
 

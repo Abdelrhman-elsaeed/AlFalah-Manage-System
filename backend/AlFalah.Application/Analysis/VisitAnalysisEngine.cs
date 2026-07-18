@@ -102,6 +102,8 @@ public static class VisitAnalysisEngine
         return new VisitAnalysisResult
         {
             OverallScore = overall,
+            TotalScore = standards.Sum(s => s.Score),
+            MaximumScore = standards.Count * 4m,
             PerformanceLevelAr = level,
             DomainAverages = domainAverages,
             Strengths = strengths,

@@ -411,6 +411,16 @@ export class VisitDetailComponent implements OnInit {
     this.canEdit()
   );
 
+  /** Keep the single edit action in the shared page toolbar for every editable state. */
+  readonly canShowEditAction = computed(() => {
+    const visit = this.visit();
+    return !!visit && this.canEdit() && (
+      visit.isReadOnly === false ||
+      this.canDirectEdit() ||
+      this.canEditAfterRejectOrReopen()
+    );
+  });
+
   /** SM direct-edit button (PendingApproval). */
   readonly canDirectEdit = computed(() =>
     (this.isSchoolManager() || this.isGlobalAdmin()) && this.isPendingApproval() && this.canEdit()

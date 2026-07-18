@@ -1,5 +1,6 @@
 using AlFalah.Application.DTOs.Reports;
 using AlFalah.Application.Interfaces;
+using System.Globalization;
 using QRCoder;
 using QuestPDF.Drawing;
 using QuestPDF.Fluent;
@@ -72,7 +73,11 @@ public class PdfReportService : IPdfReportService
         public const string SectionFollowUps     = "متابعة خطط التحسين";
         public const string SectionSignatures  = "التوقيع والاعتماد";
         public const string SectionDomainAvg   = "متوسطات المحاور";
-        public const string LabelOverallScore  = "المتوسط العام";
+        public const string LabelOverallScore  = "الدرجة الكلية";
+        public const string LabelAverageScore  = "المتوسط العام";
+        public const string LabelScore         = "الدرجة";
+        public const string LabelStandard      = "المعيار";
+        public const string LabelNumber        = "م";
         public const string LabelPerformance   = "مستوى الأداء";
         public const string LabelSupervisorSig = "توقيع المشرف";
         public const string LabelInstructorSig = "توقيع المعلم";
@@ -80,6 +85,7 @@ public class PdfReportService : IPdfReportService
 
         public const string FooterGenerated   = "تاريخ إنشاء التقرير";
         public const string LabelDomainAvgPrefix = "متوسط المحور";
+        public const string LabelDomainScore = "درجة المحور";
     }
 
     // ── Brand palette (Saudi light identity — same tokens as the frontend) ──
@@ -176,13 +182,17 @@ public class PdfReportService : IPdfReportService
                 page.Size(PageSizes.A4);
                 page.Margin(28, Unit.Point);
                 page.PageColor(Palette.White);
+                page.Background().Background(Palette.White);
                 page.DefaultTextStyle(t =>
                     t.FontFamily(AmiriRegular)
                      .FontSize(10)
                      .DirectionFromRightToLeft()
                      .FontColor(Palette.Text));
 
-                page.Header().Element(c => ComposeHeader(c, dto));
+                // Keep the full branded masthead on the cover page. Repeating
+                // the large image header on continuation pages caused unstable
+                // clipping in some PDF viewers and consumed useful space.
+                page.Header().ShowOnce().Element(c => ComposeHeader(c, dto));
                 page.Content().Element(c => ComposeContent(c, dto));
                 page.Footer().Element(c => ComposeFooter(c, dto));
             });
@@ -209,31 +219,33 @@ public class PdfReportService : IPdfReportService
     private void ComposeHeader(IContainer container, VisitReportDto dto)
     {
         container
-            .Background(DynamicPalette.BrandGreen)
-            .Padding(14)
+            .BorderBottom(2).BorderColor(DynamicPalette.BrandGreen)
+            .PaddingBottom(8)
             .Column(outer =>
             {
-                outer.Item().Row(row =>
+                outer.Item().Background(DynamicPalette.BrandGreen).Padding(14).Row(row =>
                 {
                     // ── LEFT side (visual left in the physical row) ──
                     // Text block: school name + report title, right-aligned RTL.
                     row.RelativeItem().PaddingRight(12).Column(col =>
                     {
                         col.Item().AlignRight().Text(SafeDisplayText(dto.HeaderText, dto.SchoolName))
-                            .FontFamily(AmiriBold).FontSize(16).Bold().FontColor(Palette.White);
+                            .FontFamily(AmiriBold).FontSize(18).Bold().FontColor(Palette.White);
                         col.Item().PaddingTop(4).AlignRight().Text(T.ReportTitle)
-                            .FontFamily(AmiriRegular).FontSize(13).FontColor("#FFF8DC");
+                            .FontFamily(AmiriRegular).FontSize(12).FontColor("#FFF8DC");
+                        col.Item().PaddingTop(3).AlignRight().Text(dto.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
+                            .FontFamily(AmiriRegular).FontSize(9).FontColor("#D7F1DF");
                     });
 
                     // ── RIGHT side (visual right = RTL inline-start) ──
                     // Logo or initials — BUG-5 FIX: logo now on the right.
-                    row.ConstantItem(72).Height(56)
+                    row.ConstantItem(84).Height(72)
+                        .Background(Palette.White).Padding(5)
                         .AlignMiddle().AlignCenter()
                         .Element(c => RenderSchoolLogoOrInitials(c, dto));
                 });
 
-                // Brand-color rule under the header.
-                outer.Item().PaddingTop(6).LineHorizontal(1.2f).LineColor(DynamicPalette.BrandGreen);
+                outer.Item().PaddingTop(6).LineHorizontal(0.8f).LineColor(Palette.Border);
             });
     }
 
@@ -244,7 +256,7 @@ public class PdfReportService : IPdfReportService
     /// </summary>
     private void RenderSchoolLogoOrInitials(IContainer container, VisitReportDto dto)
     {
-        container.Border(1).BorderColor("#FFFFFF55")
+        container.Border(1).BorderColor(DynamicPalette.BrandGreenText)
             .Element(inner => RenderLogoContent(inner, dto));
     }
 
@@ -285,8 +297,8 @@ public class PdfReportService : IPdfReportService
         {
             Path.Combine(AppContext.BaseDirectory, "Assets", "Logo.png"),
             Path.Combine(Directory.GetCurrentDirectory(), "Assets", "Logo.png"),
-            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "frontend", "src", "assets", "Logo.png")),
-            Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "frontend", "src", "assets", "Logo.png"))
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "frontend", "src", "assets", "Logo.png")),
+            Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "frontend", "src", "assets", "Logo.png"))
         };
 
         foreach (var path in candidates)
@@ -308,7 +320,7 @@ public class PdfReportService : IPdfReportService
     {
         container.PaddingVertical(12).Column(col =>
         {
-            col.Spacing(14);
+            col.Spacing(10);
 
             col.Item().Element(c => ComposeMetaCard(c, dto));
             col.Item().Element(c => ComposeStandardsCard(c, dto));
@@ -328,6 +340,7 @@ public class PdfReportService : IPdfReportService
             if (dto.PlanFollowUps.Count > 0)
                 col.Item().Element(c => ComposeFollowUpsBlock(c, dto));
 
+            col.Item().PageBreak();
             col.Item().Element(c => ComposeSignatureCard(c, dto));
         });
     }
@@ -475,11 +488,11 @@ public class PdfReportService : IPdfReportService
 
                 // Row 5: Sequence | Visit Date
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSequence, dto.VisitSequenceLabelAr));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelVisitDate, dto.VisitDate.ToString("yyyy-MM-dd")));
+                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelVisitDate, dto.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
 
                 // Row 6: Submitted Date | Approved Date
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSubmittedAt, dto.SubmittedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—"));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedAt, dto.ApprovedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—"));
+                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSubmittedAt, dto.SubmittedAt?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) ?? "—"));
+                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedAt, dto.ApprovedAt?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) ?? "—"));
 
                 // Row 7: Approved By | supervisor notes
                 table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedBy, string.IsNullOrWhiteSpace(dto.ApprovedByFullName) ? "—" : dto.ApprovedByFullName));
@@ -490,11 +503,15 @@ public class PdfReportService : IPdfReportService
 
     private static void MetaCell(IContainer container, string label, string value)
     {
-        container.PaddingBottom(6).Text(t =>
-        {
-            t.Span(label + ": ").FontColor(Palette.Muted).FontSize(10);
-            t.Span(value).FontFamily(AmiriBold).Bold().FontSize(10).FontColor(Palette.Text);
-        });
+        container
+            .Background("#FAFCFB")
+            .BorderBottom(0.5f).BorderColor(Palette.Border)
+            .Padding(6)
+            .Text(t =>
+            {
+                t.Span(label + ": ").FontColor(Palette.Muted).FontSize(8.5f);
+                t.Span(value).FontFamily(AmiriBold).Bold().FontSize(10.5f).FontColor(Palette.Text);
+            });
     }
 
     private void ComposeStandardsCard(IContainer container, VisitReportDto dto)
@@ -518,13 +535,13 @@ public class PdfReportService : IPdfReportService
             // Domain header — RTL: [domain average right-aligned] [domain name center] [domain code LEFT=start in LTR row]
             // Physical row: [code chip LEFT] [name CENTER expanding] [average RIGHT]
             // Visually in RTL: average reads first (right), code chip last (left).
-            col.Item().Background(Palette.Page).Padding(8).Row(row =>
+            col.Item().Background("#EAF5EE").Padding(8).Row(row =>
             {
                 // Code chip — left side (physical) = RTL end
-                row.ConstantItem(56).AlignCenter().Background(Palette.Gold)
+                row.ConstantItem(56).AlignCenter().Background(DynamicPalette.BrandGreen)
                     .PaddingVertical(4).PaddingHorizontal(8)
                     .Text(block.DomainCode)
-                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.Text);
+                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.White);
 
                 // Domain name — expanding, right-aligned
                 row.RelativeItem().AlignRight().PaddingRight(8)
@@ -534,9 +551,11 @@ public class PdfReportService : IPdfReportService
                 // Domain average — compact, right side (physical) = RTL start
                 row.ConstantItem(80).AlignCenter().Text(t =>
                 {
-                    t.Span(T.LabelDomainAvgPrefix + ": ").FontColor(Palette.Muted).FontSize(9);
-                    t.Span(block.AverageScore.ToString("0.000"))
-                     .FontFamily(AmiriBold).Bold().FontColor(Palette.BrandGreen).FontSize(9);
+                    t.Span(T.LabelDomainScore + ": ").FontColor(Palette.Muted).FontSize(9);
+                    t.Span($"{block.PercentageScore:0.#}%")
+                     .FontFamily(AmiriBold).Bold().FontColor(Palette.BrandGreen).FontSize(10);
+                    t.Span($" ({block.AverageScore:0.000}/4)")
+                     .FontColor(Palette.Muted).FontSize(8);
                 });
             });
 
@@ -552,17 +571,28 @@ public class PdfReportService : IPdfReportService
                     c.ConstantColumn(34);  // row number (visual right = RTL start)
                 });
 
+                table.Header(header =>
+                {
+                    header.Cell().Background(Palette.Page).Padding(5).AlignCenter()
+                        .Text(T.LabelScore).FontFamily(AmiriBold).FontSize(8).Bold().FontColor(Palette.Muted);
+                    header.Cell().Background(Palette.Page).Padding(5).AlignRight()
+                        .Text(T.LabelStandard).FontFamily(AmiriBold).FontSize(8).Bold().FontColor(Palette.Muted);
+                    header.Cell().Background(Palette.Page).Padding(5).AlignCenter()
+                        .Text(T.LabelNumber).FontFamily(AmiriBold).FontSize(8).Bold().FontColor(Palette.Muted);
+                });
+
                 for (var standardIndex = 0; standardIndex < block.Standards.Count; standardIndex++)
                 {
                     var std = block.Standards[standardIndex];
                     var scoreColor = ScoreColor(std.Score);
+                    var rowBackground = standardIndex % 2 == 0 ? Palette.White : "#FAFCFB";
 
                     // Score pill — LEFT column (physical) = RTL end
-                    table.Cell().AlignCenter().AlignMiddle()
+                    table.Cell().Background(rowBackground).AlignCenter().AlignMiddle()
                         .Element(c => ComposeScorePill(c, std.Score, std.ScoreLabelAr, scoreColor));
 
                     // Standard text — MIDDLE column, right-aligned RTL
-                    table.Cell().AlignRight().AlignMiddle().PaddingVertical(4).Column(sc =>
+                    table.Cell().Background(rowBackground).AlignRight().AlignMiddle().PaddingVertical(5).Column(sc =>
                     {
                         sc.Item().AlignRight().Text(std.StandardTextAr)
                             .FontSize(10).FontColor(Palette.Text);
@@ -574,7 +604,7 @@ public class PdfReportService : IPdfReportService
                     });
 
                     // Code chip — RIGHT column (physical) = RTL start
-                    table.Cell().AlignCenter().AlignMiddle().Text((standardIndex + 1).ToString())
+                    table.Cell().Background(rowBackground).AlignCenter().AlignMiddle().Text((standardIndex + 1).ToString())
                         .FontFamily(AmiriBold).FontSize(9).Bold().FontColor(Palette.Muted);
                 }
             });
@@ -619,10 +649,17 @@ public class PdfReportService : IPdfReportService
             col.Item().PaddingTop(6).Row(row =>
             {
                 row.RelativeItem().AlignRight().Element(c => ComposeSummaryCell(c,
-                    T.LabelPerformance, dto.PerformanceLevelAr, ScoreColorForLevel(dto.PerformanceLevelAr)));
-                row.ConstantItem(12);
+                    T.LabelOverallScore,
+                    $"{dto.TotalScore:0.###} / {dto.MaximumScore:0.###}",
+                    Palette.BrandGreen));
+                row.ConstantItem(8);
                 row.RelativeItem().AlignRight().Element(c => ComposeSummaryCell(c,
-                    T.LabelOverallScore, dto.OverallScore.ToString("0.000"), Palette.BrandGreen));
+                    T.LabelAverageScore,
+                    $"{dto.OverallScore:0.000} / 4",
+                    ScoreColorForLevelNumeric(dto.OverallScore)));
+                row.ConstantItem(8);
+                row.RelativeItem().AlignRight().Element(c => ComposeSummaryCell(c,
+                    T.LabelPerformance, dto.PerformanceLevelAr, ScoreColorForLevel(dto.PerformanceLevelAr)));
             });
 
             // BUG-3 FIX — Domain averages: clean RTL row of 5 compact cards.
@@ -661,7 +698,7 @@ public class PdfReportService : IPdfReportService
 
         container
             .Border(1).BorderColor(Palette.Border)
-            .Background(Palette.Page)
+            .Background("#F8FBF9")
             .Padding(6)
             .Column(col =>
             {
@@ -675,9 +712,13 @@ public class PdfReportService : IPdfReportService
                 col.Item().AlignCenter().Text(domain.DomainNameAr)
                     .FontSize(8).FontColor(Palette.Muted);
 
-                // Average score — prominent, colored by score band
-                col.Item().AlignCenter().PaddingTop(2).Text(domain.AverageScore.ToString("0.000"))
+                // Percentage score — primary value on the 0-100 visit scale.
+                col.Item().AlignCenter().PaddingTop(2).Text($"{domain.PercentageScore:0.#}%")
                     .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(scoreColor);
+
+                // Keep the source 1-4 average visible as supporting context.
+                col.Item().AlignCenter().Text($"{domain.AverageScore:0.000} / 4")
+                    .FontSize(8).FontColor(Palette.Muted);
             });
     }
 
@@ -863,7 +904,7 @@ public class PdfReportService : IPdfReportService
         };
 
         var dateText = party == SignatureParty.Manager && dto.ApprovedAt.HasValue
-            ? $"التاريخ: {dto.ApprovedAt.Value:yyyy-MM-dd}"
+            ? $"التاريخ: {dto.ApprovedAt.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}"
             : "التاريخ: ________________";
 
         container.Border(1).BorderColor(DynamicPalette.BrandGreenText).Padding(10).Column(col =>
@@ -938,7 +979,7 @@ public class PdfReportService : IPdfReportService
     public static string BuildPdfFilename(string? instructorFullName, DateTimeOffset visitDate, string? visitCategoryLabelAr)
     {
         var teacher  = SanitizeForFilename(instructorFullName);
-        var year     = visitDate.Year.ToString();
+        var year     = visitDate.Year.ToString(CultureInfo.InvariantCulture);
         var category = SanitizeForFilename(visitCategoryLabelAr);
         return $"{teacher} - {year} - {category}.pdf";
     }
@@ -951,7 +992,7 @@ public class PdfReportService : IPdfReportService
     /// </summary>
     public static string BuildZipFilename(string? schoolName, DateTimeOffset generatedAt)
     {
-        var dateStr = generatedAt.ToString("yyyy-MM-dd");
+        var dateStr = generatedAt.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         var school  = SanitizeForFilename(schoolName);
         if (string.IsNullOrWhiteSpace(school) || school == "ملف")
             return $"زيارات-{dateStr}.zip";

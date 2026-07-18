@@ -105,9 +105,16 @@ export class ShellComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sidebarStorageKey = 'alfalah-shell-sidebar-collapsed';
+
+  private lastContentScrollTop = 0;
+  private pendingContentScrollTop = 0;
+  private scrollAnimationFrame: number | null = null;
 
   readonly currentUser = this.authService.currentUser;
   readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());
+  readonly isSidebarCollapsed = signal(this.getInitialSidebarState());
+  readonly isTopbarHidden = signal(false);
 
   private readonly categories = SHELL_NAV_CATEGORIES;
 
@@ -146,22 +153,78 @@ export class ShellComponent implements OnInit {
   });
 
   readonly activeSchoolName = computed(() => this.currentUser()?.activeSchoolName ?? null);
-  readonly primaryRoleLabel = computed<string | null>(() => this.authService.roles()[0] ?? null);
+  readonly primaryRoleKey = computed<string | null>(() => {
+    const role = this.authService.roles()[0];
+    if (!role) return null;
+
+    const key = role.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
+    return `ROLES.${key}`;
+  });
+  readonly userInitials = computed(() => {
+    const name = this.currentUser()?.fullName?.trim();
+    if (!name) return '';
+
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase();
+  });
 
   ngOnInit(): void {
     this.expandActiveCategory(this.router.url);
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(event => this.expandActiveCategory(event.urlAfterRedirects));
+    ).subscribe(event => {
+      this.expandActiveCategory(event.urlAfterRedirects);
+      this.showTopbar();
+      this.lastContentScrollTop = 0;
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (this.scrollAnimationFrame !== null && typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(this.scrollAnimationFrame);
+      }
+    });
+  }
+
+  toggleSidebar(): void {
+    this.setSidebarCollapsed(!this.isSidebarCollapsed());
   }
 
   toggleCategory(category: NavCategory): void {
+    if (this.isSidebarCollapsed()) {
+      this.setSidebarCollapsed(false);
+      this.expandedCategoryIds.update(current => new Set([...current, category.id]));
+      return;
+    }
+
     this.expandedCategoryIds.update(current => {
       const next = new Set(current);
       if (next.has(category.id)) next.delete(category.id);
       else next.add(category.id);
       return next;
+    });
+  }
+
+  onContentScroll(event: Event): void {
+    const target = event.currentTarget as HTMLElement | null;
+    if (!target) return;
+
+    this.pendingContentScrollTop = Math.max(0, target.scrollTop);
+    if (this.scrollAnimationFrame !== null) return;
+
+    if (typeof requestAnimationFrame !== 'function') {
+      this.updateTopbarVisibility(this.pendingContentScrollTop);
+      return;
+    }
+
+    this.scrollAnimationFrame = requestAnimationFrame(() => {
+      this.updateTopbarVisibility(this.pendingContentScrollTop);
+      this.scrollAnimationFrame = null;
     });
   }
 
@@ -175,6 +238,49 @@ export class ShellComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  private setSidebarCollapsed(collapsed: boolean): void {
+    this.isSidebarCollapsed.set(collapsed);
+
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(this.sidebarStorageKey, collapsed ? '1' : '0');
+      } catch {
+        // Storage can be unavailable in private or restricted browser contexts.
+      }
+    }
+  }
+
+  private getInitialSidebarState(): boolean {
+    if (typeof window === 'undefined') return false;
+
+    try {
+      const stored = window.localStorage.getItem(this.sidebarStorageKey);
+      if (stored !== null) return stored === '1';
+    } catch {
+      // Fall through to viewport-based default.
+    }
+
+    return window.matchMedia?.('(max-width: 1024px)').matches ?? false;
+  }
+
+  private updateTopbarVisibility(scrollTop: number): void {
+    const delta = scrollTop - this.lastContentScrollTop;
+
+    if (scrollTop <= 24) {
+      this.showTopbar();
+    } else if (delta > 7 && scrollTop > 88) {
+      this.isTopbarHidden.set(true);
+    } else if (delta < -5) {
+      this.showTopbar();
+    }
+
+    this.lastContentScrollTop = scrollTop;
+  }
+
+  private showTopbar(): void {
+    if (this.isTopbarHidden()) this.isTopbarHidden.set(false);
   }
 
   private canSee(item: NavItem): boolean {

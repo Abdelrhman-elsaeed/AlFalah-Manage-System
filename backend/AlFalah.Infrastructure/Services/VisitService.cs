@@ -317,6 +317,8 @@ public class VisitService : IVisitService
             {
                 VisitId = visit.Id,
                 OverallScore = analysis.OverallScore,
+                TotalScore = analysis.TotalScore,
+                MaximumScore = analysis.MaximumScore,
                 PerformanceLevelAr = analysis.PerformanceLevelAr,
                 StrengthsJson = JsonSerializer.Serialize(analysis.Strengths),
                 ImprovementAreasJson = JsonSerializer.Serialize(analysis.ImprovementAreas),
@@ -349,6 +351,8 @@ public class VisitService : IVisitService
             {
                 VisitId = visit.Id,
                 OverallScore = analysis.OverallScore,
+                TotalScore = analysis.TotalScore,
+                MaximumScore = analysis.MaximumScore,
                 PerformanceLevelAr = analysis.PerformanceLevelAr,
                 StrengthsJson = JsonSerializer.Serialize(analysis.Strengths),
                 ImprovementAreasJson = JsonSerializer.Serialize(analysis.ImprovementAreas),
@@ -596,6 +600,8 @@ public class VisitService : IVisitService
             Id = analysis.Id,
             VisitId = analysis.VisitId,
             OverallScore = analysis.OverallScore,
+            TotalScore = analysis.TotalScore,
+            MaximumScore = analysis.MaximumScore,
             PerformanceLevelAr = analysis.PerformanceLevelAr,
             Strengths = DeserializeList<VisitStrengthDto>(analysis.StrengthsJson),
             ImprovementAreas = DeserializeList<VisitImprovementDto>(analysis.ImprovementAreasJson),
@@ -609,7 +615,8 @@ public class VisitService : IVisitService
                     RubricDomainId = d.RubricDomainId,
                     DomainCode = d.DomainCode,
                     DomainNameAr = d.DomainNameAr,
-                    AverageScore = d.AverageScore
+                    AverageScore = d.AverageScore,
+                    PercentageScore = ScorePercentage(d.AverageScore)
                 }).ToList(),
             ComputedAt = analysis.ComputedAt
         };
@@ -798,7 +805,7 @@ public class VisitService : IVisitService
     ///  - Improvement areas = domains with average < 2.5.
     ///  - Priority standards = individual standards with score <= 1.5.
     /// </summary>
-    private (decimal OverallScore, string PerformanceLevelAr,
+    private (decimal OverallScore, decimal TotalScore, decimal MaximumScore, string PerformanceLevelAr,
              List<VisitStrengthDto> Strengths, List<VisitImprovementDto> ImprovementAreas,
              List<VisitPriorityStandardDto> PriorityStandards,
              List<VisitDomainAverageDto> DomainAverages)
@@ -820,6 +827,8 @@ public class VisitService : IVisitService
 
         return (
             result.OverallScore,
+            result.TotalScore,
+            result.MaximumScore,
             result.PerformanceLevelAr,
             result.Strengths.Select(d => new VisitStrengthDto
             {
@@ -845,9 +854,17 @@ public class VisitService : IVisitService
                 RubricDomainId = d.RubricDomainId,
                 DomainCode = d.DomainCode,
                 DomainNameAr = d.DomainNameAr,
-                AverageScore = d.AverageScore
+                AverageScore = d.AverageScore,
+                PercentageScore = ScorePercentage(d.AverageScore)
             }).ToList());
     }
+
+    /// <summary>
+    /// Converts the persisted 1-4 domain average to the visit's 0-100 grading
+    /// scale. The average remains the source for performance thresholds.
+    /// </summary>
+    private static decimal ScorePercentage(decimal averageScore) =>
+        Math.Round(Math.Clamp(averageScore, 0m, 4m) * 25m, 1, MidpointRounding.AwayFromZero);
 
     private static string StatusLabelAr(VisitStatus s) => s switch
     {
@@ -1064,6 +1081,8 @@ public class VisitService : IVisitService
                 Id = visit.Analysis.Id,
                 VisitId = visit.Analysis.VisitId,
                 OverallScore = visit.Analysis.OverallScore,
+                TotalScore = visit.Analysis.TotalScore,
+                MaximumScore = visit.Analysis.MaximumScore,
                 PerformanceLevelAr = visit.Analysis.PerformanceLevelAr,
                 Strengths = DeserializeList<VisitStrengthDto>(visit.Analysis.StrengthsJson),
                 ImprovementAreas = DeserializeList<VisitImprovementDto>(visit.Analysis.ImprovementAreasJson),
@@ -1077,7 +1096,8 @@ public class VisitService : IVisitService
                         RubricDomainId = d.RubricDomainId,
                         DomainCode = d.DomainCode,
                         DomainNameAr = d.DomainNameAr,
-                        AverageScore = d.AverageScore
+                        AverageScore = d.AverageScore,
+                        PercentageScore = ScorePercentage(d.AverageScore)
                     }).ToList(),
                 ComputedAt = visit.Analysis.ComputedAt
             };
@@ -1382,6 +1402,8 @@ public class VisitService : IVisitService
         if (visit.Analysis != null)
         {
             dto.OverallScore = visit.Analysis.OverallScore;
+            dto.TotalScore = visit.Analysis.TotalScore;
+            dto.MaximumScore = visit.Analysis.MaximumScore;
             dto.PerformanceLevelAr = visit.Analysis.PerformanceLevelAr;
 
             var strengths = DeserializeList<VisitStrengthDto>(visit.Analysis.StrengthsJson);
@@ -1438,6 +1460,7 @@ public class VisitService : IVisitService
                 DomainCode = g.Key.Code,
                 DomainNameAr = g.Key.NameAr,
                 AverageScore = persistedAverage?.AverageScore ?? 0m,
+                PercentageScore = ScorePercentage(persistedAverage?.AverageScore ?? 0m),
                 Standards = g.Select(s => new ReportStandardScoreDto
                 {
                     StandardCode = s.RubricStandard.Code,
@@ -1519,6 +1542,19 @@ public class VisitService : IVisitService
         }
 
         // 3) Moderator (creator) signature — only if the flag is on.
+        // If no school-specific logo is configured, use the packaged platform
+        // logo so every exported report still has a real logo in its header.
+        if (dto.SchoolLogoBytes is null)
+        {
+            var defaultLogoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Logo.png");
+            var defaultLogo = await _imageLoader.TryLoadAsync(defaultLogoPath, cancellationToken: cancellationToken);
+            if (defaultLogo.HasValue && !defaultLogo.Value.IsEmpty)
+            {
+                dto.SchoolLogoBytes = defaultLogo.Value.Bytes;
+                dto.SchoolLogoFormat = defaultLogo.Value.Format;
+            }
+        }
+
         if (dto.ShowModeratorSignature && !string.IsNullOrEmpty(visit.CreatedByUserId))
         {
             var signature = await TryLoadUserSignatureAsync(visit.CreatedByUserId, cancellationToken);
@@ -1723,6 +1759,8 @@ public class VisitService : IVisitService
                 Id = visit.Analysis.Id,
                 VisitId = visit.Analysis.VisitId,
                 OverallScore = visit.Analysis.OverallScore,
+                TotalScore = visit.Analysis.TotalScore,
+                MaximumScore = visit.Analysis.MaximumScore,
                 PerformanceLevelAr = visit.Analysis.PerformanceLevelAr,
                 Strengths = DeserializeList<VisitStrengthDto>(visit.Analysis.StrengthsJson),
                 ImprovementAreas = DeserializeList<VisitImprovementDto>(visit.Analysis.ImprovementAreasJson),
@@ -1736,7 +1774,8 @@ public class VisitService : IVisitService
                         RubricDomainId = d.RubricDomainId,
                         DomainCode = d.DomainCode,
                         DomainNameAr = d.DomainNameAr,
-                        AverageScore = d.AverageScore
+                        AverageScore = d.AverageScore,
+                        PercentageScore = ScorePercentage(d.AverageScore)
                     }).ToList(),
                 ComputedAt = visit.Analysis.ComputedAt
             };

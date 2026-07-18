@@ -205,8 +205,45 @@
 .invalid-feedback { margin-top: 0.28rem; color: var(--danger); font-size: 0.74rem; }
 
 .school-select-field,
-:host ::ng-deep .login-school-select { display: block !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
-:host ::ng-deep .login-school-select .p-dropdown-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:host ::ng-deep .school-select-field .clearable-select,
+:host ::ng-deep .login-school-select {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .school-select-field .p-dropdown,
+:host ::ng-deep .login-school-select.p-dropdown {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  flex: 1 1 100% !important;
+  box-sizing: border-box;
+}
+
+/* The school field is required, so it does not need a clear or chevron action.
+   Removing the trigger also prevents the detached down-arrow seen in RTL. */
+:host ::ng-deep .login-school-select .p-dropdown-trigger {
+  display: none !important;
+}
+
+:host ::ng-deep .login-school-select .p-dropdown-label {
+  width: 100% !important;
+  min-width: 0;
+  padding-inline: 0.75rem !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .school-select-field .p-dropdown-panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
 .loading-skeleton {
   height: var(--control-height);
   overflow: hidden;

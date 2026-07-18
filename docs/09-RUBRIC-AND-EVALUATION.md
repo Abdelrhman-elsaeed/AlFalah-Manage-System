@@ -28,7 +28,9 @@
 
 ## Analysis rules
 - **Domain average** = average of standard scores in that domain.
+- **Displayed domain grade** = domain average × 25, converting the 1–4 average to a percentage out of 100. The original `/4` average remains available for performance thresholds and audit context.
 - **Overall score for newly computed analyses** = equal-weight average of the visit snapshot's domain averages, rounded to three decimals. A domain's weight is independent of its standard count (locked D1). Existing persisted `VisitAnalysis` snapshots are never recomputed.
+- **Total visit grade** = sum of all standard scores, with a maximum of `N × 4` points. The seeded 25-standard rubric therefore reports a total out of **100**. The total is persisted with the analysis snapshot; the overall average remains available for performance-level thresholds.
 - **Strengths** = domains with average **>= 3.0**.
 - **Improvement areas** = domains with average **< 2.5**.
 - **Priority standards** = individual standards with score **<= 1.5**.

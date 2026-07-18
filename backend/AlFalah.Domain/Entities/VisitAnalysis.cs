@@ -15,8 +15,14 @@ public class VisitAnalysis
 
     public int VisitId { get; set; }
 
-    /// <summary>Average of all 25 standard scores (decimal to preserve precision at boundary values like 3.5).</summary>
+    /// <summary>Equal-weight average of the domain averages, retained for performance-level thresholds.</summary>
     public decimal OverallScore { get; set; }
+
+    /// <summary>Total points earned across the snapshotted standards.</summary>
+    public decimal TotalScore { get; set; }
+
+    /// <summary>Maximum possible points for the snapshotted standards (25 × 4 = 100 for the initial rubric).</summary>
+    public decimal MaximumScore { get; set; }
 
     /// <summary>Arabic performance-level label verbatim from docs/09, e.g. "متميز", "جيد جداً".</summary>
     public string PerformanceLevelAr { get; set; } = string.Empty;

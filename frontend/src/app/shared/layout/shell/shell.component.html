@@ -1,23 +1,26 @@
-<div class="shell" dir="rtl">
-  <header class="shell-topbar">
-    <div class="shell-topbar__brand">
-      <span class="shell-topbar__brand-mark"><i class="pi pi-graduation-cap"></i></span>
-      <span class="shell-topbar__brand-text">
-        <span class="shell-topbar__brand-name">{{ 'APP.NAME_SHORT' | translate }}</span>
-        <span class="shell-topbar__brand-tag">{{ 'APP.NAME' | translate }}</span>
-      </span>
-    </div>
-
+<div class="shell" dir="rtl" [class.is-topbar-hidden]="isTopbarHidden()">
+  <header
+    class="shell-topbar"
+    [class.is-hidden]="isTopbarHidden()"
+    [attr.aria-hidden]="isTopbarHidden()">
     <div class="shell-topbar__user" *ngIf="currentUser() as user">
+      <span class="shell-topbar__avatar" aria-hidden="true">
+        <img src="assets/Logo.png" alt="" />
+      </span>
       <div class="shell-topbar__user-info">
         <span class="shell-topbar__user-name">{{ user.fullName }}</span>
-        <span class="shell-topbar__user-meta">
-          <span class="shell-topbar__user-role" *ngIf="primaryRoleLabel() as role">{{ role }}</span>
-          <span class="shell-topbar__user-school" *ngIf="activeSchoolName() as school">
-            <i class="pi pi-building"></i> {{ school }}
-          </span>
+        <span class="shell-topbar__user-school" *ngIf="activeSchoolName() as school">
+          <i class="pi pi-building" aria-hidden="true"></i>
+          <span>{{ school }}</span>
+        </span>
+        <span class="shell-topbar__user-role" *ngIf="primaryRoleKey() as role">
+          <i class="pi pi-briefcase" aria-hidden="true"></i>
+          <span>{{ role | translate }}</span>
         </span>
       </div>
+    </div>
+
+    <div class="shell-topbar__actions">
       <button
         type="button"
         class="shell-topbar__logout"
@@ -32,8 +35,31 @@
     </div>
   </header>
 
-  <div class="shell-body">
-    <aside class="shell-sidebar">
+  <div class="shell-body" [class.is-sidebar-collapsed]="isSidebarCollapsed()">
+    <aside class="shell-sidebar" [class.is-collapsed]="isSidebarCollapsed()">
+      <div class="shell-sidebar__controls">
+        <span class="shell-sidebar__menu-title">
+          <i class="pi pi-th-large" aria-hidden="true"></i>
+          <span>{{ 'NAV.MENU' | translate }}</span>
+        </span>
+
+        <button
+          type="button"
+          class="shell-sidebar__collapse-button"
+          (click)="toggleSidebar()"
+          [pTooltip]="(isSidebarCollapsed() ? 'NAV.EXPAND_SIDEBAR' : 'NAV.COLLAPSE_SIDEBAR') | translate"
+          tooltipPosition="left"
+          tooltipAppendTo="body"
+          [attr.aria-expanded]="!isSidebarCollapsed()"
+          [attr.aria-label]="(isSidebarCollapsed() ? 'NAV.EXPAND_SIDEBAR' : 'NAV.COLLAPSE_SIDEBAR') | translate">
+          <i
+            class="pi"
+            [class.pi-angle-double-left]="isSidebarCollapsed()"
+            [class.pi-angle-double-right]="!isSidebarCollapsed()"
+            aria-hidden="true"></i>
+        </button>
+      </div>
+
       <nav [attr.aria-label]="'NAV.MAIN_NAVIGATION' | translate">
         <ul class="shell-sidebar__list shell-sidebar__list--top">
           <li *ngFor="let item of topItems()">
@@ -89,7 +115,7 @@
       </nav>
     </aside>
 
-    <main class="shell-content">
+    <main class="shell-content" (scroll)="onContentScroll($event)">
       <router-outlet></router-outlet>
     </main>
   </div>

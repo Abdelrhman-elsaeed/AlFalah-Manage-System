@@ -35,6 +35,11 @@
     <None Update="Assets\Fonts\Amiri-Bold.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- Reuse the official application logo in server-generated PDF headers. -->
+    <None Include="..\..\frontend\src\assets\Logo.png"
+          Link="Assets\Logo.png"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -198,8 +198,26 @@
                   {{ v }}
                 </button>
               </div>
+
+              <button
+                type="button"
+                class="note-toggle"
+                [class.note-toggle--active]="isNoteExpanded(s)"
+                [disabled]="isReadOnly() && !s.noteControl.value?.trim()"
+                [pTooltip]="noteToggleLabel(s) | translate"
+                tooltipPosition="top"
+                [attr.aria-expanded]="isNoteExpanded(s)"
+                [attr.aria-label]="noteToggleLabel(s) | translate"
+                (click)="toggleNote(s)">
+                <i
+                  class="pi"
+                  [class.pi-plus]="!isNoteExpanded(s) && !s.noteControl.value?.trim()"
+                  [class.pi-pencil]="!isNoteExpanded(s) && !!s.noteControl.value?.trim()"
+                  [class.pi-chevron-up]="isNoteExpanded(s)"
+                  aria-hidden="true"></i>
+              </button>
             </div>
-            <div class="std-note-row std-note-row--open">
+            <div class="std-note-row" *ngIf="isNoteExpanded(s)">
               <input pInputText class="note-input"
                      [formControl]="s.noteControl"
                      [readonly]="isReadOnly()"
