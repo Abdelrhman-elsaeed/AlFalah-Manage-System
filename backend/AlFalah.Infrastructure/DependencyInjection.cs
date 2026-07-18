@@ -80,6 +80,8 @@ public static class DependencyInjection
         services.AddScoped<IVisitService, VisitService>();
         services.AddScoped<ITeacherService, TeacherService>();
         services.AddScoped<IComplaintService, ComplaintService>();
+        services.AddScoped<IAttendanceService, AttendanceService>();
+        services.AddScoped<IAttendancePdfService, AttendancePdfService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IImprovementPlanService, ImprovementPlanService>();
         services.AddScoped<IPdfReportService, PdfReportService>();

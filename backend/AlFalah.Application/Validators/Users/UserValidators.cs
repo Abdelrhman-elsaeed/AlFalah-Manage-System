@@ -37,11 +37,11 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
             .Must(l => l == "ar" || l == "en")
             .WithMessage("اللغة المفضلة يجب أن تكون 'ar' أو 'en'.");
 
-        // Phase 2 scope: only Instructor / Moderator / SchoolManager are creatable here.
+        // School staff roles are created through this endpoint.
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("الدور مطلوب.")
             .Must(BeInPhaseTwoScope)
-            .WithMessage("الدور يجب أن يكون أحد: SchoolManager أو Moderator أو Instructor.");
+            .WithMessage("الدور يجب أن يكون أحد: SchoolManager أو Secretary أو Moderator أو Instructor.");
 
         RuleFor(x => x.SchoolId)
             .GreaterThan(0).When(x => x.SchoolId.HasValue)
@@ -77,6 +77,12 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
             .GreaterThan(0).When(r => r.Role == RoleNames.Instructor && r.SchoolId.HasValue)
             .WithMessage("معرّف المدرسة غير صالح.");
 
+        RuleFor(x => x.SchoolId)
+            .NotNull().When(r => r.Role == RoleNames.Secretary)
+            .WithMessage("المدرسة مطلوبة للسكرتير.")
+            .GreaterThan(0).When(r => r.Role == RoleNames.Secretary && r.SchoolId.HasValue)
+            .WithMessage("معرّف المدرسة غير صالح.");
+
         // Stage enum is optional (null is fine — the service falls back to the school's stage).
 
         RuleFor(x => x.Stage)
@@ -98,6 +104,7 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
 
     private static bool BeInPhaseTwoScope(string role) =>
         role == RoleNames.SchoolManager
+        || role == RoleNames.Secretary
         || role == RoleNames.Moderator
         || role == RoleNames.Instructor;
 }
@@ -147,6 +154,7 @@ public class UserListQueryValidator : AbstractValidator<UserListQuery>
             r == RoleNames.SuperAdmin ||
             r == RoleNames.MainManager ||
             r == RoleNames.SchoolManager ||
+            r == RoleNames.Secretary ||
             r == RoleNames.Moderator ||
             r == RoleNames.Instructor
         ).WithMessage("قيمة الدور غير صالحة.");

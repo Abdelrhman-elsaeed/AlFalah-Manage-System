@@ -129,6 +129,14 @@ export const routes: Routes = [
         title: translatedTitle('ROUTE_TITLES.VISIT_REPORT_PREVIEW')
       },
       {
+        path: 'attendance',
+        canActivate: [permissionGuard],
+        data: { permissions: ['Attendance.View'] },
+        loadComponent: () => import('./features/attendance/attendance/attendance.component')
+          .then(m => m.AttendanceComponent),
+        title: 'الحضور والانصراف'
+      },
+      {
         path: 'schools',
         canActivate: [permissionGuard],
         data: { permissions: ['School.View'] },

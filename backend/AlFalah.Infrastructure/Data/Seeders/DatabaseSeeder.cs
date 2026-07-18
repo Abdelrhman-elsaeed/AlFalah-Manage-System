@@ -73,6 +73,13 @@ public class DatabaseSeeder
             },
             new ApplicationRole
             {
+                Name = RoleNames.Secretary,
+                NormalizedName = RoleNames.Secretary.ToUpper(),
+                DescriptionAr = "سكرتير المدرسة",
+                DescriptionEn = "School Secretary"
+            },
+            new ApplicationRole
+            {
                 Name = RoleNames.Moderator,
                 NormalizedName = RoleNames.Moderator.ToUpper(),
                 DescriptionAr = "مشرف",
@@ -200,6 +207,10 @@ public class DatabaseSeeder
 
             // Audit
             (PermissionNames.AuditLogView, "Audit", "عرض سجل التدقيق",  "View Audit Log"),
+
+            // Attendance
+            (PermissionNames.AttendanceView,   "Attendance", "عرض حضوري", "View my attendance"),
+            (PermissionNames.AttendanceManage, "Attendance", "إدارة الحضور", "Manage school attendance"),
         };
     }
 
@@ -240,6 +251,7 @@ public class DatabaseSeeder
                 PermissionNames.PlanView,
                 PermissionNames.DashboardMainManager,
                 PermissionNames.SettingsView, PermissionNames.SettingsManage,
+                PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
             },
 
             [RoleNames.SchoolManager] = new[]
@@ -260,6 +272,7 @@ public class DatabaseSeeder
                 PermissionNames.DashboardSchoolManager,
                 PermissionNames.SettingsView, PermissionNames.SettingsManage,
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
+                PermissionNames.AttendanceView,
             },
 
             [RoleNames.Moderator] = new[]
@@ -275,6 +288,7 @@ public class DatabaseSeeder
                 PermissionNames.FollowUpEdit, PermissionNames.FollowUpDelete,
                 PermissionNames.DashboardModerator,
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
+                PermissionNames.AttendanceView,
             },
 
             [RoleNames.Instructor] = new[]
@@ -282,6 +296,12 @@ public class DatabaseSeeder
                 PermissionNames.ReportView, PermissionNames.ReportDownload,
                 PermissionNames.ComplaintCreate, PermissionNames.ComplaintView,
                 PermissionNames.DashboardInstructor,
+                PermissionNames.AttendanceView,
+            },
+
+            [RoleNames.Secretary] = new[]
+            {
+                PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
             },
         };
     }

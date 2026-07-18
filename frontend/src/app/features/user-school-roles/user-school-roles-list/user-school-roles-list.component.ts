@@ -53,6 +53,7 @@ export class UserSchoolRolesListComponent implements OnInit {
 
   readonly roleOptions = [
     { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
+    { label: 'السكرتير', value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
     { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
   ];

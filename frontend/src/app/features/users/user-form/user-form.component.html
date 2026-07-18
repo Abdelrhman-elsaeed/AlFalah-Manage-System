@@ -47,10 +47,10 @@
       </div>
 
       <div class="field" *ngIf="isInstructor() || !isEdit()">
-        <label for="user-school">{{ (isInstructor() ? 'TEACHERS.SCHOOL' : 'USERS.SCHOOL') | translate }} <span *ngIf="isInstructor()">*</span></label>
+        <label for="user-school">{{ (isInstructor() ? 'TEACHERS.SCHOOL' : 'USERS.SCHOOL') | translate }} <span *ngIf="isInstructor() || isSecretary()">*</span></label>
         <app-clearable-select inputId="user-school" [options]="availableSchools()" formControlName="schoolId"
                               optionLabel="name" optionValue="id" [filter]="true" filterBy="name"
-                              [clearable]="!isInstructor() && !isSchoolManager()"
+                              [clearable]="!isInstructor() && !isSecretary() && !isSchoolManager()"
                               appendTo="body" styleClass="w-100"></app-clearable-select>
       </div>
 

@@ -81,6 +81,12 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         route: '/complaints',
         roles: ['SchoolManager', 'Instructor', 'SuperAdmin'],
         permissions: ['Complaint.View']
+      },
+      {
+        labelKey: 'الحضور والانصراف',
+        icon: 'pi pi-calendar',
+        route: '/attendance',
+        permissions: ['Attendance.View']
       }
     ]
   },
@@ -134,6 +140,7 @@ export class ShellComponent implements OnInit {
     // D-36/D-73: exactly the minimal Instructor navigation surface.
     if (this.isInstructorOnly()) {
       items.push(
+        { labelKey: 'الحضور والانصراف', icon: 'pi pi-calendar', route: '/attendance', permissions: ['Attendance.View'] },
         { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
         { labelKey: 'NAV.COMPLAINT_RESULTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
         { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
@@ -156,6 +163,8 @@ export class ShellComponent implements OnInit {
   readonly primaryRoleKey = computed<string | null>(() => {
     const role = this.authService.roles()[0];
     if (!role) return null;
+
+    if (role === 'Secretary') return 'السكرتير';
 
     const key = role.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
     return `ROLES.${key}`;

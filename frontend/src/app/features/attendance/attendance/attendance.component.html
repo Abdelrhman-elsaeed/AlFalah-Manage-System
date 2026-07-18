@@ -1,0 +1,120 @@
+<div class="page attendance-page" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">الحضور والانصراف</h1>
+      <p class="page-header__subtitle">سجل أيام العمل من الأحد إلى الخميس</p>
+    </div>
+  </header>
+
+  <section *ngIf="canManage()" class="surface-card attendance-sheet">
+    <div class="attendance-sheet__toolbar">
+      <div>
+        <h2>كشف حضور الموظفين</h2>
+        <p>يُدار من قبل السكرتير. اختر يوم عمل ثم سجل حالة جميع الموظفين.</p>
+      </div>
+      <div class="attendance-sheet__actions">
+        <input type="date" [ngModel]="selectedDate()" (ngModelChange)="changeDate($event)" />
+        <button pButton type="button" icon="pi pi-check-circle" label="الكل حاضر"
+                class="p-button-outlined" [disabled]="sheetLoading() || !sheetRows().length"
+                (click)="markEveryonePresent()"></button>
+        <button pButton type="button" icon="pi pi-save" label="حفظ الكشف"
+                [loading]="saving()" [disabled]="sheetLoading() || !sheetRows().length" (click)="saveSheet()"></button>
+      </div>
+    </div>
+
+    <p-table [value]="sheetRows()" [loading]="sheetLoading()" dataKey="userId" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>الاسم</th>
+          <th>الدور</th>
+          <th>نقطة الحضور</th>
+          <th>ملاحظة</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td><strong>{{ row.fullName }}</strong></td>
+          <td>{{ row.role }}</td>
+          <td class="attendance-status-select">
+            <div class="attendance-checkpoints">
+              <label *ngFor="let option of statusOptions" class="attendance-checkpoint"
+                     [class.is-selected]="row.status === option.value">
+                <p-checkbox [binary]="true" [ngModel]="row.status === option.value"
+                            (ngModelChange)="setCheckpoint(row, option.value, $event)"></p-checkbox>
+                <span>{{ option.label }}</span>
+              </label>
+            </div>
+          </td>
+          <td><input pInputText type="text" maxlength="500" [(ngModel)]="row.notes" placeholder="اختياري" /></td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="4" class="empty-row">لا يوجد معلمون أو مشرفون أو مدير مسجلون في هذه المدرسة.</td></tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <section class="surface-card my-attendance">
+    <div class="my-attendance__heading">
+      <div>
+        <h2>{{ canManage() ? 'سجل حضور الموظفين' : 'سجل حضوري' }}</h2>
+        <p>{{ canManage() ? 'ابحث بالاسم أو حدّد فترة زمنية لعرض السجلات المحفوظة.' : 'يمكنك عرض نتائج حضورك فقط.' }}</p>
+      </div>
+      <div class="attendance-record-actions">
+        <button pButton type="button" icon="pi pi-refresh" class="p-button-outlined" label="تحديث"
+                [loading]="historyLoading()" (click)="canManage() ? loadRecords() : loadHistory()"></button>
+        <button *ngIf="canManage()" pButton type="button" icon="pi pi-file-pdf" label="تصدير PDF"
+                class="p-button-outlined" [disabled]="historyLoading() || !attendanceRecords().length"
+                (click)="exportRecords()"></button>
+      </div>
+    </div>
+
+    <div *ngIf="canManage()" class="attendance-record-filters">
+      <input pInputText type="search" placeholder="ابحث باسم الموظف"
+             [ngModel]="recordName()" (ngModelChange)="recordName.set($event)" />
+      <input type="date" [ngModel]="recordFromDate()" (ngModelChange)="recordFromDate.set($event)" />
+      <input type="date" [ngModel]="recordToDate()" (ngModelChange)="recordToDate.set($event)" />
+      <div class="attendance-date-presets">
+        <button pButton type="button" class="p-button-text" label="اليوم" (click)="setDatePreset('today')"></button>
+        <button pButton type="button" class="p-button-text" label="هذا الأسبوع" (click)="setDatePreset('week')"></button>
+        <button pButton type="button" class="p-button-text" label="هذا الشهر" (click)="setDatePreset('month')"></button>
+      </div>
+      <button pButton type="button" icon="pi pi-search" label="بحث" (click)="loadRecords()"></button>
+      <button pButton type="button" class="p-button-text" label="مسح" (click)="clearRecordFilters()"></button>
+    </div>
+
+    <p-table *ngIf="canManage()" [value]="attendanceRecords()" [loading]="historyLoading()" [paginator]="true" [rows]="10"
+             [rowsPerPageOptions]="[10, 25, 50]" dataKey="userId" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header"><tr><th>التاريخ</th><th>الموظف</th><th>الدور</th><th>الحالة</th><th>ملاحظة</th></tr></ng-template>
+      <ng-template pTemplate="body" let-item><tr>
+        <td>{{ item.date | date:'yyyy-MM-dd' }}</td><td>{{ item.fullName }}</td><td>{{ item.role }}</td>
+        <td><p-tag [severity]="statusSeverity(item.status)" [value]="statusLabel(item.status)"></p-tag></td>
+        <td>{{ item.notes || '—' }}</td>
+      </tr></ng-template>
+      <ng-template pTemplate="emptymessage"><tr><td colspan="5" class="empty-row">لا توجد سجلات مطابقة للفلاتر.</td></tr></ng-template>
+    </p-table>
+
+    <p-table *ngIf="!canManage()" [value]="myAttendance()" [loading]="historyLoading()" [paginator]="true" [rows]="10"
+             [rowsPerPageOptions]="[10, 25, 50]" dataKey="date" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>التاريخ</th>
+          <th>اليوم</th>
+          <th>الحالة</th>
+          <th>ملاحظة</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.date | date:'yyyy-MM-dd' }}</td>
+          <td>{{ weekdayLabel(item.date) }}</td>
+          <td><p-tag [severity]="statusSeverity(item.status)" [value]="statusLabel(item.status)"></p-tag></td>
+          <td>{{ item.notes || '—' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="4" class="empty-row">لا توجد سجلات حضور لعرضها بعد.</td></tr>
+      </ng-template>
+    </p-table>
+  </section>
+</div>

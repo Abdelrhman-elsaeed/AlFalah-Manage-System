@@ -13,7 +13,7 @@ namespace AlFalah.Infrastructure.Services;
 
 /// <summary>
 /// User management service. Phase 2 scope: create / update / soft-deactivate
-/// users with role SchoolManager | Moderator | Instructor. Security fix
+/// users with role SchoolManager | Secretary | Moderator | Instructor. Security fix
 /// (D-24): every query is force-filtered by the caller's
 /// <see cref="ICurrentUserService.ActiveSchoolId"/> via
 /// <see cref="SchoolScopeGuard"/> so a School Manager only sees users
@@ -395,6 +395,23 @@ public class UserService : IUserService
                 }
 
                 school.ManagerUserId = user.Id;
+            }
+
+            if (request.Role == RoleNames.Secretary)
+            {
+                var secretaryRole = await _roleManager.FindByNameAsync(RoleNames.Secretary)
+                    ?? throw new InvalidOperationException("دور السكرتير غير مهيأ في قاعدة البيانات.");
+                var previousSecretaries = await _context.UserSchoolRoles
+                    .Where(usr => usr.SchoolId == school.Id
+                        && usr.RoleId == secretaryRole.Id
+                        && usr.IsActive)
+                    .ToListAsync(cancellationToken);
+                foreach (var assignment in previousSecretaries)
+                {
+                    assignment.IsActive = false;
+                    assignment.UpdatedAt = DateTimeOffset.UtcNow;
+                    assignment.UpdatedByUserId = _currentUser.UserId;
+                }
             }
 
             _context.UserSchoolRoles.Add(new UserSchoolRole

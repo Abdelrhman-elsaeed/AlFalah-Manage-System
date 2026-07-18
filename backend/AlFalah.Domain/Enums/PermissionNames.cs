@@ -78,4 +78,8 @@ public static class PermissionNames
 
     // Audit log permissions
     public const string AuditLogView = "AuditLog.View";
+
+    // Attendance
+    public const string AttendanceView = "Attendance.View";
+    public const string AttendanceManage = "Attendance.Manage";
 }

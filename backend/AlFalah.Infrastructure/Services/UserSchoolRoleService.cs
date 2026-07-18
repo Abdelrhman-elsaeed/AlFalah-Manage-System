@@ -59,6 +59,7 @@ public class UserSchoolRoleService : IUserSchoolRoleService
 
         // Phase 2: only Phase-2 roles are allowed here.
         if (request.Role != RoleNames.SchoolManager
+            && request.Role != RoleNames.Secretary
             && request.Role != RoleNames.Moderator
             && request.Role != RoleNames.Instructor)
             throw new InvalidOperationException("الدور غير مسموح في المرحلة الثانية.");
@@ -93,6 +94,25 @@ public class UserSchoolRoleService : IUserSchoolRoleService
             }
 
             school.ManagerUserId = request.UserId;
+        }
+
+        // A school has one operational secretary. Reassigning the role keeps the
+        // historical assignment row but deactivates the previous secretary.
+        if (request.Role == RoleNames.Secretary)
+        {
+            var activeSecretaryAssignments = await _context.UserSchoolRoles
+                .Where(usr => usr.SchoolId == school.Id
+                    && usr.RoleId == role.Id
+                    && usr.UserId != request.UserId
+                    && usr.IsActive)
+                .ToListAsync(cancellationToken);
+
+            foreach (var assignment in activeSecretaryAssignments)
+            {
+                assignment.IsActive = false;
+                assignment.UpdatedAt = DateTimeOffset.UtcNow;
+                assignment.UpdatedByUserId = _currentUser.UserId;
+            }
         }
 
         if (existing != null)

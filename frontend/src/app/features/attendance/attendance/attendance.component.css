@@ -1,0 +1,45 @@
+:host { display: block; }
+
+.attendance-sheet,
+.my-attendance {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.attendance-sheet__toolbar,
+.my-attendance__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+h2 { margin: 0; color: var(--text-strong); font-size: 1.1rem; }
+p { margin: var(--space-1) 0 0; color: var(--text-muted); }
+
+.attendance-sheet__actions { display: flex; align-items: center; gap: var(--space-2); }
+.attendance-sheet__actions input[type='date'] {
+  min-height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+  font: inherit;
+}
+.attendance-status-select { width: 27%; min-width: 220px; }
+.attendance-checkpoints { display: flex; align-items: center; justify-content: center; gap: var(--space-3); flex-wrap: wrap; }
+.attendance-checkpoint { display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; cursor: pointer; font-weight: 600; }
+.attendance-checkpoint.is-selected { color: var(--primary); font-weight: 700; }
+.attendance-record-filters { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+.attendance-record-filters input[type='search'],
+.attendance-record-filters input[type='date'] { min-height: 2.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 var(--space-2); font: inherit; }
+.attendance-record-filters input[type='search'] { min-width: 220px; }
+.attendance-record-actions { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.attendance-date-presets { display: inline-flex; align-items: center; gap: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px; }
+.empty-row { text-align: center; padding: var(--space-5); color: var(--text-muted); }
+
+@media (max-width: 700px) {
+  .attendance-sheet, .my-attendance { padding: var(--space-3); }
+  .attendance-sheet__toolbar, .my-attendance__heading { align-items: stretch; flex-direction: column; }
+  .attendance-sheet__actions { flex-wrap: wrap; }
+}

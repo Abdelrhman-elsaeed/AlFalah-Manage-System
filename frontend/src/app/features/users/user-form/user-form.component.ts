@@ -37,6 +37,7 @@ export class UserFormComponent implements OnInit {
   readonly saving = signal(false);
   readonly userId = signal<string | null>(null);
   readonly isInstructor = signal(false);
+  readonly isSecretary = signal(false);
   readonly isSchoolManager = computed(() =>
     this.auth.hasRole('SchoolManager')
     && !this.auth.hasRole('SuperAdmin')
@@ -60,6 +61,7 @@ export class UserFormComponent implements OnInit {
 
   readonly roleOptions = [
     { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
+    { label: 'السكرتير', value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
     { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
   ];
@@ -89,10 +91,10 @@ export class UserFormComponent implements OnInit {
       this.form.controls['password'].setValidators([Validators.required, Validators.minLength(8)]);
       this.form.controls['password'].updateValueAndValidity();
       if (requestedRole === 'Instructor') this.form.patchValue({ role: requestedRole });
-      this.setInstructorMode(this.form.controls['role'].value === 'Instructor');
+      this.setRoleMode(this.form.controls['role'].value as PhaseTwoRole);
     }
 
-    this.form.controls['role'].valueChanges.subscribe(role => this.setInstructorMode(role === 'Instructor'));
+    this.form.controls['role'].valueChanges.subscribe(role => this.setRoleMode(role as PhaseTwoRole));
     this.form.controls['employeeNumber'].valueChanges.subscribe(() => this.syncInstructorDefaultPassword());
     this.loadSchools();
   }
@@ -106,7 +108,6 @@ export class UserFormComponent implements OnInit {
   }
 
   applyForm(user: UserDetail): void {
-    const instructor = user.roles.includes('Instructor');
     this.form.patchValue({
       username: user.username,
       fullName: user.fullName,
@@ -121,7 +122,7 @@ export class UserFormComponent implements OnInit {
       subject: user.subject ?? '',
       stage: this.normalizeStage(user.stage)
     });
-    this.setInstructorMode(instructor);
+    this.setRoleMode((user.roles[0] as PhaseTwoRole) ?? 'Moderator');
   }
 
   loadSchools(): void {
@@ -208,7 +209,7 @@ export class UserFormComponent implements OnInit {
     this.form.controls['employeeNumber'].setValidators(instructor ? [Validators.required, Validators.maxLength(50)] : []);
     this.form.controls['subject'].setValidators(instructor ? [Validators.required, Validators.maxLength(200)] : []);
     this.form.controls['stage'].setValidators(required);
-    this.form.controls['schoolId'].setValidators(required);
+    this.form.controls['schoolId'].setValidators(instructor || this.isSecretary() ? [Validators.required] : []);
     this.form.controls['firstName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
     this.form.controls['lastName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
     if (!this.isEdit()) {
@@ -218,6 +219,11 @@ export class UserFormComponent implements OnInit {
       this.syncInstructorDefaultPassword();
     }
     Object.values(this.form.controls).forEach(control => control.updateValueAndValidity({ emitEvent: false }));
+  }
+
+  private setRoleMode(role: PhaseTwoRole): void {
+    this.isSecretary.set(role === 'Secretary');
+    this.setInstructorMode(role === 'Instructor');
   }
 
   private syncInstructorDefaultPassword(): void {

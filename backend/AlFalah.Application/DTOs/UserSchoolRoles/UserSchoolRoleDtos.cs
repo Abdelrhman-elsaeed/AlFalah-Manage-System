@@ -7,7 +7,7 @@ public class UserSchoolRoleCreateRequestDto
 {
     public string UserId { get; set; } = string.Empty;
     public int SchoolId { get; set; }
-    /// <summary>One of: SchoolManager, Moderator, Instructor.</summary>
+    /// <summary>One of: SchoolManager, Secretary, Moderator, Instructor.</summary>
     public string Role { get; set; } = string.Empty;
 }
 

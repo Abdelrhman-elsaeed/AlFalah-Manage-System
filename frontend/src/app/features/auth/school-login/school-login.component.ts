@@ -96,6 +96,8 @@ export class SchoolLoginComponent implements OnInit {
       this.router.navigate(['/main-manager/dashboard']);
     } else if (roles.includes('SchoolManager')) {
       this.router.navigate(['/school-manager/dashboard']);
+    } else if (roles.includes('Secretary')) {
+      this.router.navigate(['/attendance']);
     } else if (roles.includes('Moderator')) {
       this.router.navigate(['/moderator/dashboard']);
     } else if (roles.includes('Instructor')) {

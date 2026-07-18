@@ -56,6 +56,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     // Phase 8: Complaints
     public DbSet<Complaint> Complaints => Set<Complaint>();
 
+    // Attendance
+    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

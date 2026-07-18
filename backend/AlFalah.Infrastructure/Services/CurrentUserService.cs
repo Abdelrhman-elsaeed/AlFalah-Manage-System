@@ -68,6 +68,7 @@ public class CurrentUserService : ICurrentUserService
         var roles = GetRoles();
         return roles.Any(r =>
             r == RoleNames.SchoolManager
+            || r == RoleNames.Secretary
             || r == RoleNames.Moderator
             || r == RoleNames.Instructor);
     }

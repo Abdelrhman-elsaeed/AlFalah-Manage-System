@@ -71,7 +71,7 @@ public class UserDetailDto
 }
 
 /// <summary>
-/// Create-user request. Only Instructor/Moderator/SchoolManager per Phase 2 scope.
+/// Create-user request. Only school staff roles (including Secretary) are supported here.
 /// MainManager and SuperAdmin are out of scope and must be created by a Super Admin via a separate
 /// flow (not part of Phase 2).
 ///
@@ -92,7 +92,7 @@ public class UserCreateRequestDto
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
     public string PreferredLanguage { get; set; } = "ar";
-    /// <summary>One of: SchoolManager, Moderator, Instructor.</summary>
+    /// <summary>One of: SchoolManager, Secretary, Moderator, Instructor.</summary>
     public string Role { get; set; } = string.Empty;
     /// <summary>Optional initial school assignment.</summary>
     public int? SchoolId { get; set; }
