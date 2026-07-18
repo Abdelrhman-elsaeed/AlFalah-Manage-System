@@ -1,9 +1,9 @@
 @media (max-width: 1100px) {
-  html { font-size: 14.25px; }
+  html { font-size: 14.5px; }
 }
 
 @media (max-width: 720px) {
-  html { font-size: 14px; }
+  html { font-size: 14.25px; }
   .surface-card { padding: var(--space-3); }
   .table-card { padding: 0.4rem; }
   .p-dialog { width: min(94vw, 680px) !important; }

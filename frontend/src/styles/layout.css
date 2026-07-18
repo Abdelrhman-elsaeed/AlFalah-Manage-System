@@ -20,9 +20,9 @@
 .list-page-header__titles,
 .page-header__titles { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .list-page-header__title,
-.page-header__title { margin: 0; color: var(--text-strong); font-size: 1.35rem; font-weight: 800; }
+.page-header__title { margin: 0; color: var(--text-strong); font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; }
 .list-page-header__subtitle,
-.page-header__subtitle { margin: 0.15rem 0 0; color: var(--text-muted); font-size: 0.82rem; }
+.page-header__subtitle { max-width: 56rem; margin: 0.25rem 0 0; color: var(--text-muted); font-size: var(--font-size-body); line-height: 1.55; }
 .list-page-header__action,
 .page-header__action,
 .page-header__actions,
@@ -44,7 +44,7 @@
   padding: var(--space-3);
   color: var(--text);
   background: var(--bg-surface) !important;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
 }
@@ -59,7 +59,7 @@
 }
 .toolbar-field--grow { flex: 1 1 220px; min-width: 220px; }
 .toolbar-field--actions { min-width: auto; flex-direction: row; align-items: flex-end; gap: var(--space-2); }
-.toolbar-field__label { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
+.toolbar-field__label { color: var(--text-muted); font-size: var(--font-size-label); font-weight: 700; }
 .toolbar-field__control { display: flex; width: 100%; align-items: center; }
 .toolbar-field__control > .p-dropdown,
 .toolbar-field__control > .p-calendar,
@@ -96,8 +96,19 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
 }
-.table-card { padding: 0.65rem; border-top: 2px solid var(--gold); box-shadow: var(--shadow-sm); }
+.table-card { padding: 0.65rem; border-top: 3px solid var(--gold); box-shadow: var(--shadow-sm); }
 .table-card .p-datatable { overflow: hidden; border-radius: var(--radius-md); }
+
+/* Shared empty and loading messages remain legible across every list page. */
+.empty,
+.empty-state,
+.empty-row,
+.p-datatable-emptymessage > td {
+  padding: var(--space-6) !important;
+  color: var(--text-muted) !important;
+  font-size: var(--font-size-body);
+  text-align: center !important;
+}
 
 .empty, .empty-state, .loading, .dashboard-loading, .empty-card {
   color: var(--text-muted);

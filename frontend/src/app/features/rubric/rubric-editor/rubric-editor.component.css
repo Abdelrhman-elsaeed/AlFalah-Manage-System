@@ -19,8 +19,8 @@
   border-bottom: 1px solid var(--border);
 }
 .page-header__titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.page-header__title { font-size: 1.32rem; font-weight: 800; color: var(--text-strong); margin: 0; }
-.page-header__subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+.page-header__title { font-size: 1.45rem; font-weight: 800; color: var(--text-strong); margin: 0; }
+.page-header__subtitle { font-size: var(--font-size-body); color: var(--text-muted); margin: 0; line-height: 1.55; }
 .page-header__actions { display: flex; gap: var(--space-3); }
 
 .surface-card,
@@ -47,7 +47,8 @@
 .notes-section { padding: var(--space-4) var(--space-5); }
 .notes-section label {
   display: block;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: var(--font-size-label);
   margin-bottom: var(--space-3);
   color: var(--text);
 }

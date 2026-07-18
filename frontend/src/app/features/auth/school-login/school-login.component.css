@@ -89,7 +89,7 @@
   display: inline-block;
   margin-bottom: 0.25rem;
   color: #f3df8b;
-  font-size: 0.82rem;
+  font-size: var(--font-size-label);
   font-weight: 800;
   letter-spacing: 0.04em;
 }
@@ -104,7 +104,7 @@
   max-width: 34rem;
   margin: var(--space-2) auto var(--space-5);
   color: rgba(255, 255, 255, 0.73);
-  font-size: 0.86rem;
+  font-size: var(--font-size-body);
   line-height: 1.65;
 }
 
@@ -116,7 +116,7 @@
   gap: 0.65rem;
   padding: 0.55rem 0.7rem;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 0.81rem;
+  font-size: var(--font-size-label);
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--radius-md);
@@ -147,8 +147,8 @@
   animation: cardEnter 420ms var(--ease-emphasized) both;
 }
 .form-header { margin-bottom: var(--space-5); text-align: center; }
-.form-title { color: var(--text-strong); font-size: 1.28rem; font-weight: 800; }
-.form-subtitle { margin-top: 0.25rem; color: var(--text-muted); font-size: 0.8rem; }
+.form-title { color: var(--text-strong); font-size: 1.35rem; font-weight: 800; }
+.form-subtitle { margin-top: 0.25rem; color: var(--text-muted); font-size: var(--font-size-body); }
 
 .alert {
   display: flex;
@@ -157,7 +157,7 @@
   margin-bottom: var(--space-4);
   padding: 0.62rem 0.75rem;
   color: var(--danger);
-  font-size: 0.8rem;
+  font-size: var(--font-size-label);
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
   border-radius: var(--radius-md);
@@ -170,7 +170,7 @@
   display: block;
   margin-bottom: 0.38rem;
   color: var(--text-strong);
-  font-size: 0.8rem;
+  font-size: var(--font-size-label);
   font-weight: 700;
 }
 .required { margin-inline-start: 2px; color: var(--danger); }
@@ -191,7 +191,7 @@
   padding: 0.45rem 2.35rem 0.45rem 0.72rem;
   color: var(--text-strong);
   font-family: inherit;
-  font-size: 0.86rem;
+  font-size: var(--font-size-body);
   direction: rtl;
   background: var(--bg-surface);
   border: 1px solid var(--border-strong);
@@ -202,7 +202,7 @@
 .form-control:focus { outline: none; background: #fff; border-color: var(--brand-500); box-shadow: var(--focus-ring); }
 .form-control.is-invalid { border-color: var(--danger); }
 .form-control::placeholder { color: var(--text-dim); }
-.invalid-feedback { margin-top: 0.28rem; color: var(--danger); font-size: 0.74rem; }
+.invalid-feedback { margin-top: 0.28rem; color: var(--danger); font-size: var(--font-size-caption); font-weight: 600; }
 
 .school-select-field,
 :host ::ng-deep .school-select-field .clearable-select,
@@ -265,7 +265,7 @@
   overflow: hidden;
   color: #fff;
   font-family: inherit;
-  font-size: 0.86rem;
+  font-size: var(--font-size-label);
   font-weight: 800;
   cursor: pointer;
   background: linear-gradient(135deg, var(--brand-600), var(--brand-700));
@@ -288,7 +288,7 @@
   animation: spin 0.7s linear infinite;
 }
 .form-footer { margin-top: var(--space-4); padding-top: var(--space-3); text-align: center; border-top: 1px solid var(--border); }
-.link-muted { color: var(--brand-700); font-size: 0.78rem; font-weight: 700; }
+.link-muted { color: var(--brand-700); font-size: var(--font-size-caption); font-weight: 700; }
 .link-muted:hover { color: var(--brand-900); }
 
 @keyframes ambientDrift { to { transform: translate(-30px, 24px) scale(1.05); } }

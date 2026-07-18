@@ -43,13 +43,14 @@
           <td>{{ row.role }}</td>
           <td>
             <p-tag *ngIf="row.isActive" severity="success" [value]="'USER_SCHOOL_ROLES.ACTIVE' | translate"></p-tag>
-            <p-tag *ngIf="!row.isActive" severity="danger" [value]="'USER_SCHOOL_ROLES.ACTIVE' | translate"></p-tag>
+            <p-tag *ngIf="!row.isActive" severity="danger" [value]="'USER_SCHOOL_ROLES.INACTIVE' | translate"></p-tag>
           </td>
-          <td>
+          <td class="table-actions-col">
             <div class="table-actions">
               <button pButton type="button" icon="pi pi-trash"
                       class="p-button-danger p-button-text p-button-sm p-button-icon-only"
                       [pTooltip]="'COMMON.DELETE' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'COMMON.DELETE' | translate"
                       (click)="confirmRemove(row, $event)"></button>
             </div>
           </td>

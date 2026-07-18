@@ -13,7 +13,7 @@
         <p>يُدار من قبل السكرتير. اختر يوم عمل ثم سجل حالة جميع الموظفين.</p>
       </div>
       <div class="attendance-sheet__actions">
-        <input type="date" [ngModel]="selectedDate()" (ngModelChange)="changeDate($event)" />
+        <input type="date" aria-label="تاريخ كشف الحضور" [ngModel]="selectedDate()" (ngModelChange)="changeDate($event)" />
         <button pButton type="button" icon="pi pi-check-circle" label="الكل حاضر"
                 class="p-button-outlined" [disabled]="sheetLoading() || !sheetRows().length"
                 (click)="markEveryonePresent()"></button>
@@ -70,10 +70,10 @@
     </div>
 
     <div *ngIf="canManage()" class="attendance-record-filters">
-      <input pInputText type="search" placeholder="ابحث باسم الموظف"
+      <input pInputText type="search" aria-label="البحث باسم الموظف" placeholder="ابحث باسم الموظف"
              [ngModel]="recordName()" (ngModelChange)="recordName.set($event)" />
-      <input type="date" [ngModel]="recordFromDate()" (ngModelChange)="recordFromDate.set($event)" />
-      <input type="date" [ngModel]="recordToDate()" (ngModelChange)="recordToDate.set($event)" />
+      <input type="date" aria-label="تاريخ البداية" [ngModel]="recordFromDate()" (ngModelChange)="recordFromDate.set($event)" />
+      <input type="date" aria-label="تاريخ النهاية" [ngModel]="recordToDate()" (ngModelChange)="recordToDate.set($event)" />
       <div class="attendance-date-presets">
         <button pButton type="button" class="p-button-text" label="اليوم" (click)="setDatePreset('today')"></button>
         <button pButton type="button" class="p-button-text" label="هذا الأسبوع" (click)="setDatePreset('week')"></button>

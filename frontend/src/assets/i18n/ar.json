@@ -257,6 +257,7 @@
     "SCHOOL": "المدرسة",
     "ROLE": "الدور",
     "ACTIVE": "نشط",
+    "INACTIVE": "غير نشط",
     "CONFIRM_REMOVE": "هل تريد إلغاء هذا التعيين؟",
     "NO_USERS_AVAILABLE": "لا يوجد مستخدمون متاحون",
     "NO_SCHOOLS_AVAILABLE": "لا توجد مدارس متاحة",

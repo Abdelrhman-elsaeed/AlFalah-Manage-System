@@ -56,10 +56,12 @@
             <button pButton type="button" icon="pi pi-arrow-up" class="p-button-text p-button-sm"
                     [disabled]="dIdx === 0"
                     [pTooltip]="'RUBRIC.MOVE_UP' | translate" tooltipPosition="top"
+                    [attr.aria-label]="'RUBRIC.MOVE_UP' | translate"
                     (click)="moveDomainUp(dIdx)"></button>
             <button pButton type="button" icon="pi pi-arrow-down" class="p-button-text p-button-sm"
                     [disabled]="dIdx === domains.length - 1"
                     [pTooltip]="'RUBRIC.MOVE_DOWN' | translate" tooltipPosition="top"
+                    [attr.aria-label]="'RUBRIC.MOVE_DOWN' | translate"
                     (click)="moveDomainDown(dIdx)"></button>
           </div>
         </header>
@@ -82,10 +84,12 @@
               <button pButton type="button" icon="pi pi-arrow-up" class="p-button-text p-button-sm"
                       [disabled]="sIdx === 0"
                       [pTooltip]="'RUBRIC.MOVE_UP' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'RUBRIC.MOVE_UP' | translate"
                       (click)="moveStandardUp(dIdx, sIdx)"></button>
               <button pButton type="button" icon="pi pi-arrow-down" class="p-button-text p-button-sm"
                       [disabled]="sIdx === d.controls.standards.length - 1"
                       [pTooltip]="'RUBRIC.MOVE_DOWN' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'RUBRIC.MOVE_DOWN' | translate"
                       (click)="moveStandardDown(dIdx, sIdx)"></button>
             </div>
           </li>

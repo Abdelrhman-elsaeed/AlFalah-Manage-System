@@ -18,7 +18,7 @@
 }
 .section-title .pi { color: var(--brand-500); }
 .info-group { margin-bottom: var(--space-4); }
-.info-label { display: block; margin-bottom: var(--space-1); color: var(--text-muted); font-size: 0.85rem; }
+.info-label { display: block; margin-bottom: var(--space-1); color: var(--text-muted); font-size: var(--font-size-label); font-weight: 700; }
 .info-value { color: var(--text-strong); }
 .info-paragraph {
   margin: 0;

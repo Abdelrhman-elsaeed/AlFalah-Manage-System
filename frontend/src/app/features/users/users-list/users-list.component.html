@@ -11,9 +11,9 @@
   <app-list-toolbar>
     <app-list-toolbar-field [grow]="true" labelKey="COMMON.SEARCH">
       <p-inputGroup>
-        <input type="text" pInputText [placeholder]="'COMMON.SEARCH' | translate"
+        <input type="text" pInputText [attr.aria-label]="'COMMON.SEARCH' | translate" [placeholder]="'COMMON.SEARCH' | translate"
                [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event); onSearch()" />
-        <button type="button" pButton icon="pi pi-search" (click)="onSearch()"></button>
+        <button type="button" pButton icon="pi pi-search" [attr.aria-label]="'COMMON.SEARCH' | translate" (click)="onSearch()"></button>
       </p-inputGroup>
     </app-list-toolbar-field>
 
@@ -65,19 +65,22 @@
             <p-tag *ngIf="!user.isActive" severity="danger" [value]="'USERS.DEACTIVATED' | translate"></p-tag>
           </td>
           <td>{{ user.lastLoginAt ? (user.lastLoginAt | date:'short') : '—' }}</td>
-          <td>
+          <td class="table-actions-col">
             <div class="table-actions">
               <button pButton type="button" icon="pi pi-pencil" class="p-button-secondary p-button-text p-button-sm p-button-icon-only"
                       [pTooltip]="'COMMON.EDIT' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'COMMON.EDIT' | translate"
                       (click)="goToEdit(user)"></button>
 
               <button pButton type="button" icon="pi pi-link" class="p-button-secondary p-button-text p-button-sm p-button-icon-only"
                       [pTooltip]="'USERS.ASSIGN_TO_SCHOOL' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'USERS.ASSIGN_TO_SCHOOL' | translate"
                       (click)="openAssignDialog(user)"></button>
 
               <button *ngIf="user.isActive" pButton type="button" icon="pi pi-ban"
                       class="p-button-warning p-button-text p-button-sm p-button-icon-only"
                       [pTooltip]="'USERS.DEACTIVATE' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'USERS.DEACTIVATE' | translate"
                       (click)="confirmDeactivate(user, $event)"></button>
             </div>
           </td>

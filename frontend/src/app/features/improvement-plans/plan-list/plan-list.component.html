@@ -70,7 +70,7 @@
             <th>{{ 'PLANS.START_DATE' | translate }}</th>
             <th>{{ 'PLANS.END_DATE' | translate }}</th>
             <th>{{ 'PLANS.STATUS' | translate }}</th>
-            <th class="text-center">{{ 'COMMON.ACTIONS' | translate }}</th>
+            <th class="table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-plan>
@@ -80,24 +80,28 @@
             <td>{{ plan.startDate | date:'yyyy/MM/dd' }}</td>
             <td>{{ plan.endDate | date:'yyyy/MM/dd' }}</td>
             <td><p-tag [severity]="statusSeverity(plan.status)" [value]="statusLabelKey(plan.status) | translate"></p-tag></td>
-            <td class="text-center">
+            <td class="table-actions-col">
               <div class="table-actions">
                 <button pButton type="button" icon="pi pi-eye"
                         [routerLink]="['/improvement-plans', plan.id]"
                         class="p-button-text p-button-sm p-button-icon-only"
-                        [pTooltip]="'PLANS.DETAILS' | translate" tooltipPosition="top"></button>
+                        [pTooltip]="'PLANS.DETAILS' | translate" tooltipPosition="top"
+                        [attr.aria-label]="'PLANS.DETAILS' | translate"></button>
                 <button *ngIf="canEdit() && !plan.isReadOnly" pButton type="button" icon="pi pi-pencil"
                         class="p-button-text p-button-warning p-button-sm p-button-icon-only"
                         (click)="openEditDialog(plan)"
-                        [pTooltip]="'PLANS.EDIT' | translate" tooltipPosition="top"></button>
+                        [pTooltip]="'PLANS.EDIT' | translate" tooltipPosition="top"
+                        [attr.aria-label]="'PLANS.EDIT' | translate"></button>
                 <button *ngIf="canEdit() && plan.isReadOnly && plan.status !== 'active'" pButton type="button" icon="pi pi-refresh"
                         class="p-button-text p-button-success p-button-sm p-button-icon-only"
                         (click)="confirmReactivate(plan)"
-                        [pTooltip]="'PLANS.REACTIVATE' | translate" tooltipPosition="top"></button>
+                        [pTooltip]="'PLANS.REACTIVATE' | translate" tooltipPosition="top"
+                        [attr.aria-label]="'PLANS.REACTIVATE' | translate"></button>
                 <button *ngIf="canDelete() && !plan.isReadOnly" pButton type="button" icon="pi pi-trash"
                         class="p-button-text p-button-danger p-button-sm p-button-icon-only"
                         (click)="confirmDelete(plan)"
-                        [pTooltip]="'PLANS.DELETE' | translate" tooltipPosition="top"></button>
+                        [pTooltip]="'PLANS.DELETE' | translate" tooltipPosition="top"
+                        [attr.aria-label]="'PLANS.DELETE' | translate"></button>
               </div>
             </td>
           </tr>

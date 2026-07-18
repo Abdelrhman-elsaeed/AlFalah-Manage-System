@@ -47,7 +47,7 @@
           <th>{{ 'COMPLAINTS.MODERATOR' | translate }}</th>
           <th>{{ 'COMPLAINTS.CREATED_AT' | translate }}</th>
           <th class="text-center">{{ 'COMPLAINTS.STATUS' | translate }}</th>
-          <th class="text-center">{{ 'COMMON.ACTIONS' | translate }}</th>
+          <th class="table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-c>
@@ -61,19 +61,22 @@
           <td class="text-center">
             <p-tag [severity]="severity(c.status)" [value]="c.statusLabelAr"></p-tag>
           </td>
-          <td class="text-center">
+          <td class="table-actions-col">
             <div class="table-actions">
               <button pButton type="button" icon="pi pi-eye"
                       class="p-button-sm p-button-icon-only p-button-outlined"
                       [pTooltip]="'COMPLAINTS.DETAILS' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'COMPLAINTS.DETAILS' | translate"
                       (click)="openDetail(c)"></button>
               <button *ngIf="!isInstructorOnly()" pButton type="button" icon="pi pi-clipboard"
                       class="p-button-sm p-button-icon-only p-button-outlined"
                       [pTooltip]="'COMPLAINTS.GO_TO_VISIT' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'COMPLAINTS.GO_TO_VISIT' | translate"
                       (click)="goToVisit(c)"></button>
               <button *ngIf="canDelete()" pButton type="button" icon="pi pi-trash"
                       class="p-button-sm p-button-icon-only p-button-outlined p-button-danger"
                       [pTooltip]="'COMMON.DELETE' | translate" tooltipPosition="top"
+                      [attr.aria-label]="'COMMON.DELETE' | translate"
                       (click)="confirmDelete(c)"></button>
             </div>
           </td>

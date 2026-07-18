@@ -33,6 +33,7 @@
           <td class="table-actions-col">
             <button pButton pTooltip="{{ 'REPORTS.OPEN' | translate }}" tooltipPosition="top"
                     type="button" icon="pi pi-eye"
+                    [attr.aria-label]="'REPORTS.OPEN' | translate"
                     class="p-button-text p-button-sm p-button-icon-only"
                     (click)="openReport(report)"></button>
           </td>

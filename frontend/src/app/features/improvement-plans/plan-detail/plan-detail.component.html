@@ -112,11 +112,13 @@
                 <button *ngIf="canEdit() && !p.isReadOnly" pButton type="button" icon="pi pi-pencil"
                         class="p-button-text p-button-warning p-button-sm p-button-icon-only"
                         (click)="openEditDialog(fu)"
-                        [pTooltip]="'FOLLOWUPS.EDIT' | translate" tooltipPosition="top"></button>
+                        [pTooltip]="'FOLLOWUPS.EDIT' | translate" tooltipPosition="top"
+                        [attr.aria-label]="'FOLLOWUPS.EDIT' | translate"></button>
                 <button *ngIf="canDelete() && !p.isReadOnly" pButton type="button" icon="pi pi-trash"
                         class="p-button-text p-button-danger p-button-sm p-button-icon-only"
                         (click)="confirmDelete(fu)"
-                        [pTooltip]="'FOLLOWUPS.DELETE' | translate" tooltipPosition="top"></button>
+                        [pTooltip]="'FOLLOWUPS.DELETE' | translate" tooltipPosition="top"
+                        [attr.aria-label]="'FOLLOWUPS.DELETE' | translate"></button>
               </div>
             </header>
             <div class="followup-card__body">

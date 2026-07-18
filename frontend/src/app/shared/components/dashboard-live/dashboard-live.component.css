@@ -87,12 +87,12 @@
   gap: 0.45rem;
   margin-bottom: 0.55rem;
   color: #f6dc7a;
-  font-size: 0.78rem;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 .dashboard-brief__intro h2 { margin: 0; color: #fff; font-size: clamp(1.25rem, 1.8vw, 1.55rem); }
-.dashboard-brief__intro p { max-width: 34rem; margin: 0.5rem 0 0; color: rgba(255, 255, 255, 0.72); font-size: 0.86rem; }
+.dashboard-brief__intro p { max-width: 34rem; margin: 0.5rem 0 0; color: rgba(255, 255, 255, 0.76); font-size: var(--font-size-body); line-height: 1.55; }
 .dashboard-brief__highlights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
 
 .brief-highlight {
@@ -120,7 +120,7 @@
   background: rgba(212, 175, 55, 0.15);
 }
 .brief-highlight__content { display: flex; min-width: 0; flex-direction: column; }
-.brief-highlight__content small { overflow: hidden; color: rgba(255, 255, 255, 0.68); font-size: 0.73rem; text-overflow: ellipsis; white-space: nowrap; }
+.brief-highlight__content small { overflow: hidden; color: rgba(255, 255, 255, 0.72); font-size: var(--font-size-caption); text-overflow: ellipsis; white-space: nowrap; }
 .brief-highlight__content strong { overflow: hidden; color: #fff; font-size: 1.08rem; text-overflow: ellipsis; white-space: nowrap; }
 
 .dashboard-loading,

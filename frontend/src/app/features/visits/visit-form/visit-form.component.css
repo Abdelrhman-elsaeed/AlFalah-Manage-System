@@ -25,8 +25,8 @@
   border-bottom: 1px solid var(--border);
 }
 .page-header__titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.page-header__title { font-size: 1.32rem; font-weight: 800; color: var(--text-strong); margin: 0; }
-.page-header__subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+.page-header__title { font-size: 1.45rem; font-weight: 800; color: var(--text-strong); margin: 0; }
+.page-header__subtitle { font-size: var(--font-size-body); color: var(--text-muted); margin: 0; line-height: 1.55; }
 
 
 
@@ -67,9 +67,9 @@
 }
 .form-field { display: flex; flex-direction: column; gap: 4px; }
 .form-field--full { grid-column: 1 / -1; }
-.form-field label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
-.field-hint { color: var(--brand-700); font-size: 0.78rem; }
-.field-error { color: var(--danger); font-size: 0.78rem; }
+.form-field label { font-size: var(--font-size-label); color: var(--text-muted); font-weight: 700; }
+.field-hint { color: var(--brand-700); font-size: var(--font-size-caption); }
+.field-error { color: var(--danger); font-size: var(--font-size-caption); font-weight: 600; }
 .teaching-fallback {
   display: flex;
   align-items: flex-start;

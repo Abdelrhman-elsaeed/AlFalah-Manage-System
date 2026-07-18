@@ -21,6 +21,25 @@ textarea.p-inputtext,
   font-family: inherit;
   transition: border-color var(--duration-fast), box-shadow var(--duration-fast), background var(--duration-fast);
 }
+
+/* Validation must be recognisable before a user reads the message below a field. */
+.p-inputtext.ng-invalid.ng-touched,
+.p-inputtext.p-invalid,
+.p-dropdown.ng-invalid.ng-touched,
+.p-dropdown.p-invalid,
+.p-multiselect.ng-invalid.ng-touched,
+.p-multiselect.p-invalid {
+  border-color: var(--danger) !important;
+  background: #fffafb !important;
+}
+.p-inputtext.ng-invalid.ng-touched:focus,
+.p-inputtext.p-invalid:focus,
+.p-dropdown.ng-invalid.ng-touched.p-focus,
+.p-dropdown.p-invalid.p-focus,
+.p-multiselect.ng-invalid.ng-touched.p-focus,
+.p-multiselect.p-invalid.p-focus {
+  box-shadow: 0 0 0 3px rgba(211, 59, 59, 0.15) !important;
+}
 /* Textareas need to expand vertically but keep the same padding/border. */
 textarea.p-inputtext {
   height: auto;
@@ -42,6 +61,20 @@ textarea.p-inputtext {
   padding: 0.4rem 0.75rem !important;
   font-family: inherit;
   transition: border-color var(--duration-fast), box-shadow var(--duration-fast), background var(--duration-fast);
+}
+input[type='date']:not(.p-inputtext) {
+  min-height: var(--control-height);
+  color: var(--text-strong);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.75rem;
+  font: inherit;
+}
+input[type='date']:not(.p-inputtext):focus-visible {
+  border-color: var(--brand-500);
+  box-shadow: var(--focus-ring);
+  outline: none;
 }
 .p-calendar-w-btn .p-inputtext { border-radius: 0 !important; }
 .p-calendar-w-btn .p-datepicker-trigger {
@@ -67,6 +100,32 @@ textarea.p-inputtext {
 }
 
 .p-inputtext::placeholder { color: var(--text-dim) !important; }
+
+/* Search fields are a single control: keep the text field and its action button
+   visually connected in both RTL and LTR layouts. */
+.p-inputgroup {
+  align-items: stretch;
+}
+.p-inputgroup > .p-inputtext {
+  min-width: 0;
+}
+.p-inputgroup > .p-button {
+  width: var(--control-height);
+  min-width: var(--control-height);
+  height: var(--control-height);
+  padding: 0;
+  flex: 0 0 var(--control-height);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+.p-inputgroup > .p-button:not(:last-child) {
+  border-radius: 0;
+}
+[dir='rtl'] .p-inputgroup > .p-inputtext:first-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0 !important;
+}
+[dir='rtl'] .p-inputgroup > .p-button:last-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
 
 /* PrimeNG dropdown — trigger chevron + clear icon stay inline-end.
    D-41: label reserves right/left padding for the chevron + clear "✕" so
@@ -162,7 +221,7 @@ textarea.p-inputtext {
   align-items: center !important;
   gap: 0.35rem;
   padding: 0.24rem 0.58rem !important;
-  font-size: 0.72rem !important;
+  font-size: var(--font-size-caption) !important;
   font-weight: 600 !important;
   border-radius: 999px !important;
   line-height: 1 !important;
@@ -178,15 +237,17 @@ textarea.p-inputtext {
 /* Tables — light header (brand tint), row hover (brand 6%), green-vs-red statuses */
 .p-datatable {
   background-color: var(--bg-surface) !important;
+  border-radius: var(--radius-md);
 }
 .p-datatable .p-datatable-thead > tr > th {
   background: linear-gradient(180deg, #eff8f3 0%, var(--brand-50) 100%) !important;
   color: var(--brand-900) !important;
   border-bottom: 1px solid var(--border-strong) !important;
   font-weight: 700;
-  font-size: 0.78rem;
-  padding: 0.62rem 0.75rem !important;
+  font-size: var(--font-size-label);
+  padding: 0.7rem 0.8rem !important;
   text-align: start;
+  white-space: nowrap;
 }
 .p-datatable .p-datatable-tbody > tr {
   background-color: var(--bg-surface) !important;
@@ -198,14 +259,18 @@ textarea.p-inputtext {
   background-image: none !important;
   color: var(--text) !important;
   border-bottom: 1px solid var(--border) !important;
-  padding: 0.58rem 0.75rem !important;
-  font-size: 0.82rem;
+  padding: 0.7rem 0.8rem !important;
+  font-size: var(--font-size-body);
+  line-height: 1.5;
   vertical-align: middle;
   text-align: start; /* Match header alignment for RTL */
 }
 .p-datatable .p-datatable-tbody > tr:hover > td {
   background-color: rgba(15, 113, 50, 0.06) !important;
   background-image: none !important;
+}
+.p-datatable .p-datatable-tbody > tr:focus-within > td {
+  background-color: rgba(15, 113, 50, 0.08) !important;
 }
 .p-datatable .p-datatable-tfoot > tr > td {
   background-color: var(--bg-surface) !important;
@@ -219,7 +284,16 @@ textarea.p-inputtext {
 .p-datatable th.text-center, 
 .p-datatable td.text-center { text-align: center !important; }
 .p-datatable th.table-actions-col, 
-.p-datatable td.table-actions-col { text-align: center !important; width: 132px; min-width: 132px; white-space: nowrap; }
+.p-datatable td.table-actions-col {
+  width: 1%;
+  min-width: max-content;
+  text-align: center !important;
+  white-space: nowrap;
+}
+.p-datatable .p-sortable-column:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: -3px;
+}
 
 /* Action groups */
 .action-toolbar {
@@ -236,7 +310,7 @@ textarea.p-inputtext {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   min-height: 2.3rem;
   padding: 0;
   border: 0;
@@ -330,7 +404,7 @@ textarea.p-inputtext {
   background: var(--bg-surface) !important;
   color: var(--text-muted) !important;
   border-top: 1px solid var(--border) !important;
-  padding: 0.5rem 0.75rem !important;
+  padding: 0.65rem 0.8rem !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between;
@@ -387,17 +461,17 @@ textarea.p-inputtext {
   background: var(--bg-surface) !important;
   color: var(--text-strong) !important;
   border-bottom: 1px solid var(--border) !important;
-  padding: 0.8rem 1rem !important;
+  padding: 1rem 1.1rem !important;
 }
 .p-dialog .p-dialog-content {
   background: var(--bg-surface) !important;
   color: var(--text) !important;
-  padding: 1rem !important;
+  padding: 1.1rem !important;
 }
 .p-dialog .p-dialog-footer {
   background: var(--bg-surface) !important;
   border-top: 1px solid var(--border) !important;
-  padding: 0.7rem 1rem !important;
+  padding: 0.8rem 1.1rem !important;
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
@@ -436,9 +510,9 @@ textarea.p-inputtext {
   justify-content: center;
   gap: 0.5rem;
   height: var(--control-height);
-  padding: 0.45rem 0.85rem;
+  padding: 0.5rem 0.95rem;
   border-radius: var(--radius-md);
-  font-size: 0.82rem;
+  font-size: var(--font-size-label);
   font-weight: 700;
   transition: background-color var(--duration-fast), border-color var(--duration-fast), color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-normal);
 }
@@ -458,7 +532,7 @@ h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
 .p-button .p-button-icon-left  + .p-button-label,
 .p-button .p-button-label + .p-button-icon-right { margin-inline-start: 0.5rem; }
 .p-button .p-button-label + .p-button-icon-left { margin-inline-end: 0.5rem; }
-.p-button.p-button-sm { height: 2rem; padding: 0.4rem 0.7rem; font-size: 0.82rem; }
+.p-button.p-button-sm { height: var(--control-height-sm); padding: 0.4rem 0.72rem; font-size: var(--font-size-caption); }
 .p-button.p-button-text { background: transparent; }
 
 /* D-31: defensive — any p-button that hosts both an icon and a label gets the gap
@@ -476,7 +550,7 @@ h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
   padding: 0;
   flex: 0 0 auto;
 }
-.p-button.p-button-icon-only.p-button-sm { width: 2rem; height: 2rem; }
+.p-button.p-button-icon-only.p-button-sm { width: var(--control-height-sm); height: var(--control-height-sm); }
 .p-button.p-button-icon-only .pi,
 .p-button.p-button-icon-only .p-button-icon { font-size: 0.95rem; }
 
@@ -566,11 +640,51 @@ h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
 .p-button.p-button-text.p-button-secondary { color: var(--text-muted); background: transparent; }
 .p-button.p-button-text.p-button-secondary:enabled:hover { background: var(--bg-surface-2); color: var(--text-strong); }
 
+/* Row actions are intentionally quiet until the user needs them, while still
+   offering a generous hit area and a clear meaning on hover/focus. */
+.table-actions .p-button.p-button-text:not(.row-action) {
+  background: var(--bg-surface-2);
+  border-color: var(--border);
+}
+.table-actions .p-button.p-button-text.p-button-secondary:not(.row-action) {
+  color: var(--text-strong);
+}
+.table-actions .p-button.p-button-text:not(.row-action):enabled:hover {
+  border-color: var(--brand-300);
+  background: var(--brand-50);
+  box-shadow: var(--shadow-xs);
+}
+.table-actions .p-button.p-button-text.p-button-danger:not(.row-action):enabled:hover {
+  color: #fff;
+  border-color: var(--danger);
+  background: var(--danger);
+}
+.table-actions .p-button.p-button-text.p-button-warning:not(.row-action):enabled:hover {
+  color: var(--text-strong);
+  border-color: var(--warning);
+  background: #fff4cf;
+}
+
 /* Disabled state — readable on light bg */
 .p-button:disabled,
 .p-button.p-disabled {
   opacity: 0.55;
   cursor: not-allowed !important;
+}
+
+/* PrimeNG checkbox/radio controls use the same accessible brand focus as fields. */
+.p-checkbox .p-checkbox-box,
+.p-radiobutton .p-radiobutton-box {
+  border-color: var(--border-strong) !important;
+}
+.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-highlight,
+.p-radiobutton .p-radiobutton-box.p-highlight {
+  background: var(--brand-600) !important;
+  border-color: var(--brand-600) !important;
+}
+.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-focus,
+.p-radiobutton .p-radiobutton-box.p-focus {
+  box-shadow: var(--focus-ring) !important;
 }
 
 /* Progress spinner */

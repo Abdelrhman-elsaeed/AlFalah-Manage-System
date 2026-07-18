@@ -45,7 +45,7 @@
 }
 
 .detail-row { display: flex; flex-direction: column; gap: 0.25rem; }
-.detail-row .label { color: var(--text-muted); font-size: 0.78rem; font-weight: 600; }
+.detail-row .label { color: var(--text-muted); font-size: var(--font-size-caption); font-weight: 700; }
 .detail-row .value { color: var(--text-strong); font-size: 0.95rem; }
 .detail-row .link { color: var(--brand-700); cursor: pointer; text-decoration: underline; }
 

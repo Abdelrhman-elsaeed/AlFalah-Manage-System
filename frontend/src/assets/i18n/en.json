@@ -257,6 +257,7 @@
     "SCHOOL": "School",
     "ROLE": "Role",
     "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
     "CONFIRM_REMOVE": "Remove this assignment?",
     "NO_USERS_AVAILABLE": "No available users",
     "NO_SCHOOLS_AVAILABLE": "No available schools",
