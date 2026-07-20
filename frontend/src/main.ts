@@ -1,6 +1,33 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
+import { environment } from './environments/environment';
+
+interface EntraRuntimeConfig {
+  clientId?: string;
+  tenantId?: string;
+  apiScope?: string;
+  redirectUri?: string;
+}
+
+async function loadEntraRuntimeConfig(): Promise<void> {
+  try {
+    const response = await fetch(`${environment.apiUrl}/api/v1/auth/entra-config`);
+    if (!response.ok) return;
+
+    const config = await response.json() as EntraRuntimeConfig & { isConfigured?: boolean };
+    if (!config.isConfigured) return;
+
+    (globalThis as typeof globalThis & { __alfalahEntra?: EntraRuntimeConfig }).__alfalahEntra = {
+      clientId: config.clientId,
+      tenantId: config.tenantId,
+      apiScope: config.apiScope,
+      redirectUri: globalThis.location.origin
+    };
+  } catch {
+    // The app remains usable without the optional OneDrive integration.
+  }
+}
 
 function checkI18nDuplicateKeys(lang: string): void {
   // Lightweight runtime guard (development only): fetch each i18n file as
@@ -38,7 +65,10 @@ function checkI18nDuplicateKeys(lang: string): void {
     .catch(() => {/* ignore in production / offline */});
 }
 
-['ar', 'en'].forEach(checkI18nDuplicateKeys);
+async function bootstrap(): Promise<void> {
+  await loadEntraRuntimeConfig();
+  ['ar', 'en'].forEach(checkI18nDuplicateKeys);
+  await bootstrapApplication(AppComponent, appConfig);
+}
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+void bootstrap().catch((err) => console.error(err));

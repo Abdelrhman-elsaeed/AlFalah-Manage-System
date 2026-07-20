@@ -52,6 +52,12 @@ export const routes: Routes = [
               .then(m => m.MainManagerDashboardComponent),
             title: translatedTitle('ROUTE_TITLES.MAIN_MANAGER_DASHBOARD')
           },
+          {
+            path: 'evidence-matrix',
+            loadComponent: () => import('./features/evidence-matrix/evidence-matrix-page.component')
+              .then(m => m.EvidenceMatrixPageComponent),
+            title: 'مصفوفة متابعة الأدلة'
+          },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
       },
@@ -68,6 +74,12 @@ export const routes: Routes = [
               .then(m => m.SchoolManagerDashboardComponent),
             title: translatedTitle('ROUTE_TITLES.SCHOOL_MANAGER_DASHBOARD')
           },
+          {
+            path: 'evidence-matrix',
+            loadComponent: () => import('./features/evidence-matrix/evidence-matrix-page.component')
+              .then(m => m.EvidenceMatrixPageComponent),
+            title: 'مصفوفة متابعة الأدلة'
+          },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
       },
@@ -83,6 +95,12 @@ export const routes: Routes = [
             loadComponent: () => import('./features/dashboards/moderator-dashboard/moderator-dashboard.component')
               .then(m => m.ModeratorDashboardComponent),
             title: translatedTitle('ROUTE_TITLES.MODERATOR_DASHBOARD')
+          },
+          {
+            path: 'evidence-matrix',
+            loadComponent: () => import('./features/evidence-matrix/evidence-matrix-page.component')
+              .then(m => m.EvidenceMatrixPageComponent),
+            title: 'مصفوفة متابعة الأدلة'
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
@@ -111,6 +129,12 @@ export const routes: Routes = [
             loadComponent: () => import('./features/visits/visit-detail/visit-detail.component')
               .then(m => m.VisitDetailComponent),
             title: translatedTitle('ROUTE_TITLES.VISIT_REPORT')
+          },
+          {
+            path: 'evidence-files',
+            loadComponent: () => import('./features/teacher-evidence-files/pages/teacher-evidence-files-page/teacher-evidence-files-page.component')
+              .then(m => m.TeacherEvidenceFilesPageComponent),
+            title: 'ملفات الإنجاز'
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]

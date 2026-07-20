@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 using QuestPDF.Infrastructure;
 
 namespace AlFalah.Infrastructure;
@@ -89,11 +90,34 @@ public static class DependencyInjection
         // no extra NuGet package required — the assembly ships with .NET 8).
         services.AddScoped<IVisitsBulkExportService, VisitsBulkExportService>();
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<IMicrosoftGraphTokenService>(provider =>
+        {
+            var tokens = provider.GetService<ITokenAcquisition>();
+            return tokens is null
+                ? new UnavailableMicrosoftGraphTokenService()
+                : new MicrosoftGraphTokenService(tokens, provider.GetRequiredService<IConfiguration>());
+        });
+        services.AddScoped<ITeacherMicrosoftAccountService, TeacherMicrosoftAccountService>();
+        services.AddScoped<ITeacherDriveMappingService, TeacherDriveMappingService>();
+        services.AddScoped<OneDriveBrowserService>();
+        services.AddScoped<IOneDriveBrowserService>(provider => provider.GetRequiredService<OneDriveBrowserService>());
+        services.AddScoped<IOneDriveUploadService, OneDriveUploadService>();
+        services.AddScoped<EvidenceSubmissionService>();
+        services.AddScoped<IEvidenceSubmissionService>(provider => provider.GetRequiredService<EvidenceSubmissionService>());
+        services.AddScoped<IEvidenceMatrixService, EvidenceMatrixService>();
+        services.AddScoped<IEvidenceReconciliationService, EvidenceReconciliationService>();
 
         // Phase 6 / Stage 2: safe loader for the school logo / signature images
         // (URL → bytes, with content-type sniffing + 2 MB cap, no exceptions on
         // failure — every image is best-effort with a neutral PDF fallback).
         services.AddHttpClient("PdfAssetLoader");
+        services.AddHttpClient("MicrosoftGraph", client =>
+        {
+            client.BaseAddress = new Uri(configuration["MicrosoftGraph:BaseUrl"] ?? "https://graph.microsoft.com/v1.0/");
+            client.Timeout = TimeSpan.FromSeconds(100);
+        });
+        services.AddHttpClient("MicrosoftGraphToken");
+        services.AddHostedService<EvidenceReconciliationBackgroundService>();
         services.AddSingleton<ImageAssetLoader>();
 
         services.AddScoped<DatabaseSeeder>();

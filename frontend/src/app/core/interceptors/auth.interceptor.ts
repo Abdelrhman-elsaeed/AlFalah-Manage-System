@@ -3,6 +3,7 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse
 import { Observable, throwError, BehaviorSubject, switchMap, filter, take, catchError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { SKIP_LOCAL_AUTH } from '../http/http-context.tokens';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -12,6 +13,9 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService, private router: Router) {}
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    if (req.context.get(SKIP_LOCAL_AUTH)) {
+      return next.handle(req);
+    }
     const token = this.authService.getAccessToken();
 
     if (token) {

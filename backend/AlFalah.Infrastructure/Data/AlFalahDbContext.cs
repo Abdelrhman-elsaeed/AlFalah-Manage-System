@@ -30,6 +30,13 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<InstructorProfile> InstructorProfiles => Set<InstructorProfile>();
     // D-74 — Teacher's class labels (auto-fill source for the visit form).
     public DbSet<InstructorClass> InstructorClasses => Set<InstructorClass>();
+    public DbSet<TeacherMicrosoftAccount> TeacherMicrosoftAccounts => Set<TeacherMicrosoftAccount>();
+    public DbSet<TeacherDriveFolder> TeacherDriveFolders => Set<TeacherDriveFolder>();
+    public DbSet<TeacherEvidenceSubmission> TeacherEvidenceSubmissions => Set<TeacherEvidenceSubmission>();
+    public DbSet<AcademicYear> AcademicYears => Set<AcademicYear>();
+    public DbSet<EvidenceTask> EvidenceTasks => Set<EvidenceTask>();
+    public DbSet<TeacherTaskStatus> TeacherTaskStatuses => Set<TeacherTaskStatus>();
+    public DbSet<EvidenceUploadOperation> EvidenceUploadOperations => Set<EvidenceUploadOperation>();
 
     // System
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -134,6 +141,11 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case ApplicationUser u: u.UpdatedAt = now; break;
                 case InstructorProfile i: i.UpdatedAt = now; break;
                 case InstructorClass ic: ic.UpdatedAt = now; break;
+                case TeacherMicrosoftAccount ma: ma.UpdatedAtUtc = now; break;
+                case TeacherDriveFolder df: df.UpdatedAtUtc = now; break;
+                case TeacherEvidenceSubmission es: es.UpdatedAtUtc = now; break;
+                case TeacherTaskStatus tts: tts.UpdatedAtUtc = now; break;
+                case EvidenceUploadOperation operation: operation.UpdatedAtUtc = now; break;
                 case UserSchoolRole usr: usr.UpdatedAt = now; break;
                 case Visit v: v.UpdatedAt = now; break;
                 case VisitScore vs: vs.UpdatedAt = now; break;

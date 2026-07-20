@@ -73,3 +73,244 @@ case.
 
 - Changes detected. Rebuilding...
 
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-angular' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:14:55:
+      14 │ ...alModule, MsalService, MSAL_INSTANCE } from '@azure/msal-angular';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-browser' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:15:66:
+      15 │ ...Application, PublicClientApplication } from '@azure/msal-browser';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-angular' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:14:55:
+      14 │ ...alModule, MsalService, MSAL_INSTANCE } from '@azure/msal-angular';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-browser' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:15:66:
+      15 │ ...Application, PublicClientApplication } from '@azure/msal-browser';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-angular' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:2:28:
+      2 │ import { MsalService } from '@azure/msal-angular';
+        ╵                             ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-browser' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:3:58:
+      3 │ ...ractionRequiredAuthError, AccountInfo } from '@azure/msal-browser';
+        ╵                                                 ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:26:18:
+      26 │     let account = this.msal.instance.getActiveAccount() ?? this.ms...
+         ╵                   ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:26:59:
+      26 │ ...ance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0];
+         ╵                               ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:28:26:
+      28 │       const login = await this.msal.loginPopup({ scopes }).toPromi...
+         ╵                           ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:33:27:
+      33 │       const result = await this.msal.acquireTokenSilent({ scopes, ...
+         ╵                            ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:37:27:
+      37 │       const result = await this.msal.acquireTokenPopup({ scopes, a...
+         ╵                            ~~~~~~~~~
+
+
+X [ERROR] TS2322: Type 'Observable<number | DriveItem | undefined>' is not assignable to type 'Observable<number | DriveItem>'.
+  Type 'number | DriveItem | undefined' is not assignable to type 'number | DriveItem'.
+    Type 'undefined' is not assignable to type 'number | DriveItem'. [plugin angular-compiler]
+
+    src/app/features/teacher-evidence-files/services/teacher-drive-api.service.ts:29:4:
+      29 │     return this.withToken(false, token => this.http.post<ApiRespon...
+         ╵     ~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-angular' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:14:55:
+      14 │ ...alModule, MsalService, MSAL_INSTANCE } from '@azure/msal-angular';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-browser' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:15:66:
+      15 │ ...Application, PublicClientApplication } from '@azure/msal-browser';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-angular' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:2:28:
+      2 │ import { MsalService } from '@azure/msal-angular';
+        ╵                             ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-browser' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:3:58:
+      3 │ ...ractionRequiredAuthError, AccountInfo } from '@azure/msal-browser';
+        ╵                                                 ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:26:18:
+      26 │     let account = this.msal.instance.getActiveAccount() ?? this.ms...
+         ╵                   ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:26:59:
+      26 │ ...ance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0];
+         ╵                               ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:28:26:
+      28 │       const login = await this.msal.loginPopup({ scopes }).toPromi...
+         ╵                           ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:33:27:
+      33 │       const result = await this.msal.acquireTokenSilent({ scopes, ...
+         ╵                            ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:37:27:
+      37 │       const result = await this.msal.acquireTokenPopup({ scopes, a...
+         ╵                            ~~~~~~~~~
+
+
+X [ERROR] TS2322: Type 'Observable<number | DriveItem | undefined>' is not assignable to type 'Observable<number | DriveItem>'.
+  Type 'number | DriveItem | undefined' is not assignable to type 'number | DriveItem'.
+    Type 'undefined' is not assignable to type 'number | DriveItem'. [plugin angular-compiler]
+
+    src/app/features/teacher-evidence-files/services/teacher-drive-api.service.ts:29:4:
+      29 │     return this.withToken(false, token => this.http.post<ApiRespon...
+         ╵     ~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-angular' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:14:55:
+      14 │ ...alModule, MsalService, MSAL_INSTANCE } from '@azure/msal-angular';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-browser' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/app.config.ts:15:66:
+      15 │ ...Application, PublicClientApplication } from '@azure/msal-browser';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-angular' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:2:28:
+      2 │ import { MsalService } from '@azure/msal-angular';
+        ╵                             ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2307: Cannot find module '@azure/msal-browser' or its corresponding type declarations. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:3:58:
+      3 │ ...ractionRequiredAuthError, AccountInfo } from '@azure/msal-browser';
+        ╵                                                 ~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:26:18:
+      26 │     let account = this.msal.instance.getActiveAccount() ?? this.ms...
+         ╵                   ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:26:59:
+      26 │ ...ance.getActiveAccount() ?? this.msal.instance.getAllAccounts()[0];
+         ╵                               ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:28:26:
+      28 │       const login = await this.msal.loginPopup({ scopes }).toPromi...
+         ╵                           ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:33:27:
+      33 │       const result = await this.msal.acquireTokenSilent({ scopes, ...
+         ╵                            ~~~~~~~~~
+
+
+X [ERROR] TS2571: Object is of type 'unknown'. [plugin angular-compiler]
+
+    src/app/core/services/microsoft-auth.service.ts:37:27:
+      37 │       const result = await this.msal.acquireTokenPopup({ scopes, a...
+         ╵                            ~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+

@@ -137,11 +137,20 @@ export class ShellComponent implements OnInit {
       ? [{ labelKey: 'NAV.DASHBOARD', icon: 'pi pi-home', route: dashboardRoute }]
       : [];
 
+    const roles = this.authService.roles();
+    if (roles.includes('SchoolManager'))
+      items.push({ labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/school-manager/evidence-matrix' });
+    else if (roles.includes('Moderator'))
+      items.push({ labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/moderator/evidence-matrix' });
+    else if (roles.includes('MainManager') || roles.includes('SuperAdmin'))
+      items.push({ labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/main-manager/evidence-matrix' });
+
     // D-36/D-73: exactly the minimal Instructor navigation surface.
     if (this.isInstructorOnly()) {
       items.push(
         { labelKey: 'الحضور والانصراف', icon: 'pi pi-calendar', route: '/attendance', permissions: ['Attendance.View'] },
         { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
+        { labelKey: 'ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/instructor/evidence-files' },
         { labelKey: 'NAV.COMPLAINT_RESULTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
         { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
       );

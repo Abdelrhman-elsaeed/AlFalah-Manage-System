@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AlFalah.Application.Common;
+using AlFalah.Application.Common.Exceptions;
 using AlFalah.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -48,6 +49,7 @@ public class GlobalExceptionMiddleware
         {
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, exception.Message),
             UnauthorizedSchoolAccessException => (StatusCodes.Status403Forbidden, exception.Message),
+            TeacherDriveAccessDeniedException => (StatusCodes.Status403Forbidden, exception.Message),
             KeyNotFoundException => (StatusCodes.Status404NotFound, exception.Message),
             ArgumentException => (StatusCodes.Status400BadRequest, exception.Message),
             InvalidOperationException => (StatusCodes.Status400BadRequest, exception.Message),

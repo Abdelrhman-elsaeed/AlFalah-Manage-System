@@ -11,6 +11,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.Identity.Web;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,7 +80,32 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+// Entra is deliberately a second scheme: existing administration JWT login remains unchanged.
+builder.Services.AddAuthentication()
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"), jwtBearerScheme: "Entra")
+    .EnableTokenAcquisitionToCallDownstreamApi()
+    .AddInMemoryTokenCaches();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("TeacherOneDriveAccess", policy =>
+    {
+        policy.AddAuthenticationSchemes("Entra");
+        policy.RequireAuthenticatedUser();
+    });
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("teacher-drive", limiter =>
+    {
+        limiter.PermitLimit = 40;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+        limiter.AutoReplenishment = true;
+    });
+});
+builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = builder.Configuration.GetValue<long?>("TeacherDrive:MaxUploadBytes") ?? 250L * 1024 * 1024);
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 
@@ -192,8 +221,29 @@ app.UseCors("AlFalahCors");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
+
+// The SPA needs only these public Entra identifiers to acquire a delegated
+// access token. Keeping the values here removes the fragile requirement to
+// hand-edit index.html at every deployment. ClientSecret is deliberately
+// never exposed by this endpoint.
+app.MapGet("/api/v1/auth/entra-config", (IConfiguration configuration) =>
+{
+    var clientId = configuration["AzureAd:ClientId"];
+    var tenantId = configuration["AzureAd:TenantId"];
+    var apiScope = configuration["AzureAd:ApiScope"];
+    return Results.Ok(new
+    {
+        clientId,
+        tenantId,
+        apiScope,
+        isConfigured = !string.IsNullOrWhiteSpace(clientId)
+                       && !string.IsNullOrWhiteSpace(tenantId)
+                       && !string.IsNullOrWhiteSpace(apiScope)
+    });
+}).AllowAnonymous();
 
 // ─── Database Migration and Seeding ──────────────────────────────────────────
 

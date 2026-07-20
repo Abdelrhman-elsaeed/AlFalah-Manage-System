@@ -22,6 +22,53 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.AcademicYear", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateOnly>("EndsOn")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("AcademicYears", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "2026-2027",
+                            EndsOn = new DateOnly(2027, 7, 31),
+                            IsActive = true,
+                            NameAr = "العام الدراسي 2026-2027",
+                            StartsOn = new DateOnly(2026, 8, 1)
+                        });
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.ApplicationRole", b =>
                 {
                     b.Property<string>("Id")
@@ -406,6 +453,406 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("SchoolId", "Status");
 
                     b.ToTable("Complaints");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.EvidenceTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("CategorySortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive", "CategorySortOrder", "SortOrder");
+
+                    b.ToTable("EvidenceTasks", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-01",
+                            IsActive = true,
+                            NameAr = "البيانات الأساسية",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-02",
+                            IsActive = true,
+                            NameAr = "الإنجازات الشخصية",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-03",
+                            IsActive = true,
+                            NameAr = "التكريمات",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-04",
+                            IsActive = true,
+                            NameAr = "الخبرات",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-05",
+                            IsActive = true,
+                            NameAr = "الدورات التدريبية",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-06",
+                            IsActive = true,
+                            NameAr = "الرخصة المهنية",
+                            SortOrder = 6
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-07",
+                            IsActive = true,
+                            NameAr = "الشهادات التدريبية",
+                            SortOrder = 7
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Category = "السيرة الذاتية",
+                            CategorySortOrder = 1,
+                            Code = "CV-08",
+                            IsActive = true,
+                            NameAr = "ملف إنجاز المعلم",
+                            SortOrder = 8
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Category = "المجتمعات المهنية",
+                            CategorySortOrder = 2,
+                            Code = "PC-01",
+                            IsActive = true,
+                            NameAr = "تبادل الزيارات",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Category = "المجتمعات المهنية",
+                            CategorySortOrder = 2,
+                            Code = "PC-02",
+                            IsActive = true,
+                            NameAr = "الخبرات المهنية",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Category = "المجتمعات المهنية",
+                            CategorySortOrder = 2,
+                            Code = "PC-03",
+                            IsActive = true,
+                            NameAr = "مبادرات المعلم",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Category = "المواد الإثرائية",
+                            CategorySortOrder = 3,
+                            Code = "EN-01",
+                            IsActive = true,
+                            NameAr = "الأنشطة الصفية",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Category = "المواد الإثرائية",
+                            CategorySortOrder = 3,
+                            Code = "EN-02",
+                            IsActive = true,
+                            NameAr = "تصميمات ورسومات",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Category = "المواد الإثرائية",
+                            CategorySortOrder = 3,
+                            Code = "EN-03",
+                            IsActive = true,
+                            NameAr = "عروض تقديمية",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Category = "المواد الإثرائية",
+                            CategorySortOrder = 3,
+                            Code = "EN-04",
+                            IsActive = true,
+                            NameAr = "مواقع ومنصات",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Category = "المواد الإثرائية",
+                            CategorySortOrder = 3,
+                            Code = "EN-05",
+                            IsActive = true,
+                            NameAr = "أوراق العمل",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Category = "الخطط العلاجية",
+                            CategorySortOrder = 4,
+                            Code = "RP-01",
+                            IsActive = true,
+                            NameAr = "الفاقد التعليمي",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Category = "الخطط العلاجية",
+                            CategorySortOrder = 4,
+                            Code = "RP-02",
+                            IsActive = true,
+                            NameAr = "خطة الطلاب المتعثرين والضعاف",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Category = "الخطط العلاجية",
+                            CategorySortOrder = 4,
+                            Code = "RP-03",
+                            IsActive = true,
+                            NameAr = "خطة الطلاب المتفوقين والموهوبين",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Category = "التقويم",
+                            CategorySortOrder = 5,
+                            Code = "AS-01",
+                            IsActive = true,
+                            NameAr = "اختبارات قصيرة لكل وحدة",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Category = "التقويم",
+                            CategorySortOrder = 5,
+                            Code = "AS-02",
+                            IsActive = true,
+                            NameAr = "بحوث ومشاريع للطلاب",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Category = "التقويم",
+                            CategorySortOrder = 5,
+                            Code = "AS-03",
+                            IsActive = true,
+                            NameAr = "تحليل النتائج",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Category = "حقيبة الطالب",
+                            CategorySortOrder = 6,
+                            Code = "SP-01",
+                            IsActive = true,
+                            NameAr = "تحفيز الطلاب وتشجيعهم",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Category = "حقيبة الطالب",
+                            CategorySortOrder = 6,
+                            Code = "SP-02",
+                            IsActive = true,
+                            NameAr = "سجل المتابعة للطلاب",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Category = "حقيبة الطالب",
+                            CategorySortOrder = 6,
+                            Code = "SP-03",
+                            IsActive = true,
+                            NameAr = "شواهد من التواصل الأسري",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 26,
+                            Category = "حقيبة الطالب",
+                            CategorySortOrder = 6,
+                            Code = "SP-04",
+                            IsActive = true,
+                            NameAr = "عينة من أنشطة الطالب",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 27,
+                            Category = "حقيبة الطالب",
+                            CategorySortOrder = 6,
+                            Code = "SP-05",
+                            IsActive = true,
+                            NameAr = "كشوف رصد الدرجات",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = 28,
+                            Category = "حقيبة الطالب",
+                            CategorySortOrder = 6,
+                            Code = "SP-06",
+                            IsActive = true,
+                            NameAr = "ملفات إنجاز الطالب",
+                            SortOrder = 6
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Category = "حقيبة المنهج",
+                            CategorySortOrder = 7,
+                            Code = "CP-01",
+                            IsActive = true,
+                            NameAr = "استراتيجيات التعلم النشط وشواهد",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Category = "حقيبة المنهج",
+                            CategorySortOrder = 7,
+                            Code = "CP-02",
+                            IsActive = true,
+                            NameAr = "الخطة الأسبوعية لكل فصل دراسي",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 31,
+                            Category = "حقيبة المنهج",
+                            CategorySortOrder = 7,
+                            Code = "CP-03",
+                            IsActive = true,
+                            NameAr = "توزيع المنهج",
+                            SortOrder = 3
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.EvidenceUploadOperation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AcademicYearId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("RequestId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("SubmissionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status", "UpdatedAtUtc");
+
+                    b.HasIndex("TeacherId", "RequestId")
+                        .IsUnique();
+
+                    b.ToTable("EvidenceUploadOperations", (string)null);
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ImprovementPlan", b =>
@@ -1527,6 +1974,290 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("SchoolReportSettings");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherDriveFolder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DriveId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("FolderDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RootItemId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("RootWebUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("TeacherId")
+                        .IsUnique();
+
+                    b.HasIndex("DriveId", "RootItemId")
+                        .IsUnique();
+
+                    b.ToTable("TeacherDriveFolders", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherEvidenceSubmission", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("AcademicYearId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DriveId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("DriveItemId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ETag")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("FileExtension")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMissingFromDrive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset?>("MissingFromDriveAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ParentItemId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("ReviewStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("ReviewedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SizeInBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("UploadStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UploadedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("WebUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("DriveId", "DriveItemId")
+                        .IsUnique();
+
+                    b.HasIndex("TeacherId", "UploadedAtUtc");
+
+                    b.HasIndex("TeacherId", "AcademicYearId", "TaskId", "IsDeleted");
+
+                    b.ToTable("TeacherEvidenceSubmissions", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherMicrosoftAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsLinked")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LastLoginAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("LinkedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("MicrosoftEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedMicrosoftEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ObjectId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TenantId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedMicrosoftEmail");
+
+                    b.HasIndex("TeacherId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "ObjectId")
+                        .IsUnique()
+                        .HasFilter("[TenantId] IS NOT NULL AND [ObjectId] IS NOT NULL");
+
+                    b.ToTable("TeacherMicrosoftAccounts", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherTaskStatus", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AcademicYearId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ActiveFilesCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CellStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("LastReviewedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastReviewedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("LastSubmissionAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("SchoolId", "AcademicYearId", "CellStatus");
+
+                    b.HasIndex("TeacherId", "TaskId", "AcademicYearId")
+                        .IsUnique();
+
+                    b.ToTable("TeacherTaskStatuses", (string)null);
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.UserSchoolRole", b =>
                 {
                     b.Property<int>("Id")
@@ -2374,6 +3105,104 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherDriveFolder", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "Teacher")
+                        .WithOne()
+                        .HasForeignKey("AlFalah.Domain.Entities.TeacherDriveFolder", "TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("School");
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherEvidenceSubmission", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.AcademicYear", "AcademicYear")
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.EvidenceTask", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicYear");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Task");
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherMicrosoftAccount", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "Teacher")
+                        .WithOne()
+                        .HasForeignKey("AlFalah.Domain.Entities.TeacherMicrosoftAccount", "TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeacherTaskStatus", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.AcademicYear", "AcademicYear")
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.EvidenceTask", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicYear");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Task");
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.UserSchoolRole", b =>

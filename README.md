@@ -113,3 +113,15 @@ npm start
 - [x] Dashboards with analytics (Phase 9)
 - [x] Excel/PDF exports (Phase 9)
 - [x] Full shell layout with categorized sidebar (Phase 2 + D-73)
+
+## Teacher Evidence Files / OneDrive
+
+The instructor route is `/instructor/evidence-files`. It uses Microsoft Entra access tokens for this feature only; the existing local administrator login remains unchanged.
+
+1. Create a single-tenant Entra app registration and add the SPA redirect URI (for local development, `http://localhost:4200`). Expose an API scope such as `api://<api-client-id>/access_as_user`.
+2. Add delegated Microsoft Graph permission `Files.ReadWrite`, grant consent, and ensure each configured root folder is in the teacher's own OneDrive and accessible to that teacher. Do not add application permissions or `Files.ReadWrite.All` for this feature.
+3. Configure the API with user secrets or environment variables: `AzureAd__TenantId`, `AzureAd__ClientId`, `AzureAd__ClientSecret` (or certificate settings), `AzureAd__Domain`, `AzureAd__Audience`, `AzureAd__ApiScope`, and optionally `MicrosoftGraph__Scopes__0=Files.ReadWrite`.
+4. Inject public SPA values before Angular boots, for example in the deployment HTML: `window.__alfalahEntra={clientId:'...',tenantId:'...',apiScope:'api://.../access_as_user',redirectUri:'https://app.example'};`. Never add a client secret to this object or source control.
+5. An administrator with `Instructor.Edit` configures the expected Microsoft email and the DriveId/RootItemId through `/api/v1/teacher-drive-admin/teachers/{teacherId}` endpoints. The teacher only sees the mapped folder, never these identifiers.
+
+Apply the EF migration with `dotnet ef database update --project backend/AlFalah.Infrastructure --startup-project backend/AlFalah.Api`. The runtime also applies pending migrations on API startup in development.

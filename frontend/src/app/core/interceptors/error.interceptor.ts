@@ -13,7 +13,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
 import { ApiResponse } from '../models/api-response.model';
-import { SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
+import { SKIP_LOCAL_AUTH, SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
 
 /**
  * Global HTTP error interceptor.
@@ -58,6 +58,9 @@ export class ErrorInterceptor implements HttpInterceptor {
 
         // ── 401 ────────────────────────────────────────────────────────────────
         if (error.status === 401) {
+          // An expired Entra token must never end the existing local school session.
+          // The Teacher Evidence Files feature reacquires it through MSAL.
+          if (req.context.get(SKIP_LOCAL_AUTH)) return throwError(() => error);
           // AuthInterceptor has already attempted refresh and given up.
           if (!silent && this.authService.isAuthenticated()) {
             // Stale token on an authenticated session — wipe and bounce.

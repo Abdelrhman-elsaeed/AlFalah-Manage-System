@@ -6,3 +6,6 @@ import { HttpContextToken } from '@angular/common/http';
  * response or any server-side authorization decision.
  */
 export const SUPPRESS_FORBIDDEN_REDIRECT = new HttpContextToken<boolean>(() => false);
+
+/** Prevents the local-session interceptor from replacing an Entra API token. */
+export const SKIP_LOCAL_AUTH = new HttpContextToken<boolean>(() => false);

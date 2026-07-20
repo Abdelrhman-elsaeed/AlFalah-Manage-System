@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "AlFalah.Shared/1.0.0": {
+        "runtime": {
+          "AlFalah.Shared.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AlFalah.Shared/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
