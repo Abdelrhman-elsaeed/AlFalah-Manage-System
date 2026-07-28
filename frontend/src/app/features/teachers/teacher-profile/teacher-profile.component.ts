@@ -13,6 +13,12 @@ import { ToastService } from '../../../core/services/toast.service';
 import { TeachersService } from '../../../core/services/teachers.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
+  PUBLISHED_MAXIMUM,
+  PublishedScoreDeltaPipe,
+  PublishedScorePipe,
+  toPublishedScore
+} from '../../../shared/score-scale';
+import {
   TeacherProfile,
   TeacherProgress,
   TeacherVisitProgress,
@@ -24,7 +30,8 @@ import {
   standalone: true,
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    ButtonModule, ChipsModule, TableModule, TagModule, TooltipModule, ChartModule
+    ButtonModule, ChipsModule, TableModule, TagModule, TooltipModule, ChartModule,
+    PublishedScorePipe, PublishedScoreDeltaPipe
   ],
   templateUrl: './teacher-profile.component.html',
   styleUrls: ['./teacher-profile.component.css']
@@ -68,7 +75,8 @@ export class TeacherProfileComponent implements OnInit {
       const color = palette[idx % palette.length];
       return {
         label: v.legendLabel,
-        data: v.domainAverages.map(d => d.averageScore),
+        // D-UI-1: plotted on the one published scale (0–100).
+        data: v.domainAverages.map(d => toPublishedScore(d.averageScore) ?? 0),
         borderColor: color,
         backgroundColor: hexToRgba(color, 0.11),
         borderWidth: 2.5,
@@ -108,13 +116,13 @@ export class TeacherProfileComponent implements OnInit {
           font: { family: 'Tajawal, Cairo, sans-serif', size: 12, weight: '600' as any }
         },
         ticks: {
-          stepSize: 1,
+          stepSize: 20,
           backdropColor: 'transparent',
           color: 'rgba(15, 23, 42, 0.55)',
           font: { size: 10 }
         },
         suggestedMin: 0,
-        suggestedMax: 4
+        suggestedMax: PUBLISHED_MAXIMUM
       }
     }
   };

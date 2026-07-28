@@ -13,20 +13,21 @@
     </div>
   </header>
 
-  <!-- Status filter toolbar -->
-  <section class="complaints-toolbar surface-card">
-    <label class="toolbar-label">{{ 'COMPLAINTS.STATUS' | translate }}</label>
-    <app-clearable-select [options]="statusOptions"
-                          optionValue="value"
-                          [placeholder]="'COMPLAINTS.ALL_STATUSES' | translate"
-                          [(ngModel)]="statusFilter"
-                          (onDropdownChange)="load()"
-                          (cleared)="load()"
-                          [itemTpl]="statusItemTpl"
-                          [selectedItemTpl]="statusSelectedItemTpl"
-                          appendTo="body"
-                          styleClass="w-full"></app-clearable-select>
-  </section>
+  <!-- Status filter — same shared toolbar every other list page uses, so the
+       single filter stays a compact field instead of a page-wide empty bar. -->
+  <app-list-toolbar [compact]="true">
+    <app-list-toolbar-field labelKey="COMPLAINTS.STATUS">
+      <app-clearable-select [options]="statusOptions"
+                            optionValue="value"
+                            [placeholder]="'COMPLAINTS.ALL_STATUSES' | translate"
+                            [(ngModel)]="statusFilter"
+                            (onDropdownChange)="load()"
+                            (cleared)="load()"
+                            [itemTpl]="statusItemTpl"
+                            [selectedItemTpl]="statusSelectedItemTpl"
+                            appendTo="body"></app-clearable-select>
+    </app-list-toolbar-field>
+  </app-list-toolbar>
 
   <ng-template #statusItemTpl let-opt>
     <span>{{ opt.labelKey | translate }}</span>

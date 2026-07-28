@@ -1,3 +1,4 @@
+using AlFalah.Application.Analysis;
 using AlFalah.Application.DTOs.Reports;
 using AlFalah.Application.Interfaces;
 using System.Globalization;
@@ -64,6 +65,13 @@ public class PdfReportService : IPdfReportService
         public const string LabelApprovedBy    = "اعتمدها";
         public const string LabelRubricVersion = "إصدار الأداة";
         public const string StatusApproved     = "معتمدة";
+        public const string StatusDraft        = "مسودة — غير معتمدة";
+        public const string LabelAttendance    = "الحاضرون / الغائبون";
+        public const string LabelDomain        = "المحور";
+        public const string LabelProgress      = "نسبة التقدم";
+        public const string LabelFollowUpNote  = "ما تم تنفيذه";
+        public const string LabelFollowDate    = "تاريخ المتابعة";
+        public const string SectionIdentification = "بيانات الزيارة";
         public const string SectionStandards   = "تقييم المعايير";
         public const string SectionAnalysis    = "تحليل الزيارة";
         public const string SectionStrengths   = "نقاط القوة";
@@ -75,6 +83,12 @@ public class PdfReportService : IPdfReportService
         public const string SectionDomainAvg   = "متوسطات المحاور";
         public const string LabelOverallScore  = "الدرجة الكلية";
         public const string LabelAverageScore  = "المتوسط العام";
+        /// <summary>Raw tally of standard scores — points, not a score out of 100.</summary>
+        public const string LabelRawPoints     = "مجموع النقاط";
+        // D-UI-1: the متوسطات المحاور table used LabelAverageScore ("overall
+        // average") for a column that holds each DOMAIN's average — two
+        // different quantities under one label. This is the domain column.
+        public const string LabelDomainAverage = "متوسط المحور";
         public const string LabelScore         = "الدرجة";
         public const string LabelStandard      = "المعيار";
         public const string LabelNumber        = "م";
@@ -84,8 +98,20 @@ public class PdfReportService : IPdfReportService
         public const string LabelManagerSig    = "اعتماد مدير المدرسة";
 
         public const string FooterGenerated   = "تاريخ إنشاء التقرير";
-        public const string LabelDomainAvgPrefix = "متوسط المحور";
         public const string LabelDomainScore = "درجة المحور";
+
+        /// <summary>D-UI-1 — states the one published scale, once per table.</summary>
+        public const string ScaleNote = "جميع الدرجات من 100.";
+
+        // Explicit "nothing to show" lines. A printed official form must never
+        // leave a section as a bare heading — the reader cannot tell whether
+        // the data is missing or the report is truncated.
+        public const string NoStandards      = "لم تُسجَّل معايير لهذه الزيارة.";
+        public const string NoStrengths      = "لم تُحدَّد نقاط قوة لهذه الزيارة.";
+        public const string NoImprovements   = "لا توجد مجالات تحسين مُحدَّدة.";
+        public const string NoPriorities     = "لا توجد معايير ذات أولوية.";
+        public const string NoRecommendations= "لا توجد توصيات مُسجَّلة.";
+        public const string NoFollowUps      = "لم تُضف متابعات لخطط التحسين بعد.";
     }
 
     // ── Brand palette (Saudi light identity — same tokens as the frontend) ──
@@ -101,7 +127,8 @@ public class PdfReportService : IPdfReportService
         public const string Gold          = "#D4AF37";
         public const string Text          = "#1E293B";
         public const string Muted         = "#64748B";
-        public const string Border        = "#E3E1D8";
+        public const string Border        = "#D9E1DC";
+        public const string BorderStrong  = "#B9C7BF";
         public const string White         = "#FFFFFF";
         public const string Page          = "#F6F1E7";
         public const string ScoreTop      = "#22C55E";
@@ -180,7 +207,10 @@ public class PdfReportService : IPdfReportService
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(28, Unit.Point);
+                // 24pt keeps the sheet inside every common printer's
+                // unprintable margin while recovering enough height that the
+                // signature block no longer needs a sheet of its own.
+                page.Margin(24, Unit.Point);
                 page.PageColor(Palette.White);
                 page.Background().Background(Palette.White);
                 page.DefaultTextStyle(t =>
@@ -189,10 +219,16 @@ public class PdfReportService : IPdfReportService
                      .DirectionFromRightToLeft()
                      .FontColor(Palette.Text));
 
-                // Keep the full branded masthead on the cover page. Repeating
-                // the large image header on continuation pages caused unstable
-                // clipping in some PDF viewers and consumed useful space.
-                page.Header().ShowOnce().Element(c => ComposeHeader(c, dto));
+                // The full branded masthead prints on the first sheet only —
+                // repeating the logo band clipped unpredictably in some viewers
+                // and ate usable height. Continuation sheets instead carry a
+                // slim running header so a page separated from the staple can
+                // still be identified.
+                page.Header().Column(header =>
+                {
+                    header.Item().ShowOnce().Element(c => ComposeHeader(c, dto));
+                    header.Item().SkipOnce().Element(c => ComposeRunningHeader(c, dto));
+                });
                 page.Content().Element(c => ComposeContent(c, dto));
                 page.Footer().Element(c => ComposeFooter(c, dto));
             });
@@ -245,7 +281,33 @@ public class PdfReportService : IPdfReportService
                         .Element(c => RenderSchoolLogoOrInitials(c, dto));
                 });
 
-                outer.Item().PaddingTop(6).LineHorizontal(0.8f).LineColor(Palette.Border);
+                outer.Item().Height(3).Background(Palette.Gold);
+            });
+    }
+
+    /// <summary>
+    /// Slim identification band for sheets 2..n: teacher, visit date and the
+    /// report title, so a loose page is still traceable to its report.
+    /// </summary>
+    private void ComposeRunningHeader(IContainer container, VisitReportDto dto)
+    {
+        container
+            .PaddingBottom(8)
+            .BorderBottom(1).BorderColor(DynamicPalette.BrandGreen)
+            .PaddingBottom(5)
+            .Row(row =>
+            {
+                row.ConstantItem(110).AlignLeft().AlignMiddle()
+                    .Text(dto.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
+                    .FontFamily(AmiriRegular).FontSize(8.5f).FontColor(Palette.Muted);
+
+                row.RelativeItem().AlignRight().AlignMiddle().Text(t =>
+                {
+                    t.Span(T.ReportTitle + " — ")
+                        .FontFamily(AmiriBold).Bold().FontSize(9).FontColor(Palette.BrandGreenText);
+                    t.Span(Dash(dto.InstructorFullName))
+                        .FontFamily(AmiriRegular).FontSize(9).FontColor(Palette.Text);
+                });
             });
     }
 
@@ -316,15 +378,29 @@ public class PdfReportService : IPdfReportService
         return null;
     }
 
+    /// <summary>
+    /// Section order for the printed sheet: who/when → the rubric → the
+    /// analysis → the narrative findings → signatures.
+    ///
+    /// Optional narrative sections are omitted when the analysis produced
+    /// nothing, so the sheet does not carry pages of "no data" boxes. The
+    /// signature block is NOT forced onto a fresh page any more — a forced
+    /// break routinely produced an almost-empty final sheet. Each section is
+    /// kept whole instead, so a card never splits across a page boundary.
+    /// </summary>
     private void ComposeContent(IContainer container, VisitReportDto dto)
     {
-        container.PaddingVertical(12).Column(col =>
+        container.PaddingVertical(8).Column(col =>
         {
-            col.Spacing(10);
+            col.Spacing(7);
 
+            // Each block decides its own pagination (short → pinned whole,
+            // long → heading glued to the first row and the rest flows), so no
+            // ShowEntire is applied here: wrapping a block that cannot fit a
+            // whole page raises a QuestPDF layout exception.
             col.Item().Element(c => ComposeMetaCard(c, dto));
-            col.Item().Element(c => ComposeStandardsCard(c, dto));
             col.Item().Element(c => ComposeAnalysisCard(c, dto));
+            col.Item().Element(c => ComposeStandardsCard(c, dto));
 
             if (dto.Strengths.Count > 0)
                 col.Item().Element(c => ComposeStrengthsBlock(c, dto));
@@ -332,16 +408,16 @@ public class PdfReportService : IPdfReportService
             if (dto.ImprovementAreas.Count > 0)
                 col.Item().Element(c => ComposeImprovementsBlock(c, dto));
 
-            col.Item().Element(c => ComposeRecommendationsBlock(c, dto));
-
             if (dto.PriorityStandards.Count > 0)
                 col.Item().Element(c => ComposePrioritiesBlock(c, dto));
+
+            if (dto.Recommendations.Count > 0)
+                col.Item().Element(c => ComposeRecommendationsBlock(c, dto));
 
             if (dto.PlanFollowUps.Count > 0)
                 col.Item().Element(c => ComposeFollowUpsBlock(c, dto));
 
-            col.Item().PageBreak();
-            col.Item().Element(c => ComposeSignatureCard(c, dto));
+            col.Item().ShowEntire().Element(c => ComposeSignatureCard(c, dto));
         });
     }
 
@@ -359,21 +435,31 @@ public class PdfReportService : IPdfReportService
             .Row(row =>
             {
                 // QR (visual left side — end side in RTL).
-                row.ConstantItem(72).Height(50).AlignCenter().AlignMiddle()
+                row.ConstantItem(50).Height(50).AlignCenter().AlignMiddle()
                     .Element(c => RenderQrCode(c, dto));
 
-                // Generated timestamp (middle, centered).
-                row.RelativeItem().AlignCenter().Text(t =>
+                // Page position — essential on a stapled paper report.
+                row.ConstantItem(96).AlignLeft().AlignBottom().Text(t =>
+                {
+                    t.DefaultTextStyle(s => s.FontFamily(AmiriRegular).FontSize(8).FontColor(Palette.Muted));
+                    t.Span("صفحة ");
+                    t.CurrentPageNumber();
+                    t.Span(" من ");
+                    t.TotalPages();
+                });
+
+                // Generated timestamp (middle, centered). Local wall-clock
+                // format — the ISO "u" form was unreadable on a printed sheet.
+                row.RelativeItem().AlignCenter().AlignBottom().Text(t =>
                 {
                     t.Span(T.FooterGenerated + ": ").FontColor(Palette.Muted).FontFamily(AmiriRegular).FontSize(8);
-                    t.Span(dto.ApprovedAt.HasValue
-                        ? dto.ApprovedAt.Value.ToString("u")
-                        : DateTimeOffset.UtcNow.ToString("u"))
+                    t.Span((dto.ApprovedAt ?? DateTimeOffset.UtcNow)
+                            .ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
                      .FontColor(Palette.Muted).FontFamily(AmiriRegular).FontSize(8);
                 });
 
                 // BUG-6 FIX: footer text aligned to the right (RTL start/inline-start).
-                row.RelativeItem().AlignRight().Text(t =>
+                row.RelativeItem().AlignRight().AlignBottom().Text(t =>
                 {
                     var footer = SafeDisplayText(dto.FooterText, T.ReportTitle);
                     t.Span(footer).FontFamily(AmiriRegular).FontColor(Palette.Muted).FontSize(8);
@@ -422,414 +508,541 @@ public class PdfReportService : IPdfReportService
     // ─── Sections ────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// BUG-6 FIX — Meta card: clean 2-column RTL grid.
-    /// Status badge is now on the LEFT (visual end in RTL); rubric version
-    /// on the RIGHT (visual start in RTL). No overlap.
-    /// Row order: school | teacher, subject | class, lesson | attendance,
-    /// moderator | visit type, sequence | visit date, submitted | approved,
-    /// approved-by | supervisor notes.
+    /// Identification block. Two label/value columns inside a ruled table so a
+    /// printed sheet reads as an official form: every value sits under its own
+    /// rule, and the RTL start edge (visual right) always carries the label.
     /// </summary>
     private void ComposeMetaCard(IContainer container, VisitReportDto dto)
     {
-        container.Border(1).BorderColor(Palette.Border).Padding(12).Column(col =>
+        PdfTheme.SectionCard(container, T.SectionIdentification, card =>
         {
-            col.Spacing(8);
-
-            // Top row: rubric version (RIGHT = RTL start) | status badge (LEFT = RTL end)
-            col.Item().Row(row =>
+            // Status + rubric version strip. QuestPDF Row children flow
+            // left-to-right physically, so the badge is declared first to land
+            // on the visual left (the RTL end) and the version on the right.
+            card.Item().PaddingBottom(6).Row(row =>
             {
-                // BUG-6 FIX: status badge on the LEFT (visual end) — in RTL,
-                // the "approved" badge reads naturally from the left edge.
                 if (!dto.IsDraftWatermark)
                 {
                     row.AutoItem()
-                        .Background(Palette.BrandGreen).PaddingVertical(4).PaddingHorizontal(8)
-                        .AlignCenter().Text(T.StatusApproved)
-                        .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.White);
+                        .Background(Palette.BrandGreen)
+                        .PaddingVertical(3).PaddingHorizontal(9)
+                        .AlignMiddle().Text(T.StatusApproved)
+                        .FontFamily(AmiriBold).FontSize(9).Bold().FontColor(Palette.White);
+                }
+                else
+                {
+                    row.AutoItem()
+                        .Background(Palette.ScoreLow)
+                        .PaddingVertical(3).PaddingHorizontal(9)
+                        .AlignMiddle().Text(T.StatusDraft)
+                        .FontFamily(AmiriBold).FontSize(9).Bold().FontColor(Palette.White);
                 }
 
-                row.RelativeItem(); // spacer
+                row.RelativeItem();
 
-                // Rubric version label on the right (RTL start)
-                row.AutoItem().AlignRight().Text(t =>
+                row.AutoItem().AlignRight().AlignMiddle().Text(t =>
                 {
-                    t.Span(T.LabelRubricVersion + ": " + dto.RubricVersionNumber)
-                     .FontColor(Palette.Muted).FontSize(9);
+                    t.Span(T.LabelRubricVersion + ": ").FontColor(Palette.Muted).FontSize(8.5f);
+                    t.Span(dto.RubricVersionNumber.ToString(CultureInfo.InvariantCulture))
+                        .FontFamily(AmiriBold).Bold().FontSize(9).FontColor(Palette.Text);
                 });
             });
 
-            // 2-column info grid — strictly ordered per spec
-            col.Item().Table(table =>
+            card.Item().Table(table =>
             {
+                // Physical L→R: [value][label] | [value][label]
+                // Reading RTL that is label → value for each of the two columns.
                 table.ColumnsDefinition(c =>
                 {
                     c.RelativeColumn();
+                    c.ConstantColumn(96);
                     c.RelativeColumn();
+                    c.ConstantColumn(96);
                 });
 
-                // Row 1: School | Teacher
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSchool, dto.SchoolName));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelInstructor, dto.InstructorFullName));
+                var pairs = new List<(string Label, string Value)>
+                {
+                    (T.LabelInstructor,    Dash(dto.InstructorFullName)),
+                    (T.LabelSchool,        Dash(dto.SchoolName)),
+                    (T.LabelGradeClass,    Dash(dto.GradeClass)),
+                    (T.LabelSubject,       Dash(dto.Subject)),
+                    (T.LabelAttendance,    $"{dto.PresentCount} / {dto.AbsentCount}"),
+                    (T.LabelLessonTitle,   Dash(dto.LessonTitle)),
+                    (T.LabelCategory,      Dash(dto.VisitCategoryLabelAr)),
+                    (T.LabelModerator,     Dash(dto.CreatedByFullName)),
+                    (T.LabelVisitDate,     dto.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+                    (T.LabelSequence,      Dash(dto.VisitSequenceLabelAr)),
+                    (T.LabelApprovedAt,    DateOrDash(dto.ApprovedAt)),
+                    (T.LabelSubmittedAt,   DateOrDash(dto.SubmittedAt)),
+                };
 
-                // Row 2: Subject | Class
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSubject, dto.Subject ?? "—"));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelGradeClass, dto.GradeClass ?? "—"));
-
-                // Row 3: Lesson title | attendance
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelLessonTitle, dto.LessonTitle ?? "—"));
-                table.Cell().AlignRight().Element(c => MetaCell(
-                    c,
-                    $"{T.LabelPresentCount} / {T.LabelAbsentCount}",
-                    $"{dto.PresentCount} / {dto.AbsentCount}"));
-
-                // Row 4: Moderator | Visit Type
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelModerator, dto.CreatedByFullName));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelCategory, dto.VisitCategoryLabelAr));
-
-                // Row 5: Sequence | Visit Date
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSequence, dto.VisitSequenceLabelAr));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelVisitDate, dto.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
-
-                // Row 6: Submitted Date | Approved Date
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelSubmittedAt, dto.SubmittedAt?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) ?? "—"));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedAt, dto.ApprovedAt?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) ?? "—"));
-
-                // Row 7: Approved By | supervisor notes
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelApprovedBy, string.IsNullOrWhiteSpace(dto.ApprovedByFullName) ? "—" : dto.ApprovedByFullName));
-                table.Cell().AlignRight().Element(c => MetaCell(c, T.LabelNotes, string.IsNullOrWhiteSpace(dto.Notes) ? "—" : dto.Notes));
+                // Each iteration emits two label/value pairs. QuestPDF fills
+                // cells left-to-right, so the SECOND pair lands on the visual
+                // right — i.e. it is the one read first in RTL.
+                for (var i = 0; i < pairs.Count; i += 2)
+                {
+                    var zebra = (i / 2) % 2 == 1;
+                    MetaPair(table, pairs[i], zebra);
+                    if (i + 1 < pairs.Count) MetaPair(table, pairs[i + 1], zebra);
+                }
             });
+
+            if (!string.IsNullOrWhiteSpace(dto.ApprovedByFullName))
+            {
+                card.Item().PaddingTop(6).AlignRight().Text(t =>
+                {
+                    t.Span(T.LabelApprovedBy + ": ").FontColor(Palette.Muted).FontSize(8.5f);
+                    t.Span(dto.ApprovedByFullName!).FontFamily(AmiriBold).Bold().FontSize(9.5f);
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.Notes))
+            {
+                card.Item().PaddingTop(8)
+                    .Background(Palette.Page)
+                    .Border(PdfTheme.BorderWidth).BorderColor(Palette.Border)
+                    .Padding(8)
+                    .Column(note =>
+                    {
+                        note.Item().AlignRight().Text(T.LabelNotes)
+                            .FontFamily(AmiriBold).FontSize(9).Bold().FontColor(Palette.Muted);
+                        note.Item().PaddingTop(3).AlignRight().Text(dto.Notes!)
+                            .FontFamily(AmiriRegular).FontSize(9.5f).FontColor(Palette.Text);
+                    });
+            }
         });
     }
 
-    private static void MetaCell(IContainer container, string label, string value)
+    private static void MetaPair(TableDescriptor table, (string Label, string Value) pair, bool zebra)
     {
-        container
-            .Background("#FAFCFB")
-            .BorderBottom(0.5f).BorderColor(Palette.Border)
-            .Padding(6)
-            .Text(t =>
-            {
-                t.Span(label + ": ").FontColor(Palette.Muted).FontSize(8.5f);
-                t.Span(value).FontFamily(AmiriBold).Bold().FontSize(10.5f).FontColor(Palette.Text);
-            });
+        PdfTheme.BodyCell(table.Cell(), pair.Value, zebra: zebra, strong: true);
+        PdfTheme.BodyCell(table.Cell(), pair.Label, zebra: zebra, color: Palette.Muted);
     }
 
+    /// <summary>
+    /// The rubric itself: one ruled table per domain. The domain code chip was
+    /// removed — the printed sheet shows the domain's Arabic name and score
+    /// only, because the internal D1…D5 identifiers mean nothing to a reader
+    /// holding the paper.
+    /// </summary>
     private void ComposeStandardsCard(IContainer container, VisitReportDto dto)
     {
         container.Column(col =>
         {
-            col.Item().AlignRight().Text(T.SectionStandards)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreenText);
+            col.Spacing(7);
 
-            foreach (var d in dto.Domains)
+            if (dto.Domains.Count == 0)
             {
-                col.Item().PaddingTop(8).Element(c => ComposeDomainBlock(c, d));
+                col.Item().Element(c => PdfTheme.SectionHeading(c, T.SectionStandards));
+                col.Item().Element(c => PdfTheme.EmptyNote(c, T.NoStandards));
+                return;
             }
+
+            // The heading is glued to the first domain so it can never be left
+            // stranded alone at the foot of a page, and every domain block is
+            // atomic so a table never starts on a new sheet without the domain
+            // name above it.
+            col.Item().ShowEntire().Column(first =>
+            {
+                first.Item().Element(c => PdfTheme.SectionHeading(c, T.SectionStandards));
+                first.Item().PaddingTop(7).Element(c => ComposeDomainBlock(c, dto.Domains[0]));
+            });
+
+            foreach (var d in dto.Domains.Skip(1))
+                col.Item().ShowEntire().Element(c => ComposeDomainBlock(c, d));
         });
     }
 
     private void ComposeDomainBlock(IContainer container, ReportDomainBlockDto block)
     {
-        container.Border(1).BorderColor(Palette.Border).Column(col =>
-        {
-            // Domain header — RTL: [domain average right-aligned] [domain name center] [domain code LEFT=start in LTR row]
-            // Physical row: [code chip LEFT] [name CENTER expanding] [average RIGHT]
-            // Visually in RTL: average reads first (right), code chip last (left).
-            col.Item().Background("#EAF5EE").Padding(8).Row(row =>
+        container
+            .Border(PdfTheme.BorderWidth).BorderColor(Palette.Border)
+            .Column(col =>
             {
-                // Code chip — left side (physical) = RTL end
-                row.ConstantItem(56).AlignCenter().Background(DynamicPalette.BrandGreen)
-                    .PaddingVertical(4).PaddingHorizontal(8)
-                    .Text(block.DomainCode)
-                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.White);
-
-                // Domain name — expanding, right-aligned
-                row.RelativeItem().AlignRight().PaddingRight(8)
-                    .Text(block.DomainNameAr)
-                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.BrandGreenText);
-
-                // Domain average — compact, right side (physical) = RTL start
-                row.ConstantItem(80).AlignCenter().Text(t =>
-                {
-                    t.Span(T.LabelDomainScore + ": ").FontColor(Palette.Muted).FontSize(9);
-                    t.Span($"{block.PercentageScore:0.#}%")
-                     .FontFamily(AmiriBold).Bold().FontColor(Palette.BrandGreen).FontSize(10);
-                    t.Span($" ({block.AverageScore:0.000}/4)")
-                     .FontColor(Palette.Muted).FontSize(8);
-                });
-            });
-
-            // BUG-4 FIX — Standards table: 3 columns, tighter badge cell.
-            // Physical order (L→R): [score pill 90pt] [standard text expanding] [code chip 48pt]
-            // In RTL reading: code (right) → text → score pill (left/end)
-            col.Item().Padding(8).Table(table =>
-            {
-                table.ColumnsDefinition(c =>
-                {
-                    c.ConstantColumn(90);  // score pill (visual left = RTL end)
-                    c.RelativeColumn();    // standard text (expands, right-aligned)
-                    c.ConstantColumn(34);  // row number (visual right = RTL start)
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Background(Palette.Page).Padding(5).AlignCenter()
-                        .Text(T.LabelScore).FontFamily(AmiriBold).FontSize(8).Bold().FontColor(Palette.Muted);
-                    header.Cell().Background(Palette.Page).Padding(5).AlignRight()
-                        .Text(T.LabelStandard).FontFamily(AmiriBold).FontSize(8).Bold().FontColor(Palette.Muted);
-                    header.Cell().Background(Palette.Page).Padding(5).AlignCenter()
-                        .Text(T.LabelNumber).FontFamily(AmiriBold).FontSize(8).Bold().FontColor(Palette.Muted);
-                });
-
-                for (var standardIndex = 0; standardIndex < block.Standards.Count; standardIndex++)
-                {
-                    var std = block.Standards[standardIndex];
-                    var scoreColor = ScoreColor(std.Score);
-                    var rowBackground = standardIndex % 2 == 0 ? Palette.White : "#FAFCFB";
-
-                    // Score pill — LEFT column (physical) = RTL end
-                    table.Cell().Background(rowBackground).AlignCenter().AlignMiddle()
-                        .Element(c => ComposeScorePill(c, std.Score, std.ScoreLabelAr, scoreColor));
-
-                    // Standard text — MIDDLE column, right-aligned RTL
-                    table.Cell().Background(rowBackground).AlignRight().AlignMiddle().PaddingVertical(5).Column(sc =>
+                // Domain strip: name on the RTL start edge (visual right),
+                // score summary pinned to the visual left.
+                col.Item()
+                    .Background("#EAF5EE")
+                    .BorderBottom(PdfTheme.BorderWidth).BorderColor(Palette.Border)
+                    .PaddingVertical(5).PaddingHorizontal(8)
+                    .Row(row =>
                     {
-                        sc.Item().AlignRight().Text(std.StandardTextAr)
-                            .FontSize(10).FontColor(Palette.Text);
-                        if (!string.IsNullOrWhiteSpace(std.EvidenceNote))
+                        // D-UI-1: one figure, one scale. This used to print
+                        // "91.7%  (3.67 / 4)" — the same result twice, on two
+                        // different scales, in one strip.
+                        row.ConstantItem(150).AlignLeft().AlignMiddle().Text(t =>
                         {
-                            sc.Item().AlignRight().PaddingTop(2).Text(std.EvidenceNote!)
-                                .FontSize(8).Italic().FontColor(Palette.Muted);
-                        }
+                            t.Span(ScoreScale.FormatWithMaximum(block.AverageScore))
+                                .FontFamily(AmiriBold).Bold().FontSize(10.5f)
+                                .FontColor(ScoreColorForLevelNumeric(block.AverageScore));
+                            t.Span($"  {VisitAnalysisEngine.MapPerformanceLevel(block.AverageScore)}")
+                                .FontColor(Palette.Muted).FontSize(8);
+                        });
+
+                        row.RelativeItem().AlignRight().AlignMiddle()
+                            .Text(block.DomainNameAr)
+                            .FontFamily(AmiriBold).FontSize(10.5f).Bold().FontColor(Palette.BrandGreenText);
                     });
 
-                    // Code chip — RIGHT column (physical) = RTL start
-                    table.Cell().Background(rowBackground).AlignCenter().AlignMiddle().Text((standardIndex + 1).ToString())
-                        .FontFamily(AmiriBold).FontSize(9).Bold().FontColor(Palette.Muted);
-                }
+                col.Item().Table(table =>
+                {
+                    // Physical L→R: [score 96] [standard text] [number 30]
+                    // Reading RTL: number → standard → score.
+                    table.ColumnsDefinition(c =>
+                    {
+                        c.ConstantColumn(96);
+                        c.RelativeColumn();
+                        c.ConstantColumn(30);
+                    });
+
+                    table.Header(header =>
+                    {
+                        PdfTheme.HeaderCell(header.Cell(), T.LabelScore, PdfTheme.CellAlign.Center);
+                        PdfTheme.HeaderCell(header.Cell(), T.LabelStandard);
+                        PdfTheme.HeaderCell(header.Cell(), T.LabelNumber, PdfTheme.CellAlign.Center);
+                    });
+
+                    if (block.Standards.Count == 0)
+                    {
+                        PdfTheme.EmptyRow(table, 3, T.NoStandards);
+                        return;
+                    }
+
+                    for (var i = 0; i < block.Standards.Count; i++)
+                    {
+                        var std = block.Standards[i];
+                        var zebra = i % 2 == 1;
+
+                        table.Cell()
+                            .Background(zebra ? PdfTheme.ZebraRow : Palette.White)
+                            .BorderBottom(PdfTheme.BorderWidth).BorderRight(PdfTheme.BorderWidth)
+                            .BorderColor(Palette.Border)
+                            .PaddingVertical(4).PaddingHorizontal(5)
+                            .AlignMiddle()
+                            .Element(c => ComposeScorePill(c, std.Score, std.ScoreLabelAr, ScoreColor(std.Score)));
+
+                        table.Cell()
+                            .Background(zebra ? PdfTheme.ZebraRow : Palette.White)
+                            .BorderBottom(PdfTheme.BorderWidth).BorderRight(PdfTheme.BorderWidth)
+                            .BorderColor(Palette.Border)
+                            .PaddingVertical(4).PaddingHorizontal(6)
+                            .AlignMiddle()
+                            .Column(sc =>
+                            {
+                                sc.Item().AlignRight().Text(std.StandardTextAr)
+                                    .FontFamily(AmiriRegular).FontSize(9.5f).FontColor(Palette.Text);
+                                if (!string.IsNullOrWhiteSpace(std.EvidenceNote))
+                                    sc.Item().PaddingTop(2).AlignRight().Text(std.EvidenceNote!)
+                                        .FontFamily(AmiriRegular).FontSize(8).Italic().FontColor(Palette.Muted);
+                            });
+
+                        PdfTheme.BodyCell(table.Cell(), (i + 1).ToString(),
+                            PdfTheme.CellAlign.Center, zebra, color: Palette.Muted);
+                    }
+                });
             });
-        });
     }
 
     /// <summary>
-    /// BUG-4 FIX — Score pill: fixed 26×26 badge, semantic color,
-    /// Arabic label to the right of the badge (in RTL context, label reads first).
-    ///
-    /// Physical row (L→R): [badge 26×26] [label text]
-    /// In RTL reading order: label (right = RTL start) → badge (left = RTL end)
-    /// This means the reader sees the performance label first, then the number.
+    /// Score cell: a fixed 22×22 colour chip carrying the number, with the
+    /// Arabic level word beside it. Fixed geometry keeps the whole column
+    /// aligned down the page.
     /// </summary>
     private static void ComposeScorePill(IContainer container, int? score, string label, string color)
     {
-        container.AlignMiddle().Row(row =>
+        container.Row(row =>
         {
-            // Score number badge — fixed 26×26, rounded corners via border+radius
-            row.ConstantItem(26).Height(26)
+            row.ConstantItem(22).Height(22)
                 .Background(color)
-                .Border(0)
                 .AlignCenter().AlignMiddle()
                 .Text(score?.ToString() ?? "—")
-                .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.White);
+                .FontFamily(AmiriBold).FontSize(9.5f).Bold().FontColor(Palette.White);
 
-            // Performance label — to the right in RTL reading
             row.RelativeItem().PaddingRight(4).AlignRight().AlignMiddle()
                 .Text(label)
-                .FontSize(8).FontColor(color);
+                .FontFamily(AmiriRegular).FontSize(7.5f).FontColor(color);
         });
     }
 
     private void ComposeAnalysisCard(IContainer container, VisitReportDto dto)
     {
-        container.Column(col =>
+        PdfTheme.SectionCard(container, T.SectionAnalysis, card =>
         {
-            col.Item().AlignRight().Text(T.SectionAnalysis)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreenText);
-
-            // Summary row: overall + performance level (RTL → level first visually)
-            col.Item().PaddingTop(6).Row(row =>
+            // D-UI-1: one published scale, and each cell a DISTINCT fact.
+            // This strip used to print the same result three ways —
+            // "3.12 / 4" beside "78 / 100" beside "91.7%" — so a reader could
+            // not tell which number was the visit's score. Now:
+            //   الدرجة الكلية = the authoritative score (equal-weight mean of the
+            //                   domain averages, docs/09 D1) published on 0–100
+            //   مجموع النقاط  = the raw tally of standard scores, labelled as
+            //                   points so it can never be read as a second score
+            //   مستوى الأداء  = the Arabic level derived from the same figure
+            card.Item().Row(row =>
             {
-                row.RelativeItem().AlignRight().Element(c => ComposeSummaryCell(c,
-                    T.LabelOverallScore,
-                    $"{dto.TotalScore:0.###} / {dto.MaximumScore:0.###}",
-                    Palette.BrandGreen));
-                row.ConstantItem(8);
-                row.RelativeItem().AlignRight().Element(c => ComposeSummaryCell(c,
-                    T.LabelAverageScore,
-                    $"{dto.OverallScore:0.000} / 4",
-                    ScoreColorForLevelNumeric(dto.OverallScore)));
-                row.ConstantItem(8);
-                row.RelativeItem().AlignRight().Element(c => ComposeSummaryCell(c,
+                row.Spacing(6);
+                // Declared left-to-right; reading RTL the level lands first.
+                row.RelativeItem().Element(c => ComposeSummaryCell(c,
                     T.LabelPerformance, dto.PerformanceLevelAr, ScoreColorForLevel(dto.PerformanceLevelAr)));
+                row.RelativeItem().Element(c => ComposeSummaryCell(c,
+                    T.LabelRawPoints,
+                    $"{dto.TotalScore:0.#} / {dto.MaximumScore:0.#}",
+                    Palette.Muted));
+                row.RelativeItem().Element(c => ComposeSummaryCell(c,
+                    T.LabelOverallScore, ScoreScale.FormatWithMaximum(dto.OverallScore),
+                    ScoreColorForLevelNumeric(dto.OverallScore)));
             });
 
-            // BUG-3 FIX — Domain averages: clean RTL row of 5 compact cards.
-            // Each card: [domain code] / [domain name] / [average score]
-            // No stray "الاسم"/"المتوسط" header row cells floating.
-            if (dto.Domains.Count > 0)
-            {
-                col.Item().PaddingTop(8).AlignRight().Text(T.SectionDomainAvg)
-                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(Palette.BrandGreenText);
+            if (dto.Domains.Count == 0) return;
 
-                col.Item().PaddingTop(6).Row(row =>
+            card.Item().PaddingTop(10).AlignRight().Text(T.SectionDomainAvg)
+                .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.BrandGreenText);
+
+            card.Item().PaddingTop(5).Table(table =>
+            {
+                // Level / score / name, name last so it holds the RTL start edge.
+                table.ColumnsDefinition(c =>
                 {
-                    // Render 5 compact cards in a row (equal widths via RelativeItem).
-                    // Physical order: D1 ... D5 left-to-right.
-                    // In RTL context the first domain (D1) will appear on the right.
-                    // To present D1 on the right (RTL start) we iterate in normal order.
-                    foreach (var d in dto.Domains)
-                    {
-                        row.RelativeItem().Element(c => ComposeDomainAvgCard(c, d));
-                        // Small gap between cards (except after last)
-                        if (d != dto.Domains[^1])
-                            row.ConstantItem(4);
-                    }
+                    c.ConstantColumn(104);
+                    c.ConstantColumn(84);
+                    c.RelativeColumn();
                 });
-            }
-        });
-    }
 
-    /// <summary>
-    /// BUG-3 FIX — Individual domain average card: compact, vertically centered,
-    /// shows [code] / [name] / [average] stacked. No floating label row.
-    /// </summary>
-    private static void ComposeDomainAvgCard(IContainer container, ReportDomainBlockDto domain)
-    {
-        var scoreColor = ScoreColorForLevelNumeric(domain.AverageScore);
+                table.Header(h =>
+                {
+                    PdfTheme.HeaderCell(h.Cell(), T.LabelPerformance, PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), T.LabelDomainAverage, PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), T.LabelDomain);
+                });
 
-        container
-            .Border(1).BorderColor(Palette.Border)
-            .Background("#F8FBF9")
-            .Padding(6)
-            .Column(col =>
-            {
-                col.Spacing(2);
-
-                // Domain code (e.g. D1) — centered, gold
-                col.Item().AlignCenter().Text(domain.DomainCode)
-                    .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Gold);
-
-                // Domain name — centered, small, truncated if needed
-                col.Item().AlignCenter().Text(domain.DomainNameAr)
-                    .FontSize(8).FontColor(Palette.Muted);
-
-                // Percentage score — primary value on the 0-100 visit scale.
-                col.Item().AlignCenter().PaddingTop(2).Text($"{domain.PercentageScore:0.#}%")
-                    .FontFamily(AmiriBold).FontSize(11).Bold().FontColor(scoreColor);
-
-                // Keep the source 1-4 average visible as supporting context.
-                col.Item().AlignCenter().Text($"{domain.AverageScore:0.000} / 4")
-                    .FontSize(8).FontColor(Palette.Muted);
+                for (var i = 0; i < dto.Domains.Count; i++)
+                {
+                    var d = dto.Domains[i];
+                    var zebra = i % 2 == 1;
+                    var levelAr = VisitAnalysisEngine.MapPerformanceLevel(d.AverageScore);
+                    PdfTheme.BodyCell(table.Cell(), levelAr, PdfTheme.CellAlign.Center, zebra,
+                        color: ScoreColorForLevel(levelAr));
+                    PdfTheme.BodyCell(table.Cell(), ScoreScale.Format(d.AverageScore), PdfTheme.CellAlign.Center, zebra,
+                        strong: true, color: ScoreColorForLevelNumeric(d.AverageScore));
+                    PdfTheme.BodyCell(table.Cell(), d.DomainNameAr, zebra: zebra, strong: true);
+                }
             });
+
+            // The column header says "متوسط المحور"; state the scale once so a
+            // printed sheet passed around on paper never leaves it implicit.
+            card.Item().PaddingTop(4).Element(c => PdfTheme.Caption(c, T.ScaleNote));
+        });
     }
 
     private static void ComposeSummaryCell(IContainer container, string label, string value, string scoreColor)
     {
-        container.Border(1).BorderColor(Palette.Border).Padding(10).AlignRight().Column(col =>
-        {
-            col.Item().AlignRight().Text(label).FontSize(9).FontColor(Palette.Muted);
-            col.Item().AlignRight().PaddingTop(4).Text(value)
-                .FontFamily(AmiriBold).FontSize(22).Bold().FontColor(scoreColor);
-        });
+        container
+            .Background(Palette.Page)
+            .Border(PdfTheme.BorderWidth).BorderColor(Palette.Border)
+            .Padding(9)
+            .Column(col =>
+            {
+                col.Item().AlignRight().Text(label)
+                    .FontFamily(AmiriRegular).FontSize(8.5f).FontColor(Palette.Muted);
+                col.Item().PaddingTop(3).AlignRight().Text(value)
+                    .FontFamily(AmiriBold).FontSize(16).Bold().FontColor(scoreColor);
+            });
     }
 
-    private void ComposeStrengthsBlock(IContainer container, VisitReportDto dto)
+    /// <summary>
+    /// Rows a narrative list may hold and still be pinned to one sheet inside
+    /// its bordered card. Above this the card is not pinned — a bordered card
+    /// that splits leaves a rule hanging at the page fold — so the flowing form
+    /// below is used instead.
+    /// </summary>
+    private const int MaxBulletRowsInPinnedCard = 12;
+
+    /// <summary>
+    /// Shared renderer for the four narrative lists (strengths, improvement
+    /// areas, priority standards, recommendations). Each entry is a ruled row
+    /// with a coloured marker, an optional trailing figure, and no internal
+    /// domain / standard codes.
+    ///
+    /// Pagination: a short list keeps the card look and is pinned whole. A long
+    /// one drops the outer card and glues the heading to its FIRST row inside a
+    /// <c>ShowEntire</c> block — the same structure the standards card uses —
+    /// so the title can never be left stranded at the foot of a page while its
+    /// rows start on the next one.
+    /// </summary>
+    private static void ComposeBulletSection(
+        IContainer container,
+        string title,
+        string accent,
+        string marker,
+        IReadOnlyList<(string Text, string? Figure)> entries,
+        string emptyMessage)
     {
+        if (entries.Count <= MaxBulletRowsInPinnedCard)
+        {
+            container.ShowEntire().Element(card => PdfTheme.SectionCard(card, title, body =>
+            {
+                if (entries.Count == 0)
+                {
+                    PdfTheme.EmptyNote(body.Item(), emptyMessage);
+                    return;
+                }
+
+                body.Spacing(3);
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    var entry = entries[i];
+                    var index = i;
+                    body.Item().Element(c => ComposeBulletRow(c, entry, index, accent, marker));
+                }
+            }, accent));
+            return;
+        }
+
         container.Column(col =>
         {
-            col.Item().AlignRight().Text(T.SectionStrengths)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreen);
-            foreach (var s in dto.Strengths)
+            col.Item().ShowEntire().Column(first =>
             {
-                col.Item().PaddingTop(4).AlignRight().Text(t =>
-                {
-                    t.Span("✓ ").FontSize(10);
-                    t.Span(s.DomainCode + "  ").FontFamily(AmiriBold).Bold().FontColor(Palette.Gold).FontSize(10);
-                    t.Span(s.DomainNameAr + "  ").FontColor(Palette.Text).FontSize(10);
-                    t.Span(s.AverageScore.ToString("0.000")).FontFamily(AmiriBold).Bold().FontColor(Palette.BrandGreen).FontSize(10);
-                });
+                first.Item().Element(c => PdfTheme.SectionHeading(c, title, accent));
+                first.Item().PaddingTop(3).Element(c => ComposeBulletRow(c, entries[0], 0, accent, marker));
+            });
+
+            for (var i = 1; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                var index = i;
+                col.Item().Element(c => ComposeBulletRow(c, entry, index, accent, marker));
             }
         });
     }
 
-    private void ComposeImprovementsBlock(IContainer container, VisitReportDto dto)
+    private static void ComposeBulletRow(
+        IContainer container,
+        (string Text, string? Figure) entry,
+        int index,
+        string accent,
+        string marker)
     {
-        container.Column(col =>
-        {
-            col.Item().AlignRight().Text(T.SectionImprovements)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.Gold);
-            foreach (var i in dto.ImprovementAreas)
+        var (text, figure) = entry;
+        var zebra = index % 2 == 1;
+
+        container
+            .Background(zebra ? PdfTheme.ZebraRow : Palette.White)
+            .BorderBottom(PdfTheme.BorderWidth).BorderColor(Palette.Border)
+            .PaddingVertical(4).PaddingHorizontal(6)
+            .Row(row =>
             {
-                col.Item().PaddingTop(4).AlignRight().Text(t =>
-                {
-                    t.Span("!  ").FontSize(10);
-                    t.Span(i.DomainCode + "  ").FontFamily(AmiriBold).Bold().FontColor(Palette.Gold).FontSize(10);
-                    t.Span(i.DomainNameAr + "  ").FontColor(Palette.Text).FontSize(10);
-                    t.Span(i.AverageScore.ToString("0.000")).FontFamily(AmiriBold).Bold().FontColor(Palette.Gold).FontSize(10);
-                });
-            }
-        });
+                // Physical L→R: [figure] [text] [marker].
+                if (!string.IsNullOrWhiteSpace(figure))
+                    row.ConstantItem(96).AlignCenter().AlignMiddle().Text(figure!)
+                        .FontFamily(AmiriBold).Bold().FontSize(9.5f).FontColor(accent);
+
+                row.RelativeItem().PaddingHorizontal(6).AlignRight().AlignMiddle().Text(text)
+                    .FontFamily(AmiriRegular).FontSize(9.5f).FontColor(Palette.Text);
+
+                row.ConstantItem(14).AlignCenter().AlignMiddle().Text(marker)
+                    .FontFamily(AmiriBold).FontSize(9.5f).FontColor(accent);
+            });
     }
 
-    private void ComposePrioritiesBlock(IContainer container, VisitReportDto dto)
-    {
-        container.Column(col =>
-        {
-            col.Item().AlignRight().Text(T.SectionPriorities)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.ScoreLow);
-            foreach (var p in dto.PriorityStandards)
-            {
-                col.Item().PaddingTop(4).AlignRight().Text(t =>
-                {
-                    t.Span("▲ ").FontSize(10);
-                    t.Span(p.StandardCode + "  ").FontFamily(AmiriBold).Bold().FontColor(Palette.ScoreLow).FontSize(10);
-                    t.Span(p.StandardTextAr + "  ").FontColor(Palette.Text).FontSize(10);
-                    t.Span(p.Score.ToString()).FontFamily(AmiriBold).Bold().FontColor(Palette.ScoreLow).FontSize(10);
-                });
-            }
-        });
-    }
+    // D-UI-1: these printed a bare "3.67" / "1.17" with no scale beside it, so a
+    // reader could not tell whether it was out of 4, 5 or 10. Published on 100
+    // like every other aggregate figure in the document.
+    private void ComposeStrengthsBlock(IContainer container, VisitReportDto dto) =>
+        ComposeBulletSection(container, T.SectionStrengths, Palette.BrandGreen, "✓",
+            dto.Strengths.Select(s => (s.DomainNameAr, (string?)ScoreScale.Format(s.AverageScore))).ToList(),
+            T.NoStrengths);
 
-    private static void ComposeRecommendationsBlock(IContainer container, VisitReportDto dto)
-    {
-        container.PaddingTop(8).Column(col =>
-        {
-            col.Item().AlignRight().Text(T.SectionRecommendations)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreen);
-            foreach (var recommendation in dto.Recommendations)
-            {
-                col.Item().PaddingTop(4).AlignRight().Text($"• {recommendation}")
-                    .FontFamily(AmiriRegular).FontSize(10).FontColor(Palette.Text);
-            }
-        });
-    }
+    private void ComposeImprovementsBlock(IContainer container, VisitReportDto dto) =>
+        ComposeBulletSection(container, T.SectionImprovements, Palette.Gold, "!",
+            dto.ImprovementAreas.Select(i => (i.DomainNameAr, (string?)ScoreScale.Format(i.AverageScore))).ToList(),
+            T.NoImprovements);
 
+    /// <summary>
+    /// Priority standards keep their flag marker — it is the visual cue the
+    /// school uses to spot what must be worked on first — but no longer print
+    /// the internal standard code.
+    ///
+    /// The figure here is the documented D-UI-1 exception: a single standard's
+    /// rubric LEVEL (0..4) shown with its Arabic word, not a score out of 100.
+    /// </summary>
+    private void ComposePrioritiesBlock(IContainer container, VisitReportDto dto) =>
+        ComposeBulletSection(container, T.SectionPriorities, Palette.ScoreLow, "⚑",
+            dto.PriorityStandards
+                .Select(p => (p.StandardTextAr, (string?)PriorityFigure(p)))
+                .ToList(),
+            T.NoPriorities);
+
+    /// <summary>
+    /// "1 يحتاج تحسين" — the level number with the Arabic word the visit
+    /// service already resolved, so this block can never disagree with the
+    /// standards table above it.
+    /// </summary>
+    private static string PriorityFigure(ReportPriorityStandardDto priority) =>
+        string.IsNullOrWhiteSpace(priority.ScoreLabelAr)
+            ? ScoreScale.FormatRubricLevel(priority.Score)
+            : $"{ScoreScale.FormatRubricLevel(priority.Score)} {priority.ScoreLabelAr}";
+
+    private static void ComposeRecommendationsBlock(IContainer container, VisitReportDto dto) =>
+        ComposeBulletSection(container, T.SectionRecommendations, Palette.BrandGreen, "•",
+            dto.Recommendations.Select(r => (r, (string?)null)).ToList(),
+            T.NoRecommendations);
+
+    /// <summary>
+    /// Plan follow-ups. Uses <see cref="PdfTheme.TableSection"/> rather than a
+    /// bordered card: the card form printed its title band at the foot of one
+    /// sheet with the table on the next, and a long list needs the column
+    /// header repeated on every page.
+    /// </summary>
     private static void ComposeFollowUpsBlock(IContainer container, VisitReportDto dto)
     {
-        container.PaddingTop(8).Column(col =>
+        PdfTheme.TableSection(container, T.SectionFollowUps, dto.PlanFollowUps.Count, table =>
         {
-            col.Item().AlignRight().Text(T.SectionFollowUps)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreenText);
-
-            foreach (var followUp in dto.PlanFollowUps)
+            // Physical L→R: [progress] [note] [date].
+            table.ColumnsDefinition(c =>
             {
-                col.Item().PaddingTop(6)
-                    .Border(1).BorderColor(Palette.Border)
-                    .Background(Palette.Page).Padding(8)
-                    .Column(card =>
+                c.ConstantColumn(64);
+                c.RelativeColumn();
+                c.ConstantColumn(80);
+            });
+
+            table.Header(h =>
+            {
+                PdfTheme.HeaderCell(h.Cell(), T.LabelProgress, PdfTheme.CellAlign.Center);
+                PdfTheme.HeaderCell(h.Cell(), T.LabelFollowUpNote);
+                PdfTheme.HeaderCell(h.Cell(), T.LabelFollowDate, PdfTheme.CellAlign.Center);
+            });
+
+            if (dto.PlanFollowUps.Count == 0)
+            {
+                PdfTheme.EmptyRow(table, 3, T.NoFollowUps);
+                return;
+            }
+
+            for (var i = 0; i < dto.PlanFollowUps.Count; i++)
+            {
+                var followUp = dto.PlanFollowUps[i];
+                var zebra = i % 2 == 1;
+
+                PdfTheme.BodyCell(table.Cell(),
+                    followUp.ProgressScore.HasValue ? $"{followUp.ProgressScore.Value}%" : "—",
+                    PdfTheme.CellAlign.Center, zebra, strong: true, color: Palette.Gold);
+
+                table.Cell()
+                    .Background(zebra ? PdfTheme.ZebraRow : Palette.White)
+                    .BorderBottom(PdfTheme.BorderWidth).BorderRight(PdfTheme.BorderWidth)
+                    .BorderColor(Palette.Border)
+                    .PaddingVertical(4).PaddingHorizontal(6)
+                    .Column(cell =>
                     {
-                        card.Item().AlignRight().Text(t =>
-                        {
-                            t.Span(followUp.FollowDate.ToString("yyyy/MM/dd") + "  ")
-                                .FontFamily(AmiriBold).Bold().FontColor(Palette.BrandGreen);
-                            if (followUp.ProgressScore.HasValue)
-                                t.Span($"({followUp.ProgressScore.Value}%)").FontColor(Palette.Gold);
-                        });
-                        card.Item().AlignRight().PaddingTop(3).Text(followUp.ProgressNote)
-                            .FontFamily(AmiriRegular).FontSize(10).FontColor(Palette.Text);
+                        cell.Item().AlignRight().Text(followUp.ProgressNote)
+                            .FontFamily(AmiriRegular).FontSize(9.5f).FontColor(Palette.Text);
                         if (!string.IsNullOrWhiteSpace(followUp.EvidenceNote))
-                            card.Item().AlignRight().PaddingTop(2).Text(followUp.EvidenceNote!)
-                                .FontFamily(AmiriRegular).FontSize(8).FontColor(Palette.Muted);
+                            cell.Item().PaddingTop(2).AlignRight().Text(followUp.EvidenceNote!)
+                                .FontFamily(AmiriRegular).FontSize(8).Italic().FontColor(Palette.Muted);
                     });
+
+                PdfTheme.BodyCell(table.Cell(),
+                    followUp.FollowDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    PdfTheme.CellAlign.Center, zebra);
             }
         });
     }
@@ -848,28 +1061,21 @@ public class PdfReportService : IPdfReportService
     /// </summary>
     private void ComposeSignatureCard(IContainer container, VisitReportDto dto)
     {
-        container.PaddingTop(8).Column(col =>
+        PdfTheme.SectionCard(container, T.SectionSignatures, card =>
         {
-            col.Item().AlignRight().Text(T.SectionSignatures)
-                .FontFamily(AmiriBold).FontSize(13).Bold().FontColor(Palette.BrandGreenText);
-
-            col.Item().PaddingTop(8).Row(row =>
+            card.Item().Row(row =>
             {
-                if (dto.ShowModeratorSignature)
-                    row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Moderator));
-                else
-                    row.RelativeItem();
+                row.Spacing(8);
 
-                row.ConstantItem(10);
+                // Declared left-to-right. Manager first so that, read RTL, the
+                // order is supervisor → instructor → manager approval.
+                if (dto.ShowManagerSignature)
+                    row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Manager));
 
                 row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Instructor));
 
-                row.ConstantItem(10);
-
-                if (dto.ShowManagerSignature)
-                    row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Manager));
-                else
-                    row.RelativeItem();
+                if (dto.ShowModeratorSignature)
+                    row.RelativeItem().Element(c => SignatureBox(c, dto, SignatureParty.Moderator));
             });
         });
     }
@@ -903,38 +1109,48 @@ public class PdfReportService : IPdfReportService
             _ => dto.ManagerSignatureBytes
         };
 
-        var dateText = party == SignatureParty.Manager && dto.ApprovedAt.HasValue
-            ? $"التاريخ: {dto.ApprovedAt.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}"
-            : "التاريخ: ________________";
+        // A known date is printed; an unknown one gets a ruled blank to be
+        // filled in by hand. The blank is drawn, not typed as underscores —
+        // a run of underscores next to Arabic text is reordered by the bidi
+        // algorithm and the colon ends up on the wrong side.
+        var dateValue = party == SignatureParty.Manager && dto.ApprovedAt.HasValue
+            ? dto.ApprovedAt.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            : null;
 
-        container.Border(1).BorderColor(DynamicPalette.BrandGreenText).Padding(10).Column(col =>
-        {
-            // Section label
-            col.Item().AlignRight().Text(label)
-                .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Muted);
-
-            // Signature image area — fixed 60pt height so both columns stay aligned.
-            // BUG-2 FIX: if bytes are present → render real image.
-            //             if bytes are null  → render blank dashed line only.
-            //             NEVER any hard-coded "S. Manager" text.
-            col.Item().PaddingTop(6).Height(60).AlignCenter().AlignMiddle()
-                .Element(c => RenderSignatureImage(c, imageBytes));
-
-            // Printed name from visit data (always shown, never hard-coded)
-            if (!string.IsNullOrWhiteSpace(printedName))
+        container
+            .Border(PdfTheme.BorderWidth).BorderColor(Palette.Border)
+            .Column(col =>
             {
-                col.Item().PaddingTop(6).AlignCenter()
-                    .Text(printedName)
-                    .FontFamily(AmiriBold).FontSize(10).Bold().FontColor(Palette.Text);
-            }
+                col.Item()
+                    .Background(Palette.Page)
+                    .BorderBottom(PdfTheme.BorderWidth).BorderColor(Palette.Border)
+                    .PaddingVertical(4).PaddingHorizontal(8)
+                    .AlignRight().Text(label)
+                    .FontFamily(AmiriBold).FontSize(9).Bold().FontColor(Palette.BrandGreenText);
 
-            // Date line
-            col.Item().PaddingTop(8).BorderTop(1).BorderColor(Palette.Muted)
-                .AlignCenter().PaddingTop(4).Text(t =>
+                // Fixed height keeps all three boxes on one baseline whether or
+                // not a drawn signature exists.
+                col.Item().Padding(8).Height(58).AlignCenter().AlignMiddle()
+                    .Element(c => RenderSignatureImage(c, imageBytes));
+
+                col.Item().PaddingHorizontal(8).AlignCenter()
+                    .Text(string.IsNullOrWhiteSpace(printedName) ? "________________" : printedName)
+                    .FontFamily(AmiriBold).FontSize(9.5f).Bold().FontColor(Palette.Text);
+
+                col.Item().PaddingTop(6).PaddingBottom(7).PaddingHorizontal(8).Row(dateRow =>
                 {
-                    t.Span(dateText).FontFamily(AmiriRegular).FontColor(Palette.Muted).FontSize(8);
+                    // Physical L→R: [value or blank rule] [label].
+                    if (dateValue is null)
+                        dateRow.RelativeItem().PaddingHorizontal(4).AlignBottom()
+                            .LineHorizontal(0.6f).LineColor(Palette.BorderStrong);
+                    else
+                        dateRow.RelativeItem().AlignRight().Text(dateValue)
+                            .FontFamily(AmiriRegular).FontSize(8).FontColor(Palette.Text);
+
+                    dateRow.ConstantItem(44).AlignRight().Text("التاريخ:")
+                        .FontFamily(AmiriRegular).FontSize(8).FontColor(Palette.Muted);
                 });
-        });
+            });
     }
 
     /// <summary>
@@ -949,7 +1165,7 @@ public class PdfReportService : IPdfReportService
             try
             {
                 // QuestPDF detects the format from the byte magic (PNG/JPEG/GIF).
-                // FitArea keeps the image inside the 60-pt signature cell without
+                // FitArea keeps the image inside the signature cell without
                 // triggering the AspectRatio constraint exception.
                 container.Image(bytes).FitArea();
                 return;
@@ -961,7 +1177,7 @@ public class PdfReportService : IPdfReportService
         }
 
         // BUG-2 FIX: Fallback is ONLY a blank signature line — no text placeholder.
-        container.AlignBottom().PaddingHorizontal(10).LineHorizontal(1).LineColor(Palette.Muted);
+        container.AlignBottom().PaddingHorizontal(6).LineHorizontal(0.8f).LineColor(Palette.BorderStrong);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -1016,6 +1232,13 @@ public class PdfReportService : IPdfReportService
         if (s.Length == 0) return "ملف";
         return s;
     }
+
+    /// <summary>Em dash for an unset field, so a blank never reads as a bug.</summary>
+    private static string Dash(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static string DateOrDash(DateTimeOffset? value) =>
+        value?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) ?? "—";
 
     private static string SafeDisplayText(string? value, string fallback)
     {

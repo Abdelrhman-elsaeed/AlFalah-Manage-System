@@ -16,14 +16,28 @@ appsettings.Production.json
 *.migration.sql
 
 # Node / Angular
-frontend/al-falah-app/node_modules/
-frontend/al-falah-app/dist/
-frontend/al-falah-app/.angular/
+# These used to point at frontend/al-falah-app/, a path that does not exist —
+# the app lives directly under frontend/, so nothing was actually ignored.
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
 
 # Secrets (never commit)
 *.pfx
 secrets/
 *.pem
+# Live-testing JWTs. Four of these were committed by mistake; they are removed
+# from the tree but remain in git history, so the signing key must be rotated.
+*.tok
+
+# Logs — a 6 MB backend.log was tracked and churned on every run.
+*.log
+logs/
+
+# Local scratch build output
+.obj-check/
+.build-check/
 
 # OS
 .DS_Store

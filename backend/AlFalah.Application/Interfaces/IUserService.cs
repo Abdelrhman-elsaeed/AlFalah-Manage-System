@@ -18,6 +18,8 @@ public interface IUserService
 
     Task<UserDetailDto> UpdateAsync(string userId, UserUpdateRequestDto request, CancellationToken cancellationToken = default);
 
+    Task ChangePasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default);
+
     /// <summary>Soft-deactivates a user (sets IsActive = false).</summary>
     Task DeactivateAsync(string userId, CancellationToken cancellationToken = default);
 }

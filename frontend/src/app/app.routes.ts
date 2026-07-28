@@ -254,6 +254,32 @@ export const routes: Routes = [
               .then(m => m.UsersListComponent),
             title: translatedTitle('ROUTE_TITLES.USERS')
           },
+
+          // The "الأشخاص" sidebar category is split into one sub-tab per role so
+          // each list only ever shows the people named in its title. Same
+          // component — `scopedRole` pins its role filter and hides the dropdown.
+          {
+            path: 'school-managers',
+            data: { scopedRole: 'SchoolManager' },
+            loadComponent: () => import('./features/users/users-list/users-list.component')
+              .then(m => m.UsersListComponent),
+            title: translatedTitle('ROUTE_TITLES.SCHOOL_MANAGERS')
+          },
+          {
+            path: 'moderators',
+            data: { scopedRole: 'Moderator' },
+            loadComponent: () => import('./features/users/users-list/users-list.component')
+              .then(m => m.UsersListComponent),
+            title: translatedTitle('ROUTE_TITLES.MODERATORS')
+          },
+          {
+            path: 'secretaries',
+            data: { scopedRole: 'Secretary' },
+            loadComponent: () => import('./features/users/users-list/users-list.component')
+              .then(m => m.UsersListComponent),
+            title: translatedTitle('ROUTE_TITLES.SECRETARIES')
+          },
+
           {
             path: 'new',
             canActivate: [permissionGuard],

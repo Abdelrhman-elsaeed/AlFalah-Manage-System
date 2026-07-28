@@ -169,20 +169,20 @@
               <tbody>
                 <tr *ngFor="let domain of comparison.domainDeltas">
                   <td><strong>{{ domain.domainCode }}</strong> — {{ domain.domainNameAr }}</td>
-                  <td>{{ domain.firstAverageScore === null ? '—' : (domain.firstAverageScore | number:'1.2-2') }}</td>
-                  <td>{{ domain.lastAverageScore === null ? '—' : (domain.lastAverageScore | number:'1.2-2') }}</td>
+                  <td>{{ domain.firstAverageScore | publishedScore }}</td>
+                  <td>{{ domain.lastAverageScore | publishedScore }}</td>
                   <td>
                     <span *ngIf="deltaState(domain.delta) === 'up'" class="delta delta--up"
                           [attr.aria-label]="'TEACHERS.DELTA_IMPROVEMENT' | translate">
-                      ▲ +{{ domain.delta | number:'1.2-2' }}
+                      ▲ {{ domain.delta | publishedScoreDelta }}
                     </span>
                     <span *ngIf="deltaState(domain.delta) === 'down'" class="delta delta--down"
                           [attr.aria-label]="'TEACHERS.DELTA_DECLINE' | translate">
-                      ▼ {{ domain.delta | number:'1.2-2' }}
+                      ▼ {{ domain.delta | publishedScoreDelta }}
                     </span>
                     <span *ngIf="deltaState(domain.delta) === 'same'" class="delta delta--same"
                           [attr.aria-label]="'TEACHERS.DELTA_NO_CHANGE' | translate">
-                      ─ 0.00
+                      ─ 0
                     </span>
                     <span *ngIf="deltaState(domain.delta) === 'unavailable'" class="delta delta--same">—</span>
                   </td>

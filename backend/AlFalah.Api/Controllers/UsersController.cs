@@ -88,6 +88,36 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<UserDetailDto>.Success(result, "تم تحديث المستخدم بنجاح."));
     }
 
+    [HttpPost("{id}/password")]
+    [ProducesResponseType(typeof(ApiResponse), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
+    public async Task<IActionResult> ChangePassword(
+        string id,
+        [FromBody] ChangeUserPasswordRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        if (!_currentUser.HasPermission(PermissionNames.UserEdit))
+            return StatusCode(403, ApiResponse.Fail("Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ ØµÙ„Ø§Ø­ÙŠØ© Ù„ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ†."));
+
+        var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
+        if (errors.Count > 0)
+            return BadRequest(ApiResponse.Fail(errors));
+
+        await _userService.ChangePasswordAsync(id, request.NewPassword, cancellationToken);
+        return Ok(ApiResponse.Success("ØªÙ… ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­."));
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ApiResponse), 200)]
+    public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
+    {
+        if (!_currentUser.HasPermission(PermissionNames.UserDelete))
+            return StatusCode(403, ApiResponse.Fail("Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ ØµÙ„Ø§Ø­ÙŠØ© Ù„Ø­Ø°Ù Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ†."));
+
+        await _userService.DeactivateAsync(id, cancellationToken);
+        return Ok(ApiResponse.Success("ØªÙ… Ø­Ø°Ù Ø§Ù„Ø­Ø³Ø§Ø¨ Ø¨Ù†Ø¬Ø§Ø­."));
+    }
+
     [HttpPost("{id}/deactivate")]
     [ProducesResponseType(typeof(ApiResponse), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]

@@ -8,6 +8,8 @@ import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
+import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar.component';
+import { ListToolbarFieldComponent } from '../../../shared/components/list-toolbar/list-toolbar-field.component';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -34,7 +36,7 @@ import {
   imports: [
     CommonModule, FormsModule, TranslateModule,
     TableModule, TagModule, ButtonModule, DialogModule,
-    ClearableSelectComponent,
+    ClearableSelectComponent, ListToolbarComponent, ListToolbarFieldComponent,
     InputTextareaModule, TooltipModule, ConfirmDialogModule
   ],
   providers: [ConfirmationService],

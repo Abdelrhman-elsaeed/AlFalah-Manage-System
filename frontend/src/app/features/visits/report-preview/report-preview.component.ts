@@ -11,13 +11,36 @@ import { InstructorReport, VisitDetail } from '../../../core/models/visit.models
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { VisitsService } from '../../../core/services/visits.service';
+import {
+  PUBLISHED_MAXIMUM,
+  PublishedScorePipe,
+  formatPublishedTotal,
+  toPublishedScore
+} from '../../../shared/score-scale';
 
 @Component({
   selector: 'app-report-preview', standalone: true,
-  imports: [CommonModule, TranslateModule, ButtonModule, TagModule, ChartModule],
+  imports: [CommonModule, TranslateModule, ButtonModule, TagModule, ChartModule, PublishedScorePipe],
   templateUrl: './report-preview.component.html', styleUrls: ['./report-preview.component.css']
 })
 export class ReportPreviewComponent implements OnInit {
+  /** D-UI-1 — the visit total, published on 0–100. */
+  publishedTotal(total: number, maximum: number): string {
+    return formatPublishedTotal(total, maximum);
+  }
+
+  /**
+   * Arabic rubric level for a per-standard score. A standard's score is the one
+   * documented D-UI-1 exception to the 0–100 scale, so it is always shown with
+   * its level word instead of a bare "3 / 4".
+   */
+  scoreLabelAr(score: number | null | undefined): string {
+    if (score === null || score === undefined) return '—';
+    const key = `RUBRIC.SCORE_LABEL_${score}`;
+    const translated = this.translate.instant(key);
+    return translated === key ? String(score) : translated;
+  }
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly visits = inject(VisitsService);
@@ -34,14 +57,16 @@ export class ReportPreviewComponent implements OnInit {
     const domains = this.report()?.analysis?.domainAverages;
     return domains?.length ? {
       labels: domains.map(d => d.domainNameAr),
-      datasets: [{ label: this.translate.instant('VISITS.DOMAIN_AVERAGE_CHART_LABEL'), data: domains.map(d => d.averageScore),
+      datasets: [{ label: this.translate.instant('VISITS.DOMAIN_AVERAGE_CHART_LABEL'),
+        // D-UI-1: plotted on the one published scale, like the table beside it.
+        data: domains.map(d => toPublishedScore(d.averageScore) ?? 0),
         borderColor: '#0F7132', backgroundColor: 'rgba(15,113,50,.18)',
         pointBackgroundColor: '#D4AF37', pointBorderColor: '#0F7132' }]
     } : null;
   });
   readonly radarOptions: ChartOptions<'radar'> = {
     responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-    scales: { r: { min: 0, max: 4, ticks: { stepSize: 1 }, beginAtZero: true } }
+    scales: { r: { min: 0, max: PUBLISHED_MAXIMUM, ticks: { stepSize: 20 }, beginAtZero: true } }
   };
 
   ngOnInit(): void {

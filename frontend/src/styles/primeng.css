@@ -140,9 +140,10 @@ input[type='date']:not(.p-inputtext):focus-visible {
 }
 .p-dropdown .p-dropdown-label {
   display: block;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  padding: 0.4rem 2.6rem 0.4rem 0.75rem !important;
+  padding: 0.4rem 0.75rem !important;
   background: transparent !important;
   color: var(--text-strong) !important;
   border: 0 !important;
@@ -150,28 +151,46 @@ input[type='date']:not(.p-inputtext):focus-visible {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-[dir="rtl"] .p-dropdown .p-dropdown-label {
-  padding: 0.4rem 0.75rem 0.4rem 2.6rem !important;
-}
-.p-dropdown .p-dropdown-trigger,
-.p-dropdown .p-dropdown-clear-icon {
-  color: var(--text-muted) !important;
+.p-dropdown .p-dropdown-trigger {
+  flex: 0 0 auto;
   width: 1.8rem !important;
-  height: 1.8rem !important;
-  inset-inline-end: auto;
+  color: var(--text-muted) !important;
 }
-/* Clear "✕" sits at the inline-end of the field, before the chevron,
-   separated so they never collide. */
-.p-dropdown .p-dropdown-clear-icon {
-  inset-inline-end: 1.9rem !important;
-  margin-inline-start: 0 !important;
+
+/* Clear "✕".
+   PrimeNG 17 renders this as the SVG itself (<svg class="p-dropdown-clear-icon">)
+   and positions it `absolute; top:50%; margin-top:-.5rem`. Sizing that element
+   to a control-sized box therefore blew the glyph up to ~29px, the negative
+   margin pushed it below centre, and the absolute inset fought the label's
+   reserved padding until the ✕ landed on top of the selected text.
+
+   The control is already `inline-flex; align-items:center` and the DOM order is
+   label → clear icon → trigger, so making the icon a normal STATIC flex item
+   puts it between the value and the chevron in both LTR and RTL with no
+   overlap possible and no direction-specific rules to keep in sync. */
+.p-dropdown .p-dropdown-clear-icon,
+.p-multiselect .p-multiselect-clear-icon,
+.p-autocomplete .p-autocomplete-clear-icon,
+.p-calendar .p-calendar-clear-icon {
+  position: static !important;
+  flex: 0 0 auto;
+  box-sizing: content-box;
+  width: 0.8rem !important;
+  height: 0.8rem !important;
+  margin: 0 !important;
+  padding: 0.34rem;
+  color: var(--text-dim) !important;
   background: transparent;
   border-radius: 999px;
+  cursor: pointer;
   transition: background var(--duration-fast), color var(--duration-fast);
 }
-.p-dropdown .p-dropdown-clear-icon:hover {
+.p-dropdown .p-dropdown-clear-icon:hover,
+.p-multiselect .p-multiselect-clear-icon:hover,
+.p-autocomplete .p-autocomplete-clear-icon:hover,
+.p-calendar .p-calendar-clear-icon:hover {
+  color: var(--danger) !important;
   background: var(--danger-bg);
-  color: var(--danger);
 }
 
 /* Dropdown panel — FIX 1: panel renders at body, but its own surface is light.

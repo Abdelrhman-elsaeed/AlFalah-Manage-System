@@ -1,9 +1,22 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace AlFalah.Infrastructure.Data.Migrations;
 
+/// <summary>
+/// This migration was hand-written without the generated `.Designer.cs`
+/// companion, so it carried no <see cref="MigrationAttribute"/>. EF only
+/// discovers migrations that are annotated with their id — without it the
+/// migration was silently skipped by `Database.MigrateAsync()` and
+/// `SchoolMicrosoftDrives` was never created, which made
+/// GET /api/v1/school-microsoft-drive fail with "Invalid object name".
+/// The attributes below are exactly what the designer file would have carried.
+/// </summary>
+[DbContext(typeof(AlFalahDbContext))]
+[Migration("20260720193000_AddSchoolMicrosoftDrives")]
 public partial class AddSchoolMicrosoftDrives : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)

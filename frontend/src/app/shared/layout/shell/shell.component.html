@@ -103,6 +103,7 @@
               <a
                 [routerLink]="item.route"
                 routerLinkActive="is-active"
+                [routerLinkActiveOptions]="item.exact ? exactMatchOptions : prefixMatchOptions"
                 class="shell-sidebar__link shell-sidebar__link--nested"
                 [pTooltip]="(item.tooltipKey || item.labelKey) | translate"
                 tooltipPosition="left">

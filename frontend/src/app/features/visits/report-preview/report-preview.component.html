@@ -30,12 +30,12 @@
 
     <ng-container *ngIf="visit.analysis as analysis">
       <section class="summary-grid">
-        <div><span>{{ 'VISITS.TOTAL_SCORE' | translate }}</span><strong>{{ analysis.totalScore | number:'1.0-3' }} / {{ analysis.maximumScore | number:'1.0-3' }}</strong><small>{{ 'VISITS.AVERAGE_SCORE' | translate }}: {{ analysis.overallScore | number:'1.2-3' }} / 4</small></div>
+        <div><span>{{ 'VISITS.TOTAL_SCORE' | translate }}</span><strong>{{ publishedTotal(analysis.totalScore, analysis.maximumScore) }}</strong><small>{{ 'VISITS.AVERAGE_SCORE' | translate }}: {{ analysis.overallScore | publishedScore:'withMax' }}</small></div>
         <div><span>{{ 'VISITS.PERFORMANCE_LEVEL' | translate }}</span><strong>{{ analysis.performanceLevelAr }}</strong></div>
         <div><span>{{ 'VISITS.RUBRIC_VERSION_LABEL' | translate }}</span><strong>{{ visit.rubricVersionNumber }}</strong></div>
       </section>
       <section class="analysis-layout">
-        <div><h3>{{ 'VISITS.DOMAIN_AVERAGES' | translate }}</h3><div class="domain-row" *ngFor="let domain of analysis.domainAverages"><span>{{ domain.domainNameAr }}</span><strong>{{ domain.percentageScore | number:'1.0-1' }}%</strong><small>{{ domain.averageScore | number:'1.2-3' }} / 4</small></div></div>
+        <div><h3>{{ 'VISITS.DOMAIN_AVERAGES' | translate }}</h3><div class="domain-row" *ngFor="let domain of analysis.domainAverages"><span>{{ domain.domainNameAr }}</span><strong>{{ domain.averageScore | publishedScore }}</strong><small>{{ 'VISITS.OUT_OF_100' | translate }}</small></div></div>
         <div class="radar" *ngIf="radarData() as chart"><p-chart type="radar" [data]="chart" [options]="radarOptions" height="300px"></p-chart></div>
       </section>
       <section><h3>{{ 'VISITS.RECOMMENDATIONS' | translate }}</h3><ul><li *ngFor="let recommendation of analysis.recommendations">{{ recommendation }}</li></ul></section>
@@ -45,7 +45,7 @@
       <h3>{{ 'VISITS.SCORES_TITLE' | translate }}</h3>
       <div class="score-row" *ngFor="let score of visit.scores; let scoreIndex = index">
         <span><b class="row-number">{{ scoreIndex + 1 }}</b>{{ score.standardTextAr }}</span>
-        <strong>{{ score.score ?? '—' }} / 4</strong>
+        <strong>{{ score.score ?? '—' }} · {{ scoreLabelAr(score.score) }}</strong>
         <small *ngIf="score.evidenceNote">{{ score.evidenceNote }}</small>
       </div>
     </section>

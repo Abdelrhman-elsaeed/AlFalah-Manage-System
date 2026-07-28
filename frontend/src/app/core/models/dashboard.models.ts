@@ -66,6 +66,14 @@ export interface InstructorPerformanceRow {
   latestPerformanceLevelAr: string | null;
   openImprovementPlansCount: number;
   needsImprovement: boolean;
+  /**
+   * The weakest domain of the latest approved visit. The needs-improvement list
+   * is selected on this, not on the overall average, so the UI names it — the
+   * table otherwise showed teachers rated "جيد جداً" under a heading saying
+   * they need support, with nothing on the row explaining why.
+   */
+  weakestDomainNameAr: string | null;
+  weakestDomainScore: number | null;
 }
 
 export interface ImprovementPlanAnalytics {

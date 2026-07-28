@@ -97,6 +97,13 @@ export class AuthService {
     return this.http.get<ApiResponse<SchoolLookup[]>>(`${this.apiUrl}/schools`);
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/change-password`, {
+      currentPassword,
+      newPassword
+    });
+  }
+
   // ─── Token Accessors ──────────────────────────────────────────────────────
 
   getAccessToken(): string | null {

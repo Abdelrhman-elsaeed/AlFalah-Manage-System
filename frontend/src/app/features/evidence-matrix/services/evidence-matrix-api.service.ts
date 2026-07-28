@@ -1,8 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { SUPPRESS_ERROR_TOAST } from '../../../core/http/http-context.tokens';
 import { AcademicYear, EvidenceCellFiles, EvidenceCellStatus, EvidenceMatrix, EvidenceMatrixFilter } from '../models/evidence-matrix.models';
 
 @Injectable({ providedIn: 'root' })
@@ -20,7 +21,11 @@ export class EvidenceMatrixApiService {
       .pipe(map(response => { if (!response.isSuccess) throw new Error(response.errors?.join(' ') || response.message); }));
   }
   export(format: 'excel' | 'pdf', filter: EvidenceMatrixFilter): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/export/${format}`, { params: this.params(filter), responseType: 'blob' });
+    return this.http.get(`${this.baseUrl}/export/${format}`, {
+      params: this.params(filter),
+      responseType: 'blob',
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
+    });
   }
 
   private get<T>(path: string, params?: HttpParams): Observable<T> {

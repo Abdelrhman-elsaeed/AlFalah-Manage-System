@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { EvidenceMatrixApiService } from './services/evidence-matrix-api.service';
+import { extractHttpErrorMessage, readHttpErrorBody } from '../../core/http/http-error-message';
 import { EvidenceCellFiles, EvidenceCellStatus, EvidenceMatrix, EvidenceMatrixCell, EvidenceMatrixFilter, EvidenceMatrixTeacherRow, EvidenceSubmissionFile } from './models/evidence-matrix.models';
 
 const STATUS_LABELS: Record<EvidenceCellStatus, string> = {
@@ -86,7 +87,10 @@ export class EvidenceMatrixPageComponent {
         const link = document.createElement('a'); link.href = url; link.download = `evidence-matrix.${format === 'excel' ? 'xlsx' : 'pdf'}`; link.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.error.set('تعذر تصدير التقرير.')
+      error: async err => {
+        await readHttpErrorBody(err);
+        this.error.set(extractHttpErrorMessage(err) ?? 'تعذر تصدير التقرير.');
+      }
     });
   }
   cellFor(row: EvidenceMatrixTeacherRow, taskId: number): EvidenceMatrixCell { return row.cells.find(cell => cell.taskId === taskId) ?? { taskId, status: 1, isChecked: false, activeFilesCount: 0 }; }

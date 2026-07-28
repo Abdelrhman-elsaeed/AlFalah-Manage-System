@@ -1,23 +1,5 @@
 :host { display: block; }
 
-.complaints-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  margin-bottom: var(--space-4);
-  background-color: var(--bg-surface) !important;
-  background-image: none !important;
-  box-shadow: var(--shadow-sm);
-  border-radius: var(--radius-md);
-}
-
-.toolbar-label {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
 .table-card { padding: var(--space-3); }
 
 .complaint-subject {

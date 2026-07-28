@@ -1430,7 +1430,8 @@ public class VisitService : IVisitService
                 DomainCode = p.DomainCode,
                 StandardCode = p.StandardCode,
                 StandardTextAr = p.StandardTextAr,
-                Score = p.Score
+                Score = p.Score,
+                ScoreLabelAr = MapScoreLabelAr(p.Score)
             }).ToList();
         }
 

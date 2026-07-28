@@ -271,7 +271,7 @@ public class DatabaseSeeder
                 PermissionNames.FollowUpView, PermissionNames.FollowUpCreate,
                 PermissionNames.FollowUpEdit, PermissionNames.FollowUpDelete,
                 PermissionNames.ComplaintView, PermissionNames.ComplaintManage,
-                PermissionNames.UserView, PermissionNames.UserCreate, PermissionNames.UserEdit,
+                PermissionNames.UserView, PermissionNames.UserCreate, PermissionNames.UserEdit, PermissionNames.UserDelete,
                 PermissionNames.DashboardSchoolManager,
                 PermissionNames.SettingsView, PermissionNames.SettingsManage,
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View

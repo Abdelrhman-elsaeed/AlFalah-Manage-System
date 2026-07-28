@@ -13,13 +13,10 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
             .MinimumLength(3).WithMessage("يجب ألا يقل اسم المستخدم عن 3 أحرف.")
             .MaximumLength(256).WithMessage("يجب ألا يتجاوز اسم المستخدم عن 256 حرفاً.");
 
-        // Instructor accounts use the employee number as their first password.
-        // Other account types continue to require a manually supplied password.
+        // Every account type — instructors included — supplies its own password.
         RuleFor(x => x.Password)
-            .NotEmpty().When(x => x.Role != RoleNames.Instructor)
-            .WithMessage("كلمة المرور مطلوبة.")
-            .MinimumLength(8).When(x => x.Role != RoleNames.Instructor)
-            .WithMessage("يجب ألا تقل كلمة المرور عن 8 أحرف.");
+            .NotEmpty().WithMessage("كلمة المرور مطلوبة.")
+            .MinimumLength(8).WithMessage("يجب ألا تقل كلمة المرور عن 8 أحرف.");
 
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("الاسم الأول مطلوب.")
@@ -117,6 +114,13 @@ public class UserUpdateRequestValidator : AbstractValidator<UserUpdateRequestDto
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrEmpty(x.Email));
         RuleFor(x => x.PreferredLanguage).Must(l => l == "ar" || l == "en");
+        RuleFor(x => x.Role)
+            .Must(r => string.IsNullOrEmpty(r)
+                || r == RoleNames.SchoolManager
+                || r == RoleNames.Secretary
+                || r == RoleNames.Moderator
+                || r == RoleNames.Instructor)
+            .WithMessage("الدور غير صالح.");
         RuleFor(x => x.FullName)
             .MaximumLength(200).When(r => !string.IsNullOrEmpty(r.FullName))
             .WithMessage("يجب ألا يتجاوز الاسم الكامل 200 حرف.");

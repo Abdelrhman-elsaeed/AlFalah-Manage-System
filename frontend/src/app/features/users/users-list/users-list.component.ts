@@ -1,6 +1,6 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
@@ -19,10 +19,24 @@ import { ToastService } from '../../../core/services/toast.service';
 import { UsersService } from '../../../core/services/users.service';
 import { UserSchoolRolesService } from '../../../core/services/user-school-roles.service';
 import { SchoolsService } from '../../../core/services/schools.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ListPageHeaderComponent } from '../../../shared/components/list-toolbar/list-page-header.component';
 import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar.component';
 import { ListToolbarFieldComponent } from '../../../shared/components/list-toolbar/list-toolbar-field.component';
 import { UserListItem, PhaseTwoRole } from '../../../core/models/phase2.models';
+
+/**
+ * Role badges come off the API as raw Identity role names; the UI is Arabic, so
+ * map every role the system seeds — global ones included — to its label key.
+ */
+const ROLE_LABEL_KEYS: Readonly<Record<string, string>> = {
+  SuperAdmin: 'USERS.ROLE_SUPER_ADMIN',
+  MainManager: 'USERS.ROLE_MAIN_MANAGER',
+  SchoolManager: 'USERS.ROLE_SCHOOL_MANAGER',
+  Secretary: 'USERS.ROLE_SECRETARY',
+  Moderator: 'USERS.ROLE_MODERATOR',
+  Instructor: 'USERS.ROLE_INSTRUCTOR'
+};
 
 @Component({
   selector: 'app-users-list',
@@ -45,14 +59,43 @@ export class UsersListComponent implements OnInit {
   private readonly confirm = inject(ConfirmationService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+
+  /**
+   * Set by the role sub-tab routes (`/users/school-managers`, `/users/moderators`,
+   * `/users/secretaries`) via route data. Null on the plain `/users` tab, which is
+   * the "everyone together" view and keeps the role dropdown.
+   */
+  readonly scopedRole = signal<PhaseTwoRole | null>(
+    (this.route.snapshot.data['scopedRole'] as PhaseTwoRole | undefined) ?? null
+  );
 
   users = signal<UserListItem[]>([]);
   totalCount = signal(0);
   loading = signal(false);
   searchTerm = signal('');
-  roleFilter = signal<string | null>(null);
+  roleFilter = signal<string | null>(this.scopedRole());
   isActiveFilter = signal<boolean | null>(null);
+
+  /** SCHOOL_MANAGER | MODERATOR | SECRETARY | ALL — the i18n sub-key for this tab. */
+  private readonly scopeKey = computed(() => {
+    const role = this.scopedRole();
+    return role ? role.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase() : 'ALL';
+  });
+  readonly headerTitleKey = computed(() => `USERS.SCOPE.${this.scopeKey()}.TITLE`);
+  readonly headerSubtitleKey = computed(() => `USERS.SCOPE.${this.scopeKey()}.SUBTITLE`);
+  readonly createLabelKey = computed(() => `USERS.SCOPE.${this.scopeKey()}.NEW`);
+
+  /**
+   * D-24: adding a School Manager is a Main Manager privilege, so the scoped tab
+   * hides the button instead of letting the POST come back 403.
+   */
+  readonly canCreate = computed(() =>
+    this.scopedRole() !== 'SchoolManager'
+    || this.auth.hasRole('MainManager')
+    || this.auth.hasRole('SuperAdmin'));
 
   // Assign-to-school dialog
   assignDialogVisible = signal(false);
@@ -65,9 +108,21 @@ export class UsersListComponent implements OnInit {
     role: ['Moderator' as PhaseTwoRole, Validators.required]
   });
 
-  readonly roleOptions = [
+  /** Assign-to-school dialog: the roles a UserSchoolRole may carry. */
+  readonly roleOptions = computed(() => [
+    ...(this.auth.hasRole('SchoolManager') && !this.auth.hasRole('MainManager') && !this.auth.hasRole('SuperAdmin')
+      ? []
+      : [{ label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' as PhaseTwoRole }]),
+    { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' as PhaseTwoRole },
+    { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
+  ]);
+
+  /** The "everyone" tab filters across every staff role, Secretary included. */
+  readonly roleFilterOptions = [
     { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
+    { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
   ];
 
@@ -106,7 +161,16 @@ export class UsersListComponent implements OnInit {
   onSearch(): void { this.loadUsers(); }
   onFilter(): void { this.loadUsers(); }
 
-  goToCreate(): void { this.router.navigate(['/users/new']); }
+  roleLabel(role: string): string {
+    const key = ROLE_LABEL_KEYS[role];
+    return key ? this.translate.instant(key) : role;
+  }
+
+  goToCreate(): void {
+    // Creating from a role tab pre-selects that role in the form.
+    const role = this.scopedRole();
+    this.router.navigate(['/users/new'], role ? { queryParams: { role } } : {});
+  }
   goToEdit(user: UserListItem): void { this.router.navigate(['/users', user.userId, 'edit']); }
 
   confirmDeactivate(user: UserListItem, event: Event): void {

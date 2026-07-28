@@ -45,6 +45,11 @@ public class UserSchoolRoleService : IUserSchoolRoleService
     {
         await _scopeGuard.EnsureCanMutateSchoolAsync(request.SchoolId, cancellationToken);
 
+        if (!_currentUser.IsGlobalAdmin()
+            && _currentUser.IsInRole(RoleNames.SchoolManager)
+            && request.Role == RoleNames.SchoolManager)
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تعيين دور مدير مدرسة.");
+
         var user = await _userManager.FindByIdAsync(request.UserId)
             ?? throw new KeyNotFoundException("المستخدم غير موجود.");
         if (!user.IsActive)

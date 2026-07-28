@@ -33,4 +33,7 @@ public interface IAuthService
     /// Complete the password reset using the token issued by ForgotPasswordAsync.
     /// </summary>
     Task ResetPasswordAsync(string username, string token, string newPassword);
+
+    /// <summary>Changes the currently authenticated user's password.</summary>
+    Task ChangePasswordAsync(string userId, string currentPassword, string newPassword);
 }

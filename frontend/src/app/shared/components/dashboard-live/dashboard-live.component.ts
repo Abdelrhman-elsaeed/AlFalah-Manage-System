@@ -20,7 +20,16 @@ import {
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { DashboardService, downloadDashboardBlob } from '../../../core/services/dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
+import {
+  PUBLISHED_MAXIMUM,
+  formatPublishedScore,
+  publishedScorePercent,
+  toPublishedDelta,
+  toPublishedScore
+} from '../../score-scale';
 import { SchoolMapComponent, SchoolMapMarker } from '../school-map/school-map.component';
+import { PublishedScorePipe } from '../../score-scale';
 
 type DashboardRoleName = 'main-manager' | 'school-manager' | 'moderator' | 'instructor';
 type DashboardData = MainManagerDashboard | SchoolManagerDashboard | ModeratorDashboard | InstructorDashboard;
@@ -49,7 +58,9 @@ interface DashboardHighlight {
 @Component({
   selector: 'app-dashboard-live',
   standalone: true,
-  imports: [CommonModule, TranslateModule, ButtonModule, ChartModule, TableModule, TagModule, SchoolMapComponent],
+  imports: [CommonModule, TranslateModule, ButtonModule, ChartModule, TableModule, TagModule, SchoolMapComponent,
+    PublishedScorePipe
+  ],
   templateUrl: './dashboard-live.component.html',
   styleUrls: ['./dashboard-live.component.css']
 })
@@ -203,7 +214,13 @@ export class DashboardLiveComponent implements OnInit {
     const delta = trend.length < 2 ? null : trend[trend.length - 1].overallScore - trend[trend.length - 2].overallScore;
     return [
       { labelKey: 'DASHBOARD.HIGHLIGHT.LATEST_SCORE', value: this.score(d.latestEvaluation?.overallScore ?? null), icon: 'pi-star' },
-      { labelKey: 'DASHBOARD.HIGHLIGHT.TREND_CHANGE', value: delta === null ? '—' : `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`, icon: 'pi-chart-line' },
+      {
+        labelKey: 'DASHBOARD.HIGHLIGHT.TREND_CHANGE',
+        // Published on the same 0–100 scale as the score beside it, otherwise a
+        // "+0.34" sat next to a "78" and read as a different quantity.
+        value: delta === null ? '—' : `${delta >= 0 ? '+' : ''}${toPublishedDelta(delta)}`,
+        icon: 'pi-chart-line'
+      },
       { labelKey: 'DASHBOARD.HIGHLIGHT.FOLLOWUP_ACTIVITY', value: String(d.totalFollowUpsCount), icon: 'pi-history' }
     ];
   });
@@ -259,19 +276,19 @@ export class DashboardLiveComponent implements OnInit {
     if (this.role === 'main-manager') {
       const rows = (data as MainManagerDashboard).schoolComparison.filter(row => row.averageOverallScore !== null);
       labels = rows.map(row => row.schoolName);
-      values = rows.map(row => row.averageOverallScore ?? 0);
+      values = rows.map(row => toPublishedScore(row.averageOverallScore) ?? 0);
     } else if (this.role === 'school-manager') {
       const rows = (data as SchoolManagerDashboard).subjectPerformance.filter(row => row.averageOverallScore !== null);
       labels = rows.map(row => row.subject);
-      values = rows.map(row => row.averageOverallScore ?? 0);
+      values = rows.map(row => toPublishedScore(row.averageOverallScore) ?? 0);
     } else if (this.role === 'moderator') {
       const rows = (data as ModeratorDashboard).topInstructors.filter(row => row.averageOverallScore !== null);
       labels = rows.map(row => row.instructorFullName);
-      values = rows.map(row => row.averageOverallScore ?? 0);
+      values = rows.map(row => toPublishedScore(row.averageOverallScore) ?? 0);
     } else {
       const rows = (data as InstructorDashboard).performanceTrend;
       labels = rows.map(row => this.formatDate(row.visitDate));
-      values = rows.map(row => row.overallScore);
+      values = rows.map(row => toPublishedScore(row.overallScore) ?? 0);
     }
 
     if (labels.length === 0) return null;
@@ -304,7 +321,11 @@ export class DashboardLiveComponent implements OnInit {
     maintainAspectRatio: false,
     cutout: '62%',
     plugins: {
-      legend: { position: 'bottom', rtl: true, labels: { usePointStyle: true, padding: 16 } },
+      // The template renders a p-tag per status below the chart, so chart.js's
+      // own legend was a second copy of the same list — and with
+      // maintainAspectRatio:false inside a fixed-height wrap it overlapped the
+      // tag row. One legend, the accessible one, is kept.
+      legend: { display: false },
       tooltip: { rtl: true, textDirection: 'rtl' }
     }
   };
@@ -317,7 +338,14 @@ export class DashboardLiveComponent implements OnInit {
     },
     scales: {
       x: { ticks: { color: '#64748B' }, grid: { display: false } },
-      y: { beginAtZero: true, max: 4, ticks: { stepSize: 1, color: '#64748B' }, grid: { color: 'rgba(100, 116, 139, 0.12)' } }
+      y: {
+        beginAtZero: true,
+        // D-UI-1: the axis matches the one published scale. It was capped at 4
+        // while the cards beside it counted to 100.
+        max: PUBLISHED_MAXIMUM,
+        ticks: { stepSize: 20, color: '#64748B' },
+        grid: { color: 'rgba(100, 116, 139, 0.12)' }
+      }
     }
   };
 
@@ -365,7 +393,16 @@ export class DashboardLiveComponent implements OnInit {
         }
         this.exporting.set(null);
       },
-      error: () => this.exporting.set(null)
+      // The response is a blob, so the server's Arabic reason must be read out
+      // of the body. Previously this branch set no message at all and a failed
+      // export looked to the user like nothing had happened.
+      error: async err => {
+        this.exporting.set(null);
+        await readHttpErrorBody(err);
+        this.toast.error(
+          this.translate.instant('COMMON.ERROR'),
+          extractHttpErrorMessage(err) ?? this.translate.instant('DASHBOARD.EXPORT_FAILED'));
+      }
     });
   }
 
@@ -400,12 +437,21 @@ export class DashboardLiveComponent implements OnInit {
     return roles[this.role];
   }
 
+  /** Meter width as a share of the published maximum (0–100). */
+  scorePercent(rawOutOfFour: number | null): number {
+    return publishedScorePercent(rawOutOfFour);
+  }
+
   private metric(labelKey: string, value: number | string, icon: string, tone: MetricTone): DashboardMetric {
     return { labelKey, value, icon, tone };
   }
 
+  /**
+   * D-UI-1 — every score the dashboard shows is published on 0–100. The API
+   * still returns the rubric's internal 0–4 average.
+   */
   private score(value: number | null): string {
-    return value === null ? '—' : value.toFixed(2);
+    return formatPublishedScore(value);
   }
 
   private formatDate(value: string): string {

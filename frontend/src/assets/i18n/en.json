@@ -18,7 +18,10 @@
     "EDIT_SCHOOL": "Edit School — Al-Falah Schools",
     "TEACHERS": "Teachers — Al-Falah Schools",
     "TEACHER_PROFILE": "Teacher Profile — Al-Falah Schools",
-    "USERS": "Users — Al-Falah Schools",
+    "USERS": "All People — Al-Falah Schools",
+    "SCHOOL_MANAGERS": "School Manager — Al-Falah Schools",
+    "MODERATORS": "Moderators — Al-Falah Schools",
+    "SECRETARIES": "Secretary — Al-Falah Schools",
     "NEW_USER": "New User — Al-Falah Schools",
     "EDIT_USER": "Edit User — Al-Falah Schools",
     "USER_SCHOOL_ROLES": "User Assignments — Al-Falah Schools",
@@ -46,6 +49,15 @@
       "SAVE_SUCCESS": "Signature saved successfully.",
       "SAVE_FAILED": "Could not save the signature.",
       "SAVE_ERROR": "An error occurred while saving the signature."
+    },
+    "PASSWORD": {
+      "TITLE": "Change password",
+      "DESCRIPTION": "Update your account password here.",
+      "CURRENT": "Current password",
+      "NEW": "New password",
+      "CONFIRM": "Confirm new password",
+      "SAVE": "Save password",
+      "SUCCESS": "Password changed successfully."
     }
   },
   "AUTH": {
@@ -138,7 +150,11 @@
     "LAST_NAME": "Last Name",
     "FULL_NAME": "Full Name",
     "USERNAME": "Username",
+    "USERNAME_HINT": "Usernames are stored in lower case.",
     "PASSWORD": "Password",
+    "PASSWORD_HINT": "At least 8 characters.",
+    "NEW_PASSWORD": "New password",
+    "PASSWORD_CHANGE_HINT": "Leave blank if you do not want to change the password.",
     "EMAIL": "Email",
     "PHONE": "Phone Number",
     "ROLE": "Role",
@@ -154,7 +170,10 @@
     "DEACTIVATED": "Deactivated",
     "ASSIGN_TO_SCHOOL": "Assign to school",
     "NO_SCHOOLS_AVAILABLE": "No available schools",
+    "ROLE_SUPER_ADMIN": "System Admin",
+    "ROLE_MAIN_MANAGER": "Main Manager",
     "ROLE_SCHOOL_MANAGER": "School Manager",
+    "ROLE_SECRETARY": "Secretary",
     "ROLE_MODERATOR": "Moderator",
     "ROLE_INSTRUCTOR": "Instructor",
     "LANGUAGE_ARABIC": "Arabic",
@@ -162,7 +181,29 @@
     "DEACTIVATE_CONFIRM_TITLE": "Confirm user deactivation",
     "DEACTIVATE_ACCEPT": "Yes, deactivate",
     "DEACTIVATE_SUCCESS": "User deactivated successfully.",
-    "ASSIGN_SUCCESS": "User assigned to the school successfully."
+    "ASSIGN_SUCCESS": "User assigned to the school successfully.",
+    "SCOPE": {
+      "ALL": {
+        "TITLE": "All People",
+        "SUBTITLE": "Every account in the system, across all roles",
+        "NEW": "New User"
+      },
+      "SCHOOL_MANAGER": {
+        "TITLE": "School Manager",
+        "SUBTITLE": "Accounts responsible for running the school",
+        "NEW": "Add School Manager"
+      },
+      "MODERATOR": {
+        "TITLE": "Moderators",
+        "SUBTITLE": "Accounts moderating evaluations and visits",
+        "NEW": "Add Moderator"
+      },
+      "SECRETARY": {
+        "TITLE": "Secretary",
+        "SUBTITLE": "Secretarial and attendance-tracking accounts",
+        "NEW": "Add Secretary"
+      }
+    }
   },
   "TEACHERS": {
     "TITLE": "Teachers",
@@ -174,7 +215,6 @@
     "FULL_NAME": "Full Name",
     "USERNAME": "Username",
     "EMPLOYEE_NUMBER": "Employee Number",
-    "DEFAULT_PASSWORD_HINT": "The employee number is used as the instructor's initial password.",
     "SCHOOL": "School",
     "SUBJECT": "Subject",
     "STAGE": "School Stage",
@@ -267,6 +307,7 @@
     "REMOVE_SUCCESS": "Assignment removed successfully."
   },
   "COMMON": {
+    "MORE_ACTIONS": "More actions",
     "LOADING": "Loading...",
     "ERROR": "An error occurred",
     "SUCCESS": "Success",
@@ -385,6 +426,10 @@
     "DASHBOARD": "Dashboard",
     "SCHOOLS": "Schools",
     "USERS": "Users",
+    "SCHOOL_MANAGERS": "School Manager",
+    "MODERATORS": "Moderators",
+    "SECRETARIES": "Secretary",
+    "ALL_PEOPLE": "All People",
     "USER_SCHOOL_ROLES": "User-School Assignments",
     "TEACHERS": "Teachers",
     "VISITS": "Visits",
@@ -398,6 +443,9 @@
     "ROLES": "Roles & Permissions",
     "RUBRIC": "Rubric",
     "MAIN_NAVIGATION": "Main navigation",
+    "MENU": "Menu",
+    "COLLAPSE_SIDEBAR": "Collapse menu",
+    "EXPAND_SIDEBAR": "Expand menu",
     "CATEGORIES": {
       "EVALUATION": "Evaluation",
       "PEOPLE": "People",
@@ -538,6 +586,7 @@
     "DOMAIN_AVERAGE_CHART_LABEL": "Domain average",
     "OVERALL_SCORE": "Overall Score",
     "TOTAL_SCORE": "Total Score",
+    "OUT_OF_100": "out of 100",
     "AVERAGE_SCORE": "Average",
     "PERFORMANCE_LEVEL": "Performance Level",
     "STRENGTHS": "Strengths",

@@ -8,12 +8,32 @@ namespace AlFalah.Tests.Users;
 public sealed class UserValidatorTests
 {
     [Fact]
-    public void Instructor_create_does_not_require_a_separate_password()
+    public void Instructor_create_requires_its_own_password()
     {
         var request = new UserCreateRequestDto
         {
             Username = "instructor-test",
             Role = RoleNames.Instructor,
+            FullName = "معلم تجريبي",
+            EmployeeNumber = "1234",
+            Subject = "الرياضيات",
+            Stage = SchoolStage.Primary,
+            SchoolId = 1
+        };
+
+        var result = new UserCreateRequestValidator().Validate(request);
+
+        Assert.Contains(result.Errors, error => error.PropertyName == nameof(UserCreateRequestDto.Password));
+    }
+
+    [Fact]
+    public void Instructor_create_accepts_a_supplied_password()
+    {
+        var request = new UserCreateRequestDto
+        {
+            Username = "instructor-test",
+            Role = RoleNames.Instructor,
+            Password = "Passw0rd!",
             FullName = "معلم تجريبي",
             EmployeeNumber = "1234",
             Subject = "الرياضيات",

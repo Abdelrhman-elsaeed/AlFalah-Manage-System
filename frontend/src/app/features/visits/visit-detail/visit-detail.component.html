@@ -10,49 +10,36 @@
         <p-tag [severity]="statusSeverity(v.status)" [value]="v.statusLabelAr"></p-tag>
       </p>
     </div>
-    <div class="page-header__action">
+    <!-- Action bar: one primary action, at most two secondaries, everything
+         else under a single overflow menu. Previously eight buttons sat in a
+         single row, each tinted a different colour by a fragile
+         :nth-of-type() rule that also re-coloured the wrong button whenever an
+         *ngIf hid one of them. -->
+    <div class="page-header__action page-actions">
       <button pButton type="button" icon="pi pi-arrow-right"
               [label]="'COMMON.BACK' | translate"
               class="p-button-text app-back-button" (click)="goBack()"></button>
-      <div class="action-cluster action-cluster--reports">
-        <span class="action-cluster__label">{{ 'VISITS.REPORT_TOOLS' | translate }}</span>
-        <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-eye"
-                [label]="'VISITS.REPORT_PREVIEW' | translate"
-                class="p-button-outlined p-button-sm"
-                (click)="goReportPreview()"></button>
-        <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-file-pdf"
-                [label]="'VISITS.DOWNLOAD_PDF' | translate"
-                [loading]="pdfDownloading()"
-                class="p-button-outlined p-button-sm"
-                (click)="downloadReportPdf()"></button>
-        <button *ngIf="canViewPlans() && visit() && (isApproved() || !isInstructor())" pButton type="button" icon="pi pi-list"
-                [label]="'PLANS.TITLE' | translate"
-                class="p-button-outlined p-button-sm"
-                (click)="goImprovementPlans()"></button>
-      </div>
-      <div class="action-cluster action-cluster--workflow"
-           *ngIf="canSubmitComplaint() || canShowApproveActions() || canShowReopenAction() || canShowEditAction()">
-        <span class="action-cluster__label">{{ 'VISITS.ACTIONS' | translate }}</span>
-        <button *ngIf="canShowEditAction()" pButton type="button" icon="pi pi-pencil"
-                [label]="'COMMON.EDIT' | translate" class="p-button-sm"
-                (click)="goEdit()"></button>
-        <button *ngIf="canShowApproveActions()" pButton type="button" icon="pi pi-check-circle"
-                [label]="'VISITS.APPROVE' | translate"
-                class="p-button-success p-button-sm"
-                (click)="confirmApprove()"></button>
-        <button *ngIf="canShowApproveActions()" pButton type="button" icon="pi pi-undo"
-                [label]="'VISITS.REJECT' | translate"
-                class="p-button-warning p-button-sm"
-                (click)="openRejectDialog()"></button>
-        <button *ngIf="canShowReopenAction()" pButton type="button" icon="pi pi-history"
-                [label]="'VISITS.REOPEN' | translate"
-                class="p-button-warning p-button-sm"
-                (click)="openReopenDialog()"></button>
-        <button *ngIf="canSubmitComplaint()" pButton type="button" icon="pi pi-flag"
-                [label]="'COMPLAINTS.SUBMIT' | translate"
-                class="p-button-text p-button-danger p-button-sm"
-                (click)="openComplaintDialog()"></button>
-      </div>
+
+      <button *ngIf="canShowPdfDownload()" pButton type="button" icon="pi pi-file-pdf"
+              [label]="'VISITS.DOWNLOAD_PDF' | translate"
+              [loading]="pdfDownloading()"
+              class="p-button-outlined"
+              (click)="downloadReportPdf()"></button>
+
+      <button *ngIf="primaryAction() as primary" pButton type="button"
+              [icon]="primary.icon"
+              [label]="primary.label"
+              [ngClass]="primary.styleClass"
+              (click)="primary.run()"></button>
+
+      <button *ngIf="overflowActions().length" pButton type="button"
+              icon="pi pi-ellipsis-v"
+              class="p-button-outlined p-button-icon-only"
+              [pTooltip]="'COMMON.MORE_ACTIONS' | translate" tooltipPosition="bottom"
+              [attr.aria-label]="'COMMON.MORE_ACTIONS' | translate"
+              [attr.aria-haspopup]="true"
+              (click)="overflowMenu.toggle($event)"></button>
+      <p-menu #overflowMenu [popup]="true" [model]="overflowActions()" appendTo="body"></p-menu>
     </div>
   </header>
 
@@ -181,7 +168,6 @@
           </header>
           <div class="domain-block" *ngFor="let d of groupedScores(); trackBy: trackDomain">
             <header class="domain-header">
-              <span class="domain-code">{{ d.domainCode }}</span>
               <h3 class="domain-name">{{ d.domainNameAr }}</h3>
             </header>
             <div class="standards">
@@ -240,8 +226,8 @@
           <div class="analysis-summary">
             <div class="summary-cell">
               <span class="summary-label">{{ 'VISITS.TOTAL_SCORE' | translate }}</span>
-              <span class="summary-value summary-value--big">{{ a.totalScore | number:'1.0-3' }} / {{ a.maximumScore | number:'1.0-3' }}</span>
-              <small class="summary-value__hint">{{ 'VISITS.AVERAGE_SCORE' | translate }}: {{ a.overallScore | number:'1.2-3' }} / 4</small>
+              <span class="summary-value summary-value--big">{{ publishedTotal(a.totalScore, a.maximumScore) }}</span>
+              <small class="summary-value__hint">{{ 'VISITS.AVERAGE_SCORE' | translate }}: {{ a.overallScore | publishedScore:'withMax' }}</small>
             </div>
             <div class="summary-cell">
               <span class="summary-label">{{ 'VISITS.PERFORMANCE_LEVEL' | translate }}</span>
@@ -257,10 +243,9 @@
                    [class.avg-card--top]="d.averageScore >= 3.5"
                    [class.avg-card--mid]="d.averageScore >= 2 && d.averageScore < 3.5"
                    [class.avg-card--low]="d.averageScore < 2">
-                <span class="avg-code">{{ d.domainCode }}</span>
                 <span class="avg-name">{{ d.domainNameAr }}</span>
-                <span class="avg-score">{{ d.percentageScore | number:'1.0-1' }}%</span>
-                <small class="avg-score__hint">{{ d.averageScore | number:'1.2-3' }} / 4</small>
+                <span class="avg-score">{{ d.averageScore | publishedScore }}</span>
+                <small class="avg-score__hint">{{ performanceLevelAr(d.averageScore) }}</small>
               </div>
             </div>
           </div>
@@ -273,7 +258,6 @@
             <ul class="bullet-list bullet-list--success">
               <li *ngFor="let s of a.strengths">
                 <span class="bullet-icon"><i class="pi pi-check-circle"></i></span>
-                <span class="bullet-code">{{ s.domainCode }}</span>
                 <span class="bullet-text">{{ s.domainNameAr }}</span>
                 <span class="bullet-score bullet-score--success">{{ s.averageScore | number:'1.2-3' }}</span>
               </li>
@@ -288,7 +272,6 @@
             <ul class="bullet-list bullet-list--warning">
               <li *ngFor="let s of a.improvementAreas">
                 <span class="bullet-icon"><i class="pi pi-info-circle"></i></span>
-                <span class="bullet-code">{{ s.domainCode }}</span>
                 <span class="bullet-text">{{ s.domainNameAr }}</span>
                 <span class="bullet-score bullet-score--warning">{{ s.averageScore | number:'1.2-3' }}</span>
               </li>

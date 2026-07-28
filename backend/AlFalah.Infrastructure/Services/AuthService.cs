@@ -379,4 +379,25 @@ public class AuthService : IAuthService
 
         _logger.LogInformation("Password reset succeeded for {Username}", user.UserName);
     }
+
+    public async Task ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new KeyNotFoundException("المستخدم غير موجود.");
+
+        if (!user.IsActive)
+            throw new UnauthorizedAccessException("الحساب معطل.");
+
+        if (!await _userManager.CheckPasswordAsync(user, currentPassword))
+            throw new UnauthorizedAccessException("كلمة المرور الحالية غير صحيحة.");
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new ArgumentException(errors);
+        }
+
+        _logger.LogInformation("Password changed by user {UserId}", userId);
+    }
 }

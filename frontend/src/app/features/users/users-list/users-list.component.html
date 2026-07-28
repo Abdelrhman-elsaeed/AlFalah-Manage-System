@@ -1,9 +1,9 @@
 <div class="page" dir="rtl">
   <p-confirmDialog></p-confirmDialog>
 
-  <app-list-page-header titleKey="USERS.LIST" subtitleKey="USERS.TITLE">
-    <button slot="action" pButton type="button" icon="pi pi-plus"
-            [label]="'USERS.NEW' | translate"
+  <app-list-page-header [titleKey]="headerTitleKey()" [subtitleKey]="headerSubtitleKey()">
+    <button *ngIf="canCreate()" slot="action" pButton type="button" icon="pi pi-plus"
+            [label]="createLabelKey() | translate"
             class="page-header__primary"
             (click)="goToCreate()"></button>
   </app-list-page-header>
@@ -17,8 +17,9 @@
       </p-inputGroup>
     </app-list-toolbar-field>
 
-    <app-list-toolbar-field labelKey="USERS.ROLE">
-      <app-clearable-select [options]="roleOptions" [ngModel]="roleFilter()"
+    <!-- Role tabs are already pinned to one role, so the dropdown would be a no-op. -->
+    <app-list-toolbar-field *ngIf="!scopedRole()" labelKey="USERS.ROLE">
+      <app-clearable-select [options]="roleFilterOptions" [ngModel]="roleFilter()"
                             (ngModelChange)="roleFilter.set($event); onFilter()"
                             [placeholder]="'USERS.ROLE' | translate"
                             appendTo="body"></app-clearable-select>
@@ -54,11 +55,11 @@
           <td><strong>{{ user.fullName }}</strong></td>
           <td>{{ user.username }}</td>
           <td>
-            <span *ngFor="let role of user.roles" class="role-badge">{{ role }}</span>
+            <span *ngFor="let role of user.roles" class="role-badge">{{ roleLabel(role) }}</span>
           </td>
           <td>
             <span *ngIf="user.schools.length === 0" class="text-dim">{{ 'USERS.NO_SCHOOL' | translate }}</span>
-            <span *ngFor="let s of user.schools" class="school-chip">{{ s.schoolName }} <small>({{ s.role }})</small></span>
+            <span *ngFor="let s of user.schools" class="school-chip">{{ s.schoolName }} <small>({{ roleLabel(s.role) }})</small></span>
           </td>
           <td>
             <p-tag *ngIf="user.isActive" severity="success" [value]="'USERS.ACTIVE' | translate"></p-tag>
@@ -123,7 +124,7 @@
 
         <div class="field">
           <label for="assign-role">{{ 'USERS.ROLE' | translate }} *</label>
-          <app-clearable-select inputId="assign-role" [options]="roleOptions" formControlName="role"
+          <app-clearable-select inputId="assign-role" [options]="roleOptions()" formControlName="role"
                                 optionLabel="label" optionValue="value"
                                 [clearable]="false" appendTo="body"
                                 styleClass="w-100"></app-clearable-select>

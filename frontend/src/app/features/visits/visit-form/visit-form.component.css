@@ -60,10 +60,17 @@
 .snapshot-hint i { color: var(--brand-700); }
 
 .form-card { padding: var(--space-4); }
+/* Two fixed columns rather than auto-fit. auto-fit packed four fields into the
+   first row and then left two-thirds of the next row empty wherever a
+   full-width field (lesson title, notes) broke the flow, which read as ragged
+   holes in the form. Two columns fill every row and match the user form. */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+@media (max-width: 720px) {
+  .form-grid { grid-template-columns: 1fr; }
 }
 .form-field { display: flex; flex-direction: column; gap: 4px; }
 .form-field--full { grid-column: 1 / -1; }
@@ -328,7 +335,13 @@
   .std-actions { width: 100%; order: 4; justify-content: space-between; }
 }
 
-/* ─── Sticky actions bar (always-visible progress + actions) ─────────────── */
+/* ─── Sticky actions bar (always-visible progress + actions) ───────────────
+   The bar floats over the criteria list while scrolling. Previously it was
+   styled exactly like the surrounding cards, so hovering over content read as
+   two cards overlapping rather than a toolbar on top. It now announces itself
+   as a floating toolbar: gold top rule, lifted shadow, slight inset from the
+   viewport edge. The page also reserves bottom room so the last criterion can
+   always be scrolled clear of the bar. */
 .actions-bar {
   display: flex;
   align-items: center;
@@ -337,14 +350,18 @@
   padding: var(--space-3) var(--space-4);
   background-color: var(--bg-surface) !important;
   background-image: none !important;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
+  border-top: 3px solid var(--gold);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
   position: sticky;
-  bottom: 0;
+  bottom: var(--space-3);
   z-index: 5;
   flex-wrap: wrap;
 }
+
+/* Room for the floating bar so it never permanently hides the final row. */
+.page--form { padding-bottom: 4.5rem; }
 .actions-bar__progress {
   display: flex;
   align-items: center;

@@ -14,6 +14,8 @@ interface NavItem {
   roles?: string[];
   permissions?: string[];
   tooltipKey?: string;
+  /** Highlight only on an exact URL match — for parents of deeper routes (e.g. /users). */
+  exact?: boolean;
 }
 
 interface NavCategory {
@@ -54,10 +56,13 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
     ]
   },
   {
+    // One sub-tab per role: each list shows only the people its title names,
+    // with the school manager first and an "everyone" tab at the end.
     id: 'people',
     labelKey: 'NAV.CATEGORIES.PEOPLE',
     icon: 'pi pi-users',
     items: [
+      { labelKey: 'NAV.SCHOOL_MANAGERS', icon: 'pi pi-briefcase', route: '/users/school-managers', permissions: ['User.View'] },
       {
         labelKey: 'NAV.TEACHERS',
         icon: 'pi pi-id-card',
@@ -65,7 +70,10 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
         permissions: ['Instructor.View']
       },
-      { labelKey: 'NAV.USERS', icon: 'pi pi-users', route: '/users', permissions: ['User.View'] },
+      { labelKey: 'NAV.MODERATORS', icon: 'pi pi-user-edit', route: '/users/moderators', permissions: ['User.View'] },
+      { labelKey: 'NAV.SECRETARIES', icon: 'pi pi-inbox', route: '/users/secretaries', permissions: ['User.View'] },
+      // Exact match: otherwise /users/moderators would light this up too.
+      { labelKey: 'NAV.ALL_PEOPLE', icon: 'pi pi-users', route: '/users', permissions: ['User.View'], exact: true },
       { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] }
     ]
   },
@@ -125,6 +133,10 @@ export class ShellComponent implements OnInit {
   private lastContentScrollTop = 0;
   private pendingContentScrollTop = 0;
   private scrollAnimationFrame: number | null = null;
+
+  /** Stable references so `routerLinkActiveOptions` isn't a fresh object per CD pass. */
+  readonly exactMatchOptions = { exact: true };
+  readonly prefixMatchOptions = { exact: false };
 
   readonly currentUser = this.authService.currentUser;
   readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());

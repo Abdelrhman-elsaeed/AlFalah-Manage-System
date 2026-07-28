@@ -9,6 +9,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AttendanceService } from '../../../core/services/attendance.service';
+import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
 import { AttendanceRecordItem, AttendanceSheetRow, AttendanceStatus, MyAttendanceItem } from '../../../core/models/attendance.models';
 
 @Component({
@@ -68,7 +69,7 @@ export class AttendanceComponent implements OnInit {
       },
       error: error => {
         this.sheetLoading.set(false);
-        this.toast.error('تعذر تحميل كشف الحضور', error?.error?.message || '');
+        this.toast.error('تعذر تحميل كشف الحضور', extractHttpErrorMessage(error) ?? '');
       }
     });
   }
@@ -102,7 +103,7 @@ export class AttendanceComponent implements OnInit {
       },
       error: error => {
         this.saving.set(false);
-        this.toast.error('تعذر حفظ سجل الحضور', error?.error?.message || '');
+        this.toast.error('تعذر حفظ سجل الحضور', extractHttpErrorMessage(error) ?? '');
       }
     });
   }
@@ -128,7 +129,7 @@ export class AttendanceComponent implements OnInit {
       },
       error: error => {
         this.historyLoading.set(false);
-        this.toast.error('تعذر تحميل سجل حضوري', error?.error?.message || '');
+        this.toast.error('تعذر تحميل سجل حضوري', extractHttpErrorMessage(error) ?? '');
       }
     });
   }
@@ -152,7 +153,7 @@ export class AttendanceComponent implements OnInit {
       error: error => {
         this.historyLoading.set(false);
         this.attendanceRecords.set([]);
-        this.toast.error('ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ±', error?.error?.message || '');
+        this.toast.error('تعذر تحميل سجل الحضور', extractHttpErrorMessage(error) ?? '');
       }
     });
   }
@@ -195,7 +196,12 @@ export class AttendanceComponent implements OnInit {
         anchor.click();
         URL.revokeObjectURL(url);
       },
-      error: error => this.toast.error('تعذر تنزيل ملف PDF', error?.error?.message || '')
+      error: async error => {
+        // Blob response: read the body before reporting, otherwise the detail
+        // is always empty.
+        await readHttpErrorBody(error);
+        this.toast.error('تعذر تنزيل ملف PDF', extractHttpErrorMessage(error) ?? '');
+      }
     });
   }
 

@@ -319,7 +319,11 @@ public class UserService : IUserService
         if (request.Role == RoleNames.SchoolManager && !_currentUser.IsGlobalAdmin())
             throw new UnauthorizedSchoolAccessException("إضافة مدير مدرسة متاحة للمدير العام ومدير النظام فقط.");
 
-        var existing = await _userManager.FindByNameAsync(request.Username);
+        // Usernames are case-insensitive identifiers; persist them lower-cased so
+        // the stored value always matches what the operator types at login.
+        var username = (request.Username ?? string.Empty).Trim().ToLowerInvariant();
+
+        var existing = await _userManager.FindByNameAsync(username);
         if (existing != null)
             throw new InvalidOperationException("اسم المستخدم مستخدم بالفعل.");
 
@@ -327,7 +331,7 @@ public class UserService : IUserService
 
         var user = new ApplicationUser
         {
-            UserName = request.Username,
+            UserName = username,
             Email = request.Email,
             PhoneNumber = request.PhoneNumber,
             EmailConfirmed = true, // Phase 2: no email confirmation flow yet
@@ -337,25 +341,10 @@ public class UserService : IUserService
             IsActive = true
         };
 
-        // Instructors receive a deterministic first-login password equal to
-        // their employee number. Identity's normal password policy is kept for
-        // all other roles; the instructor default is intentionally hashed
-        // directly because employee numbers are business identifiers and may
-        // not satisfy the generic complexity policy.
-        IdentityResult createResult;
-        if (request.Role == RoleNames.Instructor)
-        {
-            var initialPassword = request.EmployeeNumber?.Trim();
-            if (string.IsNullOrWhiteSpace(initialPassword))
-                throw new ArgumentException("الرقم الوظيفي مطلوب للمعلم.");
-
-            user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, initialPassword);
-            createResult = await _userManager.CreateAsync(user);
-        }
-        else
-        {
-            createResult = await _userManager.CreateAsync(user, request.Password);
-        }
+        // Every role — instructors included — gets the password the operator
+        // typed and Identity's normal password policy. The employee number is a
+        // business identifier only; it is no longer reused as a credential.
+        var createResult = await _userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
         {
             var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
@@ -452,6 +441,11 @@ public class UserService : IUserService
         var user = await _userManager.FindByIdAsync(userId)
             ?? throw new KeyNotFoundException("المستخدم غير موجود.");
 
+        if (!string.IsNullOrWhiteSpace(request.Role) && current.Schools.Count > 0)
+        {
+            await ChangeRoleAsync(userId, request.Role!, request.SchoolId, current, cancellationToken);
+        }
+
         var (firstName, lastName) = ResolveNameParts(request.FullName, request.FirstName, request.LastName);
         user.FirstName = firstName;
         user.LastName = lastName;
@@ -502,6 +496,107 @@ public class UserService : IUserService
         return await GetByIdAsync(userId, cancellationToken);
     }
 
+    public async Task ChangePasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
+    {
+        if (!_currentUser.IsGlobalAdmin() && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            throw new UnauthorizedAccessException("تغيير كلمات مرور المستخدمين متاح لمدير المدرسة أو الإدارة العامة فقط.");
+
+        var current = await GetByIdAsync(userId, cancellationToken);
+        if (!_currentUser.IsGlobalAdmin() && current.Roles.Contains(RoleNames.SchoolManager))
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تغيير كلمة مرور مدير مدرسة آخر.");
+
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new KeyNotFoundException("المستخدم غير موجود.");
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+        if (!result.Succeeded)
+            throw new ArgumentException(string.Join("; ", result.Errors.Select(e => e.Description)));
+
+        _logger.LogInformation("Password changed for user {UserId} by {ByUserId}", userId, _currentUser.UserId);
+    }
+
+    private async Task ChangeRoleAsync(
+        string userId,
+        string newRoleName,
+        int? requestedSchoolId,
+        UserDetailDto current,
+        CancellationToken cancellationToken)
+    {
+        var schoolId = _currentUser.IsGlobalAdmin()
+            ? requestedSchoolId ?? current.Schools.FirstOrDefault()?.SchoolId
+            : _currentUser.ActiveSchoolId;
+        if (!schoolId.HasValue)
+            throw new UnauthorizedSchoolAccessException("لا توجد مدرسة نشطة مرتبطة بالحساب.");
+        if (_currentUser.IsGlobalAdmin() && requestedSchoolId.HasValue)
+            await _scopeGuard.EnsureCanMutateSchoolAsync(requestedSchoolId.Value, cancellationToken);
+
+        var role = await _roleManager.FindByNameAsync(newRoleName)
+            ?? throw new InvalidOperationException($"الدور '{newRoleName}' غير موجود.");
+        if (newRoleName is not (RoleNames.SchoolManager or RoleNames.Secretary or RoleNames.Moderator or RoleNames.Instructor))
+            throw new InvalidOperationException("الدور غير مسموح.");
+
+        var assignment = await _context.UserSchoolRoles
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.SchoolId == schoolId.Value && x.IsActive && !x.IsDeleted,
+                cancellationToken)
+            ?? throw new UnauthorizedSchoolAccessException("المستخدم غير مرتبط بالمدرسة الحالية.");
+        var oldRole = await _roleManager.FindByIdAsync(assignment.RoleId);
+        if (oldRole?.Name == newRoleName) return;
+
+        if (!_currentUser.IsGlobalAdmin() && newRoleName == RoleNames.SchoolManager)
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تعيين دور مدير مدرسة.");
+        if (!_currentUser.IsGlobalAdmin() && userId == _currentUser.UserId)
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تغيير دوره بنفسه.");
+
+        var school = await _context.Schools.FirstOrDefaultAsync(x => x.Id == schoolId.Value, cancellationToken)
+            ?? throw new KeyNotFoundException("المدرسة غير موجودة.");
+
+        if (newRoleName == RoleNames.SchoolManager)
+        {
+            if (!string.IsNullOrWhiteSpace(school.ManagerUserId) && school.ManagerUserId != userId)
+            {
+                var previous = await _context.UserSchoolRoles
+                    .Where(x => x.SchoolId == school.Id && x.UserId == school.ManagerUserId && x.IsActive)
+                    .ToListAsync(cancellationToken);
+                foreach (var row in previous) row.IsActive = false;
+            }
+            school.ManagerUserId = userId;
+        }
+        else if (oldRole?.Name == RoleNames.SchoolManager && school.ManagerUserId == userId)
+        {
+            school.ManagerUserId = null;
+        }
+
+        if (newRoleName == RoleNames.Secretary)
+        {
+            var secretaryRole = await _roleManager.FindByNameAsync(RoleNames.Secretary);
+            if (secretaryRole != null)
+            {
+                var others = await _context.UserSchoolRoles
+                    .Where(x => x.SchoolId == school.Id && x.RoleId == secretaryRole.Id && x.UserId != userId && x.IsActive)
+                    .ToListAsync(cancellationToken);
+                foreach (var row in others) row.IsActive = false;
+            }
+        }
+
+        assignment.RoleId = role.Id;
+        assignment.UpdatedAt = DateTimeOffset.UtcNow;
+        assignment.UpdatedByUserId = _currentUser.UserId;
+
+        var targetUser = await _userManager.FindByIdAsync(userId)
+            ?? throw new KeyNotFoundException("المستخدم غير موجود.");
+        if (!await _userManager.IsInRoleAsync(targetUser, newRoleName))
+            await _userManager.AddToRoleAsync(targetUser, newRoleName);
+        if (oldRole?.Name != null
+            && oldRole.Name != newRoleName
+            && !await _context.UserSchoolRoles.AnyAsync(x => x.UserId == userId && x.RoleId == oldRole.Id && x.IsActive && !x.IsDeleted, cancellationToken))
+        {
+            await _userManager.RemoveFromRoleAsync(targetUser, oldRole.Name);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeactivateAsync(string userId, CancellationToken cancellationToken = default)
     {
         // SECURITY (D-24): same scoping as Update. Reuse GetByIdAsync's check.
@@ -510,17 +605,12 @@ public class UserService : IUserService
         var user = await _userManager.FindByIdAsync(userId)
             ?? throw new KeyNotFoundException("المستخدم غير موجود.");
 
-        user.IsActive = false;
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-            throw new ArgumentException(errors);
-        }
-
-        // Deactivate all active UserSchoolRoles for this user.
+        // A school manager removes the user's assignment from this school only.
+        // Global administrators may deactivate the account everywhere.
         var activeRoles = await _context.UserSchoolRoles
-            .Where(usr => usr.UserId == userId && usr.IsActive)
+            .IgnoreQueryFilters()
+            .Where(usr => usr.UserId == userId && usr.IsActive && !usr.IsDeleted)
+            .Where(usr => _currentUser.IsGlobalAdmin() || usr.SchoolId == _currentUser.ActiveSchoolId)
             .ToListAsync(cancellationToken);
 
         foreach (var usr in activeRoles)
@@ -528,6 +618,20 @@ public class UserService : IUserService
             usr.IsActive = false;
             usr.UpdatedAt = DateTimeOffset.UtcNow;
             usr.UpdatedByUserId = _currentUser.UserId;
+        }
+
+        if (_currentUser.IsGlobalAdmin()
+            || !await _context.UserSchoolRoles.AnyAsync(
+                usr => usr.UserId == userId && usr.IsActive && !usr.IsDeleted && usr.SchoolId != _currentUser.ActiveSchoolId,
+                cancellationToken))
+        {
+            user.IsActive = false;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                throw new ArgumentException(errors);
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);

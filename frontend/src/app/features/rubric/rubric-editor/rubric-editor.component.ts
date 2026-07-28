@@ -8,6 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { TooltipModule } from 'primeng/tooltip';
 import { RubricService } from '../../../core/services/rubric.service';
 import {
   RubricVersionDto, RubricDomainDto, RubricStandardDto,
@@ -33,7 +34,8 @@ interface DomainForm {
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    ProgressSpinnerModule, ButtonModule, InputTextModule, InputTextareaModule, InputNumberModule
+    ProgressSpinnerModule, ButtonModule, InputTextModule, InputTextareaModule, InputNumberModule,
+    TooltipModule
   ],
   templateUrl: './rubric-editor.component.html',
   styleUrls: ['./rubric-editor.component.css']

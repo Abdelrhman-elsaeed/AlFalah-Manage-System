@@ -83,6 +83,16 @@ public class InstructorPerformanceRowDto
     public int OpenImprovementPlansCount { get; set; }
     /// <summary>True if the instructor's latest approved visit has any domain average &lt; 2.5 (i.e. needs improvement).</summary>
     public bool NeedsImprovement { get; set; }
+
+    /// <summary>
+    /// The weakest domain in the latest approved visit, and its average. The
+    /// "needs improvement" list is selected on this domain, not on the overall
+    /// average — so without naming it the table showed teachers rated
+    /// "جيد جداً" under a heading that says they need support, which reads as a
+    /// bug rather than as the intended per-domain signal.
+    /// </summary>
+    public string? WeakestDomainNameAr { get; set; }
+    public decimal? WeakestDomainScore { get; set; }
 }
 
 // ─── Common shape: aggregated improvement-plan analytics ───────────────────

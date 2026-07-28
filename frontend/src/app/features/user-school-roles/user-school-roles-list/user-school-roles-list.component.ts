@@ -6,6 +6,7 @@ import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -26,7 +27,7 @@ import { UserSchoolRoleDetail, PhaseTwoRole } from '../../../core/models/phase2.
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
-    TableModule, ButtonModule, ClearableSelectComponent, InputGroupModule, InputGroupAddonModule, TooltipModule, ConfirmDialogModule, DialogModule,
+    TableModule, ButtonModule, TagModule, ClearableSelectComponent, InputGroupModule, InputGroupAddonModule, TooltipModule, ConfirmDialogModule, DialogModule,
     ListPageHeaderComponent, ListToolbarComponent, ListToolbarFieldComponent
   ],
   providers: [ConfirmationService],
@@ -52,7 +53,9 @@ export class UserSchoolRolesListComponent implements OnInit {
   lookupsLoading = signal(false);
 
   readonly roleOptions = [
-    { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
+    ...(this.authService.hasRole('SchoolManager') && !this.authService.hasRole('MainManager') && !this.authService.hasRole('SuperAdmin')
+      ? []
+      : [{ label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' as PhaseTwoRole }]),
     { label: 'السكرتير', value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
     { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }

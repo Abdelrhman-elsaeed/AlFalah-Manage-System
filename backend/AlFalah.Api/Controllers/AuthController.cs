@@ -1,4 +1,5 @@
 using AlFalah.Application.DTOs.Auth;
+using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Schools;
 using AlFalah.Application.Interfaces;
 using AlFalah.Infrastructure.Services;
@@ -205,6 +206,26 @@ public class AuthController : ControllerBase
     /// Get active schools for the login school selector.
     /// Public endpoint — no auth required.
     /// </summary>
+    /// <summary>Change the current user's password.</summary>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 400)]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
+        if (errors.Count > 0)
+            return BadRequest(ApiResponse.Fail(errors));
+
+        if (string.IsNullOrWhiteSpace(_currentUser.UserId))
+            return Unauthorized(ApiResponse.Fail("المستخدم غير مصرح له."));
+
+        await _authService.ChangePasswordAsync(_currentUser.UserId!, request.CurrentPassword, request.NewPassword);
+        return Ok(ApiResponse.Success("تم تغيير كلمة المرور بنجاح."));
+    }
+
     [HttpGet("schools")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<List<SchoolLookupDto>>), 200)]

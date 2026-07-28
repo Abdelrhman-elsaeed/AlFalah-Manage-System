@@ -47,6 +47,33 @@
     </div>
   </section>
 
+  <section class="surface-card password-card">
+    <header class="teaching-card__header">
+      <div>
+        <h2>{{ 'ACCOUNT.PASSWORD.TITLE' | translate }}</h2>
+        <p>{{ 'ACCOUNT.PASSWORD.DESCRIPTION' | translate }}</p>
+      </div>
+      <i class="pi pi-lock"></i>
+    </header>
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="teaching-card__form">
+      <div class="teaching-card__field">
+        <label for="current-password">{{ 'ACCOUNT.PASSWORD.CURRENT' | translate }}</label>
+        <input id="current-password" pInputText type="password" formControlName="currentPassword" autocomplete="current-password" />
+      </div>
+      <div class="teaching-card__field">
+        <label for="new-password">{{ 'ACCOUNT.PASSWORD.NEW' | translate }}</label>
+        <input id="new-password" pInputText type="password" formControlName="newPassword" autocomplete="new-password" />
+      </div>
+      <div class="teaching-card__field">
+        <label for="confirm-password">{{ 'ACCOUNT.PASSWORD.CONFIRM' | translate }}</label>
+        <input id="confirm-password" pInputText type="password" formControlName="confirmPassword" autocomplete="new-password" />
+      </div>
+      <div class="teaching-card__actions">
+        <button pButton type="submit" icon="pi pi-save" [label]="'ACCOUNT.PASSWORD.SAVE' | translate" [loading]="passwordSaving()"></button>
+      </div>
+    </form>
+  </section>
+
   <section class="surface-card teaching-card" *ngIf="isInstructor()">
     <header class="teaching-card__header">
       <div>

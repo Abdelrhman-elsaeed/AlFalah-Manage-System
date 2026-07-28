@@ -59,12 +59,12 @@ export class UserFormComponent implements OnInit {
     stage: [null]
   });
 
-  readonly roleOptions = [
-    { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
-    { label: 'السكرتير', value: 'Secretary' },
+  readonly roleOptions = computed(() => [
+    ...(this.isSchoolManager() ? [] : [{ label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' as PhaseTwoRole }]),
+    { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
     { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
-  ];
+  ]);
   readonly stageOptions: { label: string; value: SchoolStage }[] = [
     { label: this.translate.instant('SCHOOLS.STAGE.PRIMARY'), value: 'Primary' },
     { label: this.translate.instant('SCHOOLS.STAGE.INTERMEDIATE'), value: 'Intermediate' },
@@ -83,20 +83,37 @@ export class UserFormComponent implements OnInit {
     if (id) {
       this.isEdit.set(true);
       this.userId.set(id);
-      this.form.controls['role'].disable({ emitEvent: false });
       this.form.controls['password'].clearValidators();
       this.form.controls['password'].updateValueAndValidity();
       this.loadUser(id);
     } else {
       this.form.controls['password'].setValidators([Validators.required, Validators.minLength(8)]);
       this.form.controls['password'].updateValueAndValidity();
-      if (requestedRole === 'Instructor') this.form.patchValue({ role: requestedRole });
+      // Reached from a role-scoped list ("+ إضافة مشرف", teachers list, …): start
+      // on that role. Unknown values are ignored so a hand-typed ?role= can't
+      // push an invalid role into the form.
+      if (requestedRole && this.roleOptions().some(option => option.value === requestedRole))
+        this.form.patchValue({ role: requestedRole });
       this.setRoleMode(this.form.controls['role'].value as PhaseTwoRole);
     }
 
     this.form.controls['role'].valueChanges.subscribe(role => this.setRoleMode(role as PhaseTwoRole));
-    this.form.controls['employeeNumber'].valueChanges.subscribe(() => this.syncInstructorDefaultPassword());
     this.loadSchools();
+  }
+
+  /**
+   * Usernames are stored and matched lower-case, so normalise while typing
+   * instead of surprising the operator after save. The caret is restored
+   * because `setValue` rewrites the input value.
+   */
+  onUsernameInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const lowered = input.value.toLowerCase();
+    if (lowered === input.value) return;
+    const caret = input.selectionStart;
+    this.form.controls['username'].setValue(lowered);
+    input.value = lowered;
+    if (caret !== null) input.setSelectionRange(caret, caret);
   }
 
   loadUser(id: string): void {
@@ -165,13 +182,28 @@ export class UserFormComponent implements OnInit {
         email: value.email || undefined,
         phoneNumber: value.phoneNumber || undefined,
         preferredLanguage: value.preferredLanguage ?? 'ar',
+        role: value.role as PhaseTwoRole,
         ...teacherFields
       }).subscribe({
         next: response => {
-          this.saving.set(false);
           if (response.isSuccess) {
-            this.toast.success(this.translate.instant('TEACHERS.SAVE_SUCCESS_TITLE'), response.message || '');
-            this.router.navigate(this.isInstructor() ? ['/teachers'] : ['/users']);
+            const password = String(value.password ?? '').trim();
+            if (password) {
+              this.usersService.changePassword(this.userId()!, password).subscribe({
+                next: passwordResponse => {
+                  this.saving.set(false);
+                  if (passwordResponse.isSuccess) {
+                    this.toast.success(this.translate.instant('TEACHERS.SAVE_SUCCESS_TITLE'), response.message || '');
+                    this.router.navigate(this.isInstructor() ? ['/teachers'] : ['/users']);
+                  }
+                },
+                error: () => this.saving.set(false)
+              });
+            } else {
+              this.saving.set(false);
+              this.toast.success(this.translate.instant('TEACHERS.SAVE_SUCCESS_TITLE'), response.message || '');
+              this.router.navigate(this.isInstructor() ? ['/teachers'] : ['/users']);
+            }
           }
         },
         error: () => this.saving.set(false)
@@ -180,7 +212,7 @@ export class UserFormComponent implements OnInit {
     }
 
     this.usersService.create({
-      username: value.username.trim(),
+      username: value.username.trim().toLowerCase(),
       password: value.password,
       firstName: value.firstName.trim(),
       lastName: value.lastName.trim(),
@@ -213,10 +245,7 @@ export class UserFormComponent implements OnInit {
     this.form.controls['firstName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
     this.form.controls['lastName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
     if (!this.isEdit()) {
-      this.form.controls['password'].setValidators(
-        instructor ? [Validators.required] : [Validators.required, Validators.minLength(8)]
-      );
-      this.syncInstructorDefaultPassword();
+      this.form.controls['password'].setValidators([Validators.required, Validators.minLength(8)]);
     }
     Object.values(this.form.controls).forEach(control => control.updateValueAndValidity({ emitEvent: false }));
   }
@@ -224,12 +253,6 @@ export class UserFormComponent implements OnInit {
   private setRoleMode(role: PhaseTwoRole): void {
     this.isSecretary.set(role === 'Secretary');
     this.setInstructorMode(role === 'Instructor');
-  }
-
-  private syncInstructorDefaultPassword(): void {
-    if (this.isEdit() || !this.isInstructor()) return;
-    const employeeNumber = String(this.form.controls['employeeNumber'].value ?? '').trim();
-    this.form.controls['password'].setValue(employeeNumber, { emitEvent: false });
   }
 
   private normalizeStage(stage: SchoolStage | number | null | undefined): SchoolStage | null {

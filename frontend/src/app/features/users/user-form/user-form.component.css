@@ -68,6 +68,13 @@
 :host ::ng-deep .field .p-chips,
 :host ::ng-deep .field .p-chips-multiple-container { width: 100%; }
 
+/* Usernames are latin + lower-case only; render them LTR inside the RTL form. */
+.input--lowercase {
+  text-transform: lowercase;
+  direction: ltr;
+  text-align: start;
+}
+
 .password-control {
   display: block;
   position: relative;

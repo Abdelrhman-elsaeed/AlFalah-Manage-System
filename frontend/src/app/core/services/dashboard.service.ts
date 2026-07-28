@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
@@ -9,6 +9,7 @@ import {
   ModeratorDashboard, InstructorDashboard
 } from '../models/dashboard.models';
 import { filenameFromContentDisposition } from './visits.service';
+import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 
 /**
  * Phase 9 — role-based dashboard aggregator. All methods are thin pass-throughs
@@ -55,7 +56,9 @@ export class DashboardService {
     return this.http.get(`${this.base}/export/excel`, {
       params: this.toParams({ ...filter, role: String(role) }),
       responseType: 'blob',
-      observe: 'response'
+      observe: 'response',
+      // Failure detail lives inside the blob; the caller reads and reports it.
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
     });
   }
 
@@ -63,7 +66,9 @@ export class DashboardService {
     return this.http.get(`${this.base}/export/pdf`, {
       params: this.toParams({ ...filter, role: String(role) }),
       responseType: 'blob',
-      observe: 'response'
+      observe: 'response',
+      // Failure detail lives inside the blob; the caller reads and reports it.
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
     });
   }
 

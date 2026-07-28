@@ -152,8 +152,8 @@
             <td class="text-center">{{ row.approved }}</td>
             <td class="text-center">
               <span class="score-meter" *ngIf="row.average !== null; else noAverage">
-                <span class="score-meter__track"><span [style.width.%]="(row.average / 4) * 100"></span></span>
-                <strong>{{ row.average | number:'1.0-2' }}</strong>
+                <span class="score-meter__track"><span [style.width.%]="scorePercent(row.average)"></span></span>
+                <strong>{{ row.average | publishedScore }}</strong>
               </span>
               <ng-template #noAverage>—</ng-template>
             </td>
@@ -171,7 +171,7 @@
         <div class="latest-grid">
           <div><span>{{ 'DASHBOARD.VISIT_TYPE' | translate }}</span><strong>{{ latest.visitCategoryLabelAr }}</strong></div>
           <div><span>{{ 'DASHBOARD.MODERATOR_NAME' | translate }}</span><strong>{{ latest.moderatorFullName }}</strong></div>
-          <div><span>{{ 'DASHBOARD.AVERAGE' | translate }}</span><strong class="score-value">{{ latest.overallScore | number:'1.0-2' }}</strong></div>
+          <div><span>{{ 'DASHBOARD.AVERAGE' | translate }}</span><strong class="score-value">{{ latest.overallScore | publishedScore:'withMax' }}</strong></div>
           <div><span>{{ 'DASHBOARD.PERFORMANCE_LEVEL' | translate }}</span><p-tag [value]="latest.performanceLevelAr" severity="success"></p-tag></div>
         </div>
       </section>

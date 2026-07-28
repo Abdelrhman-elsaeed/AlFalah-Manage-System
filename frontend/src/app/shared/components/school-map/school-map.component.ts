@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import * as L from 'leaflet';
+import { formatPublishedScore } from '../../score-scale';
 
 export interface SchoolMapMarker {
   id: number;
@@ -116,7 +117,7 @@ export class SchoolMapComponent implements AfterViewInit, OnChanges, OnDestroy {
     const meta = document.createElement('small');
     meta.textContent = marker.average === null
       ? marker.city
-      : `${marker.city} · ${marker.average.toFixed(2)}`;
+      : `${marker.city} · ${formatPublishedScore(marker.average)}`;
 
     container.append(name, meta);
     return container;

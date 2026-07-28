@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response.model';
 import { AttendanceRecordItem, AttendanceSheet, MyAttendanceItem, SaveAttendanceSheetRequest } from '../models/attendance.models';
+import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {
@@ -40,6 +41,10 @@ export class AttendanceService {
     if (fromDate) params = params.set('fromDate', fromDate);
     if (toDate) params = params.set('toDate', toDate);
     if (name?.trim()) params = params.set('name', name.trim());
-    return this.http.get(`${this.base}/records/pdf`, { params, responseType: 'blob' });
+    return this.http.get(`${this.base}/records/pdf`, {
+      params,
+      responseType: 'blob',
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
+    });
   }
 }

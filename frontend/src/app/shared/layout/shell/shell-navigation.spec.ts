@@ -15,3 +15,24 @@ describe('shell evaluation navigation roles', () => {
     expect(rubric?.roles).toEqual(['MainManager', 'SuperAdmin']);
   });
 });
+
+describe('shell people navigation', () => {
+  const people = SHELL_NAV_CATEGORIES.find(category => category.id === 'people');
+
+  it('splits people per role, school manager first and everyone last', () => {
+    expect(people?.items.map(item => item.route)).toEqual([
+      '/users/school-managers',
+      '/teachers',
+      '/users/moderators',
+      '/users/secretaries',
+      '/users',
+      '/user-school-roles'
+    ]);
+  });
+
+  it('matches the all-people tab exactly so role tabs do not light it up', () => {
+    const all = people?.items.find(item => item.route === '/users');
+
+    expect(all?.exact).toBe(true);
+  });
+});

@@ -9,16 +9,28 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
+import { MenuModule } from 'primeng/menu';
+import { TooltipModule } from 'primeng/tooltip';
+import { ConfirmationService, MenuItem } from 'primeng/api';
 import { ToastService } from '../../../core/services/toast.service';
 import { VisitsService, filenameFromContentDisposition } from '../../../core/services/visits.service';
 import { ComplaintsService } from '../../../core/services/complaints.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
+import { PublishedScorePipe, formatPublishedTotal } from '../../../shared/score-scale';
 import {
   InstructorReport,
   ReportViewStatus,
   VisitDetail
 } from '../../../core/models/visit.models';
+
+/** One header action: what it looks like and what it does. */
+interface VisitPrimaryAction {
+  icon: string;
+  label: string;
+  styleClass: string;
+  run: () => void;
+}
 
 @Component({
   selector: 'app-visit-detail',
@@ -26,7 +38,8 @@ import {
   imports: [
     CommonModule, FormsModule, TranslateModule,
     ButtonModule, TagModule, InputTextModule, InputTextareaModule,
-    DialogModule, ConfirmDialogModule
+    DialogModule, ConfirmDialogModule, MenuModule, TooltipModule,
+    PublishedScorePipe
   ],
   providers: [ConfirmationService],
   templateUrl: './visit-detail.component.html',
@@ -267,6 +280,29 @@ export class VisitDetailComponent implements OnInit {
       .map(g => ({ ...g, scores: g.scores.sort((x, y) => x.standardCode.localeCompare(y.standardCode)) }));
   }
 
+  /**
+   * D-UI-1 — the visit total published on 0–100. The header cell used to carry
+   * "78 / 100" with "3.12 / 4" beneath it: the same result on two scales.
+   */
+  publishedTotal(total: number, maximum: number): string {
+    return formatPublishedTotal(total, maximum);
+  }
+
+  /**
+   * Arabic performance level for a domain average. Replaces the second copy of
+   * the score that each domain card used to print underneath the first.
+   * Thresholds mirror docs/09 / VisitAnalysisEngine.MapPerformanceLevel.
+   */
+  performanceLevelAr(rawOutOfFour: number | null | undefined): string {
+    if (rawOutOfFour === null || rawOutOfFour === undefined) return '—';
+    if (rawOutOfFour >= 3.5) return 'متميز';
+    if (rawOutOfFour >= 3.0) return 'جيد جداً';
+    if (rawOutOfFour >= 2.5) return 'جيد';
+    if (rawOutOfFour >= 2.0) return 'متحقق جزئياً';
+    if (rawOutOfFour >= 1.0) return 'يحتاج تحسين';
+    return 'غير مشاهد';
+  }
+
   performanceLevelSeverity(level: string): 'success' | 'warning' | 'danger' | 'info' | 'secondary' {
     if (level === 'متميز') return 'success';
     if (level === 'جيد جداً') return 'success';
@@ -479,13 +515,15 @@ export class VisitDetailComponent implements OnInit {
         );
         this.pdfDownloading.set(false);
       },
-      error: (err) => {
+      error: async (err) => {
         this.pdfDownloading.set(false);
-        const summary = 'VISITS.PDF_DOWNLOAD_FAILED_TITLE';
-        // Try to extract the Arabic ApiResponse message from the blob error body
-        // so the toast surfaces the server's Arabic error verbatim.
-        const detail = extractApiErrorMessage(err) ?? 'VISITS.PDF_DOWNLOAD_FAILED_DESC';
-        this.toast.error(summary, detail);
+        // The response is a blob, so the server's Arabic reason has to be read
+        // out of it before it can be shown; without this the toast fell back to
+        // a generic message and the actual reason was lost.
+        await readHttpErrorBody(err);
+        this.toast.error(
+          'VISITS.PDF_DOWNLOAD_FAILED_TITLE',
+          extractHttpErrorMessage(err) ?? 'VISITS.PDF_DOWNLOAD_FAILED_DESC');
       }
     });
   }
@@ -500,6 +538,94 @@ export class VisitDetailComponent implements OnInit {
     const category = sanitizeForFilename(v.visitCategoryLabelAr);
     return `${teacher} - ${year} - ${category}.pdf`;
   }
+
+  // ─── Action bar ──────────────────────────────────────────────────────────
+  //
+  // The header shows: back · download PDF · ONE primary action · overflow menu.
+  // Everything else moves into the menu. The old bar rendered every permitted
+  // action as a peer button — up to eight in a row, each given a different
+  // colour by a :nth-of-type() rule, which both looked arbitrary and mis-tinted
+  // buttons whenever an *ngIf removed one of its siblings.
+
+  /**
+   * The single action the page is asking the user to take, chosen by workflow
+   * position: approve while a visit awaits approval, otherwise edit.
+   */
+  readonly primaryAction = computed<VisitPrimaryAction | null>(() => {
+    if (this.canShowApproveActions()) {
+      return {
+        icon: 'pi pi-check-circle',
+        label: this.translate.instant('VISITS.APPROVE'),
+        styleClass: 'p-button-success',
+        run: () => this.confirmApprove()
+      };
+    }
+    if (this.canShowEditAction()) {
+      return {
+        icon: 'pi pi-pencil',
+        label: this.translate.instant('COMMON.EDIT'),
+        styleClass: '',
+        run: () => this.goEdit()
+      };
+    }
+    return null;
+  });
+
+  /** Everything permitted that is not the primary action or the PDF download. */
+  readonly overflowActions = computed<MenuItem[]>(() => {
+    const items: MenuItem[] = [];
+
+    if (this.canShowPdfDownload()) {
+      items.push({
+        label: this.translate.instant('VISITS.REPORT_PREVIEW'),
+        icon: 'pi pi-eye',
+        command: () => this.goReportPreview()
+      });
+    }
+    if (this.canViewPlans() && this.visit() && (this.isApproved() || !this.isInstructor())) {
+      items.push({
+        label: this.translate.instant('PLANS.TITLE'),
+        icon: 'pi pi-list',
+        command: () => this.goImprovementPlans()
+      });
+    }
+
+    // Edit is only in the menu when approve took the primary slot.
+    if (this.canShowApproveActions() && this.canShowEditAction()) {
+      items.push({
+        label: this.translate.instant('COMMON.EDIT'),
+        icon: 'pi pi-pencil',
+        command: () => this.goEdit()
+      });
+    }
+
+    const stateChanges: MenuItem[] = [];
+    if (this.canShowApproveActions()) {
+      stateChanges.push({
+        label: this.translate.instant('VISITS.REJECT'),
+        icon: 'pi pi-undo',
+        command: () => this.openRejectDialog()
+      });
+    }
+    if (this.canShowReopenAction()) {
+      stateChanges.push({
+        label: this.translate.instant('VISITS.REOPEN'),
+        icon: 'pi pi-history',
+        command: () => this.openReopenDialog()
+      });
+    }
+    if (this.canSubmitComplaint()) {
+      stateChanges.push({
+        label: this.translate.instant('COMPLAINTS.SUBMIT'),
+        icon: 'pi pi-flag',
+        styleClass: 'menu-item--danger',
+        command: () => this.openComplaintDialog()
+      });
+    }
+
+    if (items.length && stateChanges.length) items.push({ separator: true });
+    return [...items, ...stateChanges];
+  });
 
   readonly reasonDialogHeaderKey = computed(() => {
     const m = this.reasonDialogMode();
@@ -579,31 +705,6 @@ function mapInstructorReportToVisitDetail(r: InstructorReport): VisitDetail {
     analysis: r.analysis ?? null,
     planFollowUps: r.planFollowUps ?? []
   };
-}
-
-/**
- * Phase 6 / Stage 1 helper — extracts the Arabic ApiResponse `message` /
- * `error` from a failed HTTP error so the PDF-download error toast shows the
- * server's Arabic text verbatim (e.g. "لم يتم اعتماد هذه الزيارة بعد.").
- * Returns null if the body is empty / not parseable.
- */
-function extractApiErrorMessage(err: any): string | null {
-  if (!err) return null;
-
-  // The global ErrorInterceptor may already parse body to `err.error`.
-  if (typeof err.error === 'string') {
-    try {
-      const obj = JSON.parse(err.error);
-      if (obj?.message) return String(obj.message);
-      if (obj?.error) return String(obj.error);
-    } catch {
-      // not JSON — fallthrough
-    }
-  } else if (err.error && typeof err.error === 'object') {
-    if (err.error.message) return String(err.error.message);
-    if (err.error.error)   return String(err.error.error);
-  }
-  return null;
 }
 
 /**

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using AlFalah.Application.Analysis;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Dashboards;
 using AlFalah.Application.Interfaces;
@@ -426,7 +427,12 @@ public class DashboardService : IDashboardService
                 InstructorUserId = x.InstructorId,
                 InstructorFullName = $"{x.FirstName} {x.LastName}".Trim(),
                 ApprovedVisitsCount = x.Approved,
-                AverageOverallScore = x.Avg is null ? null : Math.Round(x.Avg.Value, 3)
+                AverageOverallScore = x.Avg is null ? null : Math.Round(x.Avg.Value, 3),
+                // Was left unset, so the exported "المستوى" column printed "—"
+                // on every single row.
+                LatestPerformanceLevelAr = x.Avg is null
+                    ? null
+                    : ComputePerformanceLevelAr(Math.Round(x.Avg.Value, 3))
             })
             .OrderByDescending(x => x.AverageOverallScore ?? 0m)
             .Take(10)
@@ -548,9 +554,9 @@ public class DashboardService : IDashboardService
             try
             {
                 var sList = System.Text.Json.JsonSerializer.Deserialize<List<VisitDomainSnapshotDto>>(lastAnalysis.StrengthsJson) ?? new();
-                strengths = sList.Select(x => $"{x.DomainNameAr} ({x.AverageScore:0.00})").ToList();
+                strengths = sList.Select(x => $"{x.DomainNameAr} ({ScoreScale.Format(x.AverageScore)})").ToList();
                 var iList = System.Text.Json.JsonSerializer.Deserialize<List<VisitDomainSnapshotDto>>(lastAnalysis.ImprovementAreasJson) ?? new();
-                improvements = iList.Select(x => $"{x.DomainNameAr} ({x.AverageScore:0.00})").ToList();
+                improvements = iList.Select(x => $"{x.DomainNameAr} ({ScoreScale.Format(x.AverageScore)})").ToList();
             }
             catch { /* ignore JSON parse — fall back to empty lists */ }
         }
@@ -720,7 +726,11 @@ public class DashboardService : IDashboardService
                 v.Id,
                 v.VisitDate,
                 OverallScore = v.Analysis!.OverallScore,
-                MinDomainAvg = v.Analysis!.DomainAverages.Min(d => (decimal?)d.AverageScore) ?? 4m
+                MinDomainAvg = v.Analysis!.DomainAverages.Min(d => (decimal?)d.AverageScore) ?? 4m,
+                // Named so the export can say WHY the teacher is on the list.
+                Domains = v.Analysis!.DomainAverages
+                    .Select(d => new { d.DomainNameAr, d.AverageScore })
+                    .ToList()
             })
             .ToListAsync(cancellationToken);
 
@@ -744,7 +754,14 @@ public class DashboardService : IDashboardService
                 ApprovedVisitsCount = x.ApprovedCount,
                 AverageOverallScore = Math.Round(x.Latest.OverallScore, 3),
                 LatestPerformanceLevelAr = ComputePerformanceLevelAr(x.Latest.OverallScore),
-                NeedsImprovement = x.Latest.MinDomainAvg < 2.5m
+                NeedsImprovement = x.Latest.MinDomainAvg < 2.5m,
+                WeakestDomainNameAr = x.Latest.Domains
+                    .OrderBy(d => d.AverageScore)
+                    .Select(d => d.DomainNameAr)
+                    .FirstOrDefault(),
+                WeakestDomainScore = x.Latest.Domains.Count == 0
+                    ? null
+                    : Math.Round(x.Latest.Domains.Min(d => d.AverageScore), 3)
             })
             .Where(x => x.NeedsImprovement)
             .OrderBy(x => x.AverageOverallScore ?? 0m)
@@ -941,7 +958,7 @@ public class DashboardService : IDashboardService
                 Add("عدد المعلمين", m.InstructorsCount.ToString());
                 Add("إجمالي الزيارات", m.VisitsCount.ToString());
                 Add("الزيارات المعتمدة", m.ApprovedEvaluationsCount.ToString());
-                Add("متوسط الدرجة الإجمالية", m.AverageOverallScore?.ToString("0.000") ?? "—");
+                Add("متوسط الدرجة الإجمالية", Score(m.AverageOverallScore));
                 Add("مستوى الأداء العام", m.AveragePerformanceLevelAr ?? "—");
                 Add("خطط التطوير النشطة", m.ImprovementPlans.TotalActive.ToString());
                 Add("خطط التطوير المكتملة", m.ImprovementPlans.TotalCompleted.ToString());
@@ -964,7 +981,7 @@ public class DashboardService : IDashboardService
                 Add("خطط التطوير المفتوحة", mod.OpenImprovementPlansCount.ToString());
                 Add("بانتظار الاعتماد", mod.EvaluationsPendingApprovalCount.ToString());
                 Add("زيارات معتمدة", mod.ApprovedVisitsCount.ToString());
-                Add("متوسط الدرجة", mod.AverageOverallScore?.ToString("0.000") ?? "—");
+                Add("متوسط الدرجة", Score(mod.AverageOverallScore));
                 Add("عدد المعلمين المُقيَّمين", mod.InstructorsEvaluatedCount.ToString());
                 break;
             case InstructorDashboardDto i:
@@ -976,7 +993,7 @@ public class DashboardService : IDashboardService
                 Add("عدد مشاهدات التقارير", i.ReportViewedCount.ToString());
                 if (i.LatestEvaluation is not null)
                 {
-                    Add("آخر تقييم — الدرجة", i.LatestEvaluation.OverallScore.ToString("0.000"));
+                    Add("آخر تقييم — الدرجة", Score(i.LatestEvaluation.OverallScore));
                     Add("آخر تقييم — المستوى", i.LatestEvaluation.PerformanceLevelAr);
                     Add("آخر تقييم — المُقيِّم", i.LatestEvaluation.ModeratorFullName);
                 }
@@ -1104,7 +1121,7 @@ public class DashboardService : IDashboardService
             sheet.Cell(i + 2, 3).Value = rows[i].LocationDetails ?? "—";
             sheet.Cell(i + 2, 4).Value = rows[i].VisitsCount;
             sheet.Cell(i + 2, 5).Value = rows[i].ApprovedVisitsCount;
-            sheet.Cell(i + 2, 6).Value = rows[i].AverageOverallScore?.ToString("0.000") ?? "—";
+            sheet.Cell(i + 2, 6).Value = Score(rows[i].AverageOverallScore);
             sheet.Cell(i + 2, 7).Value = rows[i].PerformanceLevelAr ?? "—";
             sheet.Cell(i + 2, 8).Value = rows[i].InstructorsCount;
             sheet.Cell(i + 2, 9).Value = rows[i].ModeratorsCount;
@@ -1126,7 +1143,7 @@ public class DashboardService : IDashboardService
             sheet.Cell(i + 2, 1).Value = rows[i].Subject;
             sheet.Cell(i + 2, 2).Value = rows[i].VisitsCount;
             sheet.Cell(i + 2, 3).Value = rows[i].ApprovedVisitsCount;
-            sheet.Cell(i + 2, 4).Value = rows[i].AverageOverallScore?.ToString("0.000") ?? "—";
+            sheet.Cell(i + 2, 4).Value = Score(rows[i].AverageOverallScore);
         }
         sheet.Columns().AdjustToContents();
     }
@@ -1148,7 +1165,7 @@ public class DashboardService : IDashboardService
             sheet.Cell(i + 2, 2).Value = rows[i].VisitsCount;
             sheet.Cell(i + 2, 3).Value = rows[i].ApprovedVisitsCount;
             sheet.Cell(i + 2, 4).Value = rows[i].PendingApprovalCount;
-            sheet.Cell(i + 2, 5).Value = rows[i].AverageOverallScore?.ToString("0.000") ?? "—";
+            sheet.Cell(i + 2, 5).Value = Score(rows[i].AverageOverallScore);
             sheet.Cell(i + 2, 6).Value = rows[i].OpenImprovementPlansCount;
         }
         sheet.Columns().AdjustToContents();
@@ -1162,13 +1179,18 @@ public class DashboardService : IDashboardService
         sheet.Cell(1, 2).Value = "الزيارات المعتمدة";
         sheet.Cell(1, 3).Value = "متوسط الدرجة";
         sheet.Cell(1, 4).Value = "المستوى";
+        // The selection reason, so the sheet is readable without knowing the rule.
+        sheet.Cell(1, 5).Value = "المحور الأضعف";
+        sheet.Cell(1, 6).Value = "درجة المحور الأضعف";
         sheet.Row(1).Style.Font.Bold = true;
         for (var i = 0; i < rows.Count; i++)
         {
             sheet.Cell(i + 2, 1).Value = rows[i].InstructorFullName;
             sheet.Cell(i + 2, 2).Value = rows[i].ApprovedVisitsCount;
-            sheet.Cell(i + 2, 3).Value = rows[i].AverageOverallScore?.ToString("0.000") ?? "—";
+            sheet.Cell(i + 2, 3).Value = Score(rows[i].AverageOverallScore);
             sheet.Cell(i + 2, 4).Value = rows[i].LatestPerformanceLevelAr ?? "—";
+            sheet.Cell(i + 2, 5).Value = rows[i].WeakestDomainNameAr ?? "—";
+            sheet.Cell(i + 2, 6).Value = Score(rows[i].WeakestDomainScore);
         }
         sheet.Columns().AdjustToContents();
     }
@@ -1185,7 +1207,7 @@ public class DashboardService : IDashboardService
         {
             sheet.Cell(i + 2, 1).Value = rows[i].InstructorFullName;
             sheet.Cell(i + 2, 2).Value = rows[i].ApprovedVisitsCount;
-            sheet.Cell(i + 2, 3).Value = rows[i].AverageOverallScore?.ToString("0.000") ?? "—";
+            sheet.Cell(i + 2, 3).Value = Score(rows[i].AverageOverallScore);
         }
         sheet.Columns().AdjustToContents();
     }
@@ -1203,7 +1225,7 @@ public class DashboardService : IDashboardService
         {
             sheet.Cell(i + 2, 1).Value = rows[i].VisitId;
             sheet.Cell(i + 2, 2).Value = rows[i].VisitDate.ToString("yyyy-MM-dd");
-            sheet.Cell(i + 2, 3).Value = rows[i].OverallScore.ToString("0.000");
+            sheet.Cell(i + 2, 3).Value = Score(rows[i].OverallScore);
             sheet.Cell(i + 2, 4).Value = rows[i].PerformanceLevelAr;
         }
         sheet.Columns().AdjustToContents();
@@ -1223,7 +1245,7 @@ public class DashboardService : IDashboardService
             ("خطط ملغاة", ip.TotalCancelled.ToString()),
             ("إجمالي المتابعات", ip.TotalFollowUps.ToString()),
             ("خطط لديها متابعات", ip.PlansWithAtLeastOneFollowUp.ToString()),
-            ("متوسط آخر درجة تقدم", ip.AverageLatestProgressScore?.ToString("0.0") ?? "—")
+            ("متوسط آخر درجة تقدم", Percent(ip.AverageLatestProgressScore))
         };
         for (var i = 0; i < rows.Length; i++)
         {
@@ -1245,7 +1267,7 @@ public class DashboardService : IDashboardService
             ("المشرفون", d.ModeratorsCount.ToString()),
             ("الزيارات", d.VisitsCount.ToString()),
             ("التقييمات المعتمدة", d.ApprovedEvaluationsCount.ToString()),
-            ("متوسط الأداء", d.AverageOverallScore?.ToString("0.00") ?? "—"),
+            ("متوسط الأداء", Score(d.AverageOverallScore)),
             ("خطط التحسين النشطة", d.ImprovementPlans.TotalActive.ToString())
         },
         SchoolManagerDashboardDto d => new (string, string)[]
@@ -1257,7 +1279,7 @@ public class DashboardService : IDashboardService
             ("يحتاجون إلى تحسين", d.InstructorsNeedingImprovementCount.ToString()),
             ("الشكاوى", d.ComplaintsCount.ToString()),
             ("الخطط النشطة", d.ImprovementPlans.TotalActive.ToString()),
-            ("متوسط تقدم الخطط", d.ImprovementPlans.AverageLatestProgressScore?.ToString("0.0") ?? "—")
+            ("متوسط تقدم الخطط", Percent(d.ImprovementPlans.AverageLatestProgressScore))
         },
         ModeratorDashboardDto d => new (string, string)[]
         {
@@ -1266,13 +1288,13 @@ public class DashboardService : IDashboardService
             ("بانتظار الاعتماد", d.EvaluationsPendingApprovalCount.ToString()),
             ("الزيارات المعتمدة", d.ApprovedVisitsCount.ToString()),
             ("المعلمون المقيمون", d.InstructorsEvaluatedCount.ToString()),
-            ("متوسط الأداء", d.AverageOverallScore?.ToString("0.00") ?? "—"),
+            ("متوسط الأداء", Score(d.AverageOverallScore)),
             ("خطط التحسين المفتوحة", d.OpenImprovementPlansCount.ToString())
         },
         InstructorDashboardDto d => new (string, string)[]
         {
             ("الزيارات المعتمدة", d.ApprovedVisitsCount.ToString()),
-            ("آخر تقييم", d.LatestEvaluation?.OverallScore.ToString("0.00") ?? "—"),
+            ("آخر تقييم", Score(d.LatestEvaluation?.OverallScore)),
             ("خطط التحسين المفتوحة", d.OpenImprovementPlansCount.ToString()),
             ("المتابعات", d.TotalFollowUpsCount.ToString()),
             ("مشاهدات التقارير", d.ReportViewedCount.ToString())
@@ -1283,398 +1305,626 @@ public class DashboardService : IDashboardService
     private async Task<DashboardExportResult> BuildPdfExportAsync(
         string title, object dashboard, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        PdfTheme.EnsureFonts();
+
+        var generatedAt = DateTimeOffset.UtcNow;
+        var scope = ExportScopeLine(dashboard);
+
         var doc = Document.Create(container =>
         {
             container.Page(page =>
             {
                 page.Size(PageSizes.A4.Landscape());
-                page.Margin(22);
-                page.PageColor("#F6F8F6");
-                page.DefaultTextStyle(t => t.FontSize(10).DirectionFromRightToLeft());
+                page.Margin(24);
+                page.PageColor(PdfTheme.White);
+                page.DefaultTextStyle(t => t
+                    .FontFamily(PdfTheme.Font)
+                    .FontSize(9.5f)
+                    .FontColor(PdfTheme.Text)
+                    .DirectionFromRightToLeft());
 
-                page.Header().Element(c => ComposePdfHeader(c, title));
+                page.Header().Element(c => ComposePdfHeader(c, title, scope, generatedAt));
                 page.Content().Element(c => ComposePdfBody(c, dashboard));
-                page.Footer().AlignCenter().Text(t =>
+                page.Footer().Element(c => ComposePdfFooter(c, title));
+            });
+        });
+
+        var bytes = doc.GeneratePdf();
+        var stamp = generatedAt.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+        return await Task.FromResult(new DashboardExportResult
+        {
+            Bytes = bytes,
+            ContentType = "application/pdf",
+            FileName = $"dashboard-{PdfReportService.SanitizeForFilename(title).Replace(' ', '-')}-{stamp}.pdf"
+        });
+    }
+
+    /// <summary>
+    /// Second header line naming what the figures cover (school, moderator,
+    /// teacher). A printed sheet that is passed around on paper has to say who
+    /// it is about without relying on the file name.
+    /// </summary>
+    private static string ExportScopeLine(object dashboard) => dashboard switch
+    {
+        MainManagerDashboardDto d => $"جميع المدارس — {d.SchoolsCount} مدرسة ({d.ActiveSchoolsCount} نشطة)",
+        SchoolManagerDashboardDto d => d.SchoolName,
+        ModeratorDashboardDto d => string.IsNullOrWhiteSpace(d.SchoolName)
+            ? d.ModeratorFullName
+            : $"{d.SchoolName} — {d.ModeratorFullName}",
+        InstructorDashboardDto d => string.IsNullOrWhiteSpace(d.SchoolName)
+            ? d.InstructorFullName
+            : $"{d.SchoolName} — {d.InstructorFullName}",
+        _ => string.Empty
+    };
+
+    /// <summary>
+    /// Brand masthead. QuestPDF lays Row children out left-to-right physically,
+    /// so the Arabic title block is placed first (rendering on the visual left
+    /// is wrong for RTL) — instead the title takes the relative item and is
+    /// right-aligned inside it, and the timestamp is pinned to the visual left.
+    /// </summary>
+    private void ComposePdfHeader(IContainer container, string title, string scope, DateTimeOffset generatedAt)
+    {
+        container.PaddingBottom(10).Column(outer =>
+        {
+            outer.Item()
+                .Background(PdfTheme.Brand)
+                .PaddingVertical(11).PaddingHorizontal(14)
+                .Row(row =>
                 {
-                    t.DefaultTextStyle(s => s.FontSize(8).FontColor(Colors.Grey.Medium));
+                    row.ConstantItem(150).AlignLeft().AlignMiddle().Column(stamp =>
+                    {
+                        stamp.Item().Text("تاريخ الإصدار")
+                            .FontSize(7.5f).FontColor("#BFE3CD");
+                        stamp.Item().Text(generatedAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
+                            .FontSize(9).Bold().FontColor(PdfTheme.Gold);
+                    });
+
+                    row.RelativeItem().AlignRight().Column(head =>
+                    {
+                        head.Item().AlignRight().Text(title)
+                            .FontSize(17).Bold().FontColor(PdfTheme.White);
+                        if (!string.IsNullOrWhiteSpace(scope))
+                            head.Item().PaddingTop(2).AlignRight().Text(scope)
+                                .FontSize(9.5f).FontColor("#D7F1DF");
+                    });
+                });
+
+            outer.Item().Height(3).Background(PdfTheme.Gold);
+        });
+    }
+
+    private void ComposePdfFooter(IContainer container, string title)
+    {
+        container.PaddingTop(8).BorderTop(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border)
+            .PaddingTop(5)
+            .Row(row =>
+            {
+                row.RelativeItem().AlignLeft().Text(t =>
+                {
+                    t.DefaultTextStyle(s => s.FontSize(8).FontColor(PdfTheme.Muted));
                     t.Span("صفحة ");
                     t.CurrentPageNumber();
                     t.Span(" من ");
                     t.TotalPages();
                 });
-            });
-        });
 
-        var bytes = doc.GeneratePdf();
-        var stamp = DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-        return await Task.FromResult(new DashboardExportResult
-        {
-            Bytes = bytes,
-            ContentType = "application/pdf",
-            FileName = $"dashboard-{title.Replace(' ', '-')}-{stamp}.pdf"
-        });
-    }
-
-    private void ComposePdfHeader(IContainer container, string title)
-    {
-        container.Background("#15603D").PaddingVertical(12).PaddingHorizontal(14)
-            .Row(row =>
-            {
                 row.RelativeItem().AlignRight().Text(title)
-                    .FontSize(18).Bold().FontColor(Colors.White);
-                row.ConstantItem(140).AlignLeft().Text(DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
-                    .FontSize(9).FontColor("#F7E8A7");
+                    .FontSize(8).FontColor(PdfTheme.Muted);
             });
     }
 
     private void ComposePdfBody(IContainer container, object dashboard)
     {
-        container.PaddingVertical(8).Column(col =>
+        container.Column(col =>
         {
             col.Spacing(10);
 
-            col.Item().Element(c => ComposePdfKpiGrid(c, dashboard));
+            // The card-shaped sections below all have a bounded height (a fixed
+            // grid of KPI tiles, one bar per visit status), so they are pinned
+            // whole with ShowEntire — otherwise a card's border and its title
+            // band split across the page fold. The table sections manage their
+            // own pagination inside PdfTheme.TableSection.
+            col.Item().ShowEntire().Element(c => ComposePdfKpiGrid(c, dashboard));
 
+            // Fixed-height summary blocks are declared BEFORE the tables.
+            //
+            // With the plan-analytics strip last, it was the block that got
+            // pushed over the fold, and because it is pinned whole it took a
+            // sheet of its own — roughly 80 % white. A table that spills is
+            // fine: PdfTheme.TableSection repeats its column header, so a
+            // continuation reads as intended rather than as a layout accident.
             switch (dashboard)
             {
                 case MainManagerDashboardDto mm:
-                    col.Item().Element(c => ComposePdfVisitsByStatus(c, mm.VisitsByStatus));
+                    col.Item().ShowEntire().Element(c => ComposePdfVisitsByStatus(c, mm.VisitsByStatus));
+                    col.Item().ShowEntire().Element(c => ComposePdfImprovementPlans(c, mm.ImprovementPlans));
                     col.Item().Element(c => ComposePdfSchoolComparison(c, mm.SchoolComparison));
                     break;
                 case SchoolManagerDashboardDto sm:
-                    col.Item().Element(c => ComposePdfVisitsByStatus(c, sm.VisitsByStatus));
+                    col.Item().ShowEntire().Element(c => ComposePdfVisitsByStatus(c, sm.VisitsByStatus));
+                    col.Item().ShowEntire().Element(c => ComposePdfImprovementPlans(c, sm.ImprovementPlans));
                     col.Item().Element(c => ComposePdfSubjectPerformance(c, sm.SubjectPerformance));
                     col.Item().Element(c => ComposePdfModeratorPerformance(c, sm.ModeratorPerformance));
                     col.Item().Element(c => ComposePdfInstructorsNeedingImprovement(c, sm.InstructorsNeedingImprovement));
                     break;
                 case ModeratorDashboardDto mod:
-                    col.Item().Element(c => ComposePdfVisitsByStatus(c, mod.VisitsByStatus));
+                    col.Item().ShowEntire().Element(c => ComposePdfVisitsByStatus(c, mod.VisitsByStatus));
                     col.Item().Element(c => ComposePdfTopInstructors(c, mod.TopInstructors));
                     break;
                 case InstructorDashboardDto ins:
+                    col.Item().ShowEntire().Element(c => ComposePdfInstructorLatest(c, ins.LatestEvaluation));
                     col.Item().Element(c => ComposePdfPerformanceTrend(c, ins.PerformanceTrend));
-                    col.Item().Element(c => ComposePdfInstructorLatest(c, ins.LatestEvaluation));
                     break;
             }
         });
     }
 
+    /// <summary>
+    /// Executive KPI strip — four equal cards per row so the last row of an
+    /// odd-sized metric set stays aligned with the rows above it instead of
+    /// stretching to fill the page.
+    ///
+    /// Laid out through <see cref="PdfTheme.RtlRow"/>: the first metric must
+    /// land on the visual RIGHT (where an Arabic reader starts) and a partial
+    /// final row must leave its gap on the LEFT. Both were the wrong way round.
+    /// </summary>
     private static void ComposePdfKpiGrid(IContainer container, object dashboard)
     {
         var metrics = ExportMetrics(dashboard);
-        container.Column(column =>
+
+        PdfTheme.SectionCard(container, "الملخص التنفيذي", card =>
         {
-            column.Spacing(6);
-            column.Item().AlignRight().Text("الملخص التنفيذي")
-                .FontSize(12).Bold().FontColor("#15603D");
+            if (metrics.Count == 0)
+            {
+                PdfTheme.EmptyNote(card.Item());
+                return;
+            }
+
+            card.Spacing(6);
             foreach (var group in metrics.Chunk(4))
             {
-                column.Item().Row(row =>
-                {
-                    foreach (var metric in group)
-                    {
-                        row.RelativeItem().PaddingHorizontal(3).Background(Colors.White)
-                            .Border(1).BorderColor("#D9E4DD").Padding(8).Column(card =>
-                            {
-                                card.Item().AlignRight().Text(metric.Label).FontSize(8).FontColor(Colors.Grey.Medium);
-                                card.Item().PaddingTop(2).AlignRight().Text(metric.Value).FontSize(15).Bold().FontColor("#15603D");
-                                card.Item().PaddingTop(4).Height(3).Background("#D4AF37");
-                            });
-                    }
-                    for (var i = group.Length; i < 4; i++) row.RelativeItem();
-                });
+                var cells = group
+                    .Select(metric => new Action<IContainer>(c => ComposePdfKpiCard(c, metric.Label, metric.Value)))
+                    .ToList();
+                card.Item().Row(row => PdfTheme.RtlRow(row, cells, slots: 4));
             }
         });
     }
 
-    private void ComposePdfSummary(IContainer container, object dashboard)
+    private static void ComposePdfKpiCard(IContainer container, string label, string value)
     {
-        container.Background(Colors.Grey.Lighten4).Padding(8).Column(col =>
-        {
-            col.Spacing(2);
-            switch (dashboard)
+        container
+            .Background(PdfTheme.ZebraRow)
+            .Border(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border)
+            .Column(card =>
             {
-                case MainManagerDashboardDto m:
-                    col.Item().Text($"المدارس: {m.SchoolsCount} | النشطة: {m.ActiveSchoolsCount}");
-                    col.Item().Text($"المعلمون: {m.InstructorsCount} | المشرفون: {m.ModeratorsCount} | مديرو المدارس: {m.SchoolManagersCount}");
-                    col.Item().Text($"الزيارات: {m.VisitsCount} | المعتمدة: {m.ApprovedEvaluationsCount}");
-                    col.Item().Text($"متوسط الدرجة: {(m.AverageOverallScore?.ToString("0.000") ?? "—")} | المستوى: {m.AveragePerformanceLevelAr ?? "—"}");
-                    col.Item().Text($"خطط التطوير النشطة: {m.ImprovementPlans.TotalActive} | المتابعات: {m.ImprovementPlans.TotalFollowUps}");
-                    break;
-                case SchoolManagerDashboardDto s:
-                    col.Item().Text($"المدرسة: {s.SchoolName}");
-                    col.Item().Text($"المعلمون: {s.InstructorsCount} | المشرفون: {s.ModeratorsCount}");
-                    col.Item().Text($"زيارات هذا الشهر: {s.VisitsThisMonthCount} | بانتظار الاعتماد: {s.EvaluationsPendingApprovalCount}");
-                    col.Item().Text($"الشكاوى: {s.ComplaintsCount} | يحتاجون تحسين: {s.InstructorsNeedingImprovementCount}");
-                    break;
-                case ModeratorDashboardDto mod:
-                    col.Item().Text($"المدرسة: {mod.SchoolName} | المُقيِّم: {mod.ModeratorFullName}");
-                    col.Item().Text($"زيارات اليوم: {mod.TodaysVisitsCount} | المسودة: {mod.DraftVisitsCount} | بانتظار الاعتماد: {mod.EvaluationsPendingApprovalCount}");
-                    col.Item().Text($"المعتمدة: {mod.ApprovedVisitsCount} | متوسط الدرجة: {(mod.AverageOverallScore?.ToString("0.000") ?? "—")}");
-                    col.Item().Text($"خطط التطوير المفتوحة: {mod.OpenImprovementPlansCount}");
-                    break;
-                case InstructorDashboardDto i:
-                    col.Item().Text($"المعلم: {i.InstructorFullName} | المدرسة: {i.SchoolName}");
-                    col.Item().Text($"الزيارات المعتمدة: {i.ApprovedVisitsCount} | خطط التطوير المفتوحة: {i.OpenImprovementPlansCount}");
-                    col.Item().Text($"المتابعات: {i.TotalFollowUpsCount} | مشاهدات التقارير: {i.ReportViewedCount}");
-                    if (i.LatestEvaluation is not null)
-                        col.Item().Text($"آخر تقييم: {i.LatestEvaluation.OverallScore:0.000} ({i.LatestEvaluation.PerformanceLevelAr}) — المُقيِّم: {i.LatestEvaluation.ModeratorFullName}");
-                    break;
-            }
-        });
+                card.Item().Padding(7).Column(inner =>
+                {
+                    inner.Item().AlignRight().Text(label)
+                        .FontSize(8).FontColor(PdfTheme.Muted);
+                    inner.Item().PaddingTop(3).AlignRight().Text(value)
+                        .FontSize(16).Bold().FontColor(PdfTheme.BrandDark);
+                });
+                card.Item().Height(2.5f).Background(PdfTheme.Gold);
+            });
     }
 
+    /// <summary>
+    /// Visit distribution. Two fixes over the previous version:
+    ///  • the bar is filled with the SAME fraction that is printed beside it
+    ///    (share of the total). It used to be filled <c>count / max</c> while
+    ///    printing <c>count / total</c>, so a bar at a third sat next to "16.7%".
+    ///  • the bar fills from the visual right, matching the sheet's direction.
+    /// </summary>
     private void ComposePdfVisitsByStatus(IContainer container, List<VisitStatusCountDto> rows)
     {
-        var maximum = Math.Max(1, rows.Select(row => row.Count).DefaultIfEmpty(0).Max());
-        container.Column(col =>
+        var total = rows.Sum(r => r.Count);
+
+        PdfTheme.SectionCard(container, "التوزيع التشغيلي للزيارات", card =>
         {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("التوزيع التشغيلي للزيارات").SemiBold().FontColor("#15603D");
+            if (rows.Count == 0)
+            {
+                PdfTheme.EmptyNote(card.Item());
+                return;
+            }
+
+            card.Spacing(4);
             foreach (var item in rows)
             {
-                col.Item().Background(Colors.White).Border(1).BorderColor("#E3E9E5")
-                    .PaddingVertical(5).PaddingHorizontal(8).Row(row =>
+                var share = total == 0 ? 0d : (double)item.Count / total;
+                card.Item().Row(row =>
                 {
-                    row.ConstantItem(150).AlignRight().Text(item.StatusLabelAr).FontSize(8);
-                    row.ConstantItem(34).AlignCenter().Text(item.Count.ToString()).Bold().FontColor("#15603D");
-                    row.RelativeItem().Height(9).AlignMiddle().Row(bar =>
-                    {
-                        bar.RelativeItem(Math.Max(0.01f, item.Count)).Background("#1E8E4E");
-                        bar.RelativeItem(Math.Max(0.01f, maximum - item.Count)).Background("#E8EFEA");
-                    });
+                    // Physical L→R: [share] [bar] [count] [label]
+                    // In RTL reading order that is label → count → bar → share.
+                    row.ConstantItem(46).AlignCenter().AlignMiddle()
+                        .Text($"{share * 100d:0.#}%").FontSize(8).FontColor(PdfTheme.Muted);
+
+                    row.RelativeItem().PaddingHorizontal(6).AlignMiddle()
+                        .Element(c => PdfTheme.ProgressBar(c, share));
+
+                    row.ConstantItem(38).AlignCenter().AlignMiddle()
+                        .Text(item.Count.ToString()).FontSize(10).Bold().FontColor(PdfTheme.BrandDark);
+
+                    row.ConstantItem(132).AlignRight().AlignMiddle()
+                        .Text(item.StatusLabelAr).FontSize(9);
                 });
             }
+
+            card.Item().PaddingTop(4).Element(c => PdfTheme.Caption(c,
+                $"النسبة محسوبة من إجمالي {total} زيارة."));
         });
     }
 
     private void ComposePdfSchoolComparison(IContainer container, List<SchoolComparisonRowDto> rows)
     {
-        container.Column(col =>
+        PdfTheme.TableSection(container, "مقارنة المدارس", rows.Count, t =>
         {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("مقارنة المدارس").SemiBold().FontColor("#15603D");
-            foreach (var item in rows.Where(row => row.AverageOverallScore.HasValue)
-                         .OrderByDescending(row => row.AverageOverallScore).Take(6))
             {
-                var score = Math.Clamp(item.AverageOverallScore!.Value, 0m, 4m);
-                col.Item().Row(row =>
-                {
-                    row.ConstantItem(170).AlignRight().Text(item.SchoolName).FontSize(8);
-                    row.ConstantItem(38).AlignCenter().Text(score.ToString("0.00")).Bold().FontColor("#15603D");
-                    row.RelativeItem().Height(8).AlignMiddle().Row(bar =>
-                    {
-                        bar.RelativeItem(Math.Max(0.01f, (float)score)).Background(score >= 3m ? "#1E8E4E" : "#D4AF37");
-                        bar.RelativeItem(Math.Max(0.01f, 4f - (float)score)).Background("#E8EFEA");
-                    });
-                });
-            }
-            col.Item().Table(t =>
-            {
+                // Physical column order is left-to-right; the Arabic name column
+                // is therefore declared LAST so it lands on the RTL start edge.
                 t.ColumnsDefinition(d =>
                 {
-                    d.RelativeColumn(3);
-                    d.RelativeColumn(2);
-                    d.ConstantColumn(60);
-                    d.ConstantColumn(60);
-                    d.ConstantColumn(60);
-                    d.ConstantColumn(80);
-                    d.ConstantColumn(60);
-                    d.ConstantColumn(60);
+                    d.ConstantColumn(58);   // moderators
+                    d.ConstantColumn(58);   // teachers
+                    d.ConstantColumn(86);   // level
+                    d.ConstantColumn(58);   // average
+                    d.ConstantColumn(58);   // approved
+                    d.ConstantColumn(58);   // visits
+                    d.RelativeColumn(2);    // city
+                    d.RelativeColumn(3);    // school
                 });
+
                 t.Header(h =>
                 {
-                    h.Cell().Text("المدرسة").SemiBold();
-                    h.Cell().Text("المدينة").SemiBold();
-                    h.Cell().AlignLeft().Text("الزيارات").SemiBold();
-                    h.Cell().AlignLeft().Text("المعتمدة").SemiBold();
-                    h.Cell().AlignLeft().Text("متوسط").SemiBold();
-                    h.Cell().Text("المستوى").SemiBold();
-                    h.Cell().AlignLeft().Text("المعلمون").SemiBold();
-                    h.Cell().AlignLeft().Text("المشرفون").SemiBold();
+                    PdfTheme.HeaderCell(h.Cell(), "المشرفون", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعلمون", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المستوى", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المتوسط", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعتمدة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "الزيارات", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المدينة");
+                    PdfTheme.HeaderCell(h.Cell(), "المدرسة");
                 });
-                foreach (var r in rows)
+
+                if (rows.Count == 0)
                 {
-                    t.Cell().Text(r.SchoolName);
-                    t.Cell().Text(r.City);
-                    t.Cell().AlignLeft().Text(r.VisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.ApprovedVisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.AverageOverallScore?.ToString("0.00") ?? "—");
-                    t.Cell().Text(r.PerformanceLevelAr ?? "—");
-                    t.Cell().AlignLeft().Text(r.InstructorsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.ModeratorsCount.ToString());
+                    PdfTheme.EmptyRow(t, 8, "لا توجد مدارس مطابقة للفلاتر المحددة.");
+                    return;
                 }
-            });
-        });
+
+                var ordered = rows
+                    .OrderByDescending(r => r.AverageOverallScore ?? -1m)
+                    .ThenBy(r => r.SchoolName)
+                    .ToList();
+
+                for (var i = 0; i < ordered.Count; i++)
+                {
+                    var r = ordered[i];
+                    var zebra = i % 2 == 1;
+                    PdfTheme.BodyCell(t.Cell(), r.ModeratorsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.InstructorsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.PerformanceLevelAr ?? "—", PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), Score(r.AverageOverallScore), PdfTheme.CellAlign.Center, zebra,
+                        strong: true, color: PdfTheme.ScoreColor(r.AverageOverallScore));
+                    PdfTheme.BodyCell(t.Cell(), r.ApprovedVisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.VisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.City, zebra: zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.SchoolName, zebra: zebra, strong: true);
+                }
+            }
+        }, caption: ScaleNote);
     }
 
     private void ComposePdfSubjectPerformance(IContainer container, List<SubjectPerformanceRowDto> rows)
     {
-        container.Column(col =>
+        PdfTheme.TableSection(container, "أداء المواد الدراسية", rows.Count, t =>
         {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("أداء المواد").SemiBold();
-            col.Item().Table(t =>
             {
-                t.ColumnsDefinition(d => { d.RelativeColumn(3); d.ConstantColumn(60); d.ConstantColumn(60); d.ConstantColumn(60); });
+                t.ColumnsDefinition(d =>
+                {
+                    d.ConstantColumn(64);   // average
+                    d.ConstantColumn(64);   // approved
+                    d.ConstantColumn(64);   // visits
+                    d.RelativeColumn();     // subject
+                });
+
                 t.Header(h =>
                 {
-                    h.Cell().Text("المادة").SemiBold();
-                    h.Cell().AlignLeft().Text("الزيارات").SemiBold();
-                    h.Cell().AlignLeft().Text("المعتمدة").SemiBold();
-                    h.Cell().AlignLeft().Text("المتوسط").SemiBold();
+                    PdfTheme.HeaderCell(h.Cell(), "المتوسط", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعتمدة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "الزيارات", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المادة");
                 });
-                foreach (var r in rows)
+
+                if (rows.Count == 0)
                 {
-                    t.Cell().Text(r.Subject);
-                    t.Cell().AlignLeft().Text(r.VisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.ApprovedVisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.AverageOverallScore?.ToString("0.00") ?? "—");
+                    PdfTheme.EmptyRow(t, 4, "لم تُسجَّل زيارات لأي مادة بعد.");
+                    return;
                 }
-            });
+
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var r = rows[i];
+                    var zebra = i % 2 == 1;
+                    PdfTheme.BodyCell(t.Cell(), Score(r.AverageOverallScore), PdfTheme.CellAlign.Center, zebra,
+                        strong: true, color: PdfTheme.ScoreColor(r.AverageOverallScore));
+                    PdfTheme.BodyCell(t.Cell(), r.ApprovedVisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.VisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.Subject, zebra: zebra, strong: true);
+                }
+            }
         });
     }
 
     private void ComposePdfModeratorPerformance(IContainer container, List<ModeratorPerformanceRowDto> rows)
     {
-        container.Column(col =>
+        PdfTheme.TableSection(container, "أداء المشرفين", rows.Count, t =>
         {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("أداء المشرفين").SemiBold();
-            col.Item().Table(t =>
             {
                 t.ColumnsDefinition(d =>
                 {
-                    d.RelativeColumn(3);
-                    d.ConstantColumn(50);
-                    d.ConstantColumn(50);
-                    d.ConstantColumn(60);
-                    d.ConstantColumn(60);
-                    d.ConstantColumn(60);
+                    d.ConstantColumn(70);   // active plans
+                    d.ConstantColumn(64);   // average
+                    d.ConstantColumn(70);   // pending
+                    d.ConstantColumn(64);   // approved
+                    d.ConstantColumn(64);   // visits
+                    d.RelativeColumn();     // moderator
                 });
+
                 t.Header(h =>
                 {
-                    h.Cell().Text("المشرف").SemiBold();
-                    h.Cell().AlignLeft().Text("الزيارات").SemiBold();
-                    h.Cell().AlignLeft().Text("المعتمدة").SemiBold();
-                    h.Cell().AlignLeft().Text("بانتظار").SemiBold();
-                    h.Cell().AlignLeft().Text("المتوسط").SemiBold();
-                    h.Cell().AlignLeft().Text("خطط نشطة").SemiBold();
+                    PdfTheme.HeaderCell(h.Cell(), "خطط نشطة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المتوسط", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "بانتظار الاعتماد", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعتمدة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "الزيارات", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المشرف");
                 });
-                foreach (var r in rows)
+
+                if (rows.Count == 0)
                 {
-                    t.Cell().Text(r.ModeratorFullName);
-                    t.Cell().AlignLeft().Text(r.VisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.ApprovedVisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.PendingApprovalCount.ToString());
-                    t.Cell().AlignLeft().Text(r.AverageOverallScore?.ToString("0.00") ?? "—");
-                    t.Cell().AlignLeft().Text(r.OpenImprovementPlansCount.ToString());
+                    PdfTheme.EmptyRow(t, 6, "لا يوجد مشرفون لديهم زيارات في هذه الفترة.");
+                    return;
                 }
-            });
+
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var r = rows[i];
+                    var zebra = i % 2 == 1;
+                    PdfTheme.BodyCell(t.Cell(), r.OpenImprovementPlansCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), Score(r.AverageOverallScore), PdfTheme.CellAlign.Center, zebra,
+                        strong: true, color: PdfTheme.ScoreColor(r.AverageOverallScore));
+                    PdfTheme.BodyCell(t.Cell(), r.PendingApprovalCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.ApprovedVisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.VisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.ModeratorFullName, zebra: zebra, strong: true);
+                }
+            }
         });
     }
 
     private void ComposePdfInstructorsNeedingImprovement(IContainer container, List<InstructorPerformanceRowDto> rows)
     {
-        container.Column(col =>
+        PdfTheme.TableSection(container, "معلمون يحتاجون إلى تحسين", rows.Count, t =>
         {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("معلمون يحتاجون تحسين").SemiBold();
-            col.Item().Table(t =>
             {
-                t.ColumnsDefinition(d => { d.RelativeColumn(3); d.ConstantColumn(60); d.ConstantColumn(60); d.ConstantColumn(100); });
+                // The list is selected on the WEAKEST DOMAIN, so that domain and
+                // its score are named. Showing only the overall average put
+                // teachers rated "جيد جداً" under a "needs improvement" heading
+                // with nothing on the row to explain why.
+                t.ColumnsDefinition(d =>
+                {
+                    d.RelativeColumn(2);    // weakest domain
+                    d.ConstantColumn(78);   // weakest score
+                    d.ConstantColumn(84);   // overall level
+                    d.ConstantColumn(70);   // overall average
+                    d.ConstantColumn(64);   // approved
+                    d.RelativeColumn(2);    // instructor
+                });
+
                 t.Header(h =>
                 {
-                    h.Cell().Text("المعلم").SemiBold();
-                    h.Cell().AlignLeft().Text("المعتمدة").SemiBold();
-                    h.Cell().AlignLeft().Text("المتوسط").SemiBold();
-                    h.Cell().Text("المستوى").SemiBold();
+                    PdfTheme.HeaderCell(h.Cell(), "المحور الأضعف");
+                    PdfTheme.HeaderCell(h.Cell(), "درجته", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المستوى العام", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المتوسط العام", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعتمدة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعلم");
                 });
-                foreach (var r in rows)
+
+                if (rows.Count == 0)
                 {
-                    t.Cell().Text(r.InstructorFullName);
-                    t.Cell().AlignLeft().Text(r.ApprovedVisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.AverageOverallScore?.ToString("0.00") ?? "—");
-                    t.Cell().Text(r.LatestPerformanceLevelAr ?? "—");
+                    PdfTheme.EmptyRow(t, 6, "لا يوجد معلمون بحاجة إلى تحسين — نتيجة إيجابية.");
+                    return;
                 }
-            });
-        });
+
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var r = rows[i];
+                    var zebra = i % 2 == 1;
+                    PdfTheme.BodyCell(t.Cell(), r.WeakestDomainNameAr ?? "—", zebra: zebra);
+                    PdfTheme.BodyCell(t.Cell(), Score(r.WeakestDomainScore), PdfTheme.CellAlign.Center, zebra,
+                        strong: true, color: PdfTheme.ScoreColor(r.WeakestDomainScore));
+                    PdfTheme.BodyCell(t.Cell(), r.LatestPerformanceLevelAr ?? "—", PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), Score(r.AverageOverallScore), PdfTheme.CellAlign.Center, zebra,
+                        color: PdfTheme.Muted);
+                    PdfTheme.BodyCell(t.Cell(), r.ApprovedVisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.InstructorFullName, zebra: zebra, strong: true);
+                }
+            }
+        }, accent: "#DC2626");
     }
 
     private void ComposePdfTopInstructors(IContainer container, List<InstructorPerformanceRowDto> rows)
     {
-        container.Column(col =>
+        PdfTheme.TableSection(container, "أعلى المعلمين تقييماً", rows.Count, t =>
         {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("أعلى المعلمين تقييماً").SemiBold();
-            col.Item().Table(t =>
             {
-                t.ColumnsDefinition(d => { d.RelativeColumn(3); d.ConstantColumn(60); d.ConstantColumn(80); });
+                t.ColumnsDefinition(d =>
+                {
+                    d.ConstantColumn(100);  // level
+                    d.ConstantColumn(64);   // average
+                    d.ConstantColumn(64);   // approved
+                    d.RelativeColumn();     // instructor
+                    d.ConstantColumn(34);   // rank
+                });
+
                 t.Header(h =>
                 {
-                    h.Cell().Text("المعلم").SemiBold();
-                    h.Cell().AlignLeft().Text("المعتمدة").SemiBold();
-                    h.Cell().AlignLeft().Text("المتوسط").SemiBold();
+                    PdfTheme.HeaderCell(h.Cell(), "المستوى", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المتوسط", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعتمدة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "المعلم");
+                    PdfTheme.HeaderCell(h.Cell(), "م", PdfTheme.CellAlign.Center);
                 });
-                foreach (var r in rows)
+
+                if (rows.Count == 0)
                 {
-                    t.Cell().Text(r.InstructorFullName);
-                    t.Cell().AlignLeft().Text(r.ApprovedVisitsCount.ToString());
-                    t.Cell().AlignLeft().Text(r.AverageOverallScore?.ToString("0.00") ?? "—");
+                    PdfTheme.EmptyRow(t, 5, "لا توجد تقييمات معتمدة بعد.");
+                    return;
                 }
-            });
+
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var r = rows[i];
+                    var zebra = i % 2 == 1;
+                    PdfTheme.BodyCell(t.Cell(), r.LatestPerformanceLevelAr ?? "—", PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), Score(r.AverageOverallScore), PdfTheme.CellAlign.Center, zebra,
+                        strong: true, color: PdfTheme.ScoreColor(r.AverageOverallScore));
+                    PdfTheme.BodyCell(t.Cell(), r.ApprovedVisitsCount.ToString(), PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.InstructorFullName, zebra: zebra, strong: true);
+                    PdfTheme.BodyCell(t.Cell(), (i + 1).ToString(), PdfTheme.CellAlign.Center, zebra);
+                }
+            }
         });
     }
 
     private void ComposePdfPerformanceTrend(IContainer container, List<PerformanceTrendPointDto> rows)
     {
-        container.Column(col =>
+        PdfTheme.TableSection(container, "اتجاه الأداء", rows.Count, t =>
         {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("اتجاه الأداء").SemiBold();
-            col.Item().Table(t =>
             {
-                t.ColumnsDefinition(d => { d.ConstantColumn(60); d.ConstantColumn(100); d.ConstantColumn(80); d.ConstantColumn(100); });
+                // Proportional columns, not fixed ones. With fixed widths the
+                // table occupied under half a landscape sheet and the slack had
+                // to be parked in a spacer column, which read as a real column
+                // nobody had labelled. Relative weights let every column grow
+                // together so the table fills the card and the figures stay
+                // centred under their own headers.
+                t.ColumnsDefinition(d =>
+                {
+                    d.RelativeColumn(3);    // level
+                    d.RelativeColumn(2);    // score
+                    d.RelativeColumn(3);    // date
+                    d.RelativeColumn(2);    // visit id
+                });
+
                 t.Header(h =>
                 {
-                    h.Cell().Text("رقم الزيارة").SemiBold();
-                    h.Cell().Text("التاريخ").SemiBold();
-                    h.Cell().AlignLeft().Text("الدرجة").SemiBold();
-                    h.Cell().Text("المستوى").SemiBold();
+                    PdfTheme.HeaderCell(h.Cell(), "مستوى الأداء", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "الدرجة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "تاريخ الزيارة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(h.Cell(), "رقم الزيارة", PdfTheme.CellAlign.Center);
                 });
-                foreach (var r in rows)
+
+                if (rows.Count == 0)
                 {
-                    t.Cell().Text(r.VisitId.ToString());
-                    t.Cell().Text(r.VisitDate.ToString("yyyy-MM-dd"));
-                    t.Cell().AlignLeft().Text(r.OverallScore.ToString("0.000"));
-                    t.Cell().Text(r.PerformanceLevelAr);
+                    PdfTheme.EmptyRow(t, 4, "لا توجد زيارات معتمدة لرسم الاتجاه.");
+                    return;
                 }
-            });
+
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var r = rows[i];
+                    var zebra = i % 2 == 1;
+                    PdfTheme.BodyCell(t.Cell(), r.PerformanceLevelAr, PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), Score(r.OverallScore),
+                        PdfTheme.CellAlign.Center, zebra, strong: true, color: PdfTheme.ScoreColor(r.OverallScore));
+                    PdfTheme.BodyCell(t.Cell(), r.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        PdfTheme.CellAlign.Center, zebra);
+                    PdfTheme.BodyCell(t.Cell(), r.VisitId.ToString(), PdfTheme.CellAlign.Center, zebra);
+                }
+            }
+        }, caption: ScaleNote);
+    }
+
+    /// <summary>
+    /// Latest approved evaluation. Rendered as ruled label/value lines rather
+    /// than a two-column table: the table gave the value column the leftover
+    /// landscape width, so every value printed floating in the middle of the
+    /// sheet with a void between it and its own label.
+    /// </summary>
+    private void ComposePdfInstructorLatest(IContainer container, LatestEvaluationDto? latest)
+    {
+        PdfTheme.SectionCard(container, "آخر تقييم معتمد", card =>
+        {
+            if (latest is null)
+            {
+                PdfTheme.EmptyNote(card.Item(), "لا يوجد تقييم معتمد بعد.");
+                return;
+            }
+
+            var scoreColor = PdfTheme.ScoreColor(latest.OverallScore);
+            var lines = new (string Label, string Value, string? Color)[]
+            {
+                ("تاريخ الزيارة", latest.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), null),
+                ("نوع الزيارة", latest.VisitCategoryLabelAr, null),
+                ("المشرف المُقيِّم", latest.ModeratorFullName, null),
+                ("الدرجة الإجمالية", ScoreScale.FormatWithMaximum(latest.OverallScore), scoreColor),
+                ("مستوى الأداء", latest.PerformanceLevelAr, scoreColor)
+            };
+
+            card.Item().Element(c => PdfTheme.DetailGrid(c, lines));
         });
     }
 
-    private void ComposePdfInstructorLatest(IContainer container, LatestEvaluationDto? latest)
+    /// <summary>
+    /// Improvement-plan analytics. Six tiles on ONE row: as two rows of three it
+    /// was tall enough to trip <c>ShowEntire</c> onto a fresh sheet, which left
+    /// roughly 80 % of the final page blank on a printed report.
+    /// </summary>
+    private void ComposePdfImprovementPlans(IContainer container, ImprovementPlanAnalyticsDto plans)
     {
-        if (latest is null)
+        PdfTheme.SectionCard(container, "خطط التحسين", card =>
         {
-            container.PaddingTop(6).Text("لا يوجد تقييم معتمد بعد.");
-            return;
-        }
-        container.Column(col =>
-        {
-            col.Spacing(4);
-            col.Item().PaddingTop(6).Text("آخر تقييم معتمد").SemiBold();
-            col.Item().Table(t =>
+            var cells = new (string Label, string Value)[]
             {
-                t.ColumnsDefinition(d => { d.ConstantColumn(120); d.RelativeColumn(); });
-                t.Cell().Text("التاريخ").SemiBold(); t.Cell().Text(latest.VisitDate.ToString("yyyy-MM-dd"));
-                t.Cell().Text("نوع الزيارة").SemiBold(); t.Cell().Text(latest.VisitCategoryLabelAr);
-                t.Cell().Text("المُقيِّم").SemiBold(); t.Cell().Text(latest.ModeratorFullName);
-                t.Cell().Text("الدرجة الإجمالية").SemiBold(); t.Cell().Text(latest.OverallScore.ToString("0.000"));
-                t.Cell().Text("مستوى الأداء").SemiBold(); t.Cell().Text(latest.PerformanceLevelAr);
-            });
+                ("خطط نشطة", plans.TotalActive.ToString()),
+                ("خطط مكتملة", plans.TotalCompleted.ToString()),
+                ("خطط ملغاة", plans.TotalCancelled.ToString()),
+                ("إجمالي المتابعات", plans.TotalFollowUps.ToString()),
+                ("خطط لديها متابعة", plans.PlansWithAtLeastOneFollowUp.ToString()),
+                ("متوسط آخر تقدم",
+                    plans.AverageLatestProgressScore is null
+                        ? "—"
+                        : $"{plans.AverageLatestProgressScore.Value.ToString("0.#", CultureInfo.InvariantCulture)}%")
+            };
+
+            var renderers = cells
+                .Select(cell => new Action<IContainer>(c => ComposePdfKpiCard(c, cell.Label, cell.Value)))
+                .ToList();
+
+            card.Item().Row(row => PdfTheme.RtlRow(row, renderers, spacing: 5f));
         });
     }
+
+    /// <summary>D-UI-1 — the one scale note printed under every score table.</summary>
+    private const string ScaleNote = "جميع الدرجات من 100.";
+
+    /// <summary>
+    /// D-UI-1 — publishes a stored 0–4 average on the single published 0–100
+    /// scale, or an em dash when it was never scored. The stored value keeps its
+    /// 0–4 scale because the performance-level thresholds are defined on it.
+    /// </summary>
+    private static string Score(decimal? value) => ScoreScale.Format(value);
+
+    /// <summary>
+    /// Plan-progress figures are already recorded 0..100, so they are published
+    /// as a percentage rather than run through the rubric conversion.
+    /// </summary>
+    private static string Percent(decimal? value) =>
+        value is null ? "—" : $"{value.Value.ToString("0.#", CultureInfo.InvariantCulture)}%";
 
     // ─── Static helpers ───────────────────────────────────────────────────
 

@@ -12,8 +12,12 @@ import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
-import { ApiResponse } from '../models/api-response.model';
-import { SKIP_LOCAL_AUTH, SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
+import {
+  SKIP_LOCAL_AUTH,
+  SUPPRESS_ERROR_TOAST,
+  SUPPRESS_FORBIDDEN_REDIRECT
+} from '../http/http-context.tokens';
+import { extractHttpErrorMessage, isUnreadBlobError } from '../http/http-error-message';
 
 /**
  * Global HTTP error interceptor.
@@ -82,7 +86,14 @@ export class ErrorInterceptor implements HttpInterceptor {
         }
 
         // ── All other errors ────────────────────────────────────────────────────
-        if (!silent) {
+        // A caller that reports the failure itself opts out here, so a single
+        // failure never produces two toasts. Blob bodies are also skipped: the
+        // message lives inside the blob and can only be read asynchronously, so
+        // guessing here would show the generic error and drown the real reason.
+        const handledByCaller =
+          req.context.get(SUPPRESS_ERROR_TOAST) || isUnreadBlobError(error);
+
+        if (!silent && !handledByCaller) {
           const message = this.extractMessage(error);
           const summaryKey = error.status === 0
             ? 'ERRORS.NETWORK_ERROR'
@@ -97,17 +108,8 @@ export class ErrorInterceptor implements HttpInterceptor {
   }
 
   private extractMessage(error: HttpErrorResponse): string {
-    // Backend wraps errors in { isSuccess, message, errors, data? }
-    const body = error.error as (ApiResponse & { message?: string }) | string | null;
-
-    if (typeof body === 'string' && body.trim()) {
-      return body;
-    }
-
-    if (body && typeof body === 'object') {
-      if (body.message && typeof body.message === 'string') return body.message;
-      if (Array.isArray(body.errors) && body.errors.length > 0) return body.errors.join(' — ');
-    }
+    const message = extractHttpErrorMessage(error);
+    if (message) return message;
 
     if (error.status === 0) {
       return this.translate.instant('ERRORS.NETWORK_ERROR');

@@ -164,6 +164,14 @@ public class ReportPriorityStandardDto
     public string StandardCode { get; set; } = string.Empty;
     public string StandardTextAr { get; set; } = string.Empty;
     public int Score { get; set; }
+
+    /// <summary>
+    /// The rubric level word for <see cref="Score"/> ("يحتاج تحسين" …), resolved
+    /// once by the visit service. D-UI-1: a per-standard score is the one figure
+    /// still published on the 0..4 rubric scale, and it must always carry its
+    /// Arabic level so it can never be mistaken for a score out of 100.
+    /// </summary>
+    public string ScoreLabelAr { get; set; } = string.Empty;
 }
 
 public class ReportPlanFollowUpDto

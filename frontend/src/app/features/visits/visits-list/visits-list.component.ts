@@ -14,6 +14,7 @@ import { ConfirmationService } from 'primeng/api';
 import { CalendarModule } from 'primeng/calendar';
 import { ToastService } from '../../../core/services/toast.service';
 import { VisitsService, filenameFromContentDisposition } from '../../../core/services/visits.service';
+import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
 import { AuthService } from '../../../core/services/auth.service';
 import { ListPageHeaderComponent } from '../../../shared/components/list-toolbar/list-page-header.component';
 import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar.component';
@@ -156,10 +157,14 @@ export class VisitsListComponent implements OnInit {
         this.toast.success(this.t('VISITS.PDF_DOWNLOAD_SUCCESS_TITLE'), this.t('VISITS.PDF_DOWNLOAD_SUCCESS_DESC'));
         this.pdfPrinting.set(null);
       },
-      error: (err) => {
+      error: async (err) => {
         this.pdfPrinting.set(null);
-        const detail = extractApiErrorMessage(err) ?? 'VISITS.PDF_DOWNLOAD_FAILED_DESC';
-        this.toast.error(this.t('VISITS.PDF_DOWNLOAD_FAILED_TITLE'), detail);
+        // Blob response: the server's Arabic reason has to be read out of the
+        // body before it can be shown.
+        await readHttpErrorBody(err);
+        this.toast.error(
+          this.t('VISITS.PDF_DOWNLOAD_FAILED_TITLE'),
+          extractHttpErrorMessage(err) ?? this.t('VISITS.PDF_DOWNLOAD_FAILED_DESC'));
       }
     });
   }
@@ -192,10 +197,12 @@ export class VisitsListComponent implements OnInit {
         this.toast.success(this.t('VISITS.EXPORT_ALL_SUCCESS_TITLE'), this.t('VISITS.EXPORT_ALL_SUCCESS_DESC'));
         this.bulkExporting.set(false);
       },
-      error: (err) => {
+      error: async (err) => {
         this.bulkExporting.set(false);
-        const detail = extractApiErrorMessage(err) ?? 'VISITS.EXPORT_ALL_FAILED_DESC';
-        this.toast.error(this.t('VISITS.EXPORT_ALL_FAILED_TITLE'), detail);
+        await readHttpErrorBody(err);
+        this.toast.error(
+          this.t('VISITS.EXPORT_ALL_FAILED_TITLE'),
+          extractHttpErrorMessage(err) ?? this.t('VISITS.EXPORT_ALL_FAILED_DESC'));
       }
     });
   }
@@ -236,26 +243,4 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
   a.click();
   a.remove();
   window.URL.revokeObjectURL(url);
-}
-
-/**
- * D-41 — extract the Arabic ApiResponse `message` / `error` from a failed
- * HTTP error so toasts can surface the server's Arabic text verbatim.
- * Returns null if the body is empty / not parseable.
- */
-function extractApiErrorMessage(err: any): string | null {
-  if (!err) return null;
-  if (typeof err.error === 'string') {
-    try {
-      const obj = JSON.parse(err.error);
-      if (obj?.message) return String(obj.message);
-      if (obj?.error) return String(obj.error);
-    } catch {
-      // not JSON — fallthrough
-    }
-  } else if (err.error && typeof err.error === 'object') {
-    if (err.error.message) return String(err.error.message);
-    if (err.error.error)   return String(err.error.error);
-  }
-  return null;
 }

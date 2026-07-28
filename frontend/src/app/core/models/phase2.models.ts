@@ -175,6 +175,7 @@ export interface UserUpdateRequest {
   email?: string;
   phoneNumber?: string;
   preferredLanguage?: 'ar' | 'en';
+  role?: PhaseTwoRole;
   fullName?: string;
   schoolId?: number;
   employeeNumber?: string;

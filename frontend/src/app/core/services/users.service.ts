@@ -43,6 +43,10 @@ export class UsersService {
     return this.http.put<ApiResponse<UserDetail>>(`${this.base}/${id}`, body);
   }
 
+  changePassword(id: string, newPassword: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.base}/${id}/password`, { newPassword });
+  }
+
   deactivate(id: string): Observable<ApiResponse<void>> {
     return this.http.post<ApiResponse<void>>(`${this.base}/${id}/deactivate`, {});
   }

@@ -118,6 +118,8 @@ public class UserUpdateRequestDto
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
     public string PreferredLanguage { get; set; } = "ar";
+    /// <summary>Optional role change for the active school assignment.</summary>
+    public string? Role { get; set; }
     /// <summary>Teacher school; only applied for Instructor users and always school-scoped.</summary>
     public int? SchoolId { get; set; }
 

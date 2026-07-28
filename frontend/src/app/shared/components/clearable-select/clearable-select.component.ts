@@ -21,17 +21,19 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
  * <app-clearable-select>
  * ────────────────────────
  * Generic wrapper around <p-dropdown> that:
- *   1. Renders the internal PrimeNG ✕ off (showClear=false).
- *   2. Shows a SMALL external "مسح" button (pi pi-times + label),
- *      inline-end (LEFT in RTL), ONLY when the value is non-null.
- *   3. Clears the bound value on click and fires (cleared) so the parent
- *      can also run dependent UI logic (e.g. reload a list when a filter
- *      is cleared).
- *   4. Implements ControlValueAccessor — works with [(ngModel)] AND
+ *   1. Uses PrimeNG's own in-field ✕ (showClear) when the field is clearable
+ *      and currently holds a value. The theme already reserves padding on
+ *      .p-dropdown-label for the chevron + ✕, so the icon sits inside the
+ *      control next to the chevron and never covers the selected text.
+ *   2. Re-emits (cleared) so the parent can run dependent logic — e.g. reload
+ *      a list when a filter is cleared.
+ *   3. Implements ControlValueAccessor — works with [(ngModel)] AND
  *      [formControl].
  *
- * Use this for every application dropdown. Optional fields and filters keep
- * the default external clear action; required fields set [clearable]="false".
+ * This previously rendered a separate "✕ مسح" text button as a flex sibling
+ * *outside* the control. That read as a stray link floating beside the field,
+ * and because it was a flex sibling it also shrank the dropdown so it no
+ * longer filled its grid cell. Required fields set [clearable]="false".
  *
  * Inputs mirror the relevant subset of p-dropdown. Add more inputs
  * here if a new use case needs them.
@@ -65,9 +67,10 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
                   [appendTo]="appendTo"
                   [emptyMessage]="emptyMessage"
                   [loading]="loading"
-                  [showClear]="false"
+                  [showClear]="showInFieldClear()"
                   [formControl]="control"
                   (onChange)="onDropdownChange.emit($event)"
+                  (onClear)="cleared.emit()"
                   (onFilter)="onFilter.emit($event)">
         <ng-template pTemplate="item" let-opt>
           <ng-container *ngIf="itemTpl; else defaultItem">
@@ -88,16 +91,6 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
           <ng-template #defaultEmpty>{{ emptyMessage }}</ng-template>
         </ng-template>
       </p-dropdown>
-
-      <button *ngIf="clearable && !disabled && value() !== null && value() !== undefined"
-              type="button"
-              class="clearable-select__btn"
-              [attr.aria-label]="'COMMON.CLEAR' | translate"
-              [attr.title]="'COMMON.CLEAR' | translate"
-              (click)="clear($event)">
-        <i class="pi pi-times"></i>
-        <span class="clearable-select__label">{{ 'COMMON.CLEAR' | translate }}</span>
-      </button>
     </span>
   `,
   styles: [`
@@ -106,10 +99,10 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
       width: 100%;
       min-width: 0;
     }
+    /* Block, not inline-flex: the control is the only child and must fill its
+       grid / toolbar cell exactly. */
     .clearable-select {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
+      display: block;
       position: relative;
       min-width: 0;
       width: 100%;
@@ -117,7 +110,7 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
       box-sizing: border-box;
     }
     .clearable-select > .p-dropdown {
-      flex: 1;
+      display: flex;
       width: 100%;
       min-width: 0;
       max-width: 100%;
@@ -128,35 +121,6 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
-    }
-    .clearable-select__btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      background: transparent;
-      border: 0;
-      color: var(--text-muted);
-      font-size: 0.74rem;
-      padding: 0.2rem 0.38rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background var(--duration-fast), color var(--duration-fast), opacity var(--duration-fast);
-      opacity: 0.85;
-    }
-    .clearable-select__btn:hover,
-    .clearable-select__btn:focus-visible {
-      background: var(--danger-bg);
-      color: var(--danger);
-      opacity: 1;
-      outline: none;
-    }
-    .clearable-select__btn .pi {
-      font-size: 0.72rem;
-      line-height: 1;
-    }
-    [dir="rtl"] .clearable-select__label {
-      font-family: inherit;
     }
   `]
 })
@@ -201,6 +165,15 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   readonly value = signal<any>(null);
   readonly control = new FormControl<any>(null);
 
+  /**
+   * PrimeNG only paints its ✕ when `showClear` is on AND a value is present,
+   * but it also reserves nothing when disabled — so gate on both here and let
+   * the theme handle the placement inside the field.
+   */
+  showInFieldClear(): boolean {
+    return this.clearable && !this.disabled;
+  }
+
   // CVA callbacks — registered by Angular via writeValue/registerOnChange/registerOnTouched.
   private onChange = (_: any) => {};
   private onTouched = () => {};
@@ -208,7 +181,7 @@ export class ClearableSelectComponent implements ControlValueAccessor {
 
   constructor(private cdr: ChangeDetectorRef) {
     this.control.valueChanges.subscribe(val => {
-      const next = val ?? null;
+      const next = ClearableSelectComponent.normalize(val);
       this.value.set(next);
       this.onChange(next);
       this.onTouched();
@@ -224,11 +197,26 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   // ─── ControlValueAccessor ────────────────────────────────────────────────
 
   writeValue(val: any): void {
-    // p-dropdown treats `null` / `undefined` as "nothing selected"; preserve that.
-    const next = (val === undefined ? null : val) ?? null;
+    const next = ClearableSelectComponent.normalize(val);
     this.value.set(next);
     this.control.setValue(next, { emitEvent: false });
     this.cdr.markForCheck();
+  }
+
+  /**
+   * Collapses every "nothing selected" representation to `null`.
+   *
+   * `''` matters: most forms in the app declare a select as
+   * `field: ['', Validators.required]`, and `'' ?? null` keeps the empty
+   * string. PrimeNG then paints its in-field ✕ — `isVisibleClearIcon` is
+   * `modelValue() != null && hasSelectedOption()`, and `'' != null` is true —
+   * so an untouched required select showed a clear button next to its own
+   * "اختر" placeholder, offering to clear a value that was never chosen.
+   */
+  private static normalize(val: any): any {
+    if (val === undefined || val === null) return null;
+    if (typeof val === 'string' && val.trim() === '') return null;
+    return val;
   }
 
   registerOnChange(fn: (val: any) => void): void {

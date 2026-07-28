@@ -18,7 +18,10 @@
     "EDIT_SCHOOL": "تعديل المدرسة — مدارس الفلاح",
     "TEACHERS": "المعلمون — مدارس الفلاح",
     "TEACHER_PROFILE": "ملف المعلم — مدارس الفلاح",
-    "USERS": "المستخدمون — مدارس الفلاح",
+    "USERS": "جميع الأشخاص — مدارس الفلاح",
+    "SCHOOL_MANAGERS": "مدير المدرسة — مدارس الفلاح",
+    "MODERATORS": "المشرفون — مدارس الفلاح",
+    "SECRETARIES": "السكرتير — مدارس الفلاح",
     "NEW_USER": "مستخدم جديد — مدارس الفلاح",
     "EDIT_USER": "تعديل المستخدم — مدارس الفلاح",
     "USER_SCHOOL_ROLES": "تعيينات المستخدمين — مدارس الفلاح",
@@ -46,6 +49,15 @@
       "SAVE_SUCCESS": "تم حفظ التوقيع بنجاح.",
       "SAVE_FAILED": "تعذر حفظ التوقيع.",
       "SAVE_ERROR": "حدث خطأ أثناء حفظ التوقيع."
+    },
+    "PASSWORD": {
+      "TITLE": "تغيير كلمة المرور",
+      "DESCRIPTION": "حدّث كلمة مرور حسابك من هنا.",
+      "CURRENT": "كلمة المرور الحالية",
+      "NEW": "كلمة المرور الجديدة",
+      "CONFIRM": "تأكيد كلمة المرور الجديدة",
+      "SAVE": "حفظ كلمة المرور",
+      "SUCCESS": "تم تغيير كلمة المرور بنجاح."
     }
   },
   "AUTH": {
@@ -138,7 +150,11 @@
     "LAST_NAME": "اسم العائلة",
     "FULL_NAME": "الاسم الكامل",
     "USERNAME": "اسم المستخدم",
+    "USERNAME_HINT": "يُكتب اسم المستخدم بأحرف صغيرة فقط.",
     "PASSWORD": "كلمة المرور",
+    "PASSWORD_HINT": "8 أحرف على الأقل.",
+    "NEW_PASSWORD": "كلمة المرور الجديدة",
+    "PASSWORD_CHANGE_HINT": "اترك الحقل فارغاً إذا لم ترد تغيير كلمة المرور.",
     "EMAIL": "البريد الإلكتروني",
     "PHONE": "رقم الجوال",
     "ROLE": "الدور",
@@ -154,7 +170,10 @@
     "DEACTIVATED": "معطّل",
     "ASSIGN_TO_SCHOOL": "تعيين إلى مدرسة",
     "NO_SCHOOLS_AVAILABLE": "لا توجد مدارس متاحة",
+    "ROLE_SUPER_ADMIN": "مدير النظام",
+    "ROLE_MAIN_MANAGER": "المدير العام",
     "ROLE_SCHOOL_MANAGER": "مدير المدرسة",
+    "ROLE_SECRETARY": "السكرتير",
     "ROLE_MODERATOR": "مشرف",
     "ROLE_INSTRUCTOR": "معلم",
     "LANGUAGE_ARABIC": "العربية",
@@ -162,7 +181,29 @@
     "DEACTIVATE_CONFIRM_TITLE": "تأكيد تعطيل المستخدم",
     "DEACTIVATE_ACCEPT": "نعم، عطّل",
     "DEACTIVATE_SUCCESS": "تم تعطيل المستخدم بنجاح.",
-    "ASSIGN_SUCCESS": "تم تعيين المستخدم للمدرسة بنجاح."
+    "ASSIGN_SUCCESS": "تم تعيين المستخدم للمدرسة بنجاح.",
+    "SCOPE": {
+      "ALL": {
+        "TITLE": "جميع الأشخاص",
+        "SUBTITLE": "كل الحسابات في النظام على اختلاف أدوارها",
+        "NEW": "مستخدم جديد"
+      },
+      "SCHOOL_MANAGER": {
+        "TITLE": "مدير المدرسة",
+        "SUBTITLE": "الحسابات المسؤولة عن إدارة المدرسة",
+        "NEW": "إضافة مدير مدرسة"
+      },
+      "MODERATOR": {
+        "TITLE": "المشرفون",
+        "SUBTITLE": "حسابات المشرفين على التقييم والزيارات",
+        "NEW": "إضافة مشرف"
+      },
+      "SECRETARY": {
+        "TITLE": "السكرتير",
+        "SUBTITLE": "حسابات السكرتارية وتسجيل الحضور",
+        "NEW": "إضافة سكرتير"
+      }
+    }
   },
   "TEACHERS": {
     "TITLE": "المعلمون",
@@ -174,7 +215,6 @@
     "FULL_NAME": "الاسم الكامل",
     "USERNAME": "اسم المستخدم",
     "EMPLOYEE_NUMBER": "الرقم الوظيفي",
-    "DEFAULT_PASSWORD_HINT": "تُستخدم قيمة الرقم الوظيفي ككلمة المرور الأولية للمعلم.",
     "SCHOOL": "المدرسة",
     "SUBJECT": "المادة الدراسية",
     "STAGE": "المرحلة الدراسية",
@@ -267,6 +307,7 @@
     "REMOVE_SUCCESS": "تم إلغاء التعيين بنجاح."
   },
   "COMMON": {
+    "MORE_ACTIONS": "إجراءات أخرى",
     "LOADING": "جار التحميل...",
     "ERROR": "حدث خطأ",
     "SUCCESS": "نجاح",
@@ -385,6 +426,10 @@
     "DASHBOARD": "الرئيسية",
     "SCHOOLS": "المدارس",
     "USERS": "المستخدمون",
+    "SCHOOL_MANAGERS": "مدير المدرسة",
+    "MODERATORS": "المشرفون",
+    "SECRETARIES": "السكرتير",
+    "ALL_PEOPLE": "جميع الأشخاص",
     "USER_SCHOOL_ROLES": "تعيينات المستخدمين",
     "TEACHERS": "المعلمون",
     "VISITS": "الزيارات",
@@ -398,6 +443,9 @@
     "ROLES": "الأدوار والصلاحيات",
     "RUBRIC": "أداة التقييم",
     "MAIN_NAVIGATION": "التنقل الرئيسي",
+    "MENU": "القائمة",
+    "COLLAPSE_SIDEBAR": "تصغير القائمة",
+    "EXPAND_SIDEBAR": "توسيع القائمة",
     "CATEGORIES": {
       "EVALUATION": "التقييم",
       "PEOPLE": "الأشخاص",
@@ -538,6 +586,7 @@
     "DOMAIN_AVERAGE_CHART_LABEL": "متوسط المحور",
     "OVERALL_SCORE": "المتوسط العام",
     "TOTAL_SCORE": "الدرجة الكلية",
+    "OUT_OF_100": "من 100",
     "AVERAGE_SCORE": "المتوسط",
     "PERFORMANCE_LEVEL": "مستوى الأداء",
     "STRENGTHS": "نقاط القوة",

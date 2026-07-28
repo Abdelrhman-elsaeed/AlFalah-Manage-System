@@ -41,6 +41,12 @@ export class AccountSettingsComponent implements OnInit, AfterViewInit {
     subject: ['', [Validators.required, Validators.maxLength(200)]],
     classes: [[] as string[]]
   });
+  readonly passwordForm = this.fb.group({
+    currentPassword: ['', [Validators.required]],
+    newPassword: ['', [Validators.required, Validators.minLength(8)]],
+    confirmPassword: ['', [Validators.required, Validators.minLength(8)]]
+  });
+  readonly passwordSaving = signal(false);
 
   ngOnInit(): void {
     if (this.isInstructor()) this.loadTeaching();
@@ -106,6 +112,29 @@ export class AccountSettingsComponent implements OnInit, AfterViewInit {
         }
       },
       error: () => this.teachingSaving.set(false)
+    });
+  }
+
+  changePassword(): void {
+    if (this.passwordForm.invalid) {
+      this.passwordForm.markAllAsTouched();
+      return;
+    }
+    const value = this.passwordForm.getRawValue();
+    if (value.newPassword !== value.confirmPassword) {
+      this.passwordForm.controls.confirmPassword.setErrors({ mismatch: true });
+      return;
+    }
+    this.passwordSaving.set(true);
+    this.auth.changePassword(value.currentPassword!, value.newPassword!).subscribe({
+      next: response => {
+        this.passwordSaving.set(false);
+        if (response.isSuccess) {
+          this.passwordForm.reset();
+          this.toast.success(this.translate.instant('ACCOUNT.PASSWORD.SUCCESS'));
+        }
+      },
+      error: () => this.passwordSaving.set(false)
     });
   }
 

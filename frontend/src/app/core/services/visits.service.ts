@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
@@ -16,6 +16,7 @@ import {
   VisitListQuery
 } from '../models/visit.models';
 import { PagedResult } from '../models/phase2.models';
+import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 
 @Injectable({ providedIn: 'root' })
 export class VisitsService {
@@ -118,7 +119,11 @@ export class VisitsService {
   downloadReportPdf(id: number): Observable<HttpResponse<Blob>> {
     return this.http.get(`${this.base}/${id}/report/pdf`, {
       responseType: 'blob',
-      observe: 'response'
+      observe: 'response',
+      // The failure message lives inside the blob body, so the caller reads and
+      // reports it; without this the interceptor also fired a generic toast and
+      // the user saw two messages, the wrong one being the louder.
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
     });
   }
 
@@ -139,7 +144,8 @@ export class VisitsService {
     return this.http.get(`${this.base}/export/zip`, {
       params,
       responseType: 'blob',
-      observe: 'response'
+      observe: 'response',
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
     });
   }
 

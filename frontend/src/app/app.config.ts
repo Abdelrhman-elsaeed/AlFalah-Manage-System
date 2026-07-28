@@ -27,8 +27,13 @@ function initTranslations(translate: TranslateService) {
     translate.addLangs(['ar', 'en']);
     translate.setDefaultLang('ar');
     // Await the ar.json fetch so | translate never shows raw keys on first render.
-    // The .catch() ensures a network failure never blocks bootstrap.
-    return firstValueFrom(translate.use('ar')).catch(() => {});
+    // The .catch() ensures a network failure never blocks bootstrap — but it must
+    // report, otherwise a broken load (bad JSON, DI cycle in the interceptor chain)
+    // is indistinguishable from a working one until raw keys show up on screen.
+    return firstValueFrom(translate.use('ar')).then(
+      () => {},
+      (err: unknown) => console.error('[i18n] failed to load ar.json — UI will render raw keys', err)
+    );
   };
 }
 
