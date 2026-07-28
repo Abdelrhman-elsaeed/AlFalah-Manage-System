@@ -28,6 +28,12 @@ public sealed class TeacherDriveMappingService : ITeacherDriveMappingService
         var teacher = await _context.InstructorProfiles.SingleOrDefaultAsync(x => x.Id == teacherId && !x.IsDeleted, cancellationToken)
             ?? throw new KeyNotFoundException("المعلم غير موجود.");
         await _scopeGuard.EnsureCanMutateSchoolAsync(teacher.SchoolId, cancellationToken);
+        var schoolDrive = await _context.SchoolMicrosoftDrives.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.SchoolId == teacher.SchoolId && x.IsEnabled, cancellationToken);
+        if (schoolDrive is null)
+            throw new InvalidOperationException("يجب إعداد حساب Microsoft الخاص بالمدرسة قبل إعداد مجلدات المدرسين.");
+        if (!string.Equals(request.DriveId.Trim(), schoolDrive.DriveId, StringComparison.Ordinal))
+            throw new InvalidOperationException("يجب أن يكون مجلد المدرس داخل Drive حساب المدرسة المُعدّ.");
         var mapping = await _context.TeacherDriveFolders.SingleOrDefaultAsync(x => x.TeacherId == teacherId, cancellationToken);
         if (mapping is null)
         {

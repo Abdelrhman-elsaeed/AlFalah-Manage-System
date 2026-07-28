@@ -5,7 +5,7 @@
   min-height: 100dvh;
   overflow: hidden;
   font-family: var(--font-app);
-  background: var(--bg-page);
+  background: var(--brand-950);
 }
 
 .login-bg {
@@ -13,18 +13,21 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 82% 4%, rgba(30, 142, 78, 0.09), transparent 42%),
-    radial-gradient(circle at 6% 92%, rgba(201, 162, 39, 0.10), transparent 38%),
-    var(--bg-page);
+  background: transparent;
 }
 
 .login-container {
   position: relative;
   z-index: 1;
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 2.5vh, 1.75rem);
+  width: 100%;
+  box-sizing: border-box;
+  padding: clamp(1rem, 3vw, 2.5rem);
   min-height: 100dvh;
-  grid-template-columns: minmax(340px, 0.9fr) minmax(430px, 1.1fr);
 }
 
 /* Brand panel */
@@ -34,38 +37,22 @@
   min-width: 0;
   place-items: center;
   overflow: hidden;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  width: 100%;
+  padding: 0;
   color: #fff;
-  background:
-    linear-gradient(145deg, rgba(255,255,255,.035), transparent 35%),
-    linear-gradient(160deg, var(--brand-900), var(--brand-950));
+  /* The whole login page owns the background. Keeping this panel
+     transparent prevents a visible vertical split between hero and form. */
+  background: transparent;
 }
 .brand-panel::before,
 .brand-panel::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-.brand-panel::before {
-  width: 420px;
-  height: 420px;
-  inset: -180px -120px auto auto;
-  background: radial-gradient(circle, rgba(201, 162, 39, 0.18), transparent 68%);
-  animation: ambientDrift 9s ease-in-out infinite alternate;
-}
-.brand-panel::after {
-  width: 260px;
-  height: 260px;
-  inset: auto auto -100px -80px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.07), transparent 70%);
-  animation: ambientDrift 11s ease-in-out infinite alternate-reverse;
+  display: none;
 }
 
 .brand-content {
   position: relative;
   z-index: 1;
-  width: min(100%, 390px);
+  width: min(100%, 720px);
   text-align: center;
 }
 .logo-wrapper { margin-bottom: var(--space-4); }
@@ -117,8 +104,8 @@
   padding: 0.55rem 0.7rem;
   color: rgba(255, 255, 255, 0.85);
   font-size: var(--font-size-label);
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(201, 162, 39, 0.18);
   border-radius: var(--radius-md);
   transition: background var(--duration-normal), border-color var(--duration-normal), transform var(--duration-normal);
   animation: featureReveal var(--duration-slow) var(--ease-standard) both;
@@ -134,7 +121,9 @@
   display: grid;
   min-width: 0;
   place-items: center;
-  padding: clamp(1.25rem, 4vw, 3rem);
+  width: 100%;
+  padding: 0;
+  background: transparent;
 }
 .form-card {
   width: min(100%, 390px);
@@ -207,11 +196,21 @@
 .school-select-field,
 :host ::ng-deep .school-select-field .clearable-select,
 :host ::ng-deep .login-school-select {
-  display: flex !important;
+  display: block !important;
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box;
+}
+
+:host ::ng-deep app-clearable-select.school-select-field,
+:host ::ng-deep app-clearable-select.school-select-field > .clearable-select,
+:host ::ng-deep app-clearable-select.school-select-field .p-dropdown {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 :host ::ng-deep .school-select-field .p-dropdown,
@@ -241,8 +240,24 @@
 
 :host ::ng-deep .school-select-field .p-dropdown-panel {
   width: 100% !important;
+  min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box;
+}
+
+:host ::ng-deep .school-select-field .p-dropdown-items-wrapper,
+:host ::ng-deep .school-select-field .p-dropdown-items,
+:host ::ng-deep .school-select-field .p-dropdown-item {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .school-select-field .p-dropdown-item {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .loading-skeleton {
   height: var(--control-height);
@@ -300,17 +315,16 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 860px) {
-  .login-container { grid-template-columns: 1fr; }
-  .brand-panel { min-height: 235px; padding: 1.5rem; }
+  .brand-panel { min-height: auto; padding: 0; }
   .brand-content { width: min(100%, 520px); }
   .logo-circle { width: 72px; height: 72px; padding: 6px; }
   .brand-subtitle { margin-bottom: 0; }
   .brand-features { display: none; }
-  .form-panel { padding: 1.25rem; }
+  .form-panel { padding: 0; }
 }
 
 @media (max-width: 480px) {
-  .brand-panel { min-height: 190px; }
+  .brand-panel { min-height: auto; }
   .brand-kicker { font-size: 0.74rem; }
   .brand-title { font-size: 1.35rem; }
   .brand-subtitle { font-size: 0.78rem; }

@@ -6,7 +6,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
 import { AuthService } from '../../../core/services/auth.service';
 import { SchoolsService } from '../../../core/services/schools.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -18,7 +17,7 @@ import { PhaseTwoRole, SchoolStage, UserDetail } from '../../../core/models/phas
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink, TranslateModule,
-    ButtonModule, ClearableSelectComponent, InputTextModule, PasswordModule
+    ButtonModule, ClearableSelectComponent, InputTextModule
   ],
   templateUrl: './user-form.component.html',
   styleUrls: ['./user-form.component.css']
@@ -35,6 +34,7 @@ export class UserFormComponent implements OnInit {
 
   readonly isEdit = signal(false);
   readonly saving = signal(false);
+  readonly passwordVisible = signal(false);
   readonly userId = signal<string | null>(null);
   readonly isInstructor = signal(false);
   readonly isSecretary = signal(false);

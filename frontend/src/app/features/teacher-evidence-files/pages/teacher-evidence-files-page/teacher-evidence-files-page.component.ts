@@ -50,9 +50,12 @@ export class TeacherEvidenceFilesPageComponent {
     this.error.set(null);
     this.api.linkAccount().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.load(),
-      error: error => this.error.set(error?.name === 'EntraConfigurationError'
-        ? 'Microsoft Entra غير مُعدّ بعد. اطلب من مسؤول النظام إضافة إعدادات Azure AD ثم أعد المحاولة.'
-        : 'تعذر ربط حساب Microsoft. تأكد من استخدام بريدك المدرسي.')
+      error: error => {
+        const serverMessage = error?.error?.errors?.[0] ?? error?.error?.message;
+        this.error.set(error?.name === 'EntraConfigurationError'
+          ? 'خدمة Microsoft Entra غير مفعّلة على المنصة بعد. اطلب من مسؤول النظام إكمال إعداد Azure AD.'
+          : serverMessage || 'تعذر ربط حساب Microsoft. تأكد من استخدام بريدك المدرسي.');
+      }
     });
   }
 

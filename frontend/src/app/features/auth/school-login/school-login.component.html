@@ -17,7 +17,7 @@
         <span class="brand-kicker">{{ 'AUTH.BRAND_NAME' | translate }}</span>
         <h1 class="brand-title">{{ 'APP.NAME' | translate }}</h1>
         <p class="brand-subtitle">{{ 'AUTH.BRAND_SUBTITLE' | translate }}</p>
-        <div class="brand-features">
+        <div class="brand-features" *ngIf="false">
           <div class="feature-item">
             <span class="feature-icon">✓</span>
             <span>{{ 'AUTH.FEATURE_RUBRIC' | translate }}</span>
@@ -74,7 +74,7 @@
                                     [placeholder]="'AUTH.SELECT_SCHOOL_PLACEHOLDER' | translate"
                                     [filter]="true" filterBy="label" scrollHeight="220px"
                                     [appendTo]="null"
-                                    [panelStyle]="{ width: '100%', 'max-width': '100%' }"
+                                    [panelStyle]="{ width: '100%', 'min-width': '0', 'max-width': '100%' }"
                                     styleClass="login-school-select"
                                     [style]="{ width: '100%', 'max-width': '100%' }"></app-clearable-select>
             }

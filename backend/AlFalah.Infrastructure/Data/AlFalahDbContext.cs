@@ -24,6 +24,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<School> Schools => Set<School>();
     public DbSet<SchoolLocation> SchoolLocations => Set<SchoolLocation>();
     public DbSet<SchoolReportSettings> SchoolReportSettings => Set<SchoolReportSettings>();
+    public DbSet<SchoolMicrosoftDrive> SchoolMicrosoftDrives => Set<SchoolMicrosoftDrive>();
     public DbSet<UserSignature> UserSignatures => Set<UserSignature>();
 
     // People
@@ -65,6 +66,12 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     // Attendance
     public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
+
+    // Parent surveys
+    public DbSet<ParentSurvey> ParentSurveys => Set<ParentSurvey>();
+    public DbSet<ParentSurveyItem> ParentSurveyItems => Set<ParentSurveyItem>();
+    public DbSet<ParentSurveySubmission> ParentSurveySubmissions => Set<ParentSurveySubmission>();
+    public DbSet<ParentSurveyAnswer> ParentSurveyAnswers => Set<ParentSurveyAnswer>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -109,6 +116,10 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         // Phase 7: Improvement Plans & Follow-ups soft-delete filters
         builder.Entity<ImprovementPlan>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<PlanFollowUp>().HasQueryFilter(x => !x.IsDeleted);
+
+        // Parent surveys and reusable templates
+        builder.Entity<ParentSurvey>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<ParentSurveyItem>().HasQueryFilter(x => !x.IsDeleted);
     }
 
     /// <summary>
@@ -151,6 +162,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case VisitScore vs: vs.UpdatedAt = now; break;
                 case ImprovementPlan ip: ip.UpdatedAt = now; break;
                 case PlanFollowUp pfu: pfu.UpdatedAt = now; break;
+                case ParentSurvey ps: ps.UpdatedAt = now; break;
             }
         }
     }

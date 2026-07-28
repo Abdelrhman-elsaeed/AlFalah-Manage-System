@@ -74,6 +74,8 @@ public static class DependencyInjection
         services.AddScoped<SchoolLookupService>();
         services.AddScoped<ISchoolLocationRepository, SchoolLocationRepository>();
         services.AddScoped<ISchoolLocationService, SchoolLocationService>();
+        services.AddScoped<IParentSurveyRepository, ParentSurveyRepository>();
+        services.AddScoped<IParentSurveyService, ParentSurveyService>();
         services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserSchoolRoleService, UserSchoolRoleService>();
@@ -98,6 +100,7 @@ public static class DependencyInjection
                 : new MicrosoftGraphTokenService(tokens, provider.GetRequiredService<IConfiguration>());
         });
         services.AddScoped<ITeacherMicrosoftAccountService, TeacherMicrosoftAccountService>();
+        services.AddScoped<ISchoolMicrosoftDriveService, SchoolMicrosoftDriveService>();
         services.AddScoped<ITeacherDriveMappingService, TeacherDriveMappingService>();
         services.AddScoped<OneDriveBrowserService>();
         services.AddScoped<IOneDriveBrowserService>(provider => provider.GetRequiredService<OneDriveBrowserService>());

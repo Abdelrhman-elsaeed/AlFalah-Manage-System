@@ -19,8 +19,15 @@
 
       <div class="field" *ngIf="!isEdit()">
         <label for="user-password">{{ 'USERS.PASSWORD' | translate }} *</label>
-        <p-password inputId="user-password" formControlName="password" [toggleMask]="true" [feedback]="false"
-                    [readonly]="isInstructor()" styleClass="w-100" inputStyleClass="w-100"></p-password>
+        <div class="password-control">
+          <input id="user-password" pInputText [type]="passwordVisible() ? 'text' : 'password'"
+                 formControlName="password" [readonly]="isInstructor()" autocomplete="new-password" />
+          <button type="button" class="password-control__toggle"
+                  [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+                  (click)="passwordVisible.set(!passwordVisible())">
+            <i class="pi" [class.pi-eye]="!passwordVisible()" [class.pi-eye-slash]="passwordVisible()"></i>
+          </button>
+        </div>
         <small class="field__hint" *ngIf="isInstructor()">{{ 'TEACHERS.DEFAULT_PASSWORD_HINT' | translate }}</small>
       </div>
 

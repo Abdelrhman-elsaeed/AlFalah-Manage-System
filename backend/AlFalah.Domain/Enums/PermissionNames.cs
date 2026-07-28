@@ -82,4 +82,7 @@ public static class PermissionNames
     // Attendance
     public const string AttendanceView = "Attendance.View";
     public const string AttendanceManage = "Attendance.Manage";
+
+    // Parent surveys and reusable templates
+    public const string ParentSurveyManage = "ParentSurvey.Manage";
 }

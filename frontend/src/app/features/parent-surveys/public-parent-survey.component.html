@@ -1,0 +1,108 @@
+<main class="public-page" dir="rtl">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <section class="state-card" *ngIf="loading()">
+    <i class="pi pi-spin pi-spinner"></i>
+    <p>جارٍ تحميل النموذج...</p>
+  </section>
+
+  <section class="state-card error" *ngIf="!loading() && loadError()">
+    <img src="assets/Logo.png" alt="منصة الفلاح" />
+    <i class="pi pi-link"></i>
+    <h1>تعذر فتح النموذج</h1>
+    <p>{{ loadError() }}</p>
+  </section>
+
+  <section class="state-card success" *ngIf="submitted() && survey() as current">
+    <img [src]="current.schoolLogoUrl || 'assets/Logo.png'" (error)="useFallbackLogo($event)" [alt]="current.schoolName" />
+    <span class="success-icon"><i class="pi pi-check"></i></span>
+    <h1>شكرًا لمشاركتك</h1>
+    <p>{{ successMessage() }} تم إرسال الرد إلى {{ current.schoolName }}.</p>
+    <small>يمكنك الآن إغلاق هذه الصفحة.</small>
+  </section>
+
+  <form *ngIf="!loading() && !loadError() && !submitted() && survey() as current" (submit)="submit($event)">
+    <header class="brand-header">
+      <img [src]="current.schoolLogoUrl || 'assets/Logo.png'" (error)="useFallbackLogo($event)" [alt]="current.schoolName" />
+      <div>
+        <span>منصة الفلاح</span>
+        <strong>{{ current.schoolName }}</strong>
+      </div>
+    </header>
+
+    <section class="intro-card">
+      <div class="intro-accent"></div>
+      <span class="overline">رأيكم يصنع فرقًا</span>
+      <h1>{{ current.title }}</h1>
+      <p *ngIf="current.description">{{ current.description }}</p>
+      <p *ngIf="!current.description">نقدّر وقتكم ومشاركتكم في تحسين تجربتنا المدرسية.</p>
+      <div class="privacy-note"><i class="pi pi-shield"></i> تُستخدم البيانات لأغراض التقييم والمتابعة داخل المدرسة.</div>
+    </section>
+
+    <section class="closed-card" *ngIf="!current.isAcceptingResponses">
+      <i class="pi pi-lock"></i>
+      <h2>تم إغلاق النموذج</h2>
+      <p>هذا النموذج لا يستقبل ردودًا جديدة حاليًا.</p>
+    </section>
+
+    <ng-container *ngIf="current.isAcceptingResponses">
+      <section class="identity-card">
+        <div class="section-heading">
+          <span>01</span>
+          <div><h2>بيانات ولي الأمر</h2><p>يرجى كتابة البيانات قبل بدء التقييم.</p></div>
+        </div>
+        <div class="identity-grid">
+          <label [class.field-error]="parentName.invalid && parentName.touched">
+            <span>الاسم الكامل <em>*</em></span>
+            <div class="input-wrap"><i class="pi pi-user"></i><input type="text" [formControl]="parentName" maxlength="150" placeholder="اسم ولي الأمر" autocomplete="name" /></div>
+            <small *ngIf="parentName.invalid && parentName.touched">الاسم مطلوب.</small>
+          </label>
+          <label [class.field-error]="mobileNumber.invalid && mobileNumber.touched">
+            <span>رقم الجوال <em>*</em></span>
+            <div class="input-wrap ltr"><i class="pi pi-mobile"></i><input type="tel" [formControl]="mobileNumber" maxlength="20" placeholder="+966 5X XXX XXXX" autocomplete="tel" /></div>
+            <small *ngIf="mobileNumber.invalid && mobileNumber.touched">أدخل رقم جوال صحيحًا.</small>
+          </label>
+        </div>
+      </section>
+
+      <div class="section-heading rating-heading">
+        <span>02</span>
+        <div><h2>بنود التقييم</h2><p>اختر تقييمًا واحدًا لكل بند.</p></div>
+      </div>
+
+      <section class="question" *ngFor="let item of current.items; let i = index"
+               [class.invalid]="answerFor(item.id).rating.invalid && answerFor(item.id).rating.touched">
+        <div class="question-title">
+          <span>{{ i + 1 }}</span>
+          <h3>{{ item.text }}</h3>
+        </div>
+        <div class="rating-grid">
+          <button *ngFor="let option of ratingOptions" type="button" class="rating-option"
+                  [class.selected]="answerFor(item.id).rating.value === option.value"
+                  [ngClass]="option.tone"
+                  (click)="selectRating(item.id, option.value)">
+            <i [class]="option.icon"></i>
+            <span>{{ option.label }}</span>
+          </button>
+        </div>
+        <small class="question-error" *ngIf="answerFor(item.id).rating.invalid && answerFor(item.id).rating.touched">اختر تقييمًا لهذا البند.</small>
+        <div class="reason-box" *ngIf="answerFor(item.id).rating.value === ParentSurveyRating.Weak">
+          <label>
+            <span><i class="pi pi-comment"></i> ما سبب التقييم الضعيف؟</span>
+            <textarea [formControl]="answerFor(item.id).reason" rows="3" maxlength="1000"
+                      placeholder="اكتب السبب حتى تتمكن المدرسة من معالجة المشكلة"></textarea>
+          </label>
+          <p><i class="pi pi-info-circle"></i> في حالة عدم كتابة السبب سيُحتسب هذا البند «جيد جدًا» تلقائيًا.</p>
+        </div>
+      </section>
+
+      <div class="submit-error" *ngIf="submitError()"><i class="pi pi-exclamation-circle"></i>{{ submitError() }}</div>
+      <button class="submit-button" type="submit" [disabled]="submitting()">
+        <i class="pi" [class.pi-send]="!submitting()" [class.pi-spinner]="submitting()" [class.pi-spin]="submitting()"></i>
+        {{ submitting() ? 'جارٍ إرسال التقييم...' : 'إرسال التقييم' }}
+      </button>
+      <footer><img src="assets/Logo.png" alt="" /><span>مدعوم بواسطة منصة الفلاح</span></footer>
+    </ng-container>
+  </form>
+</main>

@@ -35,6 +35,13 @@ export const routes: Routes = [
 
   // ─── Authenticated area: wrapped in the shell layout ────────────────────
   {
+    path: 'parent-survey/:token',
+    loadComponent: () => import('./features/parent-surveys/public-parent-survey.component')
+      .then(m => m.PublicParentSurveyComponent),
+    title: 'استبيان أولياء الأمور'
+  },
+
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./shared/layout/shell/shell.component')
@@ -79,6 +86,13 @@ export const routes: Routes = [
             loadComponent: () => import('./features/evidence-matrix/evidence-matrix-page.component')
               .then(m => m.EvidenceMatrixPageComponent),
             title: 'مصفوفة متابعة الأدلة'
+          },
+          {
+            path: 'evidence-settings',
+            canActivate: [permissionGuard],
+            data: { permissions: ['Settings.Manage'] },
+            loadComponent: () => import('./features/schools/school-microsoft-drive-settings/school-microsoft-drive-settings.component').then(m => m.SchoolMicrosoftDriveSettingsComponent),
+            title: 'إعدادات ملفات الإنجاز'
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
@@ -154,11 +168,25 @@ export const routes: Routes = [
       },
       {
         path: 'attendance',
-        canActivate: [permissionGuard],
-        data: { permissions: ['Attendance.View'] },
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary', 'SchoolManager', 'Moderator', 'Instructor'],
+          permissions: ['Attendance.View']
+        },
         loadComponent: () => import('./features/attendance/attendance/attendance.component')
           .then(m => m.AttendanceComponent),
         title: 'الحضور والانصراف'
+      },
+      {
+        path: 'parent-surveys',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['SchoolManager', 'Moderator', 'SuperAdmin'],
+          permissions: ['ParentSurvey.Manage']
+        },
+        loadComponent: () => import('./features/parent-surveys/parent-survey-admin.component')
+          .then(m => m.ParentSurveyAdminComponent),
+        title: 'نماذج أولياء الأمور'
       },
       {
         path: 'schools',

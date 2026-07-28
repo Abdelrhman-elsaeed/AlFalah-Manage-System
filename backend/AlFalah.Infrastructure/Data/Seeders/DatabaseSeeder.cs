@@ -211,6 +211,9 @@ public class DatabaseSeeder
             // Attendance
             (PermissionNames.AttendanceView,   "Attendance", "عرض حضوري", "View my attendance"),
             (PermissionNames.AttendanceManage, "Attendance", "إدارة الحضور", "Manage school attendance"),
+
+            // Parent surveys
+            (PermissionNames.ParentSurveyManage, "ParentSurvey", "إدارة استبيانات أولياء الأمور", "Manage parent surveys"),
         };
     }
 
@@ -273,6 +276,7 @@ public class DatabaseSeeder
                 PermissionNames.SettingsView, PermissionNames.SettingsManage,
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
                 PermissionNames.AttendanceView,
+                PermissionNames.ParentSurveyManage,
             },
 
             [RoleNames.Moderator] = new[]
@@ -289,6 +293,7 @@ public class DatabaseSeeder
                 PermissionNames.DashboardModerator,
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
                 PermissionNames.AttendanceView,
+                PermissionNames.ParentSurveyManage,
             },
 
             [RoleNames.Instructor] = new[]

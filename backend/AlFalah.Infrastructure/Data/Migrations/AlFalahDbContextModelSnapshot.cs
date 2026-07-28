@@ -1137,6 +1137,200 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurvey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTemplate")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PublicToken")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(200)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("PublicToken")
+                        .IsUnique()
+                        .HasFilter("[PublicToken] IS NOT NULL");
+
+                    b.HasIndex("SchoolId", "IsTemplate", "Status");
+
+                    b.ToTable("ParentSurveys");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveyAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EffectiveRating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ItemTextSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(500)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("ParentSurveyItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParentSurveySubmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubmittedRating")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("WasAutoAdjusted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("WeakReason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EffectiveRating");
+
+                    b.HasIndex("ParentSurveyItemId");
+
+                    b.HasIndex("ParentSurveySubmissionId", "ParentSurveyItemId")
+                        .IsUnique();
+
+                    b.ToTable("ParentSurveyAnswers");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveyItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ParentSurveyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(500)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("ParentSurveyId", "SortOrder");
+
+                    b.ToTable("ParentSurveyItems");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveySubmission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("MobileNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("ParentName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(150)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("ParentSurveyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("SubmittedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MobileNumber");
+
+                    b.HasIndex("ParentSurveyId", "SubmittedAt");
+
+                    b.ToTable("ParentSurveySubmissions");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.Permission", b =>
                 {
                     b.Property<int>("Id")
@@ -1922,6 +2116,66 @@ namespace AlFalah.Infrastructure.Data.Migrations
                             RegionNameEn = "Eastern Region",
                             UpdatedAt = new DateTimeOffset(new DateTime(2026, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.SchoolMicrosoftDrive", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("ConnectedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DriveId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RootFolderDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("RootItemId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SchoolMicrosoftEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("SchoolMicrosoftDrives", (string)null);
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.SchoolReportSettings", b =>
@@ -2966,6 +3220,66 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurvey", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveyAnswer", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ParentSurveyItem", "Item")
+                        .WithMany("Answers")
+                        .HasForeignKey("ParentSurveyItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ParentSurveySubmission", "Submission")
+                        .WithMany("Answers")
+                        .HasForeignKey("ParentSurveySubmissionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Submission");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveyItem", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ParentSurvey", "ParentSurvey")
+                        .WithMany("Items")
+                        .HasForeignKey("ParentSurveyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentSurvey");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveySubmission", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ParentSurvey", "ParentSurvey")
+                        .WithMany("Submissions")
+                        .HasForeignKey("ParentSurveyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentSurvey");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.PlanFollowUp", b =>
                 {
                     b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "CreatedByUser")
@@ -3094,6 +3408,17 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Location");
 
                     b.Navigation("Manager");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.SchoolMicrosoftDrive", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithOne("MicrosoftDrive")
+                        .HasForeignKey("AlFalah.Domain.Entities.SchoolMicrosoftDrive", "SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("School");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.SchoolReportSettings", b =>
@@ -3442,6 +3767,23 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Classes");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurvey", b =>
+                {
+                    b.Navigation("Items");
+
+                    b.Navigation("Submissions");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveyItem", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveySubmission", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
@@ -3459,6 +3801,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("AlFalah.Domain.Entities.School", b =>
                 {
+                    b.Navigation("MicrosoftDrive");
+
                     b.Navigation("ReportSettings");
 
                     b.Navigation("UserSchoolRoles");

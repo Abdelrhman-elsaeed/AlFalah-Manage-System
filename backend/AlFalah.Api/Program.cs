@@ -104,6 +104,16 @@ builder.Services.AddRateLimiter(options =>
         limiter.QueueLimit = 0;
         limiter.AutoReplenishment = true;
     });
+    options.AddPolicy("public-surveys", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
 });
 builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = builder.Configuration.GetValue<long?>("TeacherDrive:MaxUploadBytes") ?? 250L * 1024 * 1024);
 
@@ -216,7 +226,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// The local Angular dev server runs on HTTP (http://localhost:4200). Redirecting
+// its CORS preflight requests from the HTTP API to HTTPS causes browsers to
+// reject the request before CORS headers are evaluated. Production remains
+// HTTPS-only; development keeps the HTTP endpoint usable for local integration.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("AlFalahCors");
 
 app.UseAuthentication();

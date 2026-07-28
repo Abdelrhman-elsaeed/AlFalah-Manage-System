@@ -11,7 +11,12 @@
 }
 
 .shell-content > :not(router-outlet) {
-  animation: uiPageEnter var(--duration-slow) var(--ease-emphasized) both;
+  /*
+   * Keep only the initial animation state. Persisting the final transform with
+   * `both` creates a containing block on every routed component, which traps
+   * descendant position:fixed dialogs inside the content pane.
+   */
+  animation: uiPageEnter var(--duration-slow) var(--ease-emphasized) backwards;
 }
 
 @keyframes uiPageEnter {

@@ -83,9 +83,17 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         permissions: ['Complaint.View']
       },
       {
+        labelKey: 'نماذج أولياء الأمور',
+        icon: 'pi pi-file-edit',
+        route: '/parent-surveys',
+        roles: ['SchoolManager', 'Moderator', 'SuperAdmin'],
+        permissions: ['ParentSurvey.Manage']
+      },
+      {
         labelKey: 'الحضور والانصراف',
         icon: 'pi pi-calendar',
         route: '/attendance',
+        roles: ['Secretary', 'SchoolManager', 'Moderator', 'Instructor'],
         permissions: ['Attendance.View']
       }
     ]
@@ -95,6 +103,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
     labelKey: 'NAV.CATEGORIES.SETTINGS',
     icon: 'pi pi-cog',
     items: [
+      { labelKey: 'إعدادات ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/school-manager/evidence-settings', roles: ['SchoolManager'], permissions: ['Settings.Manage'] },
       { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
     ]
   }
@@ -304,8 +313,8 @@ export class ShellComponent implements OnInit {
   private canSee(item: NavItem): boolean {
     const roles = this.authService.roles();
     const permissions = this.authService.permissions();
-    if (roles.includes('SuperAdmin')) return true;
     if (item.roles && !item.roles.some(role => roles.includes(role))) return false;
+    if (roles.includes('SuperAdmin')) return true;
     return !item.permissions || item.permissions.some(permission => permissions.includes(permission));
   }
 

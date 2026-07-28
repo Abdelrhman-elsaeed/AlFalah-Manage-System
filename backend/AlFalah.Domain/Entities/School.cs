@@ -34,6 +34,7 @@ public class School
     public ApplicationUser? Manager { get; set; }
     public ApplicationUser? DeletedByUser { get; set; }
     public SchoolReportSettings? ReportSettings { get; set; }
+    public SchoolMicrosoftDrive? MicrosoftDrive { get; set; }
     public SchoolLocation? Location { get; set; }
     public ICollection<UserSchoolRole> UserSchoolRoles { get; set; } = new List<UserSchoolRole>();
 }

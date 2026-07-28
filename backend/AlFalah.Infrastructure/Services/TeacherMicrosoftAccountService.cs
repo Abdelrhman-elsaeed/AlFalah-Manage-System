@@ -29,11 +29,16 @@ public sealed class TeacherMicrosoftAccountService : ITeacherMicrosoftAccountSer
         var identity = ReadIdentity(principal);
         var account = await _context.TeacherMicrosoftAccounts.AsNoTracking()
             .Where(x => x.TenantId == identity.TenantId && x.ObjectId == identity.ObjectId && x.IsLinked)
-            .Select(x => new { x.TeacherId, TeacherName = x.Teacher.User.FirstName + " " + x.Teacher.User.LastName })
+            .Select(x => new { x.TeacherId, x.Teacher.SchoolId, TeacherName = x.Teacher.User.FirstName + " " + x.Teacher.User.LastName })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (account is null)
             return new(false, false, null, "NotLinked", string.Empty);
+
+        var schoolEnabled = await _context.SchoolMicrosoftDrives.AsNoTracking()
+            .AnyAsync(x => x.SchoolId == account.SchoolId && x.IsEnabled && x.TenantId == identity.TenantId, cancellationToken);
+        if (!schoolEnabled)
+            return new(true, false, null, "SchoolNotConfigured", account.TeacherName.Trim());
 
         var folder = await _context.TeacherDriveFolders.AsNoTracking()
             .Where(x => x.TeacherId == account.TeacherId && x.IsActive)
@@ -54,6 +59,13 @@ public sealed class TeacherMicrosoftAccountService : ITeacherMicrosoftAccountSer
 
         if (account is null)
             throw new TeacherDriveAccessDeniedException("حساب Microsoft المستخدم غير مرتبط ببياناتك. يرجى التواصل مع إدارة المدرسة.");
+
+        var schoolDrive = await _context.SchoolMicrosoftDrives.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.SchoolId == account.Teacher.SchoolId && x.IsEnabled, cancellationToken);
+        if (schoolDrive is null)
+            throw new TeacherDriveAccessDeniedException("ملفات الإنجاز لم تُفعّل لمدرستك بعد. يرجى التواصل مع مدير المدرسة.");
+        if (!string.Equals(schoolDrive.TenantId, identity.TenantId, StringComparison.OrdinalIgnoreCase))
+            throw new TeacherDriveAccessDeniedException("استخدم حساب Microsoft التابع لمدرستك فقط.");
 
         if (account.IsLinked && (account.TenantId != identity.TenantId || account.ObjectId != identity.ObjectId))
             throw new TeacherDriveAccessDeniedException("حساب Microsoft المستخدم غير مرتبط ببياناتك. يرجى التواصل مع إدارة المدرسة.");
@@ -120,8 +132,11 @@ public sealed class TeacherMicrosoftAccountService : ITeacherMicrosoftAccountSer
         var objectId = principal.FindFirst("oid")?.Value;
         var email = principal.FindFirst("preferred_username")?.Value ?? principal.FindFirst("email")?.Value ?? principal.FindFirst("upn")?.Value;
         var allowedTenant = _configuration["AzureAd:TenantId"];
+        var restrictToOneTenant = !string.IsNullOrWhiteSpace(allowedTenant)
+            && !string.Equals(allowedTenant, "organizations", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(allowedTenant, "common", StringComparison.OrdinalIgnoreCase);
         if (string.IsNullOrWhiteSpace(tenantId) || string.IsNullOrWhiteSpace(objectId) || string.IsNullOrWhiteSpace(email) ||
-            (!string.IsNullOrWhiteSpace(allowedTenant) && !string.Equals(tenantId, allowedTenant, StringComparison.OrdinalIgnoreCase)))
+            (restrictToOneTenant && !string.Equals(tenantId, allowedTenant, StringComparison.OrdinalIgnoreCase)))
             throw new TeacherDriveAccessDeniedException("تعذر التحقق من حساب Microsoft. يرجى تسجيل الدخول بالحساب المدرسي الصحيح.");
         return new(tenantId, objectId, email, principal);
     }

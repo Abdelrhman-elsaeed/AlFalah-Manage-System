@@ -20,9 +20,41 @@
 
 
 /* Dialog */
-.dialog-header { display: inline-flex; align-items: center; gap: var(--space-3); }
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--space-3);
+}
+.dialog-header__title-group { display: inline-flex; align-items: center; gap: var(--space-3); }
 .dialog-header__icon { color: var(--brand-300); font-size: 1.15rem; }
 .dialog-header__title { font-weight: 700; }
+
+/* The old PrimeNG close control is intentionally disabled for this dialog;
+   this explicit button keeps the icon visible and prevents the legacy green
+   square from sitting over the header. */
+.dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast);
+}
+.dialog-close:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-color: rgba(211, 59, 59, 0.2);
+}
+.dialog-close:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 2px; }
 
 .dialog-body { padding-top: var(--space-2); }
 .field { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-3); }

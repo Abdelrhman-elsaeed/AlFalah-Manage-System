@@ -67,11 +67,18 @@
   <p-dialog [header]="'USER_SCHOOL_ROLES.NEW' | translate"
             [(visible)]="createVisible" [modal]="true"
             [style]="{ width: '480px' }"
+            [closable]="false"
             [draggable]="false" [resizable]="false">
     <ng-template pTemplate="header">
       <div class="dialog-header">
-        <i class="pi pi-user-plus dialog-header__icon"></i>
-        <span class="dialog-header__title">{{ 'USER_SCHOOL_ROLES.NEW' | translate }}</span>
+        <div class="dialog-header__title-group">
+          <i class="pi pi-user-plus dialog-header__icon"></i>
+          <span class="dialog-header__title">{{ 'USER_SCHOOL_ROLES.NEW' | translate }}</span>
+        </div>
+        <button type="button" class="dialog-close" aria-label="إغلاق"
+                (click)="createVisible.set(false)">
+          <i class="pi pi-times"></i>
+        </button>
       </div>
     </ng-template>
 

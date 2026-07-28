@@ -23,6 +23,12 @@ public interface ITeacherDriveMappingService
     Task<DriveFolderMappingDto> UpsertAsync(int teacherId, UpsertDriveFolderMappingRequest request, CancellationToken cancellationToken = default);
 }
 
+public interface ISchoolMicrosoftDriveService
+{
+    Task<SchoolMicrosoftDriveSettingsDto> GetForCurrentSchoolAsync(CancellationToken cancellationToken = default);
+    Task<SchoolMicrosoftDriveSettingsDto> ConfigureForCurrentSchoolAsync(ConfigureSchoolMicrosoftDriveRequest request, CancellationToken cancellationToken = default);
+}
+
 public interface IOneDriveBrowserService
 {
     Task<DriveItemsPageDto> ListAsync(ClaimsPrincipal principal, DriveQuery query, CancellationToken cancellationToken = default);

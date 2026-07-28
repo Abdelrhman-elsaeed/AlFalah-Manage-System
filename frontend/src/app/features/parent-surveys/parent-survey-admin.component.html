@@ -1,0 +1,205 @@
+<div class="survey-admin" dir="rtl">
+  <header class="page-heading">
+    <div>
+      <span class="eyebrow">التواصل مع أولياء الأمور</span>
+      <h1>نماذج التقييم</h1>
+      <p>أنشئ نموذجًا بهوية المنصة، شارك رابطه، وراجع الردود من مكان واحد.</p>
+    </div>
+    <button class="primary-button" type="button" (click)="startCreate(activeTab() === 'templates')">
+      <i class="pi pi-plus"></i>
+      {{ activeTab() === 'templates' ? 'قالب جديد' : 'إنشاء نموذج' }}
+    </button>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="أنواع النماذج">
+    <button type="button" [class.active]="activeTab() === 'forms'" (click)="setTab('forms')">
+      النماذج <span>{{ surveys().length }}</span>
+    </button>
+    <button type="button" [class.active]="activeTab() === 'templates'" (click)="setTab('templates')">
+      القوالب المحفوظة <span>{{ templates().length }}</span>
+    </button>
+  </div>
+
+  <div class="loading" *ngIf="loading()"><i class="pi pi-spin pi-spinner"></i> جارٍ التحميل...</div>
+
+  <ng-container *ngIf="!loading()">
+    <div class="empty-state" *ngIf="(activeTab() === 'forms' ? surveys() : templates()).length === 0">
+      <i class="pi pi-file-edit"></i>
+      <h2>{{ activeTab() === 'forms' ? 'لا توجد نماذج بعد' : 'لا توجد قوالب محفوظة' }}</h2>
+      <p>{{ activeTab() === 'forms' ? 'ابدأ بنموذج جديد أو أنشئه من قالب محفوظ.' : 'احفظ البنود المتكررة مرة واحدة واستخدمها وقتما تحتاج.' }}</p>
+    </div>
+
+    <div class="survey-grid" *ngIf="activeTab() === 'forms'">
+      <article class="survey-card" *ngFor="let survey of surveys()">
+        <div class="card-topline">
+          <span class="status" [class.published]="survey.status === ParentSurveyStatus.Published"
+                [class.closed]="survey.status === ParentSurveyStatus.Closed">{{ statusLabel(survey.status) }}</span>
+          <span class="school">{{ survey.schoolName }}</span>
+        </div>
+        <h2>{{ survey.title }}</h2>
+        <p>{{ survey.description || 'بدون وصف إضافي' }}</p>
+        <div class="metrics">
+          <span><strong>{{ survey.items.length }}</strong> بند</span>
+          <span><strong>{{ survey.submissionCount }}</strong> رد</span>
+        </div>
+        <div class="card-actions">
+          <button type="button" (click)="edit(survey)" [disabled]="survey.submissionCount > 0">
+            <i class="pi pi-pencil"></i> تعديل
+          </button>
+          <button type="button" class="accent" *ngIf="survey.status === ParentSurveyStatus.Draft" (click)="publish(survey)">
+            <i class="pi pi-link"></i> إنشاء الرابط
+          </button>
+          <button type="button" class="accent" *ngIf="survey.status === ParentSurveyStatus.Published" (click)="copyExistingLink(survey)">
+            <i class="pi pi-copy"></i> نسخ الرابط
+          </button>
+          <button type="button" (click)="openSubmissions(survey)">
+            <i class="pi pi-inbox"></i> الردود
+          </button>
+          <button type="button" *ngIf="survey.status === ParentSurveyStatus.Published" (click)="closeSurvey(survey)">
+            <i class="pi pi-lock"></i> إغلاق
+          </button>
+          <button type="button" class="danger" (click)="delete(survey)">
+            <i class="pi pi-trash"></i>
+          </button>
+        </div>
+        <small *ngIf="survey.submissionCount > 0">حفاظًا على تاريخ الردود، أنشئ نموذجًا جديدًا بدل تعديل البنود.</small>
+      </article>
+    </div>
+
+    <div class="survey-grid" *ngIf="activeTab() === 'templates'">
+      <article class="survey-card template-card" *ngFor="let template of templates()">
+        <div class="card-topline">
+          <span class="status template">قالب</span>
+          <span class="school">{{ template.schoolName }}</span>
+        </div>
+        <h2>{{ template.title }}</h2>
+        <p>{{ template.description || 'بدون وصف إضافي' }}</p>
+        <div class="metrics"><span><strong>{{ template.items.length }}</strong> بند محفوظ</span></div>
+        <div class="card-actions">
+          <button type="button" class="accent" (click)="createFromTemplate(template)">
+            <i class="pi pi-copy"></i> إنشاء نموذج منه
+          </button>
+          <button type="button" (click)="edit(template)"><i class="pi pi-pencil"></i> تعديل</button>
+          <button type="button" class="danger" (click)="delete(template)"><i class="pi pi-trash"></i></button>
+        </div>
+      </article>
+    </div>
+  </ng-container>
+
+  <div class="overlay" *ngIf="editorOpen()" (click)="closeEditor()">
+    <section class="panel editor-panel" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span class="eyebrow">{{ editingTemplate() ? 'قالب قابل لإعادة الاستخدام' : 'Form Builder' }}</span>
+          <h2>{{ editingId() ? 'تعديل' : 'إنشاء' }} {{ editingTemplate() ? 'القالب' : 'النموذج' }}</h2>
+        </div>
+        <button class="icon-button" type="button" (click)="closeEditor()" aria-label="إغلاق"><i class="pi pi-times"></i></button>
+      </header>
+
+      <form [formGroup]="editorForm" (ngSubmit)="save()">
+        <label>
+          <span>عنوان النموذج</span>
+          <input type="text" formControlName="title" maxlength="200" placeholder="مثال: تقييم الخدمات المدرسية" />
+        </label>
+        <label>
+          <span>وصف مختصر <em>اختياري</em></span>
+          <textarea formControlName="description" rows="3" maxlength="2000"
+                    placeholder="اكتب رسالة ترحيبية أو تعليمات لولي الأمر"></textarea>
+        </label>
+
+        <section class="template-picker" *ngIf="!editingTemplate() && editingId() === null">
+          <div class="template-picker__icon"><i class="pi pi-bookmark"></i></div>
+          <label for="survey-template">
+            <span>ابدأ من قالب محفوظ <em>اختياري</em></span>
+            <select
+              id="survey-template"
+              data-testid="template-select"
+              [value]="selectedTemplateId() ?? ''"
+              (change)="onTemplateSelected($event)">
+              <option value="">نموذج فارغ — ابدأ من الصفر</option>
+              <option *ngFor="let template of templates()" [value]="template.id">
+                {{ template.title }} ({{ template.items.length }} بند)
+              </option>
+            </select>
+            <small *ngIf="templates().length > 0">سيتم نسخ العنوان والوصف والبنود، ويمكنك تعديلهم قبل الحفظ.</small>
+            <small *ngIf="templates().length === 0">لا توجد قوالب محفوظة بعد. أنشئ قالبًا من تبويب «القوالب المحفوظة».</small>
+          </label>
+        </section>
+
+        <div class="items-heading">
+          <div>
+            <h3>بنود التقييم</h3>
+            <p>كل بند سيظهر بأربع اختيارات: ضعيف، مقبول، جيد، جيد جدًا.</p>
+          </div>
+          <button class="secondary-button" type="button" (click)="addItem()"><i class="pi pi-plus"></i> إضافة بند</button>
+        </div>
+
+        <div formArrayName="items" class="builder-items">
+          <div class="builder-item" *ngFor="let control of items.controls; let i = index">
+            <span class="item-number">{{ i + 1 }}</span>
+            <textarea [formControlName]="i" rows="2" maxlength="500" placeholder="اكتب الشيء الذي سيقيّمه ولي الأمر"></textarea>
+            <div class="item-actions">
+              <button type="button" (click)="moveItem(i, -1)" [disabled]="i === 0" aria-label="تحريك لأعلى"><i class="pi pi-angle-up"></i></button>
+              <button type="button" (click)="moveItem(i, 1)" [disabled]="i === items.length - 1" aria-label="تحريك لأسفل"><i class="pi pi-angle-down"></i></button>
+              <button type="button" class="danger" (click)="removeItem(i)" aria-label="حذف البند"><i class="pi pi-trash"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rule-note">
+          <i class="pi pi-info-circle"></i>
+          عند اختيار «ضعيف» سيظهر حقل السبب. إذا تُرك السبب فارغًا سيُحتسب التقييم «جيد جدًا» تلقائيًا.
+        </div>
+
+        <footer>
+          <button class="secondary-button" type="button" (click)="closeEditor()">إلغاء</button>
+          <button class="primary-button" type="submit" [disabled]="saving()">
+            <i class="pi" [class.pi-spin]="saving()" [class.pi-spinner]="saving()" [class.pi-save]="!saving()"></i>
+            {{ editingTemplate() ? 'حفظ القالب' : 'حفظ النموذج' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="overlay" *ngIf="submissionsOpen()" (click)="closeSubmissions()">
+    <section class="panel responses-panel" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span class="eyebrow">الردود المستلمة</span>
+          <h2>{{ selectedSurvey()?.title }}</h2>
+        </div>
+        <button class="icon-button" type="button" (click)="closeSubmissions()" aria-label="إغلاق"><i class="pi pi-times"></i></button>
+      </header>
+      <div class="responses-layout">
+        <div class="response-list">
+          <button type="button" *ngFor="let row of submissions()" (click)="viewSubmission(row)"
+                  [class.active]="selectedSubmission()?.id === row.id">
+            <strong>{{ row.parentName }}</strong>
+            <span>{{ row.mobileNumber }}</span>
+            <small>{{ row.submittedAt | date:'medium' }}</small>
+            <em *ngIf="row.autoAdjustedAnswerCount">{{ row.autoAdjustedAnswerCount }} تعديل تلقائي</em>
+          </button>
+          <div class="no-responses" *ngIf="submissions().length === 0">لم تصل ردود حتى الآن.</div>
+        </div>
+        <div class="response-detail" *ngIf="selectedSubmission() as response; else chooseResponse">
+          <div class="respondent"><strong>{{ response.parentName }}</strong><span>{{ response.mobileNumber }}</span></div>
+          <article *ngFor="let answer of response.answers">
+            <h3>{{ answer.itemText }}</h3>
+            <div class="answer-value">
+              <span>{{ ratingLabel(answer.effectiveRating) }}</span>
+              <small *ngIf="answer.wasAutoAdjusted">أُعيد احتسابه من «ضعيف» لعدم كتابة السبب</small>
+            </div>
+            <p *ngIf="answer.weakReason">السبب: {{ answer.weakReason }}</p>
+          </article>
+        </div>
+        <ng-template #chooseResponse>
+          <div class="choose-response">
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            <span>اختر ردًا من القائمة لعرض التفاصيل</span>
+          </div>
+        </ng-template>
+      </div>
+    </section>
+  </div>
+</div>

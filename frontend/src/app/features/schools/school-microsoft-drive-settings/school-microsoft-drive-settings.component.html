@@ -1,0 +1,17 @@
+<section class="page" dir="rtl">
+  <header class="page-header"><div><h1>إعدادات ملفات الإنجاز</h1><p>اربط مجلد المدرسة الرئيسي قبل أن يسجل المدرسون دخولهم بحسابات Microsoft.</p></div></header>
+  <form *ngIf="!loading()" [formGroup]="form" (ngSubmit)="save()" class="settings-card">
+    <p class="notice"><i class="pi pi-shield"></i> هذه الإعدادات تخص حساب المدرسة ومجلدها الرئيسي فقط. لكل مدرس بريد ومجلد مستقل يتم إعداده من ملفه.</p>
+    <p class="status" [class.status--ready]="configured()">{{ configured() ? 'تم إعداد حساب المدرسة. يمكن الآن ربط المدرسين التابعين لنفس Tenant فقط.' : 'لم يتم إعداد حساب Microsoft لهذه المدرسة بعد.' }}</p>
+    <div class="grid">
+      <label>Tenant ID الخاص بالمدرسة<input pInputText dir="ltr" formControlName="tenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></label>
+      <label>بريد حساب Microsoft للمدرسة<input pInputText dir="ltr" formControlName="schoolMicrosoftEmail" placeholder="school@contoso.edu" /></label>
+      <label>Drive ID<input pInputText dir="ltr" formControlName="driveId" /></label>
+      <label>Root Folder Item ID<input pInputText dir="ltr" formControlName="rootItemId" /></label>
+      <label>اسم مجلد ملفات الإنجاز الرئيسي<input pInputText formControlName="rootFolderDisplayName" placeholder="ملفات الإنجاز" /></label>
+      <label class="toggle"><p-inputSwitch formControlName="isEnabled" /> تفعيل ملفات الإنجاز للمدرسة</label>
+    </div>
+    <small class="hint">لا تدخل كلمة مرور أو Client Secret هنا. بيانات Azure AD الخاصة بالمنصة تُحفظ على السيرفر فقط.</small>
+    <button pButton type="submit" icon="pi pi-save" label="حفظ وتفعيل" [loading]="saving()"></button>
+  </form>
+</section>
