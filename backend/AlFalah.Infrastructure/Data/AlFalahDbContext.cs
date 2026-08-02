@@ -24,14 +24,13 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<School> Schools => Set<School>();
     public DbSet<SchoolLocation> SchoolLocations => Set<SchoolLocation>();
     public DbSet<SchoolReportSettings> SchoolReportSettings => Set<SchoolReportSettings>();
-    public DbSet<SchoolMicrosoftDrive> SchoolMicrosoftDrives => Set<SchoolMicrosoftDrive>();
+    public DbSet<SchoolGoogleDrive> SchoolGoogleDrives => Set<SchoolGoogleDrive>();
     public DbSet<UserSignature> UserSignatures => Set<UserSignature>();
 
     // People
     public DbSet<InstructorProfile> InstructorProfiles => Set<InstructorProfile>();
     // D-74 — Teacher's class labels (auto-fill source for the visit form).
     public DbSet<InstructorClass> InstructorClasses => Set<InstructorClass>();
-    public DbSet<TeacherMicrosoftAccount> TeacherMicrosoftAccounts => Set<TeacherMicrosoftAccount>();
     public DbSet<TeacherDriveFolder> TeacherDriveFolders => Set<TeacherDriveFolder>();
     public DbSet<TeacherEvidenceSubmission> TeacherEvidenceSubmissions => Set<TeacherEvidenceSubmission>();
     public DbSet<AcademicYear> AcademicYears => Set<AcademicYear>();
@@ -67,6 +66,12 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     // Attendance
     public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
 
+    // School timetables
+    public DbSet<SchoolTimetable> SchoolTimetables => Set<SchoolTimetable>();
+    public DbSet<SchoolTimetableEntry> SchoolTimetableEntries => Set<SchoolTimetableEntry>();
+    public DbSet<SchoolTimetableVersion> SchoolTimetableVersions => Set<SchoolTimetableVersion>();
+    public DbSet<TimetableEditorGrant> TimetableEditorGrants => Set<TimetableEditorGrant>();
+
     // Parent surveys
     public DbSet<ParentSurvey> ParentSurveys => Set<ParentSurvey>();
     public DbSet<ParentSurveyItem> ParentSurveyItems => Set<ParentSurveyItem>();
@@ -98,6 +103,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         builder.Entity<UserSchoolRole>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<InstructorProfile>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<InstructorClass>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<SchoolTimetable>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<SchoolTimetableEntry>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<TimetableEditorGrant>().HasQueryFilter(x => !x.IsDeleted);
 
         // Rubric soft-delete filters (Phase 3)
         builder.Entity<RubricVersion>().HasQueryFilter(x => !x.IsDeleted);
@@ -152,7 +160,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case ApplicationUser u: u.UpdatedAt = now; break;
                 case InstructorProfile i: i.UpdatedAt = now; break;
                 case InstructorClass ic: ic.UpdatedAt = now; break;
-                case TeacherMicrosoftAccount ma: ma.UpdatedAtUtc = now; break;
+                case SchoolGoogleDrive sgd: sgd.UpdatedAtUtc = now; break;
                 case TeacherDriveFolder df: df.UpdatedAtUtc = now; break;
                 case TeacherEvidenceSubmission es: es.UpdatedAtUtc = now; break;
                 case TeacherTaskStatus tts: tts.UpdatedAtUtc = now; break;
@@ -163,6 +171,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case ImprovementPlan ip: ip.UpdatedAt = now; break;
                 case PlanFollowUp pfu: pfu.UpdatedAt = now; break;
                 case ParentSurvey ps: ps.UpdatedAt = now; break;
+                case SchoolTimetable timetable: timetable.UpdatedAt = now; break;
+                case SchoolTimetableEntry timetableEntry: timetableEntry.UpdatedAt = now; break;
             }
         }
     }

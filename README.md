@@ -114,14 +114,77 @@ npm start
 - [x] Excel/PDF exports (Phase 9)
 - [x] Full shell layout with categorized sidebar (Phase 2 + D-73)
 
-## Teacher Evidence Files / OneDrive
+## Teacher Evidence Files / Google Drive
 
-The instructor route is `/instructor/evidence-files`. It uses Microsoft Entra access tokens for this feature only; the existing local administrator login remains unchanged.
+Teachers upload evidence documents into a folder on the **school's** Google Drive; every
+successful upload is recorded in the evidence ledger, which ticks the matching cell in the
+evidence matrix (`/*/evidence-matrix`). The instructor route is `/instructor/evidence-files`.
 
-1. Create a single-tenant Entra app registration and add the SPA redirect URI (for local development, `http://localhost:4200`). Expose an API scope such as `api://<api-client-id>/access_as_user`.
-2. Add delegated Microsoft Graph permission `Files.ReadWrite`, grant consent, and ensure each configured root folder is in the teacher's own OneDrive and accessible to that teacher. Do not add application permissions or `Files.ReadWrite.All` for this feature.
-3. Configure the API with user secrets or environment variables: `AzureAd__TenantId`, `AzureAd__ClientId`, `AzureAd__ClientSecret` (or certificate settings), `AzureAd__Domain`, `AzureAd__Audience`, `AzureAd__ApiScope`, and optionally `MicrosoftGraph__Scopes__0=Files.ReadWrite`.
-4. Inject public SPA values before Angular boots, for example in the deployment HTML: `window.__alfalahEntra={clientId:'...',tenantId:'...',apiScope:'api://.../access_as_user',redirectUri:'https://app.example'};`. Never add a client secret to this object or source control.
-5. An administrator with `Instructor.Edit` configures the expected Microsoft email and the DriveId/RootItemId through `/api/v1/teacher-drive-admin/teachers/{teacherId}` endpoints. The teacher only sees the mapped folder, never these identifiers.
+**Teachers do not need a Google account and never sign in twice.** The school supplies one
+credential, the application acts as that credential for all Drive traffic, and it enforces
+per-teacher folder isolation itself. Authorship is recorded by the application, not by Drive:
+the `TeacherEvidenceSubmission` row plus the audit-log entry are what attribute a file to a
+teacher, because Drive shows the school credential as the uploader.
 
-Apply the EF migration with `dotnet ef database update --project backend/AlFalah.Infrastructure --startup-project backend/AlFalah.Api`. The runtime also applies pending migrations on API startup in development.
+### 1. Create the Drive credential
+
+Pick whichever fits the school's Google setup — both end up as a short-lived OAuth token:
+
+| | Service account (recommended) | School Google account |
+|---|---|---|
+| Needs Google Workspace | Only for domain-wide delegation | No (works with a free account) |
+| Setup | Google Cloud → enable the **Google Drive API** → create a service account → create a JSON key | Google Cloud OAuth client → obtain a refresh token once for the school's account |
+| Storage | A **shared drive** the service account is a member of, *or* domain-wide delegation impersonating a Workspace user | The account's own My Drive (15 GB free) |
+
+`SharedDriveId` and the impersonation email are both **optional** — a service account can also
+be pointed at an ordinary My Drive folder that has been shared with it.
+
+Be aware of one Google constraint when you do that: a service account owns **no storage quota**,
+so while it can browse and download from such a folder perfectly well, a file it *creates* there
+is refused with `storageQuotaExceeded`. If uploads matter, give it a shared drive or an
+impersonated Workspace user (or use the school-Google-account option instead). The settings
+screen warns about this combination but does not block it, and the API surfaces the quota reason
+verbatim rather than disguising it as a permission error.
+
+### 2. Create the folder tree
+
+```
+ملفات الإنجاز/          ← the school-wide evidence root (its id goes in settings)
+├── المعلم أ/           ← granted to teacher A
+└── المعلم ب/           ← granted to teacher B
+```
+
+Take a folder id from its URL: `drive.google.com/drive/folders/<folder-id>`.
+
+### 3. Connect the school (School Manager → `/school-manager/evidence-settings`)
+
+Paste the credential and the root folder id. The credential is encrypted at rest with
+ASP.NET Core Data Protection and is **never** returned by any API — the settings response only
+reports `hasStoredCredential`. Leaving a secret field blank on a later save keeps the stored
+value, so the root folder can be renamed without re-pasting the key.
+
+No API configuration is required for a normal deployment. `GoogleDrive:ApiBaseUrl`,
+`GoogleDrive:UploadBaseUrl` and `GoogleDrive:TokenEndpoint` exist only to point the client at a
+test double and default to Google's real endpoints.
+
+### 4. Grant each teacher a folder
+
+An administrator with `Instructor.Edit` calls
+`PUT /api/v1/teacher-drive-admin/teachers/{teacherId}/folder` with the teacher's folder id
+(`DELETE` withdraws it; already-uploaded evidence stays in the matrix). A grant is validated
+against Google before it is stored — the folder must exist, be a folder, sit **inside** the
+school root, and not already belong to another teacher. The school root itself cannot be
+granted, since it contains every teacher's folder.
+
+Teacher clients never receive `DriveId` or `RootItemId`.
+
+### Why file links go through the API
+
+Files belong to the school's Google account, and neither teachers nor reviewing managers hold
+a Google session — following Drive's own `webViewLink` would only ever show Google's "Request
+access" page. Both surfaces therefore stream bytes through the API
+(`GET /api/v1/teacher-drive/items/{itemId}/content` for a teacher, restricted to their granted
+folder, and `GET /api/v1/evidence-matrix/submissions/{submissionId}/content` for a supervisor,
+restricted to their school).
+
+Apply the EF migration with `dotnet ef database update --project backend/AlFalah.Infrastructure --startup-project backend/AlFalah.Api`. The runtime also applies pending migrations on API startup in development. The Google Drive migration drops the OneDrive tables and deactivates any surviving folder grant, because a OneDrive item id resolves to nothing on Google — grants must be re-issued deliberately.

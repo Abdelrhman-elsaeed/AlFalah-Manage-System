@@ -4,7 +4,7 @@ namespace AlFalah.Domain.Entities;
 
 /// <summary>
 /// A lightweight idempotency reservation. It is intentionally separate from a
-/// submission so the matrix is never changed until OneDrive confirms success.
+/// submission so the matrix is never changed until Google Drive confirms success.
 /// </summary>
 public class EvidenceUploadOperation
 {

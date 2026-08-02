@@ -1,0 +1,206 @@
+<section class="timetable-page" dir="rtl">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">الإدارة الأكاديمية</span>
+      <h1>الجدول المدرسي</h1>
+      <p>إدارة جدول المدرسة وطباعته ومشاركته مع المعلمين.</p>
+    </div>
+    <div class="header-actions" *ngIf="timetable() as current">
+      <button pButton type="button" class="p-button-outlined" icon="pi pi-palette" label="PDF A4 ملون" (click)="downloadPdf('color')"></button>
+      <button pButton type="button" class="p-button-outlined monochrome-pdf-button" icon="pi pi-file-pdf" label="PDF A4 أبيض وأسود" (click)="downloadPdf('monochrome')"></button>
+      <ng-container *ngIf="canManage()">
+        <button pButton type="button" class="p-button-outlined" icon="pi pi-history" label="النسخ" (click)="openVersions()"></button>
+        <button *ngIf="canDelegate()" pButton type="button" class="p-button-outlined" icon="pi pi-users" label="تفويض مشرف" (click)="openGrants()"></button>
+        <button pButton type="button" icon="pi pi-save" label="حفظ" [disabled]="!dirty() || saving()" [loading]="saving()" (click)="save()"></button>
+        <button *ngIf="!current.isPublished" pButton type="button" class="publish-button" icon="pi pi-send" label="نشر للمعلمين" [disabled]="dirty() || saving()" (click)="publish()"></button>
+      </ng-container>
+    </div>
+  </header>
+
+  <div class="filters-card" *ngIf="catalog() as data">
+    <label>
+      <span>العام الدراسي</span>
+      <select [ngModel]="selectedYearId()" (ngModelChange)="changeYear($event)">
+        <option *ngFor="let year of data.academicYears" [value]="year.id">{{ year.nameAr }}</option>
+      </select>
+    </label>
+    <label>
+      <span>الفصل الدراسي</span>
+      <select [ngModel]="selectedSemester()" (ngModelChange)="changeSemester($event)">
+        <option *ngFor="let semester of data.semesters" [value]="semester.value">{{ semester.labelAr }}</option>
+      </select>
+    </label>
+    <div class="status-block" *ngIf="timetable() as current">
+      <p-tag [severity]="current.isPublished ? 'success' : 'warning'" [value]="current.isPublished ? 'منشور' : 'مسودة'"></p-tag>
+      <span>نسخة العمل {{ current.revision }}</span>
+      <span>آخر تحديث {{ current.updatedAt | date:'yyyy/MM/dd، h:mm a' }}</span>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading()">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>جاري تحميل الجدول...</span>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading() && !timetable()">
+    <div class="empty-icon"><i class="pi pi-calendar-plus"></i></div>
+    <h2>لا يوجد جدول لهذا الفصل الدراسي</h2>
+    <p *ngIf="canManage(); else teacherEmpty">أنشئ مسودة جديدة، أضف الحصص، ثم انشرها للمعلمين.</p>
+    <ng-template #teacherEmpty><p>لم تنشر الإدارة جدولًا لهذا الفصل الدراسي حتى الآن.</p></ng-template>
+    <button *ngIf="canManage()" pButton type="button" icon="pi pi-plus" label="إنشاء الجدول" (click)="openCreate()"></button>
+  </div>
+
+  <ng-container *ngIf="!loading() && timetable() as current">
+    <div class="editor-toolbar" *ngIf="canManage()">
+      <label class="title-field">
+        <span>عنوان الجدول</span>
+        <input pInputText [ngModel]="title()" (ngModelChange)="markTitle($event)" maxlength="250">
+      </label>
+      <div class="excel-actions">
+        <button pButton type="button" class="p-button-text" icon="pi pi-download" label="تنزيل نموذج Excel" (click)="downloadTemplate()"></button>
+        <button pButton type="button" class="p-button-text" icon="pi pi-file-excel" label="استيراد Excel" (click)="excelInput.click()"></button>
+        <input #excelInput class="file-input" type="file" accept=".xlsx" (change)="importExcel($event)">
+      </div>
+      <p class="edit-hint"><i class="pi pi-info-circle"></i> انقر الخانة للتعديل، أو اسحبها للنقل، واستخدم Ctrl+C وCtrl+V للنسخ واللصق.</p>
+    </div>
+
+    <div class="viewer-title" *ngIf="!canManage()">
+      <div>
+        <h2>{{ current.title }}</h2>
+        <p>{{ current.academicYearName }} • {{ current.semesterLabelAr }}</p>
+      </div>
+      <span class="my-row-key" *ngIf="isPersonalView()"><i></i> يظهر هنا جدولك فقط</span>
+    </div>
+
+    <div class="grid-shell" *ngIf="catalog() as data">
+      <div class="grid-scroll">
+        <table class="schedule-grid">
+          <thead>
+            <tr class="day-row">
+              <th class="teacher-column" rowspan="2">المعلم</th>
+              <th class="day-heading" *ngFor="let day of data.days" [attr.colspan]="data.periodCount">{{ day.labelAr }}</th>
+              <th class="total-column" rowspan="2">حصص</th>
+              <th class="standby-total-column" rowspan="2">منتظر</th>
+            </tr>
+            <tr class="period-row">
+              <ng-container *ngFor="let day of data.days">
+                <th *ngFor="let period of periodNumbers()">{{ period }}</th>
+              </ng-container>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let teacher of data.teachers" [class.my-row]="teacher.isCurrentUser">
+              <th class="teacher-column">
+                <strong>{{ teacher.fullName }}</strong>
+                <small *ngIf="teacher.subject">{{ teacher.subject }}</small>
+              </th>
+              <ng-container *ngFor="let day of data.days">
+                <td *ngFor="let period of periodNumbers()"
+                    class="schedule-cell"
+                    [class.has-entry]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
+                    [class.standby-cell]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.entryType === 2"
+                    [class.editable]="canManage()"
+                    tabindex="0"
+                    [draggable]="canManage() && !!getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
+                    (click)="openCell(teacher, dayValue(day.value), period)"
+                    (dragstart)="onDragStart($event, { teacherId: teacher.instructorProfileId, day: dayValue(day.value), period: period })"
+                    (dragover)="onDragOver($event)"
+                    (drop)="onDrop($event, { teacherId: teacher.instructorProfileId, day: dayValue(day.value), period: period })"
+                    (copy)="copyCell($event, { teacherId: teacher.instructorProfileId, day: dayValue(day.value), period: period })"
+                    (paste)="pasteCell($event, { teacherId: teacher.instructorProfileId, day: dayValue(day.value), period: period })">
+                  <ng-container *ngIf="getEntry(teacher.instructorProfileId, dayValue(day.value), period) as entry; else emptyCell">
+                    <span *ngIf="entry.entryType === 2" class="standby-label">منتظر</span>
+                    <ng-container *ngIf="entry.entryType === 1">
+                      <strong>{{ entry.classLabel }}</strong>
+                      <small>{{ entry.subject }}</small>
+                    </ng-container>
+                  </ng-container>
+                  <ng-template #emptyCell><span class="empty-cell-mark" *ngIf="canManage()">+</span></ng-template>
+                </td>
+              </ng-container>
+              <td class="total-column total-value">{{ lessonCount(teacher.instructorProfileId) }}</td>
+              <td class="standby-total-column total-value">{{ standbyCount(teacher.instructorProfileId) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</section>
+
+<p-dialog header="تعديل الفترة" [visible]="cellDialogVisible()" (visibleChange)="cellDialogVisible.set($event)" [modal]="true" [style]="{ width: '430px', maxWidth: '94vw' }" dir="rtl">
+  <div class="cell-editor" *ngIf="selectedCell">
+    <div class="cell-context">
+      <strong>{{ selectedTeacher()?.fullName }}</strong>
+      <span>{{ dayLabel(selectedCell.day) }} • الفترة {{ selectedCell.period }}</span>
+    </div>
+    <label>
+      <span>نوع الفترة</span>
+      <select [(ngModel)]="draftType">
+        <option [ngValue]="0">فارغة</option>
+        <option [ngValue]="1">حصة</option>
+        <option [ngValue]="2">منتظر</option>
+      </select>
+    </label>
+    <ng-container *ngIf="draftType === 1">
+      <label>
+        <span>الفصل</span>
+        <input pInputText [(ngModel)]="draftClass" list="teacher-classes" maxlength="50" placeholder="مثال: 3/1">
+        <datalist id="teacher-classes"><option *ngFor="let item of selectedTeacher()?.classes" [value]="item"></option></datalist>
+      </label>
+      <label>
+        <span>المادة</span>
+        <input pInputText [(ngModel)]="draftSubject" list="teacher-subject" maxlength="200" placeholder="اسم المادة">
+        <datalist id="teacher-subject"><option *ngIf="selectedTeacher()?.subject as subject" [value]="subject"></option></datalist>
+      </label>
+    </ng-container>
+    <div class="standby-explanation" *ngIf="draftType === 2"><i class="pi pi-clock"></i> المعلم متاح كاحتياطي خلال هذه الفترة.</div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" class="p-button-text" label="إلغاء" (click)="cellDialogVisible.set(false)"></button>
+    <button pButton type="button" label="تطبيق" icon="pi pi-check" (click)="saveCell()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="إنشاء جدول جديد" [visible]="createDialogVisible()" (visibleChange)="createDialogVisible.set($event)" [modal]="true" [style]="{ width: '520px', maxWidth: '94vw' }" dir="rtl">
+  <label class="dialog-field">
+    <span>عنوان الجدول</span>
+    <input pInputText [(ngModel)]="newTitle" maxlength="250">
+  </label>
+  <p class="dialog-note">سيُنشأ كمسودة، ولن يراه المعلمون إلا بعد النشر.</p>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" class="p-button-text" label="إلغاء" (click)="createDialogVisible.set(false)"></button>
+    <button pButton type="button" label="إنشاء" icon="pi pi-plus" [loading]="saving()" (click)="create()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="نسخ الجدول المحفوظة" [visible]="versionsDialogVisible()" (visibleChange)="versionsDialogVisible.set($event)" [modal]="true" [style]="{ width: '760px', maxWidth: '96vw' }" dir="rtl">
+  <div class="versions-list">
+    <div class="loading-inline" *ngIf="versionsLoading()"><i class="pi pi-spin pi-spinner"></i> جاري التحميل...</div>
+    <article *ngFor="let version of versions()">
+      <div class="version-number">{{ version.versionNumber }}</div>
+      <div class="version-info">
+        <strong>{{ version.changeKindLabelAr }}</strong>
+        <span>{{ version.createdAt | date:'yyyy/MM/dd، h:mm a' }} • {{ version.createdByFullName }}</span>
+        <small *ngIf="version.restoredFromVersionNumber">مسترجعة من النسخة {{ version.restoredFromVersionNumber }}</small>
+      </div>
+      <button pButton type="button" class="p-button-outlined p-button-sm" label="استرجاع" [disabled]="saving()" (click)="restore(version)"></button>
+    </article>
+    <p class="empty-list" *ngIf="!versionsLoading() && !versions().length">لا توجد نسخ محفوظة.</p>
+  </div>
+</p-dialog>
+
+<p-dialog header="تفويض المشرفين" [visible]="grantsDialogVisible()" (visibleChange)="grantsDialogVisible.set($event)" [modal]="true" [style]="{ width: '560px', maxWidth: '94vw' }" dir="rtl">
+  <p class="dialog-note">المشرف المفوّض يستطيع إنشاء الجدول وتعديله ونشره واسترجاع نسخه.</p>
+  <div class="moderator-list">
+    <label *ngFor="let moderator of catalog()?.moderators">
+      <input type="checkbox" [checked]="grantedModeratorIds.has(moderator.userId)" (change)="toggleGrant(moderator.userId, $any($event.target).checked)">
+      <span>{{ moderator.fullName }}</span>
+    </label>
+    <p class="empty-list" *ngIf="!catalog()?.moderators?.length">لا يوجد مشرفون نشطون في المدرسة.</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" class="p-button-text" label="إلغاء" (click)="grantsDialogVisible.set(false)"></button>
+    <button pButton type="button" label="حفظ التفويضات" icon="pi pi-check" [loading]="saving()" (click)="saveGrants()"></button>
+  </ng-template>
+</p-dialog>

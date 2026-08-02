@@ -11,8 +11,6 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
-import { MsalModule, MsalService, MSAL_INSTANCE } from '@azure/msal-angular';
-import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 
 import { routes } from './app.routes';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
@@ -37,20 +35,6 @@ function initTranslations(translate: TranslateService) {
   };
 }
 
-function msalInstanceFactory(): IPublicClientApplication {
-  const runtime = (globalThis as typeof globalThis & { __alfalahEntra?: { clientId?: string; tenantId?: string; redirectUri?: string } }).__alfalahEntra;
-  return new PublicClientApplication({
-    auth: {
-      // These values are public SPA identifiers. Deployment injects window.__alfalahEntra;
-      // the inert fallback keeps local non-OneDrive features bootable.
-      clientId: runtime?.clientId || '00000000-0000-0000-0000-000000000000',
-      authority: `https://login.microsoftonline.com/${runtime?.tenantId || 'common'}`,
-      redirectUri: runtime?.redirectUri || globalThis.location?.origin
-    },
-    cache: { cacheLocation: 'sessionStorage' }
-  });
-}
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
@@ -71,9 +55,6 @@ export const appConfig: ApplicationConfig = {
     },
     // PrimeNG message service (toasts)
     MessageService,
-    { provide: MSAL_INSTANCE, useFactory: msalInstanceFactory },
-    MsalService,
-    importProvidersFrom(MsalModule),
     importProvidersFrom(BrowserAnimationsModule),
     // ngx-translate v15 (Angular 17 compatible): TranslateModule.forRoot + HttpLoader
     importProvidersFrom(

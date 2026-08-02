@@ -83,6 +83,11 @@ public static class PermissionNames
     public const string AttendanceView = "Attendance.View";
     public const string AttendanceManage = "Attendance.Manage";
 
+    // School timetable
+    public const string TimetableView = "Timetable.View";
+    public const string TimetableManage = "Timetable.Manage";
+    public const string TimetableDelegate = "Timetable.Delegate";
+
     // Parent surveys and reusable templates
     public const string ParentSurveyManage = "ParentSurvey.Manage";
 }

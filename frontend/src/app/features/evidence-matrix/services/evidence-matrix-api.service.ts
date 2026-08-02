@@ -20,6 +20,17 @@ export class EvidenceMatrixApiService {
     return this.http.post<ApiResponse>(`${this.baseUrl}/submissions/${submissionId}/review`, { reviewStatus, note: note || null })
       .pipe(map(response => { if (!response.isSuccess) throw new Error(response.errors?.join(' ') || response.message); }));
   }
+  /**
+   * Downloads an evidence file through the API. The stored Drive link is not usable: the file
+   * belongs to the school's Google account and a reviewer holds no Google session.
+   */
+  submissionContent(submissionId: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/submissions/${submissionId}/content`, {
+      responseType: 'blob',
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
+    });
+  }
+
   export(format: 'excel' | 'pdf', filter: EvidenceMatrixFilter): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/export/${format}`, {
       params: this.params(filter),

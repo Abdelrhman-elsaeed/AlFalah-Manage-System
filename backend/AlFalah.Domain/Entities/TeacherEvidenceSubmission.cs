@@ -2,7 +2,12 @@ using AlFalah.Domain.Enums;
 
 namespace AlFalah.Domain.Entities;
 
-/// <summary>Audit-friendly metadata for a file successfully sent to OneDrive; file bytes are never stored locally.</summary>
+/// <summary>
+/// Audit-friendly metadata for a file successfully sent to Google Drive; file bytes are
+/// never stored locally. This row is also the proof of authorship: Drive itself shows the
+/// school credential as the uploader, so <see cref="TeacherId"/> here (plus the matching
+/// audit-log entry) is what attributes the file to a teacher and ticks the matrix cell.
+/// </summary>
 public class TeacherEvidenceSubmission
 {
     public long Id { get; set; }

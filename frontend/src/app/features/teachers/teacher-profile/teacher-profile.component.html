@@ -82,6 +82,70 @@
     </div>
   </section>
 
+  <!-- Evidence-files: Google Drive folder grant (manager/global-admin only) -->
+  <section class="surface-card drive-folder-card" *ngIf="canViewDriveFolder() && profile() as p">
+    <header class="card-header">
+      <h2 class="card-title"><i class="pi pi-folder"></i> مجلد ملفات الإنجاز على Google Drive</h2>
+    </header>
+
+    <p class="drive-folder-note" *ngIf="!p.instructorProfileId">
+      لا يمكن منح مجلد ملفات إنجاز لهذا المستخدم بعد — لا يوجد ملف تعليمي (InstructorProfile) مرتبط به.
+    </p>
+
+    <ng-container *ngIf="p.instructorProfileId">
+      <p class="drive-folder-loading" *ngIf="driveFolderLoading()">جارٍ التحقق من حالة المجلد…</p>
+
+      <ng-container *ngIf="!driveFolderLoading() && !editingDriveFolder()">
+        <div class="drive-folder-status" *ngIf="driveFolder() as folder; else noFolder">
+          <div class="drive-folder-info">
+            <span class="drive-folder-badge" [class.drive-folder-badge--inactive]="!folder.isActive">
+              <i class="pi" [class.pi-check-circle]="folder.isActive" [class.pi-ban]="!folder.isActive"></i>
+              {{ folder.isActive ? 'مفعّل' : 'الصلاحية مسحوبة' }}
+            </span>
+            <span class="drive-folder-name">{{ folder.folderDisplayName }}</span>
+            <code class="drive-folder-id" dir="ltr">{{ folder.rootItemId }}</code>
+            <a *ngIf="folder.rootWebUrl" [href]="folder.rootWebUrl" target="_blank" rel="noopener" class="drive-folder-link">
+              <i class="pi pi-external-link"></i> فتح في Google Drive
+            </a>
+          </div>
+          <div class="drive-folder-actions" *ngIf="canEditDriveFolder()">
+            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-pencil"
+                    label="تعديل المجلد" (click)="beginGrantDriveFolder()"></button>
+            <button *ngIf="folder.isActive" pButton type="button" class="p-button-text p-button-sm p-button-danger"
+                    icon="pi pi-times" label="سحب الصلاحية" [loading]="driveFolderSaving()"
+                    (click)="revokeDriveFolder()"></button>
+          </div>
+        </div>
+        <ng-template #noFolder>
+          <div class="drive-folder-status">
+            <span class="drive-folder-empty">لم يتم منح مجلد لهذا المعلم بعد.</span>
+            <button *ngIf="canEditDriveFolder()" pButton type="button" icon="pi pi-plus"
+                    label="منح مجلد" class="p-button-sm" (click)="beginGrantDriveFolder()"></button>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <form *ngIf="editingDriveFolder()" class="drive-folder-form" (ngSubmit)="saveDriveFolder()">
+        <label>
+          معرّف المجلد على Google Drive <b>*</b>
+          <input pInputText dir="ltr" name="rootItemId" [(ngModel)]="driveFolderRootItemId"
+                 placeholder="1AbCdEfGhIjKlMnOpQrStUvWxYz" required />
+        </label>
+        <small class="drive-folder-hint">
+          يجب أن يكون هذا المجلد <b>داخل</b> المجلد الرئيسي لملفات الإنجاز الخاص بالمدرسة، ومستقلاً عن أي معلم آخر.
+          افتح المجلد على Google Drive وانسخ الجزء الأخير من الرابط. سيجلب النظام اسم المجلد ورابطه تلقائياً.
+        </small>
+        <div class="drive-folder-form-actions">
+          <button pButton type="button" class="p-button-text" label="إلغاء"
+                  [disabled]="driveFolderSaving()" (click)="cancelDriveFolderEdit()"></button>
+          <button pButton type="submit" icon="pi pi-save" label="حفظ"
+                  [loading]="driveFolderSaving()"
+                  [disabled]="!driveFolderRootItemId.trim()"></button>
+        </div>
+      </form>
+    </ng-container>
+  </section>
+
   <!-- Visits + Progress — side-by-side cards (desktop parity) -->
   <div class="profile-grid-2col">
     <section class="surface-card visits-card">

@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AlFalah.Api.Controllers;
 
-/// <summary>Local-administration endpoints; teacher clients never receive DriveId or RootItemId.</summary>
+/// <summary>
+/// Where a manager grants, inspects and withdraws a teacher's evidence folder.
+/// Teacher clients never receive DriveId or RootItemId through any other endpoint.
+/// </summary>
 [ApiController]
 [Route("api/v1/teacher-drive-admin")]
 [Authorize]
@@ -15,23 +18,39 @@ public sealed class TeacherDriveAdminController : ControllerBase
 {
     private readonly ICurrentUserService _currentUser;
     private readonly ITeacherDriveMappingService _mappings;
-    private readonly ITeacherMicrosoftAccountService _accounts;
-    public TeacherDriveAdminController(ICurrentUserService currentUser, ITeacherDriveMappingService mappings, ITeacherMicrosoftAccountService accounts)
-    { _currentUser = currentUser; _mappings = mappings; _accounts = accounts; }
+
+    public TeacherDriveAdminController(ICurrentUserService currentUser, ITeacherDriveMappingService mappings)
+    {
+        _currentUser = currentUser;
+        _mappings = mappings;
+    }
+
+    [HttpGet("teachers/{teacherId:int}/folder")]
+    public async Task<IActionResult> GetFolder(int teacherId, CancellationToken cancellationToken)
+    {
+        if (!_currentUser.HasPermission(PermissionNames.InstructorView))
+            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لعرض مجلدات المعلمين."));
+        var mapping = await _mappings.FindForTeacherAsync(teacherId, cancellationToken);
+        return Ok(ApiResponse<DriveFolderMappingDto?>.Success(mapping));
+    }
 
     [HttpPut("teachers/{teacherId:int}/folder")]
-    public async Task<IActionResult> UpsertFolder(int teacherId, [FromBody] UpsertDriveFolderMappingRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpsertFolder(
+        int teacherId, [FromBody] UpsertDriveFolderMappingRequest request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.HasPermission(PermissionNames.InstructorEdit)) return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإعداد مجلدات المعلمين."));
-        return Ok(ApiResponse<DriveFolderMappingDto>.Success(await _mappings.UpsertAsync(teacherId, request, cancellationToken)));
+        if (!_currentUser.HasPermission(PermissionNames.InstructorEdit))
+            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإعداد مجلدات المعلمين."));
+        return Ok(ApiResponse<DriveFolderMappingDto>.Success(
+            await _mappings.UpsertAsync(teacherId, request, cancellationToken),
+            "تم منح المعلم صلاحية المجلد."));
     }
 
-    [HttpPut("teachers/{teacherId:int}/microsoft-email")]
-    public async Task<IActionResult> ConfigureEmail(int teacherId, [FromBody] ConfigureMicrosoftEmailRequest request, CancellationToken cancellationToken)
+    [HttpDelete("teachers/{teacherId:int}/folder")]
+    public async Task<IActionResult> RevokeFolder(int teacherId, CancellationToken cancellationToken)
     {
-        if (!_currentUser.HasPermission(PermissionNames.InstructorEdit)) return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإعداد حسابات المعلمين."));
-        return Ok(ApiResponse<TeacherMicrosoftAccountAdminDto>.Success(await _accounts.ConfigureExpectedEmailAsync(teacherId, request.MicrosoftEmail, cancellationToken)));
+        if (!_currentUser.HasPermission(PermissionNames.InstructorEdit))
+            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لسحب مجلدات المعلمين."));
+        await _mappings.RevokeAsync(teacherId, cancellationToken);
+        return Ok(ApiResponse.Success("تم سحب صلاحية المجلد. تبقى الملفات المرفوعة مسجلة في المصفوفة."));
     }
 }
-
-public sealed record ConfigureMicrosoftEmailRequest(string MicrosoftEmail);

@@ -1,0 +1,120 @@
+<section class="page" dir="rtl">
+  <header class="page-header">
+    <div>
+      <h1>إعدادات ملفات الإنجاز</h1>
+      <p>اربط حساب Google Drive الخاص بالمدرسة، ثم امنح كل معلم مجلده الخاص من ملفه الشخصي.</p>
+    </div>
+  </header>
+
+  <form *ngIf="!loading()" [formGroup]="form" (ngSubmit)="save()" class="settings-card">
+    <p class="notice">
+      <i class="pi pi-shield"></i>
+      المعلمون لا يحتاجون حساب Google ولا تسجيل دخول ثانٍ. يستخدم النظام حساب المدرسة فقط، ويتحكم بنفسه في المجلد
+      الذي يراه كل معلم.
+    </p>
+    <p class="status" [class.status--ready]="configured()">
+      {{ configured() ? 'تم ربط حساب Google Drive للمدرسة. يمكنك الآن منح المعلمين مجلداتهم.' : 'لم يتم ربط حساب Google Drive لهذه المدرسة بعد.' }}
+    </p>
+
+    <div class="grid">
+      <label>
+        طريقة الاتصال
+        <select formControlName="credentialType" class="native-select">
+          <option [ngValue]="credentialTypes.ServiceAccount">حساب خدمة (Service Account) — موصى به</option>
+          <option [ngValue]="credentialTypes.OAuthRefreshToken">حساب Google عادي (Refresh Token)</option>
+        </select>
+      </label>
+      <label>
+        بريد حساب Google للمدرسة
+        <input pInputText dir="ltr" formControlName="schoolGoogleEmail" placeholder="evidence@school.edu.sa" />
+      </label>
+    </div>
+
+    <!-- ── Service account ─────────────────────────────────────────────────── -->
+    <div class="grid" *ngIf="isServiceAccount()">
+      <label class="span-2">
+        مفتاح حساب الخدمة (ملف JSON)
+        <textarea pInputTextarea dir="ltr" rows="5" formControlName="serviceAccountJson"
+                  [placeholder]="hasStoredCredential() ? 'اتركه فارغاً للإبقاء على المفتاح المحفوظ' : 'الصق محتوى ملف JSON كاملاً'"></textarea>
+        <small class="field-hint">
+          {{ hasStoredCredential() ? 'المفتاح محفوظ ومشفّر على السيرفر. اتركه فارغاً إن لم ترغب في تغييره.' : 'الصق محتوى ملف المفتاح كما نزّلته من Google Cloud. يُحفظ مشفّراً ولا يُعاد إظهاره أبداً.' }}
+        </small>
+      </label>
+      <label>
+        بريد المستخدم للانتحال (Domain-Wide Delegation)
+        <input pInputText dir="ltr" formControlName="impersonatedUserEmail" placeholder="اختياري — evidence@school.edu.sa" />
+        <small class="field-hint">استخدمه مع Google Workspace ليصبح مالك الملفات هو هذا المستخدم.</small>
+      </label>
+      <label>
+        Shared Drive ID
+        <input pInputText dir="ltr" formControlName="sharedDriveId" placeholder="اختياري — اتركه فارغاً لاستخدام My Drive" />
+        <small class="field-hint">اختياري. كلاهما اختياري ويمكن استخدام مجلد عادي على My Drive مشارَك مع حساب الخدمة.</small>
+      </label>
+    </div>
+
+    <!-- ── Refresh token ───────────────────────────────────────────────────── -->
+    <div class="grid" *ngIf="!isServiceAccount()">
+      <label>
+        OAuth Client ID
+        <input pInputText dir="ltr" formControlName="oAuthClientId" placeholder="xxxxx.apps.googleusercontent.com" />
+      </label>
+      <label>
+        OAuth Client Secret
+        <input pInputText dir="ltr" type="password" formControlName="oAuthClientSecret"
+               [placeholder]="hasStoredCredential() ? 'اتركه فارغاً للإبقاء على القيمة المحفوظة' : 'GOCSPX-…'" />
+      </label>
+      <!-- The refresh token is obtained through Google's consent screen, never typed. -->
+      <div class="span-2 consent-row">
+        <div class="consent-status">
+          <span class="consent-state" *ngIf="hasStoredCredential(); else notConnected">
+            ✓ تم ربط الحساب — رمز التحديث محفوظ مشفّراً على السيرفر.
+          </span>
+          <ng-template #notConnected>
+            <span class="consent-state consent-state--pending">لم يتم ربط حساب Google بعد.</span>
+          </ng-template>
+          <small class="field-hint">
+            احفظ Client ID و Client Secret أولاً، ثم اربط الحساب. ستُنقل إلى صفحة موافقة Google وتعود تلقائياً.
+          </small>
+        </div>
+        <button pButton type="button" class="p-button-outlined"
+                [disabled]="!canConnect() || connecting()"
+                [label]="hasStoredCredential() ? 'إعادة ربط حساب Google' : 'ربط حساب Google'"
+                icon="pi pi-google" [loading]="connecting()" (click)="connect()"></button>
+      </div>
+      <label>
+        Shared Drive ID
+        <input pInputText dir="ltr" formControlName="sharedDriveId" placeholder="اختياري — اتركه فارغاً لاستخدام My Drive" />
+      </label>
+    </div>
+
+    <!-- ── Root folder ─────────────────────────────────────────────────────── -->
+    <div class="grid">
+      <label>
+        معرّف المجلد الرئيسي لملفات الإنجاز
+        <input pInputText dir="ltr" formControlName="rootFolderId" placeholder="1AbCdEfGhIjKlMnOpQrStUvWxYz" />
+        <small class="field-hint">
+          افتح المجلد على Google Drive وانسخ الجزء الأخير من الرابط:
+          <span dir="ltr">drive.google.com/drive/folders/<b>&lt;المعرّف&gt;</b></span>
+        </small>
+      </label>
+      <label>
+        اسم المجلد الرئيسي
+        <input pInputText formControlName="rootFolderDisplayName" placeholder="ملفات الإنجاز" />
+      </label>
+      <label class="toggle">
+        <p-inputSwitch formControlName="isEnabled" /> تفعيل ملفات الإنجاز للمدرسة
+      </label>
+    </div>
+
+    <small class="hint">
+      يجب أن يكون مجلد كل معلم <b>داخل</b> هذا المجلد الرئيسي، ولا يُسمح بمنح المجلد الرئيسي نفسه لأي معلم.
+    </small>
+    <p class="quota-warning" *ngIf="isServiceAccount() && !form.value.sharedDriveId && !form.value.impersonatedUserEmail">
+      <i class="pi pi-exclamation-triangle"></i>
+      تنبيه: حساب الخدمة لا يملك مساحة تخزين خاصة. بدون Shared Drive أو بريد انتحال يمكن
+      <b>استعراض وتنزيل</b> الملفات من مجلد على My Drive، لكن <b>الرفع</b> قد يرفضه Google برسالة
+      <span dir="ltr">storageQuotaExceeded</span>.
+    </p>
+    <button pButton type="submit" icon="pi pi-save" label="حفظ وتفعيل" [loading]="saving()"></button>
+  </form>
+</section>

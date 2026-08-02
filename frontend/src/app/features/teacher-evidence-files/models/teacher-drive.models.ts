@@ -1,4 +1,5 @@
-export interface TeacherDriveStatus { isMicrosoftLinked: boolean; isDriveConfigured: boolean; folderDisplayName?: string; connectionState: string; teacherDisplayName: string; }
+/** connectionState is one of: NotATeacher | SchoolNotConfigured | FolderNotAssigned | Connected. */
+export interface TeacherDriveStatus { isSchoolDriveEnabled: boolean; isFolderAssigned: boolean; folderDisplayName?: string; connectionState: string; teacherDisplayName: string; }
 export interface DriveItem { itemId: string; name: string; isFolder: boolean; childCount?: number; extension?: string; mimeType?: string; size?: number; lastModifiedAt?: string; lastModifiedBy?: string; webUrl?: string; eTag?: string; submissionStatus?: string; }
 export interface DriveItemsPage { items: DriveItem[]; nextPageToken?: string; totalInPage: number; }
 export interface DriveBreadcrumb { itemId: string; name: string; }

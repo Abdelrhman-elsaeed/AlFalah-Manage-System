@@ -91,7 +91,7 @@ export const routes: Routes = [
             path: 'evidence-settings',
             canActivate: [permissionGuard],
             data: { permissions: ['Settings.Manage'] },
-            loadComponent: () => import('./features/schools/school-microsoft-drive-settings/school-microsoft-drive-settings.component').then(m => m.SchoolMicrosoftDriveSettingsComponent),
+            loadComponent: () => import('./features/schools/school-google-drive-settings/school-google-drive-settings.component').then(m => m.SchoolGoogleDriveSettingsComponent),
             title: 'إعدادات ملفات الإنجاز'
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
@@ -165,6 +165,17 @@ export const routes: Routes = [
         loadComponent: () => import('./features/visits/report-preview/report-preview.component')
           .then(m => m.ReportPreviewComponent),
         title: translatedTitle('ROUTE_TITLES.VISIT_REPORT_PREVIEW')
+      },
+      {
+        path: 'timetable',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['SchoolManager', 'Moderator', 'Instructor'],
+          permissions: ['Timetable.View']
+        },
+        loadComponent: () => import('./features/timetables/school-timetable.component')
+          .then(m => m.SchoolTimetableComponent),
+        title: 'الجدول المدرسي'
       },
       {
         path: 'attendance',

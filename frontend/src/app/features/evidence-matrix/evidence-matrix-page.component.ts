@@ -8,7 +8,7 @@ import { extractHttpErrorMessage, readHttpErrorBody } from '../../core/http/http
 import { EvidenceCellFiles, EvidenceCellStatus, EvidenceMatrix, EvidenceMatrixCell, EvidenceMatrixFilter, EvidenceMatrixTeacherRow, EvidenceSubmissionFile } from './models/evidence-matrix.models';
 
 const STATUS_LABELS: Record<EvidenceCellStatus, string> = {
-  1: 'لم يُرفع', 2: 'مرفوع', 3: 'بانتظار المراجعة', 4: 'معتمد', 5: 'مرفوض', 6: 'مفقود من OneDrive'
+  1: 'لم يُرفع', 2: 'مرفوع', 3: 'بانتظار المراجعة', 4: 'معتمد', 5: 'مرفوض', 6: 'مفقود من Google Drive'
 };
 
 @Component({
@@ -79,6 +79,32 @@ export class EvidenceMatrixPageComponent {
       error: () => this.error.set('تعذر تحديث مراجعة الملف.')
     });
   }
+  /**
+   * Opens an evidence file for review by streaming it through the API. Following the stored
+   * Drive link instead would land the reviewer on Google's "Request access" page, because the
+   * file is owned by the school's Google account and not by them.
+   */
+  openFile(file: EvidenceSubmissionFile): void {
+    this.error.set(null);
+    this.api.submissionContent(file.submissionId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        if (!window.open(url, '_blank', 'noopener')) {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.fileName;
+          link.click();
+        }
+        // Revoking straight away would race the new tab's load of the same URL.
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      },
+      error: async err => {
+        await readHttpErrorBody(err);
+        this.error.set(extractHttpErrorMessage(err) ?? 'تعذر فتح الملف. قد يكون حُذف من Google Drive.');
+      }
+    });
+  }
+
   export(format: 'excel' | 'pdf'): void {
     this.exporting.set(true);
     this.api.export(format, this.filter).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.exporting.set(false))).subscribe({

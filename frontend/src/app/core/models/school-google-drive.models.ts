@@ -24,8 +24,21 @@ export interface SchoolGoogleDriveSettings {
 }
 
 /**
+ * The Google consent URL to navigate to. `state` is echoed back only for correlation — it is
+ * already inside `authorizationUrl`.
+ */
+export interface GoogleAuthUrl {
+  authorizationUrl: string;
+  state: string;
+  stateExpiresAtUtc: string;
+}
+
+/**
  * Secret fields are optional on purpose: omitting one keeps whatever the server already has,
  * so renaming the root folder does not require re-pasting the service-account key.
+ *
+ * `oAuthRefreshToken` is intentionally absent: it is no longer entered by hand. The consent
+ * flow behind `SchoolGoogleDriveService.authUrl()` is what stores it.
  */
 export interface ConfigureSchoolGoogleDriveRequest {
   credentialType: GoogleDriveCredentialType;
@@ -34,7 +47,6 @@ export interface ConfigureSchoolGoogleDriveRequest {
   impersonatedUserEmail?: string | null;
   oAuthClientId?: string | null;
   oAuthClientSecret?: string | null;
-  oAuthRefreshToken?: string | null;
   sharedDriveId?: string | null;
   rootFolderId: string;
   rootFolderDisplayName: string;

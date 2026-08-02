@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 import { ChipsModule } from 'primeng/chips';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -11,6 +12,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { ToastService } from '../../../core/services/toast.service';
 import { TeachersService } from '../../../core/services/teachers.service';
+import { TeacherDriveAdminService } from '../../../core/services/teacher-drive-admin.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
   PUBLISHED_MAXIMUM,
@@ -24,13 +26,14 @@ import {
   TeacherVisitProgress,
   TeacherVisitSummary
 } from '../../../core/models/teacher.models';
+import { DriveFolderMapping } from '../../../core/models/teacher-drive-admin.models';
 
 @Component({
   selector: 'app-teacher-profile',
   standalone: true,
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    ButtonModule, ChipsModule, TableModule, TagModule, TooltipModule, ChartModule,
+    ButtonModule, InputTextModule, ChipsModule, TableModule, TagModule, TooltipModule, ChartModule,
     PublishedScorePipe, PublishedScoreDeltaPipe
   ],
   templateUrl: './teacher-profile.component.html',
@@ -40,6 +43,7 @@ export class TeacherProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly teachersService = inject(TeachersService);
+  private readonly driveAdmin = inject(TeacherDriveAdminService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
@@ -140,6 +144,16 @@ export class TeacherProfileComponent implements OnInit {
     && !this.auth.hasRole('MainManager')
     && !this.auth.hasRole('Moderator'));
 
+  // ─── Evidence-files Google Drive folder grant ────────────────────────────
+  // Keyed by InstructorProfile.Id (profile().instructorProfileId), NOT userId.
+  readonly canViewDriveFolder = computed(() => this.auth.hasPermission('Instructor.View'));
+  readonly canEditDriveFolder = computed(() => this.auth.hasPermission('Instructor.Edit'));
+  readonly driveFolder = signal<DriveFolderMapping | null>(null);
+  readonly driveFolderLoading = signal(false);
+  readonly driveFolderSaving = signal(false);
+  readonly editingDriveFolder = signal(false);
+  driveFolderRootItemId = '';
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('userId');
     if (!id) {
@@ -157,6 +171,9 @@ export class TeacherProfileComponent implements OnInit {
       next: (resp) => {
         if (resp.isSuccess && resp.data) {
           this.profile.set(resp.data);
+          if (resp.data.instructorProfileId && this.canViewDriveFolder()) {
+            this.loadDriveFolder(resp.data.instructorProfileId);
+          }
         } else {
           this.toast.error(this.translate.instant('TEACHERS.PROFILE_LOAD_FAILED'), resp.message || '');
         }
@@ -187,6 +204,69 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   goBack(): void { this.router.navigate(['/teachers']); }
+
+  // ─── Evidence-files Google Drive folder grant ────────────────────────────
+
+  loadDriveFolder(instructorProfileId: number): void {
+    this.driveFolderLoading.set(true);
+    this.driveAdmin.getFolder(instructorProfileId).subscribe({
+      next: resp => {
+        this.driveFolderLoading.set(false);
+        if (resp.isSuccess) this.driveFolder.set(resp.data ?? null);
+      },
+      error: () => this.driveFolderLoading.set(false)
+    });
+  }
+
+  beginGrantDriveFolder(): void {
+    const current = this.driveFolder();
+    this.driveFolderRootItemId = current?.rootItemId ?? '';
+    this.editingDriveFolder.set(true);
+  }
+
+  cancelDriveFolderEdit(): void { this.editingDriveFolder.set(false); }
+
+  saveDriveFolder(): void {
+    const instructorProfileId = this.profile()?.instructorProfileId;
+    const rootItemId = this.driveFolderRootItemId.trim();
+    if (!instructorProfileId || !rootItemId) return;
+
+    this.driveFolderSaving.set(true);
+    this.driveAdmin.upsertFolder(instructorProfileId, { rootItemId }).subscribe({
+      next: resp => {
+        this.driveFolderSaving.set(false);
+        if (resp.isSuccess && resp.data) {
+          this.driveFolder.set(resp.data);
+          this.editingDriveFolder.set(false);
+          this.toast.success(resp.message || 'تم منح المعلم صلاحية المجلد.');
+        } else {
+          this.toast.error('تعذر حفظ مجلد المعلم.', resp.message || '');
+        }
+      },
+      error: err => {
+        this.driveFolderSaving.set(false);
+        this.toast.error('تعذر حفظ مجلد المعلم.', err?.error?.message || '');
+      }
+    });
+  }
+
+  revokeDriveFolder(): void {
+    const instructorProfileId = this.profile()?.instructorProfileId;
+    if (!instructorProfileId) return;
+
+    this.driveFolderSaving.set(true);
+    this.driveAdmin.revokeFolder(instructorProfileId).subscribe({
+      next: resp => {
+        this.driveFolderSaving.set(false);
+        if (resp.isSuccess) {
+          // Evidence already uploaded stays in the matrix — revoking only blocks new access.
+          this.driveFolder.update(current => current ? { ...current, isActive: false } : current);
+          this.toast.success(resp.message || 'تم سحب صلاحية المجلد.');
+        }
+      },
+      error: () => this.driveFolderSaving.set(false)
+    });
+  }
 
   beginClassesEdit(): void {
     this.editableClasses.set([...(this.profile()?.classes ?? [])]);

@@ -11,7 +11,7 @@ namespace AlFalah.Infrastructure.Services;
 
 /// <summary>
 /// Keeps the file ledger and the matrix summary in lockstep. This service never
-/// uploads file bytes; it is called only after Graph has returned a DriveItemId.
+/// uploads file bytes; it is called only after Google Drive has returned a file id.
 /// </summary>
 public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
 {
@@ -94,7 +94,7 @@ public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
         DriveItemDto item,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(item.ItemId)) throw new ArgumentException("لم تُرجع OneDrive معرف الملف.");
+        if (string.IsNullOrWhiteSpace(item.ItemId)) throw new ArgumentException("لم تُرجع Google Drive معرف الملف.");
 
         await using var transaction = await BeginTransactionIfRelationalAsync(cancellationToken);
         var operation = await _context.EvidenceUploadOperations
@@ -117,7 +117,7 @@ public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
         if (existing is not null)
         {
             if (existing.TeacherId != teacherId || existing.TaskId != operation.TaskId || existing.AcademicYearId != operation.AcademicYearId)
-                throw new InvalidOperationException("ملف OneDrive مرتبط مسبقًا بسجل دليل مختلف.");
+                throw new InvalidOperationException("ملف Google Drive مرتبط مسبقًا بسجل دليل مختلف.");
 
             operation.Status = EvidenceUploadOperationStatus.Completed;
             operation.SubmissionId = existing.Id;

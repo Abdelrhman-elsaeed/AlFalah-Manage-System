@@ -212,6 +212,11 @@ public class DatabaseSeeder
             (PermissionNames.AttendanceView,   "Attendance", "عرض حضوري", "View my attendance"),
             (PermissionNames.AttendanceManage, "Attendance", "إدارة الحضور", "Manage school attendance"),
 
+            // Timetable
+            (PermissionNames.TimetableView, "Timetable", "عرض الجدول المدرسي", "View school timetable"),
+            (PermissionNames.TimetableManage, "Timetable", "إدارة الجدول المدرسي", "Manage school timetable"),
+            (PermissionNames.TimetableDelegate, "Timetable", "تفويض إدارة الجدول", "Delegate timetable management"),
+
             // Parent surveys
             (PermissionNames.ParentSurveyManage, "ParentSurvey", "إدارة استبيانات أولياء الأمور", "Manage parent surveys"),
         };
@@ -255,6 +260,7 @@ public class DatabaseSeeder
                 PermissionNames.DashboardMainManager,
                 PermissionNames.SettingsView, PermissionNames.SettingsManage,
                 PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
+                PermissionNames.TimetableView, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
             },
 
             [RoleNames.SchoolManager] = new[]
@@ -277,6 +283,7 @@ public class DatabaseSeeder
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
                 PermissionNames.AttendanceView,
                 PermissionNames.ParentSurveyManage,
+                PermissionNames.TimetableView, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
             },
 
             [RoleNames.Moderator] = new[]
@@ -294,6 +301,7 @@ public class DatabaseSeeder
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
                 PermissionNames.AttendanceView,
                 PermissionNames.ParentSurveyManage,
+                PermissionNames.TimetableView,
             },
 
             [RoleNames.Instructor] = new[]
@@ -302,6 +310,7 @@ public class DatabaseSeeder
                 PermissionNames.ComplaintCreate, PermissionNames.ComplaintView,
                 PermissionNames.DashboardInstructor,
                 PermissionNames.AttendanceView,
+                PermissionNames.TimetableView,
             },
 
             [RoleNames.Secretary] = new[]
@@ -385,6 +394,7 @@ public class DatabaseSeeder
     private const string SuperAdminPassword = "AlFalah@SuperAdmin2024!";
     private const string MainManagerPassword = "AlFalah@MainManager2024!";
     private const string SchoolManagerPassword = "AlFalah@Manager2024!";
+    private const string SecretaryPassword = "AlFalah@Secretary2024!";
     private const string ModeratorPassword = "AlFalah@Moderator2024!";
     private const string InstructorPassword = "AlFalah@Instructor2024!";
 
@@ -460,6 +470,10 @@ public class DatabaseSeeder
             "school_manager_1", "manager1@alfalah.edu.sa", "أحمد", "العمري",
             RoleNames.SchoolManager, SchoolManagerPassword);
 
+        var secretary = await EnsureDevUserAsync(
+            "secretary_1", "secretary1@alfalah.edu.sa", "Secretary", "Test",
+            RoleNames.Secretary, SecretaryPassword);
+
         var moderator = await EnsureDevUserAsync(
             "moderator_1", "moderator1@alfalah.edu.sa", "سارة", "الحربي",
             RoleNames.Moderator, ModeratorPassword);
@@ -469,6 +483,7 @@ public class DatabaseSeeder
             RoleNames.Instructor, InstructorPassword);
 
         await EnsureSchoolAssignmentAsync(schoolManager, sampleSchool, RoleNames.SchoolManager);
+        await EnsureSchoolAssignmentAsync(secretary, sampleSchool, RoleNames.Secretary);
         await EnsureSchoolAssignmentAsync(moderator, sampleSchool, RoleNames.Moderator);
         await EnsureSchoolAssignmentAsync(instructor, sampleSchool, RoleNames.Instructor);
 

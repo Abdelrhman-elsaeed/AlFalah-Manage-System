@@ -98,6 +98,13 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         permissions: ['ParentSurvey.Manage']
       },
       {
+        labelKey: 'الجدول المدرسي',
+        icon: 'pi pi-calendar-plus',
+        route: '/timetable',
+        roles: ['SchoolManager', 'Moderator'],
+        permissions: ['Timetable.View']
+      },
+      {
         labelKey: 'الحضور والانصراف',
         icon: 'pi pi-calendar',
         route: '/attendance',
@@ -169,6 +176,7 @@ export class ShellComponent implements OnInit {
     // D-36/D-73: exactly the minimal Instructor navigation surface.
     if (this.isInstructorOnly()) {
       items.push(
+        { labelKey: 'الجدول المدرسي', icon: 'pi pi-calendar-plus', route: '/timetable', permissions: ['Timetable.View'] },
         { labelKey: 'الحضور والانصراف', icon: 'pi pi-calendar', route: '/attendance', permissions: ['Attendance.View'] },
         { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
         { labelKey: 'ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/instructor/evidence-files' },

@@ -157,7 +157,9 @@ public sealed class EvidenceMatrixServiceTests
             var audit = new AuditLogWriter(context, accessor, NullLogger<AuditLogWriter>.Instance);
             var service = new EvidenceSubmissionService(context, audit);
             var guard = new SchoolScopeGuard(context, manager, NullLogger<SchoolScopeGuard>.Instance);
-            var matrix = new EvidenceMatrixService(context, manager, guard, audit, service);
+            // Drive is faked: these tests are about the ledger and matrix invariants, which are
+            // driven entirely by RecordCompletedUploadAsync and never touch Google.
+            var matrix = new EvidenceMatrixService(context, manager, guard, audit, service, new AlFalah.Tests.TestDoubles.FakeGoogleDrive());
             return new Fixture(context, service, matrix);
         }
 

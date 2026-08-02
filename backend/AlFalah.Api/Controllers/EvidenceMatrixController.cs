@@ -34,6 +34,17 @@ public sealed class EvidenceMatrixController : ControllerBase
         return Ok(ApiResponse.Success("تم تحديث مراجعة الدليل."));
     }
 
+    /// <summary>
+    /// Streams an evidence file to the reviewing supervisor. Managers and moderators have no
+    /// Google session either, so the stored Drive link is not something they can open.
+    /// </summary>
+    [HttpGet("submissions/{submissionId:long}/content")]
+    public async Task<IActionResult> SubmissionContent(long submissionId, CancellationToken cancellationToken)
+    {
+        var file = await _matrix.DownloadSubmissionAsync(submissionId, cancellationToken);
+        return File(file.Content, file.ContentType, file.FileName);
+    }
+
     [HttpGet("export/excel")]
     public async Task<IActionResult> ExportExcel([FromQuery] EvidenceMatrixFilterDto filter, CancellationToken cancellationToken)
     {

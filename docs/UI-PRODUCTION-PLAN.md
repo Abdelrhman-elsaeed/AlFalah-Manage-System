@@ -215,7 +215,7 @@ of them** — that is deliberate: consistency is the deliverable, not novelty.
 | 6 | `/moderator/dashboard` | `dashboard-live` | as #4 |
 | 7 | `/instructor/dashboard` | `dashboard-live` | as #4 |
 | 8 | `/*/evidence-matrix` | `evidence-matrix-page` | wide matrix — horizontal scroll containment |
-| 9 | `/school-manager/evidence-settings` | `school-microsoft-drive-settings` | 17-line template, unstyled |
+| 9 | `/school-manager/evidence-settings` | `school-google-drive-settings` | credential-type toggle; secrets are write-only |
 | 10 | `/instructor/reports` | `instructor-reports` | 44-line template, thin |
 | 11 | `/instructor/evidence-files` | `teacher-evidence-files-page` | 32-line template, thin |
 | 12 | `/visit-reports/:id/preview` | `report-preview` | print styling |

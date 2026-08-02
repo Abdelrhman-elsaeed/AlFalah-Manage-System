@@ -48,6 +48,13 @@ public class TeacherListItemDto
 public class TeacherProfileDto
 {
     public string UserId { get; set; } = string.Empty;
+    /// <summary>
+    /// InstructorProfile.Id — null when this teacher has no InstructorProfile row yet.
+    /// Evidence-files folder grants are keyed by this id (not UserId), so the frontend needs
+    /// it to call the teacher-drive-admin endpoints; a null value means evidence files are not
+    /// available for this teacher until an InstructorProfile is created for them.
+    /// </summary>
+    public int? InstructorProfileId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string? EmployeeNumber { get; set; }
     public int SchoolId { get; set; }

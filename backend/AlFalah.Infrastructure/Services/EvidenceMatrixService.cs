@@ -19,19 +19,22 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
     private readonly SchoolScopeGuard _scopeGuard;
     private readonly AuditLogWriter _audit;
     private readonly EvidenceSubmissionService _submissions;
+    private readonly IGoogleDriveClient _drive;
 
     public EvidenceMatrixService(
         AlFalahDbContext context,
         ICurrentUserService currentUser,
         SchoolScopeGuard scopeGuard,
         AuditLogWriter audit,
-        EvidenceSubmissionService submissions)
+        EvidenceSubmissionService submissions,
+        IGoogleDriveClient drive)
     {
         _context = context;
         _currentUser = currentUser;
         _scopeGuard = scopeGuard;
         _audit = audit;
         _submissions = submissions;
+        _drive = drive;
     }
 
     public async Task<IReadOnlyList<AcademicYearDto>> GetAcademicYearsAsync(CancellationToken cancellationToken = default)
@@ -148,6 +151,21 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
             new { ReviewStatus = oldStatus.ToString() }, new { ReviewStatus = reviewStatus.ToString(), submission.TaskId, submission.AcademicYearId });
         await _context.SaveChangesAsync(cancellationToken);
         if (transaction is not null) await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task<AlFalah.Application.DTOs.TeacherDrive.DriveFileContentDto> DownloadSubmissionAsync(
+        long submissionId, CancellationToken cancellationToken = default)
+    {
+        EnsureCanView();
+        var submission = await _context.TeacherEvidenceSubmissions.AsNoTracking()
+            .Where(x => x.Id == submissionId)
+            .Select(x => new { x.SchoolId, x.DriveItemId, x.IsDeleted })
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new KeyNotFoundException("ملف الدليل غير موجود.");
+        EnsureTeacherIsInScope(submission.SchoolId);
+        if (submission.IsDeleted) throw new KeyNotFoundException("تم حذف ملف الدليل.");
+
+        return await _drive.DownloadAsync(submission.SchoolId, submission.DriveItemId, cancellationToken);
     }
 
     public async Task<EvidenceMatrixExportResult> ExportExcelAsync(EvidenceMatrixFilterDto filter, CancellationToken cancellationToken = default)

@@ -1,15 +1,15 @@
 <section class="evidence-page" dir="rtl">
   <header class="evidence-page__header">
     <div><p class="eyebrow">ملفات الإنجاز</p><h1>ملفات الإنجاز</h1><p>ارفع كل دليل إلى مهمة واضحة ليظهر تلقائيًا في مصفوفة المتابعة.</p></div>
-    <span class="connection" [class.connection--offline]="status()?.connectionState !== 'Connected'"><i class="pi pi-circle-fill"></i>{{ status()?.connectionState === 'Connected' ? 'متصل' : 'بانتظار الربط' }}</span>
+    <span class="connection" [class.connection--offline]="status()?.connectionState !== 'Connected'"><i class="pi pi-circle-fill"></i>{{ status()?.connectionState === 'Connected' ? 'متصل' : 'غير متاح' }}</span>
   </header>
   <p class="page-error" *ngIf="error()">{{ error() }}</p>
-  <div class="evidence-grid" *ngIf="status()?.isMicrosoftLinked && status()?.isDriveConfigured; else connectionState">
+  <div class="evidence-grid" *ngIf="status()?.isSchoolDriveEnabled && status()?.isFolderAssigned; else connectionState">
     <article class="drive-card">
-      <div class="card-heading"><div><h2>مجلدك على OneDrive</h2><nav aria-label="مسار المجلد"><button *ngFor="let crumb of breadcrumbs()" (click)="loadFolder(crumb.itemId)">{{ crumb.name }}</button></nav></div><button class="outline" type="button" (click)="loadFolder()"><i class="pi pi-refresh"></i> تحديث</button></div>
+      <div class="card-heading"><div><h2>مجلدك على Google Drive</h2><nav aria-label="مسار المجلد"><button *ngFor="let crumb of breadcrumbs()" (click)="loadFolder(crumb.itemId)">{{ crumb.name }}</button></nav></div><button class="outline" type="button" (click)="loadFolder(currentFolderId())"><i class="pi pi-refresh"></i> تحديث</button></div>
       <div class="toolbar"><input [(ngModel)]="search" (keyup.enter)="searchFolder()" aria-label="البحث في الملفات" placeholder="ابحث في الملفات"><button type="button" (click)="searchFolder()"><i class="pi pi-search"></i> بحث</button></div>
       <div class="loading" *ngIf="loading()">جارٍ تحميل الملفات…</div>
-      <div class="file-table" *ngIf="!loading()"><div class="file-table__head"><span>الاسم</span><span>النوع</span><span>آخر تعديل</span><span>الحالة</span></div><button class="file-row" *ngFor="let item of items()" (click)="open(item)" [attr.aria-label]="'فتح ' + item.name"><span class="file-name"><i [class]="item.isFolder ? 'pi pi-folder' : 'pi pi-file'"></i>{{ item.name }}<small *ngIf="item.isFolder && item.childCount !== undefined">{{ item.childCount }} عناصر</small></span><span>{{ item.isFolder ? 'مجلد' : (item.extension || 'ملف') }}</span><span>{{ item.lastModifiedAt | date:'yyyy/MM/dd HH:mm' }}</span><span class="status-pill">{{ item.submissionStatus || (item.isFolder ? '—' : 'تم الرفع') }}</span></button><div class="empty" *ngIf="items().length === 0">لا توجد ملفات مطابقة في هذا المجلد.</div></div>
+      <div class="file-table" *ngIf="!loading()"><div class="file-table__head"><span>الاسم</span><span>النوع</span><span>آخر تعديل</span><span>الحالة</span></div><button class="file-row" *ngFor="let item of items()" (click)="open(item)" [attr.aria-label]="'فتح ' + item.name"><span class="file-name"><i [class]="item.isFolder ? 'pi pi-folder' : 'pi pi-file'"></i>{{ item.name }}</span><span>{{ item.isFolder ? 'مجلد' : (item.extension || 'ملف') }}</span><span>{{ item.lastModifiedAt | date:'yyyy/MM/dd HH:mm' }}</span><span class="status-pill">{{ item.submissionStatus || (item.isFolder ? '—' : 'تم الرفع') }}</span></button><div class="empty" *ngIf="items().length === 0">لا توجد ملفات مطابقة في هذا المجلد.</div></div>
       <footer>{{ items().length }} عنصر</footer>
     </article>
     <aside class="upload-card">
@@ -24,9 +24,9 @@
       <div class="chosen-file" *ngIf="selectedFile() as file"><i class="pi pi-file"></i><span>{{ file.name }}<small>{{ formatSize(file.size) }}</small></span><button type="button" (click)="selectedFile.set(null)"><i class="pi pi-times"></i></button></div>
       <div class="progress" *ngIf="uploadProgress() !== null"><span [style.width.%]="uploadProgress()"></span><small>{{ uploadProgress() }}%</small></div>
       <button class="primary" type="button" [disabled]="!selectedFile() || !selectedTaskId || uploadProgress() !== null" (click)="upload()"><i class="pi pi-upload"></i> رفع الآن</button>
-      <p class="hint">لا يتم احتساب الدليل إلا بعد نجاح OneDrive. يمكن رفع عدة ملفات للمهمة نفسها دون زيادة إجمالي المهام.</p>
+      <p class="hint">لا يتم احتساب الدليل إلا بعد نجاح الرفع على Google Drive. يمكن رفع عدة ملفات للمهمة نفسها دون زيادة إجمالي المهام.</p>
     </aside>
   </div>
-  <ng-template #connectionState><article class="connection-card"><i class="pi pi-microsoft"></i><h2>{{ status()?.isMicrosoftLinked ? 'مجلد OneDrive غير مُعد' : 'اربط حساب Microsoft' }}</h2><p>{{ status()?.isMicrosoftLinked ? 'تواصل مع إدارة المدرسة لإعداد المجلد المخصص لك.' : 'استخدم حساب Microsoft المدرسي للوصول الآمن إلى ملفات الإنجاز.' }}</p><button class="primary" *ngIf="!status()?.isMicrosoftLinked" (click)="connectMicrosoft()">ربط حساب Microsoft</button></article></ng-template>
-  <article class="recent-card" *ngIf="recent().length"><h2>آخر الملفات</h2><div class="recent-list"><a *ngFor="let file of recent()" [href]="file.webUrl" target="_blank" rel="noopener"><i class="pi pi-file"></i><span>{{ file.name }}<small>{{ formatSize(file.size) }} · {{ file.uploadedAtUtc | date:'yyyy/MM/dd' }}</small></span></a></div></article>
+  <ng-template #connectionState><article class="connection-card"><i class="pi pi-google"></i><h2>{{ connectionTitle }}</h2><p>{{ connectionMessage }}</p></article></ng-template>
+  <article class="recent-card" *ngIf="recent().length"><h2>آخر الملفات</h2><div class="recent-list"><button type="button" *ngFor="let file of recent()" (click)="openFile(file.itemId, file.name)"><i class="pi pi-file"></i><span>{{ file.name }}<small>{{ formatSize(file.size) }} · {{ file.uploadedAtUtc | date:'yyyy/MM/dd' }}</small></span></button></div></article>
 </section>

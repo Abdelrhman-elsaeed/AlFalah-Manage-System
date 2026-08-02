@@ -201,3 +201,25 @@
   font-size: 0.92rem;
   color: var(--text-muted);
 }
+
+/* ── Evidence-files Google Drive folder grant ─────────────────────────── */
+.drive-folder-card { padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.drive-folder-note, .drive-folder-loading, .drive-folder-empty { color: var(--text-muted); font-size: 0.9rem; }
+.drive-folder-status { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.drive-folder-info { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; min-width: 0; }
+.drive-folder-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
+  color: #157a41; background: #e8f6ed;
+}
+.drive-folder-badge--inactive { color: #9a6100; background: #fff3d9; }
+.drive-folder-name { font-weight: 700; color: var(--text-strong); }
+.drive-folder-id { padding: 2px 6px; color: var(--text-muted); font-size: 0.82rem; background: var(--bg-subtle, #f3f4f6); border-radius: 4px; }
+.drive-folder-link { color: var(--brand-600); font-size: 0.85rem; text-decoration: none; }
+.drive-folder-link:hover { text-decoration: underline; }
+.drive-folder-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.drive-folder-form { display: grid; gap: var(--space-3); max-width: 640px; }
+.drive-folder-form label { display: grid; gap: 6px; font-weight: 600; }
+.drive-folder-form label b { color: #a12626; }
+.drive-folder-hint { color: var(--text-muted); font-size: 0.82rem; line-height: 1.6; }
+.drive-folder-form-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }

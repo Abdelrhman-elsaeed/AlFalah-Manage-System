@@ -276,6 +276,7 @@ public class TeacherService : ITeacherService
         return new TeacherProfileDto
         {
             UserId = user.Id,
+            InstructorProfileId = profile?.Id,
             FullName = user.FullName,
             EmployeeNumber = profile?.EmployeeNumber,
             SchoolId = assignment.SchoolId,

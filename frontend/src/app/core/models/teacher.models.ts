@@ -29,6 +29,9 @@ export interface TeacherListQuery {
 
 export interface TeacherProfile {
   userId: string;
+  /** InstructorProfile.Id — null when the teacher has no InstructorProfile row yet.
+   *  Evidence-files folder grants (teacher-drive-admin endpoints) are keyed by this id. */
+  instructorProfileId?: number | null;
   fullName: string;
   employeeNumber?: string | null;
   schoolId: number;

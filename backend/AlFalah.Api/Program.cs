@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Microsoft.Identity.Web;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Http.Features;
@@ -80,30 +79,36 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Entra is deliberately a second scheme: existing administration JWT login remains unchanged.
-builder.Services.AddAuthentication()
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"), jwtBearerScheme: "Entra")
-    .EnableTokenAcquisitionToCallDownstreamApi()
-    .AddInMemoryTokenCaches();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("TeacherOneDriveAccess", policy =>
-    {
-        policy.AddAuthenticationSchemes("Entra");
-        policy.RequireAuthenticatedUser();
-    });
-});
+// Teacher evidence files used to require a SECOND sign-in (Microsoft Entra) because
+// OneDrive was reached with the teacher's own delegated token. On Google Drive the school
+// supplies one credential and the application enforces folder isolation itself, so the
+// ordinary application session above is the only authentication involved. Authorization is
+// then per-teacher: TeacherDriveIdentityService resolves the caller to an instructor profile
+// and TeacherDriveFolderGuard proves every requested item sits inside that teacher's grant.
+builder.Services.AddAuthorization();
 
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("teacher-drive", limiter =>
-    {
-        limiter.PermitLimit = 40;
-        limiter.Window = TimeSpan.FromMinutes(1);
-        limiter.QueueLimit = 0;
-        limiter.AutoReplenishment = true;
-    });
+    // Partitioned per user, NOT global. AddFixedWindowLimiter would give the whole school a
+    // single shared budget, so a handful of teachers browsing at once would 429 each other —
+    // and every file view is now an API request, because the bytes are proxied through us
+    // rather than fetched straight from the storage provider by the browser.
+    options.AddPolicy("teacher-drive", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            // Same claim pair CurrentUserService reads: JwtBearer normally maps `sub` onto
+            // NameIdentifier, but the raw claim is checked too so the partition never
+            // silently collapses to a single shared per-IP bucket.
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? httpContext.User.FindFirst("sub")?.Value
+                ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
     options.AddPolicy("public-surveys", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -241,26 +246,6 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
-
-// The SPA needs only these public Entra identifiers to acquire a delegated
-// access token. Keeping the values here removes the fragile requirement to
-// hand-edit index.html at every deployment. ClientSecret is deliberately
-// never exposed by this endpoint.
-app.MapGet("/api/v1/auth/entra-config", (IConfiguration configuration) =>
-{
-    var clientId = configuration["AzureAd:ClientId"];
-    var tenantId = configuration["AzureAd:TenantId"];
-    var apiScope = configuration["AzureAd:ApiScope"];
-    return Results.Ok(new
-    {
-        clientId,
-        tenantId,
-        apiScope,
-        isConfigured = !string.IsNullOrWhiteSpace(clientId)
-                       && !string.IsNullOrWhiteSpace(tenantId)
-                       && !string.IsNullOrWhiteSpace(apiScope)
-    });
-}).AllowAnonymous();
 
 // ─── Database Migration and Seeding ──────────────────────────────────────────
 

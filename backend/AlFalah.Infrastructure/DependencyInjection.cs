@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Identity.Web;
 using QuestPDF.Infrastructure;
 
 namespace AlFalah.Infrastructure;
@@ -85,6 +84,9 @@ public static class DependencyInjection
         services.AddScoped<IComplaintService, ComplaintService>();
         services.AddScoped<IAttendanceService, AttendanceService>();
         services.AddScoped<IAttendancePdfService, AttendancePdfService>();
+        services.AddScoped<ISchoolTimetableRepository, SchoolTimetableRepository>();
+        services.AddScoped<ISchoolTimetableDocumentService, SchoolTimetableDocumentService>();
+        services.AddScoped<ISchoolTimetableService, SchoolTimetableService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IImprovementPlanService, ImprovementPlanService>();
         services.AddScoped<IPdfReportService, PdfReportService>();
@@ -92,19 +94,24 @@ public static class DependencyInjection
         // no extra NuGet package required — the assembly ships with .NET 8).
         services.AddScoped<IVisitsBulkExportService, VisitsBulkExportService>();
         services.AddScoped<IAccountService, AccountService>();
-        services.AddScoped<IMicrosoftGraphTokenService>(provider =>
-        {
-            var tokens = provider.GetService<ITokenAcquisition>();
-            return tokens is null
-                ? new UnavailableMicrosoftGraphTokenService()
-                : new MicrosoftGraphTokenService(tokens, provider.GetRequiredService<IConfiguration>());
-        });
-        services.AddScoped<ITeacherMicrosoftAccountService, TeacherMicrosoftAccountService>();
-        services.AddScoped<ISchoolMicrosoftDriveService, SchoolMicrosoftDriveService>();
+        // ─── Teacher evidence files on Google Drive ───────────────────────────
+        // The whole feature reaches Drive through ONE school-owned credential, so the
+        // credential protector, the token minter and the folder guard are all required
+        // for a request to be authorized — see TeacherDriveFolderGuard for why.
+        services.AddDataProtection();
+        services.AddMemoryCache();
+        services.AddScoped<GoogleDriveCredentialProtector>();
+        services.AddScoped<IGoogleDriveTokenService, GoogleDriveTokenService>();
+        services.AddScoped<IGoogleDriveClient, GoogleDriveClient>();
+        services.AddScoped<TeacherDriveFolderGuard>();
+        services.AddScoped<ITeacherDriveIdentityService, TeacherDriveIdentityService>();
+        services.AddScoped<ISchoolGoogleDriveService, SchoolGoogleDriveService>();
+        // Reuses the "GoogleOAuth" HttpClient below — the authorization-code exchange and the
+        // refresh-token grant both post to the same Google token endpoint.
+        services.AddScoped<IGoogleDriveOAuthService, GoogleDriveOAuthService>();
         services.AddScoped<ITeacherDriveMappingService, TeacherDriveMappingService>();
-        services.AddScoped<OneDriveBrowserService>();
-        services.AddScoped<IOneDriveBrowserService>(provider => provider.GetRequiredService<OneDriveBrowserService>());
-        services.AddScoped<IOneDriveUploadService, OneDriveUploadService>();
+        services.AddScoped<IGoogleDriveBrowserService, GoogleDriveBrowserService>();
+        services.AddScoped<IGoogleDriveUploadService, GoogleDriveUploadService>();
         services.AddScoped<EvidenceSubmissionService>();
         services.AddScoped<IEvidenceSubmissionService>(provider => provider.GetRequiredService<EvidenceSubmissionService>());
         services.AddScoped<IEvidenceMatrixService, EvidenceMatrixService>();
@@ -114,12 +121,10 @@ public static class DependencyInjection
         // (URL → bytes, with content-type sniffing + 2 MB cap, no exceptions on
         // failure — every image is best-effort with a neutral PDF fallback).
         services.AddHttpClient("PdfAssetLoader");
-        services.AddHttpClient("MicrosoftGraph", client =>
-        {
-            client.BaseAddress = new Uri(configuration["MicrosoftGraph:BaseUrl"] ?? "https://graph.microsoft.com/v1.0/");
-            client.Timeout = TimeSpan.FromSeconds(100);
-        });
-        services.AddHttpClient("MicrosoftGraphToken");
+        // Absolute URLs are built per request (the Drive API and its upload host differ),
+        // so only the timeout matters here — it must tolerate a 250 MB upload.
+        services.AddHttpClient("GoogleDrive", client => client.Timeout = TimeSpan.FromMinutes(10));
+        services.AddHttpClient("GoogleOAuth", client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddHostedService<EvidenceReconciliationBackgroundService>();
         services.AddSingleton<ImageAssetLoader>();
 

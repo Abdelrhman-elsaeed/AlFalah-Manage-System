@@ -7,6 +7,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Lets the test project cover internal helpers (Drive query escaping, Drive error-reason
+         parsing) directly, instead of forcing them public purely to make them testable. -->
+    <InternalsVisibleTo Include="AlFalah.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
@@ -15,7 +21,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="4.13.2" />
     <!-- Phase 6 / Stage 1: server-side Arabic PDF rendering (QuestPDF Community license) -->
     <PackageReference Include="QuestPDF" Version="2024.3.4" />
     <!-- Phase 6 / Stage 2: server-side QR code (PNG bytes fed to QuestPDF) -->

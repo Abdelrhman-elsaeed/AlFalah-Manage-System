@@ -18,10 +18,7 @@ public class AccountController : ControllerBase
     private readonly ITeacherService _teacherService;
     private readonly ICurrentUserService _currentUser;
 
-    public AccountController(
-        IAccountService accountService,
-        ITeacherService teacherService,
-        ICurrentUserService currentUser)
+    public AccountController(IAccountService accountService,ITeacherService teacherService,ICurrentUserService currentUser)
     {
         _accountService = accountService;
         _teacherService = teacherService;
@@ -78,9 +75,7 @@ public class AccountController : ControllerBase
     [HttpPut("teaching")]
     [ProducesResponseType(typeof(ApiResponse<TeacherTeachingDto>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
-    public async Task<IActionResult> UpdateMyTeaching(
-        [FromBody] TeacherTeachingUpsertRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateMyTeaching([FromBody] TeacherTeachingUpsertRequest request,CancellationToken cancellationToken)
     {
         var userId = _currentUser.UserId;
         if (string.IsNullOrEmpty(userId))
