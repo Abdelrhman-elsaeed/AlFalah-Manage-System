@@ -72,6 +72,12 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<SchoolTimetableVersion> SchoolTimetableVersions => Set<SchoolTimetableVersion>();
     public DbSet<TimetableEditorGrant> TimetableEditorGrants => Set<TimetableEditorGrant>();
 
+    // Student analyzer
+    public DbSet<StudentAnalyzerAccessGrant> StudentAnalyzerAccessGrants => Set<StudentAnalyzerAccessGrant>();
+    public DbSet<SchoolStudentAnalyzerSettings> SchoolStudentAnalyzerSettings => Set<SchoolStudentAnalyzerSettings>();
+    public DbSet<StudentAnalyzerSourceFile> StudentAnalyzerSourceFiles => Set<StudentAnalyzerSourceFile>();
+    public DbSet<StudentAnalyzerReport> StudentAnalyzerReports => Set<StudentAnalyzerReport>();
+
     // Parent surveys
     public DbSet<ParentSurvey> ParentSurveys => Set<ParentSurvey>();
     public DbSet<ParentSurveyItem> ParentSurveyItems => Set<ParentSurveyItem>();
@@ -106,6 +112,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         builder.Entity<SchoolTimetable>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<SchoolTimetableEntry>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<TimetableEditorGrant>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<StudentAnalyzerAccessGrant>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<StudentAnalyzerSourceFile>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<StudentAnalyzerReport>().HasQueryFilter(x => !x.IsDeleted);
 
         // Rubric soft-delete filters (Phase 3)
         builder.Entity<RubricVersion>().HasQueryFilter(x => !x.IsDeleted);
@@ -173,6 +182,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case ParentSurvey ps: ps.UpdatedAt = now; break;
                 case SchoolTimetable timetable: timetable.UpdatedAt = now; break;
                 case SchoolTimetableEntry timetableEntry: timetableEntry.UpdatedAt = now; break;
+                case SchoolStudentAnalyzerSettings analyzerSettings: analyzerSettings.UpdatedAt = now; break;
             }
         }
     }

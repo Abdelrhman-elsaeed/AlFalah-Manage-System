@@ -87,6 +87,9 @@ public static class DependencyInjection
         services.AddScoped<ISchoolTimetableRepository, SchoolTimetableRepository>();
         services.AddScoped<ISchoolTimetableDocumentService, SchoolTimetableDocumentService>();
         services.AddScoped<ISchoolTimetableService, SchoolTimetableService>();
+        services.AddScoped<IStudentAnalyzerRepository, StudentAnalyzerRepository>();
+        services.AddScoped<IStudentAnalyzerAiClient, StudentAnalyzerAiClient>();
+        services.AddScoped<IStudentAnalyzerService, StudentAnalyzerService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IImprovementPlanService, ImprovementPlanService>();
         services.AddScoped<IPdfReportService, PdfReportService>();
@@ -101,6 +104,7 @@ public static class DependencyInjection
         services.AddDataProtection();
         services.AddMemoryCache();
         services.AddScoped<GoogleDriveCredentialProtector>();
+        services.AddScoped<StudentAnalyzerCredentialProtector>();
         services.AddScoped<IGoogleDriveTokenService, GoogleDriveTokenService>();
         services.AddScoped<IGoogleDriveClient, GoogleDriveClient>();
         services.AddScoped<TeacherDriveFolderGuard>();
@@ -125,6 +129,7 @@ public static class DependencyInjection
         // so only the timeout matters here — it must tolerate a 250 MB upload.
         services.AddHttpClient("GoogleDrive", client => client.Timeout = TimeSpan.FromMinutes(10));
         services.AddHttpClient("GoogleOAuth", client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddHttpClient("StudentAnalyzerAi", client => client.Timeout = TimeSpan.FromMinutes(3));
         services.AddHostedService<EvidenceReconciliationBackgroundService>();
         services.AddSingleton<ImageAssetLoader>();
 

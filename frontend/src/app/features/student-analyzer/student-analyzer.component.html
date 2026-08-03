@@ -1,0 +1,146 @@
+<section class="analyzer" dir="rtl">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">التحليل الذكي للسلوك</span>
+      <h1>محلل تقارير الطلاب</h1>
+      <p>تحليل نفسي وتربوي شامل لبنود المنح والخصم مع حفظ الملفات والتقارير.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/student-analyzer/settings" class="btn btn--secondary"><i class="pi pi-cog"></i> إعدادات المحلل</a>
+      <button *ngIf="view() !== 'library'" class="btn btn--ghost" type="button" (click)="resetFlow()"><i class="pi pi-home"></i> المكتبة</button>
+    </div>
+  </header>
+
+  <div class="progress" *ngIf="view() !== 'library' && view() !== 'parsing'">
+    <div class="progress-step" [class.done]="view() !== 'columns'" [class.active]="view() === 'columns'"><span class="progress-number">1</span><span class="progress-label">اختيار البنود</span></div>
+    <div class="progress-step" [class.done]="view() === 'analyzing' || view() === 'report'" [class.active]="view() === 'students'"><span class="progress-number">2</span><span class="progress-label">اختيار الطالب</span></div>
+    <div class="progress-step" [class.active]="view() === 'analyzing' || view() === 'report'"><span class="progress-number">3</span><span class="progress-label">التحليل والتقرير</span></div>
+  </div>
+
+  <div class="back-row" *ngIf="view() === 'columns' || view() === 'students' || view() === 'report'">
+    <button class="btn btn--ghost" type="button" (click)="back()"><i class="pi pi-arrow-right"></i> رجوع</button>
+    <span *ngIf="sourceFile() as file"><i class="pi pi-file"></i> {{ file.originalFileName }}</span>
+  </div>
+
+  <ng-container *ngIf="view() === 'library'">
+    <div class="upload-card" (dragover)="$event.preventDefault()" (drop)="onDrop($event)">
+      <input #fileInput hidden type="file" accept=".pdf,.xlsx,.xls,.ods,.csv" (change)="onFileInput($event)" />
+      <div class="upload-icon"><i class="pi pi-cloud-upload"></i></div>
+      <h2>ارفع تقرير الطلاب</h2>
+      <p>اسحب ملف PDF أو Excel أو CSV هنا، أو اختره من جهازك. الحد الأقصى 50 MB.</p>
+      <div class="upload-actions">
+        <button class="btn btn--primary" type="button" [disabled]="busy()" (click)="fileInput.click()"><i class="pi pi-folder-open"></i> اختيار ملف</button>
+        <button class="btn btn--secondary" type="button" (click)="manualOpen = true"><i class="pi pi-pencil"></i> إدخال يدوي</button>
+        <button class="btn btn--ghost" type="button" [disabled]="busy()" (click)="loadDemo()"><i class="pi pi-flask"></i> بيانات تجريبية</button>
+      </div>
+      <div class="format-badges"><span>PDF</span><span>Excel</span><span>CSV</span><span><i class="pi pi-shield"></i> حفظ آمن داخل المدرسة</span></div>
+    </div>
+
+    <section class="library-section">
+      <div class="section-heading"><div><h2>مكتبة الملفات</h2><p>{{ fileTotal() }} ملف محفوظ</p></div></div>
+      <div class="filters">
+        <input type="search" placeholder="ابحث باسم الملف أو الرافع..." [ngModel]="fileSearch()" (ngModelChange)="fileSearch.set($event)" (keyup.enter)="loadFiles(true)" />
+        <select [ngModel]="fileKind()" (ngModelChange)="fileKind.set($event)">
+          <option [ngValue]="null">كل الأنواع</option><option [ngValue]="fileKinds.Pdf">PDF</option><option [ngValue]="fileKinds.Spreadsheet">Excel</option><option [ngValue]="fileKinds.Csv">CSV</option>
+        </select>
+        <button class="btn btn--secondary" (click)="loadFiles(true)"><i class="pi pi-filter"></i> تطبيق</button>
+        <button class="btn btn--ghost" (click)="fileSearch.set(''); fileKind.set(null); loadFiles(true)">مسح</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>الملف</th><th>النوع والحجم</th><th>رُفع بواسطة</th><th>التاريخ</th><th>التحليلات</th><th>الإجراءات</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let file of files()">
+            <td><strong>{{ file.originalFileName }}</strong></td>
+            <td><span class="tag">{{ kindName(file.fileKind) }}</span> {{ formatBytes(file.sizeBytes) }}</td>
+            <td>{{ file.uploadedByFullName }}</td><td>{{ file.uploadedAt | date:'medium':'':'ar-EG' }}</td>
+            <td>{{ file.analysisCount || 0 }}<small *ngIf="file.lastAnalyzedAt"> آخر تحليل {{ file.lastAnalyzedAt | date:'short':'':'ar-EG' }}</small></td>
+            <td class="row-actions"><button title="فتح وتحليل" (click)="openStoredFile(file)"><i class="pi pi-play"></i></button><button class="danger" title="حذف" (click)="deleteFile(file)"><i class="pi pi-trash"></i></button></td>
+          </tr>
+          <tr *ngIf="!files().length"><td colspan="6" class="empty">لا توجد ملفات مطابقة.</td></tr>
+        </tbody></table>
+      </div>
+      <div class="pager"><button [disabled]="filePage() <= 1" (click)="changeFilePage(-1)">السابق</button><span>صفحة {{ filePage() }} من {{ fileTotalPages() }}</span><button [disabled]="filePage() >= fileTotalPages()" (click)="changeFilePage(1)">التالي</button></div>
+    </section>
+
+    <section class="library-section">
+      <div class="section-heading"><div><h2>سجل تقارير التحليل</h2><p>{{ reportTotal() }} تقرير محفوظ ويمكن فتحه في أي وقت</p></div></div>
+      <div class="filters">
+        <input type="search" placeholder="ابحث باسم الطالب أو الملف..." [ngModel]="reportSearch()" (ngModelChange)="reportSearch.set($event)" (keyup.enter)="loadReports(true)" />
+        <select [ngModel]="reportProvider()" (ngModelChange)="reportProvider.set($event)">
+          <option [ngValue]="null">كل المزودين</option><option [ngValue]="provider.Groq">Groq</option><option [ngValue]="provider.Gemini">Gemini</option><option [ngValue]="provider.OpenRouter">OpenRouter</option>
+        </select>
+        <button class="btn btn--secondary" (click)="loadReports(true)"><i class="pi pi-filter"></i> تطبيق</button>
+        <button class="btn btn--ghost" (click)="reportSearch.set(''); reportProvider.set(null); loadReports(true)">مسح</button>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>الطالب</th><th>الملف</th><th>النتيجة</th><th>المزود / الموديل</th><th>أعدّه</th><th>التاريخ</th><th>الإجراءات</th></tr></thead>
+        <tbody><tr *ngFor="let item of reports()">
+          <td><strong>{{ item.studentName }}</strong></td><td>{{ item.sourceFileName }}</td>
+          <td><span class="positive">+{{ item.grantTotal }}</span> / <span class="negative">-{{ item.deductionTotal }}</span></td>
+          <td><span class="tag">{{ providerName(item.provider) }}</span><small>{{ item.model }}</small></td><td>{{ item.createdByFullName }}</td><td>{{ item.createdAt | date:'medium':'':'ar-EG' }}</td>
+          <td class="row-actions"><button title="فتح التقرير" (click)="openReport(item)"><i class="pi pi-eye"></i></button><button class="danger" title="حذف" (click)="deleteReport(item)"><i class="pi pi-trash"></i></button></td>
+        </tr><tr *ngIf="!reports().length"><td colspan="7" class="empty">لا توجد تقارير مطابقة.</td></tr></tbody>
+      </table></div>
+      <div class="pager"><button [disabled]="reportPage() <= 1" (click)="changeReportPage(-1)">السابق</button><span>صفحة {{ reportPage() }} من {{ reportTotalPages() }}</span><button [disabled]="reportPage() >= reportTotalPages()" (click)="changeReportPage(1)">التالي</button></div>
+    </section>
+  </ng-container>
+
+  <div class="center-state" *ngIf="view() === 'parsing'">
+    <div class="loader"></div><h2>جاري قراءة الملف وحفظ هيكله</h2><p>{{ parsingStatus() }}</p>
+  </div>
+
+  <section class="workflow-card" *ngIf="view() === 'columns'">
+    <div class="section-heading"><div><h2>اختيار أعمدة التحليل</h2><p>تم اكتشاف وتصنيف البنود تلقائيًا. راجعها قبل المتابعة.</p></div></div>
+    <div class="column-grid">
+      <div class="column-box grant"><div class="column-title"><h3>✅ بنود المنح <span>{{ selectedGrants().size }}/{{ classification().grants.length }}</span></h3><div><button (click)="setAll('grant', true)">الكل</button><button (click)="setAll('grant', false)">مسح</button></div></div>
+        <label *ngFor="let column of classification().grants"><input type="checkbox" [checked]="selectedGrants().has(column)" (change)="toggleColumn(column, 'grant', $any($event.target).checked)" />{{ column }}</label>
+        <p class="empty" *ngIf="!classification().grants.length">لم يتم اكتشاف أعمدة منح.</p>
+      </div>
+      <div class="column-box deduction"><div class="column-title"><h3>❌ بنود الخصم <span>{{ selectedDeductions().size }}/{{ classification().deductions.length }}</span></h3><div><button (click)="setAll('deduction', true)">الكل</button><button (click)="setAll('deduction', false)">مسح</button></div></div>
+        <label *ngFor="let column of classification().deductions"><input type="checkbox" [checked]="selectedDeductions().has(column)" (change)="toggleColumn(column, 'deduction', $any($event.target).checked)" />{{ column }}</label>
+        <p class="empty" *ngIf="!classification().deductions.length">لم يتم اكتشاف أعمدة خصم.</p>
+      </div>
+    </div>
+    <div class="unknown-box" *ngIf="classification().unknown.length"><h3>بنود تحتاج تصنيفك</h3><div *ngFor="let column of classification().unknown"><strong>{{ column }}</strong><select [ngModel]="unknownChoices()[column] || ''" (ngModelChange)="classifyUnknown(column, $event)"><option value="">-- صنّف --</option><option value="grant">✅ بند منح</option><option value="deduction">❌ بند خصم</option><option value="skip">⏭ تجاهل</option></select></div></div>
+    <div class="workflow-footer"><span>تم اختيار {{ selectedGrants().size + selectedDeductions().size }} بند</span><button class="btn btn--primary" (click)="proceedToStudents()">اختيار الطالب <i class="pi pi-arrow-left"></i></button></div>
+  </section>
+
+  <section class="workflow-card" *ngIf="view() === 'students'">
+    <div class="section-heading"><div><h2>اختيار الطالب</h2><p>إجمالي الطلاب: {{ students().length }} | لديهم مخالفات: {{ studentsWithIssues() }}</p></div></div>
+    <div class="student-toolbar"><input type="search" placeholder="ابحث باسم الطالب..." [ngModel]="studentSearch()" (ngModelChange)="studentSearch.set($event)" /><select [ngModel]="studentSort()" (ngModelChange)="studentSort.set($event)"><option value="name">الاسم</option><option value="deductions-desc">الأعلى خصمًا</option><option value="grants-desc">الأعلى منحًا</option><option value="net-asc">الأقل صافيًا</option></select></div>
+    <div class="student-grid">
+      <article class="student-card" *ngFor="let student of filteredStudents()" [class.bad]="student.__deductionTotal__ > student.__grantTotal__ || student.__deductionTotal__ > 5" [class.good]="student.__grantTotal__ > student.__deductionTotal__ && student.__grantTotal__ > 3" (click)="analyzeStudent(student)">
+        <div class="avatar">{{ initials(studentName(student)) }}</div><h3>{{ studentName(student) }}</h3>
+        <div class="stats"><span class="positive">✅ {{ student.__grantTotal__ }} منحة</span><span class="negative">❌ {{ student.__deductionTotal__ }} خصم</span><span [class.positive]="student.__netScore__ >= 0" [class.negative]="student.__netScore__ < 0">{{ student.__netScore__ >= 0 ? '+' : '' }}{{ student.__netScore__ }} صافي</span></div>
+        <div class="issues" *ngIf="topIssues(student).length; else noIssues"><span *ngFor="let issue of topIssues(student)">⚠️ {{ issue.column }}: {{ issue.value }}</span></div><ng-template #noIssues><p class="no-issues">✨ لا توجد مخالفات</p></ng-template>
+        <button class="btn btn--primary">🧠 تحليل هذا الطالب</button>
+      </article>
+    </div>
+    <div class="empty" *ngIf="!filteredStudents().length">لم يتم العثور على طلاب مطابقين.</div>
+  </section>
+
+  <div class="center-state" *ngIf="view() === 'analyzing'">
+    <div class="brain">🧠</div><div class="loader"></div><h2>جاري بناء التحليل النفسي والتربوي</h2><p>يتم الآن تحليل نقاط المنح والخصم وربط الأنماط وبناء خطة التدخل ذات الأقسام الثمانية...</p><small>قد يستغرق هذا بضع ثوانٍ. لا تغلق الصفحة.</small>
+  </div>
+
+  <ng-container *ngIf="view() === 'report' && analysis() as report">
+    <div class="report-actions"><button class="btn btn--secondary" (click)="copyReport()"><i class="pi pi-copy"></i> نسخ النص</button><button class="btn btn--primary" (click)="exportReport()"><i class="pi pi-file-pdf"></i> تصدير PDF</button></div>
+    <article class="report-doc" #reportDocument>
+      <header class="report-band"><div><span>🎓</span><strong>محلل تقارير الطلاب | بالذكاء الاصطناعي</strong></div><div class="report-meta"><span><small>تاريخ التقرير</small>{{ report.createdAt | date:'longDate':'':'ar-EG' }}</span><span><small>المدرسة</small>{{ capabilities().schoolName || 'غير محدد' }}</span><span><small>مصدر البيانات</small>{{ report.sourceFileName }}</span></div></header>
+      <section class="identity"><div class="avatar">{{ initials(report.studentName) }}</div><div><h2>{{ report.studentName }}</h2><p>تقرير التحليل النفسي والسلوكي الشامل</p></div><div class="score-badges"><span class="positive">✅ {{ report.grantTotal }} منحة</span><span class="negative">❌ {{ report.deductionTotal }} خصم</span><span>{{ report.grantTotal - report.deductionTotal >= 0 ? '⬆️ +' : '⬇️ ' }}{{ report.grantTotal - report.deductionTotal }} صافي</span></div></section>
+      <section class="report-section"><h3>📊 بيانات الطالب المُستخرجة</h3><div class="table-wrap"><table><thead><tr><th>البند</th><th>النوع</th><th>القيمة</th></tr></thead><tbody><tr *ngFor="let item of report.selectedData.grants"><td>{{ item.column }}</td><td class="positive">✅ منحة</td><td>{{ item.value }}</td></tr><tr *ngFor="let item of report.selectedData.deductions"><td>{{ item.column }}</td><td class="negative">❌ خصم</td><td>{{ item.value }}</td></tr></tbody></table></div></section>
+      <section class="report-section"><h3>📈 المخطط البياني للسلوك</h3><div class="charts"><article class="chart-card chart-card--comparison"><h4>مقارنة المنح والخصم</h4><div class="chart-viewport"><canvas #barChart></canvas></div></article><article class="chart-card chart-card--distribution"><h4>توزيع نقاط الخصم</h4><div class="chart-viewport"><canvas #doughnutChart></canvas><p *ngIf="!report.deductionTotal" class="no-issues">✨ لا توجد مخالفات مسجلة</p></div></article></div></section>
+      <section class="report-section"><h3>🤖 التحليل النفسي والتربوي — {{ providerName(report.provider) }}</h3>
+        <article class="analysis-section" *ngFor="let section of analysisSections()" [attr.data-tone]="section.tone"><header><span>{{ section.icon }}</span><h4>{{ section.title }}</h4></header><div class="analysis-body" [innerHTML]="section.bodyHtml"></div></article>
+      </section>
+      <footer class="report-footer"><p>⚠️ هذا التقرير مُولَّد بالذكاء الاصطناعي وهو للأغراض الإرشادية فقط. يجب توظيفه بجانب التقييم المهني للمرشد الطلابي ولا يُعدّ تشخيصاً طبياً أو نفسياً رسمياً.</p><strong>🎓 محلل تقارير الطلاب</strong><small>أُعدّ بواسطة: {{ report.createdByFullName }} | {{ report.createdAt | date:'medium':'':'ar-EG' }} | {{ providerName(report.provider) }} / {{ report.model }}</small></footer>
+    </article>
+  </ng-container>
+
+  <div class="modal-backdrop" *ngIf="manualOpen" (click)="manualOpen = false">
+    <section class="modal" (click)="$event.stopPropagation()"><header><div><h2>إدخال بيانات الطلاب يدويًا</h2><p>نفس مسار التحليل، وسيتم حفظ الإدخال كملف CSV في المكتبة.</p></div><button (click)="manualOpen = false">×</button></header>
+      <label>صيغة البيانات<select [(ngModel)]="manualFormat"><option value="json">JSON</option><option value="csv">CSV</option></select></label>
+      <label>البيانات<textarea rows="13" [(ngModel)]="manualData" [placeholder]="manualFormat === 'json' ? '[{ &quot;اسم الطالب&quot;: &quot;أحمد&quot;, &quot;التعاون&quot;: 5 }]' : 'اسم الطالب,التعاون,التأخر\nأحمد,5,1'"></textarea></label>
+      <p class="form-error" *ngIf="manualError">{{ manualError }}</p><footer><button class="btn btn--ghost" (click)="manualOpen = false">إلغاء</button><button class="btn btn--primary" [disabled]="busy()" (click)="submitManual()">حفظ ومتابعة</button></footer>
+    </section>
+  </div>
+</section>

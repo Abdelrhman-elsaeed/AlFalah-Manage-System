@@ -4,6 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
+import { studentAnalyzerGuard } from './core/guards/student-analyzer.guard';
 
 function translatedTitle(key: string): ResolveFn<string> {
   return () => inject(TranslateService).get(key);
@@ -410,6 +411,26 @@ export const routes: Routes = [
         loadComponent: () => import('./features/complaints/complaints-list/complaints-list.component')
           .then(m => m.ComplaintsListComponent),
         title: translatedTitle('ROUTE_TITLES.COMPLAINTS')
+      },
+
+      // Access is school-scoped and assigned dynamically by the school manager.
+      {
+        path: 'student-analyzer',
+        canActivate: [studentAnalyzerGuard],
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./features/student-analyzer/student-analyzer.component')
+              .then(m => m.StudentAnalyzerComponent),
+            title: 'محلل تقارير الطلاب'
+          },
+          {
+            path: 'settings',
+            loadComponent: () => import('./features/student-analyzer/student-analyzer-settings.component')
+              .then(m => m.StudentAnalyzerSettingsComponent),
+            title: 'إعدادات محلل تقارير الطلاب'
+          }
+        ]
       },
 
       // ─── Account Settings (Any authenticated user) ──────────────────────

@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { StudentAnalyzerService } from '../../../core/services/student-analyzer.service';
 
 interface NavItem {
   labelKey: string;
@@ -16,6 +17,7 @@ interface NavItem {
   tooltipKey?: string;
   /** Highlight only on an exact URL match — for parents of deeper routes (e.g. /users). */
   exact?: boolean;
+  requiresStudentAnalyzerAccess?: boolean;
 }
 
 interface NavCategory {
@@ -135,6 +137,7 @@ export class ShellComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly studentAnalyzer = inject(StudentAnalyzerService);
   private readonly sidebarStorageKey = 'alfalah-shell-sidebar-collapsed';
 
   private lastContentScrollTop = 0;
@@ -149,6 +152,7 @@ export class ShellComponent implements OnInit {
   readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());
   readonly isSidebarCollapsed = signal(this.getInitialSidebarState());
   readonly isTopbarHidden = signal(false);
+  readonly hasStudentAnalyzerAccess = signal(false);
 
   private readonly categories = SHELL_NAV_CATEGORIES;
 
@@ -183,6 +187,14 @@ export class ShellComponent implements OnInit {
         { labelKey: 'NAV.COMPLAINT_RESULTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
         { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
       );
+    }
+    if (this.hasStudentAnalyzerAccess()) {
+      items.push({
+        labelKey: 'محلل تقارير الطلاب',
+        icon: 'pi pi-sparkles',
+        route: '/student-analyzer',
+        requiresStudentAnalyzerAccess: true
+      });
     }
     return items;
   });
@@ -221,6 +233,10 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.studentAnalyzer.capabilities().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: response => this.hasStudentAnalyzerAccess.set(!!response.data?.canAccess),
+      error: () => this.hasStudentAnalyzerAccess.set(false)
+    });
     this.expandActiveCategory(this.router.url);
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -331,6 +347,7 @@ export class ShellComponent implements OnInit {
   }
 
   private canSee(item: NavItem): boolean {
+    if (item.requiresStudentAnalyzerAccess && !this.hasStudentAnalyzerAccess()) return false;
     const roles = this.authService.roles();
     const permissions = this.authService.permissions();
     if (item.roles && !item.roles.some(role => roles.includes(role))) return false;

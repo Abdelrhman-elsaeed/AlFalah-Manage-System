@@ -1,0 +1,35 @@
+<section class="settings-page" dir="rtl">
+  <header class="page-header"><div><a routerLink="/student-analyzer"><i class="pi pi-arrow-right"></i> العودة للمحلل</a><span>إعدادات خاصة بمدرسة {{ capabilities().schoolName }}</span><h1>إعدادات محلل تقارير الطلاب</h1><p>مفاتيح الـAPI مشتركة على مستوى المدرسة، ومشفّرة ولا تظهر مرة أخرى بعد الحفظ.</p></div></header>
+
+  <section class="card">
+    <div class="card-title"><div><span class="icon"><i class="pi pi-sparkles"></i></span><div><h2>مزود الذكاء الاصطناعي</h2><p>مدير المدرسة أو أي شخص مفوّض يمكنه إدارة هذه الإعدادات.</p></div></div><span class="secure"><i class="pi pi-lock"></i> تشفير آمن</span></div>
+    <div class="provider-tabs">
+      <button *ngFor="let item of [provider.Groq, provider.Gemini, provider.OpenRouter]" [class.active]="activeProvider === item" (click)="activeProvider = item; providerChanged()"><strong>{{ providerName(item) }}</strong><small>{{ item === provider.Groq ? 'سرعة عالية' : item === provider.Gemini ? 'Google AI' : 'موديلات مجانية متعددة' }}</small></button>
+    </div>
+
+    <div class="provider-panel" *ngIf="activeProvider === provider.Groq">
+      <label>مفتاح Groq API <span *ngIf="settings()?.hasGroqApiKey" class="configured">✓ مفتاح محفوظ</span><input type="password" [(ngModel)]="groqApiKey" autocomplete="new-password" placeholder="اتركه فارغًا للاحتفاظ بالمفتاح الحالي" /></label>
+      <label class="clear"><input type="checkbox" [(ngModel)]="clearGroq" /> حذف المفتاح الحالي</label>
+      <label>الموديل<select [(ngModel)]="groqModel"><option *ngIf="!models().length" [value]="groqModel">{{ groqModel }}</option><option *ngFor="let model of models()" [value]="model.id">{{ model.name }} — {{ model.id }}</option></select></label>
+    </div>
+    <div class="provider-panel" *ngIf="activeProvider === provider.Gemini">
+      <label>مفتاح Gemini API <span *ngIf="settings()?.hasGeminiApiKey" class="configured">✓ مفتاح محفوظ</span><input type="password" [(ngModel)]="geminiApiKey" autocomplete="new-password" placeholder="اتركه فارغًا للاحتفاظ بالمفتاح الحالي" /></label>
+      <label class="clear"><input type="checkbox" [(ngModel)]="clearGemini" /> حذف المفتاح الحالي</label>
+      <label>الموديل<select [(ngModel)]="geminiModel"><option *ngIf="!models().length" [value]="geminiModel">{{ geminiModel }}</option><option *ngFor="let model of models()" [value]="model.id">{{ model.name }} — {{ model.id }}</option></select></label>
+    </div>
+    <div class="provider-panel" *ngIf="activeProvider === provider.OpenRouter">
+      <label>مفتاح OpenRouter API <span *ngIf="settings()?.hasOpenRouterApiKey" class="configured">✓ مفتاح محفوظ</span><input type="password" [(ngModel)]="openRouterApiKey" autocomplete="new-password" placeholder="اتركه فارغًا للاحتفاظ بالمفتاح الحالي" /></label>
+      <label class="clear"><input type="checkbox" [(ngModel)]="clearOpenRouter" /> حذف المفتاح الحالي</label>
+      <label>موديل OpenRouter المجاني<select [(ngModel)]="openRouterModel"><option *ngIf="!models().length" [value]="openRouterModel">{{ openRouterModel }}</option><option *ngFor="let model of models()" [value]="model.id">{{ model.name }} — {{ model.id }}{{ model.contextLength ? ' (' + model.contextLength + ')' : '' }}</option></select><small class="hint">اختر يدويًا أي موديل مجاني متاح لدى OpenRouter. يعاد التحقق من مجانية الموديل وتوفره قبل كل تحليل.</small></label>
+    </div>
+    <div class="model-status"><button type="button" (click)="loadModels()" [disabled]="loadingModels() || !hasCurrentKey()"><i class="pi" [class.pi-spin]="loadingModels()" [class.pi-spinner]="loadingModels()" [class.pi-refresh]="!loadingModels()"></i> تحديث قائمة الموديلات</button><span *ngIf="models().length">{{ models().length }} موديل متاح</span><span *ngIf="!hasCurrentKey()">أدخل مفتاح المزود أولًا ثم حدّث القائمة.</span><span *ngIf="activeProvider === provider.OpenRouter && !settings()?.hasOpenRouterApiKey">يمكن استعراض الموديلات الآن، ويلزم المفتاح عند الحفظ والتحليل.</span></div>
+    <footer><span *ngIf="settings()?.updatedAt">آخر تحديث: {{ settings()?.updatedAt | date:'medium':'':'ar-EG' }} بواسطة {{ settings()?.updatedByFullName }}</span><button class="primary" [disabled]="saving()" (click)="save()"><i class="pi pi-save"></i> حفظ الإعدادات</button></footer>
+  </section>
+
+  <section class="card" *ngIf="capabilities().canDelegate">
+    <div class="card-title"><div><span class="icon users"><i class="pi pi-users"></i></span><div><h2>تفويض استخدام الخاصية</h2><p>مدير المدرسة وحده يختار أي أشخاص في المدرسة. المفوّض له كل صلاحيات المحلل والإعدادات، ولا يستطيع تفويض غيره.</p></div></div><span class="count">{{ grantedDelegateCount() }} مفوّض</span></div>
+    <input class="search" type="search" [(ngModel)]="delegateSearch" placeholder="ابحث بالاسم أو اسم المستخدم أو الدور..." />
+    <div class="delegates"><label *ngFor="let person of filteredDelegates()"><span class="avatar">{{ person.fullName.slice(0, 2) }}</span><span><strong>{{ person.fullName }}</strong><small>{{ person.username }} · {{ person.roles.join('، ') }}</small></span><input type="checkbox" [checked]="person.isGranted" (change)="toggleDelegate(person.userId, $any($event.target).checked)" /></label><p *ngIf="!filteredDelegates().length">لا يوجد أشخاص مطابقون.</p></div>
+    <footer><span>يمكن اختيار أكثر من شخص.</span><button class="primary" [disabled]="savingDelegates()" (click)="saveDelegates()"><i class="pi pi-check"></i> حفظ التفويض</button></footer>
+  </section>
+</section>

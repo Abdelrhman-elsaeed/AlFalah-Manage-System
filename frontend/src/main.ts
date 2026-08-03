@@ -1,6 +1,10 @@
+import { registerLocaleData } from '@angular/common';
+import localeAr from '@angular/common/locales/ar';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
+
+registerLocaleData(localeAr, 'ar-EG');
 
 function checkI18nDuplicateKeys(lang: string): void {
   // Lightweight runtime guard (development only): fetch each i18n file as
