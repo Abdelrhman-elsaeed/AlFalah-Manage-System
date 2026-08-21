@@ -28,7 +28,6 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
         PdfTheme.EnsureFonts();
         var palette = PdfPalette.For(colorMode);
         var entries = timetable.Entries.ToDictionary(x => (x.InstructorProfileId, x.Day, x.Period));
-        var summaries = timetable.TeacherSummaries.ToDictionary(x => x.InstructorProfileId);
         var logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Logo.png");
         var logo = colorMode == TimetablePdfColorMode.Color && File.Exists(logoPath)
             ? File.ReadAllBytes(logoPath)
@@ -37,14 +36,14 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
         var document = Document.Create(container => container.Page(page =>
         {
             page.Size(PageSizes.A4.Landscape());
-            page.Margin(10);
-            page.DefaultTextStyle(style => style.FontFamily(PdfTheme.Font).FontSize(3.7f)
+            page.Margin(6);
+            page.DefaultTextStyle(style => style.FontFamily(PdfTheme.Font).FontSize(4.5f)
                 .DirectionFromRightToLeft().FontColor(palette.BodyText));
-            page.Header().Height(48).Element(header => ComposeHeader(header, timetable, catalog, logo, palette));
-            page.Content().PaddingTop(5).Element(content => ComposeGrid(content, catalog.Teachers, entries, summaries, palette));
-            page.Footer().Height(14).AlignCenter().Text(
+            page.Header().Height(30).Element(header => ComposeHeader(header, timetable, catalog, logo, palette));
+            page.Content().PaddingTop(2).Element(content => ComposeGrid(content, catalog.Teachers, entries, palette));
+            page.Footer().Height(9).AlignCenter().Text(
                 $"نسخة رقم {timetable.Revision} • آخر تحديث {timetable.UpdatedAt:yyyy-MM-dd HH:mm} • A4 أفقي • {palette.Label}")
-                .FontSize(4.2f).FontColor(palette.Muted);
+                .FontSize(3.6f).FontColor(palette.Muted);
         }));
 
         var safeTitle = SanitizeFileName(timetable.Title);
@@ -187,15 +186,19 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
         byte[]? logo,
         PdfPalette palette)
     {
-        container.BorderBottom(1.2f).BorderColor(palette.Accent).PaddingBottom(4).Row(row =>
+        container.BorderBottom(1f).BorderColor(palette.Accent).PaddingBottom(2).Row(row =>
         {
-            row.RelativeItem().AlignRight().Column(column =>
+            // Equal side columns keep the heading centered on the physical page,
+            // regardless of whether the colored version includes a logo.
+            row.ConstantItem(34);
+            row.RelativeItem().AlignCenter().Column(column =>
             {
-                column.Item().AlignRight().Text(timetable.Title).FontSize(11).Bold().FontColor(palette.HeadingText);
-                column.Item().AlignRight().Text($"{catalog.SchoolName} • {timetable.AcademicYearName} • {timetable.SemesterLabelAr}")
-                    .FontSize(5.4f).FontColor(palette.Muted);
+                column.Item().AlignCenter().Text(timetable.Title).FontSize(8f).Bold().FontColor(palette.HeadingText);
+                column.Item().AlignCenter().Text($"{catalog.SchoolName} • {timetable.AcademicYearName} • {timetable.SemesterLabelAr}")
+                    .FontSize(4.6f).SemiBold().FontColor(palette.Muted);
             });
-            if (logo is not null) row.ConstantItem(42).Height(36).Image(logo).FitArea();
+            var logoItem = row.ConstantItem(34).Height(25);
+            if (logo is not null) logoItem.Image(logo).FitArea();
         });
     }
 
@@ -203,41 +206,31 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
         IContainer container,
         IReadOnlyList<TimetableTeacherDto> teachers,
         IReadOnlyDictionary<(int InstructorProfileId, TimetableDay Day, byte Period), TimetableEntryDto> entries,
-        IReadOnlyDictionary<int, TimetableTeacherSummaryDto> summaries,
         PdfPalette palette)
     {
         container.Table(table =>
         {
             table.ColumnsDefinition(columns =>
             {
-                columns.ConstantColumn(22);
-                columns.ConstantColumn(22);
                 for (var index = 0; index < 48; index++) columns.RelativeColumn();
-                columns.ConstantColumn(88);
+                columns.ConstantColumn(58);
             });
 
             table.Header(header =>
             {
-                HeaderCell(header.Cell(), string.Empty, palette);
-                HeaderCell(header.Cell(), string.Empty, palette);
                 foreach (var day in PhysicalDays)
-                    HeaderCell(header.Cell().ColumnSpan(8), SchoolTimetableService.DayLabel(day), palette, 4.4f);
+                    HeaderCell(header.Cell().ColumnSpan(8), SchoolTimetableService.DayLabel(day), palette, 5.2f);
                 HeaderCell(header.Cell(), string.Empty, palette);
 
-                HeaderCell(header.Cell(), "الإجمالي", palette, 3.4f);
-                HeaderCell(header.Cell(), "منتظر", palette, 3.4f);
                 foreach (var _ in PhysicalDays)
                 for (var period = 8; period >= 1; period--)
-                    HeaderCell(header.Cell(), period.ToString(), palette, 3.5f);
-                HeaderCell(header.Cell(), "المعلم", palette, 4.4f);
+                    HeaderCell(header.Cell(), period.ToString(), palette, 4.5f);
+                HeaderCell(header.Cell(), "المعلم", palette, 5.2f);
             });
 
             var rowIndex = 0;
             foreach (var teacher in teachers)
             {
-                summaries.TryGetValue(teacher.InstructorProfileId, out var summary);
-                BodyCell(table.Cell(), (summary?.LessonCount ?? 0).ToString(), false, rowIndex, palette);
-                BodyCell(table.Cell(), (summary?.StandbyCount ?? 0).ToString(), false, rowIndex, palette);
                 foreach (var day in PhysicalDays)
                 for (var period = 8; period >= 1; period--)
                 {
@@ -249,7 +242,7 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
                     else
                         BodyCell(table.Cell(), string.Empty, false, rowIndex, palette);
                 }
-                BodyCell(table.Cell(), teacher.FullName, false, rowIndex, palette, true);
+                BodyCell(table.Cell(), teacher.FullName, false, rowIndex, palette, true, true);
                 rowIndex++;
             }
         });
@@ -261,7 +254,7 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
         PdfPalette palette,
         float fontSize = 3.8f) =>
         cell.Background(palette.HeaderBackground).Border(0.55f).BorderColor(palette.BorderStrong)
-            .PaddingVertical(1.2f).PaddingHorizontal(0.4f).AlignCenter().AlignMiddle()
+            .MinHeight(10).PaddingVertical(1.1f).PaddingHorizontal(0.35f).AlignCenter().AlignMiddle()
             .Text(value).FontSize(fontSize).Bold().FontColor(palette.HeadingText);
 
     private static void BodyCell(
@@ -270,15 +263,19 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
         bool standby,
         int rowIndex,
         PdfPalette palette,
-        bool bold = false)
+        bool bold = false,
+        bool alignRight = false)
     {
         var styled = cell
             .Background(standby ? palette.StandbyBackground : rowIndex % 2 == 0 ? palette.White : palette.ZebraRow)
-            .Border(0.4f).BorderColor(palette.Border)
-            .MinHeight(10).PaddingVertical(0.7f).PaddingHorizontal(0.3f).AlignCenter().AlignMiddle();
-        var text = styled.Text(value).FontSize(standby ? 3.1f : 3.2f)
+            .Border(0.55f).BorderColor(palette.Border)
+            .MinHeight(17).PaddingVertical(0.8f).PaddingHorizontal(0.25f).AlignMiddle();
+        styled = alignRight
+            ? styled.PaddingRight(1.6f).AlignRight()
+            : styled.AlignCenter();
+        var text = styled.Text(value).FontSize(standby ? 4.2f : 4.4f).Bold()
             .FontColor(standby ? palette.StandbyText : palette.BodyText);
-        if (bold) text.Bold().FontSize(3.8f);
+        if (bold) text.Bold().FontSize(5f);
     }
 
     private sealed record PdfPalette(
