@@ -320,6 +320,8 @@ public class DashboardService : IDashboardService
         // Complaints count (NO content). Phase 8: scope is school-only here.
         var complaintsCount = await _context.Complaints.AsNoTracking()
             .CountAsync(c => c.SchoolId == schoolId && !c.IsDeleted, cancellationToken);
+        var openComplaintsCount = await _context.Complaints.AsNoTracking()
+            .CountAsync(c => c.SchoolId == schoolId && !c.IsDeleted && (c.Status == ComplaintStatus.Open || c.Status == ComplaintStatus.InReview), cancellationToken);
 
         return new SchoolManagerDashboardDto
         {
@@ -330,6 +332,7 @@ public class DashboardService : IDashboardService
             VisitsThisMonthCount = visitsThisMonthCount,
             EvaluationsPendingApprovalCount = evaluationsPendingApprovalCount,
             ComplaintsCount = complaintsCount,
+            OpenComplaintsCount = openComplaintsCount,
             InstructorsNeedingImprovementCount = instructorsNeeding.Count,
             VisitsByStatus = visitsByStatus,
             SubjectPerformance = subjectRows,

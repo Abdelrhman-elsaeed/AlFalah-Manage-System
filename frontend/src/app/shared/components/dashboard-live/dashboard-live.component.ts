@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, Input, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ChartData } from 'chart.js';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { Observable, interval } from 'rxjs';
 import {
   DashboardRole,
@@ -49,6 +51,26 @@ interface RankingRow {
   average: number | null;
 }
 
+interface ToolCard {
+  id: string;
+  label: string;
+  icon: string;
+  route: string;
+  stat: string | number;
+  statLabel: string;
+  badge: number;
+  badgeLabel: string;
+  color: 'brand' | 'gold' | 'danger' | 'success' | 'info' | 'purple';
+}
+
+interface UrgentAction {
+  icon: string;
+  label: string;
+  count: number;
+  route: string;
+  tone: 'danger' | 'gold';
+}
+
 interface DashboardHighlight {
   labelKey: string;
   value: string;
@@ -58,7 +80,7 @@ interface DashboardHighlight {
 @Component({
   selector: 'app-dashboard-live',
   standalone: true,
-  imports: [CommonModule, TranslateModule, ButtonModule, ChartModule, TableModule, TagModule, SchoolMapComponent,
+  imports: [CommonModule, TranslateModule, ButtonModule, ChartModule, TableModule, TagModule, TooltipModule, SchoolMapComponent,
     PublishedScorePipe
   ],
   templateUrl: './dashboard-live.component.html',
@@ -71,6 +93,7 @@ export class DashboardLiveComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   readonly data = signal<DashboardData | null>(null);
   readonly loading = signal(false);
@@ -252,6 +275,162 @@ export class DashboardLiveComponent implements OnInit {
   readonly instructorData = computed(() => this.role === 'instructor'
     ? this.data() as InstructorDashboard | null
     : null);
+
+  /* ────── School Manager: Urgent Actions ────── */
+  readonly urgentActions = computed<UrgentAction[]>(() => {
+    if (this.role !== 'school-manager') return [];
+    const d = this.data() as SchoolManagerDashboard | null;
+    if (!d) return [];
+    const actions: UrgentAction[] = [];
+    if (d.evaluationsPendingApprovalCount > 0) {
+      actions.push({
+        icon: 'pi-verified',
+        label: 'زيارات بانتظار اعتمادك',
+        count: d.evaluationsPendingApprovalCount,
+        route: '/visits',
+        tone: 'gold'
+      });
+    }
+    if (d.openComplaintsCount > 0) {
+      actions.push({
+        icon: 'pi-flag',
+        label: 'شكاوى تحتاج متابعة',
+        count: d.openComplaintsCount,
+        route: '/complaints',
+        tone: 'danger'
+      });
+    }
+    if (d.instructorsNeedingImprovementCount > 0) {
+      actions.push({
+        icon: 'pi-exclamation-triangle',
+        label: 'معلمون يحتاجون دعماً مهنياً',
+        count: d.instructorsNeedingImprovementCount,
+        route: '/teachers',
+        tone: 'danger'
+      });
+    }
+    return actions;
+  });
+
+  /* ────── School Manager: Interactive Tool Cards ────── */
+  readonly schoolManagerTools = computed<ToolCard[]>(() => {
+    if (this.role !== 'school-manager') return [];
+    const d = this.data() as SchoolManagerDashboard | null;
+    if (!d) return [];
+    const totalVisits = d.visitsByStatus.reduce((sum, r) => sum + r.count, 0);
+    return [
+      {
+        id: 'visits',
+        label: 'الزيارات الصفية',
+        icon: 'pi-clipboard',
+        route: '/visits',
+        stat: totalVisits,
+        statLabel: 'إجمالي الزيارات',
+        badge: d.evaluationsPendingApprovalCount,
+        badgeLabel: 'بانتظار الاعتماد',
+        color: 'brand'
+      },
+      {
+        id: 'teachers',
+        label: 'الكادر التعليمي',
+        icon: 'pi-users',
+        route: '/teachers',
+        stat: d.instructorsCount,
+        statLabel: 'معلم مسجل',
+        badge: d.instructorsNeedingImprovementCount,
+        badgeLabel: 'يحتاجون دعماً',
+        color: 'info'
+      },
+      {
+        id: 'moderators',
+        label: 'المشرفون التربويون',
+        icon: 'pi-user-edit',
+        route: '/users/moderators',
+        stat: d.moderatorsCount,
+        statLabel: 'مشرف نشط',
+        badge: 0,
+        badgeLabel: '',
+        color: 'purple'
+      },
+      {
+        id: 'plans',
+        label: 'خطط التحسين',
+        icon: 'pi-list-check',
+        route: '/improvement-plans',
+        stat: d.improvementPlans.totalActive,
+        statLabel: 'خطة نشطة',
+        badge: 0,
+        badgeLabel: '',
+        color: 'success'
+      },
+      {
+        id: 'complaints',
+        label: 'الشكاوى والمقترحات',
+        icon: 'pi-flag',
+        route: '/complaints',
+        stat: d.complaintsCount,
+        statLabel: 'شكوى مسجلة',
+        badge: d.openComplaintsCount,
+        badgeLabel: 'بحاجة متابعة',
+        color: 'danger'
+      },
+      {
+        id: 'evidence',
+        label: 'مصفوفة متابعة الأدلة',
+        icon: 'pi-table',
+        route: '/school-manager/evidence-matrix',
+        stat: d.instructorsCount,
+        statLabel: 'ملف إنجاز',
+        badge: 0,
+        badgeLabel: '',
+        color: 'gold'
+      },
+      {
+        id: 'timetable',
+        label: 'الجدول المدرسي',
+        icon: 'pi-calendar-plus',
+        route: '/timetable',
+        stat: '—',
+        statLabel: 'إدارة الحصص',
+        badge: 0,
+        badgeLabel: '',
+        color: 'info'
+      },
+      {
+        id: 'attendance',
+        label: 'الحضور والانصراف',
+        icon: 'pi-calendar',
+        route: '/attendance',
+        stat: '—',
+        statLabel: 'رصد الانضباط',
+        badge: 0,
+        badgeLabel: '',
+        color: 'brand'
+      },
+      {
+        id: 'surveys',
+        label: 'استبيانات أولياء الأمور',
+        icon: 'pi-file-edit',
+        route: '/parent-surveys',
+        stat: '—',
+        statLabel: 'استطلاعات الرأي',
+        badge: 0,
+        badgeLabel: '',
+        color: 'purple'
+      },
+      {
+        id: 'analyzer',
+        label: 'محلل تقارير الطلاب',
+        icon: 'pi-sparkles',
+        route: '/student-analyzer',
+        stat: 'AI',
+        statLabel: 'تحليل ذكي',
+        badge: 0,
+        badgeLabel: '',
+        color: 'gold'
+      }
+    ];
+  });
 
   readonly statusChartData = computed<ChartData<'doughnut'> | null>(() => {
     const rows = this.statusRows();
@@ -435,6 +614,11 @@ export class DashboardLiveComponent implements OnInit {
       instructor: DashboardRole.Instructor
     };
     return roles[this.role];
+  }
+
+  /** Navigate to the given route (for tool card clicks). */
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 
   /** Meter width as a share of the published maximum (0–100). */

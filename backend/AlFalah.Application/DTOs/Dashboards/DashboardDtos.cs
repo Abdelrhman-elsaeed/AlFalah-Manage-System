@@ -157,6 +157,7 @@ public class SchoolManagerDashboardDto
     public int EvaluationsPendingApprovalCount { get; set; }
     /// <summary>Phase 8 — counts only (NO content / NO subjects / NO bodies).</summary>
     public int ComplaintsCount { get; set; }
+    public int OpenComplaintsCount { get; set; }
 
     // Visit-status breakdown for the school
     public List<VisitStatusCountDto> VisitsByStatus { get; set; } = new();

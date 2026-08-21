@@ -125,6 +125,7 @@ export interface SchoolManagerDashboard {
   instructorsNeedingImprovementCount: number;
   evaluationsPendingApprovalCount: number;
   complaintsCount: number;
+  openComplaintsCount: number;
   visitsByStatus: VisitStatusCount[];
   subjectPerformance: SubjectPerformanceRow[];
   moderatorPerformance: ModeratorPerformanceRow[];

@@ -1,25 +1,54 @@
-<div class="shell" dir="rtl" [class.is-topbar-hidden]="isTopbarHidden()">
-  <header
-    class="shell-topbar"
-    [class.is-hidden]="isTopbarHidden()"
-    [attr.aria-hidden]="isTopbarHidden()">
-    <div class="shell-topbar__user" *ngIf="currentUser() as user">
-      <span class="shell-topbar__avatar" aria-hidden="true">
-        <img src="assets/Logo.png" alt="" />
-      </span>
-      <div class="shell-topbar__user-info">
-        <span class="shell-topbar__user-name">{{ user.fullName }}</span>
-        <span class="shell-topbar__user-school" *ngIf="activeSchoolName() as school">
-          <i class="pi pi-building" aria-hidden="true"></i>
-          <span>{{ school }}</span>
-        </span>
-        <span class="shell-topbar__user-role" *ngIf="primaryRoleKey() as role">
-          <i class="pi pi-briefcase" aria-hidden="true"></i>
-          <span>{{ role | translate }}</span>
-        </span>
+<div class="shell" dir="rtl">
+  <header class="shell-topbar">
+    <!-- Right Section: Framed User Profile + Saudi Digital Clock -->
+    <div class="shell-topbar__right-group">
+      <!-- Framed User Profile Card -->
+      <div class="shell-topbar__profile-card" *ngIf="currentUser() as user">
+        <div class="shell-topbar__avatar-container">
+          <span class="shell-topbar__avatar" aria-hidden="true">
+            <img src="assets/Logo.png" alt="شعار مدارس الفلاح" />
+          </span>
+          <span class="shell-topbar__status-indicator" title="متصل"></span>
+        </div>
+
+        <div class="shell-topbar__user-details">
+          <span class="shell-topbar__user-name">{{ user.fullName }}</span>
+          <div class="shell-topbar__role-container">
+            <span class="shell-topbar__user-role" *ngIf="primaryRoleKey() as role">
+              <i class="pi pi-shield" aria-hidden="true"></i>
+              <span>{{ role | translate }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saudi Digital Clock (Beside Profile/Logo) -->
+      <div
+        class="shell-topbar__clock-badge"
+        [pTooltip]="'توقيت المملكة العربية السعودية (مكة المكرمة)'"
+        tooltipPosition="bottom"
+        tooltipAppendTo="body">
+        <i class="pi pi-clock"></i>
+        <span class="shell-topbar__clock-time">{{ ksaTime() }}</span>
       </div>
     </div>
 
+    <!-- Center School Name (Middle) -->
+    <div class="shell-topbar__center-school">
+      <div class="shell-topbar__school-box">
+        <div class="shell-topbar__school-icon-wrapper">
+          <i class="pi pi-building"></i>
+        </div>
+        <span class="shell-topbar__school-title" *ngIf="activeSchoolName() as school; else generalAppName">
+          {{ school }}
+        </span>
+        <ng-template #generalAppName>
+          <span class="shell-topbar__school-title">{{ 'APP.NAME' | translate }}</span>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Left Section: Logout Button -->
     <div class="shell-topbar__actions">
       <button
         type="button"
@@ -116,7 +145,7 @@
       </nav>
     </aside>
 
-    <main class="shell-content" (scroll)="onContentScroll($event)">
+    <main class="shell-content">
       <router-outlet></router-outlet>
     </main>
   </div>

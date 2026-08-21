@@ -140,10 +140,6 @@ export class ShellComponent implements OnInit {
   private readonly studentAnalyzer = inject(StudentAnalyzerService);
   private readonly sidebarStorageKey = 'alfalah-shell-sidebar-collapsed';
 
-  private lastContentScrollTop = 0;
-  private pendingContentScrollTop = 0;
-  private scrollAnimationFrame: number | null = null;
-
   /** Stable references so `routerLinkActiveOptions` isn't a fresh object per CD pass. */
   readonly exactMatchOptions = { exact: true };
   readonly prefixMatchOptions = { exact: false };
@@ -151,8 +147,9 @@ export class ShellComponent implements OnInit {
   readonly currentUser = this.authService.currentUser;
   readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());
   readonly isSidebarCollapsed = signal(this.getInitialSidebarState());
-  readonly isTopbarHidden = signal(false);
   readonly hasStudentAnalyzerAccess = signal(false);
+  readonly ksaTime = signal<string>('');
+  private clockInterval: ReturnType<typeof setInterval> | null = null;
 
   private readonly categories = SHELL_NAV_CATEGORIES;
 
@@ -233,6 +230,14 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.updateKsaTime();
+    if (typeof window !== 'undefined') {
+      this.clockInterval = setInterval(() => this.updateKsaTime(), 1000);
+      this.destroyRef.onDestroy(() => {
+        if (this.clockInterval) clearInterval(this.clockInterval);
+      });
+    }
+
     this.studentAnalyzer.capabilities().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: response => this.hasStudentAnalyzerAccess.set(!!response.data?.canAccess),
       error: () => this.hasStudentAnalyzerAccess.set(false)
@@ -243,15 +248,22 @@ export class ShellComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(event => {
       this.expandActiveCategory(event.urlAfterRedirects);
-      this.showTopbar();
-      this.lastContentScrollTop = 0;
     });
+  }
 
-    this.destroyRef.onDestroy(() => {
-      if (this.scrollAnimationFrame !== null && typeof cancelAnimationFrame === 'function') {
-        cancelAnimationFrame(this.scrollAnimationFrame);
-      }
-    });
+  private updateKsaTime(): void {
+    try {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('ar-SA', {
+        timeZone: 'Asia/Riyadh',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      this.ksaTime.set(formatter.format(now));
+    } catch {
+      this.ksaTime.set(new Date().toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' }));
+    }
   }
 
   toggleSidebar(): void {
@@ -270,24 +282,6 @@ export class ShellComponent implements OnInit {
       if (next.has(category.id)) next.delete(category.id);
       else next.add(category.id);
       return next;
-    });
-  }
-
-  onContentScroll(event: Event): void {
-    const target = event.currentTarget as HTMLElement | null;
-    if (!target) return;
-
-    this.pendingContentScrollTop = Math.max(0, target.scrollTop);
-    if (this.scrollAnimationFrame !== null) return;
-
-    if (typeof requestAnimationFrame !== 'function') {
-      this.updateTopbarVisibility(this.pendingContentScrollTop);
-      return;
-    }
-
-    this.scrollAnimationFrame = requestAnimationFrame(() => {
-      this.updateTopbarVisibility(this.pendingContentScrollTop);
-      this.scrollAnimationFrame = null;
     });
   }
 
@@ -326,24 +320,6 @@ export class ShellComponent implements OnInit {
     }
 
     return window.matchMedia?.('(max-width: 1024px)').matches ?? false;
-  }
-
-  private updateTopbarVisibility(scrollTop: number): void {
-    const delta = scrollTop - this.lastContentScrollTop;
-
-    if (scrollTop <= 24) {
-      this.showTopbar();
-    } else if (delta > 7 && scrollTop > 88) {
-      this.isTopbarHidden.set(true);
-    } else if (delta < -5) {
-      this.showTopbar();
-    }
-
-    this.lastContentScrollTop = scrollTop;
-  }
-
-  private showTopbar(): void {
-    if (this.isTopbarHidden()) this.isTopbarHidden.set(false);
   }
 
   private canSee(item: NavItem): boolean {
