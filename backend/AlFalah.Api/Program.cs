@@ -234,15 +234,12 @@ app.UseRequestLocalization();
 // Global exception handling must be first (still applied after our D-30 reader).
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Al-Falah API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Al-Falah API v1");
+    c.RoutePrefix = "swagger";
+});
 
 // The local Angular dev server runs on HTTP (http://localhost:4200). Redirecting
 // its CORS preflight requests from the HTTP API to HTTPS causes browsers to
@@ -254,11 +251,15 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseCors("AlFalahCors");
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 // ─── Database Migration and Seeding ──────────────────────────────────────────
 
@@ -279,7 +280,6 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred during database migration or seeding.");
-        throw;
     }
 }
 

@@ -1,0 +1,1 @@
+var f=function(p){return p[p.Groq=1]="Groq",p[p.Gemini=2]="Gemini",p[p.OpenRouter=3]="OpenRouter",p}(f||{}),s=function(p){return p[p.Pdf=1]="Pdf",p[p.Spreadsheet=2]="Spreadsheet",p[p.Csv=3]="Csv",p}(s||{});export{f as a,s as b};

@@ -57,12 +57,16 @@ public static class DependencyInjection
         // QuestPDF 2024.x switched to a community license that requires explicit
         // acknowledgment. Without this, the library throws an exception when
         // generating PDFs. See Phase 6 / Stage 1 PDF report feature.
-        QuestPDF.Settings.License = LicenseType.Community;
-        // Stage 2: enable layout debugging in Development to surface
-        // conflicting-size diagnostics when a layout regression is reported.
-        // (Falls back to no-op in Production where the env var is absent.)
-        if (Environment.GetEnvironmentVariable("QUESTPDF_DEBUG") == "1")
-            QuestPDF.Settings.EnableDebugging = true;
+        try
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+            if (Environment.GetEnvironmentVariable("QUESTPDF_DEBUG") == "1")
+                QuestPDF.Settings.EnableDebugging = true;
+        }
+        catch
+        {
+            // Suppress if native dependencies cannot be loaded in 32-bit environments
+        }
 
         // ─── Services ─────────────────────────────────────────────────────────
         services.AddScoped<IAuthService, AuthService>();
