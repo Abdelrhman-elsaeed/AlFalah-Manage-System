@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { extractHttpErrorMessage } from '../../../../core/http/http-error-message';
 import { TeacherDriveApiService } from '../../services/teacher-drive-api.service';
 import { DriveBreadcrumb, DriveItem, EvidenceUploadCatalog, RecentFile, TeacherDriveStatus } from '../../models/teacher-drive.models';
 
@@ -27,6 +28,11 @@ export class TeacherEvidenceFilesPageComponent {
   readonly selectedFile = signal<File | null>(null);
   readonly uploadProgress = signal<number | null>(null);
   readonly currentFolderId = signal<string | undefined>(undefined);
+  readonly renameTarget = signal<DriveItem | null>(null);
+  readonly deleteTarget = signal<DriveItem | null>(null);
+  readonly actionBusy = signal(false);
+  readonly actionError = signal<string | null>(null);
+  renameName = '';
   selectedTaskId: number | null = null;
   search = '';
 
@@ -83,6 +89,73 @@ export class TeacherEvidenceFilesPageComponent {
   open(item: DriveItem): void {
     if (item.isFolder) { this.loadFolder(item.itemId); return; }
     this.openFile(item.itemId, item.name);
+  }
+
+  startRename(item: DriveItem): void {
+    if (!item.submissionId || item.isFolder) return;
+    this.renameName = item.name;
+    this.renameTarget.set(item);
+    this.actionError.set(null);
+    this.error.set(null);
+  }
+
+  closeRename(): void {
+    if (this.actionBusy()) return;
+    this.renameTarget.set(null);
+    this.renameName = '';
+  }
+
+  saveRename(): void {
+    const item = this.renameTarget();
+    const name = this.renameName.trim();
+    if (!item?.submissionId || !name || name === item.name || this.actionBusy()) return;
+
+    this.actionBusy.set(true);
+    this.actionError.set(null);
+    this.error.set(null);
+    this.api.rename(item.submissionId, name)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.actionBusy.set(false)))
+      .subscribe({
+        next: renamed => {
+          this.items.update(items => items.map(current => current.itemId === renamed.itemId ? renamed : current));
+          this.recent.update(files => files.map(file => file.itemId === renamed.itemId
+            ? { ...file, name: renamed.name, extension: renamed.extension }
+            : file));
+          this.renameTarget.set(null);
+          this.renameName = '';
+        },
+        error: err => this.actionError.set(extractHttpErrorMessage(err) ?? 'تعذر تعديل اسم الملف.')
+      });
+  }
+
+  askDelete(item: DriveItem): void {
+    if (!item.submissionId || item.isFolder) return;
+    this.deleteTarget.set(item);
+    this.actionError.set(null);
+    this.error.set(null);
+  }
+
+  closeDelete(): void {
+    if (!this.actionBusy()) this.deleteTarget.set(null);
+  }
+
+  confirmDelete(): void {
+    const item = this.deleteTarget();
+    if (!item?.submissionId || this.actionBusy()) return;
+
+    this.actionBusy.set(true);
+    this.actionError.set(null);
+    this.error.set(null);
+    this.api.deleteSubmission(item.submissionId)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.actionBusy.set(false)))
+      .subscribe({
+        next: () => {
+          this.items.update(items => items.filter(current => current.itemId !== item.itemId));
+          this.recent.update(files => files.filter(file => file.itemId !== item.itemId));
+          this.deleteTarget.set(null);
+        },
+        error: err => this.actionError.set(extractHttpErrorMessage(err) ?? 'تعذر حذف الملف.')
+      });
   }
 
   /**

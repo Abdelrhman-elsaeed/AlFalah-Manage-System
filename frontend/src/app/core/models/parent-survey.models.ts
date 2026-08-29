@@ -1,7 +1,7 @@
 export enum ParentSurveyStatus {
-  Draft = 0,
-  Published = 1,
-  Closed = 2
+  Draft = 'Draft',
+  Published = 'Published',
+  Closed = 'Closed'
 }
 
 export enum ParentSurveyRating {

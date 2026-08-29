@@ -16,7 +16,7 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
         // Every account type — instructors included — supplies its own password.
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("كلمة المرور مطلوبة.")
-            .MinimumLength(8).WithMessage("يجب ألا تقل كلمة المرور عن 8 أحرف.");
+            .MinimumLength(6).WithMessage("يجب ألا تقل كلمة المرور عن 6 خانات.");
 
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("الاسم الأول مطلوب.")
@@ -100,42 +100,74 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
     }
 
     private static bool BeInPhaseTwoScope(string role) =>
-        role == RoleNames.SchoolManager
-        || role == RoleNames.Secretary
-        || role == RoleNames.Moderator
-        || role == RoleNames.Instructor;
+        role is RoleNames.SchoolManager or RoleNames.Secretary
+             or RoleNames.Moderator     or RoleNames.Instructor;
 }
 
 public class UserUpdateRequestValidator : AbstractValidator<UserUpdateRequestDto>
 {
     public UserUpdateRequestValidator()
     {
-        RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrEmpty(x.Email));
-        RuleFor(x => x.PreferredLanguage).Must(l => l == "ar" || l == "en");
+        RuleFor(x => x.FirstName)
+            .NotEmpty().WithMessage("الاسم الأول مطلوب.")
+            .MaximumLength(100);
+
+        RuleFor(x => x.LastName)
+            .NotEmpty().WithMessage("اسم العائلة مطلوب.")
+            .MaximumLength(100);
+
+        RuleFor(x => x.Email)
+            .EmailAddress().When(x => !string.IsNullOrEmpty(x.Email))
+            .WithMessage("البريد الإلكتروني غير صالح.");
+
+        RuleFor(x => x.PreferredLanguage)
+            .Must(l => l == "ar" || l == "en")
+            .WithMessage("اللغة المفضلة يجب أن تكون 'ar' أو 'en'.");
+
         RuleFor(x => x.Role)
-            .Must(r => string.IsNullOrEmpty(r)
-                || r == RoleNames.SchoolManager
-                || r == RoleNames.Secretary
-                || r == RoleNames.Moderator
-                || r == RoleNames.Instructor)
-            .WithMessage("الدور غير صالح.");
-        RuleFor(x => x.FullName)
-            .MaximumLength(200).When(r => !string.IsNullOrEmpty(r.FullName))
-            .WithMessage("يجب ألا يتجاوز الاسم الكامل 200 حرف.");
+            .NotEmpty().WithMessage("الدور مطلوب.")
+            .Must(r => r is RoleNames.SchoolManager or RoleNames.Secretary
+                          or RoleNames.Moderator     or RoleNames.Instructor)
+            .WithMessage("الدور يجب أن يكون أحد: SchoolManager أو Secretary أو Moderator أو Instructor.");
+
         RuleFor(x => x.SchoolId)
-            .GreaterThan(0).When(r => r.SchoolId.HasValue)
+            .GreaterThan(0).When(x => x.SchoolId.HasValue)
             .WithMessage("معرّف المدرسة غير صالح.");
 
-        // D-74 — Teacher-profile fields. The service decides whether to apply
-        // them based on the user's role; the validator just enforces shape.
+        // D-74 — Instructor updates can also edit teacher-profile fields.
         RuleFor(x => x.EmployeeNumber)
+            .NotEmpty().When(r => r.Role == RoleNames.Instructor)
+            .WithMessage("الرقم الوظيفي مطلوب للمعلم.")
             .MaximumLength(50).When(r => !string.IsNullOrEmpty(r.EmployeeNumber))
             .WithMessage("يجب ألا يتجاوز الرقم الوظيفي 50 حرفاً.");
+
         RuleFor(x => x.Subject)
+            .NotEmpty().When(r => r.Role == RoleNames.Instructor)
+            .WithMessage("المادة الدراسية مطلوبة للمعلم.")
             .MaximumLength(200).When(r => !string.IsNullOrEmpty(r.Subject))
             .WithMessage("يجب ألا تتجاوز المادة الدراسية 200 حرف.");
+
+        RuleFor(x => x.FullName)
+            .NotEmpty().When(r => r.Role == RoleNames.Instructor)
+            .WithMessage("الاسم الكامل مطلوب للمعلم.")
+            .MaximumLength(200).When(r => !string.IsNullOrEmpty(r.FullName))
+            .WithMessage("يجب ألا يتجاوز الاسم الكامل 200 حرف.");
+
+        RuleFor(x => x.SchoolId)
+            .NotNull().When(r => r.Role == RoleNames.Instructor)
+            .WithMessage("المدرسة مطلوبة للمعلم.")
+            .GreaterThan(0).When(r => r.Role == RoleNames.Instructor && r.SchoolId.HasValue)
+            .WithMessage("معرّف المدرسة غير صالح.");
+
+        RuleFor(x => x.SchoolId)
+            .NotNull().When(r => r.Role == RoleNames.Secretary)
+            .WithMessage("المدرسة مطلوبة للسكرتير.")
+            .GreaterThan(0).When(r => r.Role == RoleNames.Secretary && r.SchoolId.HasValue)
+            .WithMessage("معرّف المدرسة غير صالح.");
+
+        RuleFor(x => x.Stage)
+            .NotNull().When(r => r.Role == RoleNames.Instructor)
+            .WithMessage("المرحلة الدراسية مطلوبة للمعلم.");
 
         When(x => x.Classes != null, () =>
         {
@@ -146,23 +178,5 @@ public class UserUpdateRequestValidator : AbstractValidator<UserUpdateRequestDto
                 .LessThanOrEqualTo(50)
                 .WithMessage("لا يمكن إضافة أكثر من 50 صفاً للمعلم.");
         });
-    }
-}
-
-public class UserListQueryValidator : AbstractValidator<UserListQuery>
-{
-    public UserListQueryValidator()
-    {
-        RuleFor(x => x.Role).Must(r =>
-            string.IsNullOrEmpty(r) ||
-            r == RoleNames.SuperAdmin ||
-            r == RoleNames.MainManager ||
-            r == RoleNames.SchoolManager ||
-            r == RoleNames.Secretary ||
-            r == RoleNames.Moderator ||
-            r == RoleNames.Instructor
-        ).WithMessage("قيمة الدور غير صالحة.");
-
-        RuleFor(x => x.SchoolId).GreaterThan(0).When(x => x.SchoolId.HasValue);
     }
 }

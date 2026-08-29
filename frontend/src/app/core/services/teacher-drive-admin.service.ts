@@ -1,9 +1,13 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
-import { DriveFolderMapping, UpsertDriveFolderMappingRequest } from '../models/teacher-drive-admin.models';
+import {
+  AdminDriveFolderPage,
+  DriveFolderMapping,
+  UpsertDriveFolderMappingRequest
+} from '../models/teacher-drive-admin.models';
 import { SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
 
 /**
@@ -25,6 +29,14 @@ export class TeacherDriveAdminService {
   /** PUT .../folder — creates or replaces the grant. */
   upsertFolder(teacherId: number, body: UpsertDriveFolderMappingRequest): Observable<ApiResponse<DriveFolderMapping>> {
     return this.http.put<ApiResponse<DriveFolderMapping>>(`${this.base}/${teacherId}/folder`, body);
+  }
+
+  /** Lists assignable folders under the school's configured evidence root. */
+  browseFolders(teacherId: number, parentItemId?: string, pageToken?: string): Observable<ApiResponse<AdminDriveFolderPage>> {
+    let params = new HttpParams();
+    if (parentItemId) params = params.set('parentItemId', parentItemId);
+    if (pageToken) params = params.set('pageToken', pageToken);
+    return this.http.get<ApiResponse<AdminDriveFolderPage>>(`${this.base}/${teacherId}/folders`, { params });
   }
 
   /** DELETE .../folder — revokes access; already-uploaded evidence stays in the matrix. */

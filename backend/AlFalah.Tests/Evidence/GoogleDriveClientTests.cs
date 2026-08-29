@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using AlFalah.Application.Common.Exceptions;
 using AlFalah.Application.DTOs.TeacherDrive;
 using AlFalah.Application.Interfaces;
@@ -102,6 +103,27 @@ public sealed class GoogleDriveClientTests
     }
 
     [Fact]
+    public async Task Rename_Uses_A_File_Patch_And_Returns_The_Updated_Metadata()
+    {
+        const string body = """
+            {"id":"file-1","name":"خطة محدثة.pdf","mimeType":"application/pdf","size":"12",
+             "parents":["folder-a"],"trashed":false}
+            """;
+        var handler = new StubHandler(HttpStatusCode.OK, body);
+        var client = new GoogleDriveClient(
+            new RecordingTokenService(), new StubClientFactory(handler),
+            new ConfigurationBuilder().Build(), NullLogger<GoogleDriveClient>.Instance);
+
+        var renamed = await client.RenameAsync(1, "file-1", "خطة محدثة.pdf");
+
+        renamed.Name.Should().Be("خطة محدثة.pdf");
+        handler.LastMethod.Should().Be(HttpMethod.Patch);
+        handler.LastUrl.Should().Contain("files/file-1").And.Contain("supportsAllDrives=true");
+        using var requestBody = JsonDocument.Parse(handler.LastBody!);
+        requestBody.RootElement.GetProperty("name").GetString().Should().Be("خطة محدثة.pdf");
+    }
+
+    [Fact]
     public void A_Search_Term_Containing_A_Quote_Cannot_Break_Out_Of_The_Query_Literal()
     {
         // Drive's `q` grammar is string-literal based, so an unescaped quote would terminate the
@@ -147,8 +169,17 @@ public sealed class GoogleDriveClientTests
             _body = body;
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-            Task.FromResult(new HttpResponseMessage(_statusCode) { Content = new StringContent(_body) });
+        public HttpMethod? LastMethod { get; private set; }
+        public string? LastUrl { get; private set; }
+        public string? LastBody { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastMethod = request.Method;
+            LastUrl = request.RequestUri?.ToString();
+            LastBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+            return new HttpResponseMessage(_statusCode) { Content = new StringContent(_body) };
+        }
     }
 
     private sealed class StubClientFactory : IHttpClientFactory

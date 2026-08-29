@@ -160,7 +160,11 @@ public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
 
         await _context.SaveChangesAsync(cancellationToken);
         if (transaction is not null) await transaction.CommitAsync(cancellationToken);
-        return new(submission.Id, item);
+        return new(submission.Id, item with
+        {
+            SubmissionId = submission.Id,
+            SubmissionStatus = submission.ReviewStatus.ToString()
+        });
     }
 
     public async Task MarkUploadFailedAsync(long operationId, string reason, CancellationToken cancellationToken = default)
@@ -170,6 +174,27 @@ public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
         operation.Status = EvidenceUploadOperationStatus.Failed;
         _audit.Write(operation.SchoolId, null, "TeacherEvidence.UploadFailed", "EvidenceUploadOperation", operationId.ToString(), reason,
             new { operation.TeacherId, operation.TaskId, operation.AcademicYearId });
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task MarkRenamedAsync(
+        int teacherId, long submissionId, DriveItemDto item, CancellationToken cancellationToken = default)
+    {
+        var submission = await _context.TeacherEvidenceSubmissions
+            .SingleOrDefaultAsync(x => x.Id == submissionId && x.TeacherId == teacherId && !x.IsDeleted, cancellationToken)
+            ?? throw new KeyNotFoundException("ملف الدليل غير موجود.");
+
+        var oldName = submission.FileName;
+        submission.FileName = item.Name;
+        submission.FileExtension = item.Extension;
+        submission.MimeType = item.MimeType;
+        submission.SizeInBytes = item.Size ?? submission.SizeInBytes;
+        submission.WebUrl = item.WebUrl;
+        submission.ETag = item.ETag;
+        submission.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+        _audit.Write(submission.SchoolId, null, "TeacherEvidence.Renamed", "TeacherEvidenceSubmission",
+            submissionId.ToString(), null, new { teacherId, submission.DriveItemId, OldName = oldName, item.Name });
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -254,7 +279,7 @@ public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
         submission.Id,
         new DriveItemDto(submission.DriveItemId, submission.FileName, false, null, submission.FileExtension,
             submission.MimeType, submission.SizeInBytes, submission.UpdatedAtUtc, null, submission.WebUrl,
-            submission.ETag, submission.ReviewStatus.ToString()));
+            submission.ETag, submission.ReviewStatus.ToString(), submission.Id));
 
     private async Task<IDbContextTransaction?> BeginTransactionIfRelationalAsync(CancellationToken cancellationToken)
     {

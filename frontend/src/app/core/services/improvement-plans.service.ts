@@ -5,6 +5,7 @@ import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
 import {
   ImprovementPlan,
+  ImprovementPlanListItem,
   CreatePlanRequest,
   UpdatePlanRequest,
   PlanFollowUp,
@@ -18,6 +19,10 @@ import {
 export class ImprovementPlansService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/api/v1`;
+
+  getPlans(): Observable<ApiResponse<ImprovementPlanListItem[]>> {
+    return this.http.get<ApiResponse<ImprovementPlanListItem[]>>(`${this.base}/improvement-plans`);
+  }
 
   getPlansForVisit(visitId: number): Observable<ApiResponse<ImprovementPlan[]>> {
     return this.http.get<ApiResponse<ImprovementPlan[]>>(`${this.base}/visits/${visitId}/improvement-plans`);

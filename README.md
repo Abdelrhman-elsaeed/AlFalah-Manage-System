@@ -169,12 +169,18 @@ test double and default to Google's real endpoints.
 
 ### 4. Grant each teacher a folder
 
-An administrator with `Instructor.Edit` calls
-`PUT /api/v1/teacher-drive-admin/teachers/{teacherId}/folder` with the teacher's folder id
-(`DELETE` withdraws it; already-uploaded evidence stays in the matrix). A grant is validated
-against Google before it is stored — the folder must exist, be a folder, sit **inside** the
-school root, and not already belong to another teacher. The school root itself cannot be
-granted, since it contains every teacher's folder.
+An administrator with `Instructor.Edit` opens the teacher profile and chooses a folder from
+the visual Google Drive browser. The browser is rooted at the school's evidence folder, marks
+folders already assigned to another teacher as unavailable, and sends the selected folder id
+to `PUT /api/v1/teacher-drive-admin/teachers/{teacherId}/folder` automatically. **Unassign**
+uses `DELETE` on the same route; already-uploaded evidence stays in the matrix and the folder
+becomes available for another teacher.
+
+The browser reads folders through
+`GET /api/v1/teacher-drive-admin/teachers/{teacherId}/folders`. A grant is validated against
+Google before it is stored: the folder must exist, be a folder, sit **inside** the school root,
+and not overlap another teacher's assigned folder. The school root itself cannot be granted,
+since it contains every teacher's folder.
 
 Teacher clients never receive `DriveId` or `RootItemId`.
 

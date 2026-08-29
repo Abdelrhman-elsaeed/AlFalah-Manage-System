@@ -7,7 +7,7 @@ public sealed class ChangeUserPasswordValidator : AbstractValidator<ChangeUserPa
 {
     public ChangeUserPasswordValidator()
     {
-        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(8)
-            .WithMessage("كلمة المرور الجديدة يجب ألا تقل عن 8 أحرف.");
+        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(6)
+            .WithMessage("كلمة المرور الجديدة يجب ألا تقل عن 6 خانات.");
     }
 }

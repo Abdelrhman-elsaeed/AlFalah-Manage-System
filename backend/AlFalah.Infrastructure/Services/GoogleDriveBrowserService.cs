@@ -59,11 +59,18 @@ public sealed class GoogleDriveBrowserService : IGoogleDriveBrowserService
         var fileIds = items.Where(x => !x.IsFolder).Select(x => x.ItemId).ToArray();
         if (fileIds.Length > 0)
         {
-            var statuses = await _context.TeacherEvidenceSubmissions.AsNoTracking()
+            var submissions = await _context.TeacherEvidenceSubmissions.AsNoTracking()
                 .Where(x => x.TeacherId == teacher.TeacherId && !x.IsDeleted && fileIds.Contains(x.DriveItemId))
-                .ToDictionaryAsync(x => x.DriveItemId, x => x.ReviewStatus.ToString(), cancellationToken);
+                .Select(x => new { x.Id, x.DriveItemId, x.ReviewStatus })
+                .ToDictionaryAsync(x => x.DriveItemId, cancellationToken);
             items = items
-                .Select(x => statuses.TryGetValue(x.ItemId, out var status) ? x with { SubmissionStatus = status } : x)
+                .Select(x => submissions.TryGetValue(x.ItemId, out var submission)
+                    ? x with
+                    {
+                        SubmissionStatus = submission.ReviewStatus.ToString(),
+                        SubmissionId = submission.Id
+                    }
+                    : x)
                 .ToList();
         }
 

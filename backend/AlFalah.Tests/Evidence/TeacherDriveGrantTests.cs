@@ -167,6 +167,28 @@ public sealed class TeacherDriveGrantTests
     }
 
     [Fact]
+    public async Task Replacing_OAuth_Client_Settings_Clears_The_Previous_Refresh_Token()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync(connectSchoolDrive: false, grantFolders: false);
+        var service = harness.SchoolDriveService(TeacherDriveHarness.Manager());
+
+        await service.ConfigureForCurrentSchoolAsync(new(
+            GoogleDriveCredentialType.OAuthRefreshToken, "evidence@alfalah.edu.sa",
+            null, null, "old-client.apps.googleusercontent.com", "old-secret", "1//old-token",
+            null, TeacherDriveHarness.SchoolRootFolderId, "ملفات الإنجاز", true));
+
+        var settings = await service.ConfigureForCurrentSchoolAsync(new(
+            GoogleDriveCredentialType.OAuthRefreshToken, "evidence@alfalah.edu.sa",
+            null, null, "new-client.apps.googleusercontent.com", "new-secret", null,
+            null, TeacherDriveHarness.SchoolRootFolderId, "ملفات الإنجاز", true));
+
+        settings.HasStoredCredential.Should().BeFalse();
+        var stored = await harness.Context.SchoolGoogleDrives.SingleAsync();
+        stored.ProtectedCredential.Should().BeEmpty();
+        harness.Protector().Unprotect(stored.ProtectedOAuthClientSecret!).Should().Be("new-secret");
+    }
+
+    [Fact]
     public async Task Moderator_Cannot_Read_Or_Configure_The_School_Drive()
     {
         await using var harness = await TeacherDriveHarness.CreateAsync();
@@ -188,6 +210,47 @@ public sealed class TeacherDriveGrantTests
         grant.DriveId.Should().Be(TeacherDriveHarness.SharedDriveId);
         grant.SchoolId.Should().Be(TeacherDriveHarness.SchoolId);
         grant.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Manager_Browses_Only_Folders_And_Sees_Their_Assignment_State()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync();
+        var service = harness.MappingService(TeacherDriveHarness.Manager());
+
+        var page = await service.BrowseFoldersAsync(
+            TeacherDriveHarness.TeacherAId, new(ParentItemId: null, PageToken: null));
+
+        page.IsSchoolRoot.Should().BeTrue();
+        page.Folders.Select(x => x.ItemId).Should().BeEquivalentTo(
+            TeacherDriveHarness.FolderA,
+            TeacherDriveHarness.FolderB,
+            TeacherDriveHarness.FolderUnassigned);
+        page.Folders.Should().NotContain(x => x.ItemId == "a-existing.pdf");
+        page.Folders.Single(x => x.ItemId == TeacherDriveHarness.FolderA)
+            .IsAssignedToCurrentTeacher.Should().BeTrue();
+        page.Folders.Single(x => x.ItemId == TeacherDriveHarness.FolderB)
+            .AssignedTeacherName.Should().NotBeNullOrWhiteSpace();
+        page.Folders.Single(x => x.ItemId == TeacherDriveHarness.FolderUnassigned)
+            .IsAssigned.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Manager_Can_Browse_Nested_Folders_But_Not_Outside_The_School_Root()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync();
+        var service = harness.MappingService(TeacherDriveHarness.Manager());
+
+        var nested = await service.BrowseFoldersAsync(
+            TeacherDriveHarness.TeacherAId, new(TeacherDriveHarness.FolderA, null));
+
+        nested.IsSchoolRoot.Should().BeFalse();
+        nested.CurrentFolderId.Should().Be(TeacherDriveHarness.FolderA);
+        nested.Folders.Should().ContainSingle(x => x.ItemId == TeacherDriveHarness.FolderASub);
+
+        await service.Invoking(x => x.BrowseFoldersAsync(
+                TeacherDriveHarness.TeacherAId, new(TeacherDriveHarness.OutsideRootFolderId, null)))
+            .Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -234,6 +297,32 @@ public sealed class TeacherDriveGrantTests
         var act = () => harness.GrantFolderAsync(TeacherDriveHarness.TeacherBId, TeacherDriveHarness.FolderA);
 
         (await act.Should().ThrowAsync<InvalidOperationException>()).WithMessage("*لمعلم آخر*");
+    }
+
+    [Fact]
+    public async Task Nested_Grants_Cannot_Overlap_Between_Teachers()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync(grantFolders: false);
+        await harness.GrantFolderAsync(TeacherDriveHarness.TeacherAId, TeacherDriveHarness.FolderASub);
+
+        var act = () => harness.GrantFolderAsync(TeacherDriveHarness.TeacherBId, TeacherDriveHarness.FolderA);
+
+        (await act.Should().ThrowAsync<InvalidOperationException>()).WithMessage("*لمعلم آخر*");
+    }
+
+    [Fact]
+    public async Task Revoked_Folder_Can_Be_Assigned_To_Another_Teacher()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync();
+        var service = harness.MappingService(TeacherDriveHarness.Manager());
+        await service.RevokeAsync(TeacherDriveHarness.TeacherAId);
+
+        var grant = await service.UpsertAsync(
+            TeacherDriveHarness.TeacherBId, new(TeacherDriveHarness.FolderA));
+
+        grant.RootItemId.Should().Be(TeacherDriveHarness.FolderA);
+        grant.TeacherId.Should().Be(TeacherDriveHarness.TeacherBId);
+        grant.IsActive.Should().BeTrue();
     }
 
     [Fact]

@@ -31,6 +31,7 @@ builder.Services
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
 // Force UTF-8 request body decoding across the pipeline. Without this, a request
@@ -47,6 +48,10 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
+
+// Persist encryption keys outside the published binaries. Google Drive credentials
+// stored in SQL remain decryptable after IIS recycles or WebDeploy replaces the app.
+builder.Services.AddAlFalahDataProtection(builder.Configuration, builder.Environment.ContentRootPath);
 
 // Infrastructure (EF Core, Identity, services)
 builder.Services.AddInfrastructure(builder.Configuration);

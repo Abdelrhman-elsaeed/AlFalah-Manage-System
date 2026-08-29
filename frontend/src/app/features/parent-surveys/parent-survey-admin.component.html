@@ -32,8 +32,8 @@
     <div class="survey-grid" *ngIf="activeTab() === 'forms'">
       <article class="survey-card" *ngFor="let survey of surveys()">
         <div class="card-topline">
-          <span class="status" [class.published]="survey.status === ParentSurveyStatus.Published"
-                [class.closed]="survey.status === ParentSurveyStatus.Closed">{{ statusLabel(survey.status) }}</span>
+          <span class="status" [class.published]="isPublished(survey.status)"
+                [class.closed]="isClosed(survey.status)">{{ statusLabel(survey.status) }}</span>
           <span class="school">{{ survey.schoolName }}</span>
         </div>
         <h2>{{ survey.title }}</h2>
@@ -46,16 +46,16 @@
           <button type="button" (click)="edit(survey)" [disabled]="survey.submissionCount > 0">
             <i class="pi pi-pencil"></i> تعديل
           </button>
-          <button type="button" class="accent" *ngIf="survey.status === ParentSurveyStatus.Draft" (click)="publish(survey)">
+          <button type="button" class="accent" *ngIf="isDraft(survey.status)" (click)="publish(survey)">
             <i class="pi pi-link"></i> إنشاء الرابط
           </button>
-          <button type="button" class="accent" *ngIf="survey.status === ParentSurveyStatus.Published" (click)="copyExistingLink(survey)">
+          <button type="button" class="accent" *ngIf="isPublished(survey.status)" (click)="copyExistingLink(survey)">
             <i class="pi pi-copy"></i> نسخ الرابط
           </button>
           <button type="button" (click)="openSubmissions(survey)">
             <i class="pi pi-inbox"></i> الردود
           </button>
-          <button type="button" *ngIf="survey.status === ParentSurveyStatus.Published" (click)="closeSurvey(survey)">
+          <button type="button" *ngIf="isPublished(survey.status)" (click)="closeSurvey(survey)">
             <i class="pi pi-lock"></i> إغلاق
           </button>
           <button type="button" class="danger" (click)="delete(survey)">

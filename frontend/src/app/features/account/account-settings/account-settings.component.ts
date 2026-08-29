@@ -43,8 +43,8 @@ export class AccountSettingsComponent implements OnInit, AfterViewInit {
   });
   readonly passwordForm = this.fb.group({
     currentPassword: ['', [Validators.required]],
-    newPassword: ['', [Validators.required, Validators.minLength(8)]],
-    confirmPassword: ['', [Validators.required, Validators.minLength(8)]]
+    newPassword: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['', [Validators.required, Validators.minLength(6)]]
   });
   readonly passwordSaving = signal(false);
 

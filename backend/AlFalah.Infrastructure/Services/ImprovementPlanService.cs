@@ -35,6 +35,49 @@ public class ImprovementPlanService : IImprovementPlanService
 
     // ─── Queries ──────────────────────────────────────────────────────────────
 
+    public async Task<List<ImprovementPlanListItemDto>> GetPlansAsync(CancellationToken cancellationToken = default)
+    {
+        var query = _context.ImprovementPlans.AsNoTracking();
+        var allowedSchoolId = _scopeGuard.ResolveAllowedSchoolId(requestedSchoolId: null);
+
+        if (allowedSchoolId.HasValue)
+            query = query.Where(plan => plan.SchoolId == allowedSchoolId.Value);
+
+        if (IsModeratorOnlyCaller())
+        {
+            var currentUserId = _currentUser.UserId
+                ?? throw new UnauthorizedAccessException("يجب تسجيل الدخول لعرض البيانات.");
+            query = query.Where(plan => plan.Visit.CreatedByUserId == currentUserId);
+        }
+
+        return await query
+            .OrderByDescending(plan => plan.CreatedAt)
+            .Select(plan => new ImprovementPlanListItemDto
+            {
+                Id = plan.Id,
+                SchoolId = plan.SchoolId,
+                SchoolName = plan.School.Name,
+                InstructorId = plan.InstructorId,
+                InstructorFullName = plan.Instructor.FirstName + " " + plan.Instructor.LastName,
+                VisitId = plan.VisitId,
+                DomainNameAr = plan.Domain == null ? null : plan.Domain.NameAr,
+                Goal = plan.Goal,
+                StartDate = plan.StartDate,
+                EndDate = plan.EndDate,
+                Status = plan.Status == PlanStatus.Active
+                    ? "active"
+                    : plan.Status == PlanStatus.Completed ? "completed" : "cancelled",
+                FollowUpsCount = plan.FollowUps.Count,
+                LatestProgressScore = plan.FollowUps
+                    .Where(followUp => followUp.ProgressScore.HasValue)
+                    .OrderByDescending(followUp => followUp.FollowDate)
+                    .ThenByDescending(followUp => followUp.Id)
+                    .Select(followUp => followUp.ProgressScore)
+                    .FirstOrDefault()
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<ImprovementPlanDto>> GetPlansForVisitAsync(int visitId, CancellationToken cancellationToken = default)
     {
         var visit = await _context.Visits

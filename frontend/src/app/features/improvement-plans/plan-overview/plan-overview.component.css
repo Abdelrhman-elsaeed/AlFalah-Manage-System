@@ -1,0 +1,30 @@
+:host { display: block; }
+
+.plans-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding-block: var(--space-3);
+  margin-bottom: var(--space-4);
+  border-block: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.plans-summary span { display: inline-flex; align-items: baseline; gap: var(--space-2); }
+.plans-summary strong { color: var(--text-strong); font-size: 1.35rem; }
+.plans-card { padding: var(--space-5); }
+.plans-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+.plans-toolbar h2 { margin: 0; font-size: 1.15rem; }
+.plans-filter { display: flex; align-items: center; gap: var(--space-2); color: var(--text-muted); }
+.loading, .empty-state { display: grid; min-height: 180px; place-items: center; color: var(--text-muted); }
+.empty-state { align-content: center; gap: var(--space-3); }
+.empty-state .pi { color: var(--brand-500); font-size: 2rem; }
+.empty-state p { margin: 0; }
+.goal-text { display: inline-block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.progress-value { color: var(--brand-700); font-weight: 800; }
+
+@media (max-width: 700px) {
+  .plans-summary { align-items: flex-start; flex-direction: column; gap: var(--space-2); }
+  .plans-toolbar { align-items: stretch; flex-direction: column; }
+  .plans-filter { align-items: stretch; flex-direction: column; }
+}

@@ -1,6 +1,6 @@
 /** connectionState is one of: NotATeacher | SchoolNotConfigured | FolderNotAssigned | Connected. */
 export interface TeacherDriveStatus { isSchoolDriveEnabled: boolean; isFolderAssigned: boolean; folderDisplayName?: string; connectionState: string; teacherDisplayName: string; }
-export interface DriveItem { itemId: string; name: string; isFolder: boolean; childCount?: number; extension?: string; mimeType?: string; size?: number; lastModifiedAt?: string; lastModifiedBy?: string; webUrl?: string; eTag?: string; submissionStatus?: string; }
+export interface DriveItem { itemId: string; name: string; isFolder: boolean; childCount?: number; extension?: string; mimeType?: string; size?: number; lastModifiedAt?: string; lastModifiedBy?: string; webUrl?: string; eTag?: string; submissionStatus?: string; submissionId?: number; }
 export interface DriveItemsPage { items: DriveItem[]; nextPageToken?: string; totalInPage: number; }
 export interface DriveBreadcrumb { itemId: string; name: string; }
 export interface RecentFile { itemId: string; name: string; extension?: string; size?: number; uploadedAtUtc?: string; webUrl?: string; }

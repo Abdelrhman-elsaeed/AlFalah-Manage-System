@@ -61,6 +61,73 @@ public sealed class TeacherDriveMappingService : ITeacherDriveMappingService
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<AdminDriveFolderPageDto> BrowseFoldersAsync(
+        int teacherId, BrowseAdminDriveFoldersRequest request, CancellationToken cancellationToken = default)
+    {
+        var teacher = await _context.InstructorProfiles.AsNoTracking()
+            .Where(x => x.Id == teacherId && !x.IsDeleted)
+            .Select(x => new { x.SchoolId })
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new KeyNotFoundException("المعلم غير موجود.");
+        await _scopeGuard.EnsureCanMutateSchoolAsync(teacher.SchoolId, cancellationToken);
+
+        var schoolDrive = await _context.SchoolGoogleDrives.AsNoTracking()
+            .Where(x => x.SchoolId == teacher.SchoolId && x.IsEnabled)
+            .Select(x => new { x.RootFolderId, x.RootFolderDisplayName, x.SharedDriveId })
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("يجب ربط حساب Google Drive الخاص بالمدرسة أولاً.");
+
+        var parentId = string.IsNullOrWhiteSpace(request.ParentItemId)
+            ? schoolDrive.RootFolderId
+            : request.ParentItemId.Trim();
+        var isSchoolRoot = string.Equals(parentId, schoolDrive.RootFolderId, StringComparison.Ordinal);
+        var parentName = schoolDrive.RootFolderDisplayName;
+
+        if (!isSchoolRoot)
+        {
+            var parent = await _drive.GetFileAsync(teacher.SchoolId, parentId, cancellationToken)
+                ?? throw new InvalidOperationException("المجلد غير موجود على Google Drive.");
+            if (parent.Trashed || !parent.IsFolder
+                || !await _guard.IsWithinAsync(teacher.SchoolId, schoolDrive.RootFolderId, parentId, cancellationToken))
+                throw new InvalidOperationException("لا يمكن استعراض مجلد خارج المجلد الرئيسي للمدرسة.");
+            parentName = parent.Name;
+        }
+
+        var drivePage = await _drive.ListChildrenAsync(teacher.SchoolId, new(
+            parentId,
+            NameContains: null,
+            OrderBy: "folder,name",
+            PageSize: 100,
+            PageToken: string.IsNullOrWhiteSpace(request.PageToken) ? null : request.PageToken,
+            SharedDriveId: schoolDrive.SharedDriveId), cancellationToken);
+        var folders = drivePage.Files.Where(x => x.IsFolder && !x.Trashed).ToList();
+        var folderIds = folders.Select(x => x.Id).ToList();
+
+        var assignments = await _context.TeacherDriveFolders.AsNoTracking()
+            .Where(x => x.SchoolId == teacher.SchoolId && x.IsActive && folderIds.Contains(x.RootItemId))
+            .Select(x => new
+            {
+                x.RootItemId,
+                x.TeacherId,
+                TeacherName = (x.Teacher.User.FirstName + " " + x.Teacher.User.LastName).Trim()
+            })
+            .ToListAsync(cancellationToken);
+        var assignmentsByFolder = assignments.ToDictionary(x => x.RootItemId, StringComparer.Ordinal);
+
+        var items = folders.Select(folder =>
+        {
+            assignmentsByFolder.TryGetValue(folder.Id, out var assignment);
+            return new AdminDriveFolderItemDto(
+                folder.Id,
+                folder.Name,
+                assignment is not null,
+                assignment?.TeacherId == teacherId,
+                assignment?.TeacherName);
+        }).ToList();
+
+        return new(parentId, parentName, isSchoolRoot, items, drivePage.NextPageToken);
+    }
+
     public async Task<DriveFolderMappingDto> UpsertAsync(
         int teacherId, UpsertDriveFolderMappingRequest request, CancellationToken cancellationToken = default)
     {
@@ -81,12 +148,18 @@ public sealed class TeacherDriveMappingService : ITeacherDriveMappingService
         var folder = await EnsureFolderIsInsideSchoolRootAsync(
             teacher.SchoolId, schoolDrive.RootFolderId, folderId, cancellationToken);
 
-        // One folder, one teacher. Sharing a folder between two teachers would let each of
-        // them read, and delete, the other's evidence.
-        var takenByAnotherTeacher = await _context.TeacherDriveFolders
-            .AnyAsync(x => x.TeacherId != teacherId && x.RootItemId == folderId, cancellationToken);
-        if (takenByAnotherTeacher)
-            throw new InvalidOperationException("هذا المجلد ممنوح لمعلم آخر بالفعل. اختر مجلداً مستقلاً لكل معلم.");
+        // Equal or nested grants would let one teacher reach another teacher's evidence.
+        var otherActiveGrantRoots = await _context.TeacherDriveFolders.AsNoTracking()
+            .Where(x => x.SchoolId == teacher.SchoolId && x.IsActive && x.TeacherId != teacherId)
+            .Select(x => x.RootItemId)
+            .ToListAsync(cancellationToken);
+        foreach (var otherRoot in otherActiveGrantRoots)
+        {
+            var overlaps = await _guard.IsWithinAsync(teacher.SchoolId, otherRoot, folderId, cancellationToken)
+                || await _guard.IsWithinAsync(teacher.SchoolId, folderId, otherRoot, cancellationToken);
+            if (overlaps)
+                throw new InvalidOperationException("هذا المجلد أو أحد المجلدات المتداخلة معه ممنوح لمعلم آخر بالفعل. اختر مجلداً مستقلاً لكل معلم.");
+        }
 
         var mapping = await _context.TeacherDriveFolders.SingleOrDefaultAsync(x => x.TeacherId == teacherId, cancellationToken);
         var before = mapping is null ? null : Describe(mapping);

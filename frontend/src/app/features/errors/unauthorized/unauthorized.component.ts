@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-unauthorized',
@@ -13,7 +14,7 @@ import { TranslateModule } from '@ngx-translate/core';
         <div class="icon"><i class="pi pi-lock" aria-hidden="true"></i></div>
         <h1>{{ 'ERRORS.UNAUTHORIZED' | translate }}</h1>
         <p>{{ 'ERRORS.FORBIDDEN' | translate }}</p>
-        <a routerLink="/auth/school-login" class="btn-back">{{ 'AUTH.BACK_TO_SCHOOL_LOGIN' | translate }}</a>
+        <a [routerLink]="returnLink()" class="btn-back">{{ returnLabelKey() | translate }}</a>
       </div>
     </div>
   `,
@@ -80,4 +81,19 @@ import { TranslateModule } from '@ngx-translate/core';
   `]
 
 })
-export class UnauthorizedComponent {}
+export class UnauthorizedComponent {
+  private readonly auth = inject(AuthService);
+
+  readonly returnLink = computed(() => {
+    if (!this.auth.isAuthenticated()) return '/auth/school-login';
+    if (this.auth.hasAnyRole(['MainManager', 'SuperAdmin'])) return '/main-manager/dashboard';
+    if (this.auth.hasRole('SchoolManager')) return '/school-manager/dashboard';
+    if (this.auth.hasRole('Moderator')) return '/moderator/dashboard';
+    if (this.auth.hasRole('Instructor')) return '/instructor/dashboard';
+    return '/dashboard';
+  });
+
+  readonly returnLabelKey = computed(() => this.auth.isAuthenticated()
+    ? 'ERRORS.BACK_TO_DASHBOARD'
+    : 'AUTH.BACK_TO_SCHOOL_LOGIN');
+}

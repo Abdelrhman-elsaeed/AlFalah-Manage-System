@@ -1,7 +1,7 @@
-/** Mirrors AlFalah.Domain.Enums.GoogleDriveCredentialType. */
+/** Mirrors the enum names emitted by the API's JsonStringEnumConverter. */
 export enum GoogleDriveCredentialType {
-  ServiceAccount = 1,
-  OAuthRefreshToken = 2
+  ServiceAccount = 'ServiceAccount',
+  OAuthRefreshToken = 'OAuthRefreshToken'
 }
 
 /**

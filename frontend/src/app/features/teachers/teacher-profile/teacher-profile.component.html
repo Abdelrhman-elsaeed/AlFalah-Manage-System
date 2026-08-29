@@ -95,58 +95,124 @@
     <ng-container *ngIf="p.instructorProfileId">
       <p class="drive-folder-loading" *ngIf="driveFolderLoading()">جارٍ التحقق من حالة المجلد…</p>
 
-      <ng-container *ngIf="!driveFolderLoading() && !editingDriveFolder()">
+      <ng-container *ngIf="!driveFolderLoading()">
         <div class="drive-folder-status" *ngIf="driveFolder() as folder; else noFolder">
           <div class="drive-folder-info">
-            <span class="drive-folder-badge" [class.drive-folder-badge--inactive]="!folder.isActive">
-              <i class="pi" [class.pi-check-circle]="folder.isActive" [class.pi-ban]="!folder.isActive"></i>
-              {{ folder.isActive ? 'مفعّل' : 'الصلاحية مسحوبة' }}
+            <span class="drive-folder-badge">
+              <i class="pi pi-check-circle"></i>
+              معيّن
             </span>
             <span class="drive-folder-name">{{ folder.folderDisplayName }}</span>
-            <code class="drive-folder-id" dir="ltr">{{ folder.rootItemId }}</code>
             <a *ngIf="folder.rootWebUrl" [href]="folder.rootWebUrl" target="_blank" rel="noopener" class="drive-folder-link">
               <i class="pi pi-external-link"></i> فتح في Google Drive
             </a>
           </div>
           <div class="drive-folder-actions" *ngIf="canEditDriveFolder()">
-            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-pencil"
-                    label="تعديل المجلد" (click)="beginGrantDriveFolder()"></button>
-            <button *ngIf="folder.isActive" pButton type="button" class="p-button-text p-button-sm p-button-danger"
-                    icon="pi pi-times" label="سحب الصلاحية" [loading]="driveFolderSaving()"
-                    (click)="revokeDriveFolder()"></button>
+            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-folder-open"
+                    label="تغيير المجلد" (click)="beginGrantDriveFolder()"></button>
+            <button pButton type="button" class="p-button-text p-button-sm p-button-danger"
+                    icon="pi pi-times" label="إلغاء التعيين" [loading]="driveFolderSaving()"
+                    (click)="confirmRevokeDriveFolder()"></button>
           </div>
         </div>
         <ng-template #noFolder>
           <div class="drive-folder-status">
             <span class="drive-folder-empty">لم يتم منح مجلد لهذا المعلم بعد.</span>
-            <button *ngIf="canEditDriveFolder()" pButton type="button" icon="pi pi-plus"
-                    label="منح مجلد" class="p-button-sm" (click)="beginGrantDriveFolder()"></button>
+            <button *ngIf="canEditDriveFolder()" pButton type="button" icon="pi pi-folder-open"
+                    label="اختيار مجلد" class="p-button-sm" (click)="beginGrantDriveFolder()"></button>
           </div>
         </ng-template>
       </ng-container>
 
-      <form *ngIf="editingDriveFolder()" class="drive-folder-form" (ngSubmit)="saveDriveFolder()">
-        <label>
-          معرّف المجلد على Google Drive <b>*</b>
-          <input pInputText dir="ltr" name="rootItemId" [(ngModel)]="driveFolderRootItemId"
-                 placeholder="1AbCdEfGhIjKlMnOpQrStUvWxYz" required />
-        </label>
-        <small class="drive-folder-hint">
-          يجب أن يكون هذا المجلد <b>داخل</b> المجلد الرئيسي لملفات الإنجاز الخاص بالمدرسة، ومستقلاً عن أي معلم آخر.
-          افتح المجلد على Google Drive وانسخ الجزء الأخير من الرابط. سيجلب النظام اسم المجلد ورابطه تلقائياً.
-        </small>
-        <div class="drive-folder-form-actions">
-          <button pButton type="button" class="p-button-text" label="إلغاء"
-                  [disabled]="driveFolderSaving()" (click)="cancelDriveFolderEdit()"></button>
-          <button pButton type="submit" icon="pi pi-save" label="حفظ"
-                  [loading]="driveFolderSaving()"
-                  [disabled]="!driveFolderRootItemId.trim()"></button>
-        </div>
-      </form>
     </ng-container>
   </section>
 
   <!-- Visits + Progress — side-by-side cards (desktop parity) -->
+  <p-dialog
+    header="اختيار مجلد ملفات الإنجاز"
+    [visible]="folderBrowserVisible()"
+    (visibleChange)="$event ? null : closeFolderBrowser()"
+    [modal]="true"
+    [closable]="!driveFolderSaving()"
+    [draggable]="false"
+    [style]="{ width: '760px', maxWidth: '96vw' }"
+    styleClass="folder-picker-dialog"
+    appendTo="body"
+    dir="rtl">
+    <div class="folder-picker">
+      <p class="folder-picker__intro">
+        اختر مجلدًا للمعلم <strong>{{ profile()?.fullName }}</strong>. تظهر هنا المجلدات الموجودة داخل مجلد المدرسة فقط.
+      </p>
+
+      <nav class="folder-picker__breadcrumbs" aria-label="مسار المجلد">
+        <ng-container *ngFor="let crumb of folderBrowserBreadcrumbs(); let index = index">
+          <button type="button" (click)="openFolderBrowserBreadcrumb(index)"
+                  [disabled]="index === folderBrowserBreadcrumbs().length - 1">
+            <i class="pi" [class.pi-home]="crumb.isSchoolRoot" [class.pi-folder]="!crumb.isSchoolRoot"></i>
+            {{ crumb.name }}
+          </button>
+          <i *ngIf="index < folderBrowserBreadcrumbs().length - 1" class="pi pi-angle-left" aria-hidden="true"></i>
+        </ng-container>
+      </nav>
+
+      <p class="folder-picker__error" *ngIf="folderBrowserError()">
+        <i class="pi pi-exclamation-circle"></i> {{ folderBrowserError() }}
+      </p>
+
+      <div class="folder-picker__loading" *ngIf="folderBrowserLoading()">
+        <i class="pi pi-spin pi-spinner"></i> جارٍ تحميل المجلدات…
+      </div>
+
+      <div class="folder-picker__list" *ngIf="!folderBrowserLoading() && !folderBrowserError()">
+        <div class="folder-picker__row" *ngFor="let folder of folderBrowserFolders()"
+             [class.folder-picker__row--assigned]="folder.isAssigned">
+          <button type="button" class="folder-picker__open"
+                  [disabled]="folder.isAssigned && !folder.isAssignedToCurrentTeacher"
+                  (click)="openFolderBrowserItem(folder)"
+                  [attr.aria-label]="'فتح مجلد ' + folder.name">
+            <span class="folder-picker__icon"><i class="pi pi-folder"></i></span>
+            <span class="folder-picker__name">
+              {{ folder.name }}
+              <small *ngIf="folder.isAssignedToCurrentTeacher">المجلد المعيّن حاليًا</small>
+              <small *ngIf="folder.isAssigned && !folder.isAssignedToCurrentTeacher">
+                معيّن للمعلم {{ folder.assignedTeacherName }}
+              </small>
+            </span>
+          </button>
+          <div class="folder-picker__actions">
+            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-angle-left"
+                    pTooltip="فتح المجلد" tooltipPosition="top"
+                    [disabled]="folder.isAssigned && !folder.isAssignedToCurrentTeacher"
+                    (click)="openFolderBrowserItem(folder)"></button>
+            <button *ngIf="!folder.isAssigned" pButton type="button" class="p-button-sm"
+                    icon="pi pi-check" label="تعيين"
+                    [loading]="assigningFolderId() === folder.itemId"
+                    [disabled]="driveFolderSaving()"
+                    (click)="assignDriveFolder(folder)"></button>
+            <span class="folder-picker__current" *ngIf="folder.isAssignedToCurrentTeacher">
+              <i class="pi pi-check-circle"></i> معيّن
+            </span>
+            <span class="folder-picker__unavailable" *ngIf="folder.isAssigned && !folder.isAssignedToCurrentTeacher">
+              غير متاح
+            </span>
+          </div>
+        </div>
+
+        <div class="folder-picker__empty" *ngIf="folderBrowserFolders().length === 0">
+          <i class="pi pi-folder-open"></i>
+          <span>لا توجد مجلدات فرعية هنا.</span>
+        </div>
+      </div>
+
+      <button *ngIf="folderBrowserNextPageToken()" pButton type="button"
+              class="p-button-text folder-picker__more" icon="pi pi-chevron-down"
+              label="عرض المزيد" [loading]="folderBrowserLoadingMore()"
+              (click)="loadMoreFolders()"></button>
+    </div>
+  </p-dialog>
+
+  <p-confirmDialog appendTo="body"></p-confirmDialog>
+
   <div class="profile-grid-2col">
     <section class="surface-card visits-card">
       <header class="card-header">

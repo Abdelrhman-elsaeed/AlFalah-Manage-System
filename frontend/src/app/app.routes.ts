@@ -388,6 +388,15 @@ export const routes: Routes = [
 
       // ─── Phase 7: Improvement Plans (permission-gated) ──────────────────
       {
+        path: 'improvement-plans',
+        pathMatch: 'full',
+        canActivate: [permissionGuard],
+        data: { permissions: ['Plan.View'] },
+        loadComponent: () => import('./features/improvement-plans/plan-overview/plan-overview.component')
+          .then(m => m.PlanOverviewComponent),
+        title: translatedTitle('ROUTE_TITLES.IMPROVEMENT_PLANS')
+      },
+      {
         path: 'visits/:visitId/improvement-plans',
         canActivate: [permissionGuard],
         data: { permissions: ['Plan.View'] },

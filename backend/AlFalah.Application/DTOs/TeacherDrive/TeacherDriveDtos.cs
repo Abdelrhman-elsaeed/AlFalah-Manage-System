@@ -38,7 +38,8 @@ public sealed record DriveItemDto(
     string? LastModifiedBy,
     string? WebUrl,
     string? ETag,
-    string? SubmissionStatus);
+    string? SubmissionStatus,
+    long? SubmissionId = null);
 
 public sealed record DriveItemsPageDto(
     IReadOnlyList<DriveItemDto> Items,
@@ -64,6 +65,23 @@ public sealed record TeacherDriveIdentity(int TeacherId, int SchoolId, string Te
 
 public sealed record DriveFolderMappingDto(int TeacherId, int SchoolId, string DriveId, string RootItemId, string FolderDisplayName, string? RootWebUrl, bool IsActive);
 
+/// <summary>A folder shown to an administrator while choosing a teacher's evidence root.</summary>
+public sealed record AdminDriveFolderItemDto(
+    string ItemId,
+    string Name,
+    bool IsAssigned,
+    bool IsAssignedToCurrentTeacher,
+    string? AssignedTeacherName);
+
+public sealed record AdminDriveFolderPageDto(
+    string CurrentFolderId,
+    string CurrentFolderName,
+    bool IsSchoolRoot,
+    IReadOnlyList<AdminDriveFolderItemDto> Folders,
+    string? NextPageToken);
+
+public sealed record BrowseAdminDriveFoldersRequest(string? ParentItemId, string? PageToken);
+
 /// <summary>
 /// The grant an administrator makes — the folder id is the only thing they supply.
 ///
@@ -80,6 +98,8 @@ public sealed record DriveQuery(string? ParentItemId, string? Search, string? So
 public sealed record UploadFileRequest(Stream Content, string FileName, string? ContentType, long Length, string? ParentItemId, int TaskId, string RequestId);
 
 public sealed record UploadFileResultDto(long SubmissionId, DriveItemDto Item);
+
+public sealed record RenameEvidenceSubmissionRequest(string Name);
 
 public sealed record EvidenceUploadReservationDto(long OperationId, int AcademicYearId, UploadFileResultDto? ExistingResult);
 

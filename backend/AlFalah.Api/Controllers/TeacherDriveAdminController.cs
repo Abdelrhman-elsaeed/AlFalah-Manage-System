@@ -45,6 +45,16 @@ public sealed class TeacherDriveAdminController : ControllerBase
             "تم منح المعلم صلاحية المجلد."));
     }
 
+    [HttpGet("teachers/{teacherId:int}/folders")]
+    public async Task<IActionResult> BrowseFolders(
+        int teacherId, [FromQuery] BrowseAdminDriveFoldersRequest request, CancellationToken cancellationToken)
+    {
+        if (!_currentUser.HasPermission(PermissionNames.InstructorEdit))
+            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإعداد مجلدات المعلمين."));
+        return Ok(ApiResponse<AdminDriveFolderPageDto>.Success(
+            await _mappings.BrowseFoldersAsync(teacherId, request, cancellationToken)));
+    }
+
     [HttpDelete("teachers/{teacherId:int}/folder")]
     public async Task<IActionResult> RevokeFolder(int teacherId, CancellationToken cancellationToken)
     {

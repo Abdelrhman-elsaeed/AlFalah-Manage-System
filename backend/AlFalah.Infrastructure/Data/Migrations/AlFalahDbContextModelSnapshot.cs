@@ -2745,7 +2745,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.HasIndex("DriveId", "RootItemId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsActive] = 1");
 
                     b.ToTable("TeacherDriveFolders", (string)null);
                 });

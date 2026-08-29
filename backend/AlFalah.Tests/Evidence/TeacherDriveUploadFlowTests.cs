@@ -247,8 +247,52 @@ public sealed class TeacherDriveUploadFlowTests
 
         var page = await harness.BrowserService(teacher).ListAsync(new(null, null, null, null, null));
 
-        page.Items.Single(x => x.ItemId == harness.Drive.Uploads.Single().FileId)
-            .SubmissionStatus.Should().Be(nameof(EvidenceReviewStatus.Rejected));
+        var item = page.Items.Single(x => x.ItemId == harness.Drive.Uploads.Single().FileId);
+        item.SubmissionStatus.Should().Be(nameof(EvidenceReviewStatus.Rejected));
+        item.SubmissionId.Should().Be(result.SubmissionId,
+            "the UI needs the owned ledger id to offer safe rename and delete actions");
+    }
+
+    [Fact]
+    public async Task Renaming_An_Upload_Updates_Drive_And_The_Evidence_Ledger()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync();
+        var teacher = TeacherDriveHarness.TeacherA();
+        var result = await harness.UploadAsync(teacher, taskId: 1, fileName: "خطة قديمة.pdf");
+
+        var renamed = await harness.UploadService(teacher).RenameAsync(result.SubmissionId, "خطة محدثة.pdf");
+
+        renamed.Name.Should().Be("خطة محدثة.pdf");
+        renamed.SubmissionId.Should().Be(result.SubmissionId);
+        (await harness.Drive.GetFileAsync(TeacherDriveHarness.SchoolId, result.Item.ItemId))!
+            .Name.Should().Be("خطة محدثة.pdf");
+        (await harness.Context.TeacherEvidenceSubmissions.SingleAsync()).FileName.Should().Be("خطة محدثة.pdf");
+        harness.Context.AuditLogs.Should().Contain(x => x.Action == "TeacherEvidence.Renamed");
+    }
+
+    [Fact]
+    public async Task Renaming_Cannot_Change_The_File_Extension()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync();
+        var teacher = TeacherDriveHarness.TeacherA();
+        var result = await harness.UploadAsync(teacher, taskId: 1, fileName: "دليل.pdf");
+
+        await harness.UploadService(teacher).Invoking(x => x.RenameAsync(result.SubmissionId, "دليل.docx"))
+            .Should().ThrowAsync<ArgumentException>();
+
+        (await harness.Drive.GetFileAsync(TeacherDriveHarness.SchoolId, result.Item.ItemId))!
+            .Name.Should().Be("دليل.pdf");
+    }
+
+    [Fact]
+    public async Task A_Teacher_Cannot_Rename_Another_Teachers_Submission()
+    {
+        await using var harness = await TeacherDriveHarness.CreateAsync();
+        var victim = await harness.UploadAsync(TeacherDriveHarness.TeacherB(), taskId: 1, requestId: "b-rename");
+
+        await harness.UploadService(TeacherDriveHarness.TeacherA())
+            .Invoking(x => x.RenameAsync(victim.SubmissionId, "محاولة.pdf"))
+            .Should().ThrowAsync<KeyNotFoundException>();
     }
 
     [Fact]

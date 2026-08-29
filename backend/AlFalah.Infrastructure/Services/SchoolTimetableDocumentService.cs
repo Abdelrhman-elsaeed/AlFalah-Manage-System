@@ -27,7 +27,9 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
     {
         PdfTheme.EnsureFonts();
         var palette = PdfPalette.For(colorMode);
-        var entries = timetable.Entries.ToDictionary(x => (x.InstructorProfileId, x.Day, x.Period));
+        var entries = timetable.Entries
+            .GroupBy(x => (x.InstructorProfileId, x.Day, x.Period))
+            .ToDictionary(g => g.Key, g => g.Last());
         var logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Logo.png");
         var logo = colorMode == TimetablePdfColorMode.Color && File.Exists(logoPath)
             ? File.ReadAllBytes(logoPath)

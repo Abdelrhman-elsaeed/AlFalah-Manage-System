@@ -56,6 +56,9 @@ All deployment-tunable configuration lives in `appsettings.json` +
 | `Jwt:Audience` | YES | `AlFalahClient` | |
 | `Jwt:AccessTokenExpiryMinutes` | NO | `60` | Refresh tokens last 30 days (rotation tracked via `ReplacedByToken`). |
 | `Cors:AllowedOrigins` | YES | `http://localhost:4200` | **MUST** be the production frontend origin(s). Comma-separated. The backend fails closed if `Jwt:Secret` is missing. |
+| `DataProtection:KeysPath` | YES | `App_Data/DataProtectionKeys` | Persistent writable directory outside `wwwroot`. It must survive every deployment and be backed up with the database. |
+| `DataProtection:ApplicationName` | YES | `AlFalah.ManageSystem` | Keep stable across releases; changing it invalidates protected Google Drive credentials. |
+| `DataProtection:KeyEncryption` | YES | `None` | Use `None` on shared IIS hosts that do not load a stable Windows user profile. `DpapiCurrentUser` is suitable only for a dedicated, stable app-pool identity. |
 
 ### 3.2 File upload settings
 
@@ -78,6 +81,37 @@ export ASPNETCORE_URLS="http://0.0.0.0:8080"   # behind a reverse proxy
 
 For Windows + IIS, use `setx` / `Environment.SetEnvironmentVariable` or the
 IIS Manager "Environment Variables" editor.
+
+### 3.5 Persistent encryption keys
+
+Google Drive refresh tokens, OAuth client secrets, and service-account JSON are
+encrypted in SQL with ASP.NET Core Data Protection. Production therefore needs
+both the database and the key ring under `App_Data/DataProtectionKeys`.
+
+- The application creates the directory on startup. MonsterASP uses filesystem ACLs
+  (`KeyEncryption=None`) because its IIS worker cannot use current-user DPAPI. A dedicated
+  Windows server with a stable app-pool identity may use `DpapiCurrentUser` instead.
+- `deploy-to-monsterasp.ps1` excludes this directory from WebDeploy sync.
+- Back up the key directory with the database. A database restore without its
+  matching keys requires the school manager to reconnect Google Drive.
+- Never move the key directory under `wwwroot` or commit it to source control.
+
+The MonsterASP deployment script reads its password from the caller's process:
+
+```powershell
+$env:MONSTERASP_WEBDEPLOY_PASSWORD = '<secret>'
+.\deploy-to-monsterasp.ps1
+```
+
+Alternatively, pass the downloaded WebDeploy profile directly. Its credentials are read in
+memory and are never copied into the repository or publish output:
+
+```powershell
+.\deploy-to-monsterasp.ps1 -PublishSettingsPath 'C:\path\to\site-WebDeploy.publishSettings'
+```
+
+`MONSTERASP_WEBDEPLOY_SITE` and `MONSTERASP_WEBDEPLOY_USERNAME` are optional;
+both default to the current site identifier.
 
 ### 3.4 Secrets management
 
@@ -254,6 +288,8 @@ Before going live, verify every box:
 - [ ] `QUESTPDF_DEBUG` env var is unset (it enables layout-debug dumps).
 - [ ] ASPNETCORE_ENVIRONMENT=Production (so stack traces aren't leaked in
       500 responses — GlobalExceptionMiddleware honours this).
+- [ ] `App_Data/DataProtectionKeys` exists, is writable by the IIS app-pool
+      identity, is excluded from deployment cleanup, and is included in backups.
 
 ### 8.2 Database
 
@@ -322,6 +358,7 @@ WITH RECOVERY, STOPAT = '2026-07-12 14:30:00';
 | `dotnet ef` fails on a CI machine with `Microsoft.Data.Sqlite` errors | Wrong package; LocalDB is Windows-only | Install SQL Server locally or use a connection string to a remote dev DB. |
 | AuditLog table is empty | Seeder/permissions issue OR a write that should log silently swallowed | Check `_audit.Write` exceptions — they're logged at Warning, never rethrown. |
 | Visit list endpoint slow | Pre-Phase-10 N+1 | D-56 fix applied — list is now a single projected query. Confirm the deployed DLL includes the `VisitService.ListAsync` rewrite. |
+| Google Drive credential cannot be decrypted after deployment | Data Protection key ring was deleted, moved, or the application name changed | Restore the matching `App_Data/DataProtectionKeys` backup. If no backup exists, reconnect Google Drive once, then preserve the new key ring. |
 
 ---
 

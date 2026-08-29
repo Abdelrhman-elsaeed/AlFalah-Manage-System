@@ -28,6 +28,8 @@ public interface IGoogleDriveClient
 
     Task<GoogleDriveFile> UploadAsync(int schoolId, GoogleDriveUploadRequest request, CancellationToken cancellationToken = default);
 
+    Task<GoogleDriveFile> RenameAsync(int schoolId, string fileId, string name, CancellationToken cancellationToken = default);
+
     /// <summary>Opens the file's bytes for streaming. The caller owns the returned stream.</summary>
     Task<DriveFileContentDto> DownloadAsync(int schoolId, string fileId, CancellationToken cancellationToken = default);
 
@@ -46,6 +48,7 @@ public interface ITeacherDriveMappingService
 {
     Task<DriveFolderMappingDto> GetForTeacherAsync(int teacherId, CancellationToken cancellationToken = default);
     Task<DriveFolderMappingDto?> FindForTeacherAsync(int teacherId, CancellationToken cancellationToken = default);
+    Task<AdminDriveFolderPageDto> BrowseFoldersAsync(int teacherId, BrowseAdminDriveFoldersRequest request, CancellationToken cancellationToken = default);
     Task<DriveFolderMappingDto> UpsertAsync(int teacherId, UpsertDriveFolderMappingRequest request, CancellationToken cancellationToken = default);
     Task RevokeAsync(int teacherId, CancellationToken cancellationToken = default);
 }
@@ -96,6 +99,7 @@ public interface IGoogleDriveBrowserService
 public interface IGoogleDriveUploadService
 {
     Task<UploadFileResultDto> UploadAsync(UploadFileRequest request, CancellationToken cancellationToken = default);
+    Task<DriveItemDto> RenameAsync(long submissionId, string name, CancellationToken cancellationToken = default);
     Task DeleteAsync(long submissionId, CancellationToken cancellationToken = default);
 }
 
@@ -105,5 +109,6 @@ public interface IEvidenceSubmissionService
     Task<EvidenceUploadReservationDto> ReserveUploadAsync(int teacherId, int schoolId, int taskId, string requestId, CancellationToken cancellationToken = default);
     Task<UploadFileResultDto> RecordCompletedUploadAsync(long operationId, int teacherId, int schoolId, string driveId, string parentItemId, DriveItemDto item, CancellationToken cancellationToken = default);
     Task MarkUploadFailedAsync(long operationId, string reason, CancellationToken cancellationToken = default);
+    Task MarkRenamedAsync(int teacherId, long submissionId, DriveItemDto item, CancellationToken cancellationToken = default);
     Task MarkDeletedAsync(int teacherId, long submissionId, string? deletedByUserId, CancellationToken cancellationToken = default);
 }

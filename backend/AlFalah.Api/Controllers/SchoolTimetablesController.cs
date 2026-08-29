@@ -109,10 +109,14 @@ public sealed class SchoolTimetablesController : ControllerBase
     [HttpGet("{id:int}/pdf")]
     public async Task<IActionResult> Pdf(
         int id,
-        [FromQuery] TimetablePdfColorMode colorMode = TimetablePdfColorMode.Color,
+        [FromQuery] string? colorMode,
         CancellationToken cancellationToken = default)
     {
-        var file = await _service.BuildPdfAsync(id, colorMode, cancellationToken);
+        var mode = string.Equals(colorMode, "monochrome", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(colorMode, "2", StringComparison.Ordinal)
+            ? TimetablePdfColorMode.Monochrome
+            : TimetablePdfColorMode.Color;
+        var file = await _service.BuildPdfAsync(id, mode, cancellationToken);
         return File(file.Bytes, file.ContentType, file.FileName);
     }
 }

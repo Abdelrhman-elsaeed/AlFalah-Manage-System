@@ -45,7 +45,7 @@ export class UserFormComponent implements OnInit {
 
   readonly form: FormGroup = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(256)]],
-    password: ['', [Validators.minLength(8)]],
+    password: ['', [Validators.minLength(6)]],
     fullName: [''],
     firstName: ['', [Validators.required, Validators.maxLength(100)]],
     lastName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -87,11 +87,8 @@ export class UserFormComponent implements OnInit {
       this.form.controls['password'].updateValueAndValidity();
       this.loadUser(id);
     } else {
-      this.form.controls['password'].setValidators([Validators.required, Validators.minLength(8)]);
+      this.form.controls['password'].setValidators([Validators.required, Validators.minLength(6)]);
       this.form.controls['password'].updateValueAndValidity();
-      // Reached from a role-scoped list ("+ إضافة مشرف", teachers list, …): start
-      // on that role. Unknown values are ignored so a hand-typed ?role= can't
-      // push an invalid role into the form.
       if (requestedRole && this.roleOptions().some(option => option.value === requestedRole))
         this.form.patchValue({ role: requestedRole });
       this.setRoleMode(this.form.controls['role'].value as PhaseTwoRole);
@@ -101,11 +98,6 @@ export class UserFormComponent implements OnInit {
     this.loadSchools();
   }
 
-  /**
-   * Usernames are stored and matched lower-case, so normalise while typing
-   * instead of surprising the operator after save. The caret is restored
-   * because `setValue` rewrites the input value.
-   */
   onUsernameInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const lowered = input.value.toLowerCase();
@@ -170,7 +162,7 @@ export class UserFormComponent implements OnInit {
           fullName: value.fullName.trim(),
           employeeNumber: value.employeeNumber.trim(),
           subject: value.subject.trim(),
-          stage: this.stageToApiValue(value.stage),
+          stage: this.stageToApiValue(value.stage) ?? undefined,
           schoolId: value.schoolId ?? undefined
         }
       : {};
@@ -241,37 +233,56 @@ export class UserFormComponent implements OnInit {
     this.form.controls['employeeNumber'].setValidators(instructor ? [Validators.required, Validators.maxLength(50)] : []);
     this.form.controls['subject'].setValidators(instructor ? [Validators.required, Validators.maxLength(200)] : []);
     this.form.controls['stage'].setValidators(required);
-    this.form.controls['schoolId'].setValidators(instructor || this.isSecretary() ? [Validators.required] : []);
-    this.form.controls['firstName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
-    this.form.controls['lastName'].setValidators(instructor ? [] : [Validators.required, Validators.maxLength(100)]);
-    if (!this.isEdit()) {
-      this.form.controls['password'].setValidators([Validators.required, Validators.minLength(8)]);
-    }
-    Object.values(this.form.controls).forEach(control => control.updateValueAndValidity({ emitEvent: false }));
+    this.form.controls['schoolId'].setValidators(required);
+    this.form.controls['firstName'].setValidators(instructor ? [Validators.maxLength(100)] : [Validators.required, Validators.maxLength(100)]);
+    this.form.controls['lastName'].setValidators(instructor ? [Validators.maxLength(100)] : [Validators.required, Validators.maxLength(100)]);
+
+    this.form.controls['fullName'].updateValueAndValidity({ emitEvent: false });
+    this.form.controls['employeeNumber'].updateValueAndValidity({ emitEvent: false });
+    this.form.controls['subject'].updateValueAndValidity({ emitEvent: false });
+    this.form.controls['stage'].updateValueAndValidity({ emitEvent: false });
+    this.form.controls['schoolId'].updateValueAndValidity({ emitEvent: false });
+    this.form.controls['firstName'].updateValueAndValidity({ emitEvent: false });
+    this.form.controls['lastName'].updateValueAndValidity({ emitEvent: false });
+  }
+
+  private setSecretaryMode(secretary: boolean): void {
+    this.isSecretary.set(secretary);
+    const required = secretary ? [Validators.required] : [];
+    this.form.controls['schoolId'].setValidators(required);
+    this.form.controls['schoolId'].updateValueAndValidity({ emitEvent: false });
   }
 
   private setRoleMode(role: PhaseTwoRole): void {
-    this.isSecretary.set(role === 'Secretary');
     this.setInstructorMode(role === 'Instructor');
-  }
-
-  private normalizeStage(stage: SchoolStage | number | null | undefined): SchoolStage | null {
-    if (typeof stage === 'string') return stage;
-    return stage === 1 ? 'Primary' : stage === 2 ? 'Intermediate' : stage === 3 ? 'Secondary' : null;
-  }
-
-  private stageToApiValue(stage: SchoolStage | number | null | undefined): number | undefined {
-    if (typeof stage === 'number') return stage;
-    return stage === 'Primary' ? 1 : stage === 'Intermediate' ? 2 : stage === 'Secondary' ? 3 : undefined;
+    this.setSecretaryMode(role === 'Secretary');
   }
 
   private syncNameParts(): void {
     if (!this.isInstructor()) return;
-    const parts = String(this.form.controls['fullName'].value ?? '').trim().split(/\s+/).filter(Boolean);
-    if (parts.length < 2) {
-      this.form.controls['fullName'].setErrors({ fullName: true });
-      return;
+    const full = String(this.form.controls['fullName'].value ?? '').trim();
+    if (!full) return;
+    const parts = full.split(/\s+/);
+    const first = parts[0] ?? '';
+    const last = parts.slice(1).join(' ') || first;
+    this.form.patchValue({ firstName: first, lastName: last }, { emitEvent: false });
+  }
+
+  private normalizeStage(stage: unknown): SchoolStage | null {
+    if (!stage) return null;
+    if (stage === 'Primary' || stage === 'Intermediate' || stage === 'Secondary') return stage;
+    if (typeof stage === 'number') {
+      const map: Record<number, SchoolStage> = { 1: 'Primary', 2: 'Intermediate', 3: 'Secondary' };
+      return map[stage] ?? null;
     }
-    this.form.patchValue({ firstName: parts[0], lastName: parts.slice(1).join(' ') }, { emitEvent: false });
+    const str = String(stage).trim();
+    if (str === '1' || str === 'ابتدائي' || str.toLowerCase() === 'primary') return 'Primary';
+    if (str === '2' || str === 'متوسط' || str.toLowerCase() === 'intermediate') return 'Intermediate';
+    if (str === '3' || str === 'ثانوي' || str.toLowerCase() === 'secondary') return 'Secondary';
+    return null;
+  }
+
+  private stageToApiValue(stage: unknown): SchoolStage | null {
+    return this.normalizeStage(stage);
   }
 }

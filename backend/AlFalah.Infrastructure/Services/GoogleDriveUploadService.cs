@@ -83,6 +83,35 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
             GoogleDriveBrowserService.ToDto(uploaded), cancellationToken);
     }
 
+    public async Task<DriveItemDto> RenameAsync(
+        long submissionId, string name, CancellationToken cancellationToken = default)
+    {
+        var teacher = await _identity.ResolveCurrentTeacherAsync(cancellationToken);
+        var submission = await _context.TeacherEvidenceSubmissions.AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.Id == submissionId && x.TeacherId == teacher.TeacherId && !x.IsDeleted,
+                cancellationToken)
+            ?? throw new KeyNotFoundException("ملف الدليل غير موجود.");
+
+        var normalizedName = ValidateRename(name, submission.FileName);
+        var mapping = await _mappings.GetForTeacherAsync(teacher.TeacherId, cancellationToken);
+        if (mapping.SchoolId != teacher.SchoolId) throw new TeacherDriveAccessDeniedException();
+
+        var current = await _guard.EnsureWithinGrantAsync(mapping, submission.DriveItemId, cancellationToken);
+        if (current.IsFolder) throw new ArgumentException("لا يمكن إعادة تسمية مجلد من شاشة الأدلة.");
+
+        var renamed = string.Equals(current.Name, normalizedName, StringComparison.Ordinal)
+            ? current
+            : await _drive.RenameAsync(teacher.SchoolId, submission.DriveItemId, normalizedName, cancellationToken);
+        var item = GoogleDriveBrowserService.ToDto(renamed) with
+        {
+            SubmissionId = submission.Id,
+            SubmissionStatus = submission.ReviewStatus.ToString()
+        };
+        await _submissions.MarkRenamedAsync(teacher.TeacherId, submissionId, item, cancellationToken);
+        return item;
+    }
+
     public async Task DeleteAsync(long submissionId, CancellationToken cancellationToken = default)
     {
         var teacher = await _identity.ResolveCurrentTeacherAsync(cancellationToken);
@@ -104,6 +133,23 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
         // Clear the local ledger even when Drive reported the file as already gone: the
         // desired end state is absence, so the matrix checkmark must come down either way.
         await _submissions.MarkDeletedAsync(teacher.TeacherId, submissionId, null, cancellationToken);
+    }
+
+    private static string ValidateRename(string name, string currentName)
+    {
+        var normalized = name?.Trim();
+        if (string.IsNullOrWhiteSpace(normalized)
+            || normalized.Length > 255
+            || normalized.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || normalized.Contains("..", StringComparison.Ordinal))
+            throw new ArgumentException("اسم الملف الجديد غير صالح.");
+
+        var currentExtension = Path.GetExtension(currentName);
+        var requestedExtension = Path.GetExtension(normalized);
+        if (!string.Equals(currentExtension, requestedExtension, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("لا يمكن تغيير امتداد الملف. عدّل الاسم مع الاحتفاظ بنفس الامتداد.");
+
+        return normalized;
     }
 
     private void Validate(UploadFileRequest request)

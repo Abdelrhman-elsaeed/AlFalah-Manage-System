@@ -83,9 +83,19 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         else
         {
             drive.ImpersonatedUserEmail = null;
-            drive.OAuthClientId = Clean(request.OAuthClientId);
+            var requestedClientId = Clean(request.OAuthClientId);
+            var oauthClientWasReplaced = drive.CredentialType != GoogleDriveCredentialType.OAuthRefreshToken
+                || !string.Equals(drive.OAuthClientId, requestedClientId, StringComparison.Ordinal)
+                || !string.IsNullOrWhiteSpace(request.OAuthClientSecret);
+
+            drive.OAuthClientId = requestedClientId;
             if (!string.IsNullOrWhiteSpace(request.OAuthClientSecret))
                 drive.ProtectedOAuthClientSecret = _protector.Protect(request.OAuthClientSecret!.Trim());
+
+            // Replacing OAuth client settings starts a fresh consent flow. Retaining the old
+            // refresh-token blob would report a connection that cannot actually be used.
+            if (oauthClientWasReplaced)
+                drive.ProtectedCredential = string.Empty;
             if (!string.IsNullOrWhiteSpace(request.OAuthRefreshToken))
                 drive.ProtectedCredential = _protector.Protect(request.OAuthRefreshToken!.Trim());
         }

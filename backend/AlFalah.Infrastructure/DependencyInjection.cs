@@ -34,12 +34,12 @@ public static class DependencyInjection
         // ─── ASP.NET Core Identity ────────────────────────────────────────────
         services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {
-            // Password policy
-            options.Password.RequireDigit = true;
-            options.Password.RequiredLength = 8;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireLowercase = true;
-            options.Password.RequireNonAlphanumeric = true;
+            // Password policy — simplified: letters and numbers, min 6 chars, no required symbols or uppercase
+            options.Password.RequireDigit = false;
+            options.Password.RequiredLength = 6;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireNonAlphanumeric = false;
 
             // Account lockout
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
@@ -105,7 +105,6 @@ public static class DependencyInjection
         // The whole feature reaches Drive through ONE school-owned credential, so the
         // credential protector, the token minter and the folder guard are all required
         // for a request to be authorized — see TeacherDriveFolderGuard for why.
-        services.AddDataProtection();
         services.AddMemoryCache();
         services.AddScoped<GoogleDriveCredentialProtector>();
         services.AddScoped<StudentAnalyzerCredentialProtector>();

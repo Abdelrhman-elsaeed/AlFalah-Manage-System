@@ -10,6 +10,9 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 import { ToastService } from '../../../core/services/toast.service';
 import { TeachersService } from '../../../core/services/teachers.service';
 import { TeacherDriveAdminService } from '../../../core/services/teacher-drive-admin.service';
@@ -26,7 +29,7 @@ import {
   TeacherVisitProgress,
   TeacherVisitSummary
 } from '../../../core/models/teacher.models';
-import { DriveFolderMapping } from '../../../core/models/teacher-drive-admin.models';
+import { AdminDriveFolderItem, DriveFolderMapping } from '../../../core/models/teacher-drive-admin.models';
 
 @Component({
   selector: 'app-teacher-profile',
@@ -34,8 +37,10 @@ import { DriveFolderMapping } from '../../../core/models/teacher-drive-admin.mod
   imports: [
     CommonModule, FormsModule, TranslateModule,
     ButtonModule, InputTextModule, ChipsModule, TableModule, TagModule, TooltipModule, ChartModule,
+    DialogModule, ConfirmDialogModule,
     PublishedScorePipe, PublishedScoreDeltaPipe
   ],
+  providers: [ConfirmationService],
   templateUrl: './teacher-profile.component.html',
   styleUrls: ['./teacher-profile.component.css']
 })
@@ -46,6 +51,7 @@ export class TeacherProfileComponent implements OnInit {
   private readonly driveAdmin = inject(TeacherDriveAdminService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly confirm = inject(ConfirmationService);
   private readonly translate = inject(TranslateService);
 
   readonly userId = signal<string | null>(null);
@@ -151,8 +157,14 @@ export class TeacherProfileComponent implements OnInit {
   readonly driveFolder = signal<DriveFolderMapping | null>(null);
   readonly driveFolderLoading = signal(false);
   readonly driveFolderSaving = signal(false);
-  readonly editingDriveFolder = signal(false);
-  driveFolderRootItemId = '';
+  readonly folderBrowserVisible = signal(false);
+  readonly folderBrowserLoading = signal(false);
+  readonly folderBrowserLoadingMore = signal(false);
+  readonly folderBrowserError = signal('');
+  readonly folderBrowserFolders = signal<AdminDriveFolderItem[]>([]);
+  readonly folderBrowserBreadcrumbs = signal<DriveFolderBreadcrumb[]>([]);
+  readonly folderBrowserNextPageToken = signal<string | null>(null);
+  readonly assigningFolderId = signal<string | null>(null);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('userId');
@@ -219,25 +231,49 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   beginGrantDriveFolder(): void {
-    const current = this.driveFolder();
-    this.driveFolderRootItemId = current?.rootItemId ?? '';
-    this.editingDriveFolder.set(true);
+    this.folderBrowserVisible.set(true);
+    this.folderBrowserBreadcrumbs.set([]);
+    this.folderBrowserFolders.set([]);
+    this.folderBrowserError.set('');
+    this.loadFolderBrowser();
   }
 
-  cancelDriveFolderEdit(): void { this.editingDriveFolder.set(false); }
+  closeFolderBrowser(): void {
+    if (!this.driveFolderSaving()) this.folderBrowserVisible.set(false);
+  }
 
-  saveDriveFolder(): void {
+  openFolderBrowserItem(folder: AdminDriveFolderItem): void {
+    this.loadFolderBrowser(folder.itemId);
+  }
+
+  openFolderBrowserBreadcrumb(index: number): void {
+    const crumb = this.folderBrowserBreadcrumbs()[index];
+    if (!crumb) return;
+    this.folderBrowserBreadcrumbs.set(this.folderBrowserBreadcrumbs().slice(0, index + 1));
+    this.loadFolderBrowser(crumb.itemId, false, true);
+  }
+
+  loadMoreFolders(): void {
+    const currentFolderId = this.folderBrowserBreadcrumbs().at(-1)?.itemId;
+    const pageToken = this.folderBrowserNextPageToken();
+    if (currentFolderId && pageToken) {
+      this.loadFolderBrowser(currentFolderId, true, true, pageToken);
+    }
+  }
+
+  assignDriveFolder(folder: AdminDriveFolderItem): void {
     const instructorProfileId = this.profile()?.instructorProfileId;
-    const rootItemId = this.driveFolderRootItemId.trim();
-    if (!instructorProfileId || !rootItemId) return;
+    if (!instructorProfileId || folder.isAssigned) return;
 
     this.driveFolderSaving.set(true);
-    this.driveAdmin.upsertFolder(instructorProfileId, { rootItemId }).subscribe({
+    this.assigningFolderId.set(folder.itemId);
+    this.driveAdmin.upsertFolder(instructorProfileId, { rootItemId: folder.itemId }).subscribe({
       next: resp => {
         this.driveFolderSaving.set(false);
+        this.assigningFolderId.set(null);
         if (resp.isSuccess && resp.data) {
           this.driveFolder.set(resp.data);
-          this.editingDriveFolder.set(false);
+          this.folderBrowserVisible.set(false);
           this.toast.success(resp.message || 'تم منح المعلم صلاحية المجلد.');
         } else {
           this.toast.error('تعذر حفظ مجلد المعلم.', resp.message || '');
@@ -245,12 +281,27 @@ export class TeacherProfileComponent implements OnInit {
       },
       error: err => {
         this.driveFolderSaving.set(false);
+        this.assigningFolderId.set(null);
         this.toast.error('تعذر حفظ مجلد المعلم.', err?.error?.message || '');
       }
     });
   }
 
-  revokeDriveFolder(): void {
+  confirmRevokeDriveFolder(): void {
+    const folder = this.driveFolder();
+    if (!folder) return;
+    this.confirm.confirm({
+      header: 'إلغاء تعيين المجلد',
+      message: `إلغاء تعيين «${folder.folderDisplayName}» من هذا المعلم؟ ستظل الملفات المرفوعة محفوظة في مصفوفة المتابعة.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'إلغاء التعيين',
+      rejectLabel: 'رجوع',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.revokeDriveFolder()
+    });
+  }
+
+  private revokeDriveFolder(): void {
     const instructorProfileId = this.profile()?.instructorProfileId;
     if (!instructorProfileId) return;
 
@@ -260,11 +311,57 @@ export class TeacherProfileComponent implements OnInit {
         this.driveFolderSaving.set(false);
         if (resp.isSuccess) {
           // Evidence already uploaded stays in the matrix — revoking only blocks new access.
-          this.driveFolder.update(current => current ? { ...current, isActive: false } : current);
+          this.driveFolder.set(null);
           this.toast.success(resp.message || 'تم سحب صلاحية المجلد.');
         }
       },
       error: () => this.driveFolderSaving.set(false)
+    });
+  }
+
+  private loadFolderBrowser(
+    parentItemId?: string,
+    append = false,
+    keepBreadcrumbs = false,
+    pageToken?: string
+  ): void {
+    const instructorProfileId = this.profile()?.instructorProfileId;
+    if (!instructorProfileId) return;
+
+    append ? this.folderBrowserLoadingMore.set(true) : this.folderBrowserLoading.set(true);
+    this.folderBrowserError.set('');
+    this.driveAdmin.browseFolders(instructorProfileId, parentItemId, pageToken).subscribe({
+      next: resp => {
+        this.folderBrowserLoading.set(false);
+        this.folderBrowserLoadingMore.set(false);
+        if (!resp.isSuccess || !resp.data) {
+          this.folderBrowserError.set(resp.message || 'تعذر تحميل مجلدات Google Drive.');
+          return;
+        }
+
+        const page = resp.data;
+        this.folderBrowserFolders.set(append
+          ? [...this.folderBrowserFolders(), ...page.folders]
+          : page.folders);
+        this.folderBrowserNextPageToken.set(page.nextPageToken ?? null);
+
+        if (!append && !keepBreadcrumbs) {
+          const current = this.folderBrowserBreadcrumbs();
+          const existingIndex = current.findIndex(x => x.itemId === page.currentFolderId);
+          this.folderBrowserBreadcrumbs.set(existingIndex >= 0
+            ? current.slice(0, existingIndex + 1)
+            : [...current, {
+                itemId: page.currentFolderId,
+                name: page.currentFolderName,
+                isSchoolRoot: page.isSchoolRoot
+              }]);
+        }
+      },
+      error: err => {
+        this.folderBrowserLoading.set(false);
+        this.folderBrowserLoadingMore.set(false);
+        this.folderBrowserError.set(err?.error?.message || 'تعذر تحميل مجلدات Google Drive.');
+      }
     });
   }
 
@@ -345,6 +442,12 @@ export class TeacherProfileComponent implements OnInit {
     if (delta < 0) return 'down';
     return 'same';
   }
+}
+
+interface DriveFolderBreadcrumb {
+  itemId: string;
+  name: string;
+  isSchoolRoot: boolean;
 }
 
 /** Converts #RRGGBB + alpha into an rgba() string for chart fill tints. */

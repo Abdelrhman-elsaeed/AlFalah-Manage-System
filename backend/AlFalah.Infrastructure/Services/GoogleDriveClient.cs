@@ -93,6 +93,17 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
         return ParseFile(json);
     }
 
+    public async Task<GoogleDriveFile> RenameAsync(
+        int schoolId, string fileId, string name, CancellationToken cancellationToken = default)
+    {
+        var path = $"files/{Uri.EscapeDataString(fileId)}?supportsAllDrives=true&fields={Uri.EscapeDataString(FileFields)}";
+        using var body = new StringContent(
+            new JsonObject { ["name"] = name }.ToJsonString(), Encoding.UTF8, "application/json");
+        var json = await SendAsync(schoolId, HttpMethod.Patch, path, body, allowNotFound: false, cancellationToken)
+            ?? throw new InvalidOperationException("لم تُرجع Google Drive بيانات الملف بعد إعادة التسمية.");
+        return ParseFile(json);
+    }
+
     public async Task<DriveFileContentDto> DownloadAsync(int schoolId, string fileId, CancellationToken cancellationToken = default)
     {
         var metadata = await GetFileAsync(schoolId, fileId, cancellationToken)

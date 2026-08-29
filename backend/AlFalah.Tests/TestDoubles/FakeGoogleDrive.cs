@@ -106,6 +106,16 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
         return _nodes[id].ToFile();
     }
 
+    public Task<GoogleDriveFile> RenameAsync(
+        int schoolId, string fileId, string name, CancellationToken cancellationToken = default)
+    {
+        EnsureReachable(schoolId);
+        if (!_nodes.TryGetValue(fileId, out var node) || node.Trashed)
+            throw new TeacherDriveAccessDeniedException("لم يعد الملف موجودًا.");
+        node.Name = name;
+        return Task.FromResult(node.ToFile());
+    }
+
     public Task<DriveFileContentDto> DownloadAsync(int schoolId, string fileId, CancellationToken cancellationToken = default)
     {
         EnsureReachable(schoolId);
@@ -145,7 +155,7 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
         }
 
         public string Id { get; }
-        public string Name { get; }
+        public string Name { get; set; }
         public string MimeType { get; }
         public string? ParentId { get; set; }
         public byte[] Content { get; }

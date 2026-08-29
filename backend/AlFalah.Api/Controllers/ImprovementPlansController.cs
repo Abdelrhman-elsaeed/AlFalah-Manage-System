@@ -29,6 +29,18 @@ public class ImprovementPlansController : ControllerBase
 
     // ─── GET Plans for Visit ──────────────────────────────────────────────────
 
+    [HttpGet("improvement-plans")]
+    [ProducesResponseType(typeof(ApiResponse<List<ImprovementPlanListItemDto>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse), 403)]
+    public async Task<IActionResult> GetPlans(CancellationToken cancellationToken)
+    {
+        if (!_currentUser.HasPermission(PermissionNames.PlanView))
+            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لعرض خطط التحسين."));
+
+        var result = await _planService.GetPlansAsync(cancellationToken);
+        return Ok(ApiResponse<List<ImprovementPlanListItemDto>>.Success(result));
+    }
+
     [HttpGet("visits/{visitId:int}/improvement-plans")]
     [ProducesResponseType(typeof(ApiResponse<List<ImprovementPlanDto>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 403)]

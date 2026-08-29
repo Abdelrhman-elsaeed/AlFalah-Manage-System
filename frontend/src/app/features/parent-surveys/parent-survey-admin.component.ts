@@ -216,9 +216,22 @@ export class ParentSurveyAdminComponent implements OnInit {
     this.selectedSubmission.set(null);
   }
 
-  statusLabel(status: ParentSurveyStatus): string {
-    return status === ParentSurveyStatus.Published ? 'منشور'
-      : status === ParentSurveyStatus.Closed ? 'مغلق' : 'مسودة';
+  isDraft(status: unknown): boolean {
+    return status === ParentSurveyStatus.Draft || status === 'Draft' || status === 0 || status === '0';
+  }
+
+  isPublished(status: unknown): boolean {
+    return status === ParentSurveyStatus.Published || status === 'Published' || status === 1 || status === '1';
+  }
+
+  isClosed(status: unknown): boolean {
+    return status === ParentSurveyStatus.Closed || status === 'Closed' || status === 2 || status === '2';
+  }
+
+  statusLabel(status: unknown): string {
+    if (this.isPublished(status)) return 'منشور';
+    if (this.isClosed(status)) return 'مغلق';
+    return 'مسودة';
   }
 
   ratingLabel(rating: ParentSurveyRating): string {

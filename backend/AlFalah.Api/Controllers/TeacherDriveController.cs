@@ -109,4 +109,14 @@ public sealed class TeacherDriveController : ControllerBase
         await _uploads.DeleteAsync(submissionId, cancellationToken);
         return Ok(ApiResponse.Success("تم حذف الملف وتحديث حالة المهمة."));
     }
+
+    [HttpPatch("submissions/{submissionId:long}/name")]
+    public async Task<IActionResult> Rename(
+        long submissionId,
+        [FromBody] RenameEvidenceSubmissionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var item = await _uploads.RenameAsync(submissionId, request.Name, cancellationToken);
+        return Ok(ApiResponse<DriveItemDto>.Success(item, "تم تعديل اسم الملف."));
+    }
 }

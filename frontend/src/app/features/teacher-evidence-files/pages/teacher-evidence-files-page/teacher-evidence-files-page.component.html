@@ -1,32 +1,127 @@
 <section class="evidence-page" dir="rtl">
   <header class="evidence-page__header">
-    <div><p class="eyebrow">ملفات الإنجاز</p><h1>ملفات الإنجاز</h1><p>ارفع كل دليل إلى مهمة واضحة ليظهر تلقائيًا في مصفوفة المتابعة.</p></div>
-    <span class="connection" [class.connection--offline]="status()?.connectionState !== 'Connected'"><i class="pi pi-circle-fill"></i>{{ status()?.connectionState === 'Connected' ? 'متصل' : 'غير متاح' }}</span>
+    <div>
+      <p class="eyebrow">ملفات الإنجاز</p>
+      <h1>ملفات الإنجاز</h1>
+      <p>ارفع كل دليل إلى مهمة واضحة ليظهر تلقائيًا في مصفوفة المتابعة.</p>
+    </div>
+    <span class="connection" [class.connection--offline]="status()?.connectionState !== 'Connected'">
+      <i class="pi pi-circle-fill"></i>{{ status()?.connectionState === 'Connected' ? 'متصل' : 'غير متاح' }}
+    </span>
   </header>
+
   <p class="page-error" *ngIf="error()">{{ error() }}</p>
+
   <div class="evidence-grid" *ngIf="status()?.isSchoolDriveEnabled && status()?.isFolderAssigned; else connectionState">
     <article class="drive-card">
-      <div class="card-heading"><div><h2>مجلدك على Google Drive</h2><nav aria-label="مسار المجلد"><button *ngFor="let crumb of breadcrumbs()" (click)="loadFolder(crumb.itemId)">{{ crumb.name }}</button></nav></div><button class="outline" type="button" (click)="loadFolder(currentFolderId())"><i class="pi pi-refresh"></i> تحديث</button></div>
-      <div class="toolbar"><input [(ngModel)]="search" (keyup.enter)="searchFolder()" aria-label="البحث في الملفات" placeholder="ابحث في الملفات"><button type="button" (click)="searchFolder()"><i class="pi pi-search"></i> بحث</button></div>
-      <div class="loading" *ngIf="loading()">جارٍ تحميل الملفات…</div>
-      <div class="file-table" *ngIf="!loading()"><div class="file-table__head"><span>الاسم</span><span>النوع</span><span>آخر تعديل</span><span>الحالة</span></div><button class="file-row" *ngFor="let item of items()" (click)="open(item)" [attr.aria-label]="'فتح ' + item.name"><span class="file-name"><i [class]="item.isFolder ? 'pi pi-folder' : 'pi pi-file'"></i>{{ item.name }}</span><span>{{ item.isFolder ? 'مجلد' : (item.extension || 'ملف') }}</span><span>{{ item.lastModifiedAt | date:'yyyy/MM/dd HH:mm' }}</span><span class="status-pill">{{ item.submissionStatus || (item.isFolder ? '—' : 'تم الرفع') }}</span></button><div class="empty" *ngIf="items().length === 0">لا توجد ملفات مطابقة في هذا المجلد.</div></div>
+      <div class="card-heading">
+        <div>
+          <h2>مجلدك على Google Drive</h2>
+          <nav aria-label="مسار المجلد">
+            <button *ngFor="let crumb of breadcrumbs()" (click)="loadFolder(crumb.itemId)">{{ crumb.name }}</button>
+          </nav>
+        </div>
+        <button class="outline" type="button" (click)="loadFolder(currentFolderId())">
+          <i class="pi pi-refresh"></i> تحديث
+        </button>
+      </div>
+
+      <div class="toolbar">
+        <input [(ngModel)]="search" (keyup.enter)="searchFolder()" aria-label="البحث في الملفات" placeholder="ابحث في الملفات">
+        <button type="button" (click)="searchFolder()"><i class="pi pi-search"></i> بحث</button>
+      </div>
+
+      <div class="loading" *ngIf="loading()">جارٍ تحميل الملفات...</div>
+      <div class="file-table" *ngIf="!loading()">
+        <div class="file-table__head">
+          <span>الاسم</span><span>النوع</span><span>آخر تعديل</span><span>الحالة</span><span>إجراءات</span>
+        </div>
+        <div class="file-row" *ngFor="let item of items()">
+          <button class="file-name file-open" type="button" (click)="open(item)" [attr.aria-label]="'فتح ' + item.name">
+            <i [class]="item.isFolder ? 'pi pi-folder' : 'pi pi-file'"></i>
+            <span>{{ item.name }}</span>
+          </button>
+          <span>{{ item.isFolder ? 'مجلد' : (item.extension || 'ملف') }}</span>
+          <span>{{ item.lastModifiedAt | date:'yyyy/MM/dd HH:mm' }}</span>
+          <span class="status-pill">{{ item.submissionStatus || (item.isFolder ? '—' : 'تم الرفع') }}</span>
+          <div class="file-actions" *ngIf="item.submissionId && !item.isFolder; else noFileActions">
+            <button type="button" title="تعديل الاسم" [attr.aria-label]="'تعديل اسم ' + item.name" (click)="startRename(item)"><i class="pi pi-pencil"></i></button>
+            <button class="danger-icon" type="button" title="حذف الملف" [attr.aria-label]="'حذف ' + item.name" (click)="askDelete(item)"><i class="pi pi-trash"></i></button>
+          </div>
+          <ng-template #noFileActions><span class="no-actions">—</span></ng-template>
+        </div>
+        <div class="empty" *ngIf="items().length === 0">لا توجد ملفات مطابقة في هذا المجلد.</div>
+      </div>
       <footer>{{ items().length }} عنصر</footer>
     </article>
+
     <aside class="upload-card">
-      <h2>رفع دليل جديد</h2><p>سيتم الرفع إلى <strong>{{ breadcrumbs().at(-1)?.name || status()?.folderDisplayName }}</strong></p>
+      <h2>رفع دليل جديد</h2>
+      <p>سيتم الرفع إلى <strong>{{ breadcrumbs().at(-1)?.name || status()?.folderDisplayName }}</strong></p>
       <label class="task-label" for="evidence-task">المهمة المرتبطة بالدليل <b>*</b></label>
       <select id="evidence-task" class="task-select" [(ngModel)]="selectedTaskId" [disabled]="!uploadCatalog()">
         <option [ngValue]="null">اختر المهمة أولًا</option>
         <option *ngFor="let task of uploadCatalog()?.tasks || []" [ngValue]="task.id">{{ task.category }} — {{ task.nameAr }}</option>
       </select>
       <small class="year-hint" *ngIf="uploadCatalog()">{{ uploadCatalog()?.academicYear?.nameAr }}</small>
-      <label class="drop-zone" for="evidence-file"><i class="pi pi-cloud-upload"></i><b>اسحب الملف هنا</b><span>أو اختره من جهازك</span><input id="evidence-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png" (change)="chooseFile($any($event.target))"></label>
-      <div class="chosen-file" *ngIf="selectedFile() as file"><i class="pi pi-file"></i><span>{{ file.name }}<small>{{ formatSize(file.size) }}</small></span><button type="button" (click)="selectedFile.set(null)"><i class="pi pi-times"></i></button></div>
+      <label class="drop-zone" for="evidence-file">
+        <i class="pi pi-cloud-upload"></i><b>اسحب الملف هنا</b><span>أو اختره من جهازك</span>
+        <input id="evidence-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png" (change)="chooseFile($any($event.target))">
+      </label>
+      <div class="chosen-file" *ngIf="selectedFile() as file">
+        <i class="pi pi-file"></i><span>{{ file.name }}<small>{{ formatSize(file.size) }}</small></span>
+        <button type="button" aria-label="إلغاء اختيار الملف" (click)="selectedFile.set(null)"><i class="pi pi-times"></i></button>
+      </div>
       <div class="progress" *ngIf="uploadProgress() !== null"><span [style.width.%]="uploadProgress()"></span><small>{{ uploadProgress() }}%</small></div>
-      <button class="primary" type="button" [disabled]="!selectedFile() || !selectedTaskId || uploadProgress() !== null" (click)="upload()"><i class="pi pi-upload"></i> رفع الآن</button>
+      <button class="primary" type="button" [disabled]="!selectedFile() || !selectedTaskId || uploadProgress() !== null" (click)="upload()">
+        <i class="pi pi-upload"></i> رفع الآن
+      </button>
       <p class="hint">لا يتم احتساب الدليل إلا بعد نجاح الرفع على Google Drive. يمكن رفع عدة ملفات للمهمة نفسها دون زيادة إجمالي المهام.</p>
     </aside>
   </div>
-  <ng-template #connectionState><article class="connection-card"><i class="pi pi-google"></i><h2>{{ connectionTitle }}</h2><p>{{ connectionMessage }}</p></article></ng-template>
-  <article class="recent-card" *ngIf="recent().length"><h2>آخر الملفات</h2><div class="recent-list"><button type="button" *ngFor="let file of recent()" (click)="openFile(file.itemId, file.name)"><i class="pi pi-file"></i><span>{{ file.name }}<small>{{ formatSize(file.size) }} · {{ file.uploadedAtUtc | date:'yyyy/MM/dd' }}</small></span></button></div></article>
+
+  <ng-template #connectionState>
+    <article class="connection-card"><i class="pi pi-google"></i><h2>{{ connectionTitle }}</h2><p>{{ connectionMessage }}</p></article>
+  </ng-template>
+
+  <article class="recent-card" *ngIf="recent().length">
+    <h2>آخر الملفات</h2>
+    <div class="recent-list">
+      <button type="button" *ngFor="let file of recent()" (click)="openFile(file.itemId, file.name)">
+        <i class="pi pi-file"></i><span>{{ file.name }}<small>{{ formatSize(file.size) }} · {{ file.uploadedAtUtc | date:'yyyy/MM/dd' }}</small></span>
+      </button>
+    </div>
+  </article>
 </section>
+
+<div class="dialog-backdrop" *ngIf="renameTarget() as item" (click)="closeRename()">
+  <section class="file-dialog" role="dialog" aria-modal="true" aria-labelledby="rename-dialog-title" (click)="$event.stopPropagation()" dir="rtl">
+    <header>
+      <h2 id="rename-dialog-title">تعديل اسم الملف</h2>
+      <button type="button" title="إغلاق" aria-label="إغلاق" (click)="closeRename()"><i class="pi pi-times"></i></button>
+    </header>
+    <label for="rename-file-input">الاسم الجديد</label>
+    <input id="rename-file-input" [(ngModel)]="renameName" maxlength="255" autocomplete="off" (keyup.enter)="saveRename()">
+    <small>احتفظ بامتداد الملف كما هو: .{{ item.extension }}</small>
+    <p class="dialog-error" *ngIf="actionError()">{{ actionError() }}</p>
+    <footer>
+      <button class="dialog-secondary" type="button" [disabled]="actionBusy()" (click)="closeRename()">إلغاء</button>
+      <button class="dialog-primary" type="button" [disabled]="actionBusy() || !renameName.trim() || renameName.trim() === item.name" (click)="saveRename()"><i class="pi pi-check"></i> حفظ الاسم</button>
+    </footer>
+  </section>
+</div>
+
+<div class="dialog-backdrop" *ngIf="deleteTarget() as item" (click)="closeDelete()">
+  <section class="file-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-dialog-title" (click)="$event.stopPropagation()" dir="rtl">
+    <header>
+      <h2 id="delete-dialog-title">حذف الملف؟</h2>
+      <button type="button" title="إغلاق" aria-label="إغلاق" (click)="closeDelete()"><i class="pi pi-times"></i></button>
+    </header>
+    <p>سيتم نقل <strong>{{ item.name }}</strong> إلى سلة Google Drive وإزالته من مصفوفة المتابعة.</p>
+    <p class="dialog-error" *ngIf="actionError()">{{ actionError() }}</p>
+    <footer>
+      <button class="dialog-secondary" type="button" [disabled]="actionBusy()" (click)="closeDelete()">إلغاء</button>
+      <button class="dialog-danger" type="button" [disabled]="actionBusy()" (click)="confirmDelete()"><i class="pi pi-trash"></i> حذف الملف</button>
+    </footer>
+  </section>
+</div>

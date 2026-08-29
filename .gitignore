@@ -27,6 +27,7 @@ frontend/.angular/
 *.pfx
 secrets/
 *.pem
+**/App_Data/DataProtectionKeys/
 # Live-testing JWTs. Four of these were committed by mistake; they are removed
 # from the tree but remain in git history, so the signing key must be rotated.
 *.tok

@@ -1,0 +1,367 @@
+<div class="showcase-container" dir="rtl" aria-label="لوحة منجزات مدارس الفلاح">
+
+  <!-- Showcase Top Header & Counters -->
+  <div class="showcase-header">
+    <div class="header-text-group">
+      <div class="header-badge">
+        <i class="pi pi-trophy trophy-sparkle"></i>
+        <span>سجل الشرف والتميز المدرسي • 1447هـ</span>
+      </div>
+      <h2 class="header-title">منجزات متوسطة الفلاح الأهلية بمكة المكرمة</h2>
+    </div>
+
+    <!-- Quick Action to Full Honors List -->
+    <button type="button" class="btn-all-honors" (click)="openAllHonors()" title="عرض كافة الجوائز والإحصائيات">
+      <i class="pi pi-list"></i>
+      <span>سجل الشرف والجوائز</span>
+    </button>
+  </div>
+
+  <!-- 5 Animated Numbers Stats Strip -->
+  <div class="stats-ribbon">
+    @for (stat of stats(); track stat.id) {
+      <div class="stat-pill" (click)="openAllHonors()" role="button" tabindex="0">
+        <div class="pill-icon">
+          <i class="pi" [ngClass]="stat.icon"></i>
+        </div>
+        <div class="pill-data">
+          <span class="pill-num">
+            <span *ngIf="stat.prefix" class="prefix">{{ stat.prefix }}</span>{{ stat.currentDisplay | number }}
+          </span>
+          <span class="pill-lbl">{{ stat.label }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Single Spacious Featured News Slider Card -->
+  @if (stories[activeStoryIndex()]; as story) {
+    <div 
+      class="featured-slider-card"
+      (mouseenter)="pauseSlider()"
+      (mouseleave)="resumeSlider()"
+      (click)="openStoryModal(story)"
+      role="region"
+      aria-label="الخبر المميز">
+
+      <!-- Background Cover Photo -->
+      <div class="slider-img-wrapper">
+        <img 
+          [src]="story.coverImage" 
+          [alt]="story.title" 
+          class="slider-photo" 
+          loading="eager" />
+        <!-- Dark Graphic Gradient Overlay -->
+        <div class="slider-gradient-overlay"></div>
+      </div>
+
+      <!-- Top Overlay Bar -->
+      <div class="slider-top-bar" (click)="$event.stopPropagation()">
+        <!-- Story Badge -->
+        <div class="badge-group">
+          <span class="story-badge">
+            <i class="pi" [ngClass]="story.badgeIcon"></i>
+            <span>{{ story.badge }}</span>
+          </span>
+          <span class="year-pill" *ngIf="story.dateStr">{{ story.dateStr }}</span>
+        </div>
+
+        <!-- Slider Controls (Prev / Next & Counter) -->
+        <div class="slider-controls">
+          <button 
+            type="button" 
+            class="ctrl-btn" 
+            (click)="prevStory()" 
+            title="الخبر السابق" 
+            aria-label="الخبر السابق">
+            <i class="pi pi-chevron-right"></i>
+          </button>
+          
+          <span class="slider-counter">{{ activeStoryIndex() + 1 }} / {{ stories.length }}</span>
+
+          <button 
+            type="button" 
+            class="ctrl-btn" 
+            (click)="nextStory()" 
+            title="الخبر التالي" 
+            aria-label="الخبر التالي">
+            <i class="pi pi-chevron-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Graphic Text Card -->
+      <div class="slider-bottom-content">
+        <h3 class="slider-story-title">{{ story.title }}</h3>
+        <p class="slider-story-summary">{{ story.summary }}</p>
+        
+        <div class="slider-action-row">
+          <span class="btn-read-more">
+            <span>عرض التغطية والصور الكاملة</span>
+            <i class="pi pi-arrow-left"></i>
+          </span>
+          
+          <!-- Pagination Dots -->
+          <div class="pagination-dots" (click)="$event.stopPropagation()">
+            @for (s of stories; track s.id; let idx = $index) {
+              <button 
+                type="button" 
+                class="dot-pill" 
+                [class.active]="activeStoryIndex() === idx"
+                (click)="goToStory(idx)"
+                [attr.aria-label]="'الانتقال للخبر ' + (idx + 1)">
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Golden Border Glow -->
+      <div class="slider-glow-border"></div>
+
+    </div>
+  }
+
+</div>
+
+<!-- Photo Story & Gallery Modal -->
+@if (selectedStory(); as story) {
+  <div class="modal-backdrop" (click)="closeStoryModal()">
+    <div class="modal-dialog story-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <span class="modal-category-tag">
+            <i class="pi" [ngClass]="story.badgeIcon"></i>
+            <span>{{ story.badge }}</span>
+          </span>
+          <h3 class="modal-main-title">{{ story.title }}</h3>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeStoryModal()" aria-label="إغلاق">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Gallery Viewer -->
+      <div class="gallery-viewport">
+        <div class="main-photo-container">
+          <img 
+            [src]="story.images[currentModalImageIndex()]" 
+            [alt]="story.title" 
+            class="gallery-main-img" />
+          
+          <!-- Prev / Next Navigation for multiple photos -->
+          @if (story.images.length > 1) {
+            <button 
+              type="button" 
+              class="gallery-nav-btn nav-prev" 
+              (click)="prevModalImage()" 
+              aria-label="الصورة السابقة">
+              <i class="pi pi-chevron-right"></i>
+            </button>
+            <button 
+              type="button" 
+              class="gallery-nav-btn nav-next" 
+              (click)="nextModalImage()" 
+              aria-label="الصورة التالية">
+              <i class="pi pi-chevron-left"></i>
+            </button>
+
+            <!-- Counter Badge -->
+            <div class="photo-counter-badge">
+              <i class="pi pi-images"></i>
+              <span>{{ currentModalImageIndex() + 1 }} من {{ story.images.length }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Thumbnails Strip (if > 1 image) -->
+        @if (story.images.length > 1) {
+          <div class="thumbnails-strip">
+            @for (img of story.images; track img; let i = $index) {
+              <button 
+                type="button" 
+                class="thumb-btn" 
+                [class.active]="currentModalImageIndex() === i"
+                (click)="setModalImageIndex(i)">
+                <img [src]="img" [alt]="'صورة ' + (i + 1)" class="thumb-img" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Story Full Text Body -->
+      <div class="story-modal-body">
+        <div class="story-full-text">
+          <p>{{ story.fullText }}</p>
+        </div>
+
+        <!-- Tags -->
+        <div class="story-tags-row">
+          @for (tag of story.tags; track tag) {
+            <span class="story-tag"># {{ tag }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-close" (click)="closeStoryModal()">
+          <span>إغلاق التغطية</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Full Honors & Infographic Modal -->
+@if (showAllHonorsModal()) {
+  <div class="modal-backdrop" (click)="closeAllHonors()">
+    <div class="modal-dialog honors-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <div class="honors-emblem">
+            <i class="pi pi-trophy"></i>
+          </div>
+          <div>
+            <h3 class="modal-main-title">سجل الشرف والمنجزات السنوي — 1447هـ</h3>
+            <span class="modal-subtext">متوسطة الفلاح الأهلية بمكة المكرمة • نواتج تعلم تنافسية</span>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeAllHonors()" aria-label="إغلاق">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="honors-modal-body">
+        <!-- Top Stats Row -->
+        <div class="honors-stats-grid">
+          @for (s of stats(); track s.id) {
+            <div class="honor-stat-card">
+              <i class="pi" [ngClass]="s.icon"></i>
+              <div class="hstat-val">{{ s.prefix || '' }}{{ s.targetNumber | number }}</div>
+              <div class="hstat-lbl">{{ s.label }}</div>
+            </div>
+          }
+        </div>
+
+        <!-- List of Major Awards -->
+        <h4 class="honors-list-title">
+          <i class="pi pi-star-fill gold-icon"></i>
+          <span>قائمة المشاركات والإنجازات والفعاليات:</span>
+        </h4>
+
+        <div class="honors-cards-list">
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-shield"></i></div>
+            <div class="h-content">
+              <strong>درع التميز للعام الثاني على التوالي</strong>
+              <p>ملتقى الممارسات الإيجابية الداعمة للتميز المدرسي بتجربتها في نواتج التعلم.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-cog"></i></div>
+            <div class="h-content">
+              <strong>بطولة VEX IQ Robotics</strong>
+              <p>المركز الخامس على مستوى المملكة في بطولة الروبوت والذكاء الاصطناعي.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-globe"></i></div>
+            <div class="h-content">
+              <strong>الأولمبياد العالمي للروبوت WRO 2025</strong>
+              <p>المركز الرابع والميدالية البرونزية على مستوى المملكة، و 4 طلاب حققوا مراكز متقدمة.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-compass"></i></div>
+            <div class="h-content">
+              <strong>مسابقة كاوست KAUST 2026م</strong>
+              <p>مشاركة 66 طالباً، تأهل 5 للتصفيات النهائية، وحصد 3 ميداليات فضية.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-sparkles"></i></div>
+            <div class="h-content">
+              <strong>مسابقة كانجارو موهبة الدولية 2026م</strong>
+              <p>172 مشاركاً — 2 ميدالية ذهبية 🥇، 2 فضية 🥈، 5 برونزية 🥉.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-lightbulb"></i></div>
+            <div class="h-content">
+              <strong>مسابقة إبداع الوطنية 2026م</strong>
+              <p>مشاركة 169 طالباً ورفع 19 مشروعاً ابتكارياً وبحثياً معتمداً على المنصة.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-code"></i></div>
+            <div class="h-content">
+              <strong>مسابقة بيبراس موهبة للمعلوماتية</strong>
+              <p>219 مشاركاً — ميدالية ذهبية 🥇، 2 فضية 🥈، 7 برونزية 🥉.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-bolt"></i></div>
+            <div class="h-content">
+              <strong>أولمبياد نسمو للعلوم والرياضيات</strong>
+              <p>243 مشاركاً — تأهل 5 بالمملكة و 4 لملتقى النخبة بكاوست وميدالية برونزية.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-book"></i></div>
+            <div class="h-content">
+              <strong>تحدي القراءة العربي ومسابقة اقرأ</strong>
+              <p>مشاركة 317 طالباً وتأهل 5 طلاب للتصفيات الختامية.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-sun"></i></div>
+            <div class="h-content">
+              <strong>مسابقات القرآن الكريم ومشكات النبوة</strong>
+              <p>270 مشاركاً وتأهل طالبين للتصفيات الختامية بمكة.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-flag"></i></div>
+            <div class="h-content">
+              <strong>مسابقة فيفا المدارس FIFA Schools</strong>
+              <p>مشاركة 22 طالباً والتأهل للدور نصف النهائي.</p>
+            </div>
+          </div>
+
+          <div class="h-card">
+            <div class="h-icon"><i class="pi pi-trophy"></i></div>
+            <div class="h-content">
+              <strong>دوري كرة الطائرة - تعليم مكة</strong>
+              <p>المركز الثاني على مستوى مكة المكرمة.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-close" (click)="closeAllHonors()">
+          <span>إغلاق السجل</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

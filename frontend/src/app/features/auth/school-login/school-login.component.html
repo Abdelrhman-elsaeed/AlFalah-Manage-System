@@ -1,48 +1,38 @@
 <!-- School Login Page — Al-Falah Schools Evaluation System -->
 <div class="login-page" dir="rtl">
 
-  <!-- Background Gradient -->
-  <div class="login-bg"></div>
+  <!-- Ambient Background Pattern / Saudi Heritage Motif / Glow -->
+  <div class="login-bg" aria-hidden="true">
+    <div class="saudi-pattern-layer"></div>
+    <div class="bg-glow-top"></div>
+    <div class="bg-glow-right"></div>
+    <div class="bg-glow-left"></div>
+  </div>
 
-  <div class="login-container">
+  <div class="split-login-container">
 
-    <!-- Left Brand Panel -->
-    <div class="brand-panel">
-      <div class="brand-content">
-        <div class="logo-wrapper">
-          <div class="logo-circle">
-            <img src="assets/Logo.png" alt="شعار مدارس الفلاح" class="logo-image" />
-          </div>
+    <!-- Right Side: Achievements Showcase (Desktop) -->
+    <section class="achievements-column">
+      <app-achievements-showcase></app-achievements-showcase>
+    </section>
+
+    <!-- Left Side: Login Form & Branding -->
+    <section class="auth-column">
+      
+      <!-- Brand Header -->
+      <div class="auth-brand-block">
+        <div class="logo-circle">
+          <img src="assets/Logo.png" alt="شعار مدارس الفلاح" class="logo-image" />
         </div>
         <span class="brand-kicker">{{ 'AUTH.BRAND_NAME' | translate }}</span>
         <h1 class="brand-title">{{ 'APP.NAME' | translate }}</h1>
         <p class="brand-subtitle">{{ 'AUTH.BRAND_SUBTITLE' | translate }}</p>
-        <div class="brand-features" *ngIf="false">
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>{{ 'AUTH.FEATURE_RUBRIC' | translate }}</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>{{ 'AUTH.FEATURE_PLANS' | translate }}</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>{{ 'AUTH.FEATURE_REPORTS' | translate }}</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>{{ 'AUTH.FEATURE_FOLLOWUP' | translate }}</span>
-          </div>
-        </div>
       </div>
-    </div>
 
-    <!-- Right Login Form Panel -->
-    <div class="form-panel">
+      <!-- Login Form Card -->
       <div class="form-card">
 
-        <!-- Header -->
+        <!-- Form Header -->
         <div class="form-header">
           <h2 class="form-title">{{ 'AUTH.SCHOOL_LOGIN' | translate }}</h2>
           <p class="form-subtitle">{{ 'AUTH.SCHOOL_LOGIN_SUBTITLE' | translate }}</p>
@@ -139,7 +129,8 @@
         </div>
 
       </div>
-    </div>
+
+    </section>
 
   </div>
 </div>

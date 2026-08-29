@@ -1,0 +1,95 @@
+<div class="page page--wide" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <h1 class="page-header__title">{{ 'PLANS.TITLE' | translate }}</h1>
+      <p class="page-header__subtitle">{{ 'PLANS.OVERVIEW_SUBTITLE' | translate }}</p>
+    </div>
+  </header>
+
+  <section class="plans-summary" aria-live="polite">
+    <span><strong>{{ plans().length }}</strong>{{ 'PLANS.TOTAL' | translate }}</span>
+    <span><strong>{{ activeCount() }}</strong>{{ 'PLANS.STATUS_ACTIVE' | translate }}</span>
+    <span><strong>{{ completedCount() }}</strong>{{ 'PLANS.STATUS_COMPLETED' | translate }}</span>
+  </section>
+
+  <section class="surface-card plans-card">
+    <div class="plans-toolbar">
+      <h2>{{ 'PLANS.CURRENT' | translate }}</h2>
+      <div class="plans-filter">
+        <label for="overviewStatusFilter">{{ 'PLANS.FILTER_BY_STATUS' | translate }}</label>
+        <app-clearable-select
+          inputId="overviewStatusFilter"
+          [options]="statusOptions"
+          optionLabel="labelKey"
+          optionValue="value"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event ?? 'all')"
+          [clearable]="false"
+          [itemTpl]="statusOptionTpl"
+          [selectedItemTpl]="statusOptionTpl"
+          styleClass="w-12rem">
+        </app-clearable-select>
+      </div>
+    </div>
+
+    <ng-template #statusOptionTpl let-option>
+      <span *ngIf="option">{{ option.labelKey | translate }}</span>
+    </ng-template>
+
+    <div *ngIf="loading()" class="loading">{{ 'COMMON.LOADING' | translate }}</div>
+
+    <div *ngIf="!loading() && filteredPlans().length === 0" class="empty-state">
+      <i class="pi pi-list-check" aria-hidden="true"></i>
+      <p>{{ 'PLANS.OVERVIEW_EMPTY' | translate }}</p>
+    </div>
+
+    <p-table
+      *ngIf="!loading() && filteredPlans().length > 0"
+      [value]="filteredPlans()"
+      [paginator]="filteredPlans().length > 12"
+      [rows]="12"
+      responsiveLayout="scroll"
+      styleClass="p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>{{ 'PLANS.INSTRUCTOR' | translate }}</th>
+          <th>{{ 'PLANS.SCHOOL' | translate }}</th>
+          <th>{{ 'PLANS.DOMAIN' | translate }}</th>
+          <th>{{ 'PLANS.GOAL' | translate }}</th>
+          <th>{{ 'PLANS.END_DATE' | translate }}</th>
+          <th>{{ 'PLANS.STATUS' | translate }}</th>
+          <th>{{ 'PLANS.PROGRESS' | translate }}</th>
+          <th class="table-actions-col">{{ 'COMMON.ACTIONS' | translate }}</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-plan>
+        <tr>
+          <td><strong>{{ plan.instructorFullName }}</strong></td>
+          <td>{{ plan.schoolName }}</td>
+          <td>{{ plan.domainNameAr || ('PLANS.GENERAL_PLAN' | translate) }}</td>
+          <td><span class="goal-text" [title]="plan.goal">{{ plan.goal }}</span></td>
+          <td>{{ plan.endDate | date:'yyyy/MM/dd' }}</td>
+          <td><p-tag [severity]="statusSeverity(plan.status)" [value]="statusLabelKey(plan.status) | translate"></p-tag></td>
+          <td>
+            <span class="progress-value" *ngIf="plan.latestProgressScore !== null && plan.latestProgressScore !== undefined; else noProgress">
+              {{ plan.latestProgressScore }}%
+            </span>
+            <ng-template #noProgress>—</ng-template>
+          </td>
+          <td class="table-actions-col">
+            <div class="table-actions">
+              <a pButton icon="pi pi-eye" [routerLink]="['/improvement-plans', plan.id]"
+                 class="p-button-text p-button-sm p-button-icon-only"
+                 [pTooltip]="'PLANS.DETAILS' | translate" tooltipPosition="top"
+                 [attr.aria-label]="'PLANS.DETAILS' | translate"></a>
+              <a pButton icon="pi pi-clipboard" [routerLink]="['/visits', plan.visitId]"
+                 class="p-button-text p-button-sm p-button-icon-only"
+                 [pTooltip]="'PLANS.OPEN_VISIT' | translate" tooltipPosition="top"
+                 [attr.aria-label]="'PLANS.OPEN_VISIT' | translate"></a>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+</div>

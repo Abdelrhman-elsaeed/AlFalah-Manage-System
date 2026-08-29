@@ -49,14 +49,30 @@ export class TeacherDriveApiService {
     // A stable per-attempt key: if the request is retried the server recognises it and
     // returns the original submission instead of uploading the file twice.
     const requestId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    return this.http.post<ApiResponse<{ item: DriveItem }>>(`${this.baseUrl}/uploads`, body, {
+    return this.http.post<ApiResponse<{ submissionId: number; item: DriveItem }>>(`${this.baseUrl}/uploads`, body, {
       headers: new HttpHeaders({ 'Idempotency-Key': requestId }),
       reportProgress: true,
       observe: 'events',
       context: this.context()
     }).pipe(map(event => event.type === HttpEventType.UploadProgress
       ? Math.round(100 * event.loaded / (event.total || file.size))
-      : event.type === HttpEventType.Response ? event.body?.data?.item ?? 0 : 0));
+      : event.type === HttpEventType.Response && event.body?.data
+        ? { ...event.body.data.item, submissionId: event.body.data.submissionId }
+        : 0));
+  }
+
+  rename(submissionId: number, name: string): Observable<DriveItem> {
+    return this.http.patch<ApiResponse<DriveItem>>(
+      `${this.baseUrl}/submissions/${submissionId}/name`, { name }, { context: this.context() }
+    ).pipe(map(response => this.data(response)));
+  }
+
+  deleteSubmission(submissionId: number): Observable<void> {
+    return this.http.delete<ApiResponse<unknown>>(
+      `${this.baseUrl}/submissions/${submissionId}`, { context: this.context() }
+    ).pipe(map(response => {
+      if (!response.isSuccess) throw new Error(response.errors?.join(' ') || response.message);
+    }));
   }
 
   private get<T>(path: string, params?: HttpParams): Observable<T> {

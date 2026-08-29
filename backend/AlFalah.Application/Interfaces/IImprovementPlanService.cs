@@ -7,6 +7,7 @@ namespace AlFalah.Application.Interfaces;
 
 public interface IImprovementPlanService
 {
+    Task<List<ImprovementPlanListItemDto>> GetPlansAsync(CancellationToken cancellationToken = default);
     Task<List<ImprovementPlanDto>> GetPlansForVisitAsync(int visitId, CancellationToken cancellationToken = default);
     Task<ImprovementPlanDto> GetPlanByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<ImprovementPlanDto> CreatePlanAsync(CreatePlanRequestDto request, CancellationToken cancellationToken = default);

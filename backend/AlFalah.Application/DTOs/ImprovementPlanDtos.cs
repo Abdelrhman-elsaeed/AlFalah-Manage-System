@@ -3,6 +3,23 @@ using System.Collections.Generic;
 
 namespace AlFalah.Application.DTOs.ImprovementPlans;
 
+public class ImprovementPlanListItemDto
+{
+    public int Id { get; set; }
+    public int SchoolId { get; set; }
+    public string SchoolName { get; set; } = string.Empty;
+    public string InstructorId { get; set; } = string.Empty;
+    public string InstructorFullName { get; set; } = string.Empty;
+    public int VisitId { get; set; }
+    public string? DomainNameAr { get; set; }
+    public string Goal { get; set; } = string.Empty;
+    public DateTimeOffset StartDate { get; set; }
+    public DateTimeOffset EndDate { get; set; }
+    public string Status { get; set; } = "active";
+    public int FollowUpsCount { get; set; }
+    public int? LatestProgressScore { get; set; }
+}
+
 public class ImprovementPlanDto
 {
     public int Id { get; set; }

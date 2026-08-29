@@ -33,6 +33,22 @@ export interface ImprovementPlan {
   followUps: PlanFollowUp[];
 }
 
+export interface ImprovementPlanListItem {
+  id: number;
+  schoolId: number;
+  schoolName: string;
+  instructorId: string;
+  instructorFullName: string;
+  visitId: number;
+  domainNameAr?: string;
+  goal: string;
+  startDate: string;
+  endDate: string;
+  status: 'active' | 'completed' | 'cancelled';
+  followUpsCount: number;
+  latestProgressScore?: number;
+}
+
 export interface CreatePlanRequest {
   visitId: number;
   domainId?: number;
