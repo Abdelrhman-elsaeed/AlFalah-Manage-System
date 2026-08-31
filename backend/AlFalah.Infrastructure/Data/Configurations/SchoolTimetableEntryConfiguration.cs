@@ -18,6 +18,7 @@ public sealed class SchoolTimetableEntryConfiguration : IEntityTypeConfiguration
                 "([EntryType] = 1 AND [ClassLabel] IS NOT NULL AND [Subject] IS NOT NULL) OR ([EntryType] = 2 AND [ClassLabel] IS NULL AND [Subject] IS NULL)");
         });
         builder.HasKey(x => x.Id);
+        builder.HasAlternateKey(x => new { x.SchoolId, x.Id });
         builder.Property(x => x.ClassLabel).HasMaxLength(50).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.Subject).HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");
 
@@ -28,9 +29,19 @@ public sealed class SchoolTimetableEntryConfiguration : IEntityTypeConfiguration
             .HasFilter($"[IsDeleted] = 0 AND [EntryType] = {(int)TimetableEntryType.Lesson}")
             .IsUnique();
 
+        builder.HasOne(x => x.School).WithMany()
+            .HasForeignKey(x => x.SchoolId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.SchoolTimetable).WithMany(x => x.Entries)
-            .HasForeignKey(x => x.SchoolTimetableId).OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(x => new { x.SchoolId, x.SchoolTimetableId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.InstructorProfile).WithMany()
-            .HasForeignKey(x => x.InstructorProfileId).OnDelete(DeleteBehavior.Restrict);
+            .HasForeignKey(x => new { x.SchoolId, x.InstructorProfileId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Classroom).WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.ClassroomId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id })
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,9 +1,20 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.StudentAffairs.GatePasses;
+using AlFalah.Application.StudentAffairs.Attendance;
+using AlFalah.Application.StudentAffairs.MorningDelays;
+using AlFalah.Application.StudentAffairs.Summons;
+using AlFalah.Application.StudentAffairs.TeacherActions;
+using AlFalah.Application.StudentAffairs.Biometrics;
+using AlFalah.Application.StudentAffairs.Notifications;
 using AlFalah.Domain.Entities;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Data.Seeders;
 using AlFalah.Infrastructure.Services;
 using AlFalah.Infrastructure.Repositories;
+using AlFalah.Infrastructure.Integrations.Biometrics;
+using AlFalah.Infrastructure.Integrations.Noor;
+using AlFalah.Infrastructure.Automations;
+using AlFalah.Infrastructure.Notifications;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -72,6 +83,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddSingleton(TimeProvider.System);
         services.AddScoped<AuditLogWriter>();
         services.AddScoped<SchoolScopeGuard>();
         services.AddScoped<SchoolLookupService>();
@@ -91,6 +103,20 @@ public static class DependencyInjection
         services.AddScoped<ISchoolTimetableRepository, SchoolTimetableRepository>();
         services.AddScoped<ISchoolTimetableDocumentService, SchoolTimetableDocumentService>();
         services.AddScoped<ISchoolTimetableService, SchoolTimetableService>();
+        services.AddScoped<IGatePassWorkflowRepository, GatePassWorkflowRepository>();
+        services.AddScoped<IAttendanceWorkflowRepository, AttendanceWorkflowRepository>();
+        services.AddScoped<IMorningDelayWorkflowRepository, MorningDelayWorkflowRepository>();
+        services.AddScoped<ITeacherActionWorkflowRepository, TeacherActionWorkflowRepository>();
+        services.AddScoped<ISummonWorkflowRepository, SummonWorkflowRepository>();
+        services.AddScoped<IBiometricImportRepository, BiometricImportRepository>();
+        services.AddScoped<IZajelBiometricWorkbookReader, ZajelBiometricWorkbookReader>();
+        services.AddScoped<INoorExportRepository, NoorExportRepository>();
+        services.AddSingleton<INoorWorkbookWriter, NoorWorkbookWriter>();
+        services.AddScoped<INotificationWorkflowRepository, NotificationWorkflowRepository>();
+        services.AddScoped<StudentAffairsAutomationRuleEngine>();
+        services.AddScoped<StudentAffairsNotificationDispatcher>();
+        services.AddScoped<StudentAffairsOutboxProcessor>();
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IStudentAnalyzerRepository, StudentAnalyzerRepository>();
         services.AddScoped<IStudentAnalyzerAiClient, StudentAnalyzerAiClient>();
         services.AddScoped<IStudentAnalyzerService, StudentAnalyzerService>();
@@ -134,6 +160,7 @@ public static class DependencyInjection
         services.AddHttpClient("GoogleOAuth", client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddHttpClient("StudentAnalyzerAi", client => client.Timeout = TimeSpan.FromMinutes(3));
         services.AddHostedService<EvidenceReconciliationBackgroundService>();
+        services.AddHostedService<StudentAffairsOutboxWorker>();
         services.AddSingleton<ImageAssetLoader>();
 
         services.AddScoped<DatabaseSeeder>();

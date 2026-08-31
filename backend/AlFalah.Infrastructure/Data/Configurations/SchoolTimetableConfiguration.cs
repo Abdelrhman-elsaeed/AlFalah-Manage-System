@@ -10,6 +10,7 @@ public sealed class SchoolTimetableConfiguration : IEntityTypeConfiguration<Scho
     {
         builder.ToTable("SchoolTimetables");
         builder.HasKey(x => x.Id);
+        builder.HasAlternateKey(x => new { x.SchoolId, x.Id });
         builder.Property(x => x.Title).HasMaxLength(250).IsUnicode(true).UseCollation("Arabic_CI_AS").IsRequired();
         builder.Property(x => x.Revision).IsConcurrencyToken();
         builder.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.Semester })

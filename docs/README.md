@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-07-15
+**Last updated:** 2026-08-29
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -37,6 +37,11 @@
 | 12 | [12-QUALITY-RULES.md](12-QUALITY-RULES.md) | Coding & quality rules |
 | 13 | [13-GLOSSARY.md](13-GLOSSARY.md) | Bilingual glossary |
 | 14 | [14-DECISIONS-AND-DEVIATIONS.md](14-DECISIONS-AND-DEVIATIONS.md) | Decisions & deviations log (living) |
+| SA-1 | [Phase1-Domain-And-Database-Schema.md](Phase1-Domain-And-Database-Schema.md) | Student Affairs domain and EF Core schema specification |
+| SA-2 | [Phase2-Identity-Roles-And-Permissions.md](Phase2-Identity-Roles-And-Permissions.md) | Student Affairs Identity roles and granular permissions |
+| SA-3 | [Phase3-Core-API-Contracts.md](Phase3-Core-API-Contracts.md) | Student Affairs REST/CQRS contracts |
+| SA-4 | [Phase4-Workflows-And-State-Machines.md](Phase4-Workflows-And-State-Machines.md) | Gate Pass, summons, entry permit, excuse, and office-hours workflows |
+| SA-5 | [Phase5-Automations-And-Integrations.md](Phase5-Automations-And-Integrations.md) | Rules, domain events, biometrics, notifications, Noor, and 14 digital forms |
 
 > **AI agent rulebook:** see [`../.spec/constitution.md`](../.spec/constitution.md) — every agent must read the spec kit first and **update it** after any change.
 
@@ -53,10 +58,12 @@
 | 8 | [phases/PHASE-08-COMPLAINTS.md](phases/PHASE-08-COMPLAINTS.md) | COMPLETED ✅ |
 | 9 | [phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md](phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md) | COMPLETED ✅ |
 | 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | IN PROGRESS |
+| SA-1–SA-5 | Student Affairs Technical Specification Kit | BLUEPRINT LOCKED — implementation not started |
 
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-08-29 | Locked the five-phase Student Affairs Technical Specification Kit with final thresholds/settings CRUD, dynamic behavior recalculation, `AbsentExcused`, Secretary absent-only roster submission, the final notification-approval split, manual gate pickup verification, and aggregate-only School Manager oversight. Biometric devices, Noor export format, and the 14 quality forms are explicitly blocked with no adapter/schema/API design pending client input. No C# code, migration, or runtime configuration was generated. | Codex |
 | 2026-07-15 | **Desktop-parity Phase 5 completed / closure achieved:** verified all four live role dashboards against `/api/v1/dashboard/main-manager|school-manager|moderator|instructor`, with scoped KPI cards, PrimeNG charts, and Excel/PDF exports. Instructor dashboard school filters are now forced through `SchoolScopeGuard`; regression coverage proves a cross-school filter resolves to `ActiveSchoolId`. Main Manager and Moderator dashboard contracts remain structurally complaint-free. D-73 navigation remains role/permission-filtered, with the Instructor surface exactly الرئيسية + تقاريري + إعدادات. Removed the final blue information-button variants, localized the radar label and all 29 browser route titles, and confirmed zero direct feature dropdowns/native selects/native date inputs. Release build is 0-warning/0-error, 97/97 tests pass, frontend production build is green, and ar/en parity is 683/683 with no duplicate top-level keys. D1–D5 and D-24/D-28/D-36/D-37/D-53/D-75 remain intact. | Codex |
 | 2026-07-15 | **Desktop-parity Phase 4 completed:** retained the existing teacher header/classes, scoped visit history, and locked teacher-to-new-visit flow; changed longitudinal progress to Approved-only visits on dynamic active-rubric axes and added the exact chronological first-versus-latest domain table with `▲/▼/─` and two-decimal scores. Missing historical domains remain unavailable, not zero. EF-backed coverage proves Moderator ActiveSchoolId/own-created scope and excludes pending/other-Moderator visits. Release build is clean, 94/94 tests pass, frontend production build is green, and ar/en parity is 653/653 with no duplicate top-level keys. | Codex |
 | 2026-07-15 | **Desktop-parity Phase 3 completed:** verified verbatim weak-domain suggestion templates/default dates and retained D-70/D-71 refresh behavior plus 75/50 progress/chart semantics. Implemented locked D5 end to end: completed/cancelled plans are read-only for plan/follow-up mutations until the new explicit confirmed Reactivate action/endpoint restores Active. Reversed dates are now blocked in UI and API. | Codex |
@@ -144,6 +151,11 @@
 | 12 | [12-QUALITY-RULES.md](12-QUALITY-RULES.md) | Coding & quality rules |
 | 13 | [13-GLOSSARY.md](13-GLOSSARY.md) | Bilingual glossary |
 | 14 | [14-DECISIONS-AND-DEVIATIONS.md](14-DECISIONS-AND-DEVIATIONS.md) | Decisions & deviations log (living) |
+| SA-1 | [Phase1-Domain-And-Database-Schema.md](Phase1-Domain-And-Database-Schema.md) | Student Affairs domain and EF Core schema specification |
+| SA-2 | [Phase2-Identity-Roles-And-Permissions.md](Phase2-Identity-Roles-And-Permissions.md) | Student Affairs Identity roles and granular permissions |
+| SA-3 | [Phase3-Core-API-Contracts.md](Phase3-Core-API-Contracts.md) | Student Affairs REST/CQRS contracts |
+| SA-4 | [Phase4-Workflows-And-State-Machines.md](Phase4-Workflows-And-State-Machines.md) | Gate Pass, summons, entry permit, excuse, and office-hours workflows |
+| SA-5 | [Phase5-Automations-And-Integrations.md](Phase5-Automations-And-Integrations.md) | Rules, domain events, biometrics, notifications, Noor, and 14 digital forms |
 
 > **AI agent rulebook:** see [`../.spec/constitution.md`](../.spec/constitution.md) — every agent must read the spec kit first and **update it** after any change.
 
@@ -160,10 +172,12 @@
 | 8 | [phases/PHASE-08-COMPLAINTS.md](phases/PHASE-08-COMPLAINTS.md) | Not started |
 | 9 | [phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md](phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md) | Not started |
 | 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | Not started |
+| SA-1–SA-5 | Student Affairs Technical Specification Kit | BLUEPRINT LOCKED — implementation not started |
 
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-08-29 | Locked the five-phase Student Affairs Technical Specification Kit with final thresholds/settings CRUD, dynamic behavior recalculation, `AbsentExcused`, Secretary absent-only roster submission, the final notification-approval split, manual gate pickup verification, and aggregate-only School Manager oversight. Biometric devices, Noor export format, and the 14 quality forms are explicitly blocked with no adapter/schema/API design pending client input. No C# code, migration, or runtime configuration was generated. | Codex |
 | 2026-07-15 | **D-36 critical Instructor visibility fix:** removed Instructor `Visit.View`, `Rubric.View`, plan, and follow-up permissions through the idempotent role-permission sync; added server-scoped `GET /api/v1/visits/my-approved-reports` (own + Approved only); blocked Instructor-only callers from the supervisor visit list/detail/analysis/view-status/export and non-approved PDFs; added the minimal تقاريري page/sidebar and route guard for `/visits`. Backend Release and frontend production builds pass; ar/en parity preserved. | Codex |
 | 2026-07-15 | **Visit-form teacher auto-fill 403 fixed:** changed only `GET /api/v1/teachers/{userId}/teaching` from the administrative `User.View` gate to `Visit.Create`, so in-scope Moderators and School Managers can load the selected Instructor's teaching data. `TeacherService` school scoping remains authoritative; the visit form now suppresses the global Unauthorized redirect solely for this background fetch and uses its existing manual fallback on a real 403. Live verification: School Manager + Moderator receive 200 for an in-scope Instructor. | Codex |
 | 2026-07-15 | **Teachers management completion audit:** restored the required manager class-chip editor in the teacher profile (scoped `PUT /teachers/{userId}/teaching`) and removed classes from the teacher add/edit form, where they were out of scope. The Instructor self-service teaching editor and visit-form auto-fill/fallback remain intact. Frontend production build green; backend Release build green with one pre-existing nullable warning. i18n parity preserved (361/361 leaf keys). | Codex |

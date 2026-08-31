@@ -1085,10 +1085,57 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ApprovedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("CreatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("DeduplicationKey")
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DeliveryStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("FailedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSuppressed")
                         .HasColumnType("bit");
 
                     b.Property<string>("Message")
@@ -1097,6 +1144,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(2000)")
                         .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("ReadAt")
                         .HasColumnType("datetimeoffset");
@@ -1109,8 +1159,41 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int?>("SchoolId")
                         .HasColumnType("int");
+
+                    b.Property<int?>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("SuppressedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SuppressedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SuppressionReason")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("TemplateKey")
+                        .HasMaxLength(200)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1123,6 +1206,13 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(450)
@@ -1130,11 +1220,34 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SchoolId");
+                    b.HasIndex("ApprovedByUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("SuppressedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.HasIndex("SchoolId", "UserId", "DeduplicationKey")
+                        .IsUnique()
+                        .HasFilter("[DeduplicationKey] IS NOT NULL");
+
+                    b.HasIndex("SchoolId", "RequiresApproval", "IsSuppressed", "CreatedAt");
+
+                    b.HasIndex("SchoolId", "UserId", "IsRead", "CreatedAt");
+
+                    b.ToTable("Notifications", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Notifications_DeliveryStatus", "[DeliveryStatus] BETWEEN 1 AND 5");
+
+                            t.HasCheckConstraint("CK_Notifications_Priority", "[Priority] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_Notifications_RetryCount", "[RetryCount] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurvey", b =>
@@ -2391,6 +2504,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(50)")
                         .UseCollation("Arabic_CI_AS");
 
+                    b.Property<int?>("ClassroomId")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -2412,6 +2528,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<byte>("Period")
                         .HasColumnType("tinyint");
 
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SchoolTimetableId")
                         .HasColumnType("int");
 
@@ -2426,7 +2545,11 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InstructorProfileId");
+                    b.HasIndex("SchoolId", "ClassroomId");
+
+                    b.HasIndex("SchoolId", "InstructorProfileId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableId");
 
                     b.HasIndex("SchoolTimetableId", "Day", "Period", "ClassLabel")
                         .IsUnique()
@@ -2492,6 +2615,3239 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("SchoolTimetableVersions", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AbsenceExcuse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DailyStudentAttendanceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ExcuseType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GuardianNotes")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("GuardianProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReviewReason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("SubmittedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "DailyStudentAttendanceId", "Status")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [Status] = 2");
+
+                    b.HasIndex("SchoolId", "GuardianProfileId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.ToTable("AbsenceExcuses", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AbsenceExcuses_ExcuseType", "[ExcuseType] BETWEEN 1 AND 4");
+
+                            t.HasCheckConstraint("CK_AbsenceExcuses_Review", "([Status] = 1 AND [ReviewedAt] IS NULL AND [ReviewedByUserId] IS NULL) OR ([Status] IN (2, 3) AND [ReviewedAt] IS NOT NULL AND [ReviewedByUserId] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_AbsenceExcuses_Status", "[Status] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AbsenceExcuseAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AbsenceExcuseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .IsFixedLength();
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("StorageProvider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("UploadedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UploadedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("UploadedByUserId");
+
+                    b.HasIndex("SchoolId", "AbsenceExcuseId");
+
+                    b.ToTable("AbsenceExcuseAttachments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AbsenceExcuseAttachments_Size", "[SizeBytes] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AcademicConcern", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("GuardianDispatchDecision")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ReportedByInstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SchoolTimetableEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "ReportedByInstructorProfileId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableEntryId");
+
+                    b.HasIndex("SchoolId", "ClassroomId", "OccurredAt");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "OccurredAt");
+
+                    b.ToTable("AcademicConcerns", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AcademicConcerns_GuardianDispatchDecision", "[GuardianDispatchDecision] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicYearId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly>("EndsOn")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Semester")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "IsActive")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [IsActive] = 1");
+
+                    b.HasIndex("SchoolId", "AcademicYearId", "Semester")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("AcademicTerms", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AcademicTerms_DateRange", "[EndsOn] >= [StartsOn]");
+
+                            t.HasCheckConstraint("CK_AcademicTerms_Semester", "[Semester] BETWEEN 1 AND 2");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AutomationRuleDefinition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CompiledAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CompiledByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("MetricCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PolicySnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("RepeatsAtMultiples")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolStudentAffairsSettingsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Threshold")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompiledByUserId");
+
+                    b.HasIndex("SchoolId", "SchoolStudentAffairsSettingsId");
+
+                    b.HasIndex("SchoolId", "Version", "MetricCode")
+                        .IsUnique();
+
+                    b.ToTable("AutomationRuleDefinitions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AutomationRuleDefinitions_MetricCode", "[MetricCode] BETWEEN 1 AND 6");
+
+                            t.HasCheckConstraint("CK_AutomationRuleDefinitions_Threshold", "[Threshold] > 0 AND [Version] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AutomationTriggerLedger", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CountSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OccurrenceNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<long>("RuleVersionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("SourceInvalidatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Threshold")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("TriggeredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Validity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "RuleVersionId");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "RuleVersionId", "Threshold", "OccurrenceNumber")
+                        .IsUnique();
+
+                    b.ToTable("AutomationTriggerLedgers", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AutomationTriggerLedgers_Count", "[CountSnapshot] >= 0");
+
+                            t.HasCheckConstraint("CK_AutomationTriggerLedgers_Occurrence", "[OccurrenceNumber] > 0");
+
+                            t.HasCheckConstraint("CK_AutomationTriggerLedgers_Threshold", "[Threshold] > 0");
+
+                            t.HasCheckConstraint("CK_AutomationTriggerLedgers_Validity", "[Validity] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.BehaviorIncident", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CategoryCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("GuardianDispatchDecision")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImmediateActionTaken")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUpheld")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(250)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(250)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ReportedByInstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReportedByStaffUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("ReportedByStaffUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "ReportedByInstructorProfileId");
+
+                    b.HasIndex("SchoolId", "ClassroomId", "OccurredAt");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "OccurredAt");
+
+                    b.ToTable("BehaviorIncidents", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BehaviorIncidents_GuardianDispatchDecision", "[GuardianDispatchDecision] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_BehaviorIncidents_Reporter", "([ReportedByInstructorProfileId] IS NOT NULL AND [ReportedByStaffUserId] IS NULL) OR ([ReportedByInstructorProfileId] IS NULL AND [ReportedByStaffUserId] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_BehaviorIncidents_Severity", "[Severity] BETWEEN 1 AND 4");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.Classroom", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicYearId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClassLabel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(50)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte>("GradeLevel")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Section")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(50)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicYearId", "ClassLabel")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("Classrooms", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Classrooms_Stage", "[Stage] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ClassroomEntryPermit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("AcknowledgedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("AcknowledgedByTeacherUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("IssuedByStudentAffairsUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("RevocationReason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("RevokedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SchoolTimetableEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SchoolTimetableId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetInstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("ValidFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ValidUntil")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("AcknowledgedByTeacherUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("IssuedByStudentAffairsUserId");
+
+                    b.HasIndex("RevokedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "ClassroomId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableEntryId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableId");
+
+                    b.HasIndex("SchoolId", "TargetInstructorProfileId");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "IssuedAt");
+
+                    b.ToTable("ClassroomEntryPermits", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ClassroomEntryPermits_Status", "[Status] BETWEEN 1 AND 4");
+
+                            t.HasCheckConstraint("CK_ClassroomEntryPermits_Validity", "[ValidUntil] > [ValidFrom]");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(max)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("ConversationThreadId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OfficeHoursDisposition")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("QueuedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ReplyToMessageId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "ReplyToMessageId");
+
+                    b.HasIndex("SchoolId", "ConversationThreadId", "QueuedAt");
+
+                    b.ToTable("ConversationMessages", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ConversationMessages_OfficeHoursDisposition", "[OfficeHoursDisposition] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationParticipant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ConversationThreadId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("JoinedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LeftAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ParticipantRoleSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "ConversationThreadId", "ApplicationUserId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [LeftAt] IS NULL");
+
+                    b.ToTable("ConversationParticipants", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationThread", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(250)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("ThreadType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "StudentId", "Status");
+
+                    b.ToTable("ConversationThreads", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ConversationThreads_Status", "[Status] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_ConversationThreads_ThreadType", "[ThreadType] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.DailyStudentAttendance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("ArrivedAfterAttendanceRecordedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("AttendanceDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("CorrectedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CorrectedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CorrectionReason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("ExcuseStatus")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("RecordedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrectedByUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "ClassroomId");
+
+                    b.HasIndex("SchoolId", "AttendanceDate", "Status");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "StudentId", "AttendanceDate")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "ExcuseStatus");
+
+                    b.ToTable("DailyStudentAttendances", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_DailyStudentAttendances_ExcuseStatus", "[ExcuseStatus] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_DailyStudentAttendances_Source", "[Source] BETWEEN 1 AND 2");
+
+                            t.HasCheckConstraint("CK_DailyStudentAttendances_Status", "[Status] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GatePass", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ApprovalNote")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("ApprovedWindowEndsAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ApprovedWindowStartsAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CancelledByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("CurrentClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CurrentInstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<byte?>("CurrentPeriod")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ExitGateNote")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("ExitRecordedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("ExitedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ExpiredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PickupIdentityHint")
+                        .HasMaxLength(500)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(500)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("PickupPersonName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(200)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("PickupRelationship")
+                        .HasMaxLength(100)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(100)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int?>("PickupVerificationMethod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PickupVerificationNote")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RequestedByGuardianProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("RequestedExitAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SchoolTimetableEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SchoolTimetableId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("SecurityAcknowledgedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SecurityAcknowledgedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CancelledByUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("ExitRecordedByUserId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("SecurityAcknowledgedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "CurrentClassroomId");
+
+                    b.HasIndex("SchoolId", "CurrentInstructorProfileId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableEntryId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableId");
+
+                    b.HasIndex("SchoolId", "StudentId");
+
+                    b.HasIndex("SchoolId", "RequestedByGuardianProfileId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "Status", "RequestedExitAt");
+
+                    b.ToTable("GatePasses", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GatePasses_ApprovedWindow", "([ApprovedWindowStartsAt] IS NULL AND [ApprovedWindowEndsAt] IS NULL) OR ([ApprovedWindowStartsAt] IS NOT NULL AND [ApprovedWindowEndsAt] > [ApprovedWindowStartsAt])");
+
+                            t.HasCheckConstraint("CK_GatePasses_Exit", "[ExitedAt] IS NULL OR [ExitRecordedByUserId] IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_GatePasses_Period", "[CurrentPeriod] IS NULL OR [CurrentPeriod] BETWEEN 1 AND 8");
+
+                            t.HasCheckConstraint("CK_GatePasses_PickupVerificationMethod", "[PickupVerificationMethod] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_GatePasses_Review", "([Status] = 1 AND [ReviewedAt] IS NULL) OR ([Status] <> 1)");
+
+                            t.HasCheckConstraint("CK_GatePasses_Status", "[Status] BETWEEN 1 AND 7");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GatePassTransition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActorRole")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GatePassId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("PickupVerificationMethod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PickupVerificationNote")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("CorrelationId");
+
+                    b.HasIndex("SchoolId", "GatePassId", "OccurredAt");
+
+                    b.ToTable("GatePassTransitions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GatePassTransitions_FromStatus", "[FromStatus] BETWEEN 1 AND 7");
+
+                            t.HasCheckConstraint("CK_GatePassTransitions_PickupVerificationMethod", "[PickupVerificationMethod] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_GatePassTransitions_ToStatus", "[ToStatus] BETWEEN 1 AND 7");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NationalId")
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("PreferredContactLanguage")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(2)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "ApplicationUserId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [IsActive] = 1");
+
+                    b.ToTable("GuardianProfiles", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GuardianProfiles_PreferredContactLanguage", "[PreferredContactLanguage] IN ('ar', 'en')");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianSummon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AttendanceNotes")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("AttendedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedReason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("GuardianNotifiedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("GuardianProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("ImprovedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ImprovementNotes")
+                        .HasMaxLength(3000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(3000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(250)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(250)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("ObservationNotes")
+                        .HasMaxLength(3000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(3000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("ObservationStartedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("OfficerReviewDecision")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("OfficerReviewFlaggedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OfficerReviewReason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("OfficerReviewedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RequiresOfficerReview")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTimeOffset?>("ScheduledAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ScheduledBySocialWorkerUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SourceCountSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StudentReferralId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ThresholdSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("ScheduledBySocialWorkerUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "GuardianProfileId");
+
+                    b.HasIndex("SchoolId", "RequiresOfficerReview");
+
+                    b.HasIndex("SchoolId", "StudentId");
+
+                    b.HasIndex("SchoolId", "StudentReferralId");
+
+                    b.HasIndex("SchoolId", "Status", "Priority");
+
+                    b.ToTable("GuardianSummons", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GuardianSummons_OfficerReviewDecision", "[OfficerReviewDecision] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_GuardianSummons_Priority", "[Priority] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_GuardianSummons_Status", "[Status] BETWEEN 1 AND 4");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianSummonStatusHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GuardianSummonId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("CorrelationId");
+
+                    b.HasIndex("SchoolId", "GuardianSummonId", "OccurredAt");
+
+                    b.ToTable("GuardianSummonStatusHistory", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GuardianSummonStatusHistory_FromStatus", "[FromStatus] BETWEEN 1 AND 4");
+
+                            t.HasCheckConstraint("CK_GuardianSummonStatusHistory_ToStatus", "[ToStatus] BETWEEN 1 AND 4");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.InboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ProcessingError")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcessedAt", "ReceivedAt");
+
+                    b.HasIndex("SchoolId", "MessageId")
+                        .IsUnique();
+
+                    b.ToTable("InboxMessages", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.MessageReceipt", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ConversationMessageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DeliveryState")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("FailedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("RecipientUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientUserId");
+
+                    b.HasIndex("SchoolId", "ConversationMessageId", "RecipientUserId")
+                        .IsUnique();
+
+                    b.HasIndex("SchoolId", "RecipientUserId", "ReadAt");
+
+                    b.ToTable("MessageReceipts", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MessageReceipts_DeliveryState", "[DeliveryState] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.MorningArrivalDelay", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("ArrivalAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<TimeOnly>("CutoffTimeSnapshot")
+                        .HasColumnType("time");
+
+                    b.Property<int>("DelayMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NotificationPolicySnapshot")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset?>("ReasonProvidedByGuardianAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("SchoolLocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "StudentId", "SchoolLocalDate")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "ArrivalAt");
+
+                    b.ToTable("MorningArrivalDelays", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MorningArrivalDelays_DelayMinutes", "[DelayMinutes] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.NoorAbsenceCorrectionBatch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("ExportedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ExportedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RowCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Sha256")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .IsFixedLength();
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly>("WeekEndsOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("WeekStartsOn")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("ExportedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "WeekStartsOn", "Status");
+
+                    b.ToTable("NoorAbsenceCorrectionBatches", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_NoorAbsenceCorrectionBatches_Status", "[Status] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_NoorAbsenceCorrectionBatches_Week", "[WeekEndsOn] >= [WeekStartsOn] AND [RowCount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.NoorAbsenceCorrectionBatchItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateOnly>("AttendanceDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("BatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DailyStudentAttendanceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExcuseStatusSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NationalIdSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StudentNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(300)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId", "DailyStudentAttendanceId");
+
+                    b.HasIndex("SchoolId", "StudentId");
+
+                    b.HasIndex("SchoolId", "BatchId", "DailyStudentAttendanceId")
+                        .IsUnique();
+
+                    b.ToTable("NoorAbsenceCorrectionBatchItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_NoorAbsenceCorrectionBatchItems_ExcuseStatusSnapshot", "[ExcuseStatusSnapshot] BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.OutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeadLetteredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("LeaseExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LeaseOwner")
+                        .HasMaxLength(200)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTimeOffset?>("NextAttemptAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .IsUnique();
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("ProcessedAt", "DeadLetteredAt", "NextAttemptAt", "LeaseExpiresAt")
+                        .HasFilter("[ProcessedAt] IS NULL AND [DeadLetteredAt] IS NULL");
+
+                    b.ToTable("OutboxMessages", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OutboxMessages_Attempts", "[AttemptCount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.SchoolStudentAffairsSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AbsenceChildRightsThresholdPerTerm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(10);
+
+                    b.Property<int>("AbsenceReferralThresholdPerTerm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<int>("AbsenceVisualAlertThresholdPerTerm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(3);
+
+                    b.Property<int>("AcademicConcernThresholdPerTerm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(3);
+
+                    b.Property<TimeOnly>("ArrivalCutoffLocalTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("ArrivalGraceMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BehaviorCountabilityPolicy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("BehaviorIncidentMultiplePerTerm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(10);
+
+                    b.Property<int>("ClassroomEntryPermitThresholdPerTerm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MorningDelayThresholdPerTerm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(10);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("SchoolId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("SchoolStudentAffairsSettings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentAffairsSettings_AbsenceOrder", "[AbsenceVisualAlertThresholdPerTerm] < [AbsenceReferralThresholdPerTerm] AND [AbsenceReferralThresholdPerTerm] < [AbsenceChildRightsThresholdPerTerm]");
+
+                            t.HasCheckConstraint("CK_StudentAffairsSettings_ArrivalGrace", "[ArrivalGraceMinutes] >= 0");
+
+                            t.HasCheckConstraint("CK_StudentAffairsSettings_Thresholds", "[MorningDelayThresholdPerTerm] > 0 AND [BehaviorIncidentMultiplePerTerm] > 0 AND [AcademicConcernThresholdPerTerm] > 0 AND [ClassroomEntryPermitThresholdPerTerm] > 0 AND [AbsenceVisualAlertThresholdPerTerm] > 0 AND [AbsenceReferralThresholdPerTerm] > 0 AND [AbsenceChildRightsThresholdPerTerm] > 0");
+
+                            t.HasCheckConstraint("CK_StudentAffairsSettings_Version", "[Version] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.SessionDelay", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("DelayMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("GuardianNotificationStatus")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte>("Period")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("ReportedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ReportedByInstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SchoolTimetableEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SchoolTimetableId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "ReportedByInstructorProfileId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableEntryId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableId");
+
+                    b.HasIndex("SchoolId", "ClassroomId", "OccurredAt");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "OccurredAt");
+
+                    b.ToTable("SessionDelays", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SessionDelays_DelayMinutes", "[DelayMinutes] IS NULL OR [DelayMinutes] >= 0");
+
+                            t.HasCheckConstraint("CK_SessionDelays_GuardianNotificationStatus", "[GuardianNotificationStatus] BETWEEN 1 AND 5");
+
+                            t.HasCheckConstraint("CK_SessionDelays_Period", "[Period] BETWEEN 1 AND 8");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.Student", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(100)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(100)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("MiddleName")
+                        .HasMaxLength(100)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(100)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("NationalId")
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("ProfilePhotoStorageKey")
+                        .HasMaxLength(1000)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StudentNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "NationalId")
+                        .IsUnique()
+                        .HasFilter("[NationalId] IS NOT NULL AND [IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "StudentNumber")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "IsActive", "StudentNumber");
+
+                    b.ToTable("Students", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Students_Gender", "[Gender] BETWEEN 1 AND 2");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentCaseAction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("ActionAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AttachmentStorageKey")
+                        .HasMaxLength(1000)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(3000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Result")
+                        .HasMaxLength(3000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(3000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentReferralId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "StudentReferralId", "ActionAt");
+
+                    b.ToTable("StudentCaseActions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentCaseActions_ActionType", "[ActionType] BETWEEN 1 AND 6");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentEnrollment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly>("EnrolledOn")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("RollNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly?>("WithdrawnOn")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "ClassroomId");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [Status] = 1");
+
+                    b.HasIndex("SchoolId", "AcademicTermId", "ClassroomId", "Status");
+
+                    b.ToTable("StudentEnrollments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentEnrollments_Dates", "[WithdrawnOn] IS NULL OR [WithdrawnOn] >= [EnrolledOn]");
+
+                            t.HasCheckConstraint("CK_StudentEnrollments_Status", "[Status] BETWEEN 1 AND 4");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentGuardian", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CanRequestGatePass")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanSubmitExcuses")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("GuardianProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ReceivesNotifications")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RelationshipType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ValidTo")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "GuardianProfileId");
+
+                    b.HasIndex("SchoolId", "StudentId", "GuardianProfileId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "StudentId", "IsPrimary")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [IsPrimary] = 1 AND [ValidTo] IS NULL");
+
+                    b.ToTable("StudentGuardians", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentGuardians_RelationshipType", "[RelationshipType] BETWEEN 1 AND 4");
+
+                            t.HasCheckConstraint("CK_StudentGuardians_Validity", "[ValidTo] IS NULL OR [ValidTo] >= [ValidFrom]");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentRecognition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("GuardianNotificationStatus")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RecognitionType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset>("RecognizedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ReportedByInstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(250)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "ClassroomId");
+
+                    b.HasIndex("SchoolId", "ReportedByInstructorProfileId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId", "RecognizedAt");
+
+                    b.HasIndex("SchoolId", "StudentId", "RecognizedAt");
+
+                    b.ToTable("StudentRecognitions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentRecognitions_GuardianNotificationStatus", "[GuardianNotificationStatus] BETWEEN 1 AND 5");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentReferral", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AssignedSocialWorkerUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("CountSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RecommendedActions")
+                        .HasMaxLength(3000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(3000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("ResolutionNotes")
+                        .HasMaxLength(3000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(3000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long?>("RuleTriggerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SourceEntityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SourceType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ThresholdSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedSocialWorkerUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "RuleTriggerId")
+                        .IsUnique()
+                        .HasFilter("[RuleTriggerId] IS NOT NULL AND [IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "StudentId");
+
+                    b.HasIndex("SchoolId", "AssignedSocialWorkerUserId", "Status", "Priority");
+
+                    b.ToTable("StudentReferrals", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentReferrals_Priority", "[Priority] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_StudentReferrals_Snapshots", "[CountSnapshot] IS NULL OR [CountSnapshot] >= 0");
+
+                            t.HasCheckConstraint("CK_StudentReferrals_SourceType", "[SourceType] BETWEEN 1 AND 7");
+
+                            t.HasCheckConstraint("CK_StudentReferrals_Status", "[Status] BETWEEN 1 AND 5");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentTermMetric", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MetricCode")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("RecalculatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "StudentId", "AcademicTermId", "MetricCode")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("StudentTermMetrics", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentTermMetrics_Count", "[Count] >= 0");
+
+                            t.HasCheckConstraint("CK_StudentTermMetrics_MetricCode", "[MetricCode] BETWEEN 1 AND 6");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.TeacherOfficeHour", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("EffectiveUntil")
+                        .HasColumnType("date");
+
+                    b.Property<int>("InstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeOnly?>("LocalEndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("LocalStartTime")
+                        .HasColumnType("time");
+
+                    b.Property<byte?>("Period")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId");
+
+                    b.HasIndex("SchoolId", "InstructorProfileId", "AcademicTermId", "Day");
+
+                    b.ToTable("TeacherOfficeHours", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_TeacherOfficeHours_Day", "[Day] BETWEEN 1 AND 6");
+
+                            t.HasCheckConstraint("CK_TeacherOfficeHours_EffectiveDates", "[EffectiveUntil] IS NULL OR [EffectiveUntil] >= [EffectiveFrom]");
+
+                            t.HasCheckConstraint("CK_TeacherOfficeHours_Period", "[Period] IS NULL OR [Period] BETWEEN 1 AND 8");
+
+                            t.HasCheckConstraint("CK_TeacherOfficeHours_Source", "[Source] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_TeacherOfficeHours_TimeShape", "([Period] IS NOT NULL AND [LocalStartTime] IS NULL AND [LocalEndTime] IS NULL) OR ([Period] IS NULL AND [LocalStartTime] IS NOT NULL AND [LocalEndTime] IS NOT NULL AND [LocalEndTime] > [LocalStartTime])");
+                        });
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.StudentAnalyzerAccessGrant", b =>
@@ -3659,17 +7015,53 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("AlFalah.Domain.Entities.Notification", b =>
                 {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AlFalah.Domain.Entities.School", "School")
                         .WithMany()
-                        .HasForeignKey("SchoolId");
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "SuppressedByUser")
+                        .WithMany()
+                        .HasForeignKey("SuppressedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ApprovedByUser");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("DeletedByUser");
+
                     b.Navigation("School");
+
+                    b.Navigation("SuppressedByUser");
+
+                    b.Navigation("UpdatedByUser");
 
                     b.Navigation("User");
                 });
@@ -3949,19 +7341,37 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("AlFalah.Domain.Entities.SchoolTimetableEntry", b =>
                 {
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "InstructorProfile")
                         .WithMany()
-                        .HasForeignKey("InstructorProfileId")
+                        .HasForeignKey("SchoolId", "InstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("AlFalah.Domain.Entities.SchoolTimetable", "SchoolTimetable")
                         .WithMany("Entries")
-                        .HasForeignKey("SchoolTimetableId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("SchoolId", "SchoolTimetableId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Classroom");
+
                     b.Navigation("InstructorProfile");
+
+                    b.Navigation("School");
 
                     b.Navigation("SchoolTimetable");
                 });
@@ -3983,6 +7393,1617 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("SchoolTimetable");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AbsenceExcuse", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.DailyStudentAttendance", "DailyStudentAttendance")
+                        .WithMany("Excuses")
+                        .HasForeignKey("SchoolId", "DailyStudentAttendanceId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.GuardianProfile", "GuardianProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "GuardianProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DailyStudentAttendance");
+
+                    b.Navigation("GuardianProfile");
+
+                    b.Navigation("ReviewedByUser");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AbsenceExcuseAttachment", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "UploadedByUser")
+                        .WithMany()
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AbsenceExcuse", "AbsenceExcuse")
+                        .WithMany("Attachments")
+                        .HasForeignKey("SchoolId", "AbsenceExcuseId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AbsenceExcuse");
+
+                    b.Navigation("School");
+
+                    b.Navigation("UploadedByUser");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AcademicConcern", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "ReportedByInstructorProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ReportedByInstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetableEntry", "SchoolTimetableEntry")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableEntryId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("ReportedByInstructorProfile");
+
+                    b.Navigation("School");
+
+                    b.Navigation("SchoolTimetableEntry");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.AcademicYear", "AcademicYear")
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicYear");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AutomationRuleDefinition", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "CompiledByUser")
+                        .WithMany()
+                        .HasForeignKey("CompiledByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.SchoolStudentAffairsSettings", "SchoolStudentAffairsSettings")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolStudentAffairsSettingsId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompiledByUser");
+
+                    b.Navigation("School");
+
+                    b.Navigation("SchoolStudentAffairsSettings");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AutomationTriggerLedger", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AutomationRuleDefinition", "RuleVersion")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "RuleVersionId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("RuleVersion");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.BehaviorIncident", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ReportedByStaffUser")
+                        .WithMany()
+                        .HasForeignKey("ReportedByStaffUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "ReportedByInstructorProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ReportedByInstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("ReportedByInstructorProfile");
+
+                    b.Navigation("ReportedByStaffUser");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.Classroom", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.AcademicYear", "AcademicYear")
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicYear");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ClassroomEntryPermit", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("AcknowledgedByTeacherUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "IssuedByStudentAffairsUser")
+                        .WithMany()
+                        .HasForeignKey("IssuedByStudentAffairsUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("RevokedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetableEntry", "SchoolTimetableEntry")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableEntryId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetable", "SchoolTimetable")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "TargetInstructorProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "TargetInstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("IssuedByStudentAffairsUser");
+
+                    b.Navigation("School");
+
+                    b.Navigation("SchoolTimetable");
+
+                    b.Navigation("SchoolTimetableEntry");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("TargetInstructorProfile");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationMessage", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.ConversationThread", "ConversationThread")
+                        .WithMany("Messages")
+                        .HasForeignKey("SchoolId", "ConversationThreadId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.ConversationMessage", "ReplyToMessage")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ReplyToMessageId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ConversationThread");
+
+                    b.Navigation("ReplyToMessage");
+
+                    b.Navigation("School");
+
+                    b.Navigation("SenderUser");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationParticipant", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.ConversationThread", "ConversationThread")
+                        .WithMany("Participants")
+                        .HasForeignKey("SchoolId", "ConversationThreadId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("ConversationThread");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationThread", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.DailyStudentAttendance", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "CorrectedByUser")
+                        .WithMany()
+                        .HasForeignKey("CorrectedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("CorrectedByUser");
+
+                    b.Navigation("RecordedByUser");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GatePass", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CancelledByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ExitRecordedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("SecurityAcknowledgedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "CurrentClassroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "CurrentClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "CurrentInstructorProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "CurrentInstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.GuardianProfile", "RequestedByGuardianProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "RequestedByGuardianProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetableEntry", "SchoolTimetableEntry")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableEntryId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetable", "SchoolTimetable")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("CurrentClassroom");
+
+                    b.Navigation("CurrentInstructorProfile");
+
+                    b.Navigation("RequestedByGuardianProfile");
+
+                    b.Navigation("School");
+
+                    b.Navigation("SchoolTimetable");
+
+                    b.Navigation("SchoolTimetableEntry");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GatePassTransition", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.GatePass", "GatePass")
+                        .WithMany("Transitions")
+                        .HasForeignKey("SchoolId", "GatePassId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("GatePass");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianProfile", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianSummon", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ScheduledBySocialWorkerUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.GuardianProfile", "GuardianProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "GuardianProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.StudentReferral", "StudentReferral")
+                        .WithMany("GuardianSummons")
+                        .HasForeignKey("SchoolId", "StudentReferralId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("GuardianProfile");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("StudentReferral");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianSummonStatusHistory", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.GuardianSummon", "GuardianSummon")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("SchoolId", "GuardianSummonId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("GuardianSummon");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.InboxMessage", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.MessageReceipt", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "RecipientUser")
+                        .WithMany()
+                        .HasForeignKey("RecipientUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.ConversationMessage", "ConversationMessage")
+                        .WithMany("Receipts")
+                        .HasForeignKey("SchoolId", "ConversationMessageId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ConversationMessage");
+
+                    b.Navigation("RecipientUser");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.MorningArrivalDelay", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.NoorAbsenceCorrectionBatch", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ExportedByUser")
+                        .WithMany()
+                        .HasForeignKey("ExportedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ExportedByUser");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.NoorAbsenceCorrectionBatchItem", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.NoorAbsenceCorrectionBatch", "Batch")
+                        .WithMany("Items")
+                        .HasForeignKey("SchoolId", "BatchId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.DailyStudentAttendance", "DailyStudentAttendance")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "DailyStudentAttendanceId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("DailyStudentAttendance");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.OutboxMessage", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.SchoolStudentAffairsSettings", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.SessionDelay", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "ReportedByInstructorProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ReportedByInstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetableEntry", "SchoolTimetableEntry")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableEntryId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetable", "SchoolTimetable")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("ReportedByInstructorProfile");
+
+                    b.Navigation("School");
+
+                    b.Navigation("SchoolTimetable");
+
+                    b.Navigation("SchoolTimetableEntry");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.Student", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentCaseAction", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.StudentReferral", "StudentReferral")
+                        .WithMany("Actions")
+                        .HasForeignKey("SchoolId", "StudentReferralId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("School");
+
+                    b.Navigation("StudentReferral");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentEnrollment", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentGuardian", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.GuardianProfile", "GuardianProfile")
+                        .WithMany("Students")
+                        .HasForeignKey("SchoolId", "GuardianProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany("Guardians")
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GuardianProfile");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentRecognition", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "ReportedByInstructorProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ReportedByInstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("ReportedByInstructorProfile");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentReferral", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "AssignedSocialWorkerUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedSocialWorkerUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AutomationTriggerLedger", "RuleTrigger")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "RuleTriggerId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("AssignedSocialWorkerUser");
+
+                    b.Navigation("RuleTrigger");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentTermMetric", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StudentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("School");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.TeacherOfficeHour", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", "AcademicTerm")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", "InstructorProfile")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "InstructorProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicTerm");
+
+                    b.Navigation("InstructorProfile");
+
+                    b.Navigation("School");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.StudentAnalyzerAccessGrant", b =>
@@ -4481,6 +9502,67 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Entries");
 
                     b.Navigation("Versions");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.AbsenceExcuse", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.Classroom", b =>
+                {
+                    b.Navigation("Enrollments");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationMessage", b =>
+                {
+                    b.Navigation("Receipts");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationThread", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.DailyStudentAttendance", b =>
+                {
+                    b.Navigation("Excuses");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GatePass", b =>
+                {
+                    b.Navigation("Transitions");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianProfile", b =>
+                {
+                    b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.GuardianSummon", b =>
+                {
+                    b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.NoorAbsenceCorrectionBatch", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.Student", b =>
+                {
+                    b.Navigation("Enrollments");
+
+                    b.Navigation("Guardians");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.StudentReferral", b =>
+                {
+                    b.Navigation("Actions");
+
+                    b.Navigation("GuardianSummons");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.StudentAnalyzerSourceFile", b =>

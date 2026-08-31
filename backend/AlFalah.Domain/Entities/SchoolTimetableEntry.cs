@@ -1,4 +1,5 @@
 using AlFalah.Domain.Enums;
+using AlFalah.Domain.Entities.StudentAffairs;
 
 namespace AlFalah.Domain.Entities;
 
@@ -6,7 +7,9 @@ namespace AlFalah.Domain.Entities;
 public class SchoolTimetableEntry
 {
     public int Id { get; set; }
+    public int SchoolId { get; set; }
     public int SchoolTimetableId { get; set; }
+    public int? ClassroomId { get; set; }
     public int InstructorProfileId { get; set; }
     public TimetableDay Day { get; set; }
     public byte Period { get; set; }
@@ -19,5 +22,7 @@ public class SchoolTimetableEntry
     public DateTimeOffset? DeletedAt { get; set; }
 
     public SchoolTimetable SchoolTimetable { get; set; } = null!;
+    public School School { get; set; } = null!;
+    public Classroom? Classroom { get; set; }
     public InstructorProfile InstructorProfile { get; set; } = null!;
 }

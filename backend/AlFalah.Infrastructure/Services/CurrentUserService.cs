@@ -70,6 +70,10 @@ public class CurrentUserService : ICurrentUserService
             r == RoleNames.SchoolManager
             || r == RoleNames.Secretary
             || r == RoleNames.Moderator
-            || r == RoleNames.Instructor);
+            || r == RoleNames.Instructor
+            || r == RoleNames.Guardian
+            || r == RoleNames.StudentAffairsOfficer
+            || r == RoleNames.SocialWorker
+            || r == RoleNames.SecurityGuard);
     }
 }

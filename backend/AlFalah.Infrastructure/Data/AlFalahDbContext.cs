@@ -1,5 +1,9 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
+using AlFalah.Domain.Events;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +16,11 @@ namespace AlFalah.Infrastructure.Data;
 /// </summary>
 public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
+    private static readonly JsonSerializerOptions DomainEventJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     public AlFalahDbContext(DbContextOptions<AlFalahDbContext> options) : base(options) { }
 
     // Identity extensions
@@ -78,6 +87,50 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<StudentAnalyzerSourceFile> StudentAnalyzerSourceFiles => Set<StudentAnalyzerSourceFile>();
     public DbSet<StudentAnalyzerReport> StudentAnalyzerReports => Set<StudentAnalyzerReport>();
 
+    // Student Affairs - academic foundation
+    public DbSet<Student> Students => Set<Student>();
+    public DbSet<GuardianProfile> GuardianProfiles => Set<GuardianProfile>();
+    public DbSet<StudentGuardian> StudentGuardians => Set<StudentGuardian>();
+    public DbSet<AcademicTerm> AcademicTerms => Set<AcademicTerm>();
+    public DbSet<SchoolStudentAffairsSettings> SchoolStudentAffairsSettings => Set<SchoolStudentAffairsSettings>();
+    public DbSet<Classroom> Classrooms => Set<Classroom>();
+    public DbSet<StudentEnrollment> StudentEnrollments => Set<StudentEnrollment>();
+
+    // Student Affairs - attendance and conduct
+    public DbSet<DailyStudentAttendance> DailyStudentAttendances => Set<DailyStudentAttendance>();
+    public DbSet<AbsenceExcuse> AbsenceExcuses => Set<AbsenceExcuse>();
+    public DbSet<AbsenceExcuseAttachment> AbsenceExcuseAttachments => Set<AbsenceExcuseAttachment>();
+    public DbSet<MorningArrivalDelay> MorningArrivalDelays => Set<MorningArrivalDelay>();
+    public DbSet<SessionDelay> SessionDelays => Set<SessionDelay>();
+    public DbSet<AcademicConcern> AcademicConcerns => Set<AcademicConcern>();
+    public DbSet<BehaviorIncident> BehaviorIncidents => Set<BehaviorIncident>();
+    public DbSet<StudentRecognition> StudentRecognitions => Set<StudentRecognition>();
+    public DbSet<NoorAbsenceCorrectionBatch> NoorAbsenceCorrectionBatches => Set<NoorAbsenceCorrectionBatch>();
+    public DbSet<NoorAbsenceCorrectionBatchItem> NoorAbsenceCorrectionBatchItems => Set<NoorAbsenceCorrectionBatchItem>();
+
+    // Student Affairs - workflows
+    public DbSet<ClassroomEntryPermit> ClassroomEntryPermits => Set<ClassroomEntryPermit>();
+    public DbSet<GatePass> GatePasses => Set<GatePass>();
+    public DbSet<GatePassTransition> GatePassTransitions => Set<GatePassTransition>();
+    public DbSet<StudentReferral> StudentReferrals => Set<StudentReferral>();
+    public DbSet<GuardianSummon> GuardianSummons => Set<GuardianSummon>();
+    public DbSet<GuardianSummonStatusHistory> GuardianSummonStatusHistories => Set<GuardianSummonStatusHistory>();
+    public DbSet<StudentCaseAction> StudentCaseActions => Set<StudentCaseAction>();
+
+    // Student Affairs - messaging and office hours
+    public DbSet<ConversationThread> ConversationThreads => Set<ConversationThread>();
+    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
+    public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
+    public DbSet<MessageReceipt> MessageReceipts => Set<MessageReceipt>();
+    public DbSet<TeacherOfficeHour> TeacherOfficeHours => Set<TeacherOfficeHour>();
+
+    // Student Affairs - automation and reliable events
+    public DbSet<AutomationRuleDefinition> AutomationRuleDefinitions => Set<AutomationRuleDefinition>();
+    public DbSet<StudentTermMetric> StudentTermMetrics => Set<StudentTermMetric>();
+    public DbSet<AutomationTriggerLedger> AutomationTriggerLedgers => Set<AutomationTriggerLedger>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+
     // Parent surveys
     public DbSet<ParentSurvey> ParentSurveys => Set<ParentSurvey>();
     public DbSet<ParentSurveyItem> ParentSurveyItems => Set<ParentSurveyItem>();
@@ -115,6 +168,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         builder.Entity<StudentAnalyzerAccessGrant>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<StudentAnalyzerSourceFile>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<StudentAnalyzerReport>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<Notification>().HasQueryFilter(x => !x.IsDeleted);
 
         // Rubric soft-delete filters (Phase 3)
         builder.Entity<RubricVersion>().HasQueryFilter(x => !x.IsDeleted);
@@ -145,13 +199,88 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public override int SaveChanges()
     {
         UpdateTimestamps();
-        return base.SaveChanges();
+        var sources = GetDomainEventSources();
+        if (sources.Count == 0) return base.SaveChanges();
+
+        var ownsTransaction = Database.IsRelational() && Database.CurrentTransaction is null;
+        using var transaction = ownsTransaction ? Database.BeginTransaction() : null;
+        try
+        {
+            var affectedRows = base.SaveChanges();
+            AppendOutboxMessages(sources);
+            affectedRows += base.SaveChanges();
+            transaction?.Commit();
+            ClearDomainEvents(sources);
+            return affectedRows;
+        }
+        catch
+        {
+            transaction?.Rollback();
+            throw;
+        }
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         UpdateTimestamps();
-        return base.SaveChangesAsync(cancellationToken);
+        var sources = GetDomainEventSources();
+        if (sources.Count == 0)
+            return await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var ownsTransaction = Database.IsRelational() && Database.CurrentTransaction is null;
+        await using var transaction = ownsTransaction
+            ? await Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+
+        try
+        {
+            var affectedRows = await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            AppendOutboxMessages(sources);
+            affectedRows += await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            if (transaction is not null)
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            ClearDomainEvents(sources);
+            return affectedRows;
+        }
+        catch
+        {
+            if (transaction is not null)
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private List<IHasDomainEvents> GetDomainEventSources() => ChangeTracker.Entries()
+        .Select(entry => entry.Entity)
+        .OfType<IHasDomainEvents>()
+        .Where(source => source.DomainEvents.Count > 0)
+        .ToList();
+
+    private void AppendOutboxMessages(IEnumerable<IHasDomainEvents> sources)
+    {
+        var messages = sources.SelectMany(source => source.DomainEvents.Select(domainEvent =>
+        {
+            var eventWithAggregateId = domainEvent.WithAggregateId(source.DomainEventAggregateId);
+            return new OutboxMessage
+            {
+                SchoolId = eventWithAggregateId.SchoolId,
+                EventId = eventWithAggregateId.EventId,
+                EventType = eventWithAggregateId.GetType().FullName
+                    ?? eventWithAggregateId.GetType().Name,
+                PayloadJson = JsonSerializer.Serialize(
+                    eventWithAggregateId,
+                    eventWithAggregateId.GetType(),
+                    DomainEventJsonOptions),
+                OccurredAt = eventWithAggregateId.OccurredAt
+            };
+        })).ToList();
+
+        OutboxMessages.AddRange(messages);
+    }
+
+    private static void ClearDomainEvents(IEnumerable<IHasDomainEvents> sources)
+    {
+        foreach (var source in sources) source.ClearDomainEvents();
     }
 
     private void UpdateTimestamps()
@@ -162,6 +291,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
         foreach (var entry in entries)
         {
+            if (entry.Entity is IStudentAffairsMutableEntity studentAffairsEntity)
+                studentAffairsEntity.UpdatedAt = now;
+
             switch (entry.Entity)
             {
                 case School s: s.UpdatedAt = now; break;
@@ -183,6 +315,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case SchoolTimetable timetable: timetable.UpdatedAt = now; break;
                 case SchoolTimetableEntry timetableEntry: timetableEntry.UpdatedAt = now; break;
                 case SchoolStudentAnalyzerSettings analyzerSettings: analyzerSettings.UpdatedAt = now; break;
+                case Notification notification: notification.UpdatedAt = now; break;
             }
         }
     }

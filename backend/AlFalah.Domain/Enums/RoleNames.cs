@@ -12,4 +12,8 @@ public static class RoleNames
     public const string Secretary = "Secretary";
     public const string Moderator = "Moderator";
     public const string Instructor = "Instructor";
+    public const string Guardian = "Guardian";
+    public const string StudentAffairsOfficer = "StudentAffairsOfficer";
+    public const string SocialWorker = "SocialWorker";
+    public const string SecurityGuard = "SecurityGuard";
 }

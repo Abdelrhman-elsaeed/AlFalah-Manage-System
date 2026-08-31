@@ -354,6 +354,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
 
             var newEntries = entries.Select(x => new SchoolTimetableEntry
             {
+                SchoolId = timetable.SchoolId,
                 SchoolTimetableId = timetable.Id,
                 InstructorProfileId = x.InstructorProfileId,
                 Day = x.Day,

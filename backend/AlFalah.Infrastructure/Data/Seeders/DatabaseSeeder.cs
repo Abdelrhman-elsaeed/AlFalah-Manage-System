@@ -91,6 +91,34 @@ public class DatabaseSeeder
                 NormalizedName = RoleNames.Instructor.ToUpper(),
                 DescriptionAr = "معلم",
                 DescriptionEn = "Instructor"
+            },
+            new ApplicationRole
+            {
+                Name = RoleNames.Guardian,
+                NormalizedName = RoleNames.Guardian.ToUpper(),
+                DescriptionAr = "ولي الأمر",
+                DescriptionEn = "Guardian"
+            },
+            new ApplicationRole
+            {
+                Name = RoleNames.StudentAffairsOfficer,
+                NormalizedName = RoleNames.StudentAffairsOfficer.ToUpper(),
+                DescriptionAr = "وكيل شؤون الطلاب",
+                DescriptionEn = "Student Affairs Officer"
+            },
+            new ApplicationRole
+            {
+                Name = RoleNames.SocialWorker,
+                NormalizedName = RoleNames.SocialWorker.ToUpper(),
+                DescriptionAr = "الموجه الطلابي / الأخصائي الاجتماعي",
+                DescriptionEn = "Social Worker"
+            },
+            new ApplicationRole
+            {
+                Name = RoleNames.SecurityGuard,
+                NormalizedName = RoleNames.SecurityGuard.ToUpper(),
+                DescriptionAr = "حارس الأمن / حارس المدرسة",
+                DescriptionEn = "Security Guard"
             }
         };
 
@@ -219,6 +247,106 @@ public class DatabaseSeeder
 
             // Parent surveys
             (PermissionNames.ParentSurveyManage, "ParentSurvey", "إدارة استبيانات أولياء الأمور", "Manage parent surveys"),
+
+            // Student and guardian administration
+            (PermissionNames.StudentView, "Student", "عرض الطلاب", "View students"),
+            (PermissionNames.StudentCreate, "Student", "إضافة طالب", "Create students"),
+            (PermissionNames.StudentEdit, "Student", "تعديل بيانات الطالب", "Edit students"),
+            (PermissionNames.StudentArchive, "Student", "أرشفة الطالب", "Archive students"),
+            (PermissionNames.StudentEnrollmentManage, "Student", "إدارة تسجيل الطلاب", "Manage student enrollment"),
+            (PermissionNames.GuardianView, "Guardian", "عرض أولياء الأمور", "View guardians"),
+            (PermissionNames.GuardianManage, "Guardian", "إدارة أولياء الأمور", "Manage guardians"),
+            (PermissionNames.GuardianLinkStudent, "Guardian", "ربط أولياء الأمور بالطلاب", "Link guardians to students"),
+            (PermissionNames.GuardianViewLinkedStudents, "Guardian", "عرض الطلاب المرتبطين بولي الأمر", "View own linked students"),
+
+            // Student attendance and excuses
+            (PermissionNames.AttendanceViewStudents, "Attendance", "عرض حضور الطلاب", "View student attendance"),
+            (PermissionNames.AttendanceManageStudents, "Attendance", "إدارة حضور الطلاب", "Manage student attendance"),
+            (PermissionNames.AttendanceSubmitExcuse, "Attendance", "تقديم عذر غياب", "Submit absence excuses"),
+            (PermissionNames.AttendanceReviewExcuse, "Attendance", "مراجعة أعذار الغياب", "Review absence excuses"),
+            (PermissionNames.AttendanceOverrideCorrection, "Attendance", "تصحيح الحضور المقفل", "Override locked attendance corrections"),
+            (PermissionNames.MorningDelayView, "MorningDelay", "عرض التأخر الصباحي", "View morning delays"),
+            (PermissionNames.MorningDelayManageReason, "MorningDelay", "إدارة أسباب التأخر الصباحي", "Manage morning-delay reasons"),
+            (PermissionNames.BiometricImport, "Biometric", "استيراد ملف جهاز البصمة", "Import biometric attendance workbook"),
+            (PermissionNames.NoorExport, "Noor", "تصدير تصحيحات الغياب لنظام نور", "Export Noor absence corrections"),
+
+            // Teacher observations and recognition
+            (PermissionNames.SessionDelayView, "SessionDelay", "عرض التأخر عن الحصص", "View session delays"),
+            (PermissionNames.SessionDelayCreate, "SessionDelay", "تسجيل التأخر عن الحصة", "Create session delays"),
+            (PermissionNames.SessionDelayCorrect, "SessionDelay", "تصحيح التأخر عن الحصة", "Correct session delays"),
+            (PermissionNames.AcademicConcernView, "AcademicConcern", "عرض الملاحظات الأكاديمية", "View academic concerns"),
+            (PermissionNames.AcademicConcernCreate, "AcademicConcern", "تسجيل ملاحظة أكاديمية", "Create academic concerns"),
+            (PermissionNames.AcademicConcernManage, "AcademicConcern", "إدارة الملاحظات الأكاديمية", "Manage academic concerns"),
+            (PermissionNames.BehaviorView, "Behavior", "عرض السلوك الطلابي", "View behavior incidents"),
+            (PermissionNames.BehaviorCreate, "Behavior", "تسجيل واقعة سلوكية", "Create behavior incidents"),
+            (PermissionNames.BehaviorManage, "Behavior", "إدارة الوقائع السلوكية", "Manage behavior incidents"),
+            (PermissionNames.RecognitionView, "Recognition", "عرض التكريمات", "View recognitions"),
+            (PermissionNames.RecognitionCreate, "Recognition", "تسجيل تكريم", "Create recognitions"),
+            (PermissionNames.RecognitionManage, "Recognition", "إدارة التكريمات", "Manage recognitions"),
+            (PermissionNames.RecognitionViewStatistics, "Recognition", "عرض إحصاءات التكريم", "View recognition statistics"),
+            (PermissionNames.TeacherQuickActionView, "TeacherQuickAction", "عرض الإجراءات السريعة للمعلم", "View teacher quick actions"),
+            (PermissionNames.TeacherQuickActionOverride, "TeacherQuickAction", "تجاوز نطاق الحصة الحالية", "Override current teacher timetable scope"),
+
+            // Classroom-entry permits
+            (PermissionNames.ClassroomEntryPermitView, "ClassroomEntryPermit", "عرض تصاريح دخول الفصل", "View classroom-entry permits"),
+            (PermissionNames.ClassroomEntryPermitIssue, "ClassroomEntryPermit", "إصدار تصريح دخول الفصل", "Issue classroom-entry permits"),
+            (PermissionNames.ClassroomEntryPermitAcknowledge, "ClassroomEntryPermit", "تأكيد استلام تصريح دخول الفصل", "Acknowledge classroom-entry permits"),
+            (PermissionNames.ClassroomEntryPermitRevoke, "ClassroomEntryPermit", "إلغاء تصريح دخول الفصل", "Revoke classroom-entry permits"),
+
+            // Gate passes
+            (PermissionNames.GatePassView, "GatePass", "عرض تصاريح الخروج", "View gate passes"),
+            (PermissionNames.GatePassViewOwn, "GatePass", "عرض طلبات الخروج الخاصة", "View own gate-pass requests"),
+            (PermissionNames.GatePassRequest, "GatePass", "طلب تصريح خروج", "Request gate passes"),
+            (PermissionNames.GatePassCancelOwn, "GatePass", "إلغاء طلب الخروج الخاص", "Cancel own gate-pass requests"),
+            (PermissionNames.GatePassApprove, "GatePass", "اعتماد تصريح الخروج", "Approve gate passes"),
+            (PermissionNames.GatePassReject, "GatePass", "رفض تصريح الخروج", "Reject gate passes"),
+            (PermissionNames.GatePassAcknowledgeTeacher, "GatePass", "تأكيد المعلم لإشعار الخروج", "Acknowledge gate passes as teacher"),
+            (PermissionNames.GatePassAcknowledgeSecurity, "GatePass", "تأكيد الأمن لتصريح الخروج", "Acknowledge gate passes as security"),
+            (PermissionNames.GatePassExecute, "GatePass", "تنفيذ خروج الطالب", "Execute gate passes"),
+            (PermissionNames.GatePassOverride, "GatePass", "تجاوز استثنائي لتصريح الخروج", "Override gate-pass exceptions"),
+            (PermissionNames.GatePassViewAudit, "GatePass", "عرض سجل تدقيق تصاريح الخروج", "View gate-pass audit"),
+
+            // Referrals, cases, and summons
+            (PermissionNames.ReferralView, "Referral", "عرض الإحالات", "View referrals"),
+            (PermissionNames.ReferralCreate, "Referral", "إنشاء إحالة", "Create referrals"),
+            (PermissionNames.ReferralAssign, "Referral", "تعيين الإحالات", "Assign referrals"),
+            (PermissionNames.ReferralManage, "Referral", "إدارة الإحالات والحالات", "Manage referrals and cases"),
+            (PermissionNames.ReferralViewConfidential, "Referral", "عرض ملاحظات الحالات السرية", "View confidential case notes"),
+            (PermissionNames.SummonView, "Summon", "عرض الاستدعاءات", "View summons"),
+            (PermissionNames.SummonCreate, "Summon", "إنشاء استدعاء", "Create summons"),
+            (PermissionNames.SummonSchedule, "Summon", "جدولة الاستدعاء", "Schedule summons"),
+            (PermissionNames.SummonMarkAttended, "Summon", "تسجيل حضور الاستدعاء", "Mark summons attended"),
+            (PermissionNames.SummonStartObservation, "Summon", "بدء فترة الملاحظة", "Start summon observation"),
+            (PermissionNames.SummonMarkImproved, "Summon", "تسجيل تحسن الحالة", "Mark summons improved"),
+            (PermissionNames.SummonViewHistory, "Summon", "عرض سجل الاستدعاء", "View summon history"),
+            (PermissionNames.SummonReviewAutomationImpact, "Summon", "مراجعة أثر إعادة احتساب الاستدعاء", "Review summons affected by automation recalculation"),
+
+            // Messaging and office hours
+            (PermissionNames.MessagingViewOwn, "Messaging", "عرض المحادثات الخاصة", "View own message threads"),
+            (PermissionNames.MessagingSend, "Messaging", "إرسال الرسائل", "Send messages"),
+            (PermissionNames.MessagingStartGuardianTeacher, "Messaging", "بدء محادثة بين ولي الأمر والمعلم", "Start guardian-teacher threads"),
+            (PermissionNames.MessagingStartGuardianAdministration, "Messaging", "بدء محادثة مع شؤون الطلاب", "Start guardian-administration threads"),
+            (PermissionNames.MessagingCloseThread, "Messaging", "إغلاق المحادثة", "Close message threads"),
+            (PermissionNames.MessagingViewAudit, "Messaging", "عرض سجل تدقيق الرسائل", "View messaging audit"),
+            (PermissionNames.OfficeHoursView, "OfficeHours", "عرض الساعات المكتبية", "View office hours"),
+            (PermissionNames.OfficeHoursManageOwn, "OfficeHours", "إدارة الساعات المكتبية الخاصة", "Manage own office hours"),
+            (PermissionNames.OfficeHoursManageSchool, "OfficeHours", "إدارة الساعات المكتبية للمدرسة", "Manage school office hours"),
+
+            // Settings, automation, notifications, and dashboards
+            (PermissionNames.StudentAffairsSettingsView, "StudentAffairsSettings", "عرض إعدادات شؤون الطلاب", "View Student Affairs settings"),
+            (PermissionNames.StudentAffairsSettingsManage, "StudentAffairsSettings", "إدارة إعدادات شؤون الطلاب", "Manage Student Affairs settings"),
+            (PermissionNames.AutomationView, "Automation", "عرض قواعد الأتمتة وسجل التشغيل", "View automation rules and trigger history"),
+            (PermissionNames.AutomationRetry, "Automation", "إعادة محاولة إجراء آلي فاشل", "Retry failed automated actions"),
+            (PermissionNames.NotificationViewOwn, "Notification", "عرض الإشعارات الخاصة", "View own notifications"),
+            (PermissionNames.NotificationApproveDispatch, "Notification", "اعتماد إرسال إشعار ولي الأمر", "Approve guardian notification dispatch"),
+            (PermissionNames.NotificationSuppressDispatch, "Notification", "منع إرسال إشعار ولي الأمر", "Suppress guardian notification dispatch"),
+            (PermissionNames.NotificationViewDelivery, "Notification", "عرض حالة تسليم الإشعارات", "View notification delivery status"),
+            (PermissionNames.StudentAffairsDashboardTeacher, "StudentAffairsDashboard", "لوحة شؤون الطلاب للمعلم", "Teacher Student Affairs dashboard"),
+            (PermissionNames.StudentAffairsDashboardOfficer, "StudentAffairsDashboard", "لوحة عمليات شؤون الطلاب", "Student Affairs Officer dashboard"),
+            (PermissionNames.StudentAffairsDashboardSocialWorker, "StudentAffairsDashboard", "لوحة الأخصائي الاجتماعي", "Social Worker dashboard"),
+            (PermissionNames.StudentAffairsDashboardSecurity, "StudentAffairsDashboard", "لوحة بوابة الأمن", "Security gate dashboard"),
+            (PermissionNames.StudentAffairsDashboardGuardian, "StudentAffairsDashboard", "لوحة ولي الأمر", "Guardian Student Affairs dashboard"),
+            (PermissionNames.StudentAffairsDashboardSchoolOversight, "StudentAffairsDashboard", "لوحة الإشراف المدرسي على شؤون الطلاب", "School Student Affairs oversight dashboard"),
         };
     }
 
@@ -261,6 +389,10 @@ public class DatabaseSeeder
                 PermissionNames.SettingsView, PermissionNames.SettingsManage,
                 PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
                 PermissionNames.TimetableView, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
+                PermissionNames.RecognitionViewStatistics,
+                PermissionNames.StudentAffairsSettingsView,
+                PermissionNames.AutomationView,
+                PermissionNames.NotificationViewDelivery,
             },
 
             [RoleNames.SchoolManager] = new[]
@@ -284,6 +416,23 @@ public class DatabaseSeeder
                 PermissionNames.AttendanceView,
                 PermissionNames.ParentSurveyManage,
                 PermissionNames.TimetableView, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
+                PermissionNames.StudentView, PermissionNames.StudentCreate,
+                PermissionNames.StudentEdit, PermissionNames.StudentArchive,
+                PermissionNames.StudentEnrollmentManage,
+                PermissionNames.GuardianView, PermissionNames.GuardianManage, PermissionNames.GuardianLinkStudent,
+                PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceOverrideCorrection,
+                PermissionNames.RecognitionViewStatistics,
+                PermissionNames.ClassroomEntryPermitView, PermissionNames.ClassroomEntryPermitIssue,
+                PermissionNames.ClassroomEntryPermitRevoke,
+                PermissionNames.GatePassView, PermissionNames.GatePassApprove,
+                PermissionNames.GatePassReject, PermissionNames.GatePassOverride, PermissionNames.GatePassViewAudit,
+                PermissionNames.ReferralView,
+                PermissionNames.SummonView, PermissionNames.SummonViewHistory,
+                PermissionNames.MessagingViewAudit,
+                PermissionNames.OfficeHoursView, PermissionNames.OfficeHoursManageSchool,
+                PermissionNames.StudentAffairsSettingsView,
+                PermissionNames.AutomationView, PermissionNames.NotificationViewDelivery,
+                PermissionNames.StudentAffairsDashboardSchoolOversight,
             },
 
             [RoleNames.Moderator] = new[]
@@ -311,11 +460,98 @@ public class DatabaseSeeder
                 PermissionNames.DashboardInstructor,
                 PermissionNames.AttendanceView,
                 PermissionNames.TimetableView,
+                PermissionNames.StudentView,
+                PermissionNames.SessionDelayView, PermissionNames.SessionDelayCreate,
+                PermissionNames.AcademicConcernView, PermissionNames.AcademicConcernCreate,
+                PermissionNames.BehaviorView, PermissionNames.BehaviorCreate,
+                PermissionNames.RecognitionView, PermissionNames.RecognitionCreate,
+                PermissionNames.TeacherQuickActionView,
+                PermissionNames.ClassroomEntryPermitView, PermissionNames.ClassroomEntryPermitAcknowledge,
+                PermissionNames.GatePassView, PermissionNames.GatePassAcknowledgeTeacher,
+                PermissionNames.MessagingViewOwn, PermissionNames.MessagingSend, PermissionNames.MessagingCloseThread,
+                PermissionNames.OfficeHoursView, PermissionNames.OfficeHoursManageOwn,
+                PermissionNames.NotificationViewOwn,
+                PermissionNames.StudentAffairsDashboardTeacher,
             },
 
             [RoleNames.Secretary] = new[]
             {
                 PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
+                PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceManageStudents,
+                PermissionNames.BiometricImport,
+            },
+
+            [RoleNames.StudentAffairsOfficer] = new[]
+            {
+                PermissionNames.StudentView, PermissionNames.StudentCreate,
+                PermissionNames.StudentEdit, PermissionNames.StudentArchive,
+                PermissionNames.StudentEnrollmentManage,
+                PermissionNames.GuardianView, PermissionNames.GuardianManage, PermissionNames.GuardianLinkStudent,
+                PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceReviewExcuse,
+                PermissionNames.BiometricImport, PermissionNames.NoorExport,
+                PermissionNames.MorningDelayView, PermissionNames.MorningDelayManageReason,
+                PermissionNames.SessionDelayView, PermissionNames.SessionDelayCorrect,
+                PermissionNames.AcademicConcernView, PermissionNames.AcademicConcernManage,
+                PermissionNames.BehaviorView, PermissionNames.BehaviorManage,
+                PermissionNames.RecognitionView, PermissionNames.RecognitionManage,
+                PermissionNames.RecognitionViewStatistics,
+                PermissionNames.ClassroomEntryPermitView, PermissionNames.ClassroomEntryPermitIssue,
+                PermissionNames.ClassroomEntryPermitRevoke,
+                PermissionNames.GatePassView, PermissionNames.GatePassApprove,
+                PermissionNames.GatePassReject, PermissionNames.GatePassViewAudit,
+                PermissionNames.ReferralView, PermissionNames.ReferralCreate, PermissionNames.ReferralAssign,
+                PermissionNames.SummonView, PermissionNames.SummonViewHistory,
+                PermissionNames.SummonReviewAutomationImpact,
+                PermissionNames.MessagingViewOwn, PermissionNames.MessagingSend,
+                PermissionNames.MessagingCloseThread, PermissionNames.MessagingViewAudit,
+                PermissionNames.StudentAffairsSettingsView, PermissionNames.StudentAffairsSettingsManage,
+                PermissionNames.AutomationView, PermissionNames.AutomationRetry,
+                PermissionNames.NotificationViewOwn, PermissionNames.NotificationApproveDispatch,
+                PermissionNames.NotificationSuppressDispatch, PermissionNames.NotificationViewDelivery,
+                PermissionNames.StudentAffairsDashboardOfficer,
+            },
+
+            [RoleNames.SocialWorker] = new[]
+            {
+                PermissionNames.StudentView, PermissionNames.GuardianView,
+                PermissionNames.AttendanceViewStudents, PermissionNames.MorningDelayView,
+                PermissionNames.SessionDelayView, PermissionNames.AcademicConcernView,
+                PermissionNames.BehaviorView, PermissionNames.RecognitionView,
+                PermissionNames.ClassroomEntryPermitView, PermissionNames.GatePassView,
+                PermissionNames.ReferralView, PermissionNames.ReferralManage,
+                PermissionNames.ReferralViewConfidential,
+                PermissionNames.SummonView, PermissionNames.SummonCreate,
+                PermissionNames.SummonSchedule, PermissionNames.SummonMarkAttended,
+                PermissionNames.SummonStartObservation, PermissionNames.SummonMarkImproved,
+                PermissionNames.SummonViewHistory,
+                PermissionNames.MessagingViewOwn, PermissionNames.MessagingSend,
+                PermissionNames.MessagingCloseThread,
+                PermissionNames.NotificationViewOwn, PermissionNames.NotificationViewDelivery,
+                PermissionNames.StudentAffairsDashboardSocialWorker,
+            },
+
+            [RoleNames.SecurityGuard] = new[]
+            {
+                PermissionNames.GatePassView,
+                PermissionNames.GatePassAcknowledgeSecurity,
+                PermissionNames.GatePassExecute,
+                PermissionNames.StudentAffairsDashboardSecurity,
+            },
+
+            [RoleNames.Guardian] = new[]
+            {
+                PermissionNames.GuardianViewLinkedStudents,
+                PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceSubmitExcuse,
+                PermissionNames.MorningDelayView, PermissionNames.SessionDelayView,
+                PermissionNames.AcademicConcernView, PermissionNames.BehaviorView,
+                PermissionNames.RecognitionView, PermissionNames.ClassroomEntryPermitView,
+                PermissionNames.GatePassViewOwn, PermissionNames.GatePassRequest, PermissionNames.GatePassCancelOwn,
+                PermissionNames.MessagingViewOwn, PermissionNames.MessagingSend,
+                PermissionNames.MessagingStartGuardianTeacher,
+                PermissionNames.MessagingStartGuardianAdministration,
+                PermissionNames.MessagingCloseThread, PermissionNames.OfficeHoursView,
+                PermissionNames.NotificationViewOwn,
+                PermissionNames.StudentAffairsDashboardGuardian,
             },
         };
     }
@@ -323,7 +559,7 @@ public class DatabaseSeeder
     /// <summary>
     /// Idempotent two-way sync: adds missing RolePermission rows for each role AND
     /// removes any rows no longer in the canonical map. Safe to run on every boot;
-    /// the RolePermissions table is small (≤ 5 roles × ≤ 40 permissions).
+    /// the RolePermissions table is small enough to reconcile on every seed run.
     /// </summary>
     private async Task SyncRolePermissionsAsync()
     {

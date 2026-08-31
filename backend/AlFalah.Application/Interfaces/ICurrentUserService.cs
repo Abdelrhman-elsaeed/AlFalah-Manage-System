@@ -24,9 +24,9 @@ public interface ICurrentUserService
     bool IsGlobalAdmin();
 
     /// <summary>
-    /// True when the caller's scope is a single school (School Manager, Moderator,
-    /// Instructor). Their data is always forced through their token's ActiveSchoolId;
-    /// any client-supplied schoolId that differs is rejected.
+    /// True when the caller's role is school-scoped. Their data is always forced
+    /// through their token's ActiveSchoolId; any client-supplied schoolId that
+    /// differs is rejected.
     /// </summary>
     bool IsSchoolScopedRole();
 }

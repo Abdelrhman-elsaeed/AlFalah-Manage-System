@@ -9,6 +9,7 @@ public class InstructorProfileConfiguration : IEntityTypeConfiguration<Instructo
     public void Configure(EntityTypeBuilder<InstructorProfile> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.HasAlternateKey(x => new { x.SchoolId, x.Id });
         // D-31: explicit Unicode on every Arabic-text column + Arabic_CI_AS collation.
         builder.Property(x => x.SubjectSpecialization).HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.QualificationAr).HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");

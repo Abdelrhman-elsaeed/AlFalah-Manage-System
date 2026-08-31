@@ -56,6 +56,11 @@ builder.Services.AddAlFalahDataProtection(builder.Configuration, builder.Environ
 // Infrastructure (EF Core, Identity, services)
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Phase 3 Student Affairs contracts are dispatched through MediatR. Handlers are
+// intentionally deferred to Phase 4.
+builder.Services.AddMediatR(configuration =>
+    configuration.RegisterServicesFromAssembly(typeof(AlFalah.Application.StudentAffairs.StudentAffairsAssemblyMarker).Assembly));
+
 // FluentValidation (Phase 2) — scan all assemblies referenced from the API host.
 builder.Services.AddValidatorsFromAssemblyContaining<AlFalah.Application.DTOs.Auth.AuthResponseDto>();
 

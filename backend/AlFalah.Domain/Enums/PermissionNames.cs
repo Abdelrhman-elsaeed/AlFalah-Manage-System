@@ -90,4 +90,108 @@ public static class PermissionNames
 
     // Parent surveys and reusable templates
     public const string ParentSurveyManage = "ParentSurvey.Manage";
+
+    #region Student Affairs Permissions
+
+    // Student and guardian administration
+    public const string StudentView = "Student.View";
+    public const string StudentCreate = "Student.Create";
+    public const string StudentEdit = "Student.Edit";
+    public const string StudentArchive = "Student.Archive";
+    public const string StudentEnrollmentManage = "Student.EnrollmentManage";
+    public const string GuardianView = "Guardian.View";
+    public const string GuardianManage = "Guardian.Manage";
+    public const string GuardianLinkStudent = "Guardian.LinkStudent";
+    public const string GuardianViewLinkedStudents = "Guardian.ViewLinkedStudents";
+
+    // Student attendance and excuses
+    public const string AttendanceViewStudents = "Attendance.ViewStudents";
+    public const string AttendanceManageStudents = "Attendance.ManageStudents";
+    public const string AttendanceSubmitExcuse = "Attendance.SubmitExcuse";
+    public const string AttendanceReviewExcuse = "Attendance.ReviewExcuse";
+    public const string AttendanceOverrideCorrection = "Attendance.OverrideCorrection";
+    public const string MorningDelayView = "MorningDelay.View";
+    public const string MorningDelayManageReason = "MorningDelay.ManageReason";
+    public const string BiometricImport = "Biometric.Import";
+    public const string NoorExport = "Noor.Export";
+
+    // Teacher observations and recognition
+    public const string SessionDelayView = "SessionDelay.View";
+    public const string SessionDelayCreate = "SessionDelay.Create";
+    public const string SessionDelayCorrect = "SessionDelay.Correct";
+    public const string AcademicConcernView = "AcademicConcern.View";
+    public const string AcademicConcernCreate = "AcademicConcern.Create";
+    public const string AcademicConcernManage = "AcademicConcern.Manage";
+    public const string BehaviorView = "Behavior.View";
+    public const string BehaviorCreate = "Behavior.Create";
+    public const string BehaviorManage = "Behavior.Manage";
+    public const string RecognitionView = "Recognition.View";
+    public const string RecognitionCreate = "Recognition.Create";
+    public const string RecognitionManage = "Recognition.Manage";
+    public const string RecognitionViewStatistics = "Recognition.ViewStatistics";
+    public const string TeacherQuickActionView = "TeacherQuickAction.View";
+    public const string TeacherQuickActionOverride = "TeacherQuickAction.Override";
+
+    // Classroom-entry permits
+    public const string ClassroomEntryPermitView = "ClassroomEntryPermit.View";
+    public const string ClassroomEntryPermitIssue = "ClassroomEntryPermit.Issue";
+    public const string ClassroomEntryPermitAcknowledge = "ClassroomEntryPermit.Acknowledge";
+    public const string ClassroomEntryPermitRevoke = "ClassroomEntryPermit.Revoke";
+
+    // Gate passes
+    public const string GatePassView = "GatePass.View";
+    public const string GatePassViewOwn = "GatePass.ViewOwn";
+    public const string GatePassRequest = "GatePass.Request";
+    public const string GatePassCancelOwn = "GatePass.CancelOwn";
+    public const string GatePassApprove = "GatePass.Approve";
+    public const string GatePassReject = "GatePass.Reject";
+    public const string GatePassAcknowledgeTeacher = "GatePass.AcknowledgeTeacher";
+    public const string GatePassAcknowledgeSecurity = "GatePass.AcknowledgeSecurity";
+    public const string GatePassExecute = "GatePass.Execute";
+    public const string GatePassOverride = "GatePass.Override";
+    public const string GatePassViewAudit = "GatePass.ViewAudit";
+
+    // Referrals, cases, and summons
+    public const string ReferralView = "Referral.View";
+    public const string ReferralCreate = "Referral.Create";
+    public const string ReferralAssign = "Referral.Assign";
+    public const string ReferralManage = "Referral.Manage";
+    public const string ReferralViewConfidential = "Referral.ViewConfidential";
+    public const string SummonView = "Summon.View";
+    public const string SummonCreate = "Summon.Create";
+    public const string SummonSchedule = "Summon.Schedule";
+    public const string SummonMarkAttended = "Summon.MarkAttended";
+    public const string SummonStartObservation = "Summon.StartObservation";
+    public const string SummonMarkImproved = "Summon.MarkImproved";
+    public const string SummonViewHistory = "Summon.ViewHistory";
+    public const string SummonReviewAutomationImpact = "Summon.ReviewAutomationImpact";
+
+    // Messaging and office hours
+    public const string MessagingViewOwn = "Messaging.ViewOwn";
+    public const string MessagingSend = "Messaging.Send";
+    public const string MessagingStartGuardianTeacher = "Messaging.StartGuardianTeacher";
+    public const string MessagingStartGuardianAdministration = "Messaging.StartGuardianAdministration";
+    public const string MessagingCloseThread = "Messaging.CloseThread";
+    public const string MessagingViewAudit = "Messaging.ViewAudit";
+    public const string OfficeHoursView = "OfficeHours.View";
+    public const string OfficeHoursManageOwn = "OfficeHours.ManageOwn";
+    public const string OfficeHoursManageSchool = "OfficeHours.ManageSchool";
+
+    // Settings, automation, notifications, and dashboards
+    public const string StudentAffairsSettingsView = "StudentAffairsSettings.View";
+    public const string StudentAffairsSettingsManage = "StudentAffairsSettings.Manage";
+    public const string AutomationView = "Automation.View";
+    public const string AutomationRetry = "Automation.Retry";
+    public const string NotificationViewOwn = "Notification.ViewOwn";
+    public const string NotificationApproveDispatch = "Notification.ApproveDispatch";
+    public const string NotificationSuppressDispatch = "Notification.SuppressDispatch";
+    public const string NotificationViewDelivery = "Notification.ViewDelivery";
+    public const string StudentAffairsDashboardTeacher = "StudentAffairsDashboard.Teacher";
+    public const string StudentAffairsDashboardOfficer = "StudentAffairsDashboard.Officer";
+    public const string StudentAffairsDashboardSocialWorker = "StudentAffairsDashboard.SocialWorker";
+    public const string StudentAffairsDashboardSecurity = "StudentAffairsDashboard.Security";
+    public const string StudentAffairsDashboardGuardian = "StudentAffairsDashboard.Guardian";
+    public const string StudentAffairsDashboardSchoolOversight = "StudentAffairsDashboard.SchoolOversight";
+
+    #endregion
 }
