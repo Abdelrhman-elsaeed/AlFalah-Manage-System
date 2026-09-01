@@ -294,6 +294,9 @@ public sealed class AttendanceAndDelayWorkflowTests
 
         public Task DeleteIfExistsAsync(string storageKey, CancellationToken cancellationToken) =>
             Task.CompletedTask;
+
+        public Task<byte[]?> ReadBytesAsync(string storageKey, CancellationToken cancellationToken) =>
+            Task.FromResult<byte[]?>(new byte[] { 1, 2, 3 });
     }
 
     private sealed class FakeAttendanceRepository : IAttendanceWorkflowRepository
@@ -407,6 +410,74 @@ public sealed class AttendanceAndDelayWorkflowTests
                 excuse.ReviewReason,
                 Array.Empty<AttachmentDto>(),
                 Convert.ToBase64String(excuse.RowVersion)));
+        }
+
+        public Task<IReadOnlyList<AbsenceExcuseDto>> GetExcusesByAttendanceIdAsync(
+            int schoolId, int attendanceId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            var excuse = AddedExcuse ?? TrackedExcuse;
+            if (excuse is null) return Task.FromResult<IReadOnlyList<AbsenceExcuseDto>>(Array.Empty<AbsenceExcuseDto>());
+            return Task.FromResult<IReadOnlyList<AbsenceExcuseDto>>(new[]
+            {
+                new AbsenceExcuseDto(
+                    excuse.Id,
+                    excuse.ExcuseType,
+                    excuse.Status,
+                    new GuardianSummaryDto(9, "Guardian", GuardianRelationshipType.Father, true, true),
+                    excuse.SubmittedAt,
+                    null,
+                    excuse.ReviewedAt,
+                    excuse.ReviewReason,
+                    Array.Empty<AttachmentDto>(),
+                    Convert.ToBase64String(excuse.RowVersion))
+            });
+        }
+
+        public Task<PagedResult<StudentAttendanceRecordDto>> GetAttendanceRecordsAsync(
+            int schoolId, StudentAttendanceRecordsQuery query, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(new PagedResult<StudentAttendanceRecordDto>
+            {
+                Items = Array.Empty<StudentAttendanceRecordDto>(),
+                TotalCount = 0,
+                Page = query.PageNumber,
+                PageSize = query.PageSize
+            });
+        }
+
+        public Task<StudentAttendanceHistoryDto?> GetStudentAttendanceHistoryAsync(
+            int schoolId, int studentId, int? academicTermId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<StudentAttendanceHistoryDto?>(new StudentAttendanceHistoryDto(
+                new StudentSummaryDto(studentId, "S-1", "Student", 1, "1/A", true, null),
+                new AcademicTermSummaryDto(1, "Term 1", new DateOnly(2026, 1, 1), new DateOnly(2026, 6, 30), true),
+                Array.Empty<StudentAttendanceRecordDto>(),
+                new MetricBadgeDto(StudentTermMetricCode.PenaltyAbsenceDay, 0, 0, null, "None", null, DateTimeOffset.UtcNow)));
+        }
+
+        public Task<StudentAttendanceRecordDto?> GetAttendanceRecordDtoAsync(
+            int schoolId, int attendanceId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<StudentAttendanceRecordDto?>(new StudentAttendanceRecordDto(
+                attendanceId,
+                new StudentSummaryDto(1, "S-1", "Student", 1, "1/A", true, null),
+                new DateOnly(2026, 8, 30),
+                StudentAttendanceStatus.Present,
+                null,
+                new ActorSummaryDto("sec-1", "Secretary", RoleNames.Secretary),
+                DateTimeOffset.UtcNow,
+                Convert.ToBase64String(new byte[] { 1 })));
+        }
+
+        public Task<(AbsenceExcuseAttachment Attachment, AbsenceExcuse Excuse)?> GetExcuseAttachmentAsync(
+            int schoolId, int excuseId, int attachmentId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<(AbsenceExcuseAttachment Attachment, AbsenceExcuse Excuse)?>(null);
         }
     }
 

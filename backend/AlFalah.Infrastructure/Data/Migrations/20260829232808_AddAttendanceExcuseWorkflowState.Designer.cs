@@ -379,9 +379,6 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("ExcuseStatus")
-                        .HasColumnType("int");
-
                     b.Property<DateTimeOffset?>("HandledAt")
                         .HasColumnType("datetimeoffset");
 
@@ -3721,6 +3718,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(1000)")
                         .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int?>("ExcuseStatus")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");

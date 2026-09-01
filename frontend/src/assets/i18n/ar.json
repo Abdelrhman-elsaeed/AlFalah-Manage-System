@@ -3,6 +3,19 @@
     "NAME": "نظام تقييم مدارس الفلاح",
     "NAME_SHORT": "الفلاح"
   },
+  "ROLES": {
+    "SUPER_ADMIN": "المشرف العام",
+    "MAIN_MANAGER": "المدير العام",
+    "SCHOOL_MANAGER": "مدير المدرسة",
+    "STUDENT_AFFAIRS_OFFICER": "وكيل شؤون الطلاب",
+    "SOCIAL_WORKER": "الموجه الطلابي",
+    "SECRETARY": "السكرتير",
+    "SECURITY_GUARD": "حارس الأمن",
+    "INSTRUCTOR": "المعلم",
+    "TEACHER": "المعلم",
+    "MODERATOR": "المشرف التربوي",
+    "GUARDIAN": "ولي الأمر"
+  },
   "ROUTE_TITLES": {
     "SCHOOL_LOGIN": "تسجيل الدخول — مدارس الفلاح",
     "MAIN_MANAGER_LOGIN": "دخول المدير العام — مدارس الفلاح",

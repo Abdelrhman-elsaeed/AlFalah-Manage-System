@@ -5,6 +5,7 @@ using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
+using AlFalah.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AlFalah.Infrastructure.Repositories;
@@ -265,6 +266,432 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
             teacher,
             Array.Empty<NotificationDeliveryDto>(),
             Convert.ToBase64String(projection.RowVersion));
+    }
+
+    public async Task<PagedResult<GatePassDto>> GetGatePassesAsync(
+        int schoolId,
+        GatePassListQuery query,
+        CancellationToken cancellationToken)
+    {
+        var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var pageSize = query.PageSize <= 0 ? 20 : query.PageSize;
+
+        var dbQuery = _context.GatePasses
+            .AsNoTracking()
+            .Where(gp => gp.SchoolId == schoolId);
+
+        if (query.Status.HasValue)
+        {
+            dbQuery = dbQuery.Where(gp => gp.Status == query.Status.Value);
+        }
+
+        if (query.Date.HasValue)
+        {
+            var date = query.Date.Value;
+            var startUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var endUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+            dbQuery = dbQuery.Where(gp => gp.RequestedExitAt >= startUtc && gp.RequestedExitAt <= endUtc);
+        }
+
+        if (query.ClassroomId.HasValue)
+        {
+            dbQuery = dbQuery.Where(gp => gp.CurrentClassroomId == query.ClassroomId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = query.Search.Trim();
+            dbQuery = dbQuery.Where(gp =>
+                gp.Student.FirstName.Contains(term)
+                || (gp.Student.MiddleName != null && gp.Student.MiddleName.Contains(term))
+                || gp.Student.LastName.Contains(term)
+                || gp.Student.StudentNumber.Contains(term)
+                || gp.PickupPersonName.Contains(term)
+                || gp.Reason.Contains(term));
+        }
+
+        var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+        var projections = await dbQuery
+            .OrderByDescending(gp => gp.RequestedExitAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(gatePass => new
+            {
+                gatePass.Id,
+                gatePass.StudentId,
+                gatePass.RequestedAt,
+                gatePass.RequestedExitAt,
+                gatePass.Reason,
+                gatePass.PickupPersonName,
+                gatePass.PickupRelationship,
+                gatePass.PickupIdentityHint,
+                gatePass.Status,
+                gatePass.ApprovedWindowStartsAt,
+                gatePass.ApprovedWindowEndsAt,
+                gatePass.ReviewedAt,
+                gatePass.ExitedAt,
+                gatePass.CurrentClassroomId,
+                gatePass.RowVersion,
+                gatePass.Student.StudentNumber,
+                gatePass.Student.IsActive,
+                StudentDisplayName = (gatePass.Student.FirstName + " "
+                    + (gatePass.Student.MiddleName ?? string.Empty) + " "
+                    + gatePass.Student.LastName).Trim(),
+                ClassroomLabel = gatePass.CurrentClassroom == null ? null : gatePass.CurrentClassroom.ClassLabel,
+                ClassroomStage = gatePass.CurrentClassroom == null ? null : gatePass.CurrentClassroom.Stage.ToString(),
+                ClassroomGrade = gatePass.CurrentClassroom == null ? (byte?)null : gatePass.CurrentClassroom.GradeLevel,
+                ClassroomSection = gatePass.CurrentClassroom == null ? null : gatePass.CurrentClassroom.Section,
+                TeacherUserId = gatePass.CurrentInstructorProfile == null ? null : gatePass.CurrentInstructorProfile.UserId,
+                TeacherFirstName = gatePass.CurrentInstructorProfile == null ? null : gatePass.CurrentInstructorProfile.User.FirstName,
+                TeacherLastName = gatePass.CurrentInstructorProfile == null ? null : gatePass.CurrentInstructorProfile.User.LastName
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var items = projections.Select(p =>
+        {
+            var classroom = p.CurrentClassroomId is null
+                ? null
+                : new ClassroomSummaryDto(
+                    p.CurrentClassroomId.Value,
+                    p.ClassroomLabel ?? string.Empty,
+                    p.ClassroomStage ?? string.Empty,
+                    p.ClassroomGrade ?? 0,
+                    p.ClassroomSection ?? string.Empty);
+            var teacher = p.TeacherUserId is null
+                ? null
+                : new ActorSummaryDto(
+                    p.TeacherUserId,
+                    $"{p.TeacherFirstName} {p.TeacherLastName}".Trim(),
+                    RoleNames.Instructor);
+
+            return new GatePassDto(
+                p.Id,
+                new StudentSummaryDto(
+                    p.StudentId,
+                    p.StudentNumber,
+                    p.StudentDisplayName,
+                    p.CurrentClassroomId,
+                    p.ClassroomLabel,
+                    p.IsActive,
+                    null),
+                p.RequestedAt,
+                p.RequestedExitAt,
+                p.Reason,
+                new PickupPersonDto(
+                    p.PickupPersonName,
+                    p.PickupRelationship,
+                    p.PickupIdentityHint),
+                p.Status,
+                p.ApprovedWindowStartsAt,
+                p.ApprovedWindowEndsAt,
+                p.ReviewedAt,
+                p.ExitedAt,
+                classroom,
+                teacher,
+                Array.Empty<NotificationDeliveryDto>(),
+                Convert.ToBase64String(p.RowVersion));
+        }).ToList();
+
+        return new PagedResult<GatePassDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(
+        int schoolId,
+        string guardianUserId,
+        GatePassListQuery query,
+        CancellationToken cancellationToken)
+    {
+        var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var pageSize = query.PageSize <= 0 ? 20 : query.PageSize;
+
+        var dbQuery = _context.GatePasses
+            .AsNoTracking()
+            .Where(gp => gp.SchoolId == schoolId
+                && gp.RequestedByGuardianProfile.SchoolId == schoolId
+                && gp.RequestedByGuardianProfile.ApplicationUserId == guardianUserId);
+
+        if (query.Status.HasValue)
+        {
+            dbQuery = dbQuery.Where(gp => gp.Status == query.Status.Value);
+        }
+
+        if (query.Date.HasValue)
+        {
+            var date = query.Date.Value;
+            var startUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var endUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+            dbQuery = dbQuery.Where(gp => gp.RequestedExitAt >= startUtc && gp.RequestedExitAt <= endUtc);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = query.Search.Trim();
+            dbQuery = dbQuery.Where(gp =>
+                gp.Student.FirstName.Contains(term)
+                || (gp.Student.MiddleName != null && gp.Student.MiddleName.Contains(term))
+                || gp.Student.LastName.Contains(term)
+                || gp.PickupPersonName.Contains(term)
+                || gp.Reason.Contains(term));
+        }
+
+        var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+        var projections = await dbQuery
+            .OrderByDescending(gp => gp.RequestedExitAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(gatePass => new
+            {
+                gatePass.Id,
+                gatePass.StudentId,
+                gatePass.RequestedAt,
+                gatePass.RequestedExitAt,
+                gatePass.Reason,
+                gatePass.PickupPersonName,
+                gatePass.PickupRelationship,
+                gatePass.PickupIdentityHint,
+                gatePass.Status,
+                gatePass.ApprovedWindowStartsAt,
+                gatePass.ApprovedWindowEndsAt,
+                gatePass.ReviewedAt,
+                gatePass.ExitedAt,
+                gatePass.CurrentClassroomId,
+                gatePass.RowVersion,
+                gatePass.Student.StudentNumber,
+                gatePass.Student.IsActive,
+                StudentDisplayName = (gatePass.Student.FirstName + " "
+                    + (gatePass.Student.MiddleName ?? string.Empty) + " "
+                    + gatePass.Student.LastName).Trim(),
+                ClassroomLabel = gatePass.CurrentClassroom == null ? null : gatePass.CurrentClassroom.ClassLabel,
+                ClassroomStage = gatePass.CurrentClassroom == null ? null : gatePass.CurrentClassroom.Stage.ToString(),
+                ClassroomGrade = gatePass.CurrentClassroom == null ? (byte?)null : gatePass.CurrentClassroom.GradeLevel,
+                ClassroomSection = gatePass.CurrentClassroom == null ? null : gatePass.CurrentClassroom.Section,
+                TeacherUserId = gatePass.CurrentInstructorProfile == null ? null : gatePass.CurrentInstructorProfile.UserId,
+                TeacherFirstName = gatePass.CurrentInstructorProfile == null ? null : gatePass.CurrentInstructorProfile.User.FirstName,
+                TeacherLastName = gatePass.CurrentInstructorProfile == null ? null : gatePass.CurrentInstructorProfile.User.LastName
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var items = projections.Select(p =>
+        {
+            var classroom = p.CurrentClassroomId is null
+                ? null
+                : new ClassroomSummaryDto(
+                    p.CurrentClassroomId.Value,
+                    p.ClassroomLabel ?? string.Empty,
+                    p.ClassroomStage ?? string.Empty,
+                    p.ClassroomGrade ?? 0,
+                    p.ClassroomSection ?? string.Empty);
+            var teacher = p.TeacherUserId is null
+                ? null
+                : new ActorSummaryDto(
+                    p.TeacherUserId,
+                    $"{p.TeacherFirstName} {p.TeacherLastName}".Trim(),
+                    RoleNames.Instructor);
+
+            return new GatePassDto(
+                p.Id,
+                new StudentSummaryDto(
+                    p.StudentId,
+                    p.StudentNumber,
+                    p.StudentDisplayName,
+                    p.CurrentClassroomId,
+                    p.ClassroomLabel,
+                    p.IsActive,
+                    null),
+                p.RequestedAt,
+                p.RequestedExitAt,
+                p.Reason,
+                new PickupPersonDto(
+                    p.PickupPersonName,
+                    p.PickupRelationship,
+                    p.PickupIdentityHint),
+                p.Status,
+                p.ApprovedWindowStartsAt,
+                p.ApprovedWindowEndsAt,
+                p.ReviewedAt,
+                p.ExitedAt,
+                classroom,
+                teacher,
+                Array.Empty<NotificationDeliveryDto>(),
+                Convert.ToBase64String(p.RowVersion));
+        }).ToList();
+
+        return new PagedResult<GatePassDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<PagedResult<SecurityGatePassQueueItemDto>> GetSecurityGatePassQueueAsync(
+        int schoolId,
+        GatePassListQuery query,
+        CancellationToken cancellationToken)
+    {
+        var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var pageSize = query.PageSize <= 0 ? 20 : query.PageSize;
+
+        var dbQuery = _context.GatePasses
+            .AsNoTracking()
+            .Where(gp => gp.SchoolId == schoolId
+                && (gp.Status == GatePassStatus.Approved || gp.Status == GatePassStatus.SecurityAcknowledged));
+
+        if (query.Status.HasValue)
+        {
+            dbQuery = dbQuery.Where(gp => gp.Status == query.Status.Value);
+        }
+
+        if (query.Date.HasValue)
+        {
+            var date = query.Date.Value;
+            var startUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var endUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+            dbQuery = dbQuery.Where(gp =>
+                (gp.ApprovedWindowStartsAt.HasValue && gp.ApprovedWindowStartsAt.Value >= startUtc && gp.ApprovedWindowStartsAt.Value <= endUtc)
+                || (gp.RequestedExitAt >= startUtc && gp.RequestedExitAt <= endUtc));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = query.Search.Trim();
+            dbQuery = dbQuery.Where(gp =>
+                gp.Student.FirstName.Contains(term)
+                || (gp.Student.MiddleName != null && gp.Student.MiddleName.Contains(term))
+                || gp.Student.LastName.Contains(term)
+                || gp.Student.StudentNumber.Contains(term)
+                || gp.PickupPersonName.Contains(term));
+        }
+
+        var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+        var projections = await dbQuery
+            .OrderBy(gp => gp.ApprovedWindowStartsAt ?? gp.RequestedExitAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(gatePass => new
+            {
+                gatePass.Id,
+                gatePass.StudentId,
+                gatePass.ApprovedWindowStartsAt,
+                gatePass.ApprovedWindowEndsAt,
+                gatePass.ReviewedAt,
+                gatePass.PickupPersonName,
+                gatePass.PickupRelationship,
+                gatePass.PickupIdentityHint,
+                gatePass.Status,
+                gatePass.RowVersion,
+                gatePass.Student.StudentNumber,
+                gatePass.Student.IsActive,
+                StudentDisplayName = (gatePass.Student.FirstName + " "
+                    + (gatePass.Student.MiddleName ?? string.Empty) + " "
+                    + gatePass.Student.LastName).Trim(),
+                ClassLabel = gatePass.CurrentClassroom == null ? "N/A" : gatePass.CurrentClassroom.ClassLabel,
+                gatePass.ReviewedByUserId
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var officerUserIds = projections
+            .Where(p => !string.IsNullOrWhiteSpace(p.ReviewedByUserId))
+            .Select(p => p.ReviewedByUserId!)
+            .Distinct()
+            .ToList();
+
+        var officerNames = officerUserIds.Count > 0
+            ? await _context.Users
+                .AsNoTracking()
+                .Where(u => officerUserIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => $"{u.FirstName} {u.LastName}".Trim(), cancellationToken)
+                .ConfigureAwait(false)
+            : new Dictionary<string, string>();
+
+        var items = projections.Select(p =>
+        {
+            var officerName = p.ReviewedByUserId != null && officerNames.TryGetValue(p.ReviewedByUserId, out var name)
+                ? name
+                : "Student Affairs Officer";
+
+            return new SecurityGatePassQueueItemDto(
+                p.Id,
+                new StudentSummaryDto(
+                    p.StudentId,
+                    p.StudentNumber,
+                    p.StudentDisplayName,
+                    null,
+                    p.ClassLabel,
+                    p.IsActive,
+                    null),
+                p.ClassLabel,
+                p.ApprovedWindowStartsAt ?? DateTimeOffset.UtcNow,
+                p.ApprovedWindowEndsAt ?? DateTimeOffset.UtcNow,
+                new PickupPersonDto(
+                    p.PickupPersonName,
+                    p.PickupRelationship,
+                    p.PickupIdentityHint),
+                officerName,
+                p.ReviewedAt ?? DateTimeOffset.UtcNow,
+                p.Status,
+                Convert.ToBase64String(p.RowVersion));
+        }).ToList();
+
+        return new PagedResult<SecurityGatePassQueueItemDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<GatePassHistoryDto?> GetHistoryAsync(
+        int schoolId,
+        int gatePassId,
+        CancellationToken cancellationToken)
+    {
+        var exists = await _context.GatePasses
+            .AsNoTracking()
+            .AnyAsync(gp => gp.Id == gatePassId && gp.SchoolId == schoolId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!exists) return null;
+
+        var transitions = await _context.GatePassTransitions
+            .AsNoTracking()
+            .Where(t => t.SchoolId == schoolId && t.GatePassId == gatePassId)
+            .OrderBy(t => t.OccurredAt)
+            .Select(t => new
+            {
+                FromState = t.FromStatus.HasValue ? t.FromStatus.Value.ToString() : null,
+                ToState = t.ToStatus.ToString(),
+                t.ActorUserId,
+                ActorName = (t.ActorUser.FirstName + " " + t.ActorUser.LastName).Trim(),
+                t.ActorRole,
+                t.OccurredAt,
+                t.Reason
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var transitionDtos = transitions.Select(t => new TransitionDto(
+            t.FromState,
+            t.ToState,
+            new ActorSummaryDto(t.ActorUserId, string.IsNullOrWhiteSpace(t.ActorName) ? t.ActorRole : t.ActorName, t.ActorRole),
+            t.OccurredAt,
+            t.Reason)).ToList();
+
+        return new GatePassHistoryDto(transitionDtos, Array.Empty<NotificationDeliveryDto>());
     }
 
     private IQueryable<AlFalah.Domain.Entities.SchoolTimetableEntry> PublishedEntries(

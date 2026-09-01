@@ -71,6 +71,7 @@ export interface TeacherPeriodContextDto {
   readonly period: number;
   readonly startsAt: string;
   readonly endsAt: string;
+  readonly subject: string;
   readonly classroom: ClassroomSummaryDto;
 }
 

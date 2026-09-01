@@ -4,8 +4,11 @@ using AlFalah.Application.StudentAffairs.Attendance;
 using AlFalah.Application.StudentAffairs.MorningDelays;
 using AlFalah.Application.StudentAffairs.Summons;
 using AlFalah.Application.StudentAffairs.TeacherActions;
+using AlFalah.Application.StudentAffairs.TeacherContext;
 using AlFalah.Application.StudentAffairs.Biometrics;
 using AlFalah.Application.StudentAffairs.Notifications;
+using AlFalah.Application.StudentAffairs.Settings;
+using AlFalah.Application.StudentAffairs.Messaging;
 using AlFalah.Domain.Entities;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Data.Seeders;
@@ -84,6 +87,9 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton(TimeProvider.System);
+        var teacherContextOptions = BuildTeacherContextOptions(configuration);
+        services.AddSingleton(teacherContextOptions);
+        services.AddSingleton<TeacherContextSchedule>();
         services.AddScoped<AuditLogWriter>();
         services.AddScoped<SchoolScopeGuard>();
         services.AddScoped<SchoolLookupService>();
@@ -107,12 +113,15 @@ public static class DependencyInjection
         services.AddScoped<IAttendanceWorkflowRepository, AttendanceWorkflowRepository>();
         services.AddScoped<IMorningDelayWorkflowRepository, MorningDelayWorkflowRepository>();
         services.AddScoped<ITeacherActionWorkflowRepository, TeacherActionWorkflowRepository>();
+        services.AddScoped<ITeacherContextRepository, TeacherContextRepository>();
         services.AddScoped<ISummonWorkflowRepository, SummonWorkflowRepository>();
         services.AddScoped<IBiometricImportRepository, BiometricImportRepository>();
         services.AddScoped<IZajelBiometricWorkbookReader, ZajelBiometricWorkbookReader>();
         services.AddScoped<INoorExportRepository, NoorExportRepository>();
         services.AddSingleton<INoorWorkbookWriter, NoorWorkbookWriter>();
         services.AddScoped<INotificationWorkflowRepository, NotificationWorkflowRepository>();
+        services.AddScoped<IStudentAffairsSettingsRepository, StudentAffairsSettingsRepository>();
+        services.AddScoped<IMessagingWorkflowRepository, MessagingWorkflowRepository>();
         services.AddScoped<StudentAffairsAutomationRuleEngine>();
         services.AddScoped<StudentAffairsNotificationDispatcher>();
         services.AddScoped<StudentAffairsOutboxProcessor>();
@@ -166,5 +175,31 @@ public static class DependencyInjection
         services.AddScoped<DatabaseSeeder>();
 
         return services;
+    }
+
+    private static TeacherContextScheduleOptions BuildTeacherContextOptions(
+        IConfiguration configuration)
+    {
+        var configuredStart = configuration["TeacherContext:FirstPeriodStartsAt"];
+        var firstPeriodStartsAt = TimeOnly.TryParse(
+            configuredStart,
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None,
+            out var parsedStart)
+            ? parsedStart
+            : new TimeOnly(7, 0);
+
+        return new TeacherContextScheduleOptions
+        {
+            SchoolTimeZoneId = configuration["TeacherContext:SchoolTimeZoneId"]
+                ?? "Africa/Cairo",
+            FirstPeriodStartsAt = firstPeriodStartsAt,
+            PeriodDurationMinutes = configuration.GetValue<int?>(
+                "TeacherContext:PeriodDurationMinutes") ?? 45,
+            PassingTimeMinutes = configuration.GetValue<int?>(
+                "TeacherContext:PassingTimeMinutes") ?? 5,
+            AllowOffHoursFallback = configuration.GetValue<bool>(
+                "TeacherContext:AllowOffHoursFallback")
+        };
     }
 }

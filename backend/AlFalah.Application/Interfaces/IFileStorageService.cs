@@ -18,4 +18,8 @@ public interface IFileStorageService
     Task DeleteIfExistsAsync(
         string storageKey,
         CancellationToken cancellationToken);
+
+    Task<byte[]?> ReadBytesAsync(
+        string storageKey,
+        CancellationToken cancellationToken);
 }

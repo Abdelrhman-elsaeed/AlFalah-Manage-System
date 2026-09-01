@@ -56,6 +56,11 @@ builder.Services.AddAlFalahDataProtection(builder.Configuration, builder.Environ
 // Infrastructure (EF Core, Identity, services)
 builder.Services.AddInfrastructure(builder.Configuration);
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<StudentAffairsDataSeeder>();
+}
+
 // Phase 3 Student Affairs contracts are dispatched through MediatR. Handlers are
 // intentionally deferred to Phase 4.
 builder.Services.AddMediatR(configuration =>
@@ -286,6 +291,13 @@ using (var scope = app.Services.CreateScope())
 
         logger.LogInformation("Running database seeder...");
         await seeder.SeedAsync();
+
+        if (app.Environment.IsDevelopment())
+        {
+            logger.LogInformation("Running development Student Affairs data seeder...");
+            var studentAffairsSeeder = scope.ServiceProvider.GetRequiredService<StudentAffairsDataSeeder>();
+            await studentAffairsSeeder.SeedAsync();
+        }
     }
     catch (Exception ex)
     {

@@ -3,6 +3,19 @@
     "NAME": "Al-Falah Schools Evaluation System",
     "NAME_SHORT": "Al-Falah"
   },
+  "ROLES": {
+    "SUPER_ADMIN": "Super Admin",
+    "MAIN_MANAGER": "General Manager",
+    "SCHOOL_MANAGER": "School Manager",
+    "STUDENT_AFFAIRS_OFFICER": "Student Affairs Officer",
+    "SOCIAL_WORKER": "Social Worker",
+    "SECRETARY": "Secretary",
+    "SECURITY_GUARD": "Security Guard",
+    "INSTRUCTOR": "Instructor",
+    "TEACHER": "Teacher",
+    "MODERATOR": "Moderator",
+    "GUARDIAN": "Guardian"
+  },
   "ROUTE_TITLES": {
     "SCHOOL_LOGIN": "Sign in — Al-Falah Schools",
     "MAIN_MANAGER_LOGIN": "Main Manager sign in — Al-Falah Schools",

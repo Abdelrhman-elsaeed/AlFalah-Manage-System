@@ -7,6 +7,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { StudentAnalyzerService } from '../../../core/services/student-analyzer.service';
+import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 
 interface NavItem {
   labelKey: string;
@@ -228,7 +229,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslateModule, TooltipModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslateModule, TooltipModule, RoleDisplayNamePipe],
   templateUrl: './shell.component.html',
   styleUrls: ['./shell.component.css']
 })
@@ -308,15 +309,7 @@ export class ShellComponent implements OnInit {
   });
 
   readonly activeSchoolName = computed(() => this.currentUser()?.activeSchoolName ?? null);
-  readonly primaryRoleKey = computed<string | null>(() => {
-    const role = this.authService.roles()[0];
-    if (!role) return null;
-
-    if (role === 'Secretary') return 'السكرتير';
-
-    const key = role.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
-    return `ROLES.${key}`;
-  });
+  readonly primaryRoleKey = computed<string | null>(() => this.authService.roles()[0] ?? null);
   readonly userInitials = computed(() => {
     const name = this.currentUser()?.fullName?.trim();
     if (!name) return '';

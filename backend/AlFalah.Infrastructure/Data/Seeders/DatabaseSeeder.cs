@@ -36,8 +36,6 @@ public class DatabaseSeeder
         await SeedRolesAsync();
         await SeedPermissionsAsync();
         await SyncRolePermissionsAsync();
-        var sampleSchool = await EnsureSampleSchoolAsync();
-        await SeedDevAccountsAsync(sampleSchool);
         await SeedRubricAsync();
         await RetirePlaceholderStandardsAsync();
 

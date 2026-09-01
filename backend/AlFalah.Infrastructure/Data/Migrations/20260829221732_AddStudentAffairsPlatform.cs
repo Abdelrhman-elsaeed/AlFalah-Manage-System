@@ -48,6 +48,15 @@ namespace AlFalah.Infrastructure.Data.Migrations
                 nullable: false,
                 defaultValue: 0);
 
+            migrationBuilder.Sql(
+                """
+                UPDATE entry
+                SET entry.SchoolId = timetable.SchoolId
+                FROM SchoolTimetableEntries AS entry
+                INNER JOIN SchoolTimetables AS timetable
+                    ON timetable.Id = entry.SchoolTimetableId;
+                """);
+
             migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "ApprovedAt",
                 table: "Notifications",
@@ -106,7 +115,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                 table: "Notifications",
                 type: "int",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 1);
 
             migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "FailedAt",
@@ -134,7 +143,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                 table: "Notifications",
                 type: "int",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 1);
 
             migrationBuilder.AddColumn<bool>(
                 name: "RequiresApproval",

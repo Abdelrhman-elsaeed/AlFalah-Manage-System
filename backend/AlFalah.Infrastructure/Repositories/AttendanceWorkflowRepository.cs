@@ -5,6 +5,7 @@ using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
+using AlFalah.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AlFalah.Infrastructure.Repositories;
@@ -191,6 +192,59 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        var now = DateTimeOffset.UtcNow;
+
+        if (rows.Count == 0)
+        {
+            var roster = await GetActiveRosterAsync(schoolId, classroomId, attendanceDate, cancellationToken)
+                .ConfigureAwait(false);
+            var rosterStudentIds = roster.Select(r => r.StudentId).ToArray();
+            var students = await _context.Students
+                .AsNoTracking()
+                .Where(s => s.SchoolId == schoolId && rosterStudentIds.Contains(s.Id))
+                .OrderBy(s => s.StudentNumber)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.StudentNumber,
+                    DisplayName = (s.FirstName + " " + (s.MiddleName ?? string.Empty) + " " + s.LastName).Trim(),
+                    s.IsActive
+                })
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var emptyRows = students.Select(s => new StudentAttendanceSheetRowDto(
+                null,
+                new StudentSummaryDto(
+                    s.Id,
+                    s.StudentNumber,
+                    s.DisplayName,
+                    classroomId,
+                    classroom.Label,
+                    s.IsActive,
+                    null),
+                StudentAttendanceStatus.Present,
+                null,
+                null,
+                null,
+                new MetricBadgeDto(
+                    StudentTermMetricCode.PenaltyAbsenceDay,
+                    0,
+                    0,
+                    null,
+                    "None",
+                    null,
+                    now),
+                null)).ToArray();
+
+            return new StudentAttendanceSheetDto(
+                attendanceDate,
+                classroom,
+                rosterRevision,
+                false,
+                emptyRows);
+        }
+
         var studentIds = rows.Select(row => row.StudentId).ToArray();
         var metrics = await _context.StudentTermMetrics
             .AsNoTracking()
@@ -209,7 +263,6 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
         var metricByStudentAndTerm = metrics.ToDictionary(
             metric => (metric.StudentId, metric.AcademicTermId));
 
-        var now = DateTimeOffset.UtcNow;
         var dtoRows = rows.Select(row =>
         {
             metricByStudentAndTerm.TryGetValue((row.StudentId, row.AcademicTermId), out var metric);
@@ -242,7 +295,7 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             attendanceDate,
             classroom,
             rosterRevision,
-            dtoRows.Length > 0,
+            true,
             dtoRows);
     }
 
@@ -337,4 +390,408 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             attachments,
             Convert.ToBase64String(projection.RowVersion));
     }
+
+    public async Task<IReadOnlyList<AbsenceExcuseDto>> GetExcusesByAttendanceIdAsync(
+        int schoolId,
+        int attendanceId,
+        CancellationToken cancellationToken)
+    {
+        var projections = await _context.AbsenceExcuses
+            .AsNoTracking()
+            .Where(excuse => excuse.DailyStudentAttendanceId == attendanceId && excuse.SchoolId == schoolId)
+            .OrderByDescending(excuse => excuse.SubmittedAt)
+            .Select(excuse => new
+            {
+                excuse.Id,
+                excuse.ExcuseType,
+                excuse.Status,
+                excuse.GuardianProfileId,
+                GuardianDisplayName = (excuse.GuardianProfile.ApplicationUser.FirstName + " "
+                    + excuse.GuardianProfile.ApplicationUser.LastName).Trim(),
+                GuardianLink = excuse.GuardianProfile.Students
+                    .Where(link => link.SchoolId == schoolId
+                        && link.StudentId == excuse.DailyStudentAttendance.StudentId)
+                    .Select(link => new
+                    {
+                        link.RelationshipType,
+                        link.IsPrimary,
+                        link.ReceivesNotifications
+                    })
+                    .FirstOrDefault(),
+                excuse.SubmittedAt,
+                excuse.ReviewedByUserId,
+                ReviewerDisplayName = excuse.ReviewedByUser == null
+                    ? null
+                    : (excuse.ReviewedByUser.FirstName + " " + excuse.ReviewedByUser.LastName).Trim(),
+                excuse.ReviewedAt,
+                excuse.ReviewReason,
+                excuse.RowVersion,
+                Attachments = excuse.Attachments
+                    .OrderBy(attachment => attachment.Id)
+                    .Select(attachment => new
+                    {
+                        attachment.Id,
+                        attachment.OriginalFileName,
+                        attachment.ContentType,
+                        attachment.SizeBytes,
+                        attachment.UploadedAt,
+                        attachment.UploadedByUserId,
+                        UploaderDisplayName = (attachment.UploadedByUser.FirstName + " "
+                            + attachment.UploadedByUser.LastName).Trim()
+                    })
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return projections.Select(projection =>
+        {
+            var guardianLink = projection.GuardianLink;
+            var guardian = new GuardianSummaryDto(
+                projection.GuardianProfileId,
+                projection.GuardianDisplayName,
+                guardianLink?.RelationshipType ?? 0,
+                guardianLink?.IsPrimary ?? false,
+                guardianLink?.ReceivesNotifications ?? false);
+            var reviewer = projection.ReviewedByUserId is null
+                ? null
+                : new ActorSummaryDto(
+                    projection.ReviewedByUserId,
+                    projection.ReviewerDisplayName ?? string.Empty,
+                    RoleNames.StudentAffairsOfficer);
+            var attachments = projection.Attachments.Select(attachment => new AttachmentDto(
+                attachment.Id,
+                attachment.OriginalFileName,
+                attachment.ContentType,
+                attachment.SizeBytes,
+                attachment.UploadedAt,
+                new ActorSummaryDto(
+                    attachment.UploadedByUserId,
+                    attachment.UploaderDisplayName,
+                    RoleNames.Guardian),
+                $"/api/v1/student-attendance/excuses/{projection.Id}/attachments/{attachment.Id}"))
+                .ToArray();
+
+            return new AbsenceExcuseDto(
+                projection.Id,
+                projection.ExcuseType,
+                projection.Status,
+                guardian,
+                projection.SubmittedAt,
+                reviewer,
+                projection.ReviewedAt,
+                projection.ReviewReason,
+                attachments,
+                Convert.ToBase64String(projection.RowVersion));
+        }).ToList();
+    }
+
+    public async Task<PagedResult<StudentAttendanceRecordDto>> GetAttendanceRecordsAsync(
+        int schoolId,
+        StudentAttendanceRecordsQuery query,
+        CancellationToken cancellationToken)
+    {
+        var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var pageSize = query.PageSize <= 0 ? 25 : query.PageSize;
+
+        var dbQuery = _context.DailyStudentAttendances
+            .AsNoTracking()
+            .Where(a => a.SchoolId == schoolId);
+
+        if (query.FromDate.HasValue)
+            dbQuery = dbQuery.Where(a => a.AttendanceDate >= query.FromDate.Value);
+
+        if (query.ToDate.HasValue)
+            dbQuery = dbQuery.Where(a => a.AttendanceDate <= query.ToDate.Value);
+
+        if (query.ClassroomId.HasValue)
+            dbQuery = dbQuery.Where(a => a.ClassroomId == query.ClassroomId.Value);
+
+        if (query.StudentId.HasValue)
+            dbQuery = dbQuery.Where(a => a.StudentId == query.StudentId.Value);
+
+        if (query.Status.HasValue)
+            dbQuery = dbQuery.Where(a => a.Status == query.Status.Value);
+
+        if (query.ExcuseStatus.HasValue)
+            dbQuery = dbQuery.Where(a => a.ExcuseStatus == query.ExcuseStatus.Value);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim();
+            dbQuery = dbQuery.Where(a =>
+                a.Student.FirstName.Contains(search)
+                || (a.Student.MiddleName != null && a.Student.MiddleName.Contains(search))
+                || a.Student.LastName.Contains(search)
+                || a.Student.StudentNumber.Contains(search));
+        }
+
+        var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+        var projections = await dbQuery
+            .OrderByDescending(a => a.AttendanceDate)
+            .ThenBy(a => a.Student.StudentNumber)
+            .ThenByDescending(a => a.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new
+            {
+                a.Id,
+                a.StudentId,
+                a.Student.StudentNumber,
+                StudentDisplayName = (a.Student.FirstName + " "
+                    + (a.Student.MiddleName ?? string.Empty) + " "
+                    + a.Student.LastName).Trim(),
+                a.Student.IsActive,
+                a.ClassroomId,
+                ClassroomLabel = a.Classroom.ClassLabel,
+                a.AttendanceDate,
+                a.Status,
+                a.ExcuseStatus,
+                a.RecordedByUserId,
+                RecorderDisplayName = (a.RecordedByUser.FirstName + " "
+                    + a.RecordedByUser.LastName).Trim(),
+                a.RecordedAt,
+                a.RowVersion
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var items = projections.Select(p => new StudentAttendanceRecordDto(
+            p.Id,
+            new StudentSummaryDto(
+                p.StudentId,
+                p.StudentNumber,
+                p.StudentDisplayName,
+                p.ClassroomId,
+                p.ClassroomLabel,
+                p.IsActive,
+                null),
+            p.AttendanceDate,
+            p.Status,
+            p.ExcuseStatus,
+            new ActorSummaryDto(
+                p.RecordedByUserId,
+                p.RecorderDisplayName,
+                RoleNames.Secretary),
+            p.RecordedAt,
+            Convert.ToBase64String(p.RowVersion)
+        )).ToList();
+
+        return new PagedResult<StudentAttendanceRecordDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<StudentAttendanceRecordDto?> GetAttendanceRecordDtoAsync(
+        int schoolId,
+        int attendanceId,
+        CancellationToken cancellationToken)
+    {
+        var p = await _context.DailyStudentAttendances
+            .AsNoTracking()
+            .Where(a => a.Id == attendanceId && a.SchoolId == schoolId)
+            .Select(a => new
+            {
+                a.Id,
+                a.StudentId,
+                a.Student.StudentNumber,
+                StudentDisplayName = (a.Student.FirstName + " "
+                    + (a.Student.MiddleName ?? string.Empty) + " "
+                    + a.Student.LastName).Trim(),
+                a.Student.IsActive,
+                a.ClassroomId,
+                ClassroomLabel = a.Classroom.ClassLabel,
+                a.AttendanceDate,
+                a.Status,
+                a.ExcuseStatus,
+                a.RecordedByUserId,
+                RecorderDisplayName = (a.RecordedByUser.FirstName + " "
+                    + a.RecordedByUser.LastName).Trim(),
+                a.RecordedAt,
+                a.RowVersion
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (p is null) return null;
+
+        return new StudentAttendanceRecordDto(
+            p.Id,
+            new StudentSummaryDto(
+                p.StudentId,
+                p.StudentNumber,
+                p.StudentDisplayName,
+                p.ClassroomId,
+                p.ClassroomLabel,
+                p.IsActive,
+                null),
+            p.AttendanceDate,
+            p.Status,
+            p.ExcuseStatus,
+            new ActorSummaryDto(
+                p.RecordedByUserId,
+                p.RecorderDisplayName,
+                RoleNames.Secretary),
+            p.RecordedAt,
+            Convert.ToBase64String(p.RowVersion));
+    }
+
+    public async Task<StudentAttendanceHistoryDto?> GetStudentAttendanceHistoryAsync(
+        int schoolId,
+        int studentId,
+        int? academicTermId,
+        CancellationToken cancellationToken)
+    {
+        var student = await _context.Students
+            .AsNoTracking()
+            .Where(s => s.Id == studentId && s.SchoolId == schoolId)
+            .Select(s => new
+            {
+                s.Id,
+                s.StudentNumber,
+                DisplayName = (s.FirstName + " " + (s.MiddleName ?? string.Empty) + " " + s.LastName).Trim(),
+                s.IsActive
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (student is null) return null;
+
+        AcademicTerm? term = null;
+        if (academicTermId.HasValue)
+        {
+            term = await _context.AcademicTerms
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == academicTermId.Value && t.SchoolId == schoolId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            term = await _context.AcademicTerms
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.SchoolId == schoolId && t.IsActive && t.StartsOn <= today && t.EndsOn >= today, cancellationToken)
+                .ConfigureAwait(false)
+                ?? await _context.AcademicTerms
+                    .AsNoTracking()
+                    .Where(t => t.SchoolId == schoolId && t.IsActive)
+                    .OrderByDescending(t => t.StartsOn)
+                    .FirstOrDefaultAsync(cancellationToken)
+                    .ConfigureAwait(false);
+        }
+
+        if (term is null) return null;
+
+        var enrollment = await _context.StudentEnrollments
+            .AsNoTracking()
+            .Where(e => e.StudentId == studentId && e.SchoolId == schoolId && e.AcademicTermId == term.Id && e.Status == StudentEnrollmentStatus.Active)
+            .Select(e => new { e.ClassroomId, e.Classroom.ClassLabel })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var recordsRaw = await _context.DailyStudentAttendances
+            .AsNoTracking()
+            .Where(a => a.SchoolId == schoolId && a.StudentId == studentId && a.AcademicTermId == term.Id)
+            .OrderByDescending(a => a.AttendanceDate)
+            .Select(a => new
+            {
+                a.Id,
+                a.StudentId,
+                StudentNumber = student.StudentNumber,
+                StudentDisplayName = student.DisplayName,
+                StudentIsActive = student.IsActive,
+                a.ClassroomId,
+                ClassroomLabel = a.Classroom.ClassLabel,
+                a.AttendanceDate,
+                a.Status,
+                a.ExcuseStatus,
+                a.RecordedByUserId,
+                RecorderDisplayName = (a.RecordedByUser.FirstName + " " + a.RecordedByUser.LastName).Trim(),
+                a.RecordedAt,
+                a.RowVersion
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var records = recordsRaw.Select(p => new StudentAttendanceRecordDto(
+            p.Id,
+            new StudentSummaryDto(
+                p.StudentId,
+                p.StudentNumber,
+                p.StudentDisplayName,
+                p.ClassroomId,
+                p.ClassroomLabel,
+                p.StudentIsActive,
+                null),
+            p.AttendanceDate,
+            p.Status,
+            p.ExcuseStatus,
+            new ActorSummaryDto(
+                p.RecordedByUserId,
+                p.RecorderDisplayName,
+                RoleNames.Secretary),
+            p.RecordedAt,
+            Convert.ToBase64String(p.RowVersion)
+        )).ToList();
+
+        var metric = await _context.StudentTermMetrics
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.SchoolId == schoolId && m.StudentId == studentId && m.AcademicTermId == term.Id && m.MetricCode == StudentTermMetricCode.PenaltyAbsenceDay, cancellationToken)
+            .ConfigureAwait(false);
+
+        var now = DateTimeOffset.UtcNow;
+        var metricBadge = new MetricBadgeDto(
+            StudentTermMetricCode.PenaltyAbsenceDay,
+            metric?.Count ?? 0,
+            0,
+            null,
+            "None",
+            null,
+            metric?.RecalculatedAt ?? now);
+
+        return new StudentAttendanceHistoryDto(
+            new StudentSummaryDto(
+                student.Id,
+                student.StudentNumber,
+                student.DisplayName,
+                enrollment?.ClassroomId,
+                enrollment?.ClassLabel,
+                student.IsActive,
+                null),
+            new AcademicTermSummaryDto(
+                term.Id,
+                term.Semester.ToString(),
+                term.StartsOn,
+                term.EndsOn,
+                term.IsActive),
+            records,
+            metricBadge);
+    }
+
+    public async Task<(AbsenceExcuseAttachment Attachment, AbsenceExcuse Excuse)?> GetExcuseAttachmentAsync(
+        int schoolId,
+        int excuseId,
+        int attachmentId,
+        CancellationToken cancellationToken)
+    {
+        var attachment = await _context.AbsenceExcuseAttachments
+            .AsNoTracking()
+            .Include(a => a.AbsenceExcuse)
+            .ThenInclude(e => e.DailyStudentAttendance)
+            .FirstOrDefaultAsync(a => a.Id == attachmentId
+                && a.AbsenceExcuseId == excuseId
+                && a.SchoolId == schoolId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (attachment is null || attachment.AbsenceExcuse is null)
+            return null;
+
+        return (attachment, attachment.AbsenceExcuse);
+    }
 }
+

@@ -9,6 +9,7 @@ using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Domain.Events;
 using AlFalah.Infrastructure.Data;
+using AlFalah.Shared.Models;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -341,5 +342,17 @@ public sealed class GatePassWorkflowTests
                 Array.Empty<NotificationDeliveryDto>(),
                 Convert.ToBase64String(gatePass.RowVersion)));
         }
+
+        public Task<PagedResult<GatePassDto>> GetGatePassesAsync(int schoolId, GatePassListQuery query, CancellationToken cancellationToken) =>
+            Task.FromResult(new PagedResult<GatePassDto>());
+
+        public Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(int schoolId, string guardianUserId, GatePassListQuery query, CancellationToken cancellationToken) =>
+            Task.FromResult(new PagedResult<GatePassDto>());
+
+        public Task<PagedResult<SecurityGatePassQueueItemDto>> GetSecurityGatePassQueueAsync(int schoolId, GatePassListQuery query, CancellationToken cancellationToken) =>
+            Task.FromResult(new PagedResult<SecurityGatePassQueueItemDto>());
+
+        public Task<GatePassHistoryDto?> GetHistoryAsync(int schoolId, int gatePassId, CancellationToken cancellationToken) =>
+            Task.FromResult<GatePassHistoryDto?>(new GatePassHistoryDto(Array.Empty<TransitionDto>(), Array.Empty<NotificationDeliveryDto>()));
     }
 }

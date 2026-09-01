@@ -4,7 +4,13 @@ using MediatR;
 
 namespace AlFalah.Application.StudentAffairs.DTOs.Teacher;
 
-public sealed record TeacherPeriodContextDto(int TimetableEntryId, byte Period, DateTimeOffset StartsAt, DateTimeOffset EndsAt, ClassroomSummaryDto Classroom);
+public sealed record TeacherPeriodContextDto(
+    int TimetableEntryId,
+    byte Period,
+    DateTimeOffset StartsAt,
+    DateTimeOffset EndsAt,
+    string Subject,
+    ClassroomSummaryDto Classroom);
 public sealed record TeacherCurrentContextDto(
     ActorSummaryDto Teacher,
     DateTimeOffset SchoolLocalTime,

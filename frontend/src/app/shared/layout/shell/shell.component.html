@@ -16,7 +16,7 @@
           <div class="shell-topbar__role-container">
             <span class="shell-topbar__user-role" *ngIf="primaryRoleKey() as role">
               <i class="pi pi-shield" aria-hidden="true"></i>
-              <span>{{ role | translate }}</span>
+              <span>{{ role | roleDisplayName }}</span>
             </span>
           </div>
         </div>

@@ -70,6 +70,14 @@ public sealed class LocalFileStorageService : IFileStorageService
         return Task.CompletedTask;
     }
 
+    public async Task<byte[]?> ReadBytesAsync(string storageKey, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var targetPath = ResolvePath(storageKey);
+        if (!File.Exists(targetPath)) return null;
+        return await File.ReadAllBytesAsync(targetPath, cancellationToken).ConfigureAwait(false);
+    }
+
     private string ResolvePath(string storageKey)
     {
         var normalizedRoot = _rootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)

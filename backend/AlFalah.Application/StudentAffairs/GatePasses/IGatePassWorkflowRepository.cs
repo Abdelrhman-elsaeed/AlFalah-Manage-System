@@ -1,6 +1,7 @@
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
+using AlFalah.Shared.Models;
 
 namespace AlFalah.Application.StudentAffairs.GatePasses;
 
@@ -74,4 +75,25 @@ public interface IGatePassWorkflowRepository
     void SetExpectedRowVersion(GatePass gatePass, byte[] rowVersion);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     Task<GatePassDto?> GetDtoAsync(int schoolId, int gatePassId, CancellationToken cancellationToken);
+
+    Task<PagedResult<GatePassDto>> GetGatePassesAsync(
+        int schoolId,
+        GatePassListQuery query,
+        CancellationToken cancellationToken);
+
+    Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(
+        int schoolId,
+        string guardianUserId,
+        GatePassListQuery query,
+        CancellationToken cancellationToken);
+
+    Task<PagedResult<SecurityGatePassQueueItemDto>> GetSecurityGatePassQueueAsync(
+        int schoolId,
+        GatePassListQuery query,
+        CancellationToken cancellationToken);
+
+    Task<GatePassHistoryDto?> GetHistoryAsync(
+        int schoolId,
+        int gatePassId,
+        CancellationToken cancellationToken);
 }
