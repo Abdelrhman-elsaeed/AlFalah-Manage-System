@@ -17,6 +17,7 @@ export interface ActorSummaryDto {
 export interface StudentSummaryDto {
   readonly id: number;
   readonly studentNumber: string;
+  readonly identityNumber?: string;
   readonly displayName: string;
   readonly classroomId: number | null;
   readonly classLabel: string | null;

@@ -24,17 +24,19 @@ public sealed class StudentTimelineQuery : StudentAffairsPageQuery
 
 public sealed record CreateStudentRequestDto(
     string StudentNumber,
+    string IdentityNumber,
     string FirstName,
     string? MiddleName,
     string LastName,
     string? NationalId,
     DateOnly? DateOfBirth,
     StudentGender? Gender,
-    int InitialAcademicTermId,
-    int InitialClassroomId,
+    int? ClassroomId,
     int? RollNumber);
 
 public sealed record UpdateStudentRequestDto(
+    string StudentNumber,
+    string IdentityNumber,
     string FirstName,
     string? MiddleName,
     string LastName,
@@ -42,9 +44,12 @@ public sealed record UpdateStudentRequestDto(
     DateOnly? DateOfBirth,
     StudentGender? Gender,
     bool IsActive,
+    int? ClassroomId,
+    int? RollNumber,
     string RowVersion);
 
 public sealed record ArchiveStudentRequestDto(string Reason, string RowVersion);
+public sealed record DeleteStudentRequestDto(string Reason, string RowVersion);
 
 public sealed record CreateStudentEnrollmentRequestDto(
     int AcademicTermId,
@@ -103,9 +108,11 @@ public sealed record StudentListItemDto(StudentSummaryDto Student, IReadOnlyList
 
 public sealed record StudentDetailsDto(
     StudentSummaryDto Student,
+    string IdentityNumber,
     string FirstName,
     string? MiddleName,
     string LastName,
+    string? NationalId,
     DateOnly? DateOfBirth,
     StudentGender? Gender,
     StudentEnrollmentDto? CurrentEnrollment,
@@ -120,9 +127,86 @@ public sealed record GetStudentByIdQuery(int StudentId) : IRequest<ApiResponse<S
 public sealed record CreateStudentCommand(CreateStudentRequestDto Request) : IRequest<ApiResponse<StudentDetailsDto>>;
 public sealed record UpdateStudentCommand(int StudentId, UpdateStudentRequestDto Request) : IRequest<ApiResponse<StudentDetailsDto>>;
 public sealed record ArchiveStudentCommand(int StudentId, ArchiveStudentRequestDto Request) : IRequest<ApiResponse<bool>>;
+public sealed record DeleteStudentCommand(int StudentId, DeleteStudentRequestDto Request) : IRequest<ApiResponse<bool>>;
 public sealed record GetStudentTimelineQuery(int StudentId, StudentTimelineQuery Query) : IRequest<ApiResponse<PagedResult<StudentTimelineItemDto>>>;
 public sealed record CreateStudentEnrollmentCommand(int StudentId, CreateStudentEnrollmentRequestDto Request) : IRequest<ApiResponse<StudentEnrollmentDto>>;
 public sealed record UpdateStudentEnrollmentCommand(int StudentId, int EnrollmentId, UpdateStudentEnrollmentRequestDto Request) : IRequest<ApiResponse<StudentEnrollmentDto>>;
 public sealed record GetStudentGuardiansQuery(int StudentId) : IRequest<ApiResponse<IReadOnlyList<StudentGuardianLinkDto>>>;
 public sealed record LinkStudentGuardianCommand(int StudentId, LinkStudentGuardianRequestDto Request) : IRequest<ApiResponse<StudentGuardianLinkDto>>;
 public sealed record RevokeStudentGuardianCommand(int StudentId, int LinkId, RevokeStudentGuardianRequestDto Request) : IRequest<ApiResponse<bool>>;
+
+public sealed class StudentStatsQuery : StudentAffairsPageQuery
+{
+    public int? ClassroomId { get; set; }
+    public bool? IsActive { get; set; }
+}
+
+public sealed record StudentStatsDto(
+    int StudentId,
+    string StudentNumber,
+    string Name,
+    string IdentityNumber,
+    string? NationalId,
+    string ClassroomName,
+    int? ClassroomId,
+    bool IsActive,
+    int TotalAbsences,
+    int TotalDelays,
+    int TotalExcuses,
+    int TotalReferrals);
+
+public sealed class StudentStatsPageResult : PagedResult<StudentStatsDto>
+{
+    public int TotalClassrooms { get; set; }
+}
+
+public sealed record GetStudentsStatsQuery(StudentStatsQuery Query) : IRequest<ApiResponse<StudentStatsPageResult>>;
+
+public sealed record MonthlyAttendanceTrendDto(
+    string MonthKey,
+    string MonthLabel,
+    int Absences,
+    int Delays,
+    int Excuses);
+
+public sealed record StudentAnalyticsEventDto(
+    string Id,
+    string EventType,
+    string Title,
+    string? Description,
+    DateTimeOffset OccurredAt,
+    string Severity,
+    string Icon,
+    string? Status,
+    string? ActorName);
+
+public sealed record StudentAnalyticsProfileDto(
+    int StudentId,
+    string StudentNumber,
+    string FullName,
+    string IdentityNumber,
+    string? NationalId,
+    DateOnly? DateOfBirth,
+    StudentGender? Gender,
+    bool IsActive,
+    string? ProfilePhotoStorageKey,
+    int? ClassroomId,
+    string ClassroomName,
+    string Stage,
+    byte? GradeLevel,
+    string Section,
+    int? RollNumber,
+    StudentEnrollmentStatus? EnrollmentStatus,
+    int TotalAbsences,
+    int TotalDelays,
+    int TotalExcuses,
+    int TotalReferrals,
+    int TotalBehaviors,
+    int TotalRecognitions,
+    int TotalGatePasses,
+    IReadOnlyList<MonthlyAttendanceTrendDto> MonthlyTrends,
+    IReadOnlyList<StudentAnalyticsEventDto> RecentEvents,
+    IReadOnlyList<StudentGuardianLinkDto> Guardians);
+
+public sealed record GetStudentAnalyticsProfileQuery(int StudentId) : IRequest<ApiResponse<StudentAnalyticsProfileDto>>;
+

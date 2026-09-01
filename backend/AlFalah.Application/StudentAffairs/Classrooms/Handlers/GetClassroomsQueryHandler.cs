@@ -36,9 +36,13 @@ public sealed class GetClassroomsQueryHandler
 
         if (!StudentHandlerSupport.HasAnyPermission(
                 _currentUser,
+                PermissionNames.StudentManage,
                 PermissionNames.StudentView,
                 PermissionNames.StudentEnrollmentManage,
-                PermissionNames.TeacherQuickActionView)
+                PermissionNames.ClassroomManage,
+                PermissionNames.TeacherQuickActionView,
+                PermissionNames.AttendanceViewStudents,
+                PermissionNames.AttendanceManageStudents)
             && !_currentUser.IsInRole(RoleNames.SocialWorker)
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)

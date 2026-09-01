@@ -23,7 +23,7 @@ interface NavItem {
 }
 
 interface NavCategory {
-  id: 'evaluation' | 'people' | 'administration' | 'settings';
+  id: 'evaluation' | 'people' | 'administration' | 'reports' | 'settings';
   labelKey: string;
   icon: string;
   items: NavItem[];
@@ -35,6 +35,7 @@ function dashboardRouteForRoles(roles: readonly string[]): string | null {
   if (roles.includes('Moderator')) return '/moderator/dashboard';
   if (roles.includes('Instructor')) return '/instructor/dashboard';
   if (roles.includes('StudentAffairsOfficer')) return '/student-affairs/settings';
+  if (roles.includes('Secretary')) return '/student-affairs/attendance/sheet';
   return null;
 }
 
@@ -110,11 +111,25 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         permissions: ['Timetable.View']
       },
       {
-        labelKey: 'الحضور والانصراف',
+        labelKey: 'حضور وانصراف الموظفين',
         icon: 'pi pi-calendar',
         route: '/attendance',
-        roles: ['Secretary', 'SchoolManager', 'Moderator', 'Instructor'],
+        roles: ['SchoolManager', 'Moderator', 'Instructor'],
         permissions: ['Attendance.View']
+      },
+      {
+        labelKey: 'إدارة الفصول',
+        icon: 'pi pi-building',
+        route: '/student-affairs/classrooms',
+        roles: ['Secretary'],
+        permissions: ['Classroom.Manage']
+      },
+      {
+        labelKey: 'إدارة الطلاب',
+        icon: 'pi pi-users',
+        route: '/student-affairs/students',
+        roles: ['Secretary'],
+        permissions: ['Student.Manage']
       },
       {
         labelKey: 'رصد الغياب اليومي',
@@ -205,6 +220,20 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         route: '/student-affairs/messages',
         roles: ['Guardian', 'StudentAffairsOfficer', 'SocialWorker'],
         permissions: ['Messaging.ViewOwn']
+      }
+    ]
+  },
+  {
+    id: 'reports',
+    labelKey: 'NAV.CATEGORIES.REPORTS',
+    icon: 'pi pi-chart-bar',
+    items: [
+      {
+        labelKey: 'سجل متابعة الطلاب',
+        icon: 'pi pi-id-card',
+        route: '/student-affairs/records',
+        roles: ['StudentAffairsOfficer', 'SocialWorker', 'SchoolManager', 'MainManager', 'SuperAdmin'],
+        permissions: ['Student.View']
       }
     ]
   },

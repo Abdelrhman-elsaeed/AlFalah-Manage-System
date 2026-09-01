@@ -74,7 +74,9 @@ public sealed class Phase2IdentityPermissionTests
         map[RoleNames.Secretary].Should().Contain(new[]
         {
             PermissionNames.AttendanceViewStudents,
-            PermissionNames.AttendanceManageStudents
+            PermissionNames.AttendanceManageStudents,
+            PermissionNames.ClassroomManage,
+            PermissionNames.StudentManage
         });
         map[RoleNames.Secretary].Should().NotContain(PermissionNames.AttendanceReviewExcuse);
 

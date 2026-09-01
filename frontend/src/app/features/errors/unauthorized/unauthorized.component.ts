@@ -96,6 +96,7 @@ export class UnauthorizedComponent {
     if (this.auth.hasRole('Moderator')) return '/moderator/dashboard';
     if (this.auth.hasRole('Instructor')) return '/instructor/dashboard';
     if (this.auth.hasRole('StudentAffairsOfficer')) return '/student-affairs/settings';
+    if (this.auth.hasRole('Secretary')) return '/student-affairs/attendance/sheet';
     return '/dashboard';
   });
 

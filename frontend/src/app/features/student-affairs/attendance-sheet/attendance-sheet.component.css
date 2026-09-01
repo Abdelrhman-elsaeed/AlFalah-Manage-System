@@ -4,9 +4,36 @@
 .eyebrow { color: #0f766e; font-weight: 700; font-size: .85rem; }
 h1 { margin: .35rem 0; font-size: clamp(1.7rem, 3vw, 2.35rem); }
 .page-header p { margin: 0; color: #64748b; }
-.selectors { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 1rem; }
-label { display: grid; gap: .45rem; font-weight: 700; }
-:host ::ng-deep .selectors .p-dropdown, :host ::ng-deep .selectors .p-calendar { width: 100%; }
+.selectors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+}
+.selector-field { display: grid; min-width: 0; gap: .45rem; font-weight: 700; }
+.selector-field > span { padding-inline: .15rem; }
+.selector-control { display: block; width: 100%; min-width: 0; }
+:host ::ng-deep .selector-control .p-dropdown,
+:host ::ng-deep .selector-control.p-calendar,
+:host ::ng-deep .selector-control .p-calendar {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height);
+}
+:host ::ng-deep .selector-control .p-dropdown-label,
+:host ::ng-deep .selector-control .p-calendar .p-inputtext {
+  min-width: 0;
+  padding-inline: .875rem !important;
+}
+:host ::ng-deep .selector-control .p-dropdown-trigger,
+:host ::ng-deep .selector-control .p-datepicker-trigger {
+  width: var(--control-height) !important;
+  min-width: var(--control-height) !important;
+  flex: 0 0 var(--control-height) !important;
+  padding: 0 !important;
+}
 .state { min-height: 8rem; display: flex; align-items: center; justify-content: center; gap: .75rem; margin-top: 1rem; padding: 1rem; border-radius: 14px; background: #f8fafc; color: #475569; }
 .state-error { min-height: auto; background: #fef2f2; color: #b91c1c; }
 .state-warning { min-height: auto; justify-content: flex-start; background: #fffbeb; color: #92400e; }

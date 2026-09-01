@@ -247,11 +247,13 @@ public class DatabaseSeeder
             (PermissionNames.ParentSurveyManage, "ParentSurvey", "إدارة استبيانات أولياء الأمور", "Manage parent surveys"),
 
             // Student and guardian administration
+            (PermissionNames.StudentManage, "Student", "إدارة الطلاب", "Manage students"),
             (PermissionNames.StudentView, "Student", "عرض الطلاب", "View students"),
             (PermissionNames.StudentCreate, "Student", "إضافة طالب", "Create students"),
             (PermissionNames.StudentEdit, "Student", "تعديل بيانات الطالب", "Edit students"),
             (PermissionNames.StudentArchive, "Student", "أرشفة الطالب", "Archive students"),
             (PermissionNames.StudentEnrollmentManage, "Student", "إدارة تسجيل الطلاب", "Manage student enrollment"),
+            (PermissionNames.ClassroomManage, "Classroom", "إدارة الفصول", "Manage classrooms"),
             (PermissionNames.GuardianView, "Guardian", "عرض أولياء الأمور", "View guardians"),
             (PermissionNames.GuardianManage, "Guardian", "إدارة أولياء الأمور", "Manage guardians"),
             (PermissionNames.GuardianLinkStudent, "Guardian", "ربط أولياء الأمور بالطلاب", "Link guardians to students"),
@@ -415,7 +417,7 @@ public class DatabaseSeeder
                 PermissionNames.ParentSurveyManage,
                 PermissionNames.TimetableView, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
                 PermissionNames.StudentView, PermissionNames.StudentCreate,
-                PermissionNames.StudentEdit, PermissionNames.StudentArchive,
+                PermissionNames.StudentEdit, PermissionNames.StudentArchive, PermissionNames.StudentManage,
                 PermissionNames.StudentEnrollmentManage,
                 PermissionNames.GuardianView, PermissionNames.GuardianManage, PermissionNames.GuardianLinkStudent,
                 PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceOverrideCorrection,
@@ -476,13 +478,14 @@ public class DatabaseSeeder
             {
                 PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
                 PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceManageStudents,
+                PermissionNames.ClassroomManage, PermissionNames.StudentManage,
                 PermissionNames.BiometricImport,
             },
 
             [RoleNames.StudentAffairsOfficer] = new[]
             {
                 PermissionNames.StudentView, PermissionNames.StudentCreate,
-                PermissionNames.StudentEdit, PermissionNames.StudentArchive,
+                PermissionNames.StudentEdit, PermissionNames.StudentArchive, PermissionNames.StudentManage,
                 PermissionNames.StudentEnrollmentManage,
                 PermissionNames.GuardianView, PermissionNames.GuardianManage, PermissionNames.GuardianLinkStudent,
                 PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceReviewExcuse,

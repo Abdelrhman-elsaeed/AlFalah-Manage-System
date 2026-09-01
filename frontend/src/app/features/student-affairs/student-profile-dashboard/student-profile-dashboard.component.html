@@ -1,0 +1,338 @@
+<section class="page student-dashboard-page" dir="rtl">
+  <!-- Top Navigation & Actions Bar -->
+  <div class="top-nav-bar no-print">
+    <button
+      pButton
+      type="button"
+      class="p-button-text p-button-secondary back-btn"
+      icon="pi pi-arrow-right"
+      label="العودة لسجل المتابعة"
+      (click)="goBack()">
+    </button>
+
+    <div class="top-nav-bar__actions">
+      <button
+        pButton
+        type="button"
+        class="p-button-outlined p-button-secondary"
+        icon="pi pi-print"
+        label="طباعة التقرير الشامل"
+        (click)="printDashboard()">
+      </button>
+
+      @if (studentId()) {
+        <button
+          pButton
+          type="button"
+          class="p-button-outlined p-button-secondary"
+          icon="pi pi-refresh"
+          label="تحديث"
+          [loading]="loading()"
+          (click)="loadProfile(studentId()!)">
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+      <span>جارٍ إعداد وتحليل الملف الشامل للطالب...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <span><i class="pi pi-exclamation-triangle"></i> {{ errorMessage() }}</span>
+      @if (studentId()) {
+        <button pButton type="button" class="p-button-text" icon="pi pi-refresh" label="إعادة المحاولة" (click)="loadProfile(studentId()!)"></button>
+      }
+    </div>
+  } @else if (profile()) {
+    <!-- Main Student Profile Header Banner -->
+    <div class="profile-header-card">
+      <div class="profile-header__avatar-wrapper">
+        <div class="profile-avatar">
+          <i class="pi pi-user"></i>
+        </div>
+        <p-tag
+          [value]="profile()!.isActive ? 'طالب نشط' : 'غير نشط'"
+          [severity]="profile()!.isActive ? 'success' : 'warning'"
+          styleClass="profile-status-tag">
+        </p-tag>
+      </div>
+
+      <div class="profile-header__info">
+        <div class="profile-header__title-row">
+          <h1 class="student-name">{{ profile()!.fullName }}</h1>
+          <span class="student-code-badge"><bdi dir="ltr">{{ profile()!.studentNumber }}</bdi></span>
+        </div>
+
+        <div class="profile-meta-grid">
+          <div class="meta-item">
+            <span class="meta-item__label"><i class="pi pi-id-card"></i> رقم الهوية:</span>
+            <strong class="meta-item__value"><bdi dir="ltr">{{ profile()!.identityNumber || '—' }}</bdi></strong>
+          </div>
+
+          <div class="meta-item">
+            <span class="meta-item__label"><i class="pi pi-building"></i> الفصل الحالي:</span>
+            <strong class="meta-item__value classroom-pill">{{ profile()!.classroomName }}</strong>
+          </div>
+
+          <div class="meta-item">
+            <span class="meta-item__label"><i class="pi pi-compass"></i> المرحلة والصف:</span>
+            <span class="meta-item__value">
+              {{ profile()!.stage }} @if (profile()!.gradeLevel) { - الصف {{ profile()!.gradeLevel }} }
+            </span>
+          </div>
+
+          <div class="meta-item">
+            <span class="meta-item__label"><i class="pi pi-list"></i> الشعبة / رقم الجلوس:</span>
+            <span class="meta-item__value">
+              شعبة {{ profile()!.section }} @if (profile()!.rollNumber) { (رقم {{ profile()!.rollNumber }}) }
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top KPI Summary Metric Cards -->
+    <div class="kpi-metrics-grid">
+      <div class="kpi-metric-card kpi-metric-card--absence">
+        <div class="kpi-metric__header">
+          <span class="kpi-metric__title">إجمالي الغياب</span>
+          <div class="kpi-metric__icon"><i class="pi pi-calendar-times"></i></div>
+        </div>
+        <div class="kpi-metric__body">
+          <strong class="kpi-metric__count">{{ profile()!.totalAbsences }}</strong>
+          <span class="kpi-metric__unit">يوم غياب</span>
+        </div>
+      </div>
+
+      <div class="kpi-metric-card kpi-metric-card--delay">
+        <div class="kpi-metric__header">
+          <span class="kpi-metric__title">إجمالي التأخر</span>
+          <div class="kpi-metric__icon"><i class="pi pi-clock"></i></div>
+        </div>
+        <div class="kpi-metric__body">
+          <strong class="kpi-metric__count">{{ profile()!.totalDelays }}</strong>
+          <span class="kpi-metric__unit">حالة تأخر</span>
+        </div>
+      </div>
+
+      <div class="kpi-metric-card kpi-metric-card--excuse">
+        <div class="kpi-metric__header">
+          <span class="kpi-metric__title">الأعذار المقبولة</span>
+          <div class="kpi-metric__icon"><i class="pi pi-file-check"></i></div>
+        </div>
+        <div class="kpi-metric__body">
+          <strong class="kpi-metric__count">{{ profile()!.totalExcuses }}</strong>
+          <span class="kpi-metric__unit">عذر مقبول</span>
+        </div>
+      </div>
+
+      <div class="kpi-metric-card kpi-metric-card--referral">
+        <div class="kpi-metric__header">
+          <span class="kpi-metric__title">إحالات التوجيه</span>
+          <div class="kpi-metric__icon"><i class="pi pi-briefcase"></i></div>
+        </div>
+        <div class="kpi-metric__body">
+          <strong class="kpi-metric__count">{{ profile()!.totalReferrals }}</strong>
+          <span class="kpi-metric__unit">إحالة توجيه</span>
+        </div>
+      </div>
+
+      <div class="kpi-metric-card kpi-metric-card--behavior">
+        <div class="kpi-metric__header">
+          <span class="kpi-metric__title">المخالفات السلوكية</span>
+          <div class="kpi-metric__icon"><i class="pi pi-exclamation-triangle"></i></div>
+        </div>
+        <div class="kpi-metric__body">
+          <strong class="kpi-metric__count">{{ profile()!.totalBehaviors }}</strong>
+          <span class="kpi-metric__unit">واقعة مسجلة</span>
+        </div>
+      </div>
+
+      <div class="kpi-metric-card kpi-metric-card--recognition">
+        <div class="kpi-metric__header">
+          <span class="kpi-metric__title">التميز والتكريم</span>
+          <div class="kpi-metric__icon"><i class="pi pi-star-fill"></i></div>
+        </div>
+        <div class="kpi-metric__body">
+          <strong class="kpi-metric__count">{{ profile()!.totalRecognitions }}</strong>
+          <span class="kpi-metric__unit">شهادة تميز</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts & Analytics Section -->
+    <div class="analytics-charts-grid">
+      <!-- Monthly Trend Bar Chart -->
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <div class="chart-card__titles">
+            <h2 class="chart-card__title">مؤشر الحضور والغياب والتأخر الشهري</h2>
+            <p class="chart-card__subtitle">تتبع شهري مقارن لحالات الغياب، التأخر الصباحي، والأعذار المرفوعة.</p>
+          </div>
+        </div>
+        <div class="chart-card__body">
+          @if (profile()!.monthlyTrends.length > 0) {
+            <p-chart type="bar" [data]="monthlyBarChartData()" [options]="monthlyBarChartOptions" height="280px"></p-chart>
+          } @else {
+            <div class="empty-chart">لا تتوفر بيانات حضور أو غياب كافية للرسم البياني.</div>
+          }
+        </div>
+      </div>
+
+      <!-- Distribution Doughnut Chart -->
+      <div class="chart-card doughnut-card">
+        <div class="chart-card__header">
+          <div class="chart-card__titles">
+            <h2 class="chart-card__title">توزيع مؤشرات الانضباط</h2>
+            <p class="chart-card__subtitle">النسبة الإجمالية لحالات الانضباط المسجلة.</p>
+          </div>
+        </div>
+        <div class="chart-card__body doughnut-body">
+          @if (profile()!.totalAbsences > 0 || profile()!.totalDelays > 0 || profile()!.totalExcuses > 0) {
+            <p-chart type="doughnut" [data]="distributionDoughnutData()" [options]="distributionDoughnutOptions" height="280px"></p-chart>
+          } @else {
+            <div class="empty-chart">سجل الطالب منضبط بالكامل بدون غياب أو تأخر.</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive History Timeline Section -->
+    <div class="timeline-section-card">
+      <div class="timeline-section__header">
+        <div class="timeline-section__titles">
+          <h2 class="timeline-section__title">
+            <i class="pi pi-history"></i>
+            السجل الزمني للأحداث والمتابعات
+          </h2>
+          <p class="timeline-section__subtitle">سجل تفصيلي مرتب زمنيًا لجميع العمليات المسجلة على الطالب.</p>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="timeline-filters no-print">
+          <button
+            type="button"
+            class="filter-chip"
+            [class.is-active]="activeTimelineFilter() === 'ALL'"
+            (click)="setTimelineFilter('ALL')">
+            جميع الأحداث ({{ profile()!.recentEvents.length }})
+          </button>
+          <button
+            type="button"
+            class="filter-chip filter-chip--absence"
+            [class.is-active]="activeTimelineFilter() === 'Absence'"
+            (click)="setTimelineFilter('Absence')">
+            الغياب
+          </button>
+          <button
+            type="button"
+            class="filter-chip filter-chip--delay"
+            [class.is-active]="activeTimelineFilter() === 'Delay'"
+            (click)="setTimelineFilter('Delay')">
+            التأخر
+          </button>
+          <button
+            type="button"
+            class="filter-chip filter-chip--excuse"
+            [class.is-active]="activeTimelineFilter() === 'Excuse'"
+            (click)="setTimelineFilter('Excuse')">
+            الأعذار
+          </button>
+          <button
+            type="button"
+            class="filter-chip filter-chip--referral"
+            [class.is-active]="activeTimelineFilter() === 'Referral'"
+            (click)="setTimelineFilter('Referral')">
+            الإحالات
+          </button>
+        </div>
+      </div>
+
+      <div class="timeline-section__body">
+        @if (filteredEvents().length === 0) {
+          <div class="empty-timeline">
+            <i class="pi pi-check-circle empty-timeline__icon"></i>
+            <h3>لا توجد أحداث مسجلة</h3>
+            <p>لا توجد أي سجلات أو وقائع مطابقة لنوع التصفية المحدد.</p>
+          </div>
+        } @else {
+          <p-timeline [value]="filteredEvents()" styleClass="custom-student-timeline">
+            <ng-template pTemplate="marker" let-event>
+              <div
+                class="timeline-marker"
+                [style.background-color]="getEventColor(event)">
+                <i [class]="getEventIcon(event)"></i>
+              </div>
+            </ng-template>
+
+            <ng-template pTemplate="content" let-event>
+              <div class="timeline-event-card">
+                <div class="timeline-event__header">
+                  <strong class="timeline-event__title">{{ event.title }}</strong>
+                  <span class="timeline-event__date">
+                    <i class="pi pi-calendar"></i>
+                    {{ event.occurredAt | date:'yyyy-MM-dd HH:mm' }}
+                  </span>
+                </div>
+
+                @if (event.description) {
+                  <p class="timeline-event__desc">{{ event.description }}</p>
+                }
+
+                <div class="timeline-event__footer">
+                  @if (event.status) {
+                    <span class="event-badge event-badge--{{ event.severity }}">{{ event.status }}</span>
+                  }
+                  @if (event.actorName) {
+                    <span class="event-actor"><i class="pi pi-user-edit"></i> المسجل: {{ event.actorName }}</span>
+                  }
+                </div>
+              </div>
+            </ng-template>
+          </p-timeline>
+        }
+      </div>
+    </div>
+
+    <!-- Guardians & Contact Section -->
+    @if (profile()!.guardians && profile()!.guardians.length > 0) {
+      <div class="guardians-section-card no-print">
+        <h2 class="guardians-section__title">
+          <i class="pi pi-users"></i>
+          أولياء الأمور وجهات الاتصال المعتمدة
+        </h2>
+        <div class="guardians-grid">
+          @for (link of profile()!.guardians; track link.id) {
+            <div class="guardian-item-card">
+              <div class="guardian-item__header">
+                <div class="guardian-avatar"><i class="pi pi-user"></i></div>
+                <div>
+                  <h3 class="guardian-name">{{ link.guardian.displayName }}</h3>
+                  <span class="guardian-relation">{{ link.guardian.relationship }}</span>
+                </div>
+                @if (link.guardian.isPrimary) {
+                  <p-tag value="ولي الأمر الأساسي" severity="info" styleClass="primary-guardian-tag"></p-tag>
+                }
+              </div>
+
+              <div class="guardian-permissions">
+                <span class="perm-pill" [class.perm-pill--active]="link.guardian.receivesNotifications">
+                  <i class="pi pi-bell"></i> استلام الإشعارات
+                </span>
+                <span class="perm-pill" [class.perm-pill--active]="link.canSubmitExcuses">
+                  <i class="pi pi-file-edit"></i> رفع الأعذار
+                </span>
+                <span class="perm-pill" [class.perm-pill--active]="link.canRequestGatePass">
+                  <i class="pi pi-sign-out"></i> طلب الاستئذان
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

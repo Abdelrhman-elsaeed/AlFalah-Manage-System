@@ -9,7 +9,6 @@ import { CalendarModule } from 'primeng/calendar';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
@@ -22,6 +21,7 @@ import {
   StudentAttendanceSheetRowDto
 } from '../../../core/models/daily-operations.models';
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
+import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
 
 @Component({
   selector: 'app-attendance-sheet',
@@ -35,7 +35,7 @@ import { DailyOperationsService } from '../../../core/services/daily-operations.
     CardModule,
     CheckboxModule,
     ConfirmDialogModule,
-    DropdownModule,
+    ClearableSelectComponent,
     InputTextModule,
     ProgressSpinnerModule,
     TableModule,

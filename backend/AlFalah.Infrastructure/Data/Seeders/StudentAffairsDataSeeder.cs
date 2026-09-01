@@ -582,6 +582,7 @@ public sealed class StudentAffairsDataSeeder
             {
                 SchoolId = school.Id,
                 StudentNumber = TestStudentNumber,
+                IdentityNumber = "1000000001",
                 FirstName = "E2E",
                 LastName = "Student",
                 Gender = StudentGender.Male,
@@ -593,6 +594,7 @@ public sealed class StudentAffairsDataSeeder
         }
         else
         {
+            student.IdentityNumber = "1000000001";
             student.FirstName = "E2E";
             student.LastName = "Student";
             student.IsActive = true;

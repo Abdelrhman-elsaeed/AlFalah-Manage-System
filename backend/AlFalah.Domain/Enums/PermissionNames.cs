@@ -94,11 +94,13 @@ public static class PermissionNames
     #region Student Affairs Permissions
 
     // Student and guardian administration
+    public const string StudentManage = "Student.Manage";
     public const string StudentView = "Student.View";
     public const string StudentCreate = "Student.Create";
     public const string StudentEdit = "Student.Edit";
     public const string StudentArchive = "Student.Archive";
     public const string StudentEnrollmentManage = "Student.EnrollmentManage";
+    public const string ClassroomManage = "Classroom.Manage";
     public const string GuardianView = "Guardian.View";
     public const string GuardianManage = "Guardian.Manage";
     public const string GuardianLinkStudent = "Guardian.LinkStudent";

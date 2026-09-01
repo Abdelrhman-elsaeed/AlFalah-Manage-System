@@ -25,12 +25,12 @@ public sealed class BiometricImportRepository : IBiometricImportRepository
 
     public async Task<IReadOnlyList<BiometricEnrollmentSnapshot>> GetEnrollmentsAsync(
         int schoolId,
-        IReadOnlyCollection<string> nationalIds,
+        IReadOnlyCollection<string> identityNumbers,
         DateOnly fromDate,
         DateOnly toDate,
         CancellationToken cancellationToken)
     {
-        if (nationalIds.Count == 0) return Array.Empty<BiometricEnrollmentSnapshot>();
+        if (identityNumbers.Count == 0) return Array.Empty<BiometricEnrollmentSnapshot>();
         return await _context.StudentEnrollments
             .AsNoTracking()
             .Where(enrollment => enrollment.SchoolId == schoolId
@@ -39,13 +39,14 @@ public sealed class BiometricImportRepository : IBiometricImportRepository
                 && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= fromDate)
                 && enrollment.Student.SchoolId == schoolId
                 && enrollment.Student.IsActive
-                && enrollment.Student.NationalId != null
+                && (!string.IsNullOrEmpty(enrollment.Student.IdentityNumber) && identityNumbers.Contains(enrollment.Student.IdentityNumber)
+                    || (enrollment.Student.NationalId != null && identityNumbers.Contains(enrollment.Student.NationalId)))
                 && enrollment.AcademicTerm.SchoolId == schoolId
                 && enrollment.AcademicTerm.StartsOn <= toDate
                 && enrollment.AcademicTerm.EndsOn >= fromDate)
             .Select(enrollment => new BiometricEnrollmentSnapshot(
                 enrollment.StudentId,
-                enrollment.Student.NationalId!,
+                !string.IsNullOrEmpty(enrollment.Student.IdentityNumber) ? enrollment.Student.IdentityNumber : enrollment.Student.NationalId!,
                 enrollment.AcademicTermId,
                 enrollment.AcademicTerm.StartsOn > enrollment.EnrolledOn
                     ? enrollment.AcademicTerm.StartsOn : enrollment.EnrolledOn,
@@ -55,24 +56,26 @@ public sealed class BiometricImportRepository : IBiometricImportRepository
             .ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlySet<(int StudentId, DateOnly Date)>> GetExistingDelayKeysAsync(
+    public async Task<Dictionary<(int StudentId, DateOnly Date), MorningArrivalDelay>> GetExistingDelaysForUpdateAsync(
         int schoolId,
         IReadOnlyCollection<int> studentIds,
         DateOnly fromDate,
         DateOnly toDate,
         CancellationToken cancellationToken)
     {
-        if (studentIds.Count == 0) return new HashSet<(int, DateOnly)>();
-        var keys = await _context.MorningArrivalDelays
-            .AsNoTracking()
+        if (studentIds.Count == 0) return new();
+        var delays = await _context.MorningArrivalDelays
+            .AsTracking()
             .Where(delay => delay.SchoolId == schoolId
                 && studentIds.Contains(delay.StudentId)
                 && delay.SchoolLocalDate >= fromDate
-                && delay.SchoolLocalDate <= toDate)
-            .Select(delay => new { delay.StudentId, delay.SchoolLocalDate })
+                && delay.SchoolLocalDate <= toDate
+                && !delay.IsDeleted)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-        return keys.Select(key => (key.StudentId, key.SchoolLocalDate)).ToHashSet();
+        return delays
+            .GroupBy(d => (d.StudentId, d.SchoolLocalDate))
+            .ToDictionary(g => g.Key, g => g.First());
     }
 
     public void AddRange(IEnumerable<MorningArrivalDelay> delays) =>

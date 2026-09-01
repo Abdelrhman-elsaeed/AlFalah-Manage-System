@@ -1,0 +1,238 @@
+<section class="page student-records-page" dir="rtl">
+  <header class="page-header">
+    <div class="page-header__titles">
+      <span class="eyebrow">التقارير والمتابعة</span>
+      <h1 class="page-header__title">سجل متابعة الطلاب</h1>
+      <p class="page-header__subtitle">
+        نظرة إحصائية شاملة ومتابعة دقيقة لمؤشرات الحضور والغياب والتأخرات والإحالات لجميع الطلاب.
+      </p>
+    </div>
+    <div class="page-header__actions">
+      <button
+        pButton
+        type="button"
+        class="p-button-outlined p-button-secondary"
+        icon="pi pi-refresh"
+        label="تحديث البيانات"
+        [loading]="loading()"
+        (click)="loadData()">
+      </button>
+    </div>
+  </header>
+
+  <!-- Summary KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card--students">
+      <div class="kpi-card__icon"><i class="pi pi-users"></i></div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">إجمالي الطلاب المدرجين</span>
+        <strong class="kpi-card__value">{{ kpiSummary().totalStudents }}</strong>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--classrooms">
+      <div class="kpi-card__icon"><i class="pi pi-building"></i></div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">إجمالي الفصول الدراسية</span>
+        <strong class="kpi-card__value">{{ kpiSummary().totalClassrooms }}</strong>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--absences">
+      <div class="kpi-card__icon"><i class="pi pi-calendar-times"></i></div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">إجمالي أيام الغياب</span>
+        <strong class="kpi-card__value">{{ kpiSummary().totalAbsences }}</strong>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--delays">
+      <div class="kpi-card__icon"><i class="pi pi-clock"></i></div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">إجمالي حالات التأخر</span>
+        <strong class="kpi-card__value">{{ kpiSummary().totalDelays }}</strong>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--excuses">
+      <div class="kpi-card__icon"><i class="pi pi-file-check"></i></div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">إجمالي الأعذار المقدمة</span>
+        <strong class="kpi-card__value">{{ kpiSummary().totalExcuses }}</strong>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--referrals">
+      <div class="kpi-card__icon"><i class="pi pi-briefcase"></i></div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">إحالات التوجيه الطلابي</span>
+        <strong class="kpi-card__value">{{ kpiSummary().totalReferrals }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <div class="records-toolbar">
+    <div class="toolbar-filters">
+      <label class="toolbar-field search-field" for="records-search">
+        <span class="p-input-icon-right">
+          <i class="pi pi-search"></i>
+          <input
+            id="records-search"
+            pInputText
+            type="search"
+            class="pr-10"
+            placeholder="بحث باسم الطالب، الرقم الأكاديمي، أو الهوية..."
+            [value]="search()"
+            (input)="setSearch($event)" />
+        </span>
+      </label>
+
+      <div class="toolbar-field dropdown-field">
+        <p-dropdown
+          [options]="classroomOptions()"
+          [ngModel]="selectedClassroomId()"
+          (ngModelChange)="selectedClassroomId.set($event)"
+          placeholder="تصفية حسب الفصل"
+          styleClass="w-full">
+        </p-dropdown>
+      </div>
+
+      <div class="toolbar-field dropdown-field">
+        <p-dropdown
+          [options]="statusOptions"
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="selectedStatus.set($event)"
+          placeholder="تصفية حسب الحالة"
+          styleClass="w-full">
+        </p-dropdown>
+      </div>
+    </div>
+
+    <div class="toolbar-count">
+      <span>عرض</span>
+      <strong>{{ filteredStudents().length }}</strong>
+      <span>طالب</span>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <span><i class="pi pi-exclamation-triangle"></i> {{ errorMessage() }}</span>
+      <button pButton type="button" class="p-button-text" icon="pi pi-refresh" label="إعادة المحاولة" (click)="loadData()"></button>
+    </div>
+  }
+
+  <!-- Records Data Table -->
+  <p-card styleClass="table-card records-table-card">
+    @if (loading()) {
+      <div class="loading-state">
+        <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+        <span>جارٍ تحميل سجل المتابعة والبيانات الإحصائية...</span>
+      </div>
+    } @else {
+      <p-table
+        [value]="filteredStudents()"
+        [rowHover]="true"
+        [paginator]="filteredStudents().length > 10"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        responsiveLayout="scroll"
+        styleClass="p-datatable-striped records-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 8rem;">رقم الطالب</th>
+            <th style="width: 9rem;">رقم الهوية</th>
+            <th>اسم الطالب</th>
+            <th>الفصل الحالي</th>
+            <th style="width: 7rem; text-align: center;">حالة القيد</th>
+            <th style="width: 7.5rem; text-align: center;">إجمالي الغياب</th>
+            <th style="width: 7.5rem; text-align: center;">إجمالي التأخر</th>
+            <th style="width: 7.5rem; text-align: center;">إجمالي الأعذار</th>
+            <th style="width: 7.5rem; text-align: center;">الإحالات</th>
+            <th style="width: 6.5rem; text-align: center;">الملف التحليلي</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-student>
+          <tr class="records-row">
+            <td>
+              <span class="code-badge"><bdi dir="ltr">{{ student.studentNumber }}</bdi></span>
+            </td>
+            <td>
+              <span class="identity-text"><bdi dir="ltr">{{ student.identityNumber || '—' }}</bdi></span>
+            </td>
+            <td>
+              <div class="student-name-cell">
+                <strong>{{ student.name }}</strong>
+              </div>
+            </td>
+            <td>
+              <span class="classroom-badge">
+                <i class="pi pi-building"></i>
+                {{ student.classroomName }}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <p-tag
+                [value]="student.isActive ? 'نشط' : 'غير نشط'"
+                [severity]="student.isActive ? 'success' : 'warning'">
+              </p-tag>
+            </td>
+            <td style="text-align: center;">
+              <span
+                class="stat-pill stat-pill--absence"
+                [class.has-count]="student.totalAbsences > 0">
+                {{ student.totalAbsences }}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <span
+                class="stat-pill stat-pill--delay"
+                [class.has-count]="student.totalDelays > 0">
+                {{ student.totalDelays }}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <span
+                class="stat-pill stat-pill--excuse"
+                [class.has-count]="student.totalExcuses > 0">
+                {{ student.totalExcuses }}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <span
+                class="stat-pill stat-pill--referral"
+                [class.has-count]="student.totalReferrals > 0">
+                {{ student.totalReferrals }}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <button
+                pButton
+                type="button"
+                class="p-button-rounded p-button-text p-button-info action-view-button"
+                icon="pi pi-eye"
+                pTooltip="عرض الملف التحليلي الشامل"
+                tooltipPosition="top"
+                (click)="viewProfile(student.studentId)">
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="10" class="empty-table-cell">
+              <div class="empty-state">
+                <i class="pi pi-folder-open empty-icon"></i>
+                <h3>لا توجد سجلات مطابقة</h3>
+                <p>لم يتم العثور على أي طلاب مطابقين لشروط البحث والتصفية المحددة.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</section>

@@ -1,0 +1,324 @@
+:host {
+  display: block;
+}
+
+.student-records-page {
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 1.5rem;
+  color: var(--text-strong);
+}
+
+.eyebrow {
+  display: inline-block;
+  color: var(--brand-600);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.page-header__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.page-header__subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* KPI Summary Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+}
+
+.kpi-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.kpi-card__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-card__label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.kpi-card__value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-strong);
+}
+
+.kpi-card--students .kpi-card__icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.kpi-card--classrooms .kpi-card__icon {
+  background: #f0fdfa;
+  color: #0d9488;
+}
+
+.kpi-card--absences .kpi-card__icon {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.kpi-card--delays .kpi-card__icon {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.kpi-card--excuses .kpi-card__icon {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.kpi-card--referrals .kpi-card__icon {
+  background: #faf5ff;
+  color: #9333ea;
+}
+
+/* Toolbar */
+.records-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+}
+
+.toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex-grow: 1;
+}
+
+.search-field {
+  min-width: 280px;
+  flex-grow: 1;
+  max-width: 420px;
+}
+
+.search-field .p-input-icon-right {
+  width: 100%;
+}
+
+.search-field input {
+  width: 100%;
+  padding-right: 2.5rem !important;
+}
+
+.dropdown-field {
+  min-width: 180px;
+}
+
+.toolbar-count {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.toolbar-count strong {
+  color: var(--brand-600);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+/* Error Banner */
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  color: var(--danger, #dc2626);
+  background: var(--danger-bg, #fef2f2);
+  border: 1px solid color-mix(in srgb, var(--danger, #dc2626) 28%, transparent);
+  border-radius: var(--radius-md, 8px);
+}
+
+/* Table styles */
+:host ::ng-deep .records-table-card .p-card-content {
+  padding: 0;
+}
+
+.loading-state {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.code-badge {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-100, #f1f5f9);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.identity-text {
+  font-family: monospace;
+  color: var(--text-muted);
+}
+
+.student-name-cell {
+  font-size: 0.95rem;
+  color: var(--text-strong);
+}
+
+.classroom-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--surface-100, #f1f5f9);
+  color: var(--text-muted);
+}
+
+.stat-pill--absence.has-count {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.stat-pill--delay.has-count {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.stat-pill--excuse.has-count {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.stat-pill--referral.has-count {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.action-view-button {
+  font-size: 1.15rem;
+  transition: transform 0.15s ease;
+}
+
+.action-view-button:hover {
+  transform: scale(1.15);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  color: var(--text-strong);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .student-records-page {
+    padding: 1rem;
+  }
+  .toolbar-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+  .search-field, .dropdown-field {
+    width: 100%;
+    max-width: none;
+  }
+  .toolbar-count {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

@@ -12,6 +12,8 @@ using AlFalah.Shared.Models;
 
 namespace AlFalah.Application.StudentAffairs.Students;
 
+public sealed record StudentEnrollmentTarget(int ClassroomId, int AcademicTermId);
+
 public interface IStudentWorkflowRepository
 {
     Task<IReadOnlyList<StudentGuardianLinkDto>> GetStudentGuardiansAsync(
@@ -35,6 +37,34 @@ public interface IStudentWorkflowRepository
     Task<Student?> GetStudentForUpdateAsync(
         int schoolId,
         int studentId,
+        CancellationToken cancellationToken);
+
+    Task<StudentEnrollment?> GetActiveStudentEnrollmentForUpdateAsync(
+        int schoolId,
+        int studentId,
+        CancellationToken cancellationToken);
+
+    Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(
+        int schoolId,
+        int classroomId,
+        CancellationToken cancellationToken);
+
+    Task<bool> StudentNumberExistsAsync(
+        int schoolId,
+        string studentNumber,
+        int? excludingStudentId,
+        CancellationToken cancellationToken);
+
+    Task<bool> StudentIdentityNumberExistsAsync(
+        int schoolId,
+        string identityNumber,
+        int? excludingStudentId,
+        CancellationToken cancellationToken);
+
+    Task<bool> StudentNationalIdExistsAsync(
+        int schoolId,
+        string nationalId,
+        int? excludingStudentId,
         CancellationToken cancellationToken);
 
     Task<StudentGuardian?> GetGuardianLinkForUpdateAsync(
@@ -91,6 +121,9 @@ public interface IStudentWorkflowRepository
         ClassroomListQuery query,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<ClassroomAcademicYearDto>> GetClassroomAcademicYearsAsync(
+        CancellationToken cancellationToken);
+
     Task<ClassroomDto?> GetClassroomDtoAsync(
         int schoolId,
         int classroomId,
@@ -99,6 +132,36 @@ public interface IStudentWorkflowRepository
     Task<Classroom?> GetClassroomForUpdateAsync(
         int schoolId,
         int classroomId,
+        CancellationToken cancellationToken);
+
+    Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken);
+
+    Task<bool> ClassroomLabelExistsAsync(
+        int schoolId,
+        int academicYearId,
+        string classLabel,
+        int? excludingClassroomId,
+        CancellationToken cancellationToken);
+
+    Task<bool> HasActiveClassroomEnrollmentsAsync(
+        int schoolId,
+        int classroomId,
+        CancellationToken cancellationToken);
+
+    Task<int> UnassignActiveClassroomEnrollmentsAsync(
+        int schoolId,
+        int classroomId,
+        DateOnly effectiveOn,
+        DateTimeOffset changedAt,
+        string changedByUserId,
+        CancellationToken cancellationToken);
+
+    Task<int> UnassignActiveStudentEnrollmentsAsync(
+        int schoolId,
+        int studentId,
+        DateOnly effectiveOn,
+        DateTimeOffset changedAt,
+        string changedByUserId,
         CancellationToken cancellationToken);
 
     Task<IReadOnlyList<StudentSummaryDto>> GetClassroomStudentsAsync(
@@ -138,6 +201,18 @@ public interface IStudentWorkflowRepository
 
     Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(
         int schoolId,
+        DateOnly onDate,
+        CancellationToken cancellationToken);
+
+    Task<StudentStatsPageResult> GetStudentsStatsAsync(
+        int schoolId,
+        StudentStatsQuery query,
+        DateOnly onDate,
+        CancellationToken cancellationToken);
+
+    Task<StudentAnalyticsProfileDto?> GetStudentAnalyticsProfileAsync(
+        int schoolId,
+        int studentId,
         DateOnly onDate,
         CancellationToken cancellationToken);
 

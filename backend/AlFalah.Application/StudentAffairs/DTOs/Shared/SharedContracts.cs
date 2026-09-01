@@ -19,11 +19,25 @@ public class StudentAffairsPageQuery : PagedQuery
 public sealed record StudentSummaryDto(
     int Id,
     string StudentNumber,
+    string IdentityNumber,
     string DisplayName,
     int? ClassroomId,
     string? ClassLabel,
     bool IsActive,
-    string? PhotoUrl);
+    string? PhotoUrl)
+{
+    public StudentSummaryDto(
+        int id,
+        string studentNumber,
+        string displayName,
+        int? classroomId,
+        string? classLabel,
+        bool isActive,
+        string? photoUrl)
+        : this(id, studentNumber, string.Empty, displayName, classroomId, classLabel, isActive, photoUrl)
+    {
+    }
+}
 
 public sealed record AcademicTermSummaryDto(
     int Id,

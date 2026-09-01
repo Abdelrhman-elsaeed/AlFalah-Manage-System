@@ -12,7 +12,9 @@ public static class StudentHandlerSupport
     public const string StudentNotFound = "Student not found";
     public const string GuardianNotFound = "Guardian profile not found";
     public const string DuplicateStudentNumber = "A student with this student number already exists";
+    public const string DuplicateIdentityNumber = "A student with this identity number already exists";
     public const string DuplicateNationalId = "A student with this national ID already exists";
+    public const string ClassroomNotAvailable = "The selected classroom is not active or has no active academic term";
     public const string ConcurrencyConflict = "The record was modified by another operation. Please refresh and try again.";
 
     public static bool HasAnyPermission(ICurrentUserService user, params string[] permissionNames)

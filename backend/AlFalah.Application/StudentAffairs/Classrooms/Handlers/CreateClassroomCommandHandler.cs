@@ -39,6 +39,7 @@ public sealed class CreateClassroomCommandHandler
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
+            && !_currentUser.HasPermission(PermissionNames.ClassroomManage)
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)
             && !_currentUser.IsInRole(RoleNames.SchoolManager))
@@ -47,6 +48,20 @@ public sealed class CreateClassroomCommandHandler
         }
 
         var req = command.Request;
+        var classLabel = req.ClassLabel.Trim();
+        if (!await _repository.AcademicYearExistsAsync(req.AcademicYearId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<ClassroomDto>.Fail("Academic year was not found");
+
+        if (await _repository.ClassroomLabelExistsAsync(
+                schoolId.Value,
+                req.AcademicYearId,
+                classLabel,
+                null,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return ApiResponse<ClassroomDto>.Fail("A classroom with the same name already exists in this academic year");
+        }
+
         var now = _timeProvider.GetUtcNow();
 
         var classroom = new Classroom
@@ -56,7 +71,7 @@ public sealed class CreateClassroomCommandHandler
             Stage = req.Stage,
             GradeLevel = req.GradeLevel,
             Section = req.Section.Trim(),
-            ClassLabel = req.ClassLabel.Trim(),
+            ClassLabel = classLabel,
             IsActive = true,
             CreatedAt = now,
             CreatedByUserId = userId,

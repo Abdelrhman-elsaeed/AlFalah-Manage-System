@@ -19,7 +19,7 @@ public sealed record CreateClassroomRequestDto(
     string ClassLabel);
 
 public sealed record UpdateClassroomRequestDto(string ClassLabel, string Section, bool IsActive, string RowVersion);
-public sealed record ArchiveClassroomRequestDto(string Reason, string RowVersion);
+public sealed record DeleteClassroomRequestDto(string Reason, string RowVersion, bool ForceDelete = false);
 
 public sealed record ClassroomDto(
     int Id,
@@ -33,8 +33,11 @@ public sealed record ClassroomDto(
     int ActiveEnrollmentCount,
     string RowVersion);
 
+public sealed record ClassroomAcademicYearDto(int Id, string Code, string NameAr, bool IsActive);
+
 public sealed record GetClassroomsQuery(ClassroomListQuery Query) : IRequest<ApiResponse<PagedResult<ClassroomDto>>>;
+public sealed record GetClassroomAcademicYearsQuery : IRequest<ApiResponse<IReadOnlyList<ClassroomAcademicYearDto>>>;
 public sealed record CreateClassroomCommand(CreateClassroomRequestDto Request) : IRequest<ApiResponse<ClassroomDto>>;
 public sealed record UpdateClassroomCommand(int ClassroomId, UpdateClassroomRequestDto Request) : IRequest<ApiResponse<ClassroomDto>>;
-public sealed record ArchiveClassroomCommand(int ClassroomId, ArchiveClassroomRequestDto Request) : IRequest<ApiResponse<bool>>;
+public sealed record DeleteClassroomCommand(int ClassroomId, DeleteClassroomRequestDto Request) : IRequest<ApiResponse<bool>>;
 public sealed record GetClassroomStudentsQuery(int ClassroomId, int? AcademicTermId) : IRequest<ApiResponse<IReadOnlyList<StudentSummaryDto>>>;

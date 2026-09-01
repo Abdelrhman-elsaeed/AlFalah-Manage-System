@@ -15,13 +15,27 @@ import {
   AbsenceExcuseType,
   AttendanceRecordsPage,
   BiometricImportResultDto,
+  AcademicYearLookupDto,
+  DeleteClassroomRequestDto,
+  ClassroomDto,
   ClassroomPage,
+  CreateClassroomRequestDto,
+  CreateStudentRequestDto,
+  DeleteStudentRequestDto,
+  StudentDetailsDto,
+  StudentPage,
   StudentAttendanceHistoryDto,
   StudentAttendanceRecordsQuery,
   StudentAttendanceSheetDto,
+  StudentAnalyticsProfileDto,
+  StudentStatsDto,
+  StudentStatsPage,
+  StudentStatsQuery,
   SubmitAbsentRosterRequestDto,
   ReviewAbsenceExcuseRequestDto,
-  RejectAbsenceExcuseRequestDto
+  RejectAbsenceExcuseRequestDto,
+  UpdateClassroomRequestDto,
+  UpdateStudentRequestDto
 } from '../models/daily-operations.models';
 import { GuardianStudentDto } from '../models/student-affairs-dashboard.models';
 
@@ -35,6 +49,84 @@ export class DailyOperationsService {
     return this.http.get<ApiResponse<ClassroomPage>>(`${this.api}/classrooms`, {
       context: this.callerHandlesErrors,
       params: new HttpParams().set('pageSize', 100)
+    });
+  }
+
+  getAcademicYears(): Observable<ApiResponse<readonly AcademicYearLookupDto[]>> {
+    return this.http.get<ApiResponse<readonly AcademicYearLookupDto[]>>(
+      `${this.api}/classrooms/academic-years`,
+      { context: this.callerHandlesErrors }
+    );
+  }
+
+  createClassroom(request: CreateClassroomRequestDto): Observable<ApiResponse<ClassroomDto>> {
+    return this.http.post<ApiResponse<ClassroomDto>>(`${this.api}/classrooms`, request, {
+      context: this.callerHandlesErrors
+    });
+  }
+
+  updateClassroom(id: number, request: UpdateClassroomRequestDto): Observable<ApiResponse<ClassroomDto>> {
+    return this.http.patch<ApiResponse<ClassroomDto>>(`${this.api}/classrooms/${id}`, request, {
+      context: this.callerHandlesErrors
+    });
+  }
+
+  deleteClassroom(id: number, request: DeleteClassroomRequestDto): Observable<ApiResponse<boolean>> {
+    return this.http.delete<ApiResponse<boolean>>(`${this.api}/classrooms/${id}`, {
+      context: this.callerHandlesErrors,
+      body: request
+    });
+  }
+
+  getStudents(): Observable<ApiResponse<StudentPage>> {
+    return this.http.get<ApiResponse<StudentPage>>(`${this.api}/students`, {
+      context: this.callerHandlesErrors,
+      params: new HttpParams().set('pageSize', 100)
+    });
+  }
+
+  getStudentsStats(query?: StudentStatsQuery): Observable<ApiResponse<StudentStatsPage>> {
+    let params = new HttpParams().set('pageSize', query?.pageSize?.toString() ?? '100');
+    if (query?.pageNumber) params = params.set('pageNumber', query.pageNumber.toString());
+    if (query?.search) params = params.set('search', query.search);
+    if (query?.classroomId) params = params.set('classroomId', query.classroomId.toString());
+    if (query?.isActive !== undefined) params = params.set('isActive', query.isActive.toString());
+
+    return this.http.get<ApiResponse<StudentStatsPage>>(`${this.api}/students/stats`, {
+      context: this.callerHandlesErrors,
+      params
+    });
+  }
+
+  getStudent(id: number): Observable<ApiResponse<StudentDetailsDto>> {
+    return this.http.get<ApiResponse<StudentDetailsDto>>(`${this.api}/students/${id}`, {
+      context: this.callerHandlesErrors
+    });
+  }
+
+  getStudentAnalyticsProfile(studentId: number): Observable<ApiResponse<StudentAnalyticsProfileDto>> {
+    return this.http.get<ApiResponse<StudentAnalyticsProfileDto>>(
+      `${this.api}/students/${studentId}/analytics-profile`,
+      { context: this.callerHandlesErrors }
+    );
+  }
+
+  createStudent(request: CreateStudentRequestDto): Observable<ApiResponse<StudentDetailsDto>> {
+    return this.http.post<ApiResponse<StudentDetailsDto>>(`${this.api}/students`, request, {
+      context: this.callerHandlesErrors
+    });
+  }
+
+  updateStudent(id: number, request: UpdateStudentRequestDto): Observable<ApiResponse<StudentDetailsDto>> {
+    return this.http.patch<ApiResponse<StudentDetailsDto>>(`${this.api}/students/${id}`, request, {
+      context: this.callerHandlesErrors
+    });
+  }
+
+  deleteStudent(id: number, request: DeleteStudentRequestDto): Observable<ApiResponse<boolean>> {
+    return this.http.delete<ApiResponse<boolean>>(`${this.api}/students/${id}`, {
+      context: this.callerHandlesErrors,
+      body: request
     });
   }
 

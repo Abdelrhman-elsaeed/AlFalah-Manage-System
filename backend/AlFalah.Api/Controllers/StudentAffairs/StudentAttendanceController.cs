@@ -15,7 +15,7 @@ public sealed class StudentAttendanceController : StudentAffairsControllerBase
     [HttpGet("sheet")]
     public async Task<IActionResult> Sheet([FromQuery] DateOnly date, [FromQuery] int classroomId, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.AttendanceViewStudents)) return PermissionDenied();
+        if (!HasAnyPermission(PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceManageStudents)) return PermissionDenied();
         return Ok(await Mediator.Send(new GetStudentAttendanceSheetQuery(date, classroomId), cancellationToken));
     }
 

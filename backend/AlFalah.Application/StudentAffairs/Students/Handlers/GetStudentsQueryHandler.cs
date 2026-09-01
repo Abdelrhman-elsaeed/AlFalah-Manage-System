@@ -37,6 +37,7 @@ public sealed class GetStudentsQueryHandler
 
         if (!StudentHandlerSupport.HasAnyPermission(
                 _currentUser,
+                PermissionNames.StudentManage,
                 PermissionNames.StudentView,
                 PermissionNames.TeacherQuickActionView,
                 PermissionNames.AttendanceViewStudents,

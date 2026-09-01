@@ -1,0 +1,26 @@
+:host { display: block; }
+.classrooms-page { max-width: 1280px; margin-inline: auto; padding: 1.5rem; color: var(--text-strong); }
+.eyebrow { color: var(--brand-600); font-size: .85rem; font-weight: 800; }
+.list-toolbar { margin-block: 1rem; }
+.toolbar-summary { align-self: center; margin-inline-start: auto; color: var(--text-muted); font-weight: 700; white-space: nowrap; }
+.error-banner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding: .75rem 1rem; color: var(--danger); background: var(--danger-bg); border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent); border-radius: var(--radius-md); }
+.loading { min-height: 260px; display: grid; place-items: center; align-content: center; gap: .75rem; color: var(--text-muted); }
+.actions-column { width: 7rem; }
+.row-actions { display: flex; align-items: center; gap: .25rem; }
+.classroom-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding-top: .5rem; }
+.form-field { display: grid; min-width: 0; gap: .4rem; color: var(--text); font-weight: 700; }
+.form-field > span b { color: var(--danger); }
+.form-field--wide { grid-column: 1 / -1; }
+.active-field { display: flex; align-items: center; gap: .65rem; padding: .75rem; background: var(--brand-50); border-radius: var(--radius-md); }
+.validation-message { grid-column: 1 / -1; margin: 0; color: var(--danger); font-size: .85rem; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: .65rem; padding-top: .5rem; border-top: 1px solid var(--border); }
+:host ::ng-deep .classroom-table-card .p-card-content { padding: 0; }
+:host ::ng-deep .classroom-form .p-inputnumber,
+:host ::ng-deep .classroom-form .p-inputnumber-input { width: 100%; }
+
+@media (max-width: 700px) {
+  .classrooms-page { padding: 1rem; }
+  .classroom-form { grid-template-columns: 1fr; }
+  .form-field--wide { grid-column: auto; }
+  .toolbar-summary { width: 100%; margin-inline-start: 0; }
+}

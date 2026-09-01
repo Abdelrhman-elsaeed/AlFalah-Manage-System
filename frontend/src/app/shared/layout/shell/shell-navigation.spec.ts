@@ -56,3 +56,24 @@ describe('shell Phase 5 navigation', () => {
     expect(messages?.roles).not.toContain('SchoolManager');
   });
 });
+
+describe('shell classroom master data navigation', () => {
+  const administration = SHELL_NAV_CATEGORIES.find(category => category.id === 'administration');
+
+  it('exposes classroom management only to secretaries with its narrow permission', () => {
+    const classrooms = administration?.items.find(item => item.route === '/student-affairs/classrooms');
+
+    expect(classrooms?.roles).toEqual(['Secretary']);
+    expect(classrooms?.permissions).toEqual(['Classroom.Manage']);
+  });
+
+  it('places student management directly after classroom management for secretaries', () => {
+    const routes = administration?.items.map(item => item.route) ?? [];
+    const classroomIndex = routes.indexOf('/student-affairs/classrooms');
+    const students = administration?.items[classroomIndex + 1];
+
+    expect(students?.route).toBe('/student-affairs/students');
+    expect(students?.roles).toEqual(['Secretary']);
+    expect(students?.permissions).toEqual(['Student.Manage']);
+  });
+});

@@ -2,23 +2,21 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AlFalah.Application.Interfaces;
-using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
-using AlFalah.Application.StudentAffairs.Students;
-using AlFalah.Application.StudentAffairs.Students.Handlers;
+using AlFalah.Application.StudentAffairs.DTOs.Students;
 using AlFalah.Domain.Enums;
 using AlFalah.Shared.Models;
 using MediatR;
 
-namespace AlFalah.Application.StudentAffairs.Classrooms.Handlers;
+namespace AlFalah.Application.StudentAffairs.Students.Handlers;
 
-public sealed class ArchiveClassroomCommandHandler
-    : IRequestHandler<ArchiveClassroomCommand, ApiResponse<bool>>
+public sealed class DeleteStudentCommandHandler
+    : IRequestHandler<DeleteStudentCommand, ApiResponse<bool>>
 {
     private readonly IStudentWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
 
-    public ArchiveClassroomCommandHandler(
+    public DeleteStudentCommandHandler(
         IStudentWorkflowRepository repository,
         ICurrentUserService currentUser,
         TimeProvider timeProvider)
@@ -29,7 +27,7 @@ public sealed class ArchiveClassroomCommandHandler
     }
 
     public async Task<ApiResponse<bool>> Handle(
-        ArchiveClassroomCommand command,
+        DeleteStudentCommand command,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
@@ -37,7 +35,8 @@ public sealed class ArchiveClassroomCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<bool>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
+        if (!_currentUser.HasPermission(PermissionNames.StudentManage)
+            && !_currentUser.HasPermission(PermissionNames.StudentArchive)
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)
             && !_currentUser.IsInRole(RoleNames.SchoolManager))
@@ -45,22 +44,32 @@ public sealed class ArchiveClassroomCommandHandler
             return ApiResponse<bool>.Fail(StudentHandlerSupport.PermissionDenied);
         }
 
-        var classroom = await _repository.GetClassroomForUpdateAsync(
+        var student = await _repository.GetStudentForUpdateAsync(
             schoolId.Value,
-            command.ClassroomId,
+            command.StudentId,
             cancellationToken).ConfigureAwait(false);
 
-        if (classroom is null)
-            return ApiResponse<bool>.Fail(StudentHandlerSupport.NotFound);
+        if (student is null)
+            return ApiResponse<bool>.Fail(StudentHandlerSupport.StudentNotFound);
 
         var now = _timeProvider.GetUtcNow();
-        classroom.IsDeleted = true;
-        classroom.DeletedAt = now;
-        classroom.DeletedByUserId = userId;
-        classroom.IsActive = false;
+        await _repository.UnassignActiveStudentEnrollmentsAsync(
+            schoolId.Value,
+            student.Id,
+            DateOnly.FromDateTime(now.DateTime),
+            now,
+            userId,
+            cancellationToken).ConfigureAwait(false);
+
+        student.IsDeleted = true;
+        student.IsActive = false;
+        student.DeletedAt = now;
+        student.DeletedByUserId = userId;
+        student.UpdatedAt = now;
+        student.UpdatedByUserId = userId;
 
         await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        return ApiResponse<bool>.Success(true, "Classroom archived successfully");
+        return ApiResponse<bool>.Success(true, "Student deleted successfully");
     }
 }

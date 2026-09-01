@@ -56,42 +56,42 @@ public sealed class ImportZajelBiometricCommandHandler
         if (settings is null)
             return ApiResponse<BiometricImportResultDto>.Fail("Student Affairs arrival cutoff settings are not configured for this school");
 
-        var normalizedRows = rows.Select(row => (Row: row, NationalId: NormalizeNationalId(row.NationalId))).ToArray();
-        var ids = normalizedRows.Where(row => row.NationalId.Length > 0)
-            .Select(row => row.NationalId).Distinct(StringComparer.Ordinal).ToArray();
+        var normalizedRows = rows.Select(row => (Row: row, IdentityNumber: NormalizeIdentityNumber(row.IdentityNumber))).ToArray();
+        var ids = normalizedRows.Where(row => row.IdentityNumber.Length > 0)
+            .Select(row => row.IdentityNumber).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var fromDate = rows.Min(row => row.SchoolLocalDate);
         var toDate = rows.Max(row => row.SchoolLocalDate);
         var enrollments = await _repository.GetEnrollmentsAsync(
             schoolId.Value, ids, fromDate, toDate, cancellationToken).ConfigureAwait(false);
-        var enrollmentsByNationalId = enrollments
-            .GroupBy(item => NormalizeNationalId(item.NationalId), StringComparer.Ordinal)
-            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
+        var enrollmentsByIdentityNumber = enrollments
+            .GroupBy(item => NormalizeIdentityNumber(item.IdentityNumber), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.OrdinalIgnoreCase);
         var studentIds = enrollments.Select(item => item.StudentId).Distinct().ToArray();
-        var existing = await _repository.GetExistingDelayKeysAsync(
+        var existingDelays = await _repository.GetExistingDelaysForUpdateAsync(
             schoolId.Value, studentIds, fromDate, toDate, cancellationToken).ConfigureAwait(false);
-        var acceptedKeys = new HashSet<(int StudentId, DateOnly Date)>(existing);
 
         var effectiveCutoff = settings.ArrivalCutoffLocalTime.AddMinutes(settings.ArrivalGraceMinutes);
         var now = _timeProvider.GetUtcNow();
-        var delays = new List<MorningArrivalDelay>();
+        var newDelays = new List<MorningArrivalDelay>();
         var issues = new List<BiometricImportIssueDto>();
         var skippedOnTime = 0;
         var duplicateRows = 0;
         var unmatchedRows = 0;
+        var updatedDelays = 0;
 
         foreach (var item in normalizedRows)
         {
-            if (item.NationalId.Length == 0)
+            if (item.IdentityNumber.Length == 0)
             {
                 unmatchedRows++;
-                issues.Add(new(item.Row.RowNumber, "MissingNationalId", "رقم الهوية is empty"));
+                issues.Add(new(item.Row.RowNumber, "MissingIdentityNumber", "رقم الهوية is empty"));
                 continue;
             }
 
-            if (!enrollmentsByNationalId.TryGetValue(item.NationalId, out var candidates))
+            if (!enrollmentsByIdentityNumber.TryGetValue(item.IdentityNumber, out var candidates))
             {
                 unmatchedRows++;
-                issues.Add(new(item.Row.RowNumber, "StudentNotFound", $"No active student enrollment matches national ID {item.NationalId}"));
+                issues.Add(new(item.Row.RowNumber, "StudentNotFound", $"No active student enrollment matches identity number {item.IdentityNumber}"));
                 continue;
             }
 
@@ -113,14 +113,23 @@ public sealed class ImportZajelBiometricCommandHandler
             }
 
             var key = (enrollment.StudentId, item.Row.SchoolLocalDate);
-            if (!acceptedKeys.Add(key))
+            var delayMinutes = Math.Max(0, (int)Math.Ceiling(
+                (item.Row.SchoolLocalTime.ToTimeSpan() - effectiveCutoff.ToTimeSpan()).TotalMinutes));
+
+            if (existingDelays.TryGetValue(key, out var existingDelay))
             {
+                // Idempotent Upsert: Update existing delay record
+                existingDelay.ArrivalAt = item.Row.PunchAt;
+                existingDelay.CutoffTimeSnapshot = effectiveCutoff;
+                existingDelay.DelayMinutes = delayMinutes;
+                existingDelay.Reason = $"Zajel biometric import; status={item.Row.Status.Trim()}; row={item.Row.RowNumber}";
+                existingDelay.UpdatedAt = now;
+                existingDelay.UpdatedByUserId = userId;
                 duplicateRows++;
+                updatedDelays++;
                 continue;
             }
 
-            var delayMinutes = Math.Max(0, (int)Math.Ceiling(
-                (item.Row.SchoolLocalTime.ToTimeSpan() - effectiveCutoff.ToTimeSpan()).TotalMinutes));
             var delay = new MorningArrivalDelay
             {
                 SchoolId = schoolId.Value,
@@ -141,31 +150,41 @@ public sealed class ImportZajelBiometricCommandHandler
                 Guid.NewGuid(), 0, delay.StudentId, delay.SchoolId, delay.AcademicTermId,
                 delay.ArrivalAt, delay.SchoolLocalDate, delay.CutoffTimeSnapshot,
                 delay.DelayMinutes, delay.NotificationPolicySnapshot, now));
-            delays.Add(delay);
+
+            newDelays.Add(delay);
+            existingDelays[key] = delay;
         }
 
-        if (delays.Count > 0)
+        if (newDelays.Count > 0)
         {
-            _repository.AddRange(delays);
+            _repository.AddRange(newDelays);
+        }
+
+        if (newDelays.Count > 0 || updatedDelays > 0)
+        {
             await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        var totalRecordedDelays = newDelays.Count + updatedDelays;
         var result = new BiometricImportResultDto(
-            rows.Count, delays.Count, skippedOnTime, duplicateRows, unmatchedRows, issues);
+            rows.Count, totalRecordedDelays, skippedOnTime, duplicateRows, unmatchedRows, issues);
         return ApiResponse<BiometricImportResultDto>.Success(result, "Zajel biometric workbook processed successfully");
     }
 
-    internal static string NormalizeNationalId(string? value)
+    public static string NormalizeIdentityNumber(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return string.Empty;
-        var result = new char[value.Length];
-        var length = 0;
-        foreach (var character in value.Trim())
+        var trimmed = value.Trim();
+        var chars = new char[trimmed.Length];
+        for (int i = 0; i < trimmed.Length; i++)
         {
-            if (character is >= '0' and <= '9') result[length++] = character;
-            else if (character is >= '٠' and <= '٩') result[length++] = (char)('0' + character - '٠');
-            else if (character is >= '۰' and <= '۹') result[length++] = (char)('0' + character - '۰');
+            var c = trimmed[i];
+            if (c is >= '٠' and <= '٩') chars[i] = (char)('0' + c - '٠');
+            else if (c is >= '۰' and <= '۹') chars[i] = (char)('0' + c - '۰');
+            else chars[i] = c;
         }
-        return new string(result, 0, length);
+        return new string(chars).Trim();
     }
+
+    public static string NormalizeNationalId(string? value) => NormalizeIdentityNumber(value);
 }

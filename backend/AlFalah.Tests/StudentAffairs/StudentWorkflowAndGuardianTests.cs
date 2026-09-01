@@ -10,13 +10,17 @@ using AlFalah.Application.StudentAffairs.DTOs.Guardian;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.DTOs.Students;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
+using AlFalah.Application.StudentAffairs.Classrooms.Handlers;
 using AlFalah.Application.StudentAffairs.Students;
 using AlFalah.Application.StudentAffairs.Students.Handlers;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
+using AlFalah.Infrastructure.Data;
+using AlFalah.Infrastructure.Repositories;
 using AlFalah.Shared.Models;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace AlFalah.Tests.StudentAffairs;
@@ -131,10 +135,12 @@ public sealed class StudentWorkflowAndGuardianTests
     public async Task GetStudentByIdQuery_WhenFound_ReturnsStudentDetails()
     {
         var details = new StudentDetailsDto(
-            new StudentSummaryDto(1, "ST-001", "Student One", 2, "1/A", true, null),
+            new StudentSummaryDto(1, "ST-001", "1000000001", "Student One", 2, "1/A", true, null),
+            "1000000001",
             "Student",
             null,
             "One",
+            null,
             new DateOnly(2015, 5, 10),
             StudentGender.Male,
             null,
@@ -157,6 +163,387 @@ public sealed class StudentWorkflowAndGuardianTests
         result.Data.Should().NotBeNull();
         result.Data!.FirstName.Should().Be("Student");
     }
+
+    [Fact]
+    public async Task CreateClassroomCommand_WhenSecretaryHasPermission_CreatesSchoolScopedClassroom()
+    {
+        var repository = new FakeStudentWorkflowRepository();
+        var handler = new CreateClassroomCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new CreateClassroomCommand(new CreateClassroomRequestDto(3, SchoolStage.Primary, 1, "أ", "1/أ")),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.Classroom.Should().NotBeNull();
+        repository.Classroom!.SchoolId.Should().Be(42);
+        repository.Classroom.ClassLabel.Should().Be("1/أ");
+    }
+
+    [Fact]
+    public async Task UpdateClassroomCommand_WhenSecretaryHasPermission_UpdatesMutableFields()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            Classroom = ExistingClassroom()
+        };
+        var handler = new UpdateClassroomCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new UpdateClassroomCommand(7, new UpdateClassroomRequestDto("1/ب", "ب", false, string.Empty)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.Classroom!.ClassLabel.Should().Be("1/ب");
+        repository.Classroom.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteClassroomCommand_WhenNoActiveEnrollments_SoftDeletesClassroom()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            Classroom = ExistingClassroom()
+        };
+        var handler = new DeleteClassroomCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new DeleteClassroomCommand(7, new DeleteClassroomRequestDto("اختبار الحذف", string.Empty)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.Classroom!.IsDeleted.Should().BeTrue();
+        repository.Classroom.IsActive.Should().BeFalse();
+        repository.Classroom.DeletedByUserId.Should().Be("worker-user-1");
+    }
+
+    [Fact]
+    public async Task DeleteClassroomCommand_WhenActiveEnrollmentsAndNotForced_LeavesClassroomUntouched()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            Classroom = ExistingClassroom(),
+            HasActiveEnrollments = true
+        };
+        var handler = new DeleteClassroomCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new DeleteClassroomCommand(7, new DeleteClassroomRequestDto("اختبار الحذف", string.Empty, false)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        repository.Classroom!.IsDeleted.Should().BeFalse();
+        repository.UnassignedClassroomEnrollmentCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DeleteClassroomCommand_WhenActiveEnrollmentsAndForced_UnassignsAndSoftDeletes()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            Classroom = ExistingClassroom(),
+            HasActiveEnrollments = true
+        };
+        var handler = new DeleteClassroomCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new DeleteClassroomCommand(7, new DeleteClassroomRequestDto("اختبار الحذف", string.Empty, true)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.UnassignedClassroomEnrollmentCount.Should().Be(1);
+        repository.Classroom!.IsDeleted.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteStudentCommand_SoftDeletesStudentAndUnassignsEnrollments()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            Student = new Student
+            {
+                Id = 15,
+                SchoolId = 42,
+                StudentNumber = "ST-015",
+                FirstName = "أحمد",
+                LastName = "علي",
+                IsActive = true
+            }
+        };
+        var handler = new DeleteStudentCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.StudentManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new DeleteStudentCommand(15, new DeleteStudentRequestDto("اختبار الحذف", string.Empty)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.Student!.IsDeleted.Should().BeTrue();
+        repository.Student.IsActive.Should().BeFalse();
+        repository.UnassignedStudentEnrollmentCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetStudentsStatsQuery_WhenOfficerOrSocialWorker_ReturnsStats()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            StudentStats = new StudentStatsPageResult
+            {
+                Items = new List<StudentStatsDto>
+                {
+                    new(10, "STU-10", "Khalid Omar", "1098765432", null, "1/A", 1, true, 2, 1, 1, 0)
+                },
+                TotalCount = 1,
+                TotalClassrooms = 1,
+                Page = 1,
+                PageSize = 20
+            }
+        };
+
+        var handler = new GetStudentsStatsQueryHandler(
+            repository,
+            CreateUser(RoleNames.StudentAffairsOfficer, PermissionNames.StudentView),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new GetStudentsStatsQuery(new StudentStatsQuery()), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.Items.Should().HaveCount(1);
+        result.Data.Items[0].Name.Should().Be("Khalid Omar");
+        result.Data.Items[0].TotalAbsences.Should().Be(2);
+        result.Data.Items[0].TotalDelays.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetStudentsStatsQuery_WhenSecretary_FailsPermissionDenied()
+    {
+        var repository = new FakeStudentWorkflowRepository();
+        var handler = new GetStudentsStatsQueryHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.StudentView),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new GetStudentsStatsQuery(new StudentStatsQuery()), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.PermissionDenied);
+    }
+
+    [Fact]
+    public async Task GetStudentAnalyticsProfileQuery_WhenSocialWorker_ReturnsProfile()
+    {
+        var profile = new StudentAnalyticsProfileDto(
+            15,
+            "STU-15",
+            "Tariq Al-Mansoor",
+            "1088776655",
+            null,
+            new DateOnly(2015, 4, 10),
+            StudentGender.Male,
+            true,
+            null,
+            2,
+            "2/B",
+            "Primary",
+            2,
+            "B",
+            5,
+            StudentEnrollmentStatus.Active,
+            3,
+            2,
+            2,
+            1,
+            0,
+            1,
+            0,
+            new List<MonthlyAttendanceTrendDto>
+            {
+                new("2026-09", "سبتمبر 2026", 3, 2, 2)
+            },
+            new List<StudentAnalyticsEventDto>
+            {
+                new("att-1", "Absence", "غياب (بدون عذر)", "2026-09-01", Now, "danger", "pi pi-calendar-times", "بدون عذر", null)
+            },
+            Array.Empty<StudentGuardianLinkDto>()
+        );
+
+        var repository = new FakeStudentWorkflowRepository
+        {
+            AnalyticsProfile = profile
+        };
+
+        var handler = new GetStudentAnalyticsProfileQueryHandler(
+            repository,
+            CreateUser(RoleNames.SocialWorker, PermissionNames.ReferralView),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new GetStudentAnalyticsProfileQuery(15), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.StudentId.Should().Be(15);
+        result.Data.FullName.Should().Be("Tariq Al-Mansoor");
+        result.Data.TotalAbsences.Should().Be(3);
+        result.Data.MonthlyTrends.Should().HaveCount(1);
+        result.Data.RecentEvents.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task GetStudentAnalyticsProfileQuery_WhenSecretary_FailsPermissionDenied()
+    {
+        var repository = new FakeStudentWorkflowRepository();
+        var handler = new GetStudentAnalyticsProfileQueryHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.StudentView),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new GetStudentAnalyticsProfileQuery(15), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.PermissionDenied);
+    }
+
+    [Fact]
+    public async Task GetStudentAnalyticsProfileAsync_WhenStudentHasNoHistory_ReturnsCleanProfile()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        var student = new Student
+        {
+            Id = 10,
+            SchoolId = 42,
+            StudentNumber = "E2E-STUDENT-001",
+            FirstName = "E2E",
+            LastName = "Student",
+            IdentityNumber = "1000000001",
+            IsActive = true
+        };
+        context.Students.Add(student);
+        await context.SaveChangesAsync();
+
+        var repo = new StudentWorkflowRepository(context);
+        var profile = await repo.GetStudentAnalyticsProfileAsync(42, 10, new DateOnly(2026, 9, 1), CancellationToken.None);
+
+        profile.Should().NotBeNull();
+        profile!.StudentId.Should().Be(10);
+        profile.FullName.Should().Be("E2E Student");
+        profile.TotalAbsences.Should().Be(0);
+        profile.TotalDelays.Should().Be(0);
+        profile.TotalExcuses.Should().Be(0);
+        profile.TotalReferrals.Should().Be(0);
+        profile.MonthlyTrends.Should().HaveCount(6);
+        profile.RecentEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetStudentAnalyticsProfileAsync_WhenStudentHasReferralsAndDelays_AggregatesCorrectly()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        var student = new Student
+        {
+            Id = 11,
+            SchoolId = 42,
+            StudentNumber = "E2E-STUDENT-002",
+            FirstName = "E2E",
+            LastName = "Student",
+            IdentityNumber = "1000000002",
+            IsActive = true
+        };
+        var referral = new StudentReferral
+        {
+            Id = 101,
+            SchoolId = 42,
+            StudentId = 11,
+            AcademicTermId = 1,
+            SourceType = ReferralSourceType.Absence,
+            Priority = ReferralPriority.High,
+            Status = StudentReferralStatus.Open,
+            CreatedAt = Now,
+            CreatedByUserId = "test-user"
+        };
+        var delay = new MorningArrivalDelay
+        {
+            Id = 201,
+            SchoolId = 42,
+            StudentId = 11,
+            AcademicTermId = 1,
+            ArrivalAt = Now,
+            SchoolLocalDate = new DateOnly(2026, 9, 1),
+            DelayMinutes = 15,
+            NotificationPolicySnapshot = "Immediate"
+        };
+        context.Students.Add(student);
+        context.StudentReferrals.Add(referral);
+        context.MorningArrivalDelays.Add(delay);
+        await context.SaveChangesAsync();
+
+        var repo = new StudentWorkflowRepository(context);
+        var profile = await repo.GetStudentAnalyticsProfileAsync(42, 11, new DateOnly(2026, 9, 1), CancellationToken.None);
+
+        profile.Should().NotBeNull();
+        profile!.StudentId.Should().Be(11);
+        profile.TotalReferrals.Should().Be(1);
+        profile.TotalDelays.Should().Be(1);
+        profile.RecentEvents.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetStudentsStatsAsync_WithRealDbContext_ReturnsTotalClassrooms()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        context.Classrooms.Add(new Classroom { Id = 1, SchoolId = 42, AcademicYearId = 1, ClassLabel = "1/A", Stage = SchoolStage.Primary, GradeLevel = 1, Section = "A", IsActive = true });
+        context.Classrooms.Add(new Classroom { Id = 2, SchoolId = 42, AcademicYearId = 1, ClassLabel = "2/A", Stage = SchoolStage.Primary, GradeLevel = 2, Section = "A", IsActive = true });
+        context.Students.Add(new Student { Id = 1, SchoolId = 42, StudentNumber = "ST-1", FirstName = "A", LastName = "B", IdentityNumber = "111", IsActive = true });
+        await context.SaveChangesAsync();
+
+        var repo = new StudentWorkflowRepository(context);
+        var stats = await repo.GetStudentsStatsAsync(42, new StudentStatsQuery(), new DateOnly(2026, 9, 1), CancellationToken.None);
+
+        stats.Should().NotBeNull();
+        stats.TotalClassrooms.Should().Be(2);
+        stats.TotalCount.Should().Be(1);
+        stats.Items.Should().HaveCount(1);
+    }
+
+    private static Classroom ExistingClassroom() => new()
+    {
+        Id = 7,
+        SchoolId = 42,
+        AcademicYearId = 3,
+        Stage = SchoolStage.Primary,
+        GradeLevel = 1,
+        Section = "أ",
+        ClassLabel = "1/أ",
+        IsActive = true
+    };
+
 
     private static ICurrentUserService CreateUser(string role, params string[] permissions) =>
         new FakeCurrentUserService("worker-user-1", 42, role, permissions);
@@ -201,7 +588,22 @@ public sealed class StudentWorkflowAndGuardianTests
         public int QueriedStudentId { get; private set; }
         public IReadOnlyList<StudentGuardianLinkDto> Guardians { get; set; } = new List<StudentGuardianLinkDto>();
         public PagedResult<StudentListItemDto> Students { get; set; } = new();
+        public StudentStatsPageResult StudentStats { get; set; } = new();
+        public StudentAnalyticsProfileDto? AnalyticsProfile { get; set; }
         public StudentDetailsDto? StudentDetails { get; set; }
+        public Student? Student { get; set; }
+        public Classroom? Classroom { get; set; }
+        public bool AcademicYearExists { get; set; } = true;
+        public bool LabelExists { get; set; }
+        public bool HasActiveEnrollments { get; set; }
+        public int UnassignedClassroomEnrollmentCount { get; private set; }
+        public int UnassignedStudentEnrollmentCount { get; private set; }
+
+        public Task<StudentStatsPageResult> GetStudentsStatsAsync(int schoolId, StudentStatsQuery query, DateOnly onDate, CancellationToken cancellationToken) =>
+            Task.FromResult(StudentStats);
+
+        public Task<StudentAnalyticsProfileDto?> GetStudentAnalyticsProfileAsync(int schoolId, int studentId, DateOnly onDate, CancellationToken cancellationToken) =>
+            Task.FromResult(AnalyticsProfile);
 
         public Task<IReadOnlyList<StudentGuardianLinkDto>> GetStudentGuardiansAsync(
             int schoolId,
@@ -221,7 +623,22 @@ public sealed class StudentWorkflowAndGuardianTests
             Task.FromResult(StudentDetails);
 
         public Task<Student?> GetStudentForUpdateAsync(int schoolId, int studentId, CancellationToken cancellationToken) =>
-            Task.FromResult<Student?>(null);
+            Task.FromResult(Student?.Id == studentId && Student.SchoolId == schoolId ? Student : null);
+
+        public Task<StudentEnrollment?> GetActiveStudentEnrollmentForUpdateAsync(int schoolId, int studentId, CancellationToken cancellationToken) =>
+            Task.FromResult<StudentEnrollment?>(null);
+
+        public Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(int schoolId, int classroomId, CancellationToken cancellationToken) =>
+            Task.FromResult<StudentEnrollmentTarget?>(new StudentEnrollmentTarget(classroomId, 11));
+
+        public Task<bool> StudentNumberExistsAsync(int schoolId, string studentNumber, int? excludingStudentId, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
+
+        public Task<bool> StudentIdentityNumberExistsAsync(int schoolId, string identityNumber, int? excludingStudentId, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
+
+        public Task<bool> StudentNationalIdExistsAsync(int schoolId, string nationalId, int? excludingStudentId, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
 
         public Task<StudentGuardian?> GetGuardianLinkForUpdateAsync(int schoolId, int studentId, int linkId, CancellationToken cancellationToken) =>
             Task.FromResult<StudentGuardian?>(null);
@@ -250,11 +667,48 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<PagedResult<ClassroomDto>> GetClassroomsAsync(int schoolId, ClassroomListQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<ClassroomDto>());
 
+        public Task<IReadOnlyList<ClassroomAcademicYearDto>> GetClassroomAcademicYearsAsync(CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<ClassroomAcademicYearDto>>(new[]
+            {
+                new ClassroomAcademicYearDto(3, "2026-2027", "1448 هـ", true)
+            });
+
         public Task<ClassroomDto?> GetClassroomDtoAsync(int schoolId, int classroomId, CancellationToken cancellationToken) =>
-            Task.FromResult<ClassroomDto?>(null);
+            Task.FromResult(Classroom is null ? null : new ClassroomDto(
+                Classroom.Id,
+                Classroom.ClassLabel,
+                Classroom.Stage,
+                Classroom.GradeLevel,
+                Classroom.Section,
+                Classroom.AcademicYearId,
+                "2026/2027",
+                Classroom.IsActive,
+                0,
+                string.Empty));
 
         public Task<Classroom?> GetClassroomForUpdateAsync(int schoolId, int classroomId, CancellationToken cancellationToken) =>
-            Task.FromResult<Classroom?>(null);
+            Task.FromResult(Classroom?.Id == classroomId && Classroom.SchoolId == schoolId ? Classroom : null);
+
+        public Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken) =>
+            Task.FromResult(AcademicYearExists);
+
+        public Task<bool> ClassroomLabelExistsAsync(int schoolId, int academicYearId, string classLabel, int? excludingClassroomId, CancellationToken cancellationToken) =>
+            Task.FromResult(LabelExists);
+
+        public Task<bool> HasActiveClassroomEnrollmentsAsync(int schoolId, int classroomId, CancellationToken cancellationToken) =>
+            Task.FromResult(HasActiveEnrollments);
+
+        public Task<int> UnassignActiveClassroomEnrollmentsAsync(int schoolId, int classroomId, DateOnly effectiveOn, DateTimeOffset changedAt, string changedByUserId, CancellationToken cancellationToken)
+        {
+            UnassignedClassroomEnrollmentCount = HasActiveEnrollments ? 1 : 0;
+            return Task.FromResult(UnassignedClassroomEnrollmentCount);
+        }
+
+        public Task<int> UnassignActiveStudentEnrollmentsAsync(int schoolId, int studentId, DateOnly effectiveOn, DateTimeOffset changedAt, string changedByUserId, CancellationToken cancellationToken)
+        {
+            UnassignedStudentEnrollmentCount = 1;
+            return Task.FromResult(UnassignedStudentEnrollmentCount);
+        }
 
         public Task<IReadOnlyList<StudentSummaryDto>> GetClassroomStudentsAsync(int schoolId, int classroomId, int? academicTermId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<StudentSummaryDto>>(new List<StudentSummaryDto>());
@@ -281,10 +735,18 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(int schoolId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(new SchoolOversightDashboardDto(0, 0, 0, Array.Empty<ClassroomAttendanceAggregateDto>(), Array.Empty<DashboardCountDto>(), Array.Empty<DashboardCountDto>(), DateTimeOffset.UtcNow));
 
-        public void AddStudent(Student student) { }
+        public void AddStudent(Student student)
+        {
+            student.Id = 102;
+            Student = student;
+        }
         public void AddEnrollment(StudentEnrollment enrollment) { }
         public void AddGuardianLink(StudentGuardian link) { }
-        public void AddClassroom(Classroom classroom) { }
+        public void AddClassroom(Classroom classroom)
+        {
+            classroom.Id = 101;
+            Classroom = classroom;
+        }
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(1);
     }
 }

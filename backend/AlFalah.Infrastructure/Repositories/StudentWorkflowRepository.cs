@@ -129,6 +129,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             {
                 s.Id,
                 s.StudentNumber,
+                s.IdentityNumber,
                 FullName = (s.FirstName + " " + (s.MiddleName ?? string.Empty) + " " + s.LastName).Trim(),
                 s.IsActive,
                 s.ProfilePhotoStorageKey,
@@ -144,6 +145,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             new StudentSummaryDto(
                 s.Id,
                 s.StudentNumber,
+                s.IdentityNumber,
                 s.FullName,
                 s.Enrollment?.ClassroomId,
                 s.Enrollment?.ClassLabel,
@@ -217,6 +219,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         var summary = new StudentSummaryDto(
             s.Id,
             s.StudentNumber,
+            s.IdentityNumber,
             fullName,
             activeEnrollment?.ClassroomId,
             activeEnrollment?.Classroom?.ClassLabel,
@@ -233,9 +236,11 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
 
         return new StudentDetailsDto(
             summary,
+            s.IdentityNumber,
             s.FirstName,
             s.MiddleName,
             s.LastName,
+            s.NationalId,
             s.DateOfBirth,
             s.Gender,
             enrollmentDto,
@@ -255,6 +260,86 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             .AsTracking()
             .Where(s => s.SchoolId == schoolId && s.Id == studentId && !s.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<StudentEnrollment?> GetActiveStudentEnrollmentForUpdateAsync(
+        int schoolId,
+        int studentId,
+        CancellationToken cancellationToken) =>
+        _context.StudentEnrollments
+            .AsTracking()
+            .Where(enrollment =>
+                enrollment.SchoolId == schoolId
+                && enrollment.StudentId == studentId
+                && enrollment.Status == StudentEnrollmentStatus.Active
+                && enrollment.AcademicTerm.IsActive
+                && !enrollment.IsDeleted
+                && !enrollment.AcademicTerm.IsDeleted)
+            .OrderByDescending(enrollment => enrollment.EnrolledOn)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(
+        int schoolId,
+        int classroomId,
+        CancellationToken cancellationToken) =>
+        _context.Classrooms
+            .AsNoTracking()
+            .Where(classroom =>
+                classroom.SchoolId == schoolId
+                && classroom.Id == classroomId
+                && classroom.IsActive
+                && !classroom.IsDeleted)
+            .SelectMany(
+                classroom => _context.AcademicTerms
+                    .AsNoTracking()
+                    .Where(term =>
+                        term.SchoolId == schoolId
+                        && term.AcademicYearId == classroom.AcademicYearId
+                        && term.IsActive
+                        && !term.IsDeleted),
+                (classroom, term) => new StudentEnrollmentTarget(classroom.Id, term.Id))
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<bool> StudentNumberExistsAsync(
+        int schoolId,
+        string studentNumber,
+        int? excludingStudentId,
+        CancellationToken cancellationToken) =>
+        _context.Students
+            .AsNoTracking()
+            .AnyAsync(student =>
+                student.SchoolId == schoolId
+                && student.StudentNumber == studentNumber
+                && !student.IsDeleted
+                && (!excludingStudentId.HasValue || student.Id != excludingStudentId.Value),
+                cancellationToken);
+
+    public Task<bool> StudentIdentityNumberExistsAsync(
+        int schoolId,
+        string identityNumber,
+        int? excludingStudentId,
+        CancellationToken cancellationToken) =>
+        _context.Students
+            .AsNoTracking()
+            .AnyAsync(student =>
+                student.SchoolId == schoolId
+                && student.IdentityNumber == identityNumber
+                && !student.IsDeleted
+                && (!excludingStudentId.HasValue || student.Id != excludingStudentId.Value),
+                cancellationToken);
+
+    public Task<bool> StudentNationalIdExistsAsync(
+        int schoolId,
+        string nationalId,
+        int? excludingStudentId,
+        CancellationToken cancellationToken) =>
+        _context.Students
+            .AsNoTracking()
+            .AnyAsync(student =>
+                student.SchoolId == schoolId
+                && student.NationalId == nationalId
+                && !student.IsDeleted
+                && (!excludingStudentId.HasValue || student.Id != excludingStudentId.Value),
+                cancellationToken);
 
     public Task<StudentGuardian?> GetGuardianLinkForUpdateAsync(
         int schoolId,
@@ -397,6 +482,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             var summary = new StudentSummaryDto(
                 g.Student.Id,
                 g.Student.StudentNumber,
+                g.Student.IdentityNumber,
                 fullName,
                 enrollment?.ClassroomId,
                 enrollment?.Classroom?.ClassLabel,
@@ -440,6 +526,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         var studentSummary = new StudentSummaryDto(
             link.Student.Id,
             link.Student.StudentNumber,
+            link.Student.IdentityNumber,
             fullName,
             enrollment?.ClassroomId,
             enrollment?.Classroom?.ClassLabel,
@@ -545,6 +632,15 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         };
     }
 
+    public async Task<IReadOnlyList<ClassroomAcademicYearDto>> GetClassroomAcademicYearsAsync(
+        CancellationToken cancellationToken) =>
+        await _context.AcademicYears
+            .AsNoTracking()
+            .OrderByDescending(year => year.StartsOn)
+            .Select(year => new ClassroomAcademicYearDto(year.Id, year.Code, year.NameAr, year.IsActive))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
     public async Task<ClassroomDto?> GetClassroomDtoAsync(
         int schoolId,
         int classroomId,
@@ -583,6 +679,102 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             .Where(c => c.SchoolId == schoolId && c.Id == classroomId && !c.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 
+    public Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken) =>
+        _context.AcademicYears
+            .AsNoTracking()
+            .AnyAsync(year => year.Id == academicYearId, cancellationToken);
+
+    public Task<bool> ClassroomLabelExistsAsync(
+        int schoolId,
+        int academicYearId,
+        string classLabel,
+        int? excludingClassroomId,
+        CancellationToken cancellationToken) =>
+        _context.Classrooms
+            .AsNoTracking()
+            .AnyAsync(classroom =>
+                classroom.SchoolId == schoolId
+                && classroom.AcademicYearId == academicYearId
+                && classroom.ClassLabel == classLabel
+                && !classroom.IsDeleted
+                && (!excludingClassroomId.HasValue || classroom.Id != excludingClassroomId.Value),
+                cancellationToken);
+
+    public Task<bool> HasActiveClassroomEnrollmentsAsync(
+        int schoolId,
+        int classroomId,
+        CancellationToken cancellationToken) =>
+        _context.StudentEnrollments
+            .AsNoTracking()
+            .AnyAsync(enrollment =>
+                enrollment.SchoolId == schoolId
+                && enrollment.ClassroomId == classroomId
+                && enrollment.Status == StudentEnrollmentStatus.Active
+                && !enrollment.IsDeleted,
+                cancellationToken);
+
+    public async Task<int> UnassignActiveClassroomEnrollmentsAsync(
+        int schoolId,
+        int classroomId,
+        DateOnly effectiveOn,
+        DateTimeOffset changedAt,
+        string changedByUserId,
+        CancellationToken cancellationToken)
+    {
+        var enrollments = await _context.StudentEnrollments
+            .AsTracking()
+            .Where(enrollment =>
+                enrollment.SchoolId == schoolId
+                && enrollment.ClassroomId == classroomId
+                && enrollment.Status == StudentEnrollmentStatus.Active
+                && !enrollment.IsDeleted)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        foreach (var enrollment in enrollments)
+        {
+            enrollment.Status = StudentEnrollmentStatus.Withdrawn;
+            enrollment.WithdrawnOn = effectiveOn < enrollment.EnrolledOn
+                ? enrollment.EnrolledOn
+                : effectiveOn;
+            enrollment.UpdatedAt = changedAt;
+            enrollment.UpdatedByUserId = changedByUserId;
+        }
+
+        return enrollments.Count;
+    }
+
+    public async Task<int> UnassignActiveStudentEnrollmentsAsync(
+        int schoolId,
+        int studentId,
+        DateOnly effectiveOn,
+        DateTimeOffset changedAt,
+        string changedByUserId,
+        CancellationToken cancellationToken)
+    {
+        var enrollments = await _context.StudentEnrollments
+            .AsTracking()
+            .Where(enrollment =>
+                enrollment.SchoolId == schoolId
+                && enrollment.StudentId == studentId
+                && enrollment.Status == StudentEnrollmentStatus.Active
+                && !enrollment.IsDeleted)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        foreach (var enrollment in enrollments)
+        {
+            enrollment.Status = StudentEnrollmentStatus.Withdrawn;
+            enrollment.WithdrawnOn = effectiveOn < enrollment.EnrolledOn
+                ? enrollment.EnrolledOn
+                : effectiveOn;
+            enrollment.UpdatedAt = changedAt;
+            enrollment.UpdatedByUserId = changedByUserId;
+        }
+
+        return enrollments.Count;
+    }
+
     public async Task<IReadOnlyList<StudentSummaryDto>> GetClassroomStudentsAsync(
         int schoolId,
         int classroomId,
@@ -619,6 +811,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             return new StudentSummaryDto(
                 e.Student.Id,
                 e.Student.StudentNumber,
+                e.Student.IdentityNumber,
                 fullName,
                 e.ClassroomId,
                 e.Classroom.ClassLabel,
@@ -754,6 +947,466 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         ));
     }
 
+    public async Task<StudentStatsPageResult> GetStudentsStatsAsync(
+        int schoolId,
+        StudentStatsQuery query,
+        DateOnly onDate,
+        CancellationToken cancellationToken)
+    {
+        var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 50 : query.PageSize, 1, 500);
+
+        var totalClassrooms = await _context.Classrooms
+            .AsNoTracking()
+            .CountAsync(c => c.SchoolId == schoolId && !c.IsDeleted && c.IsActive, cancellationToken)
+            .ConfigureAwait(false);
+
+        var dbQuery = _context.Students
+            .AsNoTracking()
+            .Where(s => s.SchoolId == schoolId && !s.IsDeleted);
+
+        if (query.IsActive.HasValue)
+            dbQuery = dbQuery.Where(s => s.IsActive == query.IsActive.Value);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim();
+            dbQuery = dbQuery.Where(s =>
+                s.FirstName.Contains(search)
+                || (s.MiddleName != null && s.MiddleName.Contains(search))
+                || s.LastName.Contains(search)
+                || s.StudentNumber.Contains(search)
+                || (s.IdentityNumber != null && s.IdentityNumber.Contains(search))
+                || (s.NationalId != null && s.NationalId.Contains(search)));
+        }
+
+        if (query.ClassroomId.HasValue)
+        {
+            dbQuery = dbQuery.Where(s => s.Enrollments.Any(e =>
+                e.SchoolId == schoolId
+                && !e.IsDeleted
+                && e.ClassroomId == query.ClassroomId.Value
+                && e.Status == StudentEnrollmentStatus.Active
+                && e.EnrolledOn <= onDate
+                && (e.WithdrawnOn == null || e.WithdrawnOn >= onDate)));
+        }
+
+        var total = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+        var projected = await dbQuery
+            .OrderBy(s => s.FirstName)
+            .ThenBy(s => s.LastName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(s => new
+            {
+                s.Id,
+                s.StudentNumber,
+                FullName = (s.FirstName + " " + (s.MiddleName ?? string.Empty) + " " + s.LastName).Trim(),
+                s.IdentityNumber,
+                s.NationalId,
+                s.IsActive,
+                Enrollment = s.Enrollments
+                    .Where(e => e.SchoolId == schoolId && !e.IsDeleted && e.Status == StudentEnrollmentStatus.Active && e.EnrolledOn <= onDate && (e.WithdrawnOn == null || e.WithdrawnOn >= onDate))
+                    .Select(e => new { e.ClassroomId, e.Classroom.ClassLabel })
+                    .FirstOrDefault(),
+                TotalAbsences = _context.DailyStudentAttendances.Count(a => a.SchoolId == schoolId && a.StudentId == s.Id && !a.IsDeleted && (a.Status == StudentAttendanceStatus.Absent || a.Status == StudentAttendanceStatus.AbsentExcused)),
+                TotalDelays = _context.MorningArrivalDelays.Count(d => d.SchoolId == schoolId && d.StudentId == s.Id && !d.IsDeleted) + _context.SessionDelays.Count(sd => sd.SchoolId == schoolId && sd.StudentId == s.Id && !sd.IsDeleted),
+                TotalExcuses = _context.DailyStudentAttendances.Count(a => a.SchoolId == schoolId && a.StudentId == s.Id && !a.IsDeleted && (a.ExcuseStatus != null || a.Status == StudentAttendanceStatus.AbsentExcused)),
+                TotalReferrals = _context.StudentReferrals.Count(r => r.SchoolId == schoolId && r.StudentId == s.Id && !r.IsDeleted)
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var items = projected.Select(s => new StudentStatsDto(
+            s.Id,
+            s.StudentNumber,
+            s.FullName,
+            s.IdentityNumber,
+            s.NationalId,
+            s.Enrollment?.ClassLabel ?? "—",
+            s.Enrollment?.ClassroomId,
+            s.IsActive,
+            s.TotalAbsences,
+            s.TotalDelays,
+            s.TotalExcuses,
+            s.TotalReferrals
+        )).ToList();
+
+        return new StudentStatsPageResult
+        {
+            Items = items,
+            TotalCount = total,
+            TotalClassrooms = totalClassrooms,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<StudentAnalyticsProfileDto?> GetStudentAnalyticsProfileAsync(
+        int schoolId,
+        int studentId,
+        DateOnly onDate,
+        CancellationToken cancellationToken)
+    {
+        var s = await _context.Students
+            .AsNoTracking()
+            .Where(st => st.SchoolId == schoolId && st.Id == studentId && !st.IsDeleted)
+            .Include(st => st.Enrollments)
+                .ThenInclude(e => e.Classroom)
+            .Include(st => st.Enrollments)
+                .ThenInclude(e => e.AcademicTerm)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (s is null) return null;
+
+        var activeEnrollment = s.Enrollments
+            .Where(e => !e.IsDeleted && e.Status == StudentEnrollmentStatus.Active && e.EnrolledOn <= onDate && (e.WithdrawnOn == null || e.WithdrawnOn >= onDate))
+            .OrderByDescending(e => e.EnrolledOn)
+            .FirstOrDefault()
+            ?? s.Enrollments
+                .Where(e => !e.IsDeleted)
+                .OrderByDescending(e => e.EnrolledOn)
+                .FirstOrDefault();
+
+        var guardians = await GetStudentGuardiansAsync(schoolId, studentId, onDate, cancellationToken).ConfigureAwait(false);
+
+        var attendances = await _context.DailyStudentAttendances
+            .AsNoTracking()
+            .Where(a => a.SchoolId == schoolId && a.StudentId == studentId && !a.IsDeleted)
+            .Include(a => a.RecordedByUser)
+            .OrderByDescending(a => a.AttendanceDate)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var morningDelays = await _context.MorningArrivalDelays
+            .AsNoTracking()
+            .Where(d => d.SchoolId == schoolId && d.StudentId == studentId && !d.IsDeleted)
+            .OrderByDescending(d => d.ArrivalAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var sessionDelays = await _context.SessionDelays
+            .AsNoTracking()
+            .Where(sd => sd.SchoolId == schoolId && sd.StudentId == studentId && !sd.IsDeleted)
+            .Include(sd => sd.ReportedByInstructorProfile)
+            .OrderByDescending(sd => sd.OccurredAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var studentAttendanceIds = attendances.Select(a => a.Id).ToList();
+        var excuses = await _context.AbsenceExcuses
+            .AsNoTracking()
+            .Where(e => e.SchoolId == schoolId && !e.IsDeleted && studentAttendanceIds.Contains(e.DailyStudentAttendanceId))
+            .Include(e => e.DailyStudentAttendance)
+            .OrderByDescending(e => e.SubmittedAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var referrals = await _context.StudentReferrals
+            .AsNoTracking()
+            .Where(r => r.SchoolId == schoolId && r.StudentId == studentId && !r.IsDeleted)
+            .Include(r => r.AssignedSocialWorkerUser)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var behaviors = await _context.BehaviorIncidents
+            .AsNoTracking()
+            .Where(b => b.SchoolId == schoolId && b.StudentId == studentId && !b.IsDeleted)
+            .OrderByDescending(b => b.OccurredAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var recognitions = await _context.StudentRecognitions
+            .AsNoTracking()
+            .Where(rec => rec.SchoolId == schoolId && rec.StudentId == studentId && !rec.IsDeleted)
+            .OrderByDescending(rec => rec.RecognizedAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var gatePasses = await _context.GatePasses
+            .AsNoTracking()
+            .Where(gp => gp.SchoolId == schoolId && gp.StudentId == studentId && !gp.IsDeleted)
+            .OrderByDescending(gp => gp.RequestedAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var totalAbsences = attendances.Count(a => a.Status == StudentAttendanceStatus.Absent || a.Status == StudentAttendanceStatus.AbsentExcused);
+        var totalDelays = morningDelays.Count + sessionDelays.Count;
+        var totalExcuses = excuses.Count + attendances.Count(a => a.ExcuseStatus != null && !excuses.Any(e => e.DailyStudentAttendanceId == a.Id));
+        var totalReferrals = referrals.Count;
+        var totalBehaviors = behaviors.Count;
+        var totalRecognitions = recognitions.Count;
+        var totalGatePasses = gatePasses.Count;
+
+        var monthsMap = new Dictionary<string, (string Label, int Absences, int Delays, int Excuses)>();
+        var current = onDate;
+        for (int i = 5; i >= 0; i--)
+        {
+            var targetDate = current.AddMonths(-i);
+            var key = $"{targetDate.Year:D4}-{targetDate.Month:D2}";
+            var label = GetArabicMonthName(targetDate.Month) + " " + targetDate.Year;
+            monthsMap[key] = (label, 0, 0, 0);
+        }
+
+        foreach (var att in attendances.Where(a => a.Status == StudentAttendanceStatus.Absent || a.Status == StudentAttendanceStatus.AbsentExcused))
+        {
+            var key = $"{att.AttendanceDate.Year:D4}-{att.AttendanceDate.Month:D2}";
+            if (monthsMap.TryGetValue(key, out var val))
+            {
+                monthsMap[key] = (val.Label, val.Absences + 1, val.Delays, val.Excuses);
+            }
+            else
+            {
+                var label = GetArabicMonthName(att.AttendanceDate.Month) + " " + att.AttendanceDate.Year;
+                monthsMap[key] = (label, 1, 0, 0);
+            }
+        }
+
+        foreach (var md in morningDelays)
+        {
+            var key = $"{md.SchoolLocalDate.Year:D4}-{md.SchoolLocalDate.Month:D2}";
+            if (monthsMap.TryGetValue(key, out var val))
+            {
+                monthsMap[key] = (val.Label, val.Absences, val.Delays + 1, val.Excuses);
+            }
+            else
+            {
+                var label = GetArabicMonthName(md.SchoolLocalDate.Month) + " " + md.SchoolLocalDate.Year;
+                monthsMap[key] = (label, 0, 1, 0);
+            }
+        }
+
+        foreach (var sd in sessionDelays)
+        {
+            var date = DateOnly.FromDateTime(sd.OccurredAt.DateTime);
+            var key = $"{date.Year:D4}-{date.Month:D2}";
+            if (monthsMap.TryGetValue(key, out var val))
+            {
+                monthsMap[key] = (val.Label, val.Absences, val.Delays + 1, val.Excuses);
+            }
+            else
+            {
+                var label = GetArabicMonthName(date.Month) + " " + date.Year;
+                monthsMap[key] = (label, 0, 1, 0);
+            }
+        }
+
+        foreach (var ex in excuses)
+        {
+            var date = DateOnly.FromDateTime(ex.SubmittedAt.DateTime);
+            var key = $"{date.Year:D4}-{date.Month:D2}";
+            if (monthsMap.TryGetValue(key, out var val))
+            {
+                monthsMap[key] = (val.Label, val.Absences, val.Delays, val.Excuses + 1);
+            }
+            else
+            {
+                var label = GetArabicMonthName(date.Month) + " " + date.Year;
+                monthsMap[key] = (label, 0, 0, 1);
+            }
+        }
+
+        var monthlyTrends = monthsMap
+            .OrderBy(kv => kv.Key)
+            .Select(kv => new MonthlyAttendanceTrendDto(kv.Key, kv.Value.Label, kv.Value.Absences, kv.Value.Delays, kv.Value.Excuses))
+            .ToList();
+
+        var events = new List<StudentAnalyticsEventDto>();
+
+        foreach (var att in attendances.Where(a => a.Status != StudentAttendanceStatus.Present))
+        {
+            var isExcused = att.Status == StudentAttendanceStatus.AbsentExcused || att.ExcuseStatus == AbsenceExcuseStatus.Accepted;
+            var attTime = new DateTimeOffset(att.AttendanceDate.Year, att.AttendanceDate.Month, att.AttendanceDate.Day, 0, 0, 0, TimeSpan.Zero);
+            var recordedBy = att.RecordedByUser != null
+                ? string.Join(" ", new[] { att.RecordedByUser.FirstName, att.RecordedByUser.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim()
+                : null;
+            events.Add(new StudentAnalyticsEventDto(
+                $"att-{att.Id}",
+                "Absence",
+                isExcused ? "غياب (بعذر مقبول)" : "غياب (بدون عذر)",
+                $"تاريخ الغياب: {att.AttendanceDate:yyyy-MM-dd}" + (att.CorrectionReason != null ? $" - {att.CorrectionReason}" : ""),
+                attTime,
+                isExcused ? "info" : "danger",
+                isExcused ? "pi pi-file-check" : "pi pi-calendar-times",
+                isExcused ? "بعذر" : "بدون عذر",
+                string.IsNullOrWhiteSpace(recordedBy) ? null : recordedBy
+            ));
+        }
+
+        foreach (var md in morningDelays)
+        {
+            events.Add(new StudentAnalyticsEventDto(
+                $"md-{md.Id}",
+                "Delay",
+                $"تأخر صباحي ({md.DelayMinutes} دقيقة)",
+                string.IsNullOrWhiteSpace(md.Reason) ? "تسجيل تأخر في طابور الصباح" : $"السبب: {md.Reason}",
+                md.ArrivalAt,
+                "warning",
+                "pi pi-clock",
+                "تأخر صباحي",
+                null
+            ));
+        }
+
+        foreach (var sd in sessionDelays)
+        {
+            events.Add(new StudentAnalyticsEventDto(
+                $"sd-{sd.Id}",
+                "Delay",
+                $"تأخر عن الحصة (الحصة {sd.Period})",
+                $"تأخر {sd.DelayMinutes ?? 5} دقائق - {sd.Reason ?? "بدون سبب مدون"}",
+                sd.OccurredAt,
+                "warning",
+                "pi pi-hourglass",
+                $"حصة {sd.Period}",
+                null
+            ));
+        }
+
+        foreach (var ex in excuses)
+        {
+            var statusLabel = ex.Status switch
+            {
+                AbsenceExcuseStatus.Accepted => "مقبول",
+                AbsenceExcuseStatus.Rejected => "مرفوض",
+                _ => "قيد المراجعة"
+            };
+            var severity = ex.Status switch
+            {
+                AbsenceExcuseStatus.Accepted => "success",
+                AbsenceExcuseStatus.Rejected => "danger",
+                _ => "info"
+            };
+            events.Add(new StudentAnalyticsEventDto(
+                $"exc-{ex.Id}",
+                "Excuse",
+                $"عذر غياب ({ex.ExcuseType}) - {statusLabel}",
+                ex.GuardianNotes ?? ex.ReviewReason ?? "تم تقديم طلب العذر من ولي الأمر",
+                ex.SubmittedAt,
+                severity,
+                "pi pi-paperclip",
+                statusLabel,
+                null
+            ));
+        }
+
+        foreach (var refItem in referrals)
+        {
+            var workerName = refItem.AssignedSocialWorkerUser != null
+                ? string.Join(" ", new[] { refItem.AssignedSocialWorkerUser.FirstName, refItem.AssignedSocialWorkerUser.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim()
+                : null;
+            events.Add(new StudentAnalyticsEventDto(
+                $"ref-{refItem.Id}",
+                "Referral",
+                $"إحالة للموجه الطلابي ({refItem.SourceType})",
+                $"الأولوية: {refItem.Priority} | الحالة: {refItem.Status}" + (refItem.RecommendedActions != null ? $" | التوصيات: {refItem.RecommendedActions}" : ""),
+                refItem.CreatedAt,
+                "danger",
+                "pi pi-briefcase",
+                refItem.Status.ToString(),
+                string.IsNullOrWhiteSpace(workerName) ? null : workerName
+            ));
+        }
+
+        foreach (var beh in behaviors)
+        {
+            events.Add(new StudentAnalyticsEventDto(
+                $"beh-{beh.Id}",
+                "Behavior",
+                $"مخالفة سلوكية ({beh.CategoryCode})",
+                $"الدرجة: {beh.Severity} - {beh.Description}" + (beh.ImmediateActionTaken != null ? $" - الإجراء: {beh.ImmediateActionTaken}" : ""),
+                beh.OccurredAt,
+                beh.Severity == BehaviorSeverity.Critical || beh.Severity == BehaviorSeverity.High ? "danger" : "warning",
+                "pi pi-exclamation-triangle",
+                beh.Severity.ToString(),
+                null
+            ));
+        }
+
+        foreach (var rec in recognitions)
+        {
+            events.Add(new StudentAnalyticsEventDto(
+                $"rec-{rec.Id}",
+                "Recognition",
+                $"تكريم وتميز: {rec.Title}",
+                rec.Description,
+                rec.RecognizedAt,
+                "success",
+                "pi pi-star-fill",
+                rec.RecognitionType,
+                null
+            ));
+        }
+
+        foreach (var gp in gatePasses)
+        {
+            events.Add(new StudentAnalyticsEventDto(
+                $"gp-{gp.Id}",
+                "GatePass",
+                $"استئذان خروج ({gp.Status})",
+                $"السبب: {gp.Reason} - المستلم: {gp.PickupPersonName}",
+                gp.RequestedAt,
+                gp.Status == GatePassStatus.Exited ? "success" : "info",
+                "pi pi-sign-out",
+                gp.Status.ToString(),
+                null
+            ));
+        }
+
+        var sortedEvents = events.OrderByDescending(e => e.OccurredAt).Take(50).ToList();
+
+        var fullName = string.Join(" ", new[] { s.FirstName, s.MiddleName, s.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
+
+        return new StudentAnalyticsProfileDto(
+            s.Id,
+            s.StudentNumber,
+            fullName,
+            s.IdentityNumber,
+            s.NationalId,
+            s.DateOfBirth,
+            s.Gender,
+            s.IsActive,
+            s.ProfilePhotoStorageKey,
+            activeEnrollment?.ClassroomId,
+            activeEnrollment?.Classroom?.ClassLabel ?? "—",
+            activeEnrollment?.Classroom?.Stage.ToString() ?? "—",
+            activeEnrollment?.Classroom?.GradeLevel,
+            activeEnrollment?.Classroom?.Section ?? "—",
+            activeEnrollment?.RollNumber,
+            activeEnrollment?.Status,
+            totalAbsences,
+            totalDelays,
+            totalExcuses,
+            totalReferrals,
+            totalBehaviors,
+            totalRecognitions,
+            totalGatePasses,
+            monthlyTrends,
+            sortedEvents,
+            guardians
+        );
+    }
+
+    private static string GetArabicMonthName(int month) => month switch
+    {
+        1 => "يناير",
+        2 => "فبراير",
+        3 => "مارس",
+        4 => "أبريل",
+        5 => "مايو",
+        6 => "يونيو",
+        7 => "يوليو",
+        8 => "أغسطس",
+        9 => "سبتمبر",
+        10 => "أكتوبر",
+        11 => "نوفمبر",
+        12 => "ديسمبر",
+        _ => $"شهر {month}"
+    };
+
     public void AddStudent(Student student) => _context.Students.Add(student);
     public void AddEnrollment(StudentEnrollment enrollment) => _context.StudentEnrollments.Add(enrollment);
     public void AddGuardianLink(StudentGuardian link) => _context.StudentGuardians.Add(link);
@@ -762,3 +1415,4 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken) =>
         _context.SaveChangesAsync(cancellationToken);
 }
+

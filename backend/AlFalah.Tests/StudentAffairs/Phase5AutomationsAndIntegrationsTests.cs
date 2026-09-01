@@ -193,7 +193,7 @@ public sealed class Phase5AutomationsAndIntegrationsTests
         context.UserSchoolRoles.Add(new UserSchoolRole { SchoolId = 1, UserId = officer.Id, RoleId = role.Id, IsActive = true });
         context.Students.Add(new Student
         {
-            Id = 10, SchoolId = 1, StudentNumber = "S10", FirstName = "Student", LastName = "Ten",
+            Id = 10, SchoolId = 1, StudentNumber = "S10", IdentityNumber = "1000000010", FirstName = "Student", LastName = "Ten",
             IsActive = true, CreatedByUserId = officer.Id, UpdatedByUserId = officer.Id
         });
         context.AcademicTerms.Add(new AcademicTerm

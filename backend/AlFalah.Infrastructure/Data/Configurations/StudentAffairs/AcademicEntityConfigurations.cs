@@ -12,12 +12,15 @@ internal sealed class StudentConfiguration : StudentAffairsMutableEntityConfigur
     protected override void ConfigureEntity(EntityTypeBuilder<Student> builder)
     {
         builder.Property(x => x.StudentNumber).HasMaxLength(50).IsUnicode(false).IsRequired();
+        builder.Property(x => x.IdentityNumber).HasMaxLength(50).IsUnicode(false).IsRequired();
         builder.Property(x => x.NationalId).HasMaxLength(30).IsUnicode(false);
         builder.Property(x => x.FirstName).IsArabicText(100);
         builder.Property(x => x.MiddleName).IsOptionalArabicText(100);
         builder.Property(x => x.LastName).IsArabicText(100);
         builder.Property(x => x.ProfilePhotoStorageKey).HasMaxLength(1000).IsUnicode(false);
         builder.HasIndex(x => new { x.SchoolId, x.StudentNumber })
+            .HasFilter("[IsDeleted] = 0").IsUnique();
+        builder.HasIndex(x => new { x.SchoolId, x.IdentityNumber })
             .HasFilter("[IsDeleted] = 0").IsUnique();
         builder.HasIndex(x => new { x.SchoolId, x.NationalId })
             .HasFilter("[NationalId] IS NOT NULL AND [IsDeleted] = 0").IsUnique();

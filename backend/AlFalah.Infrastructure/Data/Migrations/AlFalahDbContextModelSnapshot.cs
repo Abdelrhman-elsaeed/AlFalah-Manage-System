@@ -5121,6 +5121,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int?>("Gender")
                         .HasColumnType("int");
 
+                    b.Property<string>("IdentityNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -5174,6 +5180,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("DeletedByUserId");
 
                     b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("SchoolId", "IdentityNumber")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.HasIndex("SchoolId", "NationalId")
                         .IsUnique()

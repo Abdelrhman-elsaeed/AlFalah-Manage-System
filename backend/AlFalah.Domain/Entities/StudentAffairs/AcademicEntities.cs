@@ -9,6 +9,7 @@ public sealed class Student : IStudentAffairsMutableEntity
     public int Id { get; set; }
     public int SchoolId { get; set; }
     public string StudentNumber { get; set; } = string.Empty;
+    public string IdentityNumber { get; set; } = string.Empty;
     public string? NationalId { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string? MiddleName { get; set; }

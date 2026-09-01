@@ -38,6 +38,7 @@ public sealed class UpdateClassroomCommandHandler
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
+            && !_currentUser.HasPermission(PermissionNames.ClassroomManage)
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)
             && !_currentUser.IsInRole(RoleNames.SchoolManager))
@@ -54,9 +55,20 @@ public sealed class UpdateClassroomCommandHandler
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.NotFound);
 
         var req = command.Request;
+        var classLabel = req.ClassLabel.Trim();
+        if (await _repository.ClassroomLabelExistsAsync(
+                schoolId.Value,
+                classroom.AcademicYearId,
+                classLabel,
+                classroom.Id,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return ApiResponse<ClassroomDto>.Fail("A classroom with the same name already exists in this academic year");
+        }
+
         var now = _timeProvider.GetUtcNow();
 
-        classroom.ClassLabel = req.ClassLabel.Trim();
+        classroom.ClassLabel = classLabel;
         classroom.Section = req.Section.Trim();
         classroom.IsActive = req.IsActive;
         classroom.UpdatedAt = now;

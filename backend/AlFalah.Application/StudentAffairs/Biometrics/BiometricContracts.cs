@@ -6,18 +6,24 @@ namespace AlFalah.Application.StudentAffairs.Biometrics;
 
 public sealed record ZajelBiometricPunchRow(
     int RowNumber,
-    string? NationalId,
+    string? IdentityNumber,
     DateTimeOffset PunchAt,
     DateOnly SchoolLocalDate,
     TimeOnly SchoolLocalTime,
-    string Status);
+    string Status)
+{
+    public string? NationalId => IdentityNumber;
+}
 
 public sealed record BiometricEnrollmentSnapshot(
     int StudentId,
-    string NationalId,
+    string IdentityNumber,
     int AcademicTermId,
     DateOnly StartsOn,
-    DateOnly EndsOn);
+    DateOnly EndsOn)
+{
+    public string NationalId => IdentityNumber;
+}
 
 public sealed record BiometricImportSettingsSnapshot(TimeOnly ArrivalCutoffLocalTime, int ArrivalGraceMinutes);
 
@@ -47,12 +53,12 @@ public interface IBiometricImportRepository
 
     Task<IReadOnlyList<BiometricEnrollmentSnapshot>> GetEnrollmentsAsync(
         int schoolId,
-        IReadOnlyCollection<string> nationalIds,
+        IReadOnlyCollection<string> identityNumbers,
         DateOnly fromDate,
         DateOnly toDate,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlySet<(int StudentId, DateOnly Date)>> GetExistingDelayKeysAsync(
+    Task<Dictionary<(int StudentId, DateOnly Date), MorningArrivalDelay>> GetExistingDelaysForUpdateAsync(
         int schoolId,
         IReadOnlyCollection<int> studentIds,
         DateOnly fromDate,

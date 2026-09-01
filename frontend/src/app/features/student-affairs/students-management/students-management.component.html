@@ -1,0 +1,120 @@
+<section class="page students-page" dir="rtl">
+  <p-confirmDialog></p-confirmDialog>
+
+  <header class="page-header">
+    <div class="page-header__titles">
+      <span class="eyebrow">البيانات الأساسية</span>
+      <h1 class="page-header__title">إدارة الطلاب</h1>
+      <p class="page-header__subtitle">أضف الطلاب وحدّث بياناتهم والفصل الحالي مع الحفاظ على السجلات التشغيلية السابقة.</p>
+    </div>
+    <button pButton type="button" class="page-header__action" icon="pi pi-plus" label="إضافة طالب" (click)="openCreate()"></button>
+  </header>
+
+  <div class="list-toolbar">
+    <label class="toolbar-field toolbar-field--grow" for="student-search">
+      <span class="toolbar-field__label">البحث</span>
+      <span class="p-input-icon-right toolbar-field__control">
+        <i class="pi pi-search"></i>
+        <input id="student-search" pInputText type="search" class="pr-10" placeholder="اسم الطالب أو رقمه أو الفصل" [value]="search()" (input)="setSearch($event)" />
+      </span>
+    </label>
+    <div class="toolbar-summary">{{ filteredStudents.length }} طالب</div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <span>{{ errorMessage() }}</span>
+      <button pButton type="button" class="p-button-text" icon="pi pi-refresh" label="إعادة المحاولة" (click)="loadStudents()"></button>
+    </div>
+  }
+
+  <p-card styleClass="table-card students-table-card">
+    @if (loading()) {
+      <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الطلاب...</span></div>
+    } @else {
+      <p-table [value]="filteredStudents" [rowHover]="true" [paginator]="filteredStudents.length > 10" [rows]="10" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>رقم الطالب</th>
+            <th>رقم الهوية</th>
+            <th>اسم الطالب</th>
+            <th>الفصل الحالي</th>
+            <th>الحالة</th>
+            <th class="actions-column">الإجراءات</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td><bdi dir="ltr">{{ item.student.studentNumber }}</bdi></td>
+            <td><bdi dir="ltr">{{ item.student.identityNumber || '—' }}</bdi></td>
+            <td><strong>{{ item.student.displayName }}</strong></td>
+            <td>{{ item.student.classLabel || 'غير مسند لفصل' }}</td>
+            <td><p-tag [value]="item.student.isActive ? 'نشط' : 'غير نشط'" [severity]="item.student.isActive ? 'success' : 'warning'"></p-tag></td>
+            <td>
+              <div class="row-actions">
+                <button pButton type="button" class="p-button-text" icon="pi pi-pencil" aria-label="تعديل الطالب" [disabled]="loadingDetails()" (click)="openEdit(item)"></button>
+                <button pButton type="button" class="p-button-text p-button-danger" icon="pi pi-trash" aria-label="حذف الطالب" (click)="confirmDelete(item)"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="empty">لا يوجد طلاب مطابقون. أضف طالبًا جديدًا للبدء.</td></tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+
+  <p-dialog
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="!saving()"
+    [style]="{ width: 'min(620px, calc(100vw - 2rem))' }"
+    [header]="editing() ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد'">
+    <form class="student-form" [formGroup]="form" (ngSubmit)="save()">
+      <label class="form-field" for="student-number">
+        <span>رقم الطالب <b>*</b></span>
+        <input id="student-number" pInputText formControlName="studentNumber" maxlength="50" dir="ltr" placeholder="ST-001" />
+      </label>
+
+      <label class="form-field" for="student-identity-number">
+        <span>رقم الهوية <b>*</b></span>
+        <input id="student-identity-number" pInputText formControlName="identityNumber" maxlength="50" dir="ltr" placeholder="10xxxxxxxx" />
+      </label>
+
+      <label class="form-field" for="student-first-name">
+        <span>الاسم الأول <b>*</b></span>
+        <input id="student-first-name" pInputText formControlName="firstName" maxlength="100" />
+      </label>
+
+      <label class="form-field" for="student-last-name">
+        <span>اسم العائلة <b>*</b></span>
+        <input id="student-last-name" pInputText formControlName="lastName" maxlength="100" />
+      </label>
+
+      <label class="form-field" for="student-classroom">
+        <span>الفصل الحالي</span>
+        <app-clearable-select inputId="student-classroom" formControlName="classroomId" [options]="classroomOptions" optionLabel="label" optionValue="value" placeholder="اختر الفصل" [filter]="true" filterBy="label"></app-clearable-select>
+      </label>
+
+      @if (editing()) {
+        <label class="active-field form-field--wide" for="student-active">
+          <p-checkbox inputId="student-active" formControlName="isActive" [binary]="true"></p-checkbox>
+          <span>الطالب نشط ويظهر في القوائم التشغيلية</span>
+        </label>
+      }
+
+      @if (form.invalid && form.touched) {
+        <p class="validation-message">أكمل جميع الحقول المطلوبة بقيم صحيحة.</p>
+      }
+
+      <div class="dialog-actions form-field--wide">
+        <button pButton type="button" class="p-button-outlined" label="إلغاء" [disabled]="saving()" (click)="closeDialog()"></button>
+        <button pButton type="submit" icon="pi pi-check" [label]="editing() ? 'حفظ التعديلات' : 'إضافة الطالب'" [loading]="saving()"></button>
+      </div>
+    </form>
+  </p-dialog>
+</section>

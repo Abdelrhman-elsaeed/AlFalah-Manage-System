@@ -187,7 +187,7 @@ export const routes: Routes = [
         },
         loadComponent: () => import('./features/attendance/attendance/attendance.component')
           .then(m => m.AttendanceComponent),
-        title: 'الحضور والانصراف'
+        title: 'حضور وانصراف الموظفين'
       },
       {
         path: 'parent-surveys',
@@ -437,6 +437,28 @@ export const routes: Routes = [
 
       // Student Affairs Phase 3: daily attendance, integrations, and absence excuses.
       {
+        path: 'student-affairs/classrooms',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary'],
+          permissions: ['Classroom.Manage']
+        },
+        loadComponent: () => import('./features/student-affairs/classrooms-management/classrooms-management.component')
+          .then(m => m.ClassroomsManagementComponent),
+        title: 'إدارة الفصول'
+      },
+      {
+        path: 'student-affairs/students',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary'],
+          permissions: ['Student.Manage']
+        },
+        loadComponent: () => import('./features/student-affairs/students-management/students-management.component')
+          .then(m => m.StudentsManagementComponent),
+        title: 'إدارة الطلاب'
+      },
+      {
         path: 'student-affairs/attendance/sheet',
         canActivate: [roleGuard, permissionGuard],
         data: {
@@ -492,6 +514,30 @@ export const routes: Routes = [
         loadComponent: () => import('./features/student-affairs/excuses-management/excuses-management.component')
           .then(m => m.ExcusesManagementComponent),
         title: 'مراجعة الأعذار'
+      },
+
+      // Student Affairs: Student Analytics & Records
+      {
+        path: 'student-affairs/records',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['StudentAffairsOfficer', 'SocialWorker', 'SchoolManager', 'MainManager', 'SuperAdmin'],
+          permissions: ['Student.View']
+        },
+        loadComponent: () => import('./features/student-affairs/student-records/student-records.component')
+          .then(m => m.StudentRecordsComponent),
+        title: 'سجل متابعة الطلاب'
+      },
+      {
+        path: 'student-affairs/records/:id',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['StudentAffairsOfficer', 'SocialWorker', 'SchoolManager', 'MainManager', 'SuperAdmin'],
+          permissions: ['Student.View']
+        },
+        loadComponent: () => import('./features/student-affairs/student-profile-dashboard/student-profile-dashboard.component')
+          .then(m => m.StudentProfileDashboardComponent),
+        title: 'الملف التحليلي للطالب'
       },
 
       // Student Affairs Phase 4: Guardian request, Officer decision, and Guard execution.

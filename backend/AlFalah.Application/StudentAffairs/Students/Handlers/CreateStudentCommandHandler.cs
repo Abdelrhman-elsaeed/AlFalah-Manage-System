@@ -37,7 +37,8 @@ public sealed class CreateStudentCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.StudentCreate)
+        if (!_currentUser.HasPermission(PermissionNames.StudentManage)
+            && !_currentUser.HasPermission(PermissionNames.StudentCreate)
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)
             && !_currentUser.IsInRole(RoleNames.SchoolManager))
@@ -48,15 +49,58 @@ public sealed class CreateStudentCommandHandler
         var req = command.Request;
         var now = _timeProvider.GetUtcNow();
         var today = DateOnly.FromDateTime(now.DateTime);
+        var studentNumber = req.StudentNumber.Trim();
+        var identityNumber = req.IdentityNumber.Trim();
+        var nationalId = string.IsNullOrWhiteSpace(req.NationalId) ? null : req.NationalId.Trim();
+
+        if (await _repository.StudentNumberExistsAsync(
+                schoolId.Value,
+                studentNumber,
+                null,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.DuplicateStudentNumber);
+        }
+
+        if (await _repository.StudentIdentityNumberExistsAsync(
+                schoolId.Value,
+                identityNumber,
+                null,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.DuplicateIdentityNumber);
+        }
+
+        if (nationalId is not null && await _repository.StudentNationalIdExistsAsync(
+                schoolId.Value,
+                nationalId,
+                null,
+                cancellationToken).ConfigureAwait(false))
+        {
+            return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.DuplicateNationalId);
+        }
+
+        StudentEnrollmentTarget? enrollmentTarget = null;
+        if (req.ClassroomId.HasValue)
+        {
+            enrollmentTarget = await _repository.GetStudentEnrollmentTargetAsync(
+                schoolId.Value,
+                req.ClassroomId.Value,
+                cancellationToken).ConfigureAwait(false);
+
+            if (enrollmentTarget is null)
+                return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.ClassroomNotAvailable);
+        }
 
         var student = new Student
         {
             SchoolId = schoolId.Value,
-            StudentNumber = req.StudentNumber.Trim(),
+            StudentNumber = studentNumber,
+            IdentityNumber = identityNumber,
             FirstName = req.FirstName.Trim(),
             MiddleName = string.IsNullOrWhiteSpace(req.MiddleName) ? null : req.MiddleName.Trim(),
             LastName = req.LastName.Trim(),
-            NationalId = string.IsNullOrWhiteSpace(req.NationalId) ? null : req.NationalId.Trim(),
+            NationalId = nationalId,
             DateOfBirth = req.DateOfBirth,
             Gender = req.Gender,
             IsActive = true,
@@ -66,13 +110,13 @@ public sealed class CreateStudentCommandHandler
             UpdatedByUserId = userId
         };
 
-        if (req.InitialAcademicTermId > 0 && req.InitialClassroomId > 0)
+        if (enrollmentTarget is not null)
         {
             student.Enrollments.Add(new StudentEnrollment
             {
                 SchoolId = schoolId.Value,
-                AcademicTermId = req.InitialAcademicTermId,
-                ClassroomId = req.InitialClassroomId,
+                AcademicTermId = enrollmentTarget.AcademicTermId,
+                ClassroomId = enrollmentTarget.ClassroomId,
                 RollNumber = req.RollNumber,
                 EnrolledOn = today,
                 Status = StudentEnrollmentStatus.Active,

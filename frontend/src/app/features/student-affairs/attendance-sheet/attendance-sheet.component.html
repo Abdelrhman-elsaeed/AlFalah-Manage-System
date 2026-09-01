@@ -10,10 +10,12 @@
   </header>
 
   <p-card styleClass="filter-card">
-    <div class="selectors">
-      <label>
+    <div class="selectors" aria-label="مرشحات كشف الحضور">
+      <label class="selector-field" for="attendance-classroom">
         <span>الفصل</span>
-        <p-dropdown
+        <app-clearable-select
+          class="selector-control"
+          inputId="attendance-classroom"
           [formControl]="classroomControl"
           [options]="classrooms()"
           optionLabel="label"
@@ -22,12 +24,15 @@
           [loading]="loadingClassrooms()"
           [filter]="true"
           filterBy="label"
+          [clearable]="false"
           appendTo="body">
-        </p-dropdown>
+        </app-clearable-select>
       </label>
-      <label>
+      <label class="selector-field" for="attendance-date">
         <span>التاريخ</span>
         <p-calendar
+          class="selector-control selector-control--date"
+          inputId="attendance-date"
           [formControl]="dateControl"
           [maxDate]="today"
           dateFormat="yy-mm-dd"
