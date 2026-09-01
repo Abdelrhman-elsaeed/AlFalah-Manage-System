@@ -21,3 +21,6 @@ export const SUPPRESS_FORBIDDEN_REDIRECT = new HttpContextToken<boolean>(() => f
  * `extractHttpErrorMessage()` so the server's Arabic reason survives.
  */
 export const SUPPRESS_ERROR_TOAST = new HttpContextToken<boolean>(() => false);
+
+/** Prevents a failed /auth/me verification inside the refresh flow from recursively refreshing. */
+export const SKIP_AUTH_REFRESH = new HttpContextToken<boolean>(() => false);

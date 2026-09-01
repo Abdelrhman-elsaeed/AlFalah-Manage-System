@@ -1,0 +1,45 @@
+<main class="messages-page" dir="rtl">
+  <header class="page-header"><div><span class="eyebrow">التواصل المدرسي الآمن</span><h1>الرسائل</h1><p>محادثاتك المرتبطة بالطلاب فقط، مع تحديث هادئ كل 25 ثانية أثناء فتح المحادثة.</p></div><button pButton type="button" label="تحديث" icon="pi pi-refresh" class="p-button-outlined" (click)="loadInbox()"></button></header>
+
+  <section class="chat-shell">
+    <aside class="inbox" aria-label="صندوق المحادثات">
+      <header><div><h2>المحادثات</h2><span>{{ totalRecords() }}</span></div><button pButton type="button" [label]="unreadOnly() ? 'عرض الكل' : 'غير المقروءة'" [icon]="unreadOnly() ? 'pi pi-list' : 'pi pi-envelope'" class="p-button-text" size="small" (click)="unreadOnly.set(!unreadOnly()); loadInbox()"></button></header>
+      @if (isGuardian) { <div class="new-thread-note"><i class="pi pi-info-circle"></i><span>يبدأ الحوار الجديد من سياق الطالب/المعلم المصرح عند توفره؛ لا يمكن إدخال معرف معلم يدويًا.</span></div> }
+      @if (loadingInbox()) { <div class="inbox-state"><p-progressSpinner strokeWidth="4"></p-progressSpinner></div> }
+      @else if (inboxError()) { <div class="inbox-state error"><i class="pi pi-exclamation-triangle"></i><span>{{ inboxError() }}</span></div> }
+      @else { <div class="thread-list">@for (thread of conversations(); track thread.id) { <button type="button" class="thread-item" [class.active]="selected()?.id === thread.id" (click)="selectConversation(thread)"><div class="thread-top"><strong>{{ thread.subject }}</strong>@if (thread.unreadCount) { <span class="unread">{{ thread.unreadCount }}</span> }</div><span>{{ thread.student.displayName }} · {{ threadTypeLabel(thread.threadType) }}</span><div class="thread-meta"><small>{{ formatDateTime(thread.updatedAt) }}</small><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : thread.status === 'Closed' ? 'مغلقة' : 'مؤرشفة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag></div></button> } @empty { <div class="inbox-state"><i class="pi pi-comments"></i><span>لا توجد محادثات في هذا العرض.</span></div> }</div> }
+    </aside>
+
+    <section class="conversation" aria-live="polite">
+      @if (!selected()) { <div class="conversation-empty"><i class="pi pi-comments"></i><h2>اختر محادثة</h2><p>ستظهر الرسائل هنا بعد التحقق من مشاركتك في المحادثة.</p></div> }
+      @else { @if (selected(); as thread) {
+        <header class="conversation-header"><div><h2>{{ thread.subject }}</h2><span>{{ thread.student.displayName }} · {{ threadTypeLabel(thread.threadType) }}</span><small>{{ thread.participants.length }} مشاركين: @for (participant of thread.participants; track participant.userId) { {{ participant.displayName }}@if (!$last) {، } }</small></div><div><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : 'مغلقة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag>@if (canClose && thread.status === 'Open') { <button pButton type="button" label="إغلاق" icon="pi pi-lock" size="small" class="p-button-outlined" (click)="openCloseDialog()"></button> }</div></header>
+        @if (loadingThread()) { <div class="conversation-empty"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الرسائل…</span></div> }
+        @else {
+          <div class="timeline">
+            @if (hasOlder()) { <button pButton type="button" label="تحميل رسائل أقدم" icon="pi pi-history" class="p-button-text older" [loading]="loadingOlder()" (click)="loadOlder()"></button> }
+            @for (message of messages(); track message.id) {
+              <article class="message" [class.mine]="isMine(message)">
+                <div class="message-head"><strong>{{ message.sender.displayName }}</strong><time><bdi dir="ltr">{{ formatDateTime(message.createdAt) }}</bdi></time></div>
+                <p dir="auto">{{ message.body }}</p>
+                <footer><span [class.pending]="message.deliveryState === 'Pending'"><i [class]="message.deliveryState === 'Delivered' ? 'pi pi-check-circle' : message.deliveryState === 'Pending' ? 'pi pi-clock' : 'pi pi-exclamation-circle'"></i>{{ deliveryLabel(message.deliveryState) }}</span></footer>
+                @if (queuedResult(message.id); as result) {
+                  @if (result.disposition === 'QueuedUntilOfficeHours') { <div class="queued-warning" role="status"><p-tag value="مجدولة للساعات المكتبية" severity="warning"></p-tag><strong>سيتم التنبيه في أقرب ساعة مكتبية{{ result.nextEligibleSendAt ? ': ' + formatDateTime(result.nextEligibleSendAt) : '' }}</strong><span>الرسالة محفوظة وقيد الانتظار، وليست «تم التسليم».</span></div> }
+                  @else if (result.disposition === 'BypassedForUrgency') { <div class="urgent-warning"><i class="pi pi-bolt"></i><span>أُرسلت كحالة عاجلة (مسجلة للتدقيق)</span></div> }
+                }
+              </article>
+            } @empty { <div class="conversation-empty small"><i class="pi pi-envelope"></i><span>لا توجد رسائل بعد.</span></div> }
+          </div>
+          <form class="composer" (ngSubmit)="send()">
+            @if (thread.status !== 'Open') { <div class="closed-note"><i class="pi pi-lock"></i><span>المحادثة مغلقة والرد غير متاح.</span></div> }
+            @if (sendError()) { <div class="send-error" role="alert"><i class="pi pi-exclamation-triangle"></i><span>{{ sendError() }}</span></div> }
+            <textarea pInputTextarea [formControl]="draft" rows="3" placeholder="اكتب رسالتك…" [readOnly]="thread.status !== 'Open'"></textarea>
+            <div><small>يُعرض النص كنص عادي مع حفظ الأسطر، دون تنفيذ HTML أو Markdown.</small><button pButton type="submit" label="إرسال" icon="pi pi-send" [loading]="sending()" [disabled]="thread.status !== 'Open' || !draft.value.trim()"></button></div>
+          </form>
+        }
+      } }
+    </section>
+  </section>
+
+  <p-dialog header="إغلاق المحادثة" [visible]="closeDialogVisible()" (visibleChange)="closeDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!closing()" [style]="{ width: 'min(560px, 96vw)' }"><p>سيصبح الرد غير متاح بعد الإغلاق. اكتب سببًا واضحًا ومسجلًا للتدقيق.</p><label class="field"><span>سبب الإغلاق *</span><textarea pInputTextarea [formControl]="closeReason" rows="5"></textarea></label><div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="closeDialogVisible.set(false)"></button><button pButton type="button" label="تأكيد الإغلاق" icon="pi pi-lock" [loading]="closing()" [disabled]="!closeReason.value.trim()" (click)="closeThread()"></button></div></p-dialog>
+</main>

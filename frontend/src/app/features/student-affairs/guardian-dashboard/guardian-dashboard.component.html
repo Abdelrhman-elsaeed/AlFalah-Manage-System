@@ -1,0 +1,50 @@
+<main class="guardian-page" dir="rtl">
+  <header class="page-header"><div><p class="eyebrow">لوحة ولي الأمر</p><h1>أبنائي</h1><p>ملخص الطلاب المرتبطين بحسابك كما أعادهم النظام.</p></div><button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="تحديث" [loading]="loading()" (click)="load()"></button></header>
+
+  <section *ngIf="loading()" class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><p>جارٍ تحميل بيانات الأبناء…</p></section>
+  <section *ngIf="!loading() && errorMessage()" class="feedback-error" role="alert"><i class="pi pi-exclamation-triangle"></i><span>{{ errorMessage() }}</span><button pButton type="button" class="p-button-text" label="إعادة المحاولة" (click)="load()"></button></section>
+
+  <ng-container *ngIf="!loading()">
+    <section *ngIf="actions().length" class="actions-strip" aria-label="الإجراءات الإجمالية" aria-live="polite">
+      <article *ngFor="let action of actions()"><div><span>{{ action.label || action.code }}</span><strong>{{ action.count }}</strong></div><p-tag [value]="action.severity" [severity]="actionSeverity(action)"></p-tag></article>
+    </section>
+
+    <section *ngIf="cards().length === 0 && !errorMessage()" class="state-card empty"><i class="pi pi-users"></i><h2>لا يوجد طلاب مرتبطون بحساب ولي الأمر</h2><p>راجع إدارة المدرسة للتحقق من ربط الحساب.</p></section>
+
+    <section class="student-grid" *ngIf="cards().length">
+      <p-card *ngFor="let card of cards()" styleClass="student-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <img *ngIf="card.context.student.photoUrl; else fallback" [src]="card.context.student.photoUrl" [alt]="card.context.student.displayName" />
+            <ng-template #fallback><span class="avatar">{{ initials(card.context.student.displayName) }}</span></ng-template>
+            <div><h2>{{ card.context.student.displayName }}</h2><p><bdi dir="ltr">{{ card.context.student.studentNumber }}</bdi> · {{ card.context.student.classLabel || card.context.classroom?.label || 'غير مسند لفصل' }}</p></div>
+            <p-tag [value]="card.context.student.isActive ? 'نشط' : 'غير نشط'" [severity]="card.context.student.isActive ? 'success' : 'warning'"></p-tag>
+          </div>
+        </ng-template>
+
+        <div class="metric-list">
+          <article *ngFor="let metric of card.context.metrics"><div><span>{{ metricLabel(metric.metricCode) }}</span><strong>{{ metric.eligibleTermCount }}</strong></div><p-tag [value]="metric.severity" [severity]="severity(metric)"></p-tag><small *ngIf="metric.nextThreshold !== null">الحد التالي: {{ metric.nextThreshold }}</small></article>
+          <p *ngIf="card.context.metrics.length === 0" class="empty-inline">لا توجد مؤشرات مسجلة للفصل الحالي.</p>
+        </div>
+
+        <div class="capabilities" aria-label="الخدمات المتاحة">
+          <span *ngIf="card.canSubmitExcuses"><i class="pi pi-check"></i> يمكن رفع عذر غياب</span>
+          <span *ngIf="card.canRequestGatePass"><i class="pi pi-check"></i> يمكن طلب استئذان خروج</span>
+          <span *ngIf="card.receivesNotifications"><i class="pi pi-bell"></i> يستقبل الإشعارات</span>
+        </div>
+
+        <button pButton type="button" class="p-button-outlined summary-button" [icon]="expandedStudentId() === card.context.student.id ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" [label]="expandedStudentId() === card.context.student.id ? 'إخفاء الملخص' : 'عرض الملخص'" (click)="toggleSummary(card)"></button>
+
+        <section *ngIf="expandedStudentId() === card.context.student.id" class="expanded-summary">
+          <div *ngIf="summaryLoading() && !summaryFor(card.context.student.id)" class="summary-loading"><i class="pi pi-spin pi-spinner"></i> جارٍ تحميل الملخص…</div>
+          <ng-container *ngIf="summaryFor(card.context.student.id) as summary">
+            <div class="summary-count"><strong>{{ summary.pendingSummons }}</strong><span>استدعاءات بانتظار الإجراء</span></div>
+            <div class="summary-count"><strong>{{ summary.activeGatePasses }}</strong><span>استئذانات خروج نشطة</span></div>
+            <div class="summary-count"><strong>{{ summary.recentRecognitions }}</strong><span>إشادات حديثة</span></div>
+            <p class="term-copy">{{ summary.context.activeTerm?.label || 'لا يوجد فصل دراسي نشط' }} · {{ summary.context.classroom?.label || 'غير مسند لفصل' }}</p>
+          </ng-container>
+        </section>
+      </p-card>
+    </section>
+  </ng-container>
+</main>

@@ -1,0 +1,140 @@
+<main class="crm-page" dir="rtl">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">إدارة الحالات الطلابية</span>
+      <h1>{{ section() === 'cases' ? 'إحالات الموجه الطلابي' : 'استدعاءات أولياء الأمور' }}</h1>
+      <p>{{ section() === 'cases' ? 'الإحالات المنشأة من محرك الأتمتة مع الاحتفاظ بلقطة المصدر التاريخية.' : 'متابعة دورة الاستدعاء بأربع حالات مع حماية كل انتقال بإصدار السجل.' }}</p>
+    </div>
+    <div class="header-actions">
+      <a pButton routerLink="/student-affairs/cases" label="الإحالات" icon="pi pi-briefcase" [class.p-button-outlined]="section() !== 'cases'"></a>
+      <a pButton routerLink="/student-affairs/summons" label="الاستدعاءات" icon="pi pi-calendar-clock" [class.p-button-outlined]="section() !== 'summons'"></a>
+    </div>
+  </header>
+
+  <section class="toolbar">
+    <span class="p-input-icon-right search-box"><i class="pi pi-search"></i><input pInputText [formControl]="search" placeholder="بحث باسم الطالب أو رقم الحالة" /></span>
+    <div class="toolbar-actions">
+      @if (section() === 'cases') {
+        <button pButton type="button" icon="pi pi-th-large" label="كانبان" [class.p-button-outlined]="listMode() !== 'kanban'" (click)="listMode.set('kanban')"></button>
+        <button pButton type="button" icon="pi pi-list" label="قائمة" [class.p-button-outlined]="listMode() !== 'list'" (click)="listMode.set('list')"></button>
+      }
+      <button pButton type="button" icon="pi pi-refresh" label="تحديث" class="p-button-outlined" (click)="load()"></button>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <section class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل أحدث الحالات…</span></section>
+  } @else if (errorMessage()) {
+    <section class="state-card error" role="alert"><i class="pi pi-exclamation-triangle"></i><strong>{{ errorMessage() }}</strong><button pButton type="button" label="إعادة المحاولة" (click)="load()"></button></section>
+  } @else if (section() === 'cases') {
+    @if (listMode() === 'kanban') {
+      <section class="kanban" aria-label="لوحة حالات الإحالات">
+        @for (status of referralStatuses; track status) {
+          <article class="kanban-column">
+            <header><h2>{{ referralStatusLabel(status) }}</h2><span>{{ referralsFor(status).length }}</span></header>
+            <div class="column-body">
+              @for (item of referralsFor(status); track item.id) {
+                <ng-container [ngTemplateOutlet]="referralCard" [ngTemplateOutletContext]="{ $implicit: item }"></ng-container>
+              } @empty { <div class="column-empty">لا توجد حالات</div> }
+            </div>
+          </article>
+        }
+      </section>
+    } @else {
+      <p-dataView [value]="referrals()" layout="list">
+        <ng-template pTemplate="list" let-items>
+          <div class="referral-list">
+            @for (item of items; track item.id) { <ng-container [ngTemplateOutlet]="referralCard" [ngTemplateOutletContext]="{ $implicit: item }"></ng-container> }
+          </div>
+        </ng-template>
+      </p-dataView>
+    }
+  } @else {
+    <section class="summons-board" aria-label="دورة حياة الاستدعاءات">
+      @for (status of summonStatuses; track status; let index = $index) {
+        <article class="summon-stage">
+          <header><span class="step-number">{{ index + 1 }}</span><h2>{{ status === 'Pending' ? 'بانتظار الموعد/الحضور' : status === 'Attended' ? 'تم الحضور' : status === 'UnderObservation' ? 'تحت الملاحظة' : 'تحسّن' }}</h2><b>{{ summonsFor(status).length }}</b></header>
+          <div class="column-body">
+            @for (item of summonsFor(status); track item.id) {
+              <article class="case-card summon-card">
+                <div class="card-heading"><div><strong>{{ item.student.displayName }}</strong><small><bdi dir="ltr">{{ item.student.studentNumber }}</bdi> · #{{ item.id }}</small></div><p-tag [value]="priorityLabel(item.priority)" [severity]="prioritySeverity(item.priority)"></p-tag></div>
+                <p class="summary">{{ item.createdReason }}</p>
+                <div class="substate"><i class="pi pi-clock"></i><strong>{{ summonStatusLabel(item) }}</strong></div>
+                @if (item.scheduledAt) { <dl><div><dt>الموعد</dt><dd>{{ formatDateTime(item.scheduledAt) }}</dd></div><div><dt>المكان</dt><dd>{{ item.location || '—' }}</dd></div></dl> }
+                <dl><div><dt>ولي الأمر</dt><dd>{{ item.guardian.displayName }}</dd></div><div><dt>الموجه المسؤول</dt><dd>{{ item.assignedSocialWorker?.displayName || 'غير مسند' }}</dd></div></dl>
+                <div class="snapshot"><span>لقطة المصدر</span><b>{{ item.sourceCountSnapshot ?? '—' }} / {{ item.thresholdSnapshot ?? '—' }}</b></div>
+                @if (item.requiresOfficerReview) { <div class="review-badge"><i class="pi pi-shield"></i><span>يتطلب مراجعة المسؤول{{ item.officerReviewReason ? ': ' + item.officerReviewReason : '' }}</span></div> }
+                <div class="notification-state"><i [class]="item.guardianNotifiedAt ? 'pi pi-bell' : 'pi pi-bell-slash'"></i>{{ item.guardianNotifiedAt ? 'تم إشعار ولي الأمر: ' + formatDateTime(item.guardianNotifiedAt) : 'لم يُسجل إشعار ولي الأمر بعد' }}</div>
+                <div class="card-actions">
+                  @if (isSummonActionAllowed(item, 'schedule')) { <button pButton type="button" label="تحديد موعد" icon="pi pi-calendar" size="small" class="p-button-outlined" (click)="openSummon(item, 'schedule')"></button> }
+                  @if (isSummonActionAllowed(item, 'attend')) { <button pButton type="button" label="تسجيل الحضور" icon="pi pi-user-plus" size="small" (click)="openSummon(item, 'attend')"></button> }
+                  @if (isSummonActionAllowed(item, 'observe')) { <button pButton type="button" label="بدء الملاحظة" icon="pi pi-eye" size="small" (click)="openSummon(item, 'observe')"></button> }
+                  @if (isSummonActionAllowed(item, 'improve')) { <button pButton type="button" label="تحسن الحالة" icon="pi pi-check-circle" size="small" class="p-button-success" (click)="openSummon(item, 'improve')"></button> }
+                </div>
+              </article>
+            } @empty { <div class="column-empty">لا توجد استدعاءات</div> }
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  <ng-template #referralCard let-item>
+    <article class="case-card">
+      <div class="card-heading"><div><strong>{{ item.student.displayName }}</strong><small><bdi dir="ltr">{{ item.student.studentNumber }}</bdi> · #{{ item.id }}</small></div><p-tag [value]="priorityLabel(item.priority)" [severity]="prioritySeverity(item.priority)"></p-tag></div>
+      <div class="source-line"><i class="pi pi-bolt"></i><span>{{ sourceLabel(item.sourceSnapshot.sourceType) }}</span>@if (item.sourceSnapshot.sourceEntityId) { <bdi dir="ltr">#{{ item.sourceSnapshot.sourceEntityId }}</bdi> }</div>
+      <div class="snapshot"><span>اللقطة التاريخية</span><b>{{ item.sourceSnapshot.countSnapshot ?? '—' }} / {{ item.sourceSnapshot.thresholdSnapshot ?? '—' }}</b></div>
+      @if (item.currentMetric) { <div class="metric"><span>المؤشر الحالي</span><b>{{ item.currentMetric.eligibleTermCount }}</b><small>آخر احتساب {{ formatDateTime(item.currentMetric.recalculatedAt) }}</small></div> }
+      <dl><div><dt>الموجه المسؤول</dt><dd>{{ item.assignedSocialWorker?.displayName || 'غير مسند' }}</dd></div><div><dt>الإجراءات</dt><dd>{{ item.actions.length }}</dd></div><div><dt>تاريخ الإنشاء</dt><dd>{{ formatDateTime(item.createdAt) }}</dd></div></dl>
+      @if (canManageReferrals) {
+        <div class="card-actions">
+          @if (item.status === 'Assigned') { <button pButton type="button" label="بدء الحالة" icon="pi pi-play" size="small" (click)="openReferral(item, 'accept')"></button> }
+          @if (item.status === 'InProgress') { <button pButton type="button" label="إضافة إجراء" icon="pi pi-plus" size="small" class="p-button-outlined" (click)="openReferral(item, 'addAction')"></button><button pButton type="button" label="حل الحالة" icon="pi pi-check" size="small" (click)="openReferral(item, 'resolve')"></button> }
+          @if (item.status === 'Resolved') { <button pButton type="button" label="إعادة فتح" icon="pi pi-refresh" size="small" class="p-button-warning" (click)="openReferral(item, 'reopen')"></button> }
+        </div>
+      }
+    </article>
+  </ng-template>
+
+  <p-dialog [header]="referralDialogTitle()" [visible]="referralDialogVisible()" (visibleChange)="referralDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!referralSaving()" [style]="{ width: 'min(780px, 96vw)' }">
+    @if (selectedReferral(); as item) {
+      <div class="dialog-context"><strong>{{ item.student.displayName }}</strong><p-tag [value]="referralStatusLabel(item.status)" severity="info"></p-tag><span>الإصدار الأحدث محمي بخادم النظام</span></div>
+      @if (referralConflict()) { <div class="conflict" role="alert"><i class="pi pi-exclamation-triangle"></i><div><strong>تم تحديث الحالة بواسطة مستخدم آخر</strong><span>المسودة أدناه محفوظة. راجع الحالة الأحدث ثم أعد التأكيد يدويًا إن بقيت مناسبة.</span></div></div> }
+      @if (item.actions.length) { <section class="case-history"><h3>سجل الإجراءات السري المصرح</h3>@for (action of item.actions; track action.id) { <article><div><strong>{{ action.actor.displayName }}</strong><time>{{ formatDateTime(action.actionAt) }}</time></div><p>{{ action.description }}</p>@if (action.result) { <small>النتيجة: {{ action.result }}</small> }</article> }</section> }
+      @if (referralActionMode() === 'addAction') {
+        <form [formGroup]="referralActionForm" class="form-grid">
+          <label class="field"><span>نوع الإجراء *</span><p-dropdown formControlName="actionType" [options]="caseActionOptions" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown></label>
+          <label class="field"><span>وقت الإجراء (اختياري)</span><p-calendar formControlName="actionAt" [showTime]="true" [showIcon]="true" appendTo="body"></p-calendar></label>
+          <label class="field full"><span>الوصف *</span><textarea pInputTextarea formControlName="description" rows="5"></textarea></label>
+          <label class="field full"><span>النتيجة (اختيارية)</span><textarea pInputTextarea formControlName="result" rows="3"></textarea></label>
+        </form>
+      } @else if (referralActionMode() !== 'accept') {
+        <label class="field"><span>{{ referralActionMode() === 'resolve' ? 'مذكرة الحل' : 'سبب إعادة الفتح' }} *</span><textarea pInputTextarea [formControl]="referralActionForm.controls.narrative" rows="5"></textarea></label>
+      } @else { <p class="confirm-copy">سيبدأ العمل على الحالة وينقلها إلى «قيد المتابعة» باستخدام أحدث إصدار ظاهر.</p> }
+      <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="referralDialogVisible.set(false)"></button><button pButton type="button" [label]="referralActionMode() === 'accept' ? 'تأكيد بدء الحالة' : 'حفظ الإجراء'" icon="pi pi-check" [loading]="referralSaving()" (click)="submitReferralAction()"></button></div>
+    }
+  </p-dialog>
+
+  <p-dialog [header]="summonDialogTitle()" [visible]="summonDialogVisible()" (visibleChange)="summonDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!summonSaving()" [style]="{ width: 'min(900px, 96vw)' }">
+    @if (selectedSummon(); as item) {
+      <div class="dialog-context"><strong>{{ item.student.displayName }}</strong><p-tag [value]="summonStatusLabel(item)" severity="info"></p-tag><span>ولي الأمر: {{ item.guardian.displayName }}</span></div>
+      <ol class="state-stepper" aria-label="حالات الاستدعاء">
+        @for (status of summonStatuses; track status; let index = $index) { <li [class.active]="status === item.status" [class.done]="summonStatuses.indexOf(item.status) > index"><span>{{ index + 1 }}</span><small>{{ status === 'Pending' ? 'بانتظار الموعد/الحضور' : status === 'Attended' ? 'تم الحضور' : status === 'UnderObservation' ? 'تحت الملاحظة' : 'تحسّن' }}</small></li> }
+      </ol>
+      @if (summonConflict()) { <div class="conflict" role="alert"><i class="pi pi-shield"></i><div><strong>ظهر انتقال أحدث</strong><span>النص محفوظ، والأزرار غير الممكنة أصبحت معطلة. راجع سجل الانتقالات قبل المحاولة.</span></div></div> }
+      @if (summonActionMode() === 'schedule') {
+        <form [formGroup]="scheduleForm" class="form-grid">
+          <label class="field"><span>الموعد المستقبلي *</span><p-calendar formControlName="appointmentAt" [showTime]="true" [showIcon]="true" hourFormat="12" appendTo="body"></p-calendar></label>
+          <label class="field"><span>ولي الأمر المرتبط النشط *</span><p-dropdown formControlName="guardianProfileId" [options]="activeGuardians()" optionLabel="guardian.displayName" optionValue="guardian.id" appendTo="body" placeholder="اختر ولي الأمر"></p-dropdown></label>
+          <label class="field full"><span>المكان *</span><input pInputText formControlName="location" /></label>
+          <label class="field full"><span>تعليمات (اختيارية)</span><textarea pInputTextarea formControlName="instructions" rows="3"></textarea></label>
+          @if (scheduleForm.controls.appointmentAt.value && scheduleForm.controls.appointmentAt.value!.getTime() <= Date.now()) { <small class="validation full">يجب أن يكون الموعد في المستقبل.</small> }
+        </form>
+      } @else {
+        <label class="field"><span>{{ summonNarrativeLabel() }} *</span><textarea pInputTextarea [formControl]="transitionNarrative" rows="6"></textarea></label>
+      }
+      @if (summonHistory(); as history) { <section class="transition-history"><h3>سجل الانتقالات</h3>@for (transition of history.transitions; track transition.occurredAt + transition.toState) { <article><i class="pi pi-history"></i><div><strong>{{ transitionLabel(transition.fromState, transition.toState) }}</strong><span>{{ transition.actor.displayName }} · {{ formatDateTime(transition.occurredAt) }}</span>@if (transition.reason) { <p>{{ transition.reason }}</p> }</div></article> } @empty { <span>لا توجد انتقالات مسجلة بعد.</span> }</section> }
+      <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="summonDialogVisible.set(false)"></button><button pButton type="button" [label]="summonDialogTitle()" icon="pi pi-check" [loading]="summonSaving()" [disabled]="!isSummonActionAllowed(item, summonActionMode())" (click)="submitSummonAction()"></button></div>
+    }
+  </p-dialog>
+</main>

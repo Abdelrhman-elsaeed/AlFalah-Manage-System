@@ -1,0 +1,146 @@
+<main class="teacher-page" dir="rtl">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">أولوية المعلم الآن</p>
+      <h1>الحصة الحالية</h1>
+      <p *ngIf="context() as current">{{ current.teacher.displayName }} · {{ current.schoolTimeZone }}</p>
+    </div>
+    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="تحديث" [loading]="loading()" (click)="load()"></button>
+  </header>
+
+  <section *ngIf="loading()" class="state-card" role="status">
+    <p-progressSpinner strokeWidth="4" ariaLabel="جارٍ تحميل الحصة"></p-progressSpinner>
+    <p>جارٍ تحديد الحصة الحالية من الجدول المنشور…</p>
+  </section>
+
+  <section *ngIf="!loading() && errorMessage()" class="state-card error" [attr.role]="denied() ? 'alert' : 'status'">
+    <i class="pi" [class.pi-lock]="denied()" [class.pi-exclamation-triangle]="!denied()"></i>
+    <h2>{{ denied() ? 'الوصول غير متاح' : 'تعذر تحميل البيانات' }}</h2>
+    <p>{{ errorMessage() }}</p>
+    <button *ngIf="!denied()" pButton type="button" label="إعادة المحاولة" (click)="load()"></button>
+  </section>
+
+  <ng-container *ngIf="!loading() && !errorMessage() && topPriority() as priority">
+    <section class="priority-strip" aria-label="التنبيهات ذات الأولوية">
+      <article><i class="pi pi-sign-out"></i><strong>{{ priority.pendingGatePassAcknowledgements }}</strong><span>استئذانات خروج بانتظار الإقرار</span></article>
+      <article><i class="pi pi-id-card"></i><strong>{{ priority.pendingEntryPermitAcknowledgements }}</strong><span>تصاريح دخول بانتظار الإقرار</span></article>
+      <article *ngFor="let alert of priority.alerts" class="priority-alert"><i class="pi pi-bell"></i><span>{{ alert }}</span></article>
+    </section>
+
+    <section *ngIf="!priority.context.currentPeriod" class="state-card empty">
+      <i class="pi pi-calendar-times"></i>
+      <h2>لا توجد حصة حالية حسب الجدول المنشور</h2>
+      <p>ستُحدّث الصفحة عند بدء الحصة التالية أو عند عودة التركيز إلى النافذة.</p>
+    </section>
+
+    <ng-container *ngIf="priority.context.currentPeriod as period">
+      <section class="context-card">
+        <div>
+          <span class="context-label">الفصل</span>
+          <strong>{{ period.classroom.label }}</strong>
+        </div>
+        <div>
+          <span class="context-label">الحصة</span>
+          <strong>{{ period.period }}</strong>
+        </div>
+        <div>
+          <span class="context-label">الوقت المدرسي</span>
+          <strong dir="ltr">{{ formatTime(period.startsAt) }} – {{ formatTime(period.endsAt) }}</strong>
+        </div>
+        <div>
+          <span class="context-label">مراجعة الجدول</span>
+          <strong>{{ priority.context.timetableRevision }}</strong>
+        </div>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="roster-card">
+          <div class="section-heading">
+            <div><h2>طلاب الحصة</h2><p>اختر طالبًا واحدًا لتنفيذ إجراء سريع.</p></div>
+            <span class="count-badge">{{ priority.context.roster.length }}</span>
+          </div>
+          <span class="p-input-icon-right search-box">
+            <i class="pi pi-search"></i>
+            <input pInputText type="search" placeholder="بحث بالاسم أو الرقم" [value]="rosterSearch()" (input)="setRosterSearch($event)" />
+          </span>
+
+          <p *ngIf="priority.context.roster.length === 0" class="empty-inline">لا يوجد طلاب مسجلون في هذه الحصة</p>
+          <div *ngIf="priority.context.roster.length > 0" class="roster-list" role="listbox" aria-label="طلاب الحصة">
+            <button *ngFor="let student of filteredRoster()" type="button" class="student-row"
+              [class.selected]="selectedStudent()?.id === student.id" role="option"
+              [attr.aria-selected]="selectedStudent()?.id === student.id" (click)="selectStudent(student)">
+              <img *ngIf="student.photoUrl; else avatarFallback" [src]="student.photoUrl" [alt]="student.displayName" />
+              <ng-template #avatarFallback><span class="avatar" aria-hidden="true">{{ initials(student.displayName) }}</span></ng-template>
+              <span class="student-copy"><strong>{{ student.displayName }}</strong><small><bdi dir="ltr">{{ student.studentNumber }}</bdi> · {{ student.classLabel || period.classroom.label }}</small></span>
+              <i class="pi" [class.pi-check-circle]="selectedStudent()?.id === student.id" [class.pi-circle]="selectedStudent()?.id !== student.id"></i>
+            </button>
+          </div>
+        </section>
+
+        <aside class="quick-actions-card">
+          <div class="section-heading"><div><h2>الإجراءات السريعة</h2><p>تظهر الإجراءات المسموحة فقط.</p></div></div>
+          <div *ngIf="selectedStudent() as student" class="selected-summary">
+            <span>الطالب المحدد</span><strong>{{ student.displayName }}</strong><small>الحصة {{ period.period }} · {{ period.classroom.label }}</small>
+          </div>
+          <p *ngIf="!selectedStudent()" class="select-hint"><i class="pi pi-arrow-left"></i> اختر طالبًا من القائمة أولًا.</p>
+          <button *ngIf="isActionAllowed('behavior')" pButton type="button" icon="pi pi-exclamation-circle" label="مخالفة سلوكية" [disabled]="!selectedStudent()" (click)="openAction('behavior')"></button>
+          <button *ngIf="isActionAllowed('academic')" pButton type="button" class="p-button-outlined" icon="pi pi-book" label="ملاحظة أكاديمية" [disabled]="!selectedStudent()" (click)="openAction('academic')"></button>
+          <button *ngIf="isActionAllowed('delay')" pButton type="button" class="p-button-outlined" icon="pi pi-clock" label="تأخر عن الحصة" [disabled]="!selectedStudent()" (click)="openAction('delay')"></button>
+          <button *ngIf="isActionAllowed('recognition')" pButton type="button" class="p-button-success" icon="pi pi-star" label="إشادة وتميّز" [disabled]="!selectedStudent()" (click)="openAction('recognition')"></button>
+        </aside>
+      </div>
+    </ng-container>
+  </ng-container>
+</main>
+
+<p-dialog [visible]="activeAction() !== null" [modal]="true" [closable]="!submitting()" [draggable]="false"
+  [style]="{ width: 'min(620px, 96vw)' }" [header]="dialogTitle()" styleClass="teacher-action-dialog" (onHide)="closeDialog()">
+  <div dir="rtl">
+    <div *ngIf="selectedStudent() as student" class="dialog-context">
+      <span><b>الطالب:</b> {{ student.displayName }}</span>
+      <span *ngIf="context()?.currentPeriod as period"><b>الحصة:</b> {{ period.period }} · {{ period.classroom.label }}</span>
+    </div>
+    <div *ngIf="submissionErrors().length" class="form-errors" role="alert">
+      <strong>تعذر حفظ الإجراء</strong><ul><li *ngFor="let error of submissionErrors()">{{ error }}</li></ul>
+    </div>
+
+    <form *ngIf="activeAction() === 'behavior'" [formGroup]="behaviorForm" class="action-form" (ngSubmit)="submit()">
+      <label>التصنيف *<p-dropdown [options]="behaviorCategories" formControlName="category" optionLabel="label" optionValue="value" placeholder="اختر التصنيف"></p-dropdown></label>
+      <label>الشدة *<p-dropdown [options]="severityOptions" formControlName="severity" optionLabel="label" optionValue="value"></p-dropdown></label>
+      <label class="full">الوصف *<textarea pInputTextarea rows="4" formControlName="description"></textarea><small>لا تضع تفاصيل إرشاد سرية هنا.</small></label>
+      <label>وقت الواقعة (اختياري)<p-calendar formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body"></p-calendar></label>
+      <label>الموقع<input pInputText formControlName="location" /></label>
+      <label class="full">الإجراء الفوري المتخذ<textarea pInputTextarea rows="2" formControlName="immediateAction"></textarea></label>
+      <ng-container *ngTemplateOutlet="formActions"></ng-container>
+    </form>
+
+    <form *ngIf="activeAction() === 'academic'" [formGroup]="academicForm" class="action-form" (ngSubmit)="submit()">
+      <label>التصنيف *<p-dropdown [options]="academicCategories" formControlName="category" optionLabel="label" optionValue="value" placeholder="اختر التصنيف"></p-dropdown></label>
+      <label>وقت الملاحظة (اختياري)<p-calendar formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body"></p-calendar></label>
+      <label class="full">الوصف *<textarea pInputTextarea rows="4" formControlName="description"></textarea></label>
+      <ng-container *ngTemplateOutlet="formActions"></ng-container>
+    </form>
+
+    <form *ngIf="activeAction() === 'delay'" [formGroup]="delayForm" class="action-form" (ngSubmit)="submit()">
+      <label>وقت التأخر (اختياري)<p-calendar formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body"></p-calendar></label>
+      <label>دقائق التأخر<p-inputNumber formControlName="delayMinutes" [min]="0" [maxFractionDigits]="0"></p-inputNumber></label>
+      <label class="full">السبب<textarea pInputTextarea rows="3" formControlName="reason"></textarea></label>
+      <ng-container *ngTemplateOutlet="formActions"></ng-container>
+    </form>
+
+    <form *ngIf="activeAction() === 'recognition'" [formGroup]="recognitionForm" class="action-form" (ngSubmit)="submit()">
+      <label>نوع الإشادة *<p-dropdown [options]="recognitionTypes" formControlName="recognitionType" optionLabel="label" optionValue="value" placeholder="اختر النوع"></p-dropdown></label>
+      <label>وقت الإشادة (اختياري)<p-calendar formControlName="recognizedAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body"></p-calendar></label>
+      <label class="full">العنوان *<input pInputText formControlName="title" /></label>
+      <label class="full">الدليل أو الوصف *<textarea pInputTextarea rows="4" formControlName="description"></textarea></label>
+      <ng-container *ngTemplateOutlet="formActions"></ng-container>
+    </form>
+
+    <ng-template #formActions>
+      <div class="dialog-actions full">
+        <button pButton type="button" class="p-button-secondary" label="إلغاء" [disabled]="submitting()" (click)="closeDialog()"></button>
+        <button pButton type="submit" icon="pi pi-check" label="حفظ الإجراء" [loading]="submitting()" [disabled]="!selectedStudent() || !context()?.currentPeriod"></button>
+      </div>
+    </ng-template>
+  </div>
+</p-dialog>

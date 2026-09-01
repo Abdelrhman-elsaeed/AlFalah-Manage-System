@@ -1,0 +1,25 @@
+<main class="office-page" dir="rtl">
+  <header class="page-header"><div><span class="eyebrow">تواصل أولياء الأمور</span><h1>إعداد الساعات المكتبية</h1><p>اختر فترات إتاحتك من الفترات المؤهلة المستخرجة من الجدول المنشور.</p></div><button pButton type="button" label="تحديث" icon="pi pi-refresh" class="p-button-outlined" (click)="load()"></button></header>
+
+  <section class="explanation"><i class="pi pi-info-circle"></i><div><strong>كيف تعمل الرسائل خارج هذه الساعات؟</strong><span>تُحفظ رسالة ولي الأمر وتظهر له «مجدولة للساعات المكتبية»، ثم يُنبه المعلم في أقرب فترة متاحة.</span></div></section>
+  @if (conflict()) { <section class="conflict" role="alert"><i class="pi pi-exclamation-triangle"></i><span>تغيرت الإعدادات على الخادم. احتفظنا باختياراتك، لكن يجب مراجعتها مع الإصدار الأحدث قبل الحفظ.</span></section> }
+
+  @if (loading()) { <section class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الفترات المؤهلة…</span></section> }
+  @else if (errorMessage()) { <section class="state-card error" role="alert"><i class="pi pi-exclamation-triangle"></i><strong>{{ errorMessage() }}</strong><button pButton type="button" label="إعادة المحاولة" (click)="load()"></button></section> }
+  @else {
+    @if (!rowVersion()) { <section class="version-error" role="alert"><i class="pi pi-lock"></i><div><strong>تعذر تحديد إصدار إعدادات الساعات المكتبية</strong><span>الحفظ معطل لأن الخادم لم يوفر رمز إعداد واحدًا واضحًا. لن نخمن إصدارًا من فترة مؤهلة.</span></div></section> }
+    <section class="days-grid">
+      @for (day of days; track day) {
+        <article class="day-panel"><header><h2>{{ dayLabel(day) }}</h2><span>{{ slotsFor(day).length }} فترة</span></header><div class="slots">
+          @for (slot of slotsFor(day); track slot.id) {
+            <label class="slot" [class.selected]="isSelected(slot.id)" [class.disabled]="!slot.isEligible">
+              <p-checkbox [binary]="true" [ngModel]="isSelected(slot.id)" [disabled]="!slot.isEligible" (ngModelChange)="setSelected(slot, $event)"></p-checkbox>
+              <div><strong><bdi dir="ltr">{{ timeLabel(slot.startsAt) }} — {{ timeLabel(slot.endsAt) }}</bdi></strong><p-tag [value]="sourceLabel(slot.source)" [severity]="sourceSeverity(slot.source)"></p-tag><small>{{ slot.isEligible ? 'متاحة للاختيار' : 'غير مؤهلة حاليًا' }}</small></div>
+            </label>
+          } @empty { <div class="empty-day">لا توجد فترات مؤهلة</div> }
+        </div></article>
+      }
+    </section>
+    <footer class="save-bar"><div><label>سريان الاختيار من *</label><p-calendar [formControl]="effectiveFrom" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar></div><span>تم اختيار {{ selectedIds().size }} فترة</span><button pButton type="button" label="حفظ الساعات المكتبية" icon="pi pi-save" [loading]="saving()" [disabled]="!canSave" (click)="save()"></button></footer>
+  }
+</main>

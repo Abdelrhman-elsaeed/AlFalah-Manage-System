@@ -1,0 +1,44 @@
+<main class="queue-page" dir="rtl">
+  <header class="page-header">
+    <div><span class="eyebrow">اعتماد التواصل مع ولي الأمر</span><h1>طابور اعتماد الإشعارات</h1><p>الوقائع السلوكية والمخاوف الأكاديمية التي تتطلب قرار مسؤول شؤون الطلاب فقط.</p></div>
+    <button pButton type="button" icon="pi pi-refresh" label="تحديث" class="p-button-outlined" (click)="load()"></button>
+  </header>
+
+  <section class="toolbar"><span class="p-input-icon-right"><i class="pi pi-search"></i><input pInputText [formControl]="search" placeholder="بحث في ملخص الواقعة" /></span><div><strong>{{ totalRecords() }}</strong><span> إشعارًا بانتظار القرار</span></div></section>
+
+  @if (loading()) { <section class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الإشعارات المعلقة…</span></section> }
+  @else if (errorMessage()) { <section class="state-card error" role="alert"><i class="pi pi-exclamation-triangle"></i><strong>{{ errorMessage() }}</strong><button pButton type="button" label="إعادة المحاولة" (click)="load()"></button></section> }
+  @else {
+    <section class="table-card">
+      <p-table [value]="items()" [lazy]="true" [paginator]="true" [rows]="pageSize()" [first]="(pageNumber() - 1) * pageSize()" [totalRecords]="totalRecords()" [rowsPerPageOptions]="[10, 20, 50]" responsiveLayout="scroll" styleClass="p-datatable-striped" (onPage)="onPage($event)">
+        <ng-template pTemplate="header"><tr><th>نوع الواقعة</th><th>الملخص الآمن</th><th>مفتاح الطالب</th><th>وقت الانتظار</th><th>الإجراءات</th></tr></ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td><p-tag [value]="factTypeLabel(item.factType)" [severity]="factSeverity(item)"></p-tag></td>
+            <td><span class="summary">{{ item.summary }}</span></td>
+            <td><bdi dir="ltr">#{{ item.studentId }}</bdi></td>
+            <td><div class="time"><strong>{{ waitingAge(item.queuedAt) }}</strong><small>{{ formatDateTime(item.queuedAt) }}</small></div></td>
+            <td><div class="row-actions">@if (canApprove) { <button pButton type="button" label="إرسال لولي الأمر" icon="pi pi-send" size="small" (click)="openDecision(item, 'approve')"></button> } @if (canSuppress) { <button pButton type="button" label="كتم الإشعار" icon="pi pi-volume-off" size="small" class="p-button-danger p-button-outlined" (click)="openDecision(item, 'suppress')"></button> }</div></td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="5"><div class="empty"><i class="pi pi-check-circle"></i><strong>لا توجد إشعارات معلقة</strong><span>تم حسم جميع الوقائع التي تتطلب اعتمادًا.</span></div></td></tr></ng-template>
+      </p-table>
+    </section>
+  }
+
+  <p-dialog [header]="decision() === 'approve' ? 'إرسال الإشعار لولي الأمر' : 'كتم إشعار ولي الأمر'" [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!deciding()" [style]="{ width: 'min(720px, 96vw)' }">
+    @if (conflict()) { <div class="conflict" role="alert"><i class="pi pi-exclamation-triangle"></i><span>تغيرت الواقعة أو القرار. يعرض السياق أدناه أحدث حالة، ولن نعيد القرار القديم تلقائيًا.</span></div> }
+    @if (factLoading()) { <div class="dialog-loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل سياق الواقعة المصرح…</span></div> }
+    @if (!factLoading() && fact(); as detail) {
+      <section class="fact-detail">
+        <header><div><h2>{{ detail.student.displayName }}</h2><span><bdi dir="ltr">{{ detail.student.studentNumber }}</bdi> · {{ detail.student.classLabel || 'الفصل غير متاح' }}</span></div><p-tag [value]="detail.dispatchDecision === 'PendingOfficerDecision' ? 'بانتظار القرار' : detail.dispatchDecision === 'Approved' ? 'تم الاعتماد' : 'مكتوم'" [severity]="detail.dispatchDecision === 'PendingOfficerDecision' ? 'warning' : 'info'"></p-tag></header>
+        <dl><div><dt>التصنيف</dt><dd>{{ detail.category }}</dd></div>@if (isBehavior(detail)) { <div><dt>الشدة</dt><dd>{{ behaviorSeverity(detail) }}</dd></div> } @else { <div><dt>المؤشر</dt><dd>{{ detail.metric.eligibleTermCount }}</dd></div> }<div><dt>المبلغ</dt><dd>{{ detail.reporter.displayName }}</dd></div><div><dt>وقت الواقعة</dt><dd>{{ formatDateTime(detail.occurredAt) }}</dd></div></dl>
+        <div class="description"><strong>وصف الواقعة</strong><p>{{ detail.description }}</p></div>
+      </section>
+      @if (detail.dispatchDecision !== 'PendingOfficerDecision') { <div class="winner"><i class="pi pi-lock"></i><span>سبق حسم هذه الواقعة: {{ detail.dispatchDecision === 'Approved' ? 'تم اعتماد الإرسال' : 'تم كتم الإشعار' }}.</span></div> }
+      @else if (decision() === 'approve') { <div class="confirm"><i class="pi pi-send"></i><p>سيُرسل إشعار النظام الحالي إلى ولي الأمر. لا يوجد نص قابل للتحرير لأن العقد لا يحفظ قالبًا مخصصًا.</p></div> }
+      @else { <div class="suppress-copy"><i class="pi pi-info-circle"></i><p>سيبقى تسجيل الواقعة كما هو في سجل الطالب، وسيُمنع إرسال هذا الإشعار إلى ولي الأمر فقط.</p></div><label class="field"><span>سبب الكتم/الإلغاء *</span><textarea pInputTextarea [formControl]="suppressReason" rows="5"></textarea></label>@if (suppressReason.touched && !suppressReason.value.trim()) { <small class="validation">سبب الكتم مطلوب.</small> } }
+      <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="dialogVisible.set(false)"></button><button pButton type="button" [label]="decision() === 'approve' ? 'تأكيد الإرسال' : 'تأكيد الكتم'" [icon]="decision() === 'approve' ? 'pi pi-send' : 'pi pi-volume-off'" [class.p-button-danger]="decision() === 'suppress'" [loading]="deciding()" [disabled]="detail.dispatchDecision !== 'PendingOfficerDecision'" (click)="submit()"></button></div>
+    }
+  </p-dialog>
+</main>

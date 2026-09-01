@@ -1,6 +1,5 @@
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { CanActivateFn } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 /**
@@ -11,24 +10,22 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (!authService.isAuthenticated()) {
-    router.navigate(['/auth/school-login']);
-    return false;
+    return router.createUrlTree(['/auth/school-login'], { queryParams: { returnUrl: state.url } });
   }
 
-  const requiredRoles: string[] = route.data?.['roles'] ?? [];
-  const requiredPermissions: string[] = route.data?.['permissions'] ?? [];
+  const requiredRoles = (route.data?.['roles'] ?? []) as readonly string[];
+  const requiredPermissions = (route.data?.['permissions'] ?? []) as readonly string[];
+
+  if (state.url.startsWith('/student-affairs/') && !authService.activeSchoolId()) {
+    return router.createUrlTree(['/unauthorized'], { queryParams: { reason: 'active-school-required' } });
+  }
 
   if (requiredRoles.length > 0 && !authService.hasAnyRole(requiredRoles)) {
-    router.navigate(['/unauthorized']);
-    return false;
+    return router.createUrlTree(['/unauthorized']);
   }
 
-  if (requiredPermissions.length > 0) {
-    const hasAll = requiredPermissions.every(p => authService.hasPermission(p));
-    if (!hasAll) {
-      router.navigate(['/unauthorized']);
-      return false;
-    }
+  if (requiredPermissions.length > 0 && !authService.hasAllPermissions(requiredPermissions)) {
+    return router.createUrlTree(['/unauthorized']);
   }
 
   return true;

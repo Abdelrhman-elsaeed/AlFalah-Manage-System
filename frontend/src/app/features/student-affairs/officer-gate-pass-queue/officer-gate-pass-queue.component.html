@@ -1,0 +1,76 @@
+<main class="officer-page" dir="rtl">
+  <header class="page-header">
+    <div><span class="eyebrow">شؤون الطلاب</span><h1>طلبات استئذان الخروج</h1><p>قائمة الطلبات في حالة «بانتظار المراجعة» مرتبة حسب وقت الخروج المطلوب.</p></div>
+    <div class="header-actions">
+      <label class="date-filter"><span>تاريخ الطلبات</span><p-calendar [ngModel]="dateFilter()" (ngModelChange)="applyDateFilter($event)" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar></label>
+      @if (dateFilter()) { <button pButton type="button" icon="pi pi-filter-slash" aria-label="إلغاء فلتر التاريخ" class="p-button-text" (click)="clearDateFilter()"></button> }
+      <button pButton type="button" icon="pi pi-refresh" label="تحديث" class="p-button-outlined" [loading]="refreshing()" (click)="loadQueue()"></button>
+    </div>
+  </header>
+
+  <div class="refresh-note"><i class="pi pi-sync"></i><span>تحديث تلقائي كل دقيقة عند عدم وجود نافذة مراجعة مفتوحة.</span><button type="button" (click)="autoRefreshEnabled.set(!autoRefreshEnabled())">{{ autoRefreshEnabled() ? 'إيقاف' : 'تشغيل' }}</button></div>
+
+  @if (errorMessage()) { <section class="error-card" role="alert"><i class="pi pi-exclamation-triangle"></i><strong>تعذر تحميل القائمة</strong><span>{{ errorMessage() }}</span><button pButton type="button" label="إعادة المحاولة" (click)="loadQueue()"></button></section> }
+  @if (loading()) { <section class="loading-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل طلبات الاستئذان…</span></section> }
+
+  @if (!loading() && !errorMessage()) {
+    <section class="queue-card">
+      <div class="queue-summary"><div><strong>{{ totalRecords() }}</strong><span>طلبًا بانتظار المراجعة</span></div><p-tag value="Requested" severity="warning"></p-tag></div>
+      <p-table [value]="queue()" [lazy]="true" [paginator]="true" [rows]="pageSize()" [first]="(pageNumber() - 1) * pageSize()" [totalRecords]="totalRecords()" [rowsPerPageOptions]="[10, 20, 50]" responsiveLayout="scroll" styleClass="p-datatable-striped" (onPage)="onPage($event)">
+        <ng-template pTemplate="header"><tr><th>وقت الخروج والأولوية</th><th>الطالب</th><th>الفصل الحالي</th><th>المستلم</th><th>السبب</th><th>عمر الطلب</th><th>الحالة</th><th>مراجعة</th></tr></ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td><div class="stack"><strong>{{ formatDateTime(item.requestedExitAt) }}</strong><p-tag [value]="urgencyLabel(item)" [severity]="urgencySeverity(item)"></p-tag></div></td>
+            <td><div class="student"><strong>{{ item.student.displayName }}</strong><small><bdi dir="ltr">{{ item.student.studentNumber }}</bdi></small></div></td>
+            <td>{{ item.currentClassroom?.label || item.student.classLabel || '—' }}</td>
+            <td><div class="stack"><strong>{{ item.pickupPerson.name }}</strong><small>{{ item.pickupPerson.relationship || 'لم تحدد الصلة' }}</small></div></td>
+            <td><span class="reason" [title]="item.reason">{{ item.reason }}</span></td>
+            <td>{{ requestedAge(item) }}</td>
+            <td><p-tag value="بانتظار المراجعة" severity="warning"></p-tag></td>
+            <td><div class="row-actions">@if (canApprove) { <button pButton type="button" label="موافقة" icon="pi pi-check" size="small" (click)="openDecision(item, 'approve')"></button> } @if (canReject) { <button pButton type="button" label="رفض" icon="pi pi-times" size="small" class="p-button-danger p-button-outlined" (click)="openDecision(item, 'reject')"></button> }</div></td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="8"><div class="empty"><i class="pi pi-check-circle"></i><strong>لا توجد طلبات معلقة لهذا التاريخ</strong><span>تمت مراجعة جميع الطلبات الظاهرة.</span></div></td></tr></ng-template>
+      </p-table>
+    </section>
+  }
+
+  <p-dialog [header]="decisionMode() === 'approve' ? 'اعتماد استئذان الخروج' : 'رفض استئذان الخروج'" [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!deciding()" [style]="{ width: 'min(900px, 96vw)' }">
+    @if (detailLoading()) { <div class="dialog-loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ جلب أحدث نسخة من الاستئذان…</span></div> }
+    @if (!detailLoading() && selected(); as item) {
+      <div class="review-layout">
+        <section class="detail-panel">
+          <div class="detail-title"><div><h2>{{ item.student.displayName }}</h2><span><bdi dir="ltr">{{ item.student.studentNumber }}</bdi> · {{ item.currentClassroom?.label || item.student.classLabel || 'الفصل غير متاح' }}</span></div><p-tag [value]="gatePassStatusLabel(item.status)" [severity]="item.status === 'Requested' ? 'warning' : 'info'"></p-tag></div>
+          <dl>
+            <div><dt>وقت الخروج المطلوب</dt><dd>{{ formatDateTime(item.requestedExitAt) }}</dd></div>
+            <div><dt>وقت تقديم الطلب</dt><dd>{{ formatDateTime(item.requestedAt) }}</dd></div>
+            <div><dt>الشخص المستلم</dt><dd>{{ item.pickupPerson.name }} — {{ item.pickupPerson.relationship || 'لم تحدد الصلة' }}</dd></div>
+            <div><dt>علامة التحقق</dt><dd>{{ item.pickupPerson.identityHint || 'لا توجد' }}</dd></div>
+          </dl>
+          <div class="reason-box"><strong>سبب الاستئذان</strong><p>{{ item.reason }}</p></div>
+          @if (item.notifications.length) { <div class="notifications"><strong>حالات الإشعارات</strong>@for (notice of item.notifications; track notice.recipientLabel + notice.recipientRole) { <span>{{ notice.recipientLabel }} · {{ notice.status }}</span> }</div> }
+        </section>
+
+        <section class="decision-panel">
+          @if (item.status !== 'Requested') {
+            <div class="winner-state" role="alert"><i class="pi pi-lock"></i><strong>سبق حسم هذا الاستئذان</strong><span>الحالة الحالية: {{ gatePassStatusLabel(item.status) }}. احتفظنا بالمسودة للقراءة ولن نرسل قرارًا جديدًا.</span></div>
+          } @else if (decisionMode() === 'approve') {
+            <form [formGroup]="approveForm" (ngSubmit)="submitApprove()">
+              <div class="window-visual"><span>بداية النافذة</span><i class="pi pi-arrow-left"></i><strong>وقت الطلب داخل النافذة</strong><i class="pi pi-arrow-left"></i><span>نهاية النافذة</span></div>
+              <label class="field"><span>بداية نافذة الخروج <b>*</b></span><p-calendar formControlName="windowStartsAt" [showTime]="true" [showIcon]="true" hourFormat="12" dateFormat="dd/mm/yy" appendTo="body"></p-calendar></label>
+              <label class="field"><span>نهاية نافذة الخروج <b>*</b></span><p-calendar formControlName="windowEndsAt" [showTime]="true" [showIcon]="true" hourFormat="12" dateFormat="dd/mm/yy" appendTo="body"></p-calendar></label>
+              @if (approvalValidationMessage()) { <div class="validation-box" role="alert"><i class="pi pi-exclamation-circle"></i>{{ approvalValidationMessage() }}</div> }
+              <label class="field full"><span>ملاحظة الاعتماد (اختياري)</span><textarea pInputTextarea formControlName="approvalNote" rows="3" maxlength="1000"></textarea></label>
+              <div class="dialog-actions full"><button pButton type="button" label="إغلاق" class="p-button-text" (click)="dialogVisible.set(false)"></button><button pButton type="submit" label="تأكيد الموافقة" icon="pi pi-check" [loading]="deciding()" [disabled]="approveForm.invalid || !!approvalValidationMessage()"></button></div>
+            </form>
+          } @else {
+            <div class="reject-copy"><i class="pi pi-exclamation-triangle"></i><p>أنت على وشك رفض طلب <strong>{{ item.student.displayName }}</strong> للخروج في <strong>{{ formatDateTime(item.requestedExitAt) }}</strong>. لا يوجد تراجع آلي بعد الحفظ.</p></div>
+            <label class="field"><span>سبب الرفض <b>*</b></span><textarea pInputTextarea [formControl]="rejectReason" rows="5" maxlength="1000" placeholder="اكتب سببًا واضحًا وآمنًا للعرض"></textarea></label>
+            @if (rejectReason.touched && !rejectReason.value.trim()) { <small class="validation">سبب الرفض مطلوب.</small> }
+            <div class="dialog-actions"><button pButton type="button" label="إغلاق" class="p-button-text" (click)="dialogVisible.set(false)"></button><button pButton type="button" label="تأكيد الرفض" icon="pi pi-times" class="p-button-danger" [loading]="deciding()" [disabled]="!rejectReason.value.trim()" (click)="submitReject()"></button></div>
+          }
+        </section>
+      </div>
+    }
+  </p-dialog>
+</main>

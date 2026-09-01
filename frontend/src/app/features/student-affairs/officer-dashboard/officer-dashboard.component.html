@@ -1,0 +1,37 @@
+<main class="dashboard-page" dir="rtl">
+  <header class="page-header">
+    <div><p class="eyebrow">{{ kind === 'oversight' ? 'عرض إجمالي غير تعريفي' : 'تشغيل شؤون الطلاب' }}</p><h1>{{ kind === 'oversight' ? 'الإشراف المدرسي' : 'لوحة مسؤول شؤون الطلاب' }}</h1><p>{{ kind === 'oversight' ? 'مؤشرات الحضور والحالات على مستوى المدرسة.' : 'الطوابير والتنبيهات التي تتطلب المتابعة.' }}</p></div>
+    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="تحديث" [loading]="loading()" (click)="load()"></button>
+  </header>
+
+  <section *ngIf="loading()" class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><p>جارٍ تحميل المؤشرات…</p></section>
+  <section *ngIf="!loading() && errorMessage()" class="state-card error" role="alert"><i class="pi pi-exclamation-triangle"></i><h2>تعذر تحميل اللوحة</h2><p>{{ errorMessage() }}</p><button pButton type="button" label="إعادة المحاولة" (click)="load()"></button></section>
+
+  <ng-container *ngIf="!loading() && !errorMessage() && officerDashboard() as officer">
+    <section class="section-card"><div class="section-heading"><div><h2>طوابير العمل</h2><p>أعداد إجمالية من واجهة مسؤول شؤون الطلاب.</p></div></div><div class="count-grid" aria-live="polite"><article *ngFor="let count of officer.queues"><span>{{ count.label || count.code }}</span><strong>{{ count.count }}</strong><p-tag [value]="count.severity" [severity]="countSeverity(count)"></p-tag></article><p *ngIf="officer.queues.length === 0" class="empty-inline">لا توجد عناصر في طوابير العمل.</p></div></section>
+    <section class="section-card"><div class="section-heading"><div><h2>تنبيهات الحدود</h2><p>مؤشرات تستدعي المراجعة وفق الإعدادات الفعالة.</p></div></div><div class="count-grid" aria-live="polite"><article *ngFor="let count of officer.thresholdAlerts"><span>{{ count.label || count.code }}</span><strong>{{ count.count }}</strong><p-tag [value]="count.severity" [severity]="countSeverity(count)"></p-tag></article><p *ngIf="officer.thresholdAlerts.length === 0" class="empty-inline">لا توجد تنبيهات حدود حاليًا.</p></div></section>
+  </ng-container>
+
+  <ng-container *ngIf="!loading() && !errorMessage() && oversightDashboard() as oversight">
+    <section class="attendance-grid" aria-live="polite">
+      <p-card styleClass="stat-card present"><span>الحاضرون</span><strong>{{ oversight.present }}</strong><small>نسبة عرض محسوبة: {{ percentage(oversight.present, oversight) }}</small></p-card>
+      <p-card styleClass="stat-card absent"><span>الغائبون</span><strong>{{ oversight.absent }}</strong><small>نسبة عرض محسوبة: {{ percentage(oversight.absent, oversight) }}</small></p-card>
+      <p-card styleClass="stat-card excused"><span>غياب بعذر</span><strong>{{ oversight.absentExcused }}</strong><small>نسبة عرض محسوبة: {{ percentage(oversight.absentExcused, oversight) }}</small></p-card>
+    </section>
+
+    <section class="section-card">
+      <div class="section-heading"><div><h2>مقارنة الفصول</h2><p>الأعداد الخام معروضة لضمان قابلية المراجعة.</p></div></div>
+      <p-table [value]="oversight.byClassroom" responsiveLayout="scroll">
+        <ng-template pTemplate="header"><tr><th>الفصل</th><th class="text-center">حاضر</th><th class="text-center">غائب</th><th class="text-center">غياب بعذر</th></tr></ng-template>
+        <ng-template pTemplate="body" let-row><tr><td><strong>{{ row.classLabel }}</strong></td><td class="text-center">{{ row.present }}</td><td class="text-center">{{ row.absent }}</td><td class="text-center">{{ row.absentExcused }}</td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="4" class="empty-inline">لا تتوفر بيانات حضور للفصول حتى الآن.</td></tr></ng-template>
+      </p-table>
+    </section>
+
+    <div class="aggregate-grid">
+      <section class="section-card"><div class="section-heading"><div><h2>مؤشرات الحدود</h2><p>أعداد غير تعريفية.</p></div></div><div class="count-list"><article *ngFor="let count of oversight.thresholdCounts"><span>{{ count.label || count.code }}</span><strong>{{ count.count }}</strong><p-tag [value]="count.severity" [severity]="countSeverity(count)"></p-tag></article><p *ngIf="oversight.thresholdCounts.length === 0" class="empty-inline">لا توجد مؤشرات حدود.</p></div></section>
+      <section class="section-card"><div class="section-heading"><div><h2>الحالات والاستدعاءات</h2><p>أعداد إجمالية بلا بيانات طلاب.</p></div></div><div class="count-list"><article *ngFor="let count of oversight.caseCounts"><span>{{ count.label || count.code }}</span><strong>{{ count.count }}</strong><p-tag [value]="count.severity" [severity]="countSeverity(count)"></p-tag></article><p *ngIf="oversight.caseCounts.length === 0" class="empty-inline">لا توجد حالات إجمالية.</p></div></section>
+    </div>
+    <p class="freshness"><i class="pi pi-clock"></i> آخر توليد للبيانات: {{ formatGeneratedAt(oversight.generatedAt) }}</p>
+  </ng-container>
+</main>

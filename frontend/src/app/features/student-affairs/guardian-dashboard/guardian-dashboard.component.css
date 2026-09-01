@@ -1,0 +1,42 @@
+:host { display: block; }
+.guardian-page { width: min(1200px, 100%); margin-inline: auto; padding: var(--space-6); color: var(--text); }
+.page-header, .feedback-error, .card-header, .capabilities { display: flex; align-items: center; }
+.page-header { justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+.page-header h1 { margin: 0; color: var(--text-strong); font-size: clamp(1.55rem, 3vw, 2.15rem); }
+.page-header p { margin: var(--space-1) 0 0; color: var(--text-muted); }
+.page-header .eyebrow { color: var(--brand-700); font-size: .8rem; font-weight: 800; }
+.state-card { display: grid; min-height: 280px; place-items: center; align-content: center; gap: var(--space-3); padding: var(--space-7); text-align: center; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.state-card p-progressSpinner { width: 48px; height: 48px; }
+.state-card h2, .state-card p { margin: 0; }
+.state-card i { color: var(--brand-600); font-size: 2rem; }
+.feedback-error { gap: var(--space-3); margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); }
+.feedback-error span { flex: 1; }
+.actions-strip, .student-grid { display: grid; gap: var(--space-4); }
+.actions-strip { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: var(--space-5); }
+.actions-strip article { display: flex; justify-content: space-between; align-items: center; padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.actions-strip article div { display: flex; flex-direction: column; }
+.actions-strip strong { color: var(--text-strong); font-size: 1.7rem; }
+.student-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr)); }
+:host ::ng-deep .student-card { height: 100%; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }
+:host ::ng-deep .student-card .p-card-body { padding: var(--space-4); }
+.card-header { gap: var(--space-3); padding: var(--space-4); background: var(--bg-surface-2); border-bottom: 1px solid var(--border); }
+.card-header img, .avatar { width: 56px; height: 56px; flex: 0 0 56px; border-radius: 50%; object-fit: cover; }
+.avatar { display: grid; place-items: center; color: var(--brand-900); font-weight: 800; background: var(--brand-100); }
+.card-header div { min-width: 0; flex: 1; }
+.card-header h2 { margin: 0; color: var(--text-strong); font-size: 1.08rem; }
+.card-header p { margin: var(--space-1) 0 0; color: var(--text-muted); }
+.metric-list { display: grid; gap: var(--space-2); }
+.metric-list article { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-2); padding: var(--space-3); background: var(--bg-surface-2); border-radius: var(--radius-md); }
+.metric-list article div { display: flex; justify-content: space-between; gap: var(--space-3); }
+.metric-list article strong { color: var(--text-strong); }
+.metric-list article small { grid-column: 1 / -1; color: var(--text-muted); }
+.empty-inline { color: var(--text-muted); text-align: center; }
+.capabilities { flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-4); }
+.capabilities span { padding: .35rem .55rem; color: var(--brand-700); font-size: .76rem; font-weight: 700; background: var(--brand-50); border-radius: 999px; }
+.summary-button { width: 100%; }
+.expanded-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+.summary-count { display: flex; flex-direction: column; padding: var(--space-3); text-align: center; background: var(--bg-surface-2); border-radius: var(--radius-md); }
+.summary-count strong { color: var(--brand-700); font-size: 1.5rem; }
+.summary-count span { color: var(--text-muted); font-size: .72rem; }
+.term-copy, .summary-loading { grid-column: 1 / -1; margin: 0; color: var(--text-muted); text-align: center; }
+@media (max-width: 680px) { .guardian-page { padding: var(--space-4); } .page-header { align-items: flex-start; flex-direction: column; } .expanded-summary { grid-template-columns: 1fr; } .term-copy, .summary-loading { grid-column: auto; } }

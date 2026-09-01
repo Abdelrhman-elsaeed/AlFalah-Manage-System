@@ -36,3 +36,23 @@ describe('shell people navigation', () => {
     expect(all?.exact).toBe(true);
   });
 });
+
+describe('shell Phase 5 navigation', () => {
+  const administration = SHELL_NAV_CATEGORIES.find(category => category.id === 'administration');
+
+  it('exposes confidential case work only to social workers', () => {
+    const cases = administration?.items.find(item => item.route === '/student-affairs/cases');
+    const summons = administration?.items.find(item => item.route === '/student-affairs/summons');
+
+    expect(cases?.roles).toEqual(['SocialWorker']);
+    expect(cases?.permissions).toEqual(['Referral.View']);
+    expect(summons?.roles).toEqual(['SocialWorker']);
+  });
+
+  it('does not expose the participant chat route to school managers', () => {
+    const messages = administration?.items.find(item => item.route === '/student-affairs/messages');
+
+    expect(messages?.roles).toEqual(['Guardian', 'StudentAffairsOfficer', 'SocialWorker']);
+    expect(messages?.roles).not.toContain('SchoolManager');
+  });
+});

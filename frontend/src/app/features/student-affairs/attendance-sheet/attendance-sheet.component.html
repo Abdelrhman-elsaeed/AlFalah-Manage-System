@@ -1,0 +1,153 @@
+<section class="page" dir="rtl">
+  <p-confirmDialog></p-confirmDialog>
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">العمليات اليومية</span>
+      <h1>رصد الغياب اليومي</h1>
+      <p>حدّد الفصل والتاريخ، ثم علّم الطلاب الغائبين فقط. سيُسجل غير المحددين حاضرين.</p>
+    </div>
+  </header>
+
+  <p-card styleClass="filter-card">
+    <div class="selectors">
+      <label>
+        <span>الفصل</span>
+        <p-dropdown
+          [formControl]="classroomControl"
+          [options]="classrooms()"
+          optionLabel="label"
+          optionValue="id"
+          placeholder="اختر الفصل"
+          [loading]="loadingClassrooms()"
+          [filter]="true"
+          filterBy="label"
+          appendTo="body">
+        </p-dropdown>
+      </label>
+      <label>
+        <span>التاريخ</span>
+        <p-calendar
+          [formControl]="dateControl"
+          [maxDate]="today"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          [readonlyInput]="true"
+          appendTo="body">
+        </p-calendar>
+      </label>
+    </div>
+  </p-card>
+
+  @if (errorMessage()) {
+    <div class="state state-error" role="alert">
+      <i class="pi pi-exclamation-circle"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (loadingSheet()) {
+    <div class="state"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل كشف الفصل…</span></div>
+  }
+
+  @if (sheet(); as currentSheet) {
+    @if (hasExcusedRows()) {
+      <div class="state state-warning" role="alert">
+        <i class="pi pi-lock"></i>
+        <span>يتضمن الكشف غيابًا بعذر معتمدًا. حُجب الحفظ الكامل لحماية القرار؛ استخدم مسار تصحيح الموظف المختص.</span>
+      </div>
+    }
+    @if (removedDuringConflict().length) {
+      <div class="state state-warning" role="alert">
+        <i class="pi pi-users"></i>
+        <span>أزيل من التحديد بعد تحديث القائمة: {{ removedDuringConflict().join('، ') }}</span>
+      </div>
+    }
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div>
+          <h2>{{ currentSheet.classroom.label }}</h2>
+          <small>{{ currentSheet.isSaved ? 'كشف محفوظ سابقًا' : 'كشف جديد' }}</small>
+        </div>
+        <span class="p-input-icon-right search-box">
+          <i class="pi pi-search"></i>
+          <input pInputText type="search" placeholder="بحث بالاسم أو الرقم" (input)="setSearch($event)" />
+        </span>
+      </div>
+
+      <p-table
+        [value]="filteredRows()"
+        [rowHover]="true"
+        [scrollable]="true"
+        scrollHeight="55vh"
+        styleClass="p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>الطالب</th>
+            <th>الرقم الطلابي</th>
+            <th>الحالة الحالية</th>
+            <th>الغياب المحتسب</th>
+            <th class="absent-column">غائب؟</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>
+              <div class="student-cell">
+                @if (row.student.photoUrl) {
+                  <img [src]="row.student.photoUrl" [alt]="row.student.displayName" />
+                } @else {
+                  <span class="avatar"><i class="pi pi-user"></i></span>
+                }
+                <strong>{{ row.student.displayName }}</strong>
+              </div>
+            </td>
+            <td>{{ row.student.studentNumber }}</td>
+            <td>
+              <p-tag [value]="statusLabel(row)" [severity]="statusSeverity(row)"></p-tag>
+              @if (row.excuseStatus === 'Pending') { <small class="pending">عذر قيد المراجعة</small> }
+            </td>
+            <td>
+              <strong>{{ row.penaltyEligibleAbsenceBadge.eligibleTermCount }}</strong>
+              @if (row.penaltyEligibleAbsenceBadge.nextThreshold; as threshold) {
+                <small>الحد التالي: {{ threshold }}</small>
+              }
+            </td>
+            <td class="absent-column">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isAbsent(row)"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="setAbsent(row, $event)"
+                [disabled]="row.status === 'AbsentExcused'"
+                [attr.aria-label]="'تحديد ' + row.student.displayName + ' غائبًا'">
+              </p-checkbox>
+              @if (row.status === 'AbsentExcused') { <i class="pi pi-lock lock" title="غياب بعذر محمي"></i> }
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="5" class="empty">لا توجد نتائج مطابقة.</td></tr>
+        </ng-template>
+      </p-table>
+
+      <footer class="sticky-summary">
+        <div><span>إجمالي الطلاب</span><strong>{{ currentSheet.rows.length }}</strong></div>
+        <div class="absent"><span>الغائبون المحددون</span><strong>{{ selectedAbsentCount() }}</strong></div>
+        <div class="present"><span>سيُسجل الباقون حضورًا</span><strong>{{ presentCount() }}</strong></div>
+        <button
+          pButton
+          type="button"
+          label="حفظ كشف الحضور"
+          icon="pi pi-save"
+          [loading]="saving()"
+          [disabled]="hasExcusedRows() || (!dirty() && currentSheet.isSaved)"
+          (click)="confirmSave()">
+        </button>
+      </footer>
+    </div>
+  } @else if (!loadingSheet() && !classroomControl.value) {
+    <div class="state state-empty"><i class="pi pi-building"></i><span>اختر فصلًا لعرض قائمة الطلاب المعتمدة.</span></div>
+  }
+</section>

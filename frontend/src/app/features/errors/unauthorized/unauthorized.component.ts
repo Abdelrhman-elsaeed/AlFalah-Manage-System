@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -13,7 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
       <div class="content">
         <div class="icon"><i class="pi pi-lock" aria-hidden="true"></i></div>
         <h1>{{ 'ERRORS.UNAUTHORIZED' | translate }}</h1>
-        <p>{{ 'ERRORS.FORBIDDEN' | translate }}</p>
+        <p>{{ message() }}</p>
         <a [routerLink]="returnLink()" class="btn-back">{{ returnLabelKey() | translate }}</a>
       </div>
     </div>
@@ -83,6 +83,11 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class UnauthorizedComponent {
   private readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+
+  readonly message = computed(() => this.route.snapshot.queryParamMap.get('reason') === 'active-school-required'
+    ? 'لم يتم تحديد مدرسة نشطة.'
+    : 'ليس لديك صلاحية للوصول إلى هذه الصفحة.');
 
   readonly returnLink = computed(() => {
     if (!this.auth.isAuthenticated()) return '/auth/school-login';
@@ -90,6 +95,7 @@ export class UnauthorizedComponent {
     if (this.auth.hasRole('SchoolManager')) return '/school-manager/dashboard';
     if (this.auth.hasRole('Moderator')) return '/moderator/dashboard';
     if (this.auth.hasRole('Instructor')) return '/instructor/dashboard';
+    if (this.auth.hasRole('StudentAffairsOfficer')) return '/student-affairs/settings';
     return '/dashboard';
   });
 

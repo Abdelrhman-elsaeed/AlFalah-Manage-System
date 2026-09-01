@@ -1,0 +1,20 @@
+:host { display: block; }
+.page { min-height: calc(100vh - 8rem); display: grid; place-items: center; padding: 1.5rem; color: #172033; }
+:host ::ng-deep .export-card { width: min(620px, 100%); border-radius: 20px; box-shadow: 0 20px 60px rgba(15, 23, 42, .1); }
+:host ::ng-deep .export-card .p-card-body { padding: 2rem; }
+:host ::ng-deep .export-card .p-card-content { display: flex; align-items: center; flex-direction: column; text-align: center; }
+.icon { width: 5rem; height: 5rem; display: grid; place-items: center; margin-bottom: 1rem; border-radius: 22px; background: #dcfce7; color: #15803d; font-size: 2.3rem; }
+.eyebrow { color: #15803d; font-size: .85rem; font-weight: 700; }
+h1 { margin: .4rem 0; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+.lead { max-width: 470px; margin: 0 0 1.5rem; color: #64748b; line-height: 1.8; }
+label { width: min(360px, 100%); display: grid; gap: .5rem; text-align: start; font-weight: 700; }
+:host ::ng-deep label .p-calendar { width: 100%; }
+.range { display: flex; gap: .5rem; margin: .9rem 0 1.4rem; color: #475569; }
+button { min-width: min(310px, 100%); justify-content: center; }
+small { margin-top: .8rem; color: #64748b; }
+.result { width: 100%; display: flex; align-items: flex-start; gap: .8rem; margin-top: 1.5rem; padding: 1rem; border-radius: 14px; background: #f0fdf4; color: #166534; text-align: start; }
+.result > i { margin-top: .2rem; font-size: 1.3rem; }
+.result div { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.result span { width: 100%; font-size: .85rem; }
+code { overflow-wrap: anywhere; }
+@media (max-width: 520px) { :host ::ng-deep .export-card .p-card-body { padding: 1.25rem; } }

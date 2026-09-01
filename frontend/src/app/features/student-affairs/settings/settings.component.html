@@ -1,0 +1,256 @@
+<main class="settings-page" dir="rtl">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">شؤون الطلاب</p>
+      <h1>إعدادات شؤون الطلاب</h1>
+      <p>سياسات الحضور والملاحظات وتصعيد الغياب المعتمدة للمدرسة النشطة.</p>
+    </div>
+    @if (settings(); as current) {
+      <span class="status-badge" [class.custom]="!current.usesLockedDefaults">
+        {{ current.usesLockedDefaults ? 'الإعدادات الافتراضية المقفلة' : 'تخصيص المدرسة' }}
+      </span>
+    }
+  </header>
+
+  <nav class="tabs" aria-label="أقسام الإعدادات">
+    <button type="button" [class.active]="activeTab() === 'settings'" (click)="selectTab('settings')">
+      الإعدادات الفعالة
+    </button>
+    <button type="button" [class.active]="activeTab() === 'history'" (click)="selectTab('history')">
+      سجل التغييرات
+    </button>
+  </nav>
+
+  @if (successMessage()) {
+    <div class="feedback success" role="status"><i class="pi pi-check-circle"></i>{{ successMessage() }}</div>
+  }
+  @if (errors().length) {
+    <section #errorSummary class="feedback error" role="alert" tabindex="-1">
+      <strong>تعذر إتمام العملية</strong>
+      <ul>
+        @for (error of errors(); track error) { <li>{{ error }}</li> }
+      </ul>
+    </section>
+  }
+  @if (conflictMessage()) {
+    <section class="feedback warning" role="alert">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ conflictMessage() }}</span>
+      @if (staleDraft()) {
+        <button type="button" class="text-button" (click)="restoreDraft()">استعادة مسودتي</button>
+      }
+    </section>
+  }
+
+  @if (activeTab() === 'settings') {
+    @if (loading()) {
+      <div class="loading-state" role="status"><i class="pi pi-spin pi-spinner"></i> جارٍ تحميل الإعدادات…</div>
+    } @else {
+      @if (settings(); as current) {
+      @if (!canManage()) {
+        <div class="manager-note">
+          <i class="pi pi-eye"></i>
+          هذه الصفحة للعرض فقط. تعديل الإعدادات متاح لوكيل شؤون الطلاب المخوّل.
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <section class="settings-card" formGroupName="arrival">
+          <div class="section-heading">
+            <span class="section-icon"><i class="pi pi-clock"></i></span>
+            <div>
+              <h2>جرس الحضور والتأخر الصباحي</h2>
+              <p>وقت الوصول فقط؛ الحصص المنشورة تُدار من وحدة الجدول المدرسي.</p>
+            </div>
+          </div>
+          <div class="fields-grid three">
+            <label class="field">
+              <span>وقت احتساب التأخر</span>
+              <input type="time" step="1" formControlName="cutoff" [readonly]="!canManage()" />
+              @if (form.controls.arrival.controls.cutoff.touched && form.controls.arrival.controls.cutoff.invalid) {
+                <small class="field-error">وقت الاحتساب مطلوب.</small>
+              }
+            </label>
+            <label class="field">
+              <span>فترة السماح بالدقائق</span>
+              <input type="number" min="0" step="1" formControlName="graceMinutes" [readonly]="!canManage()" />
+              @if (form.controls.arrival.controls.graceMinutes.touched && form.controls.arrival.controls.graceMinutes.invalid) {
+                <small class="field-error">أدخل عدداً صحيحاً لا يقل عن صفر.</small>
+              }
+            </label>
+            <label class="field">
+              <span>حد التأخر الصباحي للفصل</span>
+              <input type="number" min="1" step="1" formControlName="morningDelayThreshold" [readonly]="!canManage()" />
+              @if (form.controls.arrival.controls.morningDelayThreshold.touched && form.controls.arrival.controls.morningDelayThreshold.invalid) {
+                <small class="field-error">يجب أن يكون الحد عدداً صحيحاً موجباً.</small>
+              }
+            </label>
+          </div>
+          <p class="calculation"><i class="pi pi-info-circle"></i> يُحتسب التأخر بعد الساعة <bdi dir="ltr">{{ effectiveCutoff() }}</bdi>.</p>
+        </section>
+
+        <section class="settings-card" formGroupName="observation">
+          <div class="section-heading">
+            <span class="section-icon"><i class="pi pi-chart-bar"></i></span>
+            <div>
+              <h2>حدود الملاحظات والتصاريح</h2>
+              <p>قيم موجبة تُطبق على الفصل الدراسي النشط.</p>
+            </div>
+          </div>
+          <div class="fields-grid two">
+            <label class="field">
+              <span>مضاعف المخالفات السلوكية</span>
+              <input type="number" min="1" step="1" formControlName="behaviorMultiple" [readonly]="!canManage()" />
+              <small>تحدث الإشارات عند المضاعفات: 10، 20، 30… حسب القيمة.</small>
+            </label>
+            <label class="field">
+              <span>حد الملاحظات الأكاديمية</span>
+              <input type="number" min="1" step="1" formControlName="academicConcern" [readonly]="!canManage()" />
+            </label>
+            <label class="field">
+              <span>حد تكرار تصاريح دخول الفصل</span>
+              <input type="number" min="1" step="1" formControlName="classroomPermit" [readonly]="!canManage()" />
+            </label>
+            <label class="field">
+              <span>سياسة احتساب السلوك</span>
+              <select formControlName="behaviorPolicy" [disabled]="!canManage()" [attr.aria-disabled]="!canManage()" [class.readonly]="!canManage()">
+                @for (policy of policies; track policy.value) {
+                  <option [value]="policy.value">{{ policy.label }}</option>
+                }
+              </select>
+              <small>يُرسل رمز السياسة المعتمد إلى الخادم، وليس النص العربي.</small>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-card" formGroupName="absence">
+          <div class="section-heading">
+            <span class="section-icon"><i class="pi pi-sort-amount-up"></i></span>
+            <div>
+              <h2>مستويات تصعيد الغياب</h2>
+              <p>تُحتسب أيام الغياب المؤهلة للعقوبة فقط؛ الغياب بعذر مستبعد دائماً.</p>
+            </div>
+          </div>
+          <div class="threshold-ladder">
+            <label class="threshold-step">
+              <span class="step-number">1</span>
+              <span class="step-content"><b>تنبيه مرئي</b><small>المستوى الأول</small></span>
+              <input type="number" min="1" step="1" formControlName="visual" [readonly]="!canManage()" />
+            </label>
+            <label class="threshold-step">
+              <span class="step-number">2</span>
+              <span class="step-content"><b>إحالة واستدعاء</b><small>المستوى الثاني</small></span>
+              <input type="number" min="1" step="1" formControlName="referral" [readonly]="!canManage()" />
+            </label>
+            <label class="threshold-step">
+              <span class="step-number">3</span>
+              <span class="step-content"><b>توصية للجنة حقوق الطفل</b><small>المستوى الثالث</small></span>
+              <input type="number" min="1" step="1" formControlName="childRights" [readonly]="!canManage()" />
+            </label>
+          </div>
+          @if (form.controls.absence.touched && form.controls.absence.hasError('thresholdOrder')) {
+            <p class="group-error" role="alert">يجب أن يكون التنبيه المرئي أقل من الإحالة، والإحالة أقل من لجنة حقوق الطفل.</p>
+          }
+        </section>
+
+        @if (canManage() && isCustom()) {
+          <section class="settings-card audit-reason">
+            <label class="field">
+              <span>سبب التعديل <em>*</em></span>
+              <textarea rows="3" formControlName="auditReason" maxlength="500" placeholder="اكتب سبباً واضحاً يظهر في سجل التغييرات"></textarea>
+              @if (form.controls.auditReason.touched && form.controls.auditReason.invalid) {
+                <small class="field-error">سبب التعديل مطلوب عند تحديث تخصيص قائم.</small>
+              }
+            </label>
+          </section>
+        }
+
+        <section class="metadata" aria-label="بيانات النسخة">
+          <div><span>نوع السياسة</span><strong>{{ current.usesLockedDefaults ? 'افتراضية مقفلة' : 'مخصصة للمدرسة' }}</strong></div>
+          <div><span>الإصدار الفعال</span><strong><bdi dir="ltr">{{ current.effectiveVersion }}</bdi></strong></div>
+          <div><span>ساري منذ</span><strong>{{ formatDate(current.effectiveFrom) }}</strong></div>
+          <div><span>رمز النسخة</span><strong class="technical"><bdi dir="ltr">{{ current.rowVersion }}</bdi></strong></div>
+        </section>
+
+        @if (canManage()) {
+          <div class="impact-note"><i class="pi pi-exclamation-circle"></i> قد تعيد تغييرات الإعدادات احتساب مؤشرات الفصل النشط وتضع الاستدعاءات الحالية للمراجعة.</div>
+          <div class="form-actions">
+            <button type="submit" class="primary-button" [disabled]="saving() || resetting()">
+              @if (saving()) { <i class="pi pi-spin pi-spinner"></i> جارٍ الحفظ… } @else { <i class="pi pi-save"></i> {{ isCustom() ? 'حفظ التعديلات' : 'إنشاء تخصيص المدرسة' }} }
+            </button>
+            @if (isCustom()) {
+              <button type="button" class="danger-button" [disabled]="saving() || resetting()" (click)="openResetDialog()">
+                <i class="pi pi-refresh"></i> استعادة الافتراضيات
+              </button>
+            }
+          </div>
+        }
+      </form>
+      }
+    }
+  } @else {
+    <section class="history-card">
+      <div class="section-heading">
+        <span class="section-icon"><i class="pi pi-history"></i></span>
+        <div><h2>سجل تغييرات الإعدادات</h2><p>{{ historyTotalCount() }} نسخة مسجلة من الخادم.</p></div>
+      </div>
+      @if (historyLoading()) {
+        <div class="loading-state"><i class="pi pi-spin pi-spinner"></i> جارٍ تحميل السجل…</div>
+      } @else if (history().length === 0) {
+        <div class="empty-state">لا توجد تغييرات مسجلة حتى الآن.</div>
+      } @else {
+        <ol class="history-list">
+          @for (item of history(); track item.version; let index = $index) {
+            <li>
+              <div class="history-version">الإصدار <bdi dir="ltr">{{ item.version }}</bdi></div>
+              <div class="history-main">
+                <strong>{{ item.actor.displayName }}</strong>
+                <span class="role-snapshot">{{ item.actor.roleSnapshot }}</span>
+                <time>{{ formatDate(item.effectiveFrom) }}</time>
+                <p>{{ item.reason || 'لم يُذكر سبب.' }}</p>
+                <div class="change-summary">
+                  <span>التغييرات:</span>
+                  @for (change of historyChanges(index); track change) { <em>{{ change }}</em> }
+                </div>
+              </div>
+            </li>
+          }
+        </ol>
+        <div class="pagination">
+          <button type="button" [disabled]="historyPage() <= 1" (click)="loadHistory(historyPage() - 1)">السابق</button>
+          <span>صفحة <bdi dir="ltr">{{ historyPage() }}</bdi> من <bdi dir="ltr">{{ historyTotalPages() }}</bdi></span>
+          <button type="button" [disabled]="historyPage() >= historyTotalPages()" (click)="loadHistory(historyPage() + 1)">التالي</button>
+        </div>
+      }
+    </section>
+  }
+</main>
+
+@if (resetDialogOpen()) {
+  <div class="dialog-backdrop" (click)="closeResetDialog()">
+    <section class="reset-dialog" role="dialog" aria-modal="true" aria-labelledby="reset-title" (click)="$event.stopPropagation()">
+      <div class="dialog-icon"><i class="pi pi-exclamation-triangle"></i></div>
+      <h2 id="reset-title">استعادة الإعدادات الافتراضية المقفلة</h2>
+      <p>سيُحذف تخصيص المدرسة، وستصبح القيم الافتراضية الفعالة هي 10 للتأخر، 10 للسلوك، 3 للملاحظة الأكاديمية، 5 للتصاريح، ومستويات غياب 3 ثم 5 ثم 10.</p>
+      <form [formGroup]="resetForm" (ngSubmit)="resetToDefaults()">
+        <label class="field">
+          <span>سبب الاستعادة <em>*</em></span>
+          <textarea rows="3" formControlName="reason" maxlength="500"></textarea>
+          @if (resetForm.controls.reason.touched && resetForm.controls.reason.invalid) {
+            <small class="field-error">اكتب سبب الاستعادة.</small>
+          }
+        </label>
+        <label class="confirm-check">
+          <input type="checkbox" formControlName="confirmed" />
+          <span>أؤكد حذف تخصيص المدرسة والعودة إلى الافتراضيات المقفلة.</span>
+        </label>
+        <div class="dialog-actions">
+          <button type="submit" class="danger-button" [disabled]="resetting()">
+            {{ resetting() ? 'جارٍ الاستعادة…' : 'تأكيد الاستعادة' }}
+          </button>
+          <button type="button" class="secondary-button" [disabled]="resetting()" (click)="closeResetDialog()">إلغاء</button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

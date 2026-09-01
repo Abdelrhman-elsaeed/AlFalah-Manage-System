@@ -19,6 +19,6 @@ export class AppComponent implements OnInit {
     // Translation loading is handled by APP_INITIALIZER in app.config.ts
     // (translate.use('ar') is awaited there before bootstrap).
     document.documentElement.setAttribute('dir', 'rtl');
-    document.documentElement.setAttribute('lang', 'ar');
+    document.documentElement.setAttribute('lang', 'ar-SA');
   }
 }

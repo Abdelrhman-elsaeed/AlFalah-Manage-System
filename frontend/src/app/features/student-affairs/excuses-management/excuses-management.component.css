@@ -1,0 +1,50 @@
+:host { display: block; }
+.page { max-width: 1400px; margin: 0 auto; padding: 1.5rem; color: #172033; }
+header { margin-bottom: 1.25rem; }
+.officer-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.eyebrow { color: #7c3aed; font-size: .85rem; font-weight: 700; }
+h1 { margin: .35rem 0; font-size: clamp(1.7rem, 3vw, 2.35rem); }
+header p, .history-heading p { margin: 0; color: #64748b; }
+.student-picker { display: grid; gap: .45rem; max-width: 460px; font-weight: 700; }
+:host ::ng-deep .student-picker .p-dropdown, :host ::ng-deep .upload-form .p-dropdown { width: 100%; }
+.loading { min-height: 12rem; display: flex; align-items: center; justify-content: center; gap: .8rem; color: #64748b; }
+.history-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.5rem 0 .75rem; }
+.history-heading h2 { margin: 0; }
+.actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+td small { display: block; margin-top: .2rem; color: #64748b; }
+.empty { padding: 2.5rem !important; text-align: center; color: #64748b; }
+.upload-form { display: grid; gap: 1rem; }
+.upload-form label, .decision-panel label { display: grid; gap: .4rem; font-weight: 700; }
+.attendance-context { display: flex; gap: .5rem; padding: .8rem; border-radius: 10px; background: #f5f3ff; color: #6d28d9; }
+.pdf-picker small { color: #64748b; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: .5rem; padding-top: .5rem; }
+.error { display: flex; gap: .5rem; margin-bottom: 1rem; padding: 1rem; border-radius: 12px; background: #fef2f2; color: #b91c1c; }
+.queue-card { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 8px 30px rgba(15, 23, 42, .05); }
+.review-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr); gap: 1.25rem; }
+.review-summary h3 { margin-top: 0; }
+dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; margin: 0; }
+dl div { padding: .75rem; border-radius: 10px; background: #f8fafc; }
+dt { color: #64748b; font-size: .8rem; }
+dd { margin: .2rem 0 0; font-weight: 700; }
+.private-note { margin-top: 1rem; padding: .8rem; border-radius: 10px; background: #fffbeb; }
+.private-note p { margin-bottom: 0; white-space: pre-wrap; }
+.attachments { margin-top: 1rem; }
+.attachment-row { display: flex; align-items: center; justify-content: space-between; gap: .7rem; padding: .7rem; border: 1px solid #e2e8f0; border-radius: 10px; }
+.attachment-row > span { min-width: 0; overflow-wrap: anywhere; }
+.attachment-row i { margin-inline-end: .4rem; color: #dc2626; }
+.attachment-row > div { display: flex; }
+.decision-panel { display: flex; align-items: stretch; flex-direction: column; gap: .8rem; padding: 1rem; border-radius: 14px; background: #f8fafc; }
+.decision-panel .p-tag { align-self: flex-start; }
+.decision-panel hr { width: 100%; margin: .2rem 0; border: 0; border-top: 1px solid #e2e8f0; }
+.validation { color: #b91c1c; }
+.decided { padding: .9rem; border-radius: 10px; background: #e2e8f0; color: #475569; }
+.excuse-details { display: grid; gap: .8rem; padding: 1rem 0; border-bottom: 1px solid #e2e8f0; }
+.excuse-details > div:first-child { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+.excuse-details > div:first-child span { color: #64748b; }
+.pdf-preview { display: grid; gap: .5rem; margin-top: 1rem; }
+.pdf-preview iframe { width: 100%; height: 60vh; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; }
+@media (max-width: 760px) {
+  .page { padding: 1rem; }
+  .officer-header, .history-heading, .attachment-row { align-items: stretch; flex-direction: column; }
+  .review-grid, dl { grid-template-columns: 1fr; }
+}

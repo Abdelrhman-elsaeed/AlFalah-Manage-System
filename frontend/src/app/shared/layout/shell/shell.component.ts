@@ -14,6 +14,7 @@ interface NavItem {
   route: string;
   roles?: string[];
   permissions?: string[];
+  requireAllPermissions?: boolean;
   tooltipKey?: string;
   /** Highlight only on an exact URL match — for parents of deeper routes (e.g. /users). */
   exact?: boolean;
@@ -32,6 +33,7 @@ function dashboardRouteForRoles(roles: readonly string[]): string | null {
   if (roles.includes('SchoolManager')) return '/school-manager/dashboard';
   if (roles.includes('Moderator')) return '/moderator/dashboard';
   if (roles.includes('Instructor')) return '/instructor/dashboard';
+  if (roles.includes('StudentAffairsOfficer')) return '/student-affairs/settings';
   return null;
 }
 
@@ -112,6 +114,96 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         route: '/attendance',
         roles: ['Secretary', 'SchoolManager', 'Moderator', 'Instructor'],
         permissions: ['Attendance.View']
+      },
+      {
+        labelKey: 'رصد الغياب اليومي',
+        icon: 'pi pi-list-check',
+        route: '/student-affairs/attendance/sheet',
+        roles: ['Secretary'],
+        permissions: ['Attendance.ViewStudents', 'Attendance.ManageStudents'],
+        requireAllPermissions: true
+      },
+      {
+        labelKey: 'استيراد سجل زاجل',
+        icon: 'pi pi-file-import',
+        route: '/student-affairs/biometrics/zajel',
+        roles: ['Secretary', 'StudentAffairsOfficer'],
+        permissions: ['Biometric.Import']
+      },
+      {
+        labelKey: 'تصدير نور الأسبوعي',
+        icon: 'pi pi-file-export',
+        route: '/student-affairs/noor-export',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['Noor.Export']
+      },
+      {
+        labelKey: 'رفع عذر غياب',
+        icon: 'pi pi-paperclip',
+        route: '/student-affairs/guardian/excuses',
+        roles: ['Guardian'],
+        permissions: ['Attendance.SubmitExcuse']
+      },
+      {
+        labelKey: 'مراجعة الأعذار',
+        icon: 'pi pi-verified',
+        route: '/student-affairs/officer/excuses',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['Attendance.ViewStudents', 'Attendance.ReviewExcuse'],
+        requireAllPermissions: true
+      },
+      {
+        labelKey: 'طلب استئذان خروج',
+        icon: 'pi pi-send',
+        route: '/student-affairs/gate-passes/mine/new',
+        roles: ['Guardian'],
+        permissions: ['GatePass.Request']
+      },
+      {
+        labelKey: 'مراجعة استئذانات الخروج',
+        icon: 'pi pi-check-square',
+        route: '/student-affairs/gate-passes',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['GatePass.View', 'GatePass.Approve', 'GatePass.Reject'],
+        requireAllPermissions: true,
+        exact: true
+      },
+      {
+        labelKey: 'تنفيذ استئذانات الخروج',
+        icon: 'pi pi-sign-out',
+        route: '/student-affairs/gate-passes/security',
+        roles: ['SecurityGuard'],
+        permissions: ['GatePass.AcknowledgeSecurity', 'GatePass.Execute'],
+        requireAllPermissions: true
+      },
+      {
+        labelKey: 'إحالات الموجه الطلابي',
+        icon: 'pi pi-briefcase',
+        route: '/student-affairs/cases',
+        roles: ['SocialWorker'],
+        permissions: ['Referral.View']
+      },
+      {
+        labelKey: 'استدعاءات أولياء الأمور',
+        icon: 'pi pi-calendar-clock',
+        route: '/student-affairs/summons',
+        roles: ['SocialWorker'],
+        permissions: ['Summon.View']
+      },
+      {
+        labelKey: 'اعتماد إشعارات أولياء الأمور',
+        icon: 'pi pi-send',
+        route: '/student-affairs/notification-approvals',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['Notification.ApproveDispatch', 'Notification.SuppressDispatch'],
+        requireAllPermissions: true
+      },
+      {
+        labelKey: 'الرسائل',
+        icon: 'pi pi-comments',
+        route: '/student-affairs/messages',
+        roles: ['Guardian', 'StudentAffairsOfficer', 'SocialWorker'],
+        permissions: ['Messaging.ViewOwn']
       }
     ]
   },
@@ -120,6 +212,13 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
     labelKey: 'NAV.CATEGORIES.SETTINGS',
     icon: 'pi pi-cog',
     items: [
+      {
+        labelKey: 'إعدادات شؤون الطلاب',
+        icon: 'pi pi-sliders-h',
+        route: '/student-affairs/settings',
+        roles: ['StudentAffairsOfficer', 'SchoolManager'],
+        permissions: ['StudentAffairsSettings.View']
+      },
       { labelKey: 'إعدادات ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/school-manager/evidence-settings', roles: ['SchoolManager'], permissions: ['Settings.Manage'] },
       { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
     ]
@@ -182,6 +281,8 @@ export class ShellComponent implements OnInit {
         { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
         { labelKey: 'ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/instructor/evidence-files' },
         { labelKey: 'NAV.COMPLAINT_RESULTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
+        { labelKey: 'الساعات المكتبية', icon: 'pi pi-clock', route: '/student-affairs/office-hours', permissions: ['OfficeHours.ManageOwn'] },
+        { labelKey: 'الرسائل', icon: 'pi pi-comments', route: '/student-affairs/messages', permissions: ['Messaging.ViewOwn'] },
         { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
       );
     }
@@ -328,7 +429,10 @@ export class ShellComponent implements OnInit {
     const permissions = this.authService.permissions();
     if (item.roles && !item.roles.some(role => roles.includes(role))) return false;
     if (roles.includes('SuperAdmin')) return true;
-    return !item.permissions || item.permissions.some(permission => permissions.includes(permission));
+    if (!item.permissions) return true;
+    return item.requireAllPermissions
+      ? item.permissions.every(permission => permissions.includes(permission))
+      : item.permissions.some(permission => permissions.includes(permission));
   }
 
   private expandActiveCategory(url: string): void {

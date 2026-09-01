@@ -1,0 +1,43 @@
+<section class="page" dir="rtl">
+  <p-card styleClass="export-card">
+    <div class="icon"><i class="pi pi-file-excel"></i></div>
+    <span class="eyebrow">التقارير الأسبوعية</span>
+    <h1>تصدير أعذار الغياب إلى نور</h1>
+    <p class="lead">ينشئ الملف تصحيحات الغياب المقبولة فقط (غائب بعذر) خلال الأسبوع المحدد.</p>
+
+    <label>
+      <span>بداية الأسبوع</span>
+      <p-calendar
+        [formControl]="weekControl"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        [readonlyInput]="true"
+        appendTo="body">
+      </p-calendar>
+    </label>
+
+    <div class="range"><i class="pi pi-calendar"></i><span>الفترة الشاملة: {{ rangeLabel }}</span></div>
+
+    <button
+      pButton
+      type="button"
+      label="إنشاء تصدير نور الأسبوعي"
+      icon="pi pi-download"
+      [loading]="generating()"
+      (click)="generate()">
+    </button>
+
+    <small>لا يوجد عدد معاينة قبل الإنشاء؛ العدد النهائي يظهر بعد تجهيز الملف.</small>
+
+    @if (rowCount() !== null) {
+      <div class="result" aria-live="polite">
+        <i class="pi pi-check-circle"></i>
+        <div>
+          <strong>تم إنشاء الملف — {{ rowCount() }} سجل</strong>
+          @if (rowCount() === 0) { <p-tag value="ملف فارغ صالح" severity="info"></p-tag> }
+          @if (batchId()) { <span>رقم الدفعة للدعم والتدقيق: <code>{{ batchId() }}</code></span> }
+        </div>
+      </div>
+    }
+  </p-card>
+</section>

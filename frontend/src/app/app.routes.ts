@@ -422,6 +422,221 @@ export const routes: Routes = [
         title: translatedTitle('ROUTE_TITLES.COMPLAINTS')
       },
 
+      // Student Affairs Phase 1: effective school settings and audit history.
+      {
+        path: 'student-affairs/settings',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['StudentAffairsOfficer', 'SchoolManager'],
+          permissions: ['StudentAffairsSettings.View']
+        },
+        loadComponent: () => import('./features/student-affairs/settings/settings.component')
+          .then(m => m.SettingsComponent),
+        title: 'إعدادات شؤون الطلاب'
+      },
+
+      // Student Affairs Phase 3: daily attendance, integrations, and absence excuses.
+      {
+        path: 'student-affairs/attendance/sheet',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary'],
+          permissions: ['Attendance.ViewStudents', 'Attendance.ManageStudents']
+        },
+        loadComponent: () => import('./features/student-affairs/attendance-sheet/attendance-sheet.component')
+          .then(m => m.AttendanceSheetComponent),
+        title: 'رصد الغياب اليومي'
+      },
+      {
+        path: 'student-affairs/biometrics/zajel',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary', 'StudentAffairsOfficer'],
+          permissions: ['Biometric.Import']
+        },
+        loadComponent: () => import('./features/student-affairs/biometric-import/biometric-import.component')
+          .then(m => m.BiometricImportComponent),
+        title: 'استيراد سجل زاجل'
+      },
+      {
+        path: 'student-affairs/noor-export',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['Noor.Export']
+        },
+        loadComponent: () => import('./features/student-affairs/noor-export/noor-export.component')
+          .then(m => m.NoorExportComponent),
+        title: 'تصدير أعذار الغياب إلى نور'
+      },
+      {
+        path: 'student-affairs/guardian/excuses',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Guardian'],
+          permissions: ['Attendance.SubmitExcuse'],
+          excuseMode: 'guardian'
+        },
+        loadComponent: () => import('./features/student-affairs/excuses-management/excuses-management.component')
+          .then(m => m.ExcusesManagementComponent),
+        title: 'رفع عذر غياب'
+      },
+      {
+        path: 'student-affairs/officer/excuses',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['Attendance.ViewStudents', 'Attendance.ReviewExcuse'],
+          excuseMode: 'officer'
+        },
+        loadComponent: () => import('./features/student-affairs/excuses-management/excuses-management.component')
+          .then(m => m.ExcusesManagementComponent),
+        title: 'مراجعة الأعذار'
+      },
+
+      // Student Affairs Phase 4: Guardian request, Officer decision, and Guard execution.
+      {
+        path: 'student-affairs/gate-passes/mine/new',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Guardian'],
+          permissions: ['GatePass.Request']
+        },
+        loadComponent: () => import('./features/student-affairs/gate-pass-request/gate-pass-request.component')
+          .then(m => m.GatePassRequestComponent),
+        title: 'طلب استئذان خروج'
+      },
+      {
+        path: 'student-affairs/gate-passes/security',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['SecurityGuard'],
+          permissions: ['GatePass.AcknowledgeSecurity', 'GatePass.Execute']
+        },
+        loadComponent: () => import('./features/student-affairs/security-gate-execution/security-gate-execution.component')
+          .then(m => m.SecurityGateExecutionComponent),
+        title: 'تنفيذ استئذانات الخروج'
+      },
+      {
+        path: 'student-affairs/gate-passes',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['GatePass.View', 'GatePass.Approve', 'GatePass.Reject']
+        },
+        loadComponent: () => import('./features/student-affairs/officer-gate-pass-queue/officer-gate-pass-queue.component')
+          .then(m => m.OfficerGatePassQueueComponent),
+        title: 'مراجعة استئذانات الخروج'
+      },
+
+      // Student Affairs Phase 5: case work, summons, notification approval,
+      // office hours, and participant-scoped messaging.
+      {
+        path: 'student-affairs/cases',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SocialWorker'], permissions: ['Referral.View'], crmView: 'cases' },
+        loadComponent: () => import('./features/student-affairs/social-worker-crm/social-worker-crm.component')
+          .then(m => m.SocialWorkerCrmComponent),
+        title: 'إحالات الموجه الطلابي'
+      },
+      {
+        path: 'student-affairs/summons',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SocialWorker'], permissions: ['Summon.View'], crmView: 'summons' },
+        loadComponent: () => import('./features/student-affairs/social-worker-crm/social-worker-crm.component')
+          .then(m => m.SocialWorkerCrmComponent),
+        title: 'استدعاءات أولياء الأمور'
+      },
+      {
+        path: 'student-affairs/notification-approvals',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['Notification.ApproveDispatch', 'Notification.SuppressDispatch']
+        },
+        loadComponent: () => import('./features/student-affairs/notification-approval-queue/notification-approval-queue.component')
+          .then(m => m.NotificationApprovalQueueComponent),
+        title: 'اعتماد إشعارات أولياء الأمور'
+      },
+      {
+        path: 'student-affairs/office-hours',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['Instructor'], permissions: ['OfficeHours.ManageOwn'] },
+        loadComponent: () => import('./features/student-affairs/office-hours-settings/office-hours-settings.component')
+          .then(m => m.OfficeHoursSettingsComponent),
+        title: 'الساعات المكتبية'
+      },
+      {
+        path: 'student-affairs/messages',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Guardian', 'Instructor', 'StudentAffairsOfficer', 'SocialWorker'],
+          permissions: ['Messaging.ViewOwn']
+        },
+        loadComponent: () => import('./features/student-affairs/messaging-chat/messaging-chat.component')
+          .then(m => m.MessagingChatComponent),
+        title: 'الرسائل'
+      },
+
+      // Student Affairs Phase 2: role-specific operational dashboards.
+      {
+        path: 'student-affairs/teacher',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['Instructor'],
+          permissions: ['StudentAffairsDashboard.Teacher', 'TeacherQuickAction.View']
+        },
+        loadComponent: () => import('./features/student-affairs/teacher-top-priority/teacher-top-priority.component')
+          .then(m => m.TeacherTopPriorityComponent),
+        title: 'أولوية المعلم الآن'
+      },
+      {
+        path: 'student-affairs/security',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['SecurityGuard'],
+          permissions: ['StudentAffairsDashboard.Security']
+        },
+        loadComponent: () => import('./features/student-affairs/security-gate-queue/security-gate-queue.component')
+          .then(m => m.SecurityGateQueueComponent),
+        title: 'بوابة المدرسة'
+      },
+      {
+        path: 'student-affairs/guardian',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['Guardian'],
+          permissions: ['StudentAffairsDashboard.Guardian', 'Guardian.ViewLinkedStudents']
+        },
+        loadComponent: () => import('./features/student-affairs/guardian-dashboard/guardian-dashboard.component')
+          .then(m => m.GuardianDashboardComponent),
+        title: 'أبنائي'
+      },
+      {
+        path: 'student-affairs/officer',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['StudentAffairsDashboard.Officer'],
+          dashboardKind: 'officer'
+        },
+        loadComponent: () => import('./features/student-affairs/officer-dashboard/officer-dashboard.component')
+          .then(m => m.OfficerDashboardComponent),
+        title: 'لوحة شؤون الطلاب'
+      },
+      {
+        path: 'student-affairs/oversight',
+        canActivate: [roleGuard],
+        data: {
+          roles: ['SchoolManager'],
+          permissions: ['StudentAffairsDashboard.SchoolOversight'],
+          dashboardKind: 'oversight'
+        },
+        loadComponent: () => import('./features/student-affairs/officer-dashboard/officer-dashboard.component')
+          .then(m => m.OfficerDashboardComponent),
+        title: 'الإشراف المدرسي'
+      },
+
       // Access is school-scoped and assigned dynamically by the school manager.
       {
         path: 'student-analyzer',

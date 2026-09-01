@@ -143,7 +143,7 @@ export class VisitDetailComponent implements OnInit {
   }
 
   private handleLoadResponse(
-    resp: { isSuccess: boolean; data?: VisitDetail | InstructorReport; message?: string },
+    resp: { isSuccess: boolean; data?: VisitDetail | InstructorReport | null; message?: string },
     id: number,
     instructorPath: boolean
   ): void {
@@ -392,7 +392,7 @@ export class VisitDetailComponent implements OnInit {
     }
   }
 
-  private handleReasonResponse(resp: { isSuccess: boolean; data?: VisitDetail; message?: string }, mode: 'reject' | 'reopen'): void {
+  private handleReasonResponse(resp: { isSuccess: boolean; data?: VisitDetail | null; message?: string }, mode: 'reject' | 'reopen'): void {
     this.reasonActionLoading.set(false);
     this.reasonDialogVisible.set(false);
     this.reasonDialogMode.set(null);

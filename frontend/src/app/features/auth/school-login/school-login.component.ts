@@ -110,6 +110,8 @@ export class SchoolLoginComponent implements OnInit {
       this.router.navigate(['/moderator/dashboard']);
     } else if (roles.includes('Instructor')) {
       this.router.navigate(['/instructor/dashboard']);
+    } else if (roles.includes('StudentAffairsOfficer')) {
+      this.router.navigate(['/student-affairs/settings']);
     } else {
       this.router.navigate(['/dashboard']);
     }

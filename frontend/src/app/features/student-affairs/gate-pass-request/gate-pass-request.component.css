@@ -1,0 +1,52 @@
+:host { display: block; }
+.gate-pass-page { width: min(1400px, 100%); margin-inline: auto; padding: var(--space-6); color: var(--text); }
+.page-header, .section-heading, .submit-row, .dialog-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.page-header { margin-bottom: var(--space-5); }
+h1, h2, p { margin-top: 0; }
+.page-header h1 { margin-bottom: var(--space-1); color: var(--text-strong); font-size: clamp(1.55rem, 3vw, 2.15rem); }
+.page-header p, .section-heading p { margin-bottom: 0; color: var(--text-muted); }
+.eyebrow { color: var(--brand-700); font-size: .82rem; font-weight: 800; }
+.loading-card, .empty-eligibility { display: grid; min-height: 220px; place-items: center; align-content: center; gap: var(--space-3); padding: var(--space-6); text-align: center; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.empty-eligibility { margin-bottom: var(--space-5); color: var(--danger); background: var(--danger-bg); border-color: var(--danger-border); }
+.empty-eligibility i { font-size: 2rem; }
+.empty-eligibility p { margin: 0; }
+.content-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(270px, .8fr); gap: var(--space-5); align-items: start; }
+:host ::ng-deep .request-card .p-card-body { padding-top: 0; }
+.card-title { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5) var(--space-5) 0; }
+.card-title > i { display: grid; width: 44px; height: 44px; place-items: center; color: var(--brand-700); background: var(--brand-50); border-radius: var(--radius-lg); font-size: 1.2rem; }
+.card-title h2 { margin: 0; color: var(--text-strong); font-size: 1.2rem; }
+.card-title span { color: var(--text-muted); font-size: .83rem; }
+form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.field { display: flex; min-width: 0; flex-direction: column; gap: var(--space-2); color: var(--text-strong); font-weight: 700; }
+.field b { color: var(--danger); }
+.field.full, .submit-row.full, .overlap-warning.full { grid-column: 1 / -1; }
+.field input, .field textarea, .field p-dropdown, .field p-calendar { width: 100%; font-weight: 400; }
+:host ::ng-deep .field .p-dropdown, :host ::ng-deep .field .p-calendar, :host ::ng-deep .field .p-calendar input { width: 100%; }
+.hint, .privacy, .block, .muted { color: var(--text-muted); font-size: .82rem; font-weight: 400; }
+.privacy { display: flex; align-items: center; gap: var(--space-2); color: var(--info); }
+.validation { color: var(--danger); font-size: .8rem; font-weight: 600; }
+.overlap-warning { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3); color: #765600; background: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: var(--radius-md); }
+.submit-row { padding-top: var(--space-2); }
+.submit-row span { color: var(--text-muted); font-size: .84rem; }
+.workflow-card { padding: var(--space-5); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }
+.workflow-card h2 { color: var(--text-strong); font-size: 1.1rem; }
+.workflow-card ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.workflow-card li { position: relative; display: flex; gap: var(--space-3); min-height: 78px; color: var(--text-muted); }
+.workflow-card li:not(:last-child)::after { position: absolute; top: 36px; right: 17px; bottom: 0; width: 2px; content: ''; background: var(--border); }
+.workflow-card li > i { z-index: 1; display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: 50%; }
+.workflow-card li.active > i { color: white; background: var(--brand-700); border-color: var(--brand-700); }
+.workflow-card li span { display: flex; flex-direction: column; gap: var(--space-1); }
+.workflow-card li strong { color: var(--text-strong); }
+.workflow-card li small { line-height: 1.5; }
+.history-card { overflow: hidden; margin-top: var(--space-5); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }
+.section-heading { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border); }
+.section-heading h2 { margin-bottom: var(--space-1); color: var(--text-strong); font-size: 1.15rem; }
+.section-heading > span { color: var(--brand-700); font-weight: 800; }
+.reason-cell { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table-empty { display: grid; min-height: 160px; place-items: center; align-content: center; gap: var(--space-2); color: var(--text-muted); }
+.table-empty i { font-size: 1.7rem; }
+.cancel-dialog { display: grid; gap: var(--space-4); }
+.cancel-dialog p { margin-bottom: 0; line-height: 1.8; }
+.dialog-actions { justify-content: flex-end; }
+@media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } .workflow-card { order: -1; } }
+@media (max-width: 650px) { .gate-pass-page { padding: var(--space-4); } .page-header, .section-heading, .submit-row { align-items: stretch; flex-direction: column; } form { grid-template-columns: 1fr; } .field { grid-column: 1 / -1; } }

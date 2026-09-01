@@ -1,0 +1,32 @@
+<main class="security-page" dir="rtl">
+  <header class="page-header">
+    <div><p class="eyebrow">عرض تشغيلي للبوابة</p><h1>استئذانات الخروج المعتمدة اليوم</h1><p>قراءة فقط · يتم التحديث كل 30 ثانية أثناء ظهور الصفحة</p></div>
+    <button pButton type="button" icon="pi pi-refresh" label="تحديث الآن" class="p-button-outlined" [loading]="loading()" (click)="refresh()"></button>
+  </header>
+
+  <section *ngIf="loading()" class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><p>جارٍ تحديث قائمة البوابة…</p></section>
+  <section *ngIf="!loading() && errorMessage()" class="state-card error" role="alert"><i class="pi pi-exclamation-triangle"></i><h2>تعذر تحميل القائمة</h2><p>{{ errorMessage() }}</p><button pButton type="button" label="إعادة المحاولة" (click)="refresh()"></button></section>
+
+  <ng-container *ngIf="!loading() && !errorMessage() && dashboard() as data">
+    <section class="count-grid" aria-live="polite">
+      <article *ngFor="let count of data.counts"><span>{{ count.label || count.code }}</span><strong>{{ count.count }}</strong><p-tag [value]="count.severity" [severity]="countSeverity(count.severity)"></p-tag></article>
+    </section>
+
+    <section class="queue-card">
+      <p-table [value]="sortedPasses()" [scrollable]="true" responsiveLayout="scroll" styleClass="p-datatable-lg">
+        <ng-template pTemplate="header"><tr><th>الطالب</th><th>الفصل</th><th>نافذة الخروج</th><th>المستلم</th><th>اعتماد الموظف</th><th>الحالة</th></tr></ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td><div class="student-cell"><img *ngIf="item.student.photoUrl; else fallback" [src]="item.student.photoUrl" [alt]="item.student.displayName" /><ng-template #fallback><span class="avatar">{{ initials(item.student.displayName) }}</span></ng-template><span><strong>{{ item.student.displayName }}</strong><small><bdi dir="ltr">{{ item.student.studentNumber }}</bdi></small></span></div></td>
+            <td><strong>{{ item.classLabel }}</strong></td>
+            <td><div class="time-window"><strong dir="ltr">{{ formatDateTime(item.approvedWindowStartsAt) }}</strong><span>حتى</span><strong dir="ltr">{{ formatDateTime(item.approvedWindowEndsAt) }}</strong></div></td>
+            <td><div class="stack"><strong>{{ item.pickupPerson.name }}</strong><small>{{ item.pickupPerson.relationship || 'لم تحدد الصلة' }}</small><small *ngIf="item.pickupPerson.identityHint">هوية: <bdi dir="ltr">{{ item.pickupPerson.identityHint }}</bdi></small></div></td>
+            <td><div class="stack"><strong>{{ item.officerName }}</strong><small>{{ formatDateTime(item.approvedAt) }}</small></div></td>
+            <td><div class="stack"><p-tag [value]="windowLabel(item)" [severity]="windowSeverity(item)"></p-tag><small>{{ item.status }}</small></div></td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="6"><div class="empty-state"><i class="pi pi-check-circle"></i><strong>لا توجد استئذانات خروج معتمدة لليوم</strong></div></td></tr></ng-template>
+      </p-table>
+    </section>
+  </ng-container>
+</main>

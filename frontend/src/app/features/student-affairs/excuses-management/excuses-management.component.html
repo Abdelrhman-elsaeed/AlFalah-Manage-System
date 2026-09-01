@@ -1,0 +1,191 @@
+<section class="page" dir="rtl">
+  @if (mode === 'guardian') {
+    <header>
+      <span class="eyebrow">خدمات ولي الأمر</span>
+      <h1>رفع عذر غياب</h1>
+      <p>يمكن رفع ملف PDF لسجل غياب مرتبط بأحد أبنائك، ثم تتابع حالة المراجعة هنا.</p>
+    </header>
+
+    <p-card>
+      <label class="student-picker">
+        <span>الطالب</span>
+        <p-dropdown
+          [formControl]="studentControl"
+          [options]="guardianStudents()"
+          optionLabel="student.displayName"
+          optionValue="student.id"
+          placeholder="اختر الطالب"
+          [loading]="guardianLoading()"
+          >
+        </p-dropdown>
+      </label>
+    </p-card>
+
+    @if (guardianLoading()) {
+      <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل سجلات الحضور…</span></div>
+    }
+
+    @if (history(); as attendanceHistory) {
+      <div class="history-heading">
+        <div><h2>سجل غياب {{ attendanceHistory.student.displayName }}</h2><p>{{ attendanceHistory.term.label }}</p></div>
+        <p-tag [value]="'الغياب المحتسب: ' + attendanceHistory.absenceMetric.eligibleTermCount" severity="info"></p-tag>
+      </div>
+      <p-table [value]="attendanceHistory.records" [paginator]="attendanceHistory.records.length > 10" [rows]="10" styleClass="p-datatable-striped" responsiveLayout="scroll">
+        <ng-template pTemplate="header"><tr><th>التاريخ</th><th>الحالة</th><th>حالة العذر</th><th>الإجراء</th></tr></ng-template>
+        <ng-template pTemplate="body" let-record>
+          <tr>
+            <td>{{ record.date }}</td>
+            <td>{{ record.status === 'AbsentExcused' ? 'غائب بعذر' : record.status === 'Absent' ? 'غائب' : 'حاضر' }}</td>
+            <td><p-tag [value]="statusLabel(record.excuseStatus)" [severity]="statusSeverity(record.excuseStatus)"></p-tag></td>
+            <td class="actions">
+              @if (canUpload(record)) {
+                <button pButton type="button" label="رفع عذر PDF" icon="pi pi-upload" size="small" (click)="openUpload(record)"></button>
+              }
+              @if (record.excuseStatus) {
+                <button pButton type="button" label="عرض العذر" icon="pi pi-eye" size="small" class="p-button-outlined" (click)="openExcuses(record.id)"></button>
+              }
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="4" class="empty">لا توجد سجلات حضور في الفصل الدراسي الحالي.</td></tr></ng-template>
+      </p-table>
+    }
+
+    <p-dialog
+      header="إرسال عذر الغياب"
+      [visible]="uploadDialogVisible()"
+      (visibleChange)="uploadDialogVisible.set($event)"
+      [modal]="true"
+      [style]="{ width: 'min(560px, 95vw)' }"
+      [draggable]="false">
+      <form class="upload-form" [formGroup]="uploadForm" (ngSubmit)="submitExcuse()">
+        <div class="attendance-context">
+          <i class="pi pi-calendar"></i>
+          <span>غياب بتاريخ <strong>{{ uploadAttendance()?.date }}</strong></span>
+        </div>
+        <label><span>نوع العذر</span><p-dropdown formControlName="excuseType" [options]="excuseTypes" optionLabel="label" optionValue="value"></p-dropdown></label>
+        <label><span>ملاحظة لجهة المراجعة (اختياري)</span><textarea pInputTextarea formControlName="notes" rows="4" maxlength="1000"></textarea></label>
+        <label class="pdf-picker">
+          <span>المرفق PDF — حتى 10 MB</span>
+          <input #pdfPicker type="file" accept=".pdf,application/pdf" (change)="selectPdf($event)" hidden />
+          <button pButton type="button" class="p-button-outlined" icon="pi pi-paperclip" [label]="uploadFile()?.name || 'اختيار ملف PDF'" (click)="pdfPicker.click()"></button>
+          @if (uploadFile(); as file) { <small>{{ formatBytes(file.size) }}</small> }
+        </label>
+        <div class="dialog-actions">
+          <button pButton type="button" label="إلغاء" class="p-button-text" (click)="uploadDialogVisible.set(false)"></button>
+          <button pButton type="submit" label="إرسال للمراجعة" icon="pi pi-send" [loading]="submitting()" [disabled]="uploadForm.invalid || !uploadFile()"></button>
+        </div>
+      </form>
+    </p-dialog>
+  } @else {
+    <header class="officer-header">
+      <div><span class="eyebrow">شؤون الطلاب</span><h1>مراجعة الأعذار</h1><p>قائمة الأعذار المعلقة، محملة بتزامن محدود لحماية أداء الخدمة.</p></div>
+      <button pButton type="button" label="تحديث القائمة" icon="pi pi-refresh" class="p-button-outlined" [loading]="queueLoading()" (click)="loadOfficerQueue()"></button>
+    </header>
+
+    @if (queueError()) { <div class="error" role="alert"><i class="pi pi-exclamation-circle"></i>{{ queueError() }}</div> }
+    @if (queueLoading()) {
+      <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ جمع الأعذار المعلقة…</span></div>
+    } @else {
+      <div class="queue-card">
+        <p-table [value]="queue()" [paginator]="queue().length > 10" [rows]="10" styleClass="p-datatable-striped" responsiveLayout="scroll">
+          <ng-template pTemplate="header"><tr><th>الطالب</th><th>الفصل</th><th>تاريخ الغياب</th><th>قُدم في</th><th>نوع العذر</th><th>المرفقات</th><th>الحالة</th><th>الإجراء</th></tr></ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><strong>{{ item.attendance.student.displayName }}</strong><small>{{ item.attendance.student.studentNumber }}</small></td>
+              <td>{{ item.attendance.student.classLabel || '—' }}</td>
+              <td>{{ item.attendance.date }}</td>
+              <td>{{ formatDate(item.excuse.submittedAt) }}</td>
+              <td>{{ excuseTypeLabel(item.excuse.excuseType) }}</td>
+              <td>{{ item.excuse.attachments.length }}</td>
+              <td><p-tag value="قيد المراجعة" severity="warning"></p-tag></td>
+              <td><button pButton type="button" label="فتح المراجعة" icon="pi pi-angle-left" size="small" (click)="openReview(item)"></button></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="8" class="empty"><i class="pi pi-check-circle"></i> لا توجد أعذار معلقة حاليًا.</td></tr></ng-template>
+        </p-table>
+      </div>
+    }
+
+    <p-dialog
+      header="مراجعة عذر الغياب"
+      [visible]="reviewDialogVisible()"
+      (visibleChange)="reviewDialogVisible.set($event)"
+      [modal]="true"
+      [style]="{ width: 'min(880px, 96vw)' }"
+      [maximizable]="true"
+      [draggable]="false">
+      @if (selectedQueueItem(); as item) {
+        <div class="review-grid">
+          <div class="review-summary">
+            <h3>{{ item.attendance.student.displayName }}</h3>
+            <dl>
+              <div><dt>تاريخ الغياب</dt><dd>{{ item.attendance.date }}</dd></div>
+              <div><dt>نوع العذر</dt><dd>{{ excuseTypeLabel(item.excuse.excuseType) }}</dd></div>
+              <div><dt>مقدم الطلب</dt><dd>{{ item.excuse.guardian.displayName }} — {{ item.excuse.guardian.relationship }}</dd></div>
+              <div><dt>وقت التقديم</dt><dd>{{ formatDate(item.excuse.submittedAt) }}</dd></div>
+            </dl>
+            @if (item.excuse.reviewReason) { <div class="private-note"><strong>الملاحظة/السبب</strong><p>{{ item.excuse.reviewReason }}</p></div> }
+            <div class="attachments">
+              <h4>المرفقات</h4>
+              @for (attachment of item.excuse.attachments; track attachment.id) {
+                <div class="attachment-row">
+                  <span><i class="pi pi-file-pdf"></i>{{ attachment.originalName }} <small>{{ formatBytes(attachment.sizeBytes) }}</small></span>
+                  <div>
+                    <button pButton type="button" icon="pi pi-eye" class="p-button-text" aria-label="معاينة" (click)="previewAttachment(item.excuse, attachment)"></button>
+                    <button pButton type="button" icon="pi pi-download" class="p-button-text" aria-label="تنزيل" (click)="downloadAttachment(item.excuse, attachment)"></button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          <div class="decision-panel">
+            <p-tag [value]="statusLabel(item.excuse.status)" [severity]="statusSeverity(item.excuse.status)"></p-tag>
+            @if (item.excuse.status === 'Pending') {
+              <label><span>ملاحظة القبول (اختياري)</span><textarea pInputTextarea [formControl]="reviewNote" rows="3"></textarea></label>
+              <button pButton type="button" label="قبول العذر" icon="pi pi-check" class="p-button-success" [loading]="reviewing()" (click)="accept()"></button>
+              <hr />
+              <label><span>سبب الرفض (مطلوب)</span><textarea pInputTextarea [formControl]="rejectionReason" rows="3"></textarea></label>
+              @if (rejectionReason.touched && !rejectionReason.value.trim()) { <small class="validation">اكتب سبب الرفض.</small> }
+              <button pButton type="button" label="رفض العذر" icon="pi pi-times" class="p-button-danger p-button-outlined" [loading]="reviewing()" [disabled]="!rejectionReason.value.trim()" (click)="reject()"></button>
+            } @else {
+              <div class="decided"><i class="pi pi-lock"></i> حُسم هذا العذر ولا يمكن اتخاذ قرار ثانٍ.</div>
+            }
+          </div>
+        </div>
+      }
+    </p-dialog>
+  }
+
+  <p-dialog
+    header="تفاصيل العذر والمرفق"
+    [visible]="excusesDialogVisible()"
+    (visibleChange)="excusesDialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: 'min(900px, 96vw)' }"
+    [maximizable]="true"
+    [draggable]="false">
+    @if (detailsLoading()) { <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner></div> }
+    @for (excuse of displayedExcuses(); track excuse.id) {
+      <article class="excuse-details">
+        <div><p-tag [value]="statusLabel(excuse.status)" [severity]="statusSeverity(excuse.status)"></p-tag><strong>{{ excuseTypeLabel(excuse.excuseType) }}</strong><span>{{ formatDate(excuse.submittedAt) }}</span></div>
+        @if (excuse.reviewReason) { <p>{{ excuse.reviewReason }}</p> }
+        @for (attachment of excuse.attachments; track attachment.id) {
+          <div class="attachment-row">
+            <span><i class="pi pi-file-pdf"></i>{{ attachment.originalName }}</span>
+            <div>
+              <button pButton type="button" label="معاينة" icon="pi pi-eye" class="p-button-text" (click)="previewAttachment(excuse, attachment)"></button>
+              <button pButton type="button" label="تنزيل" icon="pi pi-download" class="p-button-outlined" (click)="downloadAttachment(excuse, attachment)"></button>
+            </div>
+          </div>
+        }
+      </article>
+    }
+    @if (previewUrl()) {
+      <div class="pdf-preview">
+        <strong>{{ previewName() }}</strong>
+        <iframe [src]="previewUrl()" sandbox title="معاينة مرفق العذر PDF"></iframe>
+      </div>
+    }
+  </p-dialog>
+</section>

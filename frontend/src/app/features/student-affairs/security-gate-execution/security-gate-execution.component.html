@@ -1,0 +1,69 @@
+<main class="security-page" dir="rtl">
+  <header class="page-header">
+    <div><span class="eyebrow">التنفيذ التشغيلي للبوابة</span><h1>استئذانات الخروج اليوم</h1><p>المطابقة وتسجيل الخروج خطوتان منفصلتان. تتحدث القائمة تلقائيًا كل 30 ثانية.</p></div>
+    <button pButton type="button" icon="pi pi-refresh" label="تحديث الآن" class="p-button-outlined" [loading]="loading()" (click)="refresh()"></button>
+  </header>
+
+  @if (receipt(); as done) {
+    <section class="receipt" role="status"><i class="pi pi-check-circle"></i><div><strong>تم تسجيل خروج {{ done.student.displayName }}</strong><span>وقت الخروج من الخادم: {{ formatDateTime(done.exitedAt) }}</span></div></section>
+  }
+
+  @if (errorMessage()) { <section class="state-card error" role="alert"><i class="pi pi-exclamation-triangle"></i><h2>تعذر تحميل قائمة البوابة</h2><p>{{ errorMessage() }}</p><button pButton type="button" label="إعادة المحاولة" (click)="refresh()"></button></section> }
+  @if (loading() && !queue().length) { <section class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><p>جارٍ تحديث الاستئذانات المتاحة للتنفيذ…</p></section> }
+
+  @if (!errorMessage() && (!loading() || queue().length)) {
+    <section class="queue-meta"><div><strong>{{ totalRecords() }}</strong><span>استئذانًا تشغيليًا</span></div><span class="live"><i></i> مباشر</span></section>
+    <section class="gate-grid">
+      @for (item of queue(); track item.id) {
+        <article class="gate-card" [class.acknowledged]="item.status === 'SecurityAcknowledged'" [class.expired]="windowSeverity(item) === 'danger'">
+          <div class="card-top">
+            <div class="student-photo">
+              @if (item.student.photoUrl) { <img [src]="item.student.photoUrl" [alt]="item.student.displayName" /> } @else { <span>{{ initials(item.student.displayName) }}</span> }
+            </div>
+            <div class="student-name"><h2>{{ item.student.displayName }}</h2><span><bdi dir="ltr">{{ item.student.studentNumber }}</bdi> · {{ item.classLabel }}</span></div>
+            <p-tag [value]="statusLabel(item)" [severity]="item.status === 'Approved' ? 'info' : 'success'"></p-tag>
+          </div>
+
+          <div class="window" [class.active]="isWindowActive(item)">
+            <div><span>نافذة الخروج</span><strong>{{ formatDateTime(item.approvedWindowStartsAt) }} — {{ formatDateTime(item.approvedWindowEndsAt) }}</strong></div>
+            <div class="countdown"><span>{{ windowState(item) }}</span><bdi dir="ltr">{{ countdown(item) }}</bdi></div>
+          </div>
+
+          <dl>
+            <div><dt>الشخص المستلم</dt><dd>{{ item.pickupPerson.name }}</dd></div>
+            <div><dt>صلة القرابة</dt><dd>{{ item.pickupPerson.relationship || 'لم تحدد' }}</dd></div>
+            <div><dt>علامة تحقق الهوية</dt><dd>{{ item.pickupPerson.identityHint || 'لا توجد' }}</dd></div>
+            <div><dt>اعتماد شؤون الطلاب</dt><dd>{{ item.officerName }} · {{ formatDateTime(item.approvedAt) }}</dd></div>
+          </dl>
+
+          <div class="card-actions">
+            @if (item.status === 'Approved') {
+              <button pButton type="button" label="تمت المطابقة — جاهز للخروج" icon="pi pi-shield" class="ack-button" [loading]="mutatingId() === item.id" [disabled]="!isWindowActive(item) || mutatingId() !== null" (click)="acknowledge(item)"></button>
+              @if (!isWindowActive(item)) { <small><i class="pi pi-lock"></i> {{ windowState(item) }}؛ لا يمكن تسجيل المطابقة الآن.</small> }
+            } @else {
+              <div class="ack-confirmed"><i class="pi pi-verified"></i><span><strong>تمت مطابقة بيانات المستلم</strong><small>سجّل الخروج فقط عند عبور الطالب البوابة فعليًا.</small></span></div>
+              <button pButton type="button" label="تسجيل خروج الطالب ✅" icon="pi pi-sign-out" class="exit-button p-button-danger" [disabled]="!isWindowActive(item)" (click)="openExit(item)"></button>
+              @if (!isWindowActive(item)) { <small><i class="pi pi-lock"></i> {{ windowState(item) }}؛ لا يمكن تسجيل حدث الخروج.</small> }
+            }
+          </div>
+        </article>
+      } @empty {
+        <div class="empty"><i class="pi pi-check-circle"></i><strong>لا توجد استئذانات جاهزة للبوابة الآن</strong><span>ستظهر الاستئذانات المعتمدة لليوم عند دخول نافذة التشغيل.</span></div>
+      }
+    </section>
+    @if (totalRecords() > pageSize()) { <p-paginator [first]="(pageNumber() - 1) * pageSize()" [rows]="pageSize()" [totalRecords]="totalRecords()" [rowsPerPageOptions]="[12, 24, 48]" (onPageChange)="onPage($event)"></p-paginator> }
+  }
+
+  <p-dialog header="التأكيد النهائي لخروج الطالب" [visible]="exitDialogVisible()" (visibleChange)="exitDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!executing()" [style]="{ width: 'min(620px, 96vw)' }">
+    @if (exitTarget(); as item) {
+      <form class="exit-form" [formGroup]="exitForm" (ngSubmit)="executeExit()">
+        <div class="physical-warning"><i class="pi pi-exclamation-triangle"></i><div><strong>هل عبر {{ item.student.displayName }} البوابة فعليًا؟</strong><span>هذا الإجراء يسجل حدثًا فعليًا ولا يوجد له تراجع.</span></div></div>
+        <div class="exit-preview"><span>وقت الخروج المتوقع</span><strong>{{ formatDateTime(now()) }}</strong><small>سيتم إرسال قيمة فارغة للوقت، والخادم هو من يسجل الوقت الرسمي.</small></div>
+        <label class="field"><span>طريقة التحقق <b>*</b></span><p-dropdown formControlName="verificationMethod" [options]="verificationMethods" optionLabel="label" optionValue="value" placeholder="اختر طريقة التحقق"></p-dropdown></label>
+        <label class="field"><span>ملاحظة التحقق <b>*</b></span><textarea pInputTextarea formControlName="verificationNote" rows="3" maxlength="1000" placeholder="اكتب كيف تمت مطابقة المستلم"></textarea>@if (exitForm.controls.verificationNote.touched && !exitForm.controls.verificationNote.value.trim()) { <small class="validation">ملاحظة التحقق مطلوبة.</small> }</label>
+        <label class="field"><span>ملاحظة البوابة (اختياري)</span><textarea pInputTextarea formControlName="gateNote" rows="2" maxlength="1000"></textarea></label>
+        <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="exitDialogVisible.set(false)"></button><button pButton type="submit" label="تم الخروج ✅" icon="pi pi-sign-out" class="p-button-danger final-exit" [loading]="executing()" [disabled]="exitForm.invalid"></button></div>
+      </form>
+    }
+  </p-dialog>
+</main>

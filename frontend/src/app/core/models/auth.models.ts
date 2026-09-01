@@ -6,7 +6,7 @@ export interface SchoolLookup {
   logoUrl?: string;
 }
 
-export interface SchoolLoginRequest {
+export interface SchoolLoginRequestDto {
   schoolId: number;
   username: string;
   password: string;
@@ -17,11 +17,11 @@ export interface MainManagerLoginRequest {
   password: string;
 }
 
-export interface RefreshTokenRequest {
+export interface RefreshTokenRequestDto {
   refreshToken: string;
 }
 
-export interface UserTokenInfo {
+export interface UserTokenInfoDto {
   userId: string;
   username: string;
   fullName: string;
@@ -32,15 +32,15 @@ export interface UserTokenInfo {
   permissions: string[];
 }
 
-export interface AuthResponse {
+export interface AuthResponseDto {
   accessToken: string;
   refreshToken: string;
   accessTokenExpiry: string;
   refreshTokenExpiry: string;
-  user: UserTokenInfo;
+  user: UserTokenInfoDto;
 }
 
-export interface CurrentUser {
+export interface CurrentUserDto {
   userId: string;
   username: string;
   fullName: string;
@@ -51,3 +51,10 @@ export interface CurrentUser {
   roles: string[];
   permissions: string[];
 }
+
+// Backwards-compatible aliases for the existing feature code.
+export type SchoolLoginRequest = SchoolLoginRequestDto;
+export type RefreshTokenRequest = RefreshTokenRequestDto;
+export type UserTokenInfo = UserTokenInfoDto;
+export type AuthResponse = AuthResponseDto;
+export type CurrentUser = CurrentUserDto;

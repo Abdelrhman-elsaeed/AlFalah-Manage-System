@@ -399,7 +399,7 @@ export class VisitFormComponent implements OnInit {
     }
   }
 
-  handleSave(resp: { isSuccess: boolean; message?: string; data?: VisitDetail }, isCreate: boolean): void {
+  handleSave(resp: { isSuccess: boolean; message?: string; data?: VisitDetail | null }, isCreate: boolean): void {
     this.saving.set(false);
     if (resp.isSuccess && resp.data) {
       this.toast.success(

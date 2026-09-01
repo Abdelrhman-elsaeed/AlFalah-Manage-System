@@ -1,0 +1,120 @@
+<main class="gate-pass-page" dir="rtl">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">خدمات ولي الأمر</span>
+      <h1>طلب استئذان خروج</h1>
+      <p>أرسل بيانات المستلم ووقت الخروج المطلوب، ثم تابع حالة المراجعة من القائمة أدناه.</p>
+    </div>
+    <button pButton type="button" icon="pi pi-refresh" label="تحديث الطلبات" class="p-button-outlined" [loading]="loading()" (click)="loadInitial()"></button>
+  </header>
+
+  @if (loading()) {
+    <section class="loading-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل بيانات الطلاب والاستئذانات…</span></section>
+  } @else {
+    @if (!students().length) {
+      <section class="empty-eligibility" role="alert">
+        <i class="pi pi-user-minus"></i>
+        <strong>لا يوجد طالب مرتبط مخول بطلب استئذان خروج</strong>
+        <p>راجع إدارة المدرسة لتحديث صلاحية الارتباط.</p>
+      </section>
+    }
+
+    <div class="content-grid">
+      <p-card styleClass="request-card">
+        <ng-template pTemplate="header"><div class="card-title"><i class="pi pi-sign-out"></i><div><h2>بيانات الاستئذان</h2><span>جميع الحقول ذات النجمة مطلوبة</span></div></div></ng-template>
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <label class="field full">
+            <span>الطالب <b>*</b></span>
+            <p-dropdown formControlName="studentId" [options]="students()" optionLabel="student.displayName" optionValue="student.id" placeholder="اختر الطالب" [filter]="true" filterBy="student.displayName,student.studentNumber" [disabled]="!students().length"></p-dropdown>
+            @if (form.controls.studentId.touched && form.controls.studentId.invalid) { <small class="validation">اختر طالبًا من الطلاب المرتبطين.</small> }
+          </label>
+
+          <label class="field full">
+            <span>وقت الخروج المطلوب <b>*</b></span>
+            <p-calendar formControlName="desiredExitTime" [showTime]="true" [showIcon]="true" [minDate]="minExitDate" [stepMinute]="5" hourFormat="12" dateFormat="dd/mm/yy" placeholder="اختر التاريخ والوقت" appendTo="body"></p-calendar>
+            <small class="hint">الأيام الدراسية من السبت إلى الخميس. الوقت النهائي يخضع لاعتماد شؤون الطلاب.</small>
+            @if (form.controls.desiredExitTime.touched && form.controls.desiredExitTime.invalid) { <small class="validation">حدد تاريخ ووقت الخروج.</small> }
+          </label>
+
+          @if (overlapWarning(); as overlap) {
+            <div class="overlap-warning full" role="alert">
+              <i class="pi pi-exclamation-triangle"></i>
+              <span>يوجد طلب نشط قريب لهذا الطالب عند <strong>{{ formatDateTime(overlap.requestedExitAt) }}</strong>. قد يرفض الخادم الطلب ضمن نافذة ±30 دقيقة.</span>
+            </div>
+          }
+
+          <label class="field full">
+            <span>سبب الاستئذان <b>*</b></span>
+            <textarea pInputTextarea formControlName="reason" rows="3" maxlength="1000" placeholder="اكتب سبب طلب الخروج"></textarea>
+            @if (form.controls.reason.touched && !form.controls.reason.value.trim()) { <small class="validation">سبب الاستئذان مطلوب.</small> }
+          </label>
+
+          <label class="field">
+            <span>اسم مستلم الطالب <b>*</b></span>
+            <input pInputText formControlName="pickupPersonName" maxlength="200" placeholder="الاسم كما سيُتحقق منه عند البوابة" />
+            @if (form.controls.pickupPersonName.touched && !form.controls.pickupPersonName.value.trim()) { <small class="validation">اسم الشخص المستلم مطلوب.</small> }
+          </label>
+
+          <label class="field">
+            <span>صلة القرابة/العلاقة</span>
+            <input pInputText formControlName="pickupRelationship" maxlength="100" placeholder="مثال: الأب، العم" />
+          </label>
+
+          <label class="field full">
+            <span>علامة تحقق مختصرة من الهوية</span>
+            <input pInputText formControlName="pickupIdentityHint" maxlength="200" placeholder="معلومة مختصرة تساعد موظف الأمن" />
+            <small class="privacy"><i class="pi pi-shield"></i> لا تدخل صورة أو رقم وثيقة هوية كاملًا إلا إذا كانت سياسة المدرسة تتطلب ذلك.</small>
+          </label>
+
+          <div class="submit-row full">
+            <button pButton type="submit" icon="pi pi-send" label="إرسال للمراجعة" [loading]="submitting()" [disabled]="form.invalid || !students().length"></button>
+            <span><i class="pi pi-info-circle"></i> الإرسال لا يعني الموافقة؛ يبدأ الطلب بحالة «بانتظار المراجعة».</span>
+          </div>
+        </form>
+      </p-card>
+
+      <aside class="workflow-card" aria-label="مراحل الاستئذان">
+        <h2>مسار الطلب</h2>
+        <ol>
+          <li class="active"><i class="pi pi-send"></i><span><strong>بانتظار المراجعة</strong><small>يراجع موظف شؤون الطلاب الطلب</small></span></li>
+          <li><i class="pi pi-check"></i><span><strong>معتمد</strong><small>تحدد نافذة زمنية للخروج</small></span></li>
+          <li><i class="pi pi-shield"></i><span><strong>تمت المطابقة</strong><small>يتحقق الأمن من الشخص المستلم</small></span></li>
+          <li><i class="pi pi-sign-out"></i><span><strong>تم الخروج</strong><small>يسجل الأمن وقت الخروج الفعلي</small></span></li>
+        </ol>
+      </aside>
+    </div>
+  }
+
+  <section class="history-card">
+    <div class="section-heading"><div><h2>طلباتي السابقة</h2><p>الحالة الفعلية كما أعادها الخادم.</p></div><span>{{ totalRecords() }} طلب</span></div>
+    <p-table [value]="requests()" [lazy]="true" [paginator]="true" [rows]="pageSize()" [totalRecords]="totalRecords()" [first]="(pageNumber() - 1) * pageSize()" [rowsPerPageOptions]="[10, 20, 50]" responsiveLayout="scroll" (onPage)="onPage($event)">
+      <ng-template pTemplate="header"><tr><th>الطالب</th><th>وقت الخروج المطلوب</th><th>المستلم</th><th>السبب</th><th>الحالة</th><th>الإجراء</th></tr></ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td><strong>{{ item.student.displayName }}</strong><small class="block"><bdi dir="ltr">{{ item.student.studentNumber }}</bdi></small></td>
+          <td>{{ formatDateTime(item.requestedExitAt) }}</td>
+          <td><strong>{{ item.pickupPerson.name }}</strong><small class="block">{{ item.pickupPerson.relationship || 'لم تحدد الصلة' }}</small></td>
+          <td><span class="reason-cell" [title]="item.reason">{{ item.reason }}</span></td>
+          <td><p-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)"></p-tag></td>
+          <td>
+            @if (canCancelOwn && item.status === 'Requested') {
+              <button pButton type="button" icon="pi pi-times" label="إلغاء الطلب" size="small" class="p-button-danger p-button-outlined" (click)="openCancel(item)"></button>
+            } @else { <span class="muted">—</span> }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage"><tr><td colspan="6"><div class="table-empty"><i class="pi pi-inbox"></i><strong>لا توجد طلبات استئذان بعد</strong></div></td></tr></ng-template>
+    </p-table>
+  </section>
+
+  <p-dialog header="إلغاء طلب الاستئذان" [visible]="cancelVisible()" (visibleChange)="cancelVisible.set($event)" [modal]="true" [draggable]="false" [style]="{ width: 'min(520px, 94vw)' }">
+    @if (cancelTarget(); as item) {
+      <div class="cancel-dialog">
+        <p>سيُلغى طلب خروج <strong>{{ item.student.displayName }}</strong> في {{ formatDateTime(item.requestedExitAt) }}.</p>
+        <label class="field"><span>سبب الإلغاء <b>*</b></span><textarea pInputTextarea [formControl]="cancelReason" rows="3" maxlength="500"></textarea></label>
+        @if (cancelReason.touched && !cancelReason.value.trim()) { <small class="validation">اكتب سبب الإلغاء.</small> }
+        <div class="dialog-actions"><button pButton type="button" label="رجوع" class="p-button-text" (click)="cancelVisible.set(false)"></button><button pButton type="button" label="تأكيد الإلغاء" icon="pi pi-times" class="p-button-danger" [loading]="cancelling()" [disabled]="!cancelReason.value.trim()" (click)="cancel()"></button></div>
+      </div>
+    }
+  </p-dialog>
+</main>
