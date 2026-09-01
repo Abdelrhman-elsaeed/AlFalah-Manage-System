@@ -102,6 +102,13 @@ public sealed class StudentAffairsDataSeeder
             school,
             manager.Id,
             cancellationToken).ConfigureAwait(false);
+        await EnsureSocialWorkerSeedDataAsync(
+            school,
+            academicTerm,
+            users[RoleNames.SocialWorker],
+            users[RoleNames.Guardian],
+            manager.Id,
+            cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation(
             "Development Student Affairs test data is ready for school {SchoolName} (Id: {SchoolId}).",
@@ -719,6 +726,128 @@ public sealed class StudentAffairsDataSeeder
         }
 
         await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task EnsureSocialWorkerSeedDataAsync(
+        School school,
+        AcademicTerm academicTerm,
+        ApplicationUser socialWorkerUser,
+        ApplicationUser guardianUser,
+        string actorUserId,
+        CancellationToken cancellationToken)
+    {
+        var student = await _context.Students
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.SchoolId == school.Id && s.StudentNumber == TestStudentNumber, cancellationToken)
+            .ConfigureAwait(false);
+
+        var guardian = await _context.GuardianProfiles
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(g => g.SchoolId == school.Id && g.ApplicationUserId == guardianUser.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (student is null || guardian is null) return;
+
+        var now = _timeProvider.GetUtcNow();
+
+        var existingReferral = await _context.StudentReferrals
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(r => r.SchoolId == school.Id && r.StudentId == student.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (existingReferral is null)
+        {
+            var openReferral = new StudentReferral
+            {
+                SchoolId = school.Id,
+                StudentId = student.Id,
+                AcademicTermId = academicTerm.Id,
+                SourceType = ReferralSourceType.Absence,
+                Priority = ReferralPriority.High,
+                Status = StudentReferralStatus.Open,
+                CountSnapshot = 5,
+                ThresholdSnapshot = 5,
+                RecommendedActions = "تكرار الغياب بدون عذر مقبول يتطلب متابعة الموجه الطلابي والتواصل مع ولي الأمر",
+                CreatedAt = now.AddDays(-2),
+                CreatedByUserId = actorUserId,
+                UpdatedAt = now.AddDays(-2),
+                UpdatedByUserId = actorUserId
+            };
+
+            var inProgressReferral = new StudentReferral
+            {
+                SchoolId = school.Id,
+                StudentId = student.Id,
+                AcademicTermId = academicTerm.Id,
+                SourceType = ReferralSourceType.Behavior,
+                Priority = ReferralPriority.Normal,
+                Status = StudentReferralStatus.InProgress,
+                AssignedSocialWorkerUserId = socialWorkerUser.Id,
+                CountSnapshot = 3,
+                ThresholdSnapshot = 3,
+                RecommendedActions = "متابعة سلوكية وجلسة إرشادية فردية مع الطالب",
+                CreatedAt = now.AddDays(-5),
+                CreatedByUserId = actorUserId,
+                UpdatedAt = now.AddDays(-1),
+                UpdatedByUserId = socialWorkerUser.Id
+            };
+            inProgressReferral.Actions.Add(new StudentCaseAction
+            {
+                SchoolId = school.Id,
+                ActionType = StudentCaseActionType.CounselingSession,
+                Description = "عقد جلسة إرشاد فردية لمناقشة أسباب التأخر والسلوك داخل الصف",
+                ActorUserId = socialWorkerUser.Id,
+                ActionAt = now.AddDays(-1),
+                Result = "أبدى الطالب تجاوباً والتزاماً بتحسين الأداء",
+                CreatedAt = now.AddDays(-1),
+                CreatedByUserId = socialWorkerUser.Id,
+                UpdatedAt = now.AddDays(-1),
+                UpdatedByUserId = socialWorkerUser.Id
+            });
+
+            _context.StudentReferrals.AddRange(openReferral, inProgressReferral);
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        var existingSummon = await _context.GuardianSummons
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.SchoolId == school.Id && s.StudentId == student.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (existingSummon is null)
+        {
+            var pendingSummon = new GuardianSummon
+            {
+                SchoolId = school.Id,
+                StudentId = student.Id,
+                AcademicTermId = academicTerm.Id,
+                GuardianProfileId = guardian.Id,
+                CreatedReason = "استدعاء ولي أمر لمناقشة مستوى الطالب الدراسي والغياب المتكرر",
+                Priority = ReferralPriority.High,
+                Status = GuardianSummonStatus.Pending,
+                ScheduledAt = now.AddDays(2),
+                ScheduledBySocialWorkerUserId = socialWorkerUser.Id,
+                Location = "مكتب الموجه الطلابي - الدور الأرضي",
+                Instructions = "يرجى إحضار الهوية الوطنية والتقارير الطبية إن وجدت",
+                CreatedAt = now.AddDays(-1),
+                CreatedByUserId = socialWorkerUser.Id,
+                UpdatedAt = now.AddDays(-1),
+                UpdatedByUserId = socialWorkerUser.Id
+            };
+            pendingSummon.StatusHistory.Add(new GuardianSummonStatusHistory
+            {
+                SchoolId = school.Id,
+                FromStatus = GuardianSummonStatus.Pending,
+                ToStatus = GuardianSummonStatus.Pending,
+                ActorUserId = socialWorkerUser.Id,
+                OccurredAt = now.AddDays(-1),
+                Notes = "تم تحديد موعد الاستدعاء",
+                CorrelationId = Guid.NewGuid()
+            });
+
+            _context.GuardianSummons.Add(pendingSummon);
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static void EnsureIdentitySuccess(IdentityResult result, string operation)

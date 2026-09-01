@@ -72,7 +72,14 @@ public sealed class StudentsController : StudentAffairsControllerBase
     [HttpGet("{studentId:int}/guardians")]
     public async Task<IActionResult> Guardians(int studentId, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.GuardianView)) return PermissionDenied();
+        if (!HasAnyPermission(
+                PermissionNames.GuardianView,
+                PermissionNames.StudentView,
+                PermissionNames.SummonView,
+                PermissionNames.SummonSchedule,
+                PermissionNames.SummonMarkAttended,
+                PermissionNames.GuardianViewLinkedStudents))
+            return PermissionDenied();
         return Ok(await Mediator.Send(new GetStudentGuardiansQuery(studentId), cancellationToken));
     }
 

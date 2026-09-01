@@ -38,6 +38,8 @@ public sealed class AttendanceMediatRTests
             PermissionNames.AttendanceOverrideCorrection,
             PermissionNames.AttendanceSubmitExcuse,
             PermissionNames.NoorExport));
+        services.AddSingleton<INoorExportRepository, StubNoorExportRepository>();
+        services.AddSingleton<INoorWorkbookWriter, StubNoorWorkbookWriter>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
 
         var provider = services.BuildServiceProvider();
@@ -55,7 +57,7 @@ public sealed class AttendanceMediatRTests
         provider.GetService<IRequestHandler<AcceptAbsenceExcuseCommand, ApiResponse<AbsenceExcuseDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<RejectAbsenceExcuseCommand, ApiResponse<AbsenceExcuseDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<CorrectStudentAttendanceCommand, ApiResponse<StudentAttendanceRecordDto>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<ExportNoorAbsenceCorrectionsCommand, ApiResponse<NoorExportBatchDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<ExportNoorAbsenceCorrectionsCommand, ApiResponse<NoorExportFileDto>>>().Should().NotBeNull();
     }
 
     [Fact]
@@ -211,13 +213,16 @@ public sealed class AttendanceMediatRTests
         }
 
         public string? UserId { get; }
+        public string? Username => UserId;
         public int? ActiveSchoolId { get; }
         public string? Role => RoleNames.StudentAffairsOfficer;
+        public string? PreferredLanguage => "en";
         public bool IsAuthenticated => !string.IsNullOrWhiteSpace(UserId);
         public bool HasPermission(string permission) => _permissions.Contains(permission);
         public bool HasAllPermissions(params string[] permissions) => permissions.All(_permissions.Contains);
         public bool HasAnyPermission(params string[] permissions) => permissions.Any(_permissions.Contains);
         public bool IsInRole(string role) => true;
+        public IEnumerable<string> GetRoles() => new[] { RoleNames.StudentAffairsOfficer };
         public IEnumerable<string> GetPermissions() => _permissions;
         public bool IsGlobalAdmin() => false;
         public bool IsSchoolScopedRole() => true;
@@ -295,7 +300,7 @@ public sealed class AttendanceMediatRTests
         public Task<PagedResult<StudentAttendanceRecordDto>> GetAttendanceRecordsAsync(int schoolId, StudentAttendanceRecordsQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<StudentAttendanceRecordDto>
             {
-                Items = new[]
+                Items = new List<StudentAttendanceRecordDto>
                 {
                     new StudentAttendanceRecordDto(
                         42,
@@ -352,5 +357,23 @@ public sealed class AttendanceMediatRTests
             };
             return Task.FromResult<(AbsenceExcuseAttachment Attachment, AbsenceExcuse Excuse)?>((attachment, excuse));
         }
+    }
+
+    private sealed class StubNoorExportRepository : INoorExportRepository
+    {
+        public Task<NoorAbsenceCorrectionBatch?> GetBatchAsync(int schoolId, string idempotencyKey, CancellationToken cancellationToken) =>
+            Task.FromResult<NoorAbsenceCorrectionBatch?>(null);
+
+        public Task<IReadOnlyList<NoorAcceptedExcuseSnapshot>> GetAcceptedExcusesAsync(int schoolId, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<NoorAcceptedExcuseSnapshot>>(Array.Empty<NoorAcceptedExcuseSnapshot>());
+
+        public void Add(NoorAbsenceCorrectionBatch batch) { }
+
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(1);
+    }
+
+    private sealed class StubNoorWorkbookWriter : INoorWorkbookWriter
+    {
+        public byte[] Write(IReadOnlyList<NoorWorkbookRow> rows) => new byte[] { 1, 2, 3 };
     }
 }

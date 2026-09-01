@@ -5,7 +5,7 @@ using AlFalah.Domain.Events;
 
 namespace AlFalah.Application.StudentAffairs.Summons.Handlers;
 
-internal static class SummonHandlerSupport
+public static class SummonHandlerSupport
 {
     public const string AuthenticationRequired = "An authenticated social worker and active school are required";
     public const string PermissionDenied = "You do not have permission to perform this action";

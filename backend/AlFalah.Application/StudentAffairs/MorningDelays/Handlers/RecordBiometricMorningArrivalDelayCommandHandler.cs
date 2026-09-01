@@ -7,7 +7,7 @@ using MediatR;
 
 namespace AlFalah.Application.StudentAffairs.MorningDelays.Handlers;
 
-public sealed class LYG5YdYkoGF2AAQsjBx849E1QZt1wSrKra
+public sealed class RecordBiometricMorningArrivalDelayCommandHandler
     : IRequestHandler<RecordBiometricMorningArrivalDelayCommand, ApiResponse<MorningDelayDto>>
 {
     private const string NotificationPolicy = "ImmediateGuardian";
@@ -15,7 +15,7 @@ public sealed class LYG5YdYkoGF2AAQsjBx849E1QZt1wSrKra
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
 
-    public LYG5YdYkoGF2AAQsjBx849E1QZt1wSrKra(
+    public RecordBiometricMorningArrivalDelayCommandHandler(
         IMorningDelayWorkflowRepository repository,
         ICurrentUserService currentUser,
         TimeProvider timeProvider)

@@ -11,6 +11,7 @@ using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Domain.Events;
 using AlFalah.Infrastructure.Data;
+using AlFalah.Shared.Models;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -182,7 +183,7 @@ public sealed class AttendanceAndDelayWorkflowTests
         {
             Enrollment = new MorningDelayEnrollmentSnapshot(4)
         };
-        var handler = new LYG5YdYkoGF2AAQsjBx849E1QZt1wSrKra(
+        var handler = new RecordBiometricMorningArrivalDelayCommandHandler(
             repository,
             CurrentUser("System", "MorningDelay.RecordBiometric"),
             new FixedTimeProvider(Now));
@@ -440,7 +441,7 @@ public sealed class AttendanceAndDelayWorkflowTests
             SchoolIds.Add(schoolId);
             return Task.FromResult(new PagedResult<StudentAttendanceRecordDto>
             {
-                Items = Array.Empty<StudentAttendanceRecordDto>(),
+                Items = new List<StudentAttendanceRecordDto>(),
                 TotalCount = 0,
                 Page = query.PageNumber,
                 PageSize = query.PageSize

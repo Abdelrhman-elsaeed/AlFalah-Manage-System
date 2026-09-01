@@ -389,14 +389,13 @@ public class TeacherService : ITeacherService
             })
             .ToListAsync(cancellationToken);
 
-        // Managers and moderators need the complete working trend, including
-        // submitted visits still awaiting approval. Instructors never reach
-        // this management profile route, while moderator scope is restricted
-        // below to the caller's own visits.
+        // Longitudinal progress profile uses officially approved visits.
+        // Moderator scope is restricted below to the caller's own visits.
         var q = _context.Visits
             .AsNoTracking()
             .Where(v => v.InstructorId == userId
                      && v.SchoolId == assignment.SchoolId
+                     && v.Status == VisitStatus.Approved
                      && v.Analysis != null);
 
         if (IsModeratorOnlyCaller())

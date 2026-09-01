@@ -1,6 +1,6 @@
 namespace AlFalah.Application.StudentAffairs.Attendance.Handlers;
 
-internal static class AttendanceHandlerSupport
+public static class AttendanceHandlerSupport
 {
     public const string AuthenticationRequired = "An authenticated user and active school are required";
     public const string PermissionDenied = "You do not have permission to perform this action";

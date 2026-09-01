@@ -13,10 +13,10 @@ using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Domain.Events;
 using AlFalah.Infrastructure.Data;
+using AlFalah.Shared.Models;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-using SummonTransitionHandler = AlFalah.Application.StudentAffairs.Summons.Handlers.MUaCqczw28YRmuXBYNYtWgMhWwXe7qmYC3;
 
 namespace AlFalah.Tests.StudentAffairs;
 
@@ -175,7 +175,7 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
     {
         var summon = NewSummon(GuardianSummonStatus.Pending);
         var repository = new FakeSummonRepository { Summon = summon };
-        var handler = new SummonTransitionHandler(
+        var handler = new AttendSummonCommandHandler(
             repository,
             CurrentUser(RoleNames.SocialWorker, PermissionNames.SummonMarkAttended),
             new FixedTimeProvider(Now));
@@ -235,7 +235,7 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         summon.Status.Should().Be(GuardianSummonStatus.UnderObservation);
         summon.ObservationNotes.Should().Contain("indicator");
 
-        var improved = new SummonTransitionHandler(
+        var improved = new MarkSummonImprovedCommandHandler(
             repository,
             CurrentUser(RoleNames.SocialWorker, PermissionNames.SummonMarkImproved),
             time);
@@ -258,7 +258,7 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
     {
         var summon = NewSummon(GuardianSummonStatus.UnderObservation);
         var repository = new FakeSummonRepository { Summon = summon };
-        var handler = new SummonTransitionHandler(
+        var handler = new MarkSummonImprovedCommandHandler(
             repository,
             CurrentUser(RoleNames.SocialWorker, PermissionNames.SummonMarkImproved),
             new FixedTimeProvider(Now));
@@ -466,6 +466,40 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         {
             SaveCount++;
             return Task.FromResult(1);
+        }
+
+        public Task<PagedResult<SummonDto>> GetSummonsAsync(
+            int schoolId, SummonListQuery query, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(new PagedResult<SummonDto>());
+        }
+
+        public Task<PagedResult<SummonDto>> GetMySummonsAsync(
+            int schoolId, string guardianUserId, SummonListQuery query, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(new PagedResult<SummonDto>());
+        }
+
+        public Task<SummonHistoryDto?> GetHistoryAsync(
+            int schoolId, int summonId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<SummonHistoryDto?>(new SummonHistoryDto(new List<TransitionDto>()));
+        }
+
+        public Task<SummonEnrollmentSnapshot?> GetActiveEnrollmentAsync(
+            int schoolId, int studentId, DateOnly onDate, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<SummonEnrollmentSnapshot?>(new SummonEnrollmentSnapshot(4));
+        }
+
+        public void Add(GuardianSummon summon)
+        {
+            summon.Id = 101;
+            summon.RowVersion = new byte[] { 1, 2, 3 };
         }
 
         public Task<SummonDto?> GetDtoAsync(
