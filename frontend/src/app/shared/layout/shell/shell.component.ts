@@ -118,6 +118,13 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         permissions: ['Attendance.View']
       },
       {
+        labelKey: 'إدارة الفصل',
+        icon: 'pi pi-users',
+        route: '/student-affairs/teacher',
+        roles: ['Instructor'],
+        permissions: ['TeacherQuickAction.View']
+      },
+      {
         labelKey: 'إدارة الفصول',
         icon: 'pi pi-building',
         route: '/student-affairs/classrooms',
@@ -306,6 +313,7 @@ export class ShellComponent implements OnInit {
     // D-36/D-73: exactly the minimal Instructor navigation surface.
     if (this.isInstructorOnly()) {
       items.push(
+        { labelKey: 'إدارة الفصل', icon: 'pi pi-users', route: '/student-affairs/teacher', permissions: ['TeacherQuickAction.View'] },
         { labelKey: 'الجدول المدرسي', icon: 'pi pi-calendar-plus', route: '/timetable', permissions: ['Timetable.View'] },
         { labelKey: 'الحضور والانصراف', icon: 'pi pi-calendar', route: '/attendance', permissions: ['Attendance.View'] },
         { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },

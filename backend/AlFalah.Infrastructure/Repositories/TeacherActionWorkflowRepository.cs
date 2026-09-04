@@ -1,5 +1,6 @@
 using AlFalah.Application.StudentAffairs.DTOs.Behaviors;
 using AlFalah.Application.StudentAffairs.DTOs.Delays;
+using AlFalah.Application.StudentAffairs.DTOs.Recognitions;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.TeacherActions;
 using AlFalah.Domain.Entities.StudentAffairs;
@@ -69,9 +70,43 @@ public sealed class TeacherActionWorkflowRepository : ITeacherActionWorkflowRepo
                         entry.Period))))
             .SingleOrDefaultAsync(cancellationToken);
 
+    public Task<TeacherActionScopeSnapshot?> ResolveStudentEnrollmentScopeAsync(
+        int schoolId,
+        string teacherUserId,
+        int studentId,
+        DateOnly occurrenceDate,
+        CancellationToken cancellationToken) =>
+        _context.InstructorProfiles
+            .AsNoTracking()
+            .Where(reporter => reporter.SchoolId == schoolId
+                && reporter.UserId == teacherUserId
+                && reporter.IsActive)
+            .SelectMany(reporter => _context.StudentEnrollments
+                .AsNoTracking()
+                .Where(enrollment => enrollment.SchoolId == schoolId
+                    && enrollment.StudentId == studentId
+                    && enrollment.Student.SchoolId == schoolId
+                    && enrollment.Student.IsActive
+                    && enrollment.Status == StudentEnrollmentStatus.Active
+                    && enrollment.EnrolledOn <= occurrenceDate
+                    && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= occurrenceDate)
+                    && enrollment.AcademicTerm.SchoolId == schoolId
+                    && enrollment.AcademicTerm.IsActive
+                    && enrollment.AcademicTerm.StartsOn <= occurrenceDate
+                    && enrollment.AcademicTerm.EndsOn >= occurrenceDate)
+                .Select(enrollment => new TeacherActionScopeSnapshot(
+                    reporter.Id,
+                    enrollment.AcademicTermId,
+                    enrollment.ClassroomId,
+                    0,
+                    0,
+                    0)))
+            .FirstOrDefaultAsync(cancellationToken);
+
     public void Add(BehaviorIncident incident) => _context.BehaviorIncidents.Add(incident);
     public void Add(AcademicConcern concern) => _context.AcademicConcerns.Add(concern);
     public void Add(SessionDelay delay) => _context.SessionDelays.Add(delay);
+    public void Add(StudentRecognition recognition) => _context.StudentRecognitions.Add(recognition);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken) =>
         _context.SaveChangesAsync(cancellationToken);
@@ -268,6 +303,57 @@ public sealed class TeacherActionWorkflowRepository : ITeacherActionWorkflowRepo
             Badge(StudentTermMetricCode.SessionDelay, metric, "None", row.OccurredAt),
             null,
             Convert.ToBase64String(row.RowVersion));
+    }
+
+    public async Task<RecognitionDto?> GetRecognitionDtoAsync(
+        int schoolId,
+        int recognitionId,
+        CancellationToken cancellationToken)
+    {
+        var row = await _context.StudentRecognitions
+            .AsNoTracking()
+            .Where(r => r.Id == recognitionId && r.SchoolId == schoolId && !r.IsDeleted)
+            .Select(r => new
+            {
+                r.Id,
+                r.StudentId,
+                r.Student.StudentNumber,
+                StudentName = (r.Student.FirstName + " "
+                    + (r.Student.MiddleName ?? string.Empty) + " "
+                    + r.Student.LastName).Trim(),
+                r.Student.IsActive,
+                r.ClassroomId,
+                ClassLabel = r.Classroom == null ? null : r.Classroom.ClassLabel,
+                r.RecognitionType,
+                r.Title,
+                r.Description,
+                r.RecognizedAt,
+                ReporterUserId = r.ReportedByInstructorProfile == null
+                    ? string.Empty
+                    : r.ReportedByInstructorProfile.UserId,
+                ReporterFirstName = r.ReportedByInstructorProfile == null
+                    ? string.Empty
+                    : r.ReportedByInstructorProfile.User.FirstName,
+                ReporterLastName = r.ReportedByInstructorProfile == null
+                    ? string.Empty
+                    : r.ReportedByInstructorProfile.User.LastName,
+                r.UpdatedAt
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (row is null) return null;
+
+        return new RecognitionDto(
+            row.Id,
+            Student(row.StudentId, row.StudentNumber, row.StudentName, row.ClassroomId, row.ClassLabel, row.IsActive),
+            row.RecognitionType,
+            row.Title,
+            row.Description,
+            row.RecognizedAt,
+            Actor(row.ReporterUserId, row.ReporterFirstName, row.ReporterLastName),
+            null,
+            row.UpdatedAt.ToString("O"));
     }
 
     private Task<MetricSnapshot?> GetMetricAsync(

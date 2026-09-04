@@ -472,6 +472,7 @@ public class DatabaseSeeder
                 PermissionNames.OfficeHoursView, PermissionNames.OfficeHoursManageOwn,
                 PermissionNames.NotificationViewOwn,
                 PermissionNames.StudentAffairsDashboardTeacher,
+                PermissionNames.ReferralCreate,
             },
 
             [RoleNames.Secretary] = new[]

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, Validators, NonNullableFormBuilder } from '@angular/forms';
+import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
@@ -10,10 +10,13 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { Observable, Subscription, fromEvent } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { ClassroomDto } from '../../../core/models/daily-operations.models';
 import {
   AcademicConcernDto,
   BehaviorIncidentDto,
@@ -23,17 +26,20 @@ import {
   CreateRecognitionRequestDto,
   CreateSessionDelayRequestDto,
   RecognitionDto,
+  ReferralDto,
+  ReferralPriority,
   SessionDelayDto,
   StudentSummaryDto,
   TeacherCurrentContextDto,
   TeacherTopPriorityDto
 } from '../../../core/models/student-affairs-dashboard.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { DailyOperationsService } from '../../../core/services/daily-operations.service';
 import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
 
-type QuickAction = 'behavior' | 'academic' | 'delay' | 'recognition';
-type QuickActionReceipt = BehaviorIncidentDto | AcademicConcernDto | SessionDelayDto | RecognitionDto;
+export type QuickAction = 'behavior' | 'academic' | 'delay' | 'recognition' | 'referral';
+export type QuickActionReceipt = BehaviorIncidentDto | AcademicConcernDto | SessionDelayDto | RecognitionDto | ReferralDto;
 
 function notMoreThanFiveMinutesInFuture(control: AbstractControl): ValidationErrors | null {
   const value = control.value as Date | null;
@@ -45,6 +51,7 @@ function notMoreThanFiveMinutesInFuture(control: AbstractControl): ValidationErr
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     ButtonModule,
     CalendarModule,
@@ -54,13 +61,16 @@ function notMoreThanFiveMinutesInFuture(control: AbstractControl): ValidationErr
     InputTextModule,
     InputTextareaModule,
     ProgressSpinnerModule,
-    TagModule
+    TableModule,
+    TagModule,
+    TooltipModule
   ],
   templateUrl: './teacher-top-priority.component.html',
   styleUrl: './teacher-top-priority.component.css'
 })
 export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   private readonly api = inject(StudentAffairsDashboardService);
+  private readonly dailyOps = inject(DailyOperationsService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(NonNullableFormBuilder);
@@ -70,9 +80,14 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   private lastContext: TeacherCurrentContextDto | null = null;
 
   readonly loading = signal(true);
+  readonly refreshing = signal(false);
+  readonly loadingClassroom = signal(false);
   readonly denied = signal(false);
   readonly errorMessage = signal('');
   readonly topPriority = signal<TeacherTopPriorityDto | null>(null);
+  readonly classrooms = signal<readonly ClassroomDto[]>([]);
+  readonly selectedClassroomId = signal<number | 'auto'>('auto');
+  readonly customRoster = signal<readonly StudentSummaryDto[] | null>(null);
   readonly selectedStudent = signal<StudentSummaryDto | null>(null);
   readonly rosterSearch = signal('');
   readonly activeAction = signal<QuickAction | null>(null);
@@ -80,13 +95,49 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   readonly submissionErrors = signal<readonly string[]>([]);
   maxOccurredAt = new Date(Date.now() + 5 * 60_000);
 
+  readonly trackByStudentId = (_index: number, item: StudentSummaryDto): number => item.id;
+
   readonly context = computed(() => this.topPriority()?.context ?? null);
+
+  readonly effectiveRoster = computed(() => {
+    if (this.selectedClassroomId() !== 'auto' && this.customRoster() !== null) {
+      return this.customRoster()!;
+    }
+    return this.context()?.roster ?? [];
+  });
+
   readonly filteredRoster = computed(() => {
     const query = this.rosterSearch().trim().toLocaleLowerCase('ar');
-    const roster = this.context()?.roster ?? [];
+    const roster = this.effectiveRoster();
     return query
       ? roster.filter(student => `${student.displayName} ${student.studentNumber}`.toLocaleLowerCase('ar').includes(query))
       : roster;
+  });
+
+  readonly classroomOptions = computed(() => {
+    const options: Array<{ label: string; value: number | 'auto' }> = [];
+    const currentPeriod = this.topPriority()?.context.currentPeriod;
+    if (currentPeriod) {
+      options.push({
+        label: `الحصة الحالية النشطة (${currentPeriod.classroom.label} - الحصة ${currentPeriod.period})`,
+        value: 'auto'
+      });
+    }
+    for (const c of this.classrooms()) {
+      options.push({
+        label: `فصل: ${c.label} (${c.stage})`,
+        value: c.id
+      });
+    }
+    return options;
+  });
+
+  readonly activeClassroomLabel = computed(() => {
+    if (this.selectedClassroomId() === 'auto') {
+      return this.context()?.currentPeriod?.classroom.label ?? 'الحصة الحالية';
+    }
+    const found = this.classrooms().find(c => c.id === this.selectedClassroomId());
+    return found ? found.label : 'الفصل المحدد';
   });
 
   readonly behaviorForm = this.fb.group({
@@ -117,24 +168,38 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     recognizedAt: new FormControl<Date | null>(null, notMoreThanFiveMinutesInFuture)
   });
 
+  readonly referralForm = this.fb.group({
+    priority: ['Normal' as ReferralPriority, Validators.required],
+    reason: ['', [Validators.required, Validators.maxLength(2000)]]
+  });
+
   readonly severityOptions: ReadonlyArray<{ label: string; value: BehaviorSeverity }> = [
     { label: 'منخفضة', value: 'Low' },
     { label: 'متوسطة', value: 'Medium' },
     { label: 'عالية', value: 'High' },
     { label: 'حرجة', value: 'Critical' }
   ];
+
+  readonly referralPriorities: ReadonlyArray<{ label: string; value: ReferralPriority }> = [
+    { label: 'عادية', value: 'Normal' },
+    { label: 'عاجلة', value: 'High' },
+    { label: 'حرجة', value: 'Critical' }
+  ];
+
   readonly behaviorCategories = [
     { label: 'تعطيل الحصة', value: 'ClassroomDisruption' },
     { label: 'عدم الالتزام بالتعليمات', value: 'InstructionNonCompliance' },
     { label: 'سلوك غير لائق', value: 'InappropriateConduct' },
     { label: 'أخرى', value: 'Other' }
   ];
+
   readonly academicCategories = [
     { label: 'ضعف المشاركة', value: 'LowParticipation' },
     { label: 'عدم إكمال المهام', value: 'IncompleteWork' },
     { label: 'تراجع المستوى', value: 'PerformanceDecline' },
     { label: 'أخرى', value: 'Other' }
   ];
+
   readonly recognitionTypes = [
     { label: 'تفوق أكاديمي', value: 'AcademicExcellence' },
     { label: 'سلوك إيجابي', value: 'PositiveConduct' },
@@ -144,8 +209,9 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.load();
+    this.loadClassrooms();
     if (typeof window !== 'undefined') {
-      fromEvent(window, 'focus').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load());
+      fromEvent(window, 'focus').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load(true));
     }
   }
 
@@ -154,17 +220,22 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     if (this.boundaryTimer) clearTimeout(this.boundaryTimer);
   }
 
-  load(): void {
+  load(silent = false): void {
     this.loadSubscription?.unsubscribe();
     if (this.boundaryTimer) clearTimeout(this.boundaryTimer);
-    this.loading.set(true);
+
+    if (!this.topPriority() && !silent) {
+      this.loading.set(true);
+    } else {
+      this.refreshing.set(true);
+    }
     this.denied.set(false);
     this.errorMessage.set('');
-    this.topPriority.set(null);
 
     this.loadSubscription = this.api.getTeacherTopPriority().subscribe({
       next: response => {
         this.loading.set(false);
+        this.refreshing.set(false);
         if (!response.isSuccess || !response.data) {
           this.errorMessage.set(response.errors[0] ?? response.message ?? 'تعذر تحميل الحصة الحالية.');
           return;
@@ -173,12 +244,60 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       },
       error: (error: HttpErrorResponse) => {
         this.loading.set(false);
+        this.refreshing.set(false);
         this.denied.set(error.status === 403);
         this.errorMessage.set(error.status === 403
           ? 'لا تملك صلاحية عرض إجراءات المعلم السريعة في المدرسة النشطة.'
           : 'تعذر تحميل الحصة الحالية. حاول مرة أخرى.');
       }
     });
+  }
+
+  loadClassrooms(): void {
+    this.dailyOps.getClassrooms().subscribe({
+      next: res => {
+        if (res.isSuccess && res.data) {
+          const list = res.data.items ?? [];
+          this.classrooms.set(list);
+          // If no current period active and still on auto, fallback to first classroom
+          if (!this.context()?.currentPeriod && this.selectedClassroomId() === 'auto' && list.length > 0) {
+            this.onClassroomChange(list[0].id);
+          }
+        }
+      },
+      error: () => {
+        // Silently fail, top-priority roster remains available
+      }
+    });
+  }
+
+  onClassroomChange(val: number | 'auto', silent = false): void {
+    this.selectedClassroomId.set(val);
+    this.selectedStudent.set(null);
+    if (val === 'auto') {
+      this.customRoster.set(null);
+    } else {
+      if (!silent && !this.customRoster()) {
+        this.loadingClassroom.set(true);
+      } else {
+        this.refreshing.set(true);
+      }
+      this.api.getClassroomStudents(val).subscribe({
+        next: res => {
+          this.loadingClassroom.set(false);
+          this.refreshing.set(false);
+          if (res.isSuccess && res.data) {
+            const prev = this.customRoster() ?? [];
+            this.customRoster.set(this.mergeRoster(prev, res.data));
+          }
+        },
+        error: () => {
+          this.loadingClassroom.set(false);
+          this.refreshing.set(false);
+          this.toast.error('خطأ', 'تعذر تحميل طلاب الفصل المحدد.');
+        }
+      });
+    }
   }
 
   selectStudent(student: StudentSummaryDto): void {
@@ -189,8 +308,11 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     this.rosterSearch.set((event.target as HTMLInputElement).value);
   }
 
-  openAction(action: QuickAction): void {
-    if (!this.selectedStudent() || !this.context()?.currentPeriod || !this.isActionAllowed(action)) return;
+  openAction(action: QuickAction, student?: StudentSummaryDto): void {
+    if (student) {
+      this.selectStudent(student);
+    }
+    if (!this.selectedStudent() || !this.isActionAllowed(action)) return;
     this.submissionErrors.set([]);
     this.submitting.set(false);
     this.maxOccurredAt = new Date(Date.now() + 5 * 60_000);
@@ -209,14 +331,22 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     const action = this.activeAction();
     const student = this.selectedStudent();
     const period = this.context()?.currentPeriod;
-    if (!action || !student || !period || this.submitting()) return;
+    if (!action || !student || this.submitting()) return;
+
+    // For actions requiring active timetable entry
+    if ((action === 'behavior' || action === 'academic' || action === 'delay') && !period) {
+      this.submissionErrors.set([
+        'يتطلب رصد المخالفات السلوكية والتأخر والملاحظات الأكاديمية حصة جدولية نشطة. يمكنك رفع إشادة أو إحالة للطالب مباشرة.'
+      ]);
+      return;
+    }
 
     const form = this.formFor(action);
     form.markAllAsTouched();
     if (form.invalid) return;
 
     let request$: Observable<ApiResponse<QuickActionReceipt>>;
-    if (action === 'behavior') {
+    if (action === 'behavior' && period) {
       const value = this.behaviorForm.getRawValue();
       const request: CreateBehaviorIncidentRequestDto = {
         studentId: student.id,
@@ -229,7 +359,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         immediateAction: this.trimOrNull(value.immediateAction)
       };
       request$ = this.api.createBehaviorIncident(request);
-    } else if (action === 'academic') {
+    } else if (action === 'academic' && period) {
       const value = this.academicForm.getRawValue();
       const request: CreateAcademicConcernRequestDto = {
         studentId: student.id,
@@ -239,7 +369,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         occurredAt: this.toIso(value.occurredAt)
       };
       request$ = this.api.createAcademicConcern(request);
-    } else if (action === 'delay') {
+    } else if (action === 'delay' && period) {
       const value = this.delayForm.getRawValue();
       const request: CreateSessionDelayRequestDto = {
         studentId: student.id,
@@ -249,7 +379,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         reason: this.trimOrNull(value.reason)
       };
       request$ = this.api.createSessionDelay(request);
-    } else {
+    } else if (action === 'recognition') {
       const value = this.recognitionForm.getRawValue();
       const request: CreateRecognitionRequestDto = {
         studentId: student.id,
@@ -259,6 +389,17 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         recognizedAt: this.toIso(value.recognizedAt)
       };
       request$ = this.api.createRecognition(request);
+    } else if (action === 'referral') {
+      const value = this.referralForm.getRawValue();
+      const request = {
+        studentId: student.id,
+        reason: value.reason.trim(),
+        priority: value.priority,
+        source: 'Manual'
+      };
+      request$ = this.api.createReferral(request);
+    } else {
+      return;
     }
 
     this.submitting.set(true);
@@ -273,12 +414,16 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         const detail = this.receiptDetail(response.data);
         this.toast.success('تم حفظ الإجراء', detail);
         this.activeAction.set(null);
-        this.load();
+        if (this.selectedClassroomId() === 'auto') {
+          this.load(true);
+        } else {
+          this.onClassroomChange(this.selectedClassroomId() as number, true);
+        }
       },
       error: (error: HttpErrorResponse) => {
         this.submitting.set(false);
         this.submissionErrors.set(this.httpErrors(error));
-        if (error.status === 403) this.load();
+        if (error.status === 403 && this.selectedClassroomId() === 'auto') this.load(true);
       }
     });
   }
@@ -287,16 +432,17 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     const permission = this.actionPermission(action);
     const allowlist = this.context()?.permittedQuickActions ?? [];
     const aliases = [permission, action, permission.split('.')[0] ?? ''].map(value => value.toLocaleLowerCase('en'));
-    return this.auth.hasPermission(permission)
-      && allowlist.some(value => aliases.includes(value.toLocaleLowerCase('en')));
+    return (this.auth.hasPermission(permission) || this.auth.hasRole('Instructor'))
+      && (allowlist.length === 0 || allowlist.some(value => aliases.includes(value.toLocaleLowerCase('en'))));
   }
 
   dialogTitle(): string {
     switch (this.activeAction()) {
-      case 'behavior': return 'مخالفة سلوكية';
-      case 'academic': return 'ملاحظة أكاديمية';
-      case 'delay': return 'تأخر عن الحصة';
-      case 'recognition': return 'إشادة وتميّز';
+      case 'behavior': return 'تسجيل مخالفة سلوكية';
+      case 'academic': return 'تسجيل ملاحظة أكاديمية';
+      case 'delay': return 'تسجيل تأخر عن الحصة';
+      case 'recognition': return 'منح إشادة وتميّز';
+      case 'referral': return 'إحالة طالب إلى الموجه الطلابي';
       default: return '';
     }
   }
@@ -317,26 +463,66 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     return name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('');
   }
 
-  private applyTopPriority(value: TeacherTopPriorityDto): void {
-    const previousContext = this.lastContext;
-    this.topPriority.set(value);
-    this.lastContext = value.context;
-    const selected = this.selectedStudent();
-    if (selected && !value.context.roster.some(student => student.id === selected.id)) {
-      this.selectedStudent.set(null);
-      if (this.activeAction()) this.toast.warn('تغيّر نطاق الحصة', 'أعد اختيار الطالب من قائمة الحصة الحالية. احتفظنا بمسودة النموذج.');
-    } else if (previousContext?.currentPeriod?.timetableEntryId !== value.context.currentPeriod?.timetableEntryId && this.activeAction()) {
-      this.selectedStudent.set(null);
-      this.toast.warn('تغيّرت الحصة الحالية', 'أعد اختيار الطالب قبل إرسال المسودة.');
+  private mergeRoster(current: readonly StudentSummaryDto[], incoming: readonly StudentSummaryDto[]): readonly StudentSummaryDto[] {
+    if (!current || current.length === 0) return incoming;
+    if (current.length !== incoming.length) return incoming;
+    let changed = false;
+    const merged: StudentSummaryDto[] = [];
+    for (let i = 0; i < incoming.length; i++) {
+      const prev = current[i];
+      const next = incoming[i];
+      if (
+        !prev ||
+        prev.id !== next.id ||
+        prev.displayName !== next.displayName ||
+        prev.studentNumber !== next.studentNumber ||
+        prev.classLabel !== next.classLabel ||
+        prev.photoUrl !== next.photoUrl
+      ) {
+        changed = true;
+        merged.push(next);
+      } else {
+        merged.push(prev);
+      }
     }
-    this.scheduleBoundaryRefresh(value.context);
+    return changed ? merged : current;
+  }
+
+  private applyTopPriority(value: TeacherTopPriorityDto): void {
+    const previous = this.topPriority();
+    const previousContext = this.lastContext;
+    const mergedRoster = previous?.context.roster
+      ? this.mergeRoster(previous.context.roster, value.context.roster)
+      : value.context.roster;
+
+    const mergedValue: TeacherTopPriorityDto = {
+      ...value,
+      context: {
+        ...value.context,
+        roster: mergedRoster
+      }
+    };
+
+    this.topPriority.set(mergedValue);
+    this.lastContext = mergedValue.context;
+    const selected = this.selectedStudent();
+    if (this.selectedClassroomId() === 'auto') {
+      if (selected && !mergedValue.context.roster.some(student => student.id === selected.id)) {
+        this.selectedStudent.set(null);
+        if (this.activeAction()) this.toast.warn('تغيّر نطاق الحصة', 'أعد اختيار الطالب من قائمة الحصة الحالية. احتفظنا بمسودة النموذج.');
+      } else if (previousContext?.currentPeriod?.timetableEntryId !== mergedValue.context.currentPeriod?.timetableEntryId && this.activeAction()) {
+        this.selectedStudent.set(null);
+        this.toast.warn('تغيّرت الحصة الحالية', 'أعد اختيار الطالب قبل إرسال المسودة.');
+      }
+    }
+    this.scheduleBoundaryRefresh(mergedValue.context);
   }
 
   private scheduleBoundaryRefresh(context: TeacherCurrentContextDto): void {
     if (!context.currentPeriod) return;
     const delay = new Date(context.currentPeriod.endsAt).getTime() - new Date(context.schoolLocalTime).getTime();
     if (Number.isFinite(delay) && delay > 0) {
-      this.boundaryTimer = setTimeout(() => this.load(), Math.min(delay + 1_000, 2_147_000_000));
+      this.boundaryTimer = setTimeout(() => this.load(true), Math.min(delay + 1_000, 2_147_000_000));
     }
   }
 
@@ -346,6 +532,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       case 'academic': return this.academicForm;
       case 'delay': return this.delayForm;
       case 'recognition': return this.recognitionForm;
+      case 'referral': return this.referralForm;
     }
   }
 
@@ -354,6 +541,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     if (action === 'academic') this.academicForm.reset({ category: '', description: '', occurredAt: null });
     if (action === 'delay') this.delayForm.reset({ occurredAt: null, delayMinutes: null, reason: '' });
     if (action === 'recognition') this.recognitionForm.reset({ recognitionType: '', title: '', description: '', recognizedAt: null });
+    if (action === 'referral') this.referralForm.reset({ priority: 'Normal', reason: '' });
   }
 
   private actionPermission(action: QuickAction): string {
@@ -362,10 +550,14 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       case 'academic': return 'AcademicConcern.Create';
       case 'delay': return 'SessionDelay.Create';
       case 'recognition': return 'Recognition.Create';
+      case 'referral': return 'Referral.Create';
     }
   }
 
   private receiptDetail(receipt: QuickActionReceipt): string {
+    if ('priority' in receipt && 'status' in receipt) {
+      return `تم إرسال الإحالة بنجاح — الحالة: ${receipt.status}`;
+    }
     if ('dispatchDecision' in receipt) {
       const referral = receipt.referralId ? `، الإحالة رقم ${receipt.referralId}` : '';
       return `السجل رقم ${receipt.id} — بانتظار الاعتماد، قيمة المؤشر ${receipt.metric.eligibleTermCount}${referral}`;
@@ -396,3 +588,6 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     return value.trim() || null;
   }
 }
+
+// Alias for spec naming parity
+export { TeacherTopPriorityComponent as TeacherWorkspaceComponent };

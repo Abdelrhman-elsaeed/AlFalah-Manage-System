@@ -1,5 +1,6 @@
 using AlFalah.Application.StudentAffairs.DTOs.Behaviors;
 using AlFalah.Application.StudentAffairs.DTOs.Delays;
+using AlFalah.Application.StudentAffairs.DTOs.Recognitions;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 
@@ -25,9 +26,17 @@ public interface ITeacherActionWorkflowRepository
         DateOnly occurrenceDate,
         CancellationToken cancellationToken);
 
+    Task<TeacherActionScopeSnapshot?> ResolveStudentEnrollmentScopeAsync(
+        int schoolId,
+        string teacherUserId,
+        int studentId,
+        DateOnly occurrenceDate,
+        CancellationToken cancellationToken);
+
     void Add(BehaviorIncident incident);
     void Add(AcademicConcern concern);
     void Add(SessionDelay delay);
+    void Add(StudentRecognition recognition);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     Task<BehaviorIncidentDto?> GetBehaviorDtoAsync(
         int schoolId,
@@ -40,5 +49,9 @@ public interface ITeacherActionWorkflowRepository
     Task<SessionDelayDto?> GetSessionDelayDtoAsync(
         int schoolId,
         int delayId,
+        CancellationToken cancellationToken);
+    Task<RecognitionDto?> GetRecognitionDtoAsync(
+        int schoolId,
+        int recognitionId,
         CancellationToken cancellationToken);
 }

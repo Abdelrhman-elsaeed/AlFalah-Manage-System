@@ -18,6 +18,7 @@ import {
   SchoolOversightDashboardDto,
   SecurityStudentAffairsDashboardDto,
   SessionDelayDto,
+  StudentSummaryDto,
   TeacherCurrentContextDto,
   TeacherStudentAffairsDashboardDto,
   TeacherTopPriorityDto
@@ -54,6 +55,23 @@ export class StudentAffairsDashboardService {
 
   createRecognition(request: CreateRecognitionRequestDto): Observable<ApiResponse<RecognitionDto>> {
     return this.http.post<ApiResponse<RecognitionDto>>(`${this.api}/recognitions`, request);
+  }
+
+  getTeacherPeriodRoster(entryId: number): Observable<ApiResponse<TeacherCurrentContextDto>> {
+    return this.http.get<ApiResponse<TeacherCurrentContextDto>>(`${this.api}/teacher/student-affairs/periods/${entryId}/roster`);
+  }
+
+  getClassroomStudents(classroomId: number): Observable<ApiResponse<readonly StudentSummaryDto[]>> {
+    return this.http.get<ApiResponse<readonly StudentSummaryDto[]>>(`${this.api}/classrooms/${classroomId}/students`);
+  }
+
+  createReferral(request: any): Observable<ApiResponse<any>> {
+    const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    return this.http.post<ApiResponse<any>>(`${this.api}/referrals`, request, {
+      headers: { 'Idempotency-Key': idempotencyKey }
+    });
   }
 
   getSecurityDashboard(): Observable<ApiResponse<SecurityStudentAffairsDashboardDto>> {

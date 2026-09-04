@@ -634,7 +634,12 @@ export const routes: Routes = [
         },
         loadComponent: () => import('./features/student-affairs/teacher-top-priority/teacher-top-priority.component')
           .then(m => m.TeacherTopPriorityComponent),
-        title: 'أولوية المعلم الآن'
+        title: 'مساحة تفاعل المعلم والطلاب'
+      },
+      {
+        path: 'instructor/workspace',
+        redirectTo: 'student-affairs/teacher',
+        pathMatch: 'full'
       },
       {
         path: 'student-affairs/security',

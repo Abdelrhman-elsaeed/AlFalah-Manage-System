@@ -34,7 +34,8 @@ public sealed class CreateReferralCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralCreate))
+        if (!_currentUser.HasPermission(PermissionNames.ReferralCreate)
+            && !(_currentUser.IsInRole(RoleNames.Instructor) && _currentUser.HasPermission(PermissionNames.TeacherQuickActionView)))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
 
         var request = command.Request;

@@ -266,3 +266,23 @@ export interface SchoolOversightDashboardDto {
   readonly caseCounts: readonly DashboardCountDto[];
   readonly generatedAt: string;
 }
+
+export type ReferralPriority = 'Normal' | 'High' | 'Critical';
+export type ReferralSourceType = 'MorningDelay' | 'SessionDelay' | 'AcademicConcern' | 'Behavior' | 'Absence' | 'RepeatedEntryPermit' | 'Manual';
+
+export interface CreateReferralRequestDto {
+  readonly studentId: number;
+  readonly reason: string;
+  readonly source: ReferralSourceType | number;
+  readonly priority: ReferralPriority | number;
+}
+
+export interface ReferralDto {
+  readonly id: number;
+  readonly student: StudentSummaryDto;
+  readonly priority: ReferralPriority;
+  readonly status: string;
+  readonly createdAt: string;
+  readonly rowVersion: string;
+}
+

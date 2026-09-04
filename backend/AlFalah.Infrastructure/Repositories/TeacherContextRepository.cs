@@ -96,6 +96,84 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
             pendingEntryPermits);
     }
 
+    public async Task<TeacherContextSnapshot?> GetPeriodRosterAsync(
+        int schoolId,
+        string teacherUserId,
+        int timetableEntryId,
+        DateOnly localDate,
+        CancellationToken cancellationToken)
+    {
+        var teacher = await _context.InstructorProfiles
+            .AsNoTracking()
+            .Where(profile => profile.SchoolId == schoolId
+                && profile.UserId == teacherUserId
+                && profile.IsActive
+                && profile.User.IsActive)
+            .Select(profile => new TeacherIdentitySnapshot(
+                profile.Id,
+                profile.UserId,
+                (profile.User.FirstName + " " + profile.User.LastName).Trim()))
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (teacher is null) return null;
+
+        var entry = await _context.SchoolTimetableEntries
+            .AsNoTracking()
+            .Where(e => e.Id == timetableEntryId
+                && e.SchoolId == schoolId
+                && e.ClassroomId != null
+                && e.Classroom!.IsActive
+                && e.SchoolTimetable.SchoolId == schoolId
+                && e.SchoolTimetable.IsPublished)
+            .Select(e => new
+            {
+                e.Id,
+                e.Period,
+                Subject = e.Subject ?? e.InstructorProfile.SubjectSpecialization ?? string.Empty,
+                Classroom = new TeacherClassroomSnapshot(
+                    e.Classroom!.Id,
+                    e.Classroom.ClassLabel,
+                    e.Classroom.Stage,
+                    e.Classroom.GradeLevel,
+                    e.Classroom.Section),
+                Timetable = new PublishedTimetableSnapshot(
+                    e.SchoolTimetable.Id,
+                    e.SchoolTimetable.AcademicYearId,
+                    e.SchoolTimetable.Semester,
+                    e.SchoolTimetable.Revision)
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (entry is null) return null;
+
+        var period = new TeacherTimetablePeriodSnapshot(
+            entry.Id,
+            entry.Period,
+            entry.Subject,
+            entry.Classroom);
+
+        var lookup = new TeacherContextLookup(
+            schoolId,
+            teacherUserId,
+            localDate,
+            null,
+            null,
+            1,
+            false,
+            DateTimeOffset.UtcNow);
+
+        var roster = await GetRosterAsync(lookup, entry.Timetable, entry.Classroom.Id, cancellationToken).ConfigureAwait(false);
+
+        return new TeacherContextSnapshot(
+            teacher,
+            entry.Timetable.Revision,
+            period,
+            roster,
+            0,
+            0);
+    }
+
     private async Task<TeacherTimetablePeriodSnapshot?> ResolvePeriodAsync(
         TeacherContextLookup lookup,
         int instructorProfileId,

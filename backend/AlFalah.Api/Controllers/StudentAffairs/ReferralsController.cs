@@ -12,10 +12,11 @@ public sealed class ReferralsController : StudentAffairsControllerBase
     public ReferralsController(IMediator mediator, ICurrentUserService currentUser) : base(mediator, currentUser) { }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateReferralRequestDto request, [FromHeader(Name = "Idempotency-Key")] string idempotencyKey, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateReferralRequestDto request, [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.ReferralCreate)) return PermissionDenied();
-        var response = await Mediator.Send(new CreateReferralCommand(request, idempotencyKey), cancellationToken);
+        if (!HasAnyPermission(PermissionNames.ReferralCreate, PermissionNames.TeacherQuickActionView)) return PermissionDenied();
+        var key = string.IsNullOrWhiteSpace(idempotencyKey) ? Guid.NewGuid().ToString() : idempotencyKey;
+        var response = await Mediator.Send(new CreateReferralCommand(request, key), cancellationToken);
         return StatusCode(StatusCodes.Status201Created, response);
     }
 

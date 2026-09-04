@@ -52,4 +52,11 @@ public interface ITeacherContextRepository
     Task<TeacherContextSnapshot?> GetTopPriorityAsync(
         TeacherContextLookup lookup,
         CancellationToken cancellationToken);
+
+    Task<TeacherContextSnapshot?> GetPeriodRosterAsync(
+        int schoolId,
+        string teacherUserId,
+        int timetableEntryId,
+        DateOnly localDate,
+        CancellationToken cancellationToken);
 }

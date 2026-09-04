@@ -2,6 +2,7 @@ using System.Text.Json;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.StudentAffairs.DTOs.Behaviors;
 using AlFalah.Application.StudentAffairs.DTOs.Delays;
+using AlFalah.Application.StudentAffairs.DTOs.Recognitions;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.DTOs.Summons;
 using AlFalah.Application.StudentAffairs.Summons;
@@ -345,6 +346,7 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         public BehaviorIncident? Behavior { get; private set; }
         public AcademicConcern? Concern { get; private set; }
         public SessionDelay? Delay { get; private set; }
+        public StudentRecognition? Recognition { get; private set; }
         public List<int> SchoolIds { get; } = new();
         public int SaveCount { get; private set; }
         public bool LastAllowOverride { get; private set; }
@@ -356,6 +358,14 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         {
             SchoolIds.Add(schoolId);
             LastAllowOverride = allowOverride;
+            return Task.FromResult(Scope);
+        }
+
+        public Task<TeacherActionScopeSnapshot?> ResolveStudentEnrollmentScopeAsync(
+            int schoolId, string teacherUserId, int studentId, DateOnly occurrenceDate,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
             return Task.FromResult(Scope);
         }
 
@@ -377,6 +387,12 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
             delay.Id = 103;
             delay.RowVersion = new byte[] { 1 };
             Delay = delay;
+        }
+
+        public void Add(StudentRecognition recognition)
+        {
+            recognition.Id = 104;
+            Recognition = recognition;
         }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
@@ -418,6 +434,16 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
                 row.OccurredAt, row.DelayMinutes, row.Reason, Actor(),
                 Metric(StudentTermMetricCode.SessionDelay), null,
                 Convert.ToBase64String(row.RowVersion)));
+        }
+
+        public Task<RecognitionDto?> GetRecognitionDtoAsync(
+            int schoolId, int recognitionId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            var row = Recognition!;
+            return Task.FromResult<RecognitionDto?>(new RecognitionDto(
+                row.Id, Student(row.StudentId), row.RecognitionType, row.Title, row.Description,
+                row.RecognizedAt, Actor(), null, string.Empty));
         }
 
         private static StudentSummaryDto Student(int id) =>

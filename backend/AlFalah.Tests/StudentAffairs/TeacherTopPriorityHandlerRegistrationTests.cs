@@ -96,6 +96,16 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
             Lookup = lookup;
             return Task.FromResult(Snapshot);
         }
+
+        public Task<TeacherContextSnapshot?> GetPeriodRosterAsync(
+            int schoolId,
+            string teacherUserId,
+            int timetableEntryId,
+            DateOnly localDate,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Snapshot);
+        }
     }
 
     private sealed class StubCurrentUser(
