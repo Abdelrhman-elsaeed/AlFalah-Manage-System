@@ -487,6 +487,29 @@ public sealed class StudentAffairsDataSeeder
             await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        if (!timetable.BellScheduleRevisionId.HasValue)
+        {
+            var template = new BellScheduleTemplate { SchoolId = school.Id, AcademicYearId = academicYear.Id,
+                Semester = TimetableSemester.First, Name = "توقيت المدرسة التجريبية", CreatedByUserId = actorUserId, UpdatedByUserId = actorUserId };
+            var revision = new BellScheduleRevision { SchoolId = school.Id, Template = template, Revision = 1,
+                Name = template.Name, SchoolTimeZoneId = "Africa/Cairo", CreatedByUserId = actorUserId };
+            var defaults = new BellScheduleDay { Day = 0, IsStudyDay = true };
+            for (var sequence = 1; sequence <= 6; sequence++)
+            {
+                var start = new TimeOnly(7, 0).AddMinutes((sequence - 1) * 50 + (sequence > 3 ? 20 : 0));
+                defaults.Periods.Add(new BellPeriod { Sequence = sequence, DisplayLabel = $"الحصة {sequence}", StartLocalTime = start, EndLocalTime = start.AddMinutes(45) });
+            }
+            revision.Days.Add(defaults);
+            foreach (var day in Enumerable.Range(1, 7)) revision.Days.Add(new() { Day = day, IsStudyDay = day is >= 2 and <= 6, UsesDefaultSchedule = true });
+            _context.Add(revision);
+            var profile = new TimetableSetupProfile { SchoolId = school.Id, AcademicYearId = academicYear.Id, Semester = TimetableSemester.First,
+                Name = "إعداد المدرسة التجريبية", BellScheduleTemplate = template, CreatedByUserId = actorUserId, UpdatedByUserId = actorUserId };
+            _context.Add(profile);
+            timetable.TimetableSetupProfile = profile;
+            timetable.BellScheduleRevision = revision;
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
         var existingEntries = await _context.SchoolTimetableEntries
             .IgnoreQueryFilters()
             .Where(candidate => candidate.SchoolId == school.Id
@@ -495,9 +518,11 @@ public sealed class StudentAffairsDataSeeder
             .ToDictionaryAsync(candidate => (candidate.Day, candidate.Period), cancellationToken)
             .ConfigureAwait(false);
 
-        foreach (var day in Enum.GetValues<TimetableDay>())
+        foreach (var old in existingEntries.Values.Where(x => x.Day is TimetableDay.Saturday or TimetableDay.Friday || x.Period is not (1 or 3)))
+        { old.IsDeleted = true; old.DeletedAt = _timeProvider.GetUtcNow(); }
+        foreach (var day in new[] { TimetableDay.Sunday, TimetableDay.Monday, TimetableDay.Tuesday, TimetableDay.Wednesday, TimetableDay.Thursday })
         {
-            for (byte period = 1; period <= 8; period++)
+            foreach (var period in new[] { 1, 3 })
             {
                 if (!existingEntries.TryGetValue((day, period), out var entry))
                 {

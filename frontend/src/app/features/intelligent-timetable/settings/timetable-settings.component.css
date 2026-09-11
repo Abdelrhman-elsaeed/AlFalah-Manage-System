@@ -1,0 +1,114 @@
+:host { display: block; }
+
+/* The application shell already owns the outer page gutter. Keeping this page
+   at zero avoids the doubled 32px + 32px spacing visible on wide screens. */
+.timetable-settings-page {
+  padding: 0;
+}
+
+/* PrimeNG's card content has no reliable horizontal inset after the global
+   reset. The form carries its own responsive inset in the template. */
+:host ::ng-deep .p-card .p-card-content {
+  padding: 0;
+}
+
+:host ::ng-deep .context-field .p-dropdown,
+:host ::ng-deep .p-inputtext { width: 100%; }
+
+.context-field > span {
+  display: block;
+  margin-bottom: .4rem;
+  color: #475569;
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(190px, 1fr));
+  gap: .85rem;
+  margin: 0;
+  padding: .15rem 0 .65rem;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.setup-step {
+  min-height: 210px;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.15rem;
+  background: #fff;
+}
+
+.setup-step[data-status='complete'] { border-color: #86efac; background: #f0fdf4; }
+.setup-step[data-status='incomplete'] { border-color: #fcd34d; background: #fffbeb; }
+.setup-step[data-status='blocked'] { background: #f8fafc; opacity: .82; }
+
+.step-number {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: .7rem;
+  background: #0f766e;
+  color: #fff;
+  font-weight: 900;
+}
+
+.step-status { display: flex; align-items: center; gap: .3rem; color: #64748b; font-size: .72rem; font-weight: 800; }
+.setup-step h3 { margin: 1rem 0 .4rem; color: #0f172a; font-size: 1rem; }
+.setup-step p { min-height: 3.5rem; margin: 0; color: #64748b; font-size: .78rem; line-height: 1.65; }
+.step-link { display: inline-flex; align-items: center; gap: .4rem; margin-top: .8rem; color: #047857; font-size: .78rem; font-weight: 900; text-decoration: none; }
+
+.readiness-card {
+  display: flex;
+  min-height: 145px;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.15rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.35rem;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.readiness-card:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(15, 23, 42, .08); }
+.readiness-icon { display: grid; width: 3rem; height: 3rem; flex: 0 0 auto; place-items: center; border-radius: 1rem; font-size: 1.2rem; }
+.readiness-card strong { display: block; color: #0f172a; font-size: 1.65rem; line-height: 1; }
+.readiness-card span:not(.readiness-icon) { display: block; margin-top: .35rem; color: #334155; font-weight: 800; }
+.readiness-card small { display: block; margin-top: .35rem; color: #64748b; }
+
+.empty-panel { padding: 4rem 1rem; border: 1px dashed #cbd5e1; border-radius: 1.5rem; background: #fff; text-align: center; }
+.empty-panel > i { color: #94a3b8; font-size: 2.5rem; }
+.empty-panel h2 { color: #0f172a; }
+.empty-panel p { color: #64748b; }
+
+.unsaved-bar {
+  position: fixed;
+  z-index: 40;
+  right: max(1rem, calc(50% - 500px));
+  bottom: 1.25rem;
+  left: max(1rem, calc(50% - 500px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .85rem 1rem;
+  border: 1px solid #334155;
+  border-radius: 1.1rem;
+  background: #0f172a;
+  color: #fff;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, .28);
+}
+
+.unsaved-bar strong, .unsaved-bar small { display: block; }
+.unsaved-bar small { margin-top: .15rem; color: #cbd5e1; }
+
+@media (max-width: 640px) {
+  .context-header { position: static; }
+  .unsaved-bar { align-items: stretch; flex-direction: column; }
+}

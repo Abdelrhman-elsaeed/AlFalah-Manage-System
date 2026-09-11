@@ -1,0 +1,79 @@
+:host { display:block; min-width:0}
+.timings-page { max-width:1280px; margin:auto; padding:1.5rem; color:var(--text-color,#243b35)}
+header,.editor-toolbar,.sticky-actions,.selection-card,.apply-actions { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap}
+h1 { font-size:1.8rem; margin:.4rem 0}
+h2 { font-size:1.15rem}
+.eyebrow { color:var(--primary-color,#167354); font-weight:700}
+p,.muted,small { color:var(--text-color-secondary,#64766f)}
+.context-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; align-items:end; gap:1rem; margin:1.5rem 0}
+.selection-card,fieldset { background:var(--surface-card,#fff); border:1px solid var(--surface-border,#dfe8e3); border-radius:14px; padding:1.3rem; margin:1rem 0; min-width:0}
+.selection-card>label { flex:1; min-width:220px}
+label { display:flex; flex-direction:column; gap:.5rem}
+input:not([type=checkbox]) { width:100%; padding:.7rem; border:1px solid var(--surface-border,#cbd8d0); border-radius:8px; font:inherit; background:var(--surface-card,#fff); color:inherit; min-width:0}
+input[type=time] { direction:ltr; text-align:center}
+.template-fields,.time-fields,.comparison-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+.weekdays,.day-tabs,.main-tabs { display:flex; gap:.65rem; flex-wrap:wrap}
+.weekdays label { flex-direction:row; align-items:center; background:var(--surface-ground,#f5f8f6); border-radius:8px; padding:.7rem}
+.weekdays .holiday { opacity:.7}
+.main-tabs { border-bottom:1px solid var(--surface-border,#dfe8e3); margin-top:2rem}
+.main-tabs>* { padding:1rem; text-decoration:none; color:inherit}
+.main-tabs>button { border:0; background:transparent; font:inherit; cursor:pointer }
+.main-tabs .active { border-bottom:3px solid var(--primary-color,#167354); font-weight:bold}
+.day-tabs { margin:1rem 0}
+.day-tabs button { border:1px solid var(--surface-border,#dfe8e3); border-radius:9px; background:var(--surface-card,#fff); color:inherit; padding:.7rem 1rem; cursor:pointer; font:inherit}
+.day-tabs button.active { background:var(--primary-color,#167354); color:white}
+.day-tabs button.active small { color:white}
+.day-tabs small { display:block; margin-top:.35rem}
+.day-tab { display:flex; gap:.4rem; align-items:center}
+.stepper { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem .75rem; flex-shrink:0; max-width:100% }
+.stepper>label { margin:0; color:var(--text-color-secondary,#64766f); font-size:.85rem; font-weight:600; white-space:nowrap }
+.stepper-control { display:grid; grid-template-columns:40px 48px 40px; direction:ltr; border:1px solid var(--surface-border,#dfe8e3); border-radius:10px; background:var(--surface-card,#fff); box-shadow:0 2px 4px #173d2e06 }
+.stepper-control>button { display:grid; place-items:center; width:40px; height:40px; padding:0; border:0; border-radius:0; background:var(--primary-50,#edf8f2); color:var(--primary-700,#167354); cursor:pointer; transition:background .15s,color .15s }
+.stepper-control>button:first-child { border-radius:9px 0 0 9px }
+.stepper-control>button:last-child { border-radius:0 9px 9px 0 }
+.stepper-control>button>i { font-size:.85rem }
+.stepper-control>button:hover:not(:disabled) { background:var(--primary-100,#d4eddf); color:var(--primary-800,#105b3e) }
+.stepper-control>button:disabled { background:var(--surface-50,#fafbfa); color:var(--text-color-secondary,#64766f); opacity:.45; cursor:default }
+.stepper-control>input { width:48px; height:40px; padding:0; border:0; border-inline:1px solid var(--surface-border,#dfe8e3); border-radius:0; text-align:center; font-size:1rem; font-weight:700; font-variant-numeric:tabular-nums; direction:ltr; appearance:textfield; -moz-appearance:textfield }
+.stepper-control>input::-webkit-inner-spin-button,.stepper-control>input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0 }
+.stepper-control>input:disabled { opacity:.5 }
+.stepper-control>button:focus-visible,.stepper-control>input:focus-visible { outline:2px solid var(--primary-color,#167354); outline-offset:-2px; position:relative; z-index:1 }
+.period-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem}
+.period-card { border:1px solid var(--surface-border,#dfe8e3); border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:.8rem}
+.period-card.invalid { border:2px solid #ba3434}
+.period-heading { display:flex; justify-content:space-between; align-items:center}
+.period-heading strong { color:var(--primary-color,#167354)}
+.row-errors p,.error-banner,.validation-summary { color:#a52b2b; font-size:.9rem}
+.error-banner { background:#fff2f1; padding:1rem; border-radius:9px}
+.break-review-hint { margin:.75rem 0; color:#a52b2b; font-size:.85rem }
+.break-review-hint button { padding:.25rem .5rem; border:1px solid #fecaca; border-radius:6px; background:#fff7f7; color:inherit; font:inherit; cursor:pointer }
+.apply-actions { justify-content:flex-start; margin-top:1rem}
+.sticky-actions { position:sticky; bottom:0; z-index:2; background:var(--surface-card,#fff); padding:1rem; border-top:1px solid var(--surface-border,#dfe8e3); box-shadow:0 -4px 18px #0000000a; border-radius:12px}
+.comparison { border-bottom:1px solid var(--surface-border,#dfe8e3); padding-bottom:1rem}
+.comparison bdi { display:block}
+button:focus-visible,input:focus-visible,a:focus-visible { outline:3px solid #84b9a7; outline-offset:3px}
+@media(max-width:760px) { .timings-page { padding:.7rem}
+.context-grid,.template-fields,.period-grid { grid-template-columns:1fr}
+.sticky-actions { gap:.5rem}
+.sticky-actions>span:first-child { width:100%}
+.comparison-grid { grid-template-columns:1fr 1fr; gap:.5rem}
+.day-tabs { flex-wrap:nowrap; overflow-x:auto}
+.day-tabs button { white-space:nowrap}
+.editor-toolbar { align-items:flex-start}
+.time-fields { gap:.6rem}
+}
+
+
+@media (max-width: 760px)  { 
+  .selection-card > label  {  min-width: 0;  width: 100%;  flex-basis: 100%;  }
+
+  .template-fields, .period-grid, .time-fields  {  grid-template-columns: minmax(0, 1fr);  }
+
+  .timings-page button, .timings-page a  {  max-width: 100%;  overflow-wrap: anywhere;  }
+
+  .apply-actions button, .sticky-actions button  {  white-space: normal;  height: auto;  min-height: 2.5rem;  }
+
+  fieldset, .selection-card  {  padding: .8rem;  }
+
+}
+

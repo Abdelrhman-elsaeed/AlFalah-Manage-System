@@ -37,6 +37,8 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
             .AsNoTracking()
             .Where(candidate => candidate.SchoolId == lookup.SchoolId
                 && candidate.IsPublished
+                && lookup.BellScheduleRevisionId != null
+                && candidate.BellScheduleRevisionId == lookup.BellScheduleRevisionId
                 && candidate.AcademicYear.StartsOn <= lookup.SchoolLocalDate
                 && candidate.AcademicYear.EndsOn >= lookup.SchoolLocalDate)
             .OrderByDescending(candidate => candidate.PublishedAt)
@@ -101,6 +103,7 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
         string teacherUserId,
         int timetableEntryId,
         DateOnly localDate,
+        int? timingRevisionId,
         CancellationToken cancellationToken)
     {
         var teacher = await _context.InstructorProfiles
@@ -119,8 +122,12 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
 
         var entry = await _context.SchoolTimetableEntries
             .AsNoTracking()
+            .ForTeacherOn(_context, localDate, teacher.InstructorProfileId)
             .Where(e => e.Id == timetableEntryId
                 && e.SchoolId == schoolId
+                && e.Day == AlFalah.Application.IntelligentTimetable.BellScheduleResolver.ToDay(localDate.DayOfWeek)
+                && timingRevisionId != null
+                && e.SchoolTimetable.BellScheduleRevisionId == timingRevisionId
                 && e.ClassroomId != null
                 && e.Classroom!.IsActive
                 && e.SchoolTimetable.SchoolId == schoolId
@@ -182,9 +189,9 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
     {
         var entries = _context.SchoolTimetableEntries
             .AsNoTracking()
+            .ForTeacherOn(_context, lookup.SchoolLocalDate, instructorProfileId)
             .Where(entry => entry.SchoolId == lookup.SchoolId
                 && entry.SchoolTimetableId == timetableId
-                && entry.InstructorProfileId == instructorProfileId
                 && entry.EntryType == TimetableEntryType.Lesson
                 && entry.ClassroomId != null
                 && entry.Classroom!.IsActive);

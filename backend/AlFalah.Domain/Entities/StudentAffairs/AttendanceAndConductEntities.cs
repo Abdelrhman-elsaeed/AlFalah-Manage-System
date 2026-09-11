@@ -160,7 +160,7 @@ public sealed class SessionDelay
     public int ClassroomId { get; set; }
     public int? SchoolTimetableId { get; set; }
     public int? SchoolTimetableEntryId { get; set; }
-    public byte Period { get; set; }
+    public int Period { get; set; }
     public DateTimeOffset OccurredAt { get; set; }
     public int? DelayMinutes { get; set; }
     public string? Reason { get; set; }

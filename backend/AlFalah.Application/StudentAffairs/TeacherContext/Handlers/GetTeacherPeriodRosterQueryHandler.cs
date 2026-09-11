@@ -59,6 +59,7 @@ public sealed class GetTeacherPeriodRosterQueryHandler
         }
 
         var utcNow = _timeProvider.GetUtcNow();
+        await _schedule.LoadAsync(schoolId.Value, utcNow, cancellationToken);
         var schoolLocalTime = _schedule.ToSchoolLocalTime(utcNow);
         var localDate = DateOnly.FromDateTime(schoolLocalTime.DateTime);
 
@@ -67,6 +68,7 @@ public sealed class GetTeacherPeriodRosterQueryHandler
             userId,
             query.TimetableEntryId,
             localDate,
+            _schedule.RevisionId,
             cancellationToken).ConfigureAwait(false);
 
         if (snapshot is null)
@@ -75,7 +77,7 @@ public sealed class GetTeacherPeriodRosterQueryHandler
         }
 
         TeacherPeriodContextDto? periodDto = null;
-        if (snapshot.CurrentPeriod is not null)
+        if (snapshot.CurrentPeriod is not null && _schedule.HasPeriod(localDate, snapshot.CurrentPeriod.Period))
         {
             var window = _schedule.GetWindow(localDate, snapshot.CurrentPeriod.Period);
             periodDto = new TeacherPeriodContextDto(

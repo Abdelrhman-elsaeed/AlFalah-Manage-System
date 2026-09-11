@@ -1,0 +1,83 @@
+<main class="subjects-page" dir="rtl">
+  <header class="page-header"><div><a routerLink="/intelligent-timetable/settings">الجدول الذكي</a><h1>إعدادات المواد</h1><p>دليل مواد المدرسة وأنصبة الحصص لكل فصل</p></div>
+    <div class="actions"><button pButton label="إضافة مادة للدليل" icon="pi pi-plus" (click)="openCatalog()" [disabled]="!data || loading || saving"></button>
+      <button pButton class="p-button-outlined" label="إضافة غرفة" icon="pi pi-building" (click)="roomsOpen = true" [disabled]="!data || loading || saving"></button></div></header>
+  <section class="context panel" *ngIf="context as ctx">
+    <label>العام الدراسي<select [ngModel]="yearId" (ngModelChange)="changeContext($event, semester)" [disabled]="loading || saving"><option *ngFor="let year of ctx.academicYears" [ngValue]="year.id">{{year.nameAr}}</option></select></label>
+    <label>الفصل الدراسي<select [ngModel]="semester" (ngModelChange)="changeContext(yearId, $event)" [disabled]="loading || saving"><option [ngValue]="1">الأول</option><option [ngValue]="2">الثاني</option></select></label>
+    <label>ملف الإعداد<select [ngModel]="setupId" (ngModelChange)="chooseSetup($event)" [disabled]="loading || saving"><option *ngFor="let profile of ctx.profiles" [ngValue]="profile.id">{{profile.name}}</option></select></label>
+  </section>
+  <div class="error" role="alert" *ngIf="error && !editorOpen && !catalogOpen && !roomsOpen">{{error}} <button type="button" (click)="loadContext()" [disabled]="loading || saving">إعادة التحميل</button></div>
+  <p class="success" role="status" *ngIf="message">{{message}}</p>
+  <p *ngIf="loading" role="status">جارٍ تحميل المواد...</p>
+  <div class="panel empty" *ngIf="!loading && !setupId">أنشئ ملف إعداد من <a routerLink="/intelligent-timetable/settings">إعدادات الجدول</a> أولاً.</div>
+  <ng-container *ngIf="data as d">
+    <section class="stats" aria-label="ملخص إعدادات المواد">
+      <div><strong>{{d.subjects.length}}</strong><span>المواد</span></div><div><strong>{{d.classrooms.length}}</strong><span>الفصول</span></div>
+      <div><strong>{{earlyCount}}</strong><span>تفضيل مبكر</span></div><div><strong>{{singleCount}}</strong><span>قواعد فردية</span></div><div><strong>{{pairedCount}}</strong><span>قواعد زوجية</span></div>
+    </section>
+    <p class="notice" *ngIf="!d.schedule">اختر <a routerLink="/intelligent-timetable/timings" [queryParams]="{profileId: setupId, academicYearId: yearId, semester: semester}">توقيتات الجدول</a> لتخصيص أنصبة المواد.</p>
+    <section class="panel"><div class="toolbar"><input pInputText aria-label="البحث عن مادة" placeholder="ابحث عن مادة..." [(ngModel)]="search" />
+      <select aria-label="تصفية المواد" [(ngModel)]="filter"><option value="">كل المواد</option><option value="configured">مخصصة</option><option value="empty">غير مخصصة</option><option value="early">تفضيل مبكر</option><option value="paired">حصص زوجية</option></select>
+      <button pButton label="إضافة / تخصيص مادة" icon="pi pi-sliders-h" (click)="openRules()" [disabled]="!d.subjects.length || !d.schedule || saving || loading"></button></div>
+      <p-table [value]="subjects" [(selection)]="selectedSubjects" dataKey="id" [paginator]="subjects.length > 10" [rows]="10" [tableStyle]="{'min-width':'38rem'}">
+        <ng-template pTemplate="header"><tr><th style="width:3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th><th>المادة</th><th>الحالة</th><th>الفصول المرتبطة</th><th>إجراءات</th></tr></ng-template>
+        <ng-template pTemplate="body" let-subject><tr><td><p-tableCheckbox [value]="subject"></p-tableCheckbox></td><td><span class="color-dot" [style.background]="subject.color"></span>{{subject.name}}</td>
+          <td><span class="badge">{{requirements(subject.id).length ? 'مخصصة' : 'غير مخصصة'}}</span></td><td>{{requirements(subject.id).length}}</td>
+          <td><div class="actions"><button pButton class="p-button-text" label="تخصيص" (click)="openRules(subject.id)" [disabled]="!d.schedule || saving || loading"></button><button pButton class="p-button-text" label="الاسم واللون" (click)="openCatalog(subject)" [disabled]="saving || loading"></button></div></td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="5" class="empty">لا توجد مواد مطابقة. أضف مادة إلى دليل المدرسة للبدء.</td></tr></ng-template>
+      </p-table>
+    </section>
+    <section class="panel"><h2>إعدادات كل فصل</h2><p>تظهر الفروق بين أنصبة الفصول هنا. الإزالة تخص الفصل وحده.</p>
+      <div class="table-scroll"><table class="requirements"><thead><tr><th>المادة</th><th>الفصل</th><th>فردية</th><th>كتل زوجية</th><th>الإجمالي</th><th>التفضيل / التثبيت</th><th>إجراءات</th></tr></thead><tbody>
+        <ng-container *ngFor="let subject of subjects"><ng-container *ngIf="!selectedSubjects.length || selectedSubjects.includes(subject)"><tr *ngFor="let r of requirements(subject.id)">
+          <td>{{subject.name}}</td><td>{{r.classroomName}}</td><td>{{r.rules.individualPeriodCount}}</td><td>{{r.rules.pairedBlockCount}}</td><td><strong>{{r.totalWeeklyPeriods}}</strong></td>
+          <td>{{r.rules.timePreference === 'Early' ? 'مبكر (مرن)' : r.rules.timePreference === 'Late' ? 'متأخر (مرن)' : 'بدون تفضيل'}}<span *ngIf="r.rules.fixedSlots.length" class="badge">{{r.rules.fixedSlots.length}} مثبتة</span></td>
+          <td><div class="actions"><button pButton class="p-button-text" label="تعديل" (click)="openRules(subject.id, r)" [disabled]="saving || loading"></button><button pButton class="p-button-text p-button-danger" label="إزالة من الفصل" (click)="remove(r)" [disabled]="saving || loading"></button></div></td>
+        </tr></ng-container></ng-container>
+      </tbody></table></div><p class="empty" *ngIf="!d.requirements.length">لم تُخصّص مواد للفصول بعد.</p>
+    </section>
+    <section class="panel" *ngIf="results as saved"><h2>نتيجة آخر حفظ</h2><p *ngFor="let result of saved.results">{{result.classroomName}} — {{result.status === 'Created' ? 'تم الإنشاء' : result.status === 'Updated' ? 'تم التحديث' : 'تم التخطي'}} {{result.message}}</p></section>
+  </ng-container>
+</main>
+
+<p-dialog header="إضافة / تخصيص مادة" [(visible)]="editorOpen" [modal]="true" [closable]="false" [draggable]="false" [style]="{width:'58rem', maxWidth:'96vw'}" [closeOnEscape]="false">
+  <div dir="rtl" class="editor"><div role="alert" class="error" *ngIf="error">{{error}}</div>
+    <fieldset [disabled]="saving"><div class="form-grid">
+      <label class="wide">المادة من دليل المدرسة<p-dropdown [options]="data?.subjects || []" optionLabel="name" optionValue="id" [(ngModel)]="subjectId" [filter]="true" [disabled]="!!editingId || saving" placeholder="اختر المادة" appendTo="body"></p-dropdown></label>
+      <ng-container *ngIf="!editingId"><label>المرحلة<p-dropdown [options]="stages" [(ngModel)]="stage" [showClear]="true" placeholder="كل المراحل" appendTo="body"></p-dropdown></label>
+        <label>الصف<p-dropdown [options]="grades" [(ngModel)]="grade" [showClear]="true" placeholder="كل الصفوف" appendTo="body"></p-dropdown></label></ng-container>
+      <label class="wide">الفصول ({{selectedClasses.length}} محدد)<p-multiSelect [options]="classes" optionLabel="name" optionValue="id" [(ngModel)]="selectedClasses" [filter]="true" [disabled]="!!editingId || saving" placeholder="اختر الفصول" appendTo="body"></p-multiSelect></label>
+      <button *ngIf="!editingId" pButton class="p-button-text" label="تحديد كل الفصول الظاهرة" (click)="selectAll()"></button>
+      <label>الحصص الفردية للفصل<p-inputNumber [(ngModel)]="rules.individualPeriodCount" [min]="0" [max]="100" [maxFractionDigits]="0"></p-inputNumber></label>
+      <label>الحصص الزوجية للفصل (عدد الكتل)<p-inputNumber [(ngModel)]="rules.pairedBlockCount" [min]="0" [max]="50" [maxFractionDigits]="0"></p-inputNumber></label>
+      <div class="total wide">الإجمالي الأسبوعي: <strong>{{total}}</strong> حصة <small>{{rules.individualPeriodCount || 0}} فردية + ({{rules.pairedBlockCount || 0}} كتل × 2)</small></div>
+      <p class="hint wide">الحصة الزوجية حصتان متجاورتان زمنياً؛ لا تفصل بينهما استراحة.</p>
+      <label>تفضيل توقيت المادة<p-dropdown [options]="preferences" [(ngModel)]="rules.timePreference" appendTo="body"></p-dropdown></label>
+      <ng-container *ngIf="rules.timePreference !== 'None'"><label>من الحصة<p-inputNumber [(ngModel)]="rules.earliestPeriodSequence" [min]="1" [max]="100" [maxFractionDigits]="0"></p-inputNumber></label><label>إلى الحصة<p-inputNumber [(ngModel)]="rules.latestPreferredPeriodSequence" [min]="1" [max]="100" [maxFractionDigits]="0"></p-inputNumber></label>
+        <p class="hint wide">تفضيل مرن: نحاول الالتزام بهذه النافذة، ولا يمنع تعذرها توليد الجدول.</p></ng-container>
+      <label class="wide">الأيام المسموحة<p-multiSelect [options]="days" [(ngModel)]="rules.allowedDays" display="chip" placeholder="كل أيام الدراسة" appendTo="body"></p-multiSelect><small>ترك الاختيار فارغاً يعني كل أيام الدراسة.</small></label>
+      <label>الغرف المتاحة بالتبادل<p-multiSelect [options]="data?.rooms || []" optionLabel="name" optionValue="id" [(ngModel)]="rules.roomIds" (ngModelChange)="rules.preferredRoomId = null" [filter]="true" placeholder="غرفة الفصل الافتراضية" appendTo="body"></p-multiSelect></label>
+      <label>الغرفة المفضلة<p-dropdown [options]="preferredRooms" optionLabel="name" optionValue="id" [(ngModel)]="rules.preferredRoomId" [showClear]="true" placeholder="أي غرفة محددة" appendTo="body"></p-dropdown></label>
+    </div>
+    <h3>تثبيت مادة في الجدول</h3><p class="hint">التثبيت إلزامي، ويختلف عن تفضيل التوقيت المرن.</p>
+    <div class="fixed-row" *ngFor="let slot of rules.fixedSlots; let i = index"><p-dropdown ariaLabel="اليوم المثبت" [options]="days" [(ngModel)]="slot.day" (ngModelChange)="slot.period = periods(slot.day)[0]?.value || 1" appendTo="body"></p-dropdown><p-dropdown ariaLabel="الحصة المثبتة" [options]="periods(slot.day)" [(ngModel)]="slot.period" appendTo="body"></p-dropdown><button pButton class="p-button-text p-button-danger" label="إزالة" (click)="rules.fixedSlots.splice(i, 1)"></button></div>
+    <button pButton class="p-button-outlined" label="إضافة حصة مثبتة" icon="pi pi-plus" (click)="addFixed()"></button>
+    </fieldset>
+    <p class="notice" *ngIf="!editingId && overlapping.length">{{overlapping.length}} من الفصول المحددة لها إعدادات سابقة. ستختار الاستبدال أو الاحتفاظ بها قبل الحفظ.</p>
+    <div class="dialog-actions"><button pButton label="حفظ المتطلبات" (click)="prepareSave()" [disabled]="!valid || saving || loading" [loading]="saving"></button><button pButton class="p-button-text" label="إلغاء" (click)="closeEditor()" [disabled]="saving"></button></div>
+  </div>
+</p-dialog>
+<p-dialog header="الفصول لها إعدادات سابقة" [(visible)]="overwriteOpen" [modal]="true" [style]="{width:'34rem', maxWidth:'95vw'}" [draggable]="false">
+  <div dir="rtl"><p>هل تريد استبدال كل قواعد المادة لهذه الفصول؟</p><ul><li *ngFor="let r of overlapping">{{r.classroomName}} — {{r.totalWeeklyPeriods}} حصة أسبوعياً</li></ul>
+    <p>يمكنك الاحتفاظ بها وإضافة الإعدادات للفصول الجديدة فقط.</p><div class="dialog-actions"><button pButton label="الاحتفاظ بالإعدادات السابقة" (click)="save(false)"></button><button pButton class="p-button-warning" label="استبدال الإعدادات السابقة" (click)="save(true)"></button><button pButton class="p-button-text" label="رجوع" (click)="overwriteOpen = false"></button></div></div>
+</p-dialog>
+<p-dialog header="دليل مواد المدرسة" [(visible)]="catalogOpen" [modal]="true" [closable]="!saving" [closeOnEscape]="!saving" [style]="{width:'30rem', maxWidth:'95vw'}" [draggable]="false">
+  <div dir="rtl" class="editor"><p>المادة متاحة للاختيار في جميع ملفات إعداد المدرسة.</p><div role="alert" class="error" *ngIf="error">{{error}}</div>
+    <label>اسم المادة<input pInputText [(ngModel)]="subjectDraft.name" maxlength="200" [disabled]="saving" /></label>
+    <label>لون المادة<p-colorPicker [(ngModel)]="subjectDraft.color" format="hex" [inline]="true" [disabled]="saving"></p-colorPicker></label>
+    <div class="dialog-actions"><button pButton label="حفظ المادة" (click)="saveCatalog()" [disabled]="!subjectDraft.name.trim() || saving" [loading]="saving"></button></div></div>
+</p-dialog>
+<p-dialog header="إضافة غرفة للمدرسة" [(visible)]="roomsOpen" [modal]="true" [closable]="!saving" [closeOnEscape]="!saving" [style]="{width:'30rem', maxWidth:'95vw'}" [draggable]="false">
+  <div dir="rtl" class="editor"><div role="alert" class="error" *ngIf="error">{{error}}</div><label>اسم الغرفة<input pInputText [(ngModel)]="roomName" maxlength="100" placeholder="مثال: معمل العلوم" [disabled]="saving" /></label><div class="dialog-actions"><button pButton label="إضافة الغرفة" (click)="saveRoom()" [disabled]="!roomName.trim() || saving" [loading]="saving"></button></div></div>
+</p-dialog>

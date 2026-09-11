@@ -241,6 +241,7 @@ public class DatabaseSeeder
             // Timetable
             (PermissionNames.TimetableView, "Timetable", "عرض الجدول المدرسي", "View school timetable"),
             (PermissionNames.TimetableManage, "Timetable", "إدارة الجدول المدرسي", "Manage school timetable"),
+            (PermissionNames.TimetableReview, "Timetable", "مراجعة الجدول المدرسي", "Review school timetable"),
             (PermissionNames.TimetableDelegate, "Timetable", "تفويض إدارة الجدول", "Delegate timetable management"),
 
             // Parent surveys
@@ -388,7 +389,7 @@ public class DatabaseSeeder
                 PermissionNames.DashboardMainManager,
                 PermissionNames.SettingsView, PermissionNames.SettingsManage,
                 PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
-                PermissionNames.TimetableView, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
+                PermissionNames.TimetableView, PermissionNames.TimetableReview, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
                 PermissionNames.RecognitionViewStatistics,
                 PermissionNames.StudentAffairsSettingsView,
                 PermissionNames.AutomationView,
@@ -415,7 +416,7 @@ public class DatabaseSeeder
                 PermissionNames.RubricView,  // MOD-1: all authenticated roles get Rubric.View
                 PermissionNames.AttendanceView,
                 PermissionNames.ParentSurveyManage,
-                PermissionNames.TimetableView, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
+                PermissionNames.TimetableView, PermissionNames.TimetableReview, PermissionNames.TimetableManage, PermissionNames.TimetableDelegate,
                 PermissionNames.StudentView, PermissionNames.StudentCreate,
                 PermissionNames.StudentEdit, PermissionNames.StudentArchive, PermissionNames.StudentManage,
                 PermissionNames.StudentEnrollmentManage,
@@ -481,6 +482,7 @@ public class DatabaseSeeder
                 PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceManageStudents,
                 PermissionNames.ClassroomManage, PermissionNames.StudentManage,
                 PermissionNames.BiometricImport,
+                PermissionNames.TimetableView, PermissionNames.TimetableReview, PermissionNames.TimetableManage,
             },
 
             [RoleNames.StudentAffairsOfficer] = new[]

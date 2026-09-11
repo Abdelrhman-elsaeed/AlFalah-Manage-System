@@ -83,6 +83,9 @@ tbody tr:nth-child(even) .schedule-cell { background: #fafcfb; }
 .standby-cell { background: #dfe7e3 !important; color: #34453d; }
 .standby-cell:hover, .standby-cell:focus { background: #d2ddd7 !important; }
 .standby-label { font-weight: 800; color: #34453d; font-size: .72rem; }
+.break-cell { background:#f7f0d9; color:#66521b; padding:.5rem; }
+.break-cell span { display:block; margin-top:.3rem; }
+.period-row .break-heading { background:#786326; }
 .my-row .teacher-column { background: #fff1b9; border-inline-start: 4px solid var(--tt-gold); }
 .my-row .schedule-cell:not(.standby-cell) { background: #fffaf0; }
 

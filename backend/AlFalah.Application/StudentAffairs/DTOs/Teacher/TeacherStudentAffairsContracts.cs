@@ -6,7 +6,7 @@ namespace AlFalah.Application.StudentAffairs.DTOs.Teacher;
 
 public sealed record TeacherPeriodContextDto(
     int TimetableEntryId,
-    byte Period,
+    int Period,
     DateTimeOffset StartsAt,
     DateTimeOffset EndsAt,
     string Subject,

@@ -1,3 +1,4 @@
+using AlFalah.Application.IntelligentTimetable.DTOs;
 using AlFalah.Domain.Enums;
 
 namespace AlFalah.Application.DTOs.Timetables;
@@ -30,15 +31,17 @@ public sealed record TimetableCatalogDto(
     int PeriodCount,
     IReadOnlyList<TimetableTeacherDto> Teachers,
     IReadOnlyList<TimetableModeratorDto> Moderators,
-    TimetableCapabilitiesDto Capabilities);
+    TimetableCapabilitiesDto Capabilities,
+    BellScheduleDto? BellSchedule = null, bool TimingsRequireRevalidation = false);
 
 public sealed record TimetableEntryDto(
     int InstructorProfileId,
     TimetableDay Day,
-    byte Period,
+    int Period,
     TimetableEntryType EntryType,
     string? ClassLabel,
-    string? Subject);
+    string? Subject,
+    int? ClassroomId = null, int? SubjectId = null, int? ClassSubjectRequirementId = null, int? RoomId = null, string? SubjectColor = null);
 
 public sealed record TimetableTeacherSummaryDto(
     int InstructorProfileId,
@@ -59,20 +62,22 @@ public sealed record SchoolTimetableDto(
     DateTimeOffset UpdatedAt,
     IReadOnlyList<TimetableEntryDto> Entries,
     IReadOnlyList<TimetableTeacherSummaryDto> TeacherSummaries,
-    TimetableCapabilitiesDto Capabilities);
+    TimetableCapabilitiesDto Capabilities,
+    BellScheduleDto? BellSchedule = null, bool TimingsRequireRevalidation = false);
 
 public sealed record CreateSchoolTimetableRequest(
     int AcademicYearId,
     TimetableSemester Semester,
-    string Title);
+    string Title, int? TimetableSetupProfileId = null);
 
 public sealed record SaveTimetableEntryRequest(
     int InstructorProfileId,
     TimetableDay Day,
-    byte Period,
+    int Period,
     TimetableEntryType EntryType,
     string? ClassLabel,
-    string? Subject);
+    string? Subject,
+    int? ClassroomId = null, int? SubjectId = null, int? ClassSubjectRequirementId = null, int? RoomId = null);
 
 public sealed record SaveSchoolTimetableRequest(
     string Title,
@@ -99,4 +104,4 @@ public sealed record TimetableImportResultDto(
 
 public sealed record TimetableFileDto(byte[] Bytes, string ContentType, string FileName);
 
-public sealed record TimetableSnapshotDto(string Title, IReadOnlyList<TimetableEntryDto> Entries);
+public sealed record TimetableSnapshotDto(string Title, IReadOnlyList<TimetableEntryDto> Entries, BellScheduleDto? BellSchedule = null);

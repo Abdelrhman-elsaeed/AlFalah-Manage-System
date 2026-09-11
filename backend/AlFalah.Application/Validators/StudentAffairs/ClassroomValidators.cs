@@ -12,6 +12,7 @@ public sealed class CreateClassroomRequestValidator : AbstractValidator<CreateCl
         RuleFor(request => request.GradeLevel).InclusiveBetween((byte)1, (byte)12);
         RuleFor(request => request.Section).NotEmpty().MaximumLength(50);
         RuleFor(request => request.ClassLabel).NotEmpty().MaximumLength(50);
+        RuleFor(request => request.PhysicalLocation).NotEmpty().MaximumLength(120);
     }
 }
 
@@ -21,6 +22,7 @@ public sealed class UpdateClassroomRequestValidator : AbstractValidator<UpdateCl
     {
         RuleFor(request => request.Section).NotEmpty().MaximumLength(50);
         RuleFor(request => request.ClassLabel).NotEmpty().MaximumLength(50);
+        RuleFor(request => request.PhysicalLocation).NotEmpty().MaximumLength(120);
     }
 }
 

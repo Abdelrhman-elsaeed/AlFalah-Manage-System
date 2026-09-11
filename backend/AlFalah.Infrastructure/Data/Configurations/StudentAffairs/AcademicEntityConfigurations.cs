@@ -129,6 +129,7 @@ internal sealed class ClassroomConfiguration : StudentAffairsMutableEntityConfig
     {
         builder.Property(x => x.Section).IsArabicText(50);
         builder.Property(x => x.ClassLabel).IsArabicText(50);
+        builder.Property(x => x.PhysicalLocation).IsArabicText(120);
         builder.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.ClassLabel })
             .HasFilter("[IsDeleted] = 0").IsUnique();
         builder.HasOne(x => x.AcademicYear).WithMany()

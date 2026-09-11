@@ -76,10 +76,18 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
 
     // School timetables
+    public DbSet<TimetableSubstitution> TimetableSubstitutions => Set<TimetableSubstitution>();
     public DbSet<SchoolTimetable> SchoolTimetables => Set<SchoolTimetable>();
+    public DbSet<TimetableAnalysisRun> TimetableAnalysisRuns => Set<TimetableAnalysisRun>();
+    public DbSet<TimetableAnalysisFinding> TimetableAnalysisFindings => Set<TimetableAnalysisFinding>();
     public DbSet<SchoolTimetableEntry> SchoolTimetableEntries => Set<SchoolTimetableEntry>();
     public DbSet<SchoolTimetableVersion> SchoolTimetableVersions => Set<SchoolTimetableVersion>();
     public DbSet<TimetableEditorGrant> TimetableEditorGrants => Set<TimetableEditorGrant>();
+    public DbSet<TimetableSetupProfile> TimetableSetupProfiles => Set<TimetableSetupProfile>();
+    public DbSet<TeacherTimetableProfile> TeacherTimetableProfiles => Set<TeacherTimetableProfile>();
+    public DbSet<TeacherAvailabilitySlot> TeacherAvailabilitySlots => Set<TeacherAvailabilitySlot>();
+    public DbSet<ScheduleBreakDefinition> ScheduleBreakDefinitions => Set<ScheduleBreakDefinition>();
+    public DbSet<ScheduleBreakWindow> ScheduleBreakWindows => Set<ScheduleBreakWindow>();
 
     // Student analyzer
     public DbSet<StudentAnalyzerAccessGrant> StudentAnalyzerAccessGrants => Set<StudentAnalyzerAccessGrant>();
@@ -285,6 +293,20 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     private void UpdateTimestamps()
     {
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            if (entry.Entity is TimetableSubstitution or TimetableSubstitutionMovement && entry.State is EntityState.Modified or EntityState.Deleted)
+                throw new InvalidOperationException("Confirmed timetable changes are immutable.");
+            if (entry.Entity is TimetableAnalysisRun && entry.State is EntityState.Modified or EntityState.Deleted)
+                throw new InvalidOperationException("Analysis runs are immutable.");
+            if (entry.Entity is TimetableAnalysisFinding finding && (entry.State == EntityState.Deleted ||
+                entry.State == EntityState.Modified && (finding.Severity != ViolationSeverity.Warning ||
+                entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not ("IsOverridden" or "OverrideReason" or "OverriddenAt" or "OverriddenByUserId")))))
+                throw new InvalidOperationException("Only soft-finding override metadata may change.");
+        }
+        if (ChangeTracker.Entries().Any(e => (e.Entity is BellScheduleRevision or BellScheduleDay or BellPeriod or ScheduleBreakDefinition or ScheduleBreakWindow)
+            && e.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Published timing revisions are immutable; append a new revision.");
         var now = DateTimeOffset.UtcNow;
         var entries = ChangeTracker.Entries()
             .Where(e => e.State == EntityState.Modified);

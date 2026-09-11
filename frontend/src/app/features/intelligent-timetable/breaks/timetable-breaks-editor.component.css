@@ -1,0 +1,38 @@
+.break-editor { padding:1rem; margin:.75rem 0 }
+.break-heading h2 { margin:0 0 .2rem }
+.break-heading p { margin:0; font-size:.8rem; line-height:1.5 }
+.break-placement-hint { margin:.5rem 0 .75rem; font-size:.8rem; line-height:1.5 }
+.break-card { min-width:0; border:1px solid var(--surface-border,#dfe8e3); border-radius:10px; background:var(--surface-card,#fff) }
+.break-card.invalid { border-color:#ef4444; box-shadow:inset 0 0 0 1px #ef4444 }
+.break-card .period-heading { margin-bottom:.75rem; gap:.75rem }
+.break-card .period-heading strong { overflow-wrap:anywhere }
+.break-fields { margin-bottom:.75rem }
+.break-fields label { min-width:0; gap:.3rem; font-size:.8rem }
+.break-fields input { height:36px; padding:.4rem .65rem; font-size:.85rem }
+:host ::ng-deep .break-fields .p-dropdown { min-height:36px; height:36px; align-items:center }
+:host ::ng-deep .break-fields .p-dropdown-label { padding:.4rem .65rem; font-size:.85rem }
+.break-delete { flex-shrink:0; width:32px; height:32px; padding:0; border:1px solid #fecaca; border-radius:8px; background:#fff; color:#dc2626; cursor:pointer }
+.break-delete i { margin:0; font-size:.85rem; line-height:1 }
+.break-delete:hover:not(:disabled) { background:#fef2f2; border-color:#f87171 }
+.break-delete:disabled { opacity:.45; cursor:default }
+.break-card-meta { line-height:1.5 }
+.break-card-meta small { font-size:.72rem }
+.break-error p { margin:.65rem 0 0; color:#b91c1c; font-size:.8rem; line-height:1.5 }
+.break-error i { flex-shrink:0 }
+.break-apply-actions { margin-top:.75rem }
+.break-apply-actions button { min-height:36px; max-width:100%; white-space:normal; height:auto; font-size:.8rem }
+.empty-breaks { text-align:center; padding:1.25rem; background:var(--surface-ground); border-radius:10px; margin:.75rem 0 }
+.empty-breaks>i { font-size:1.5rem; color:var(--primary-color) }
+.lesson-reference-section { margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--surface-border,#dfe8e3) }
+.lesson-reference-section h3 { margin:0 0 .5rem; font-size:.85rem }
+.lesson-reference { display:flex; flex-wrap:wrap; gap:.5rem }
+.lesson-reference>div { display:flex; flex-direction:column; gap:.3rem; padding:.5rem .75rem; border:1px solid var(--surface-border); border-radius:8px; font-size:.75rem }
+.lesson-reference .invalid { border-color:#ef4444; background:#fff7f7 }
+.lesson-reference .invalid i { color:#dc2626; font-size:.75rem; margin-inline-start:.25rem }
+@media(max-width:767px) {
+  .break-editor { padding:.75rem }
+  .break-card { padding:.75rem }
+  .break-editor .editor-toolbar { gap:.6rem }
+  .break-apply-actions { justify-content:stretch }
+  .break-apply-actions button { width:100% }
+}

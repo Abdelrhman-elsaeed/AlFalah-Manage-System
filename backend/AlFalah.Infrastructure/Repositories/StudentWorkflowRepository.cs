@@ -620,7 +620,8 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             c.AcademicYear.NameAr,
             c.IsActive,
             c.Enrollments.Count(e => !e.IsDeleted && e.Status == StudentEnrollmentStatus.Active),
-            string.Empty
+            string.Empty,
+            c.PhysicalLocation
         )).ToList();
 
         return new PagedResult<ClassroomDto>
@@ -666,7 +667,8 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             c.AcademicYear.NameAr,
             c.IsActive,
             c.Enrollments.Count(e => !e.IsDeleted && e.Status == StudentEnrollmentStatus.Active),
-            string.Empty
+            string.Empty,
+            c.PhysicalLocation
         );
     }
 
@@ -1415,4 +1417,3 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken) =>
         _context.SaveChangesAsync(cancellationToken);
 }
-

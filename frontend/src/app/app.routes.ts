@@ -5,6 +5,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { studentAnalyzerGuard } from './core/guards/student-analyzer.guard';
+import { unsavedTimetableSettingsGuard } from './core/guards/unsaved-timetable-settings.guard';
 
 function translatedTitle(key: string): ResolveFn<string> {
   return () => inject(TranslateService).get(key);
@@ -171,12 +172,89 @@ export const routes: Routes = [
         path: 'timetable',
         canActivate: [roleGuard, permissionGuard],
         data: {
-          roles: ['SchoolManager', 'Moderator', 'Instructor'],
+          roles: ['Secretary', 'SchoolManager', 'Moderator', 'Instructor'],
           permissions: ['Timetable.View']
         },
         loadComponent: () => import('./features/timetables/school-timetable.component')
           .then(m => m.SchoolTimetableComponent),
         title: 'الجدول المدرسي'
+      },
+      {
+        path: 'intelligent-timetable',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary', 'SchoolManager', 'Moderator'],
+          permissions: ['Timetable.View']
+        },
+        children: [
+          {
+            path: 'settings',
+            canDeactivate: [unsavedTimetableSettingsGuard],
+            loadComponent: () => import('./features/intelligent-timetable/settings/timetable-settings.component')
+              .then(m => m.TimetableSettingsComponent),
+            title: 'إعدادات الجدول الذكي'
+          },
+          {
+            path: 'timings',
+            canDeactivate: [unsavedTimetableSettingsGuard],
+            loadComponent: () => import('./features/intelligent-timetable/timings/timetable-timings.component').then(m => m.TimetableTimingsComponent),
+            title: 'توقيتات الجدول — الجدول الذكي'
+          },
+          {
+            path: 'breaks',
+            canDeactivate: [unsavedTimetableSettingsGuard],
+            data: { tab: 'breaks' },
+            loadComponent: () => import('./features/intelligent-timetable/timings/timetable-timings.component').then(m => m.TimetableTimingsComponent),
+            title: 'الاستراحة — الجدول الذكي'
+          },
+          {
+            path: 'teachers',
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedTimetableSettingsGuard],
+            data: { permissions: ['Timetable.Manage'] },
+            loadComponent: () => import('./features/intelligent-timetable/teachers/teacher-settings.component').then(m => m.TeacherSettingsComponent),
+            title: 'إعدادات المعلمين — الجدول الذكي'
+          },
+          {
+            path: 'subjects',
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedTimetableSettingsGuard],
+            data: { permissions: ['Timetable.Manage'] },
+            loadComponent: () => import('./features/intelligent-timetable/subjects/subject-settings.component').then(m => m.SubjectSettingsComponent),
+            title: 'المواد — الجدول الذكي'
+          },
+          {
+            path: 'assignments',
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedTimetableSettingsGuard],
+            data: { permissions: ['Timetable.Manage'] },
+            loadComponent: () => import('./features/intelligent-timetable/assignments/teaching-assignments.component').then(m => m.TeachingAssignmentsComponent),
+            title: 'إسناد المواد للمعلمين'
+          },
+          {
+            path: 'subject-rules',
+            redirectTo: 'subjects',
+            pathMatch: 'full'
+          },
+          {
+            path: 'review',
+            data: { permissions: ['Timetable.View'] },
+            loadComponent: () => import('./features/intelligent-timetable/review/timetable-review.component').then(m => m.TimetableReviewComponent),
+            title: 'مراجعة الجدول وتحليله'
+          },
+          {
+            path: 'substitutions',
+            loadComponent: () => import('./features/intelligent-timetable/substitutions/daily-substitutions.component').then(m => m.DailySubstitutionsComponent),
+            title: 'التبديل والاحتياطي'
+          },
+          {
+            path: 'print',
+            data: { moduleTitle: 'الطباعة', phase: '7', icon: 'pi-print', description: 'خيارات الطباعة والتصدير ستستخدم النسخة المنشورة من الجدول.' },
+            loadComponent: () => import('./features/intelligent-timetable/module-placeholder/timetable-module-placeholder.component').then(m => m.TimetableModulePlaceholderComponent),
+            title: 'طباعة الجدول'
+          },
+          { path: '', redirectTo: 'settings', pathMatch: 'full' }
+        ]
       },
       {
         path: 'attendance',

@@ -38,6 +38,7 @@ internal static class GatePassHandlerSupport
         DayOfWeek.Tuesday => TimetableDay.Tuesday,
         DayOfWeek.Wednesday => TimetableDay.Wednesday,
         DayOfWeek.Thursday => TimetableDay.Thursday,
+        DayOfWeek.Friday => TimetableDay.Friday,
         _ => null
     };
 

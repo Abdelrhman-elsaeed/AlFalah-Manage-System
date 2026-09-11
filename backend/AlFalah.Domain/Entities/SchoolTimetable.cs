@@ -8,6 +8,11 @@ public class SchoolTimetable
     public int Id { get; set; }
     public int SchoolId { get; set; }
     public int AcademicYearId { get; set; }
+    public int? TimetableSetupProfileId { get; set; }
+    public int? BellScheduleRevisionId { get; set; }
+    public BellScheduleRevision? BellScheduleRevision { get; set; }
+    public bool TimingsRequireRevalidation { get; set; }
+    public int? SetupRevision { get; set; }
     public TimetableSemester Semester { get; set; }
     public string Title { get; set; } = string.Empty;
     public bool IsPublished { get; set; }
@@ -24,6 +29,7 @@ public class SchoolTimetable
 
     public School School { get; set; } = null!;
     public AcademicYear AcademicYear { get; set; } = null!;
+    public TimetableSetupProfile? TimetableSetupProfile { get; set; }
     public ApplicationUser CreatedByUser { get; set; } = null!;
     public ApplicationUser UpdatedByUser { get; set; } = null!;
     public ApplicationUser? PublishedByUser { get; set; }

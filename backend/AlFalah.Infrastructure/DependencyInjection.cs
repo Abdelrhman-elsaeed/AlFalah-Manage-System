@@ -11,6 +11,7 @@ using AlFalah.Application.StudentAffairs.Notifications;
 using AlFalah.Application.StudentAffairs.Settings;
 using AlFalah.Application.StudentAffairs.Messaging;
 using AlFalah.Application.StudentAffairs.Students;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Domain.Entities;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Data.Seeders;
@@ -91,7 +92,7 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
         var teacherContextOptions = BuildTeacherContextOptions(configuration);
         services.AddSingleton(teacherContextOptions);
-        services.AddSingleton<TeacherContextSchedule>();
+        services.AddScoped<TeacherContextSchedule>();
         services.AddScoped<AuditLogWriter>();
         services.AddScoped<SchoolScopeGuard>();
         services.AddScoped<SchoolLookupService>();
@@ -111,6 +112,23 @@ public static class DependencyInjection
         services.AddScoped<ISchoolTimetableRepository, SchoolTimetableRepository>();
         services.AddScoped<ISchoolTimetableDocumentService, SchoolTimetableDocumentService>();
         services.AddScoped<ISchoolTimetableService, SchoolTimetableService>();
+        services.AddScoped<IBellScheduleRepository, BellScheduleRepository>();
+        services.AddScoped<ITeacherAvailabilityRepository, TeacherAvailabilityRepository>();
+        services.AddScoped<TeacherAvailabilityService>();
+        services.AddScoped<ISubjectRepository, SubjectRepository>();
+        services.AddScoped<SubjectService>();
+        services.AddScoped<SubjectAssignmentService>();
+        services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
+        services.AddScoped<TeachingAssignmentService>();
+        services.AddScoped<ITimetableReviewRepository, TimetableReviewRepository>();
+        services.AddScoped<TimetableValidationEngine>();
+        services.AddScoped<TimetableRepairEngine>();
+        services.AddScoped<TimetableReviewService>();
+        services.AddScoped<ITimetableSubstitutionRepository, TimetableSubstitutionRepository>();
+        services.AddScoped<TimetableSwapEngine>();
+        services.AddScoped<TimetableSubstitutionService>();
+        services.AddScoped<BellScheduleResolver>();
+        services.AddScoped<ITimetableSettingsRepository, TimetableSettingsRepository>();
         services.AddScoped<IGatePassWorkflowRepository, GatePassWorkflowRepository>();
         services.AddScoped<IAttendanceWorkflowRepository, AttendanceWorkflowRepository>();
         services.AddScoped<IMorningDelayWorkflowRepository, MorningDelayWorkflowRepository>();
@@ -181,29 +199,8 @@ public static class DependencyInjection
         return services;
     }
 
-    private static TeacherContextScheduleOptions BuildTeacherContextOptions(
-        IConfiguration configuration)
+    private static TeacherContextScheduleOptions BuildTeacherContextOptions(IConfiguration configuration) => new()
     {
-        var configuredStart = configuration["TeacherContext:FirstPeriodStartsAt"];
-        var firstPeriodStartsAt = TimeOnly.TryParse(
-            configuredStart,
-            System.Globalization.CultureInfo.InvariantCulture,
-            System.Globalization.DateTimeStyles.None,
-            out var parsedStart)
-            ? parsedStart
-            : new TimeOnly(7, 0);
-
-        return new TeacherContextScheduleOptions
-        {
-            SchoolTimeZoneId = configuration["TeacherContext:SchoolTimeZoneId"]
-                ?? "Africa/Cairo",
-            FirstPeriodStartsAt = firstPeriodStartsAt,
-            PeriodDurationMinutes = configuration.GetValue<int?>(
-                "TeacherContext:PeriodDurationMinutes") ?? 45,
-            PassingTimeMinutes = configuration.GetValue<int?>(
-                "TeacherContext:PassingTimeMinutes") ?? 5,
-            AllowOffHoursFallback = configuration.GetValue<bool>(
-                "TeacherContext:AllowOffHoursFallback")
-        };
-    }
+        SchoolTimeZoneId = configuration["TeacherContext:SchoolTimeZoneId"] ?? "Africa/Cairo"
+    };
 }

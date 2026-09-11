@@ -57,7 +57,7 @@ internal sealed class GatePassConfiguration : StudentAffairsMutableEntityConfigu
     {
         builder.ToTable(TableName, table =>
         {
-            table.HasCheckConstraint("CK_GatePasses_Period", "[CurrentPeriod] IS NULL OR [CurrentPeriod] BETWEEN 1 AND 8");
+            table.HasCheckConstraint("CK_GatePasses_Period", "[CurrentPeriod] IS NULL OR [CurrentPeriod] > 0");
             table.HasCheckConstraint("CK_GatePasses_Review",
                 $"([Status] = {(int)GatePassStatus.Requested} AND [ReviewedAt] IS NULL) OR " +
                 $"([Status] <> {(int)GatePassStatus.Requested})");

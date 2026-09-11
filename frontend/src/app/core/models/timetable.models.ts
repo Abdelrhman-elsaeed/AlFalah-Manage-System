@@ -1,5 +1,6 @@
+import { BellSchedule } from './bell-schedule.models';
 export type TimetableSemester = 1 | 2;
-export type TimetableDay = 1 | 2 | 3 | 4 | 5 | 6;
+export type TimetableDay = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type TimetableEntryType = 1 | 2;
 export type TimetablePdfColorMode = 'color' | 'monochrome';
 
@@ -47,9 +48,16 @@ export interface TimetableCatalog {
   teachers: TimetableTeacher[];
   moderators: TimetableModerator[];
   capabilities: TimetableCapabilities;
+  bellSchedule?: BellSchedule;
+  timingsRequireRevalidation?: boolean;
 }
 
 export interface TimetableEntry {
+  subjectColor?: string | null;
+  classroomId?: number | null;
+  subjectId?: number | null;
+  classSubjectRequirementId?: number | null;
+  roomId?: number | null;
   instructorProfileId: number;
   day: TimetableDay;
   period: number;
@@ -79,9 +87,12 @@ export interface SchoolTimetable {
   entries: TimetableEntry[];
   teacherSummaries: TimetableTeacherSummary[];
   capabilities: TimetableCapabilities;
+  bellSchedule?: BellSchedule;
+  timingsRequireRevalidation?: boolean;
 }
 
 export interface CreateTimetableRequest {
+  timetableSetupProfileId?: number;
   academicYearId: number;
   semester: TimetableSemester;
   title: string;

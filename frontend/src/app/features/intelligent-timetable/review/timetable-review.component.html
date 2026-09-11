@@ -1,0 +1,102 @@
+<main class="review-page" dir="rtl" [attr.aria-busy]="busy">
+  <header class="page-header">
+    <div><span class="eyebrow">الجدول الذكي / الجودة</span><h1>مراجعة وإصلاح الجدول</h1>
+      <p>راجع جداول الفصول والمعلمين، ثم اختر الإصلاح المناسب قبل النشر.</p></div>
+    <a routerLink="/timetable" class="editor-link"><i class="pi pi-calendar"></i> فتح محرر الجدول</a>
+  </header>
+  <div class="context-bar">
+    <label for="timetable">الجدول</label>
+    <p-dropdown inputId="timetable" [options]="timetables" optionLabel="title" optionValue="id" [(ngModel)]="timetableId"
+      (onChange)="changeTimetable()" [disabled]="busy" placeholder="اختر جدولاً" appendTo="body"></p-dropdown>
+    <span *ngIf="review">نسخة {{ review.timetableRevision }} · {{ review.isPublished ? 'منشور' : 'مسودة' }}</span>
+    <button pButton type="button" label="إعادة المراجعة" icon="pi pi-refresh" [disabled]="busy || !timetableId" (click)="refresh()"></button>
+  </div>
+  <p *ngIf="error" class="alert error" role="alert">{{ error }}</p>
+  <p *ngIf="notice" class="alert success" role="status">{{ notice }}</p>
+  <p *ngIf="busy" role="status" class="loading"><i class="pi pi-spin pi-spinner"></i> جارٍ التحقق…</p>
+  <section *ngIf="!busy && !timetables.length" class="empty"><i class="pi pi-calendar"></i><h2>لا توجد جداول للمراجعة</h2>
+    <p>أنشئ جدولاً واحفظ حصصه لتبدأ المراجعة.</p><a routerLink="/timetable">فتح الجدول المدرسي</a></section>
+  <ng-container *ngIf="review as r">
+    <section class="summary" aria-label="ملخص المراجعة">
+      <article class="metric critical"><i class="pi pi-times-circle"></i><span>أخطاء حرجة</span><strong>{{ r.hardViolationCount }}</strong><small>تمنع النشر ولا تقبل التجاوز</small></article>
+      <article class="metric warning"><i class="pi pi-exclamation-triangle"></i><span>تنبيهات الجودة</span><strong>{{ r.warningCount }}</strong><small>يمكن للإدارة تسجيل سبب التجاوز</small></article>
+      <article class="metric" [class.ready]="r.canPublish" [class.critical]="!r.canPublish"><i class="pi" [class.pi-check-circle]="r.canPublish" [class.pi-lock]="!r.canPublish"></i>
+        <span>حالة النشر</span><strong class="status-text">{{ r.isPublished ? 'منشور' : r.canPublish ? 'جاهز للنشر' : 'النشر متوقف' }}</strong><small>آخر مراجعة {{ r.completedAt | date:'short' }}</small></article>
+    </section>
+    <section class="panel">
+      <div class="section-heading"><h2>النتائج والتعارضات</h2><span>{{ findings.length }} من {{ r.findings.length }} نتيجة</span></div>
+      <div class="filter-bar" aria-label="تصفية نتائج المراجعة">
+        <input pInputText aria-label="البحث في النتائج" placeholder="ابحث باسم المعلم أو المادة…" [(ngModel)]="search" />
+        <p-dropdown [options]="severities" optionLabel="label" optionValue="value" [(ngModel)]="severity" [showClear]="true" placeholder="كل المستويات" ariaLabel="مستوى الخطورة" appendTo="body"></p-dropdown>
+        <p-dropdown [options]="r.teachers" optionLabel="name" optionValue="id" [(ngModel)]="teacherId" [showClear]="true" [filter]="true" placeholder="كل المعلمين" ariaLabel="المعلم" appendTo="body"></p-dropdown>
+        <p-dropdown [options]="r.classrooms" optionLabel="name" optionValue="id" [(ngModel)]="classroomId" [showClear]="true" placeholder="كل الفصول" ariaLabel="الفصل" appendTo="body"></p-dropdown>
+        <p-dropdown [options]="r.subjects" optionLabel="name" optionValue="id" [(ngModel)]="subjectId" [showClear]="true" placeholder="كل المواد" ariaLabel="المادة" appendTo="body"></p-dropdown>
+        <p-dropdown [options]="statuses" optionLabel="label" optionValue="value" [(ngModel)]="status" [showClear]="true" placeholder="كل الحالات" ariaLabel="حالة النتيجة" appendTo="body"></p-dropdown>
+      </div>
+      <p-table [value]="findings" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]" [tableStyle]="{ 'min-width': '56rem' }">
+        <ng-template pTemplate="header"><tr><th>المستوى</th><th>القاعدة والتفاصيل</th><th>المتأثرون</th><th>اليوم والحصة</th><th>الحالة</th><th>الإجراء</th></tr></ng-template>
+        <ng-template pTemplate="body" let-f><tr [class.hard-row]="f.severity === 1">
+          <td><p-tag [severity]="f.severity === 1 ? 'danger' : 'warning'" [icon]="f.severity === 1 ? 'pi pi-times-circle' : 'pi pi-exclamation-triangle'" [value]="f.severity === 1 ? 'خطأ حرج' : 'تنبيه'"></p-tag></td>
+          <td><strong>{{ f.ruleNameAr }}</strong><p class="finding-message">{{ f.messageAr }}</p></td>
+          <td><span class="entity">{{ f.teacherName }}</span><span class="entity">{{ f.classroomName }} {{ f.subjectName }}</span></td>
+          <td>{{ f.day ? days[f.day] : 'أسبوعي' }}<small *ngIf="f.period">الحصة {{ f.period }}</small></td>
+          <td><span>{{ f.isOverridden ? 'متجاوزة' : 'نشطة' }}</span><small *ngIf="f.isOverridden" [pTooltip]="f.overrideReason">{{ f.overrideReason }}</small>
+            <small *ngIf="f.overriddenAt">{{ f.overriddenAt | date:'short' }}</small></td>
+          <td><button *ngIf="f.severity === 1 && f.canRepair && r.canManage" pButton type="button" label="اقتراح حلول" icon="pi pi-wrench" class="p-button-outlined p-button-sm" [disabled]="busy" (click)="suggest(f)"></button>
+            <button *ngIf="f.severity === 2 && !f.isOverridden && r.canOverride" pButton type="button" label="تجاوز مع ذكر السبب" class="p-button-text p-button-sm" [disabled]="busy" (click)="openOverride(f)"></button>
+            <a *ngIf="f.severity === 1 && !f.canRepair" routerLink="/intelligent-timetable/assignments">مراجعة الإعدادات والإسناد</a></td>
+        </tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty">{{ r.findings.length ? 'لا توجد نتائج تطابق الفلاتر.' : 'لم تُكتشف أخطاء أو تنبيهات في هذه النسخة.' }}</td></tr></ng-template>
+      </p-table>
+    </section>
+    <section class="panel preview">
+      <div class="section-heading"><h2>معاينة الجدول</h2><span>{{ r.entries.length }} تكليفاً أسبوعياً</span></div>
+      <div class="grid-toolbar">
+        <button type="button" [class.active]="view === 'classes'" (click)="view = 'classes'">الفصول ({{ r.classrooms.length }})</button>
+        <button type="button" [class.active]="view === 'teachers'" (click)="view = 'teachers'">المعلمون ({{ r.teachers.length }})</button>
+        <button type="button" aria-label="اليوم السابق" (click)="navigateDay(-1)"><i class="pi pi-angle-right"></i></button>
+        <select aria-label="يوم المعاينة" [(ngModel)]="day"><option *ngFor="let d of studyDays" [ngValue]="d">{{ days[d] }}</option></select>
+        <button type="button" aria-label="اليوم التالي" (click)="navigateDay(1)"><i class="pi pi-angle-left"></i></button>
+        <select aria-label="كثافة العرض" [(ngModel)]="density"><option value="compact">مضغوط</option><option value="normal">عادي</option><option value="wide">واسع</option></select>
+      </div>
+      <p class="legend"><span>☐ فارغ</span><span class="closed">🔒 فترة مغلقة</span><span>⚠ الإسنادات المفقودة تظهر في قائمة النتائج</span></p>
+      <div class="grid-scroll" [class.compact]="density === 'compact'" [class.wide]="density === 'wide'">
+        <table class="schedule-grid"><thead><tr><th>{{ view === 'classes' ? 'الفصل' : 'المعلم' }} · {{ days[day] }}</th>
+          <th *ngFor="let p of gridIntervals">{{ p.name }}<small dir="ltr">{{ p.start }} – {{ p.end }}</small></th></tr></thead>
+          <tbody><tr *ngFor="let row of gridRows"><th>{{ row.name }}</th><td *ngFor="let p of gridIntervals" [class.closed]="closed(row.id, p.period)" [class.break-cell]="!p.period">
+            <span *ngIf="!p.period">☕ {{ p.name }}<small>استراحة</small></span>
+            <span *ngIf="closed(row.id, p.period)" class="closed-label">🔒 غير متاح</span>
+            <article *ngFor="let e of cells(row.id, p.period)" class="lesson" [class.dim]="dim(e)" [style.border-inline-start-color]="'hsl(' + ((e.subjectId || 1) * 67 % 360) + ', 55%, 35%)'">
+              <button type="button" (click)="subjectId = subjectId === e.subjectId ? null : e.subjectId">{{ e.subjectName || 'انتظار' }}</button><span>{{ e.teacherName }}</span><small>{{ e.classroomName }} <span *ngIf="e.roomId">· قاعة {{ e.roomId }}</span></small>
+              <a *ngIf="r.canManage && e.subjectId" routerLink="/intelligent-timetable/substitutions" [queryParams]="{timetableId: r.timetableId, sourceEntryId: e.id, date: swapDate(e.day)}">تبديل الحصة</a>
+            </article><span *ngIf="p.period && !cells(row.id, p.period).length && !closed(row.id, p.period)" class="vacant">فارغ</span>
+          </td></tr></tbody></table>
+      </div>
+    </section>
+    <footer class="publication-bar"><div><strong>{{ r.hardViolationCount ? 'النشر متوقف حتى إصلاح الأخطاء الحرجة' : 'القيود الصارمة مستوفاة' }}</strong>
+      <small>التنبيهات لا تمنع النشر؛ تبقى ظاهرة مع أي أسباب تجاوز مسجلة.</small></div>
+      <span [pTooltip]="r.hardViolationCount ? 'لا يمكن تجاوز الأخطاء الحرجة' : 'نشر النسخة الحالية بعد تحقق جديد'">
+        <button pButton type="button" [label]="r.isPublished ? 'الجدول منشور' : 'نشر الجدول'" icon="pi pi-check" [disabled]="busy || !r.canPublish || !r.canManage || r.isPublished" (click)="publish()"></button>
+      </span></footer>
+  </ng-container>
+</main>
+<p-dialog header="اقتراحات إصلاح الجدول" [(visible)]="repairOpen" [modal]="true" [style]="{width:'min(46rem, 95vw)'}" [closable]="!busy" [draggable]="false" dir="rtl">
+  <p>اختر اقتراحاً وراجع الحركات قبل تأكيد التطبيق. ستُحفظ نسخة جديدة ويعاد التحليل.</p>
+  <p *ngIf="error" class="alert error" role="alert">{{ error }}</p>
+  <p *ngIf="!busy && !proposals.length" class="empty">لا يوجد إصلاح آمن ضمن الحركات المتاحة. راجع الإسنادات أو التوقيت في الإعدادات.</p>
+  <label *ngFor="let p of proposals" class="proposal" [class.selected]="selected?.id === p.id">
+    <div><input type="radio" name="proposal" [value]="p" [(ngModel)]="selected" [disabled]="busy" /> <strong>الاقتراح {{ p.rank }} · {{ p.descriptionAr }}</strong></div>
+    <p>{{ p.confidence }} · النتيجة المتوقعة: {{ p.predictedErrors }} أخطاء، {{ p.predictedWarnings }} تنبيهات</p>
+    <ul><li *ngFor="let m of p.movements">{{ lessonName(m.entryId) }}: {{ days[m.fromDay] }} / {{ m.fromPeriod }} ← {{ days[m.toDay] }} / {{ m.toPeriod }}
+      <span *ngIf="m.fromTeacherId !== m.toTeacherId"> · {{ teacherName(m.fromTeacherId) }} ← {{ teacherName(m.toTeacherId) }}</span></li></ul>
+  </label>
+  <ng-template pTemplate="footer"><button pButton type="button" label="إلغاء" class="p-button-text" [disabled]="busy" (click)="repairOpen = false"></button>
+    <button pButton type="button" label="تأكيد وتطبيق الإصلاح" [disabled]="busy || !selected" (click)="apply()"></button></ng-template>
+</p-dialog>
+<p-dialog header="تجاوز تنبيه مع تسجيل السبب" [(visible)]="overrideOpen" [modal]="true" [style]="{width:'min(34rem, 95vw)'}" [closable]="!busy" [draggable]="false" dir="rtl">
+  <p>{{ overrideFinding?.messageAr }}</p><p *ngIf="error" class="alert error" role="alert">{{ error }}</p>
+  <label for="overrideReason">سبب التجاوز (مطلوب)</label><textarea pInputTextarea id="overrideReason" [(ngModel)]="reason" maxlength="1000" rows="5" class="reason"></textarea>
+  <small>سيُحفظ السبب مع هوية المستخدم ووقت التجاوز.</small>
+  <ng-template pTemplate="footer"><button pButton type="button" label="إلغاء" class="p-button-text" [disabled]="busy" (click)="overrideOpen = false"></button>
+    <button pButton type="button" label="تسجيل التجاوز" [disabled]="busy || !reason.trim()" (click)="override()"></button></ng-template>
+</p-dialog>

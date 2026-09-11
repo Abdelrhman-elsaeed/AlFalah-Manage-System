@@ -1,0 +1,68 @@
+<section class="timings-page" dir="rtl">
+  <header><div><span class="eyebrow">الجدول الذكي</span><h1>توقيتات الجدول</h1><p>حدد أيام الدراسة وأوقات الحصص، وخصص توقيت كل يوم عند الحاجة.</p></div>
+    <a pButton class="p-button-outlined" routerLink="/intelligent-timetable/settings" label="إعدادات الجدول" icon="pi pi-arrow-right"></a></header>
+  <p *ngIf="error" class="error-banner" role="alert"><i class="pi pi-exclamation-circle"></i> {{ error }} <button pButton class="p-button-text" label="إعادة التحميل" (click)="confirmDiscard() && loadContext()"></button></p>
+  <p *ngIf="loading" role="status"><i class="pi pi-spin pi-spinner"></i> جارٍ تحميل التوقيتات...</p>
+  <div class="context-grid" *ngIf="overview as context">
+    <label>العام الدراسي<app-clearable-select [options]="context.academicYears" optionLabel="nameAr" optionValue="id" [clearable]="false" [ngModel]="yearId" (ngModelChange)="changeContext($event, semester)" [disabled]="loading || saving"></app-clearable-select></label>
+    <label>الفصل الدراسي<app-clearable-select [options]="semesters" optionLabel="label" optionValue="value" [clearable]="false" [ngModel]="semester" (ngModelChange)="changeContext(yearId, $event)" [disabled]="loading || saving"></app-clearable-select></label>
+    <label>قالب التوقيت<app-clearable-select [options]="templates" optionLabel="name" optionValue="id" [clearable]="false" [ngModel]="selectedId" (ngModelChange)="choose($event)" placeholder="قالب جديد" [disabled]="loading || saving"></app-clearable-select></label>
+    <button pButton label="قالب جديد" icon="pi pi-plus" class="p-button-outlined" [disabled]="!canManage || loading || saving || !yearId" (click)="newTemplate()"></button>
+  </div>
+  <ng-container *ngIf="!loading && draft as model">
+    <div class="selection-card" *ngIf="overview as context">
+      <label>ملف إعداد الجدول<app-clearable-select [options]="context.profiles" optionLabel="name" optionValue="id" [(ngModel)]="profileId" [clearable]="false" placeholder="أنشئ ملف إعداد أولاً"></app-clearable-select></label>
+      <button pButton label="استخدام هذا القالب" icon="pi pi-check-circle" [disabled]="!canManage || !selectedId || !profileId || hasUnsavedChanges() || saving" (click)="selectForProfile()"></button>
+      <ng-container *ngFor="let template of templates"><span *ngIf="template.id === selectedId" class="muted">الإصدار {{ template.revision }} · مستخدم في {{ template.selectedByProfileIds.length }} ملف إعداد</span></ng-container>
+    </div>
+    <fieldset [disabled]="!canManage || saving">
+      <div class="template-fields">
+        <label for="timing-name">اسم التوقيت / اسم القالب<input id="timing-name" pInputText [(ngModel)]="model.name" maxlength="120" required placeholder="مثال: التوقيت المعتاد — الفصل الأول"></label>
+        <label>المنطقة الزمنية للمدرسة<app-clearable-select [options]="zones" optionLabel="label" optionValue="value" [(ngModel)]="model.schoolTimeZoneId" [clearable]="false" [disabled]="!canManage || saving"></app-clearable-select></label>
+      </div>
+      <h2>أيام الدراسة والعطلات</h2>
+      <div class="weekdays"><label *ngFor="let day of model.days" [class.holiday]="!day.isStudyDay"><input type="checkbox" [checked]="day.isStudyDay" (change)="setStudyDay(day, $any($event.target).checked)"> {{ dayNames[day.day] }} <small>{{ day.isStudyDay ? 'دراسة' : 'عطلة' }}</small></label></div>
+    </fieldset>
+    <nav class="main-tabs" role="tablist" aria-label="أقسام التوقيت"><button role="tab" [attr.aria-selected]="activeTab === 'periods'" [class.active]="activeTab === 'periods'" (click)="activeTab = 'periods'"><i class="pi pi-clock"></i> الحصص</button><button role="tab" [attr.aria-selected]="activeTab === 'breaks'" [class.active]="activeTab === 'breaks'" (click)="activeTab = 'breaks'"><i class="pi pi-stopwatch"></i> الاستراحة</button></nav>
+    <div class="day-tabs" role="tablist" aria-label="توقيت أيام الدراسة">
+      <button role="tab" [attr.aria-selected]="activeDay === 0" [class.active]="activeDay === 0" (click)="activeDay = 0">كل الأيام <small>{{ activeTab === 'breaks' ? breakCount(0) + ' استراحات' : model.defaultPeriods.length + ' حصص' }} · افتراضي</small></button>
+      <div *ngFor="let day of studyDays" class="day-tab">
+        <input type="checkbox" [attr.aria-label]="'تحديد ' + dayNames[day.day] + ' لتطبيق التوقيت'" [checked]="selectedDays.has(day.day)" [disabled]="!canManage || saving" (change)="toggleDay(day.day, $any($event.target).checked)">
+        <button role="tab" [attr.aria-selected]="activeDay === day.day" [class.active]="activeDay === day.day" (click)="activeDay = day.day">{{ dayNames[day.day] }}<small>{{ activeTab === 'breaks' ? breakCount(day.day) + ' استراحات' : effective(day.day).length + ' حصص' }} · {{ (activeTab === 'breaks' ? day.usesDefaultBreaks !== false : day.usesDefaultSchedule) ? 'موروث' : 'مخصص' }}</small></button>
+      </div>
+    </div>
+    <app-timetable-breaks-editor *ngIf="activeTab === 'breaks'" [draft]="model" [activeDay]="activeDay" [selectedDays]="selectedDays" [dayNames]="dayNames" [disabled]="!canManage || saving"></app-timetable-breaks-editor>
+    <fieldset *ngIf="activeTab === 'periods'" [disabled]="!canManage || saving" class="lesson-editor">
+      <div class="editor-toolbar"><div><h2>{{ dayNames[activeDay] }}</h2><p>{{ activeDay === 0 ? 'التغييرات هنا تشمل الأيام التي ترث التوقيت الافتراضي.' : inherited() ? 'هذا اليوم يرث التوقيت الافتراضي؛ تعديله ينشئ توقيتاً مخصصاً له.' : 'توقيت مخصص لهذا اليوم.' }}</p></div>
+        <div class="stepper">
+          <label id="period-count-label" for="period-count">عدد الحصص</label>
+          <div class="stepper-control" role="group" aria-labelledby="period-count-label">
+            <button type="button" aria-label="تقليل عدد الحصص" [disabled]="periods.length <= 1" (click)="resize(periods.length - 1)"><i class="pi pi-minus" aria-hidden="true"></i></button>
+            <input id="period-count" type="number" min="1" step="1" inputmode="numeric" [ngModel]="periods.length" (change)="resize(+$any($event.target).value)">
+            <button type="button" aria-label="زيادة عدد الحصص" (click)="resize(periods.length + 1)"><i class="pi pi-plus" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </div>
+      <p class="muted">الأوقات بتنسيق 24 ساعة؛ مثال: 07:00 صباحاً، 13:00 ظهراً. الفواصل بين الحصص لا تُحسب حصصاً.</p>
+      <div class="period-grid">
+        <article *ngFor="let period of periods; let i = index; trackBy: trackPeriod" class="period-card" [class.invalid]="errors.has(i)">
+          <div class="period-heading"><strong>الحصة {{ i + 1 }}</strong><span *ngIf="!errors.has(i)">{{ duration(period) }} دقيقة</span></div>
+          <label [for]="'period-label-' + i">اسم الحصة (اختياري)<input pInputText [id]="'period-label-' + i" [value]="period.displayLabel" (input)="edit(i, 'displayLabel', $any($event.target).value)" maxlength="100"></label>
+          <div class="time-fields"><label [for]="'start-' + i">البداية<input type="time" step="1" [id]="'start-' + i" [value]="period.startLocalTime" (input)="edit(i, 'startLocalTime', $any($event.target).value)" [attr.aria-invalid]="errors.has(i)" [attr.aria-describedby]="'error-' + i" required></label><label [for]="'end-' + i">النهاية<input type="time" step="1" [id]="'end-' + i" [value]="period.endLocalTime" (input)="edit(i, 'endLocalTime', $any($event.target).value)" [attr.aria-invalid]="errors.has(i)" [attr.aria-describedby]="'error-' + i" required></label></div>
+          <div [id]="'error-' + i" class="row-errors" aria-live="polite"><p *ngFor="let message of errors.get(i)"><i class="pi pi-exclamation-triangle"></i> {{ message }}</p></div>
+        </article>
+      </div>
+      <div class="apply-actions"><button pButton class="p-button-outlined" icon="pi pi-copy" label="تطبيق هذا التوقيت على الأيام المحددة" [disabled]="!selectedDays.size || errors.size > 0" (click)="previewApply()"></button><button *ngIf="activeDay && !inherited()" pButton class="p-button-text" icon="pi pi-link" label="استعادة التوقيت الافتراضي" (click)="inherit()"></button></div>
+    </fieldset>
+    <div *ngIf="otherBreakIssueDays.length" class="break-review-hint flex flex-wrap items-center gap-2" role="status">
+      <span><i class="pi pi-exclamation-circle" aria-hidden="true"></i> توجد أوقات تحتاج مراجعة في:</span>
+      <button *ngFor="let day of otherBreakIssueDays" type="button" class="p-button-text" (click)="activeDay = day; activeTab = 'breaks'">{{ dayNames[day] }}</button>
+    </div>
+    <footer class="sticky-actions"><span role="status"><i [class]="hasUnsavedChanges() ? 'pi pi-pencil' : 'pi pi-check'"></i> {{ hasUnsavedChanges() ? 'توجد تغييرات غير محفوظة' : 'لا توجد تغييرات غير محفوظة' }}</span><span class="validation-summary" *ngIf="!valid">راجع الاسم وأيام الدراسة والحصص والاستراحات في جميع الأيام.</span><button pButton label="تجاهل" class="p-button-text" [disabled]="saving || !hasUnsavedChanges()" (click)="discard()"></button><button pButton label="حفظ جميع التغييرات" icon="pi pi-save" [loading]="saving" [disabled]="!canManage || !valid || saving || (!!selectedId && !hasUnsavedChanges())" (click)="save()"></button></footer>
+  </ng-container>
+</section>
+<p-dialog header="مقارنة التوقيت قبل التطبيق وبعده" [(visible)]="comparisonVisible" [modal]="true" [style]="{width: '850px', maxWidth: '96vw'}" dir="rtl">
+  <p>سيستبدل هذا الإجراء توقيت الأيام التالية. راجع المقارنة ثم أكد التطبيق.</p>
+  <section *ngFor="let change of comparison" class="comparison"><h3>{{ dayNames[change.day] }}</h3><div class="comparison-grid"><div><h4>قبل · {{ change.before.length }} حصص</h4><p *ngFor="let period of change.before">{{ period.sequence }} · {{ period.displayLabel }} <bdi>{{ period.startLocalTime }} – {{ period.endLocalTime }}</bdi></p></div><div><h4>بعد · {{ change.after.length }} حصص</h4><p *ngFor="let period of change.after">{{ period.sequence }} · {{ period.displayLabel }} <bdi>{{ period.startLocalTime }} – {{ period.endLocalTime }}</bdi></p></div></div></section>
+  <ng-template pTemplate="footer"><button pButton class="p-button-text" label="إلغاء" (click)="comparisonVisible = false"></button><button pButton label="تأكيد تطبيق التوقيت" icon="pi pi-check" (click)="applyToDays()"></button></ng-template>
+</p-dialog>

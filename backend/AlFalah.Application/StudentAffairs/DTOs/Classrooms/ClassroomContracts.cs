@@ -16,9 +16,15 @@ public sealed record CreateClassroomRequestDto(
     SchoolStage Stage,
     byte GradeLevel,
     string Section,
-    string ClassLabel);
+    string ClassLabel,
+    string PhysicalLocation = "");
 
-public sealed record UpdateClassroomRequestDto(string ClassLabel, string Section, bool IsActive, string RowVersion);
+public sealed record UpdateClassroomRequestDto(
+    string ClassLabel,
+    string Section,
+    bool IsActive,
+    string RowVersion,
+    string PhysicalLocation = "");
 public sealed record DeleteClassroomRequestDto(string Reason, string RowVersion, bool ForceDelete = false);
 
 public sealed record ClassroomDto(
@@ -31,7 +37,8 @@ public sealed record ClassroomDto(
     string AcademicYearLabel,
     bool IsActive,
     int ActiveEnrollmentCount,
-    string RowVersion);
+    string RowVersion,
+    string PhysicalLocation = "");
 
 public sealed record ClassroomAcademicYearDto(int Id, string Code, string NameAr, bool IsActive);
 

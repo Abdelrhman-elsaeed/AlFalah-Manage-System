@@ -6,6 +6,14 @@ public enum TimetableSemester
     Second = 2
 }
 
+public enum TimetableSetupStatus
+{
+    Draft = 1,
+    ReadyForGeneration = 2,
+    Generated = 3,
+    Archived = 4
+}
+
 public enum TimetableDay
 {
     Saturday = 1,
@@ -13,7 +21,8 @@ public enum TimetableDay
     Monday = 3,
     Tuesday = 4,
     Wednesday = 5,
-    Thursday = 6
+    Thursday = 6,
+    Friday = 7
 }
 
 public enum TimetableEntryType
@@ -28,5 +37,8 @@ public enum TimetableChangeKind
     Saved = 2,
     Published = 3,
     Imported = 4,
-    Restored = 5
+    Restored = 5,
+    DirectSwap = 6,
+    ThreeWaySwap = 7,
+    Substitution = 8
 }

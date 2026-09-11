@@ -90,7 +90,7 @@ internal sealed class TeacherOfficeHourConfiguration
     {
         builder.ToTable(TableName, table =>
         {
-            table.HasCheckConstraint("CK_TeacherOfficeHours_Period", "[Period] IS NULL OR [Period] BETWEEN 1 AND 8");
+            table.HasCheckConstraint("CK_TeacherOfficeHours_Period", "[Period] IS NULL OR [Period] > 0");
             table.HasCheckConstraint("CK_TeacherOfficeHours_TimeShape",
                 "([Period] IS NOT NULL AND [LocalStartTime] IS NULL AND [LocalEndTime] IS NULL) OR " +
                 "([Period] IS NULL AND [LocalStartTime] IS NOT NULL AND [LocalEndTime] IS NOT NULL AND [LocalEndTime] > [LocalStartTime])");

@@ -61,6 +61,7 @@ public sealed class GetTeacherCurrentContextQueryHandler
         }
 
         var utcNow = _timeProvider.GetUtcNow();
+        await _schedule.LoadAsync(schoolId.Value, utcNow, cancellationToken);
         var schoolLocalTime = _schedule.ToSchoolLocalTime(utcNow);
         var localDate = DateOnly.FromDateTime(schoolLocalTime.DateTime);
         var localClock = TimeOnly.FromDateTime(schoolLocalTime.DateTime);
@@ -72,7 +73,7 @@ public sealed class GetTeacherCurrentContextQueryHandler
             _schedule.GetCurrentPeriod(localClock),
             _schedule.GetFallbackPeriod(localClock),
             _schedule.AllowOffHoursFallback,
-            utcNow);
+            utcNow, _schedule.RevisionId);
 
         var snapshot = await _repository
             .GetTopPriorityAsync(lookup, cancellationToken)
@@ -113,7 +114,7 @@ public sealed class GetTeacherCurrentContextQueryHandler
         TeacherTimetablePeriodSnapshot? period,
         DateOnly localDate)
     {
-        if (period is null)
+        if (period is null || !_schedule.HasPeriod(localDate, period.Period))
         {
             return null;
         }

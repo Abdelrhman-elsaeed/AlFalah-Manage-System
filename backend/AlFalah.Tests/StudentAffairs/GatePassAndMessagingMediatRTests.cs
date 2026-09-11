@@ -110,7 +110,9 @@ public sealed class GatePassAndMessagingMediatRTests
         public Task<AlFalah.Domain.Entities.StudentAffairs.GatePass?> GetForUpdateAsync(int schoolId, int gatePassId, CancellationToken cancellationToken) =>
             Task.FromResult<AlFalah.Domain.Entities.StudentAffairs.GatePass?>(null);
 
-        public Task<GatePassTimetableSnapshot?> ResolvePublishedTimetableAsync(int schoolId, int academicYearId, TimetableSemester semester, int classroomId, string classroomLabel, TimetableDay day, CancellationToken cancellationToken) =>
+        public Task<DateOnly?> GetPublishedStudyDateAsync(int schoolId, DateTimeOffset instant, CancellationToken ct) => Task.FromResult<DateOnly?>(DateOnly.FromDateTime(instant.DateTime));
+
+        public Task<GatePassTimetableSnapshot?> ResolvePublishedTimetableAsync(int schoolId, int academicYearId, TimetableSemester semester, int classroomId, string classroomLabel, DateTimeOffset instant, CancellationToken cancellationToken) =>
             Task.FromResult<GatePassTimetableSnapshot?>(null);
 
         public void Add(AlFalah.Domain.Entities.StudentAffairs.GatePass gatePass) { }

@@ -72,6 +72,7 @@ public sealed class CreateClassroomCommandHandler
             GradeLevel = req.GradeLevel,
             Section = req.Section.Trim(),
             ClassLabel = classLabel,
+            PhysicalLocation = req.PhysicalLocation.Trim(),
             IsActive = true,
             CreatedAt = now,
             CreatedByUserId = userId,

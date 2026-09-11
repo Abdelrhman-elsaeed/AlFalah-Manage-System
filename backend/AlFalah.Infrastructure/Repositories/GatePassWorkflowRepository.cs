@@ -1,3 +1,4 @@
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.GatePasses;
@@ -14,7 +15,17 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
 {
     private readonly AlFalahDbContext _context;
 
-    public GatePassWorkflowRepository(AlFalahDbContext context) => _context = context;
+    private readonly IBellScheduleRepository _timings;
+    public GatePassWorkflowRepository(AlFalahDbContext context) { _context = context; _timings = new BellScheduleRepository(context); }
+
+    public async Task<DateOnly?> GetPublishedStudyDateAsync(int schoolId, DateTimeOffset instant, CancellationToken ct)
+    {
+        var schedule = await _timings.GetPublishedAsync(schoolId, instant, ct);
+        if (schedule is null) return null;
+        var local = BellScheduleResolver.LocalTime(schedule, instant);
+        return BellScheduleResolver.EffectivePeriods(schedule, BellScheduleResolver.ToDay(local.DayOfWeek)).Count > 0
+            ? DateOnly.FromDateTime(local.DateTime) : null;
+    }
 
     public Task<GuardianGatePassLinkSnapshot?> GetGuardianLinkAsync(
         int schoolId,
@@ -131,15 +142,23 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
         TimetableSemester semester,
         int classroomId,
         string classroomLabel,
-        TimetableDay day,
+        DateTimeOffset instant,
         CancellationToken cancellationToken)
     {
+        var schedule = await _timings.GetPublishedAsync(schoolId, instant, cancellationToken);
+        var period = BellScheduleResolver.CurrentPeriod(schedule, instant);
+        if (schedule is null || period is null || schedule.AcademicYearId != academicYearId || schedule.Semester != semester) return null;
+        var day = BellScheduleResolver.ToDay(BellScheduleResolver.LocalTime(schedule, instant).DayOfWeek);
+        var localDate = DateOnly.FromDateTime(BellScheduleResolver.LocalTime(schedule, instant).DateTime);
         var exactMatches = await PublishedEntries(schoolId, academicYearId, semester, day)
+            .Where(entry => entry.Period == period.Sequence && entry.SchoolTimetable.BellScheduleRevisionId == schedule.RevisionId)
             .Where(entry => entry.ClassroomId == classroomId)
             .Select(entry => new GatePassTimetableSnapshot(
                 entry.SchoolTimetableId,
                 entry.Id,
-                entry.InstructorProfileId,
+                _context.Set<AlFalah.Domain.Entities.TimetableSubstitutionMovement>().Where(m => m.SchoolId == schoolId &&
+                    m.SchoolTimetableEntryId == entry.Id && m.Substitution.LocalDate == localDate && m.Substitution.Kind == "Substitution")
+                    .OrderByDescending(m => m.TimetableSubstitutionId).Select(m => (int?)m.ToTeacherId).FirstOrDefault() ?? entry.InstructorProfileId,
                 entry.Period))
             .Take(2)
             .ToListAsync(cancellationToken)
@@ -149,11 +168,14 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
         if (exactMatches.Count > 1) return null;
 
         var fallbackMatches = await PublishedEntries(schoolId, academicYearId, semester, day)
+            .Where(entry => entry.Period == period.Sequence && entry.SchoolTimetable.BellScheduleRevisionId == schedule.RevisionId)
             .Where(entry => entry.ClassroomId == null && entry.ClassLabel == classroomLabel)
             .Select(entry => new GatePassTimetableSnapshot(
                 entry.SchoolTimetableId,
                 entry.Id,
-                entry.InstructorProfileId,
+                _context.Set<AlFalah.Domain.Entities.TimetableSubstitutionMovement>().Where(m => m.SchoolId == schoolId &&
+                    m.SchoolTimetableEntryId == entry.Id && m.Substitution.LocalDate == localDate && m.Substitution.Kind == "Substitution")
+                    .OrderByDescending(m => m.TimetableSubstitutionId).Select(m => (int?)m.ToTeacherId).FirstOrDefault() ?? entry.InstructorProfileId,
                 entry.Period))
             .Take(2)
             .ToListAsync(cancellationToken)

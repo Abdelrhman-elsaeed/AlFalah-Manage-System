@@ -12,7 +12,7 @@
         <button pButton type="button" class="p-button-outlined" icon="pi pi-history" label="النسخ" (click)="openVersions()"></button>
         <button *ngIf="canDelegate()" pButton type="button" class="p-button-outlined" icon="pi pi-users" label="تفويض مشرف" (click)="openGrants()"></button>
         <button pButton type="button" icon="pi pi-save" label="حفظ" [disabled]="!dirty() || saving()" [loading]="saving()" (click)="save()"></button>
-        <button *ngIf="!current.isPublished" pButton type="button" class="publish-button" icon="pi pi-send" label="نشر للمعلمين" [disabled]="dirty() || saving()" (click)="publish()"></button>
+        <button *ngIf="!current.isPublished || current.timingsRequireRevalidation" pButton type="button" class="publish-button" icon="pi pi-send" label="نشر للمعلمين" [disabled]="dirty() || saving()" (click)="publish()"></button>
       </ng-container>
     </div>
   </header>
@@ -51,6 +51,7 @@
   </div>
 
   <ng-container *ngIf="!loading() && timetable() as current">
+    <p *ngIf="current.timingsRequireRevalidation" role="status">تم تغيير إعدادات الجدول أو متطلبات المواد. راجع الحصص ثم أعد النشر لتطبيق الإعدادات الجديدة.</p>
     <div class="editor-toolbar" *ngIf="canManage()">
       <label class="title-field">
         <span>عنوان الجدول</span>
@@ -78,13 +79,13 @@
           <thead>
             <tr class="day-row">
               <th class="teacher-column" rowspan="2">المعلم</th>
-              <th class="day-heading" *ngFor="let day of data.days" [attr.colspan]="data.periodCount">{{ day.labelAr }}</th>
+              <th class="day-heading" *ngFor="let day of studyDays()" [attr.colspan]="intervalsFor(day.value).length">{{ day.labelAr }}</th>
               <th class="total-column" rowspan="2">حصص</th>
               <th class="standby-total-column" rowspan="2">منتظر</th>
             </tr>
             <tr class="period-row">
-              <ng-container *ngFor="let day of data.days">
-                <th *ngFor="let period of periodNumbers()">{{ period }}</th>
+              <ng-container *ngFor="let day of studyDays()">
+                <th *ngFor="let slot of intervalsFor(day.value)" [class.break-heading]="slot.kind === 'Break'">{{ slot.name }}<br><bdi>{{ slot.startLocalTime.slice(0, 5) }}–{{ slot.endLocalTime.slice(0, 5) }}</bdi></th>
               </ng-container>
             </tr>
           </thead>
@@ -94,9 +95,13 @@
                 <strong>{{ teacher.fullName }}</strong>
                 <small *ngIf="teacher.subject">{{ teacher.subject }}</small>
               </th>
-              <ng-container *ngFor="let day of data.days">
-                <td *ngFor="let period of periodNumbers()"
+              <ng-container *ngFor="let day of studyDays()">
+                <ng-container *ngFor="let slot of intervalsFor(day.value)">
+                <td *ngIf="slot.kind === 'Break'" class="break-cell"><i class="pi pi-stopwatch"></i><span>{{ slot.name }}</span></td>
+                <ng-container *ngIf="slot.periodSequence as period">
+                <td
                     class="schedule-cell"
+                    [style.border-top]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.subjectColor ? '3px solid ' + getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.subjectColor : null"
                     [class.has-entry]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
                     [class.standby-cell]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.entryType === 2"
                     [class.editable]="canManage()"
@@ -117,6 +122,8 @@
                   </ng-container>
                   <ng-template #emptyCell><span class="empty-cell-mark" *ngIf="canManage()">+</span></ng-template>
                 </td>
+                </ng-container>
+                </ng-container>
               </ng-container>
               <td class="total-column total-value">{{ lessonCount(teacher.instructorProfileId) }}</td>
               <td class="standby-total-column total-value">{{ standbyCount(teacher.instructorProfileId) }}</td>
@@ -167,10 +174,15 @@
     <span>عنوان الجدول</span>
     <input pInputText [(ngModel)]="newTitle" maxlength="250">
   </label>
+  <label class="dialog-field">
+    <span>ملف الإعداد وقالب التوقيت</span>
+    <app-clearable-select [options]="setupProfiles" optionLabel="name" optionValue="id" [(ngModel)]="newProfileId" [clearable]="false" [disabled]="profilesLoading || saving()" placeholder="اختر ملف إعداد له قالب توقيت"></app-clearable-select>
+  </label>
+  <p *ngIf="!profilesLoading && !setupProfiles.length">اختر قالب توقيت لملف الإعداد أولاً من <a routerLink="/intelligent-timetable/timings">توقيتات الجدول</a>.</p>
   <p class="dialog-note">سيُنشأ كمسودة، ولن يراه المعلمون إلا بعد النشر.</p>
   <ng-template pTemplate="footer">
     <button pButton type="button" class="p-button-text" label="إلغاء" (click)="createDialogVisible.set(false)"></button>
-    <button pButton type="button" label="إنشاء" icon="pi pi-plus" [loading]="saving()" (click)="create()"></button>
+    <button pButton type="button" label="إنشاء" icon="pi pi-plus" [disabled]="!newProfileId || profilesLoading || !newTitle.trim()" [loading]="saving()" (click)="create()"></button>
   </ng-template>
 </p-dialog>
 

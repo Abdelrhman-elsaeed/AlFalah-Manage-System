@@ -44,7 +44,7 @@ public sealed record SessionDelayDto(
     int Id,
     StudentSummaryDto Student,
     int TimetableEntryId,
-    byte Period,
+    int Period,
     DateTimeOffset OccurredAt,
     int? DelayMinutes,
     string? Reason,

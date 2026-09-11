@@ -70,6 +70,7 @@ public sealed class UpdateClassroomCommandHandler
 
         classroom.ClassLabel = classLabel;
         classroom.Section = req.Section.Trim();
+        classroom.PhysicalLocation = req.PhysicalLocation.Trim();
         classroom.IsActive = req.IsActive;
         classroom.UpdatedAt = now;
         classroom.UpdatedByUserId = userId;

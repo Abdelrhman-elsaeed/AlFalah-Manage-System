@@ -1,0 +1,189 @@
+<main class="timetable-settings-page min-h-full bg-slate-50/70" dir="rtl">
+  <section class="context-header sticky top-0 z-20 mb-6 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur md:p-5">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex items-center gap-3">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-emerald-100 text-emerald-700">
+          <i class="pi pi-calendar-clock text-xl"></i>
+        </span>
+        <div>
+          <p class="mb-1 text-xs font-bold tracking-wide text-emerald-700">الجدول الذكي</p>
+          <h1 class="m-0 text-2xl font-black text-slate-900">إعدادات الجدول</h1>
+          <p class="mt-1 text-sm text-slate-500">{{ overview()?.schoolName || 'المدرسة النشطة' }}</p>
+        </div>
+      </div>
+
+      <form [formGroup]="contextForm" class="grid min-w-0 flex-1 grid-cols-1 gap-3 md:grid-cols-3 xl:max-w-4xl">
+        <label class="context-field">
+          <span>العام الدراسي</span>
+          <p-dropdown formControlName="academicYearId" [options]="yearOptions()" optionLabel="label" optionValue="value"
+            placeholder="اختر العام" [showClear]="false" (onChange)="changeAcademicContext()" appendTo="body"></p-dropdown>
+        </label>
+        <label class="context-field">
+          <span>الفصل الدراسي</span>
+          <p-dropdown formControlName="semester" [options]="semesterOptions" optionLabel="label" optionValue="value"
+            [showClear]="false" (onChange)="changeAcademicContext()" appendTo="body"></p-dropdown>
+        </label>
+        <label class="context-field">
+          <span>ملف الإعداد</span>
+          <p-dropdown formControlName="profileId" [options]="profileOptions()" optionLabel="label" optionValue="value"
+            placeholder="لا يوجد ملف" [showClear]="false" (onChange)="changeProfile()" appendTo="body"></p-dropdown>
+        </label>
+      </form>
+
+      @if (canManage()) {
+        <button pButton type="button" class="p-button-outlined shrink-0" icon="pi pi-plus" label="ملف إعداد جديد" (click)="startCreate()"></button>
+      }
+    </div>
+  </section>
+
+  @if (loading()) {
+    <div class="grid gap-5 lg:grid-cols-3">
+      <p-skeleton height="17rem" borderRadius="1.5rem"></p-skeleton>
+      <p-skeleton height="17rem" borderRadius="1.5rem"></p-skeleton>
+      <p-skeleton height="17rem" borderRadius="1.5rem"></p-skeleton>
+    </div>
+  } @else {
+    @if (overview(); as vm) {
+    @if (vm.academicYears.length === 0) {
+      <section class="empty-panel">
+        <i class="pi pi-calendar-times"></i>
+        <h2>لا يوجد نطاق دراسي مفعّل لهذه المدرسة</h2>
+        <p>أضف فصلاً دراسياً مرتبطاً بالمدرسة قبل إنشاء ملف إعداد للجدول.</p>
+      </section>
+    } @else {
+      @if (conflictMessage()) {
+        <section class="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950 md:flex-row md:items-center md:justify-between" role="alert">
+          <div class="flex items-start gap-3"><i class="pi pi-exclamation-triangle mt-1"></i><span>{{ conflictMessage() }}</span></div>
+          <div class="flex gap-2">
+            @if (conflictDraft()) { <button pButton type="button" class="p-button-sm p-button-warning" label="استعادة مسودتي" (click)="restoreDraft()"></button> }
+            <button pButton type="button" class="p-button-sm p-button-text" label="اعتماد أحدث نسخة" (click)="reloadLatest()"></button>
+          </div>
+        </section>
+      }
+
+      <section class="mb-6 grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,.75fr)]">
+        <p-card styleClass="h-full overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
+          <ng-template pTemplate="header">
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div>
+                <p class="m-0 text-xs font-bold text-emerald-700">نطاق العمل الحالي</p>
+                <h2 class="mb-0 mt-1 text-lg font-black text-slate-900">بيانات ملف الإعداد</h2>
+              </div>
+              @if (vm.selectedProfile; as profile) {
+                <p-tag [value]="profile.statusLabelAr" severity="info"></p-tag>
+              }
+            </div>
+          </ng-template>
+
+          @if (!vm.canManage) {
+            <div class="mb-4 flex gap-2 rounded-xl bg-sky-50 p-3 text-sm text-sky-900"><i class="pi pi-eye mt-0.5"></i>هذه الشاشة للعرض فقط وفق صلاحياتك الحالية.</div>
+          }
+
+          <form [formGroup]="profileForm" (ngSubmit)="save()" class="space-y-5 px-5 pb-5 pt-5 md:px-6 md:pb-6">
+            <label class="block">
+              <span class="mb-2 block text-sm font-bold text-slate-700">اسم ملف الإعداد <b class="text-rose-600">*</b></span>
+              <input pInputText formControlName="name" maxlength="120" class="w-full" [readonly]="!vm.canManage"
+                placeholder="مثال: الجدول الاعتيادي أو جدول رمضان" />
+              @if (profileForm.controls.name.touched && profileForm.controls.name.invalid) {
+                <small class="mt-1 block text-rose-600">اكتب اسماً واضحاً لا يتجاوز 120 حرفاً.</small>
+              }
+            </label>
+
+            <div class="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm sm:grid-cols-2">
+              <div><span class="block text-slate-500">العام الدراسي</span><strong>{{ vm.selectedProfile?.academicYearName || yearOptions()[0]?.label }}</strong></div>
+              <div><span class="block text-slate-500">الفصل الدراسي</span><strong>{{ vm.selectedSemesterLabelAr }}</strong></div>
+              <div><span class="block text-slate-500">قالب أوقات الحصص</span><strong>{{ vm.selectedProfile?.bellScheduleTemplateId ? 'تم الاختيار' : 'لم يُحدد بعد' }}</strong></div>
+              <div><span class="block text-slate-500">رقم المراجعة</span><strong>{{ vm.selectedProfile?.revision || '—' }}</strong></div>
+            </div>
+
+            @if (vm.selectedProfile; as profile) {
+              <p class="m-0 text-xs text-slate-500">آخر حفظ: {{ formatUpdatedAt(profile.updatedAt) }}</p>
+            }
+
+            @if (vm.canManage) {
+              <div class="flex flex-wrap gap-3">
+                <button pButton type="submit" icon="pi pi-save" [loading]="saving()"
+                  [label]="creating() ? 'إنشاء ملف الإعداد' : 'حفظ التغييرات'" [disabled]="!profileForm.dirty && !creating()"></button>
+                @if (creating() && vm.selectedProfile) {
+                  <button pButton type="button" class="p-button-text" label="إلغاء" (click)="cancelCreate()"></button>
+                }
+              </div>
+            }
+          </form>
+        </p-card>
+
+        <aside class="rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-900 p-6 text-white shadow-lg">
+          <div class="flex items-start justify-between gap-4">
+            <div><p class="m-0 text-sm text-emerald-100">جاهزية الإعداد</p><strong class="mt-2 block text-4xl font-black">{{ vm.completionPercent }}%</strong></div>
+            <span class="rounded-full bg-white/15 px-3 py-1 text-sm">{{ completedSteps() }} من {{ vm.steps.length }}</span>
+          </div>
+          <p-progressBar [value]="vm.completionPercent" [showValue]="false" styleClass="mt-5 h-2 bg-white/20"></p-progressBar>
+          <p class="mt-5 text-sm leading-7 text-emerald-50">تُحسب الجاهزية من البيانات المحفوظة فعلياً، وتعود الخطوة إلى غير مكتملة عند حذف متطلب أو تعطيله.</p>
+          <div class="mt-5 rounded-2xl border border-white/15 bg-white/10 p-4">
+            <div class="flex items-center gap-2 font-bold"><i class="pi pi-shield"></i> التوليد التلقائي</div>
+            <p class="mb-0 mt-2 text-sm text-emerald-50">{{ vm.hardPrerequisitesValid ? 'متاح الآن' : 'متوقف حتى اكتمال المتطلبات الصلبة' }}</p>
+          </div>
+        </aside>
+      </section>
+
+      @if (!guideDismissed()) {
+        <section class="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+          <div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div><p class="m-0 text-xs font-bold text-emerald-700">رحلة الإعداد</p><h2 class="mb-0 mt-1 text-xl font-black text-slate-900">أكمل الخطوات بالترتيب المناسب</h2></div>
+            <div class="flex flex-wrap gap-2"><button pButton type="button" icon="pi pi-arrow-left" label="متابعة الإعداد" (click)="continueSetup()"></button><button pButton type="button" class="p-button-text" label="سأفعلها لاحقاً" (click)="dismissGuide()"></button></div>
+          </div>
+          <ol class="setup-grid">
+            @for (step of vm.steps; track step.key) {
+              <li class="setup-step" [attr.data-status]="step.status">
+                <div class="flex items-start justify-between gap-3">
+                  <span class="step-number">{{ stepNumber(step) }}</span>
+                  <span class="step-status"><i [class]="statusIcon(step.status)"></i>{{ statusLabel(step.status) }}</span>
+                </div>
+                <h3>{{ step.titleAr }}</h3>
+                <p>{{ step.descriptionAr }}</p>
+                <a [routerLink]="step.route" class="step-link">فتح الخطوة <i class="pi pi-arrow-left"></i></a>
+              </li>
+            }
+          </ol>
+        </section>
+      }
+
+      <section class="mb-24">
+        <div class="mb-4"><p class="m-0 text-xs font-bold text-emerald-700">البيانات الأساسية</p><h2 class="mb-0 mt-1 text-xl font-black text-slate-900">مؤشرات الجاهزية للمدرسة</h2></div>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <a routerLink="/student-affairs/classrooms" class="readiness-card">
+            <span class="readiness-icon bg-violet-100 text-violet-700"><i class="pi pi-building"></i></span>
+            <div><strong>{{ vm.counts.activeClassrooms }}</strong><span>فصل نشط</span><small>{{ vm.counts.classroomsMissingLocation ? vm.counts.classroomsMissingLocation + ' بلا موقع' : 'المواقع مكتملة' }}</small></div>
+          </a>
+          <a routerLink="/student-affairs/students" class="readiness-card">
+            <span class="readiness-icon bg-sky-100 text-sky-700"><i class="pi pi-users"></i></span>
+            <div><strong>{{ vm.counts.activeStudents }}</strong><span>طالب مسجل</span><small>الفصل الفارغ مسموح بالجدولة</small></div>
+          </a>
+          <a routerLink="/intelligent-timetable/teachers" class="readiness-card">
+            <span class="readiness-icon bg-amber-100 text-amber-700"><i class="pi pi-id-card"></i></span>
+            <div><strong>{{ vm.counts.activeTeachers }}</strong><span>معلم نشط</span><small>تتبقى بيانات الإتاحة</small></div>
+          </a>
+          <a routerLink="/intelligent-timetable/subjects" class="readiness-card">
+            <span class="readiness-icon bg-emerald-100 text-emerald-700"><i class="pi pi-book"></i></span>
+            <div><strong>{{ vm.counts.availableSubjects }}</strong><span>مادة متاحة</span><small>دليل المواد غير مكتمل</small></div>
+          </a>
+        </div>
+
+        @if (vm.warnings.length) {
+          <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <h3 class="mt-0 flex items-center gap-2 text-base text-amber-950"><i class="pi pi-exclamation-triangle"></i>تنبيهات قبل التوليد</h3>
+            <ul class="mb-0 space-y-2 pr-5 text-sm text-amber-900">@for (warning of vm.warnings; track warning) { <li>{{ warning }}</li> }</ul>
+          </div>
+        }
+      </section>
+    }
+    }
+  }
+
+  @if (hasUnsavedChanges()) {
+    <div class="unsaved-bar" role="status">
+      <div class="flex items-center gap-3"><span class="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-400"></span><div><strong>لديك تغييرات غير محفوظة</strong><small>احفظها قبل الانتقال إلى نطاق أو صفحة أخرى.</small></div></div>
+      <button pButton type="button" icon="pi pi-save" label="حفظ الآن" [loading]="saving()" (click)="save()"></button>
+    </div>
+  }
+</main>

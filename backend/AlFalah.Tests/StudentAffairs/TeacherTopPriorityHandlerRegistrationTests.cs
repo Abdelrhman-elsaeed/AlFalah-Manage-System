@@ -1,3 +1,7 @@
+using AlFalah.Tests.Timetables;
+using AlFalah.Infrastructure.Data;
+using AlFalah.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.StudentAffairs;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
@@ -53,10 +57,12 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
             PermissionNames.TeacherQuickActionView,
             PermissionNames.BehaviorCreate,
             PermissionNames.AcademicConcernCreate);
+        await using var db = new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        await BellScheduleTestData.SeedAsync(db, 18, "teacher-user", true);
         var schedule = new TeacherContextSchedule(new TeacherContextScheduleOptions
         {
             SchoolTimeZoneId = "Africa/Cairo"
-        });
+        }, new BellScheduleRepository(db));
         var timeProvider = new FixedTimeProvider(
             new DateTimeOffset(2026, 9, 1, 5, 10, 0, TimeSpan.Zero));
         var handler = new GetTeacherTopPriorityQueryHandler(
@@ -102,6 +108,7 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
             string teacherUserId,
             int timetableEntryId,
             DateOnly localDate,
+            int? timingRevisionId,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(Snapshot);

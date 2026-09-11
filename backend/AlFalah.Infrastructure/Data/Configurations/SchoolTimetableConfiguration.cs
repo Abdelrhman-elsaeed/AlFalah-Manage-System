@@ -13,12 +13,19 @@ public sealed class SchoolTimetableConfiguration : IEntityTypeConfiguration<Scho
         builder.HasAlternateKey(x => new { x.SchoolId, x.Id });
         builder.Property(x => x.Title).HasMaxLength(250).IsUnicode(true).UseCollation("Arabic_CI_AS").IsRequired();
         builder.Property(x => x.Revision).IsConcurrencyToken();
-        builder.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.Semester })
+        builder.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.Semester, x.TimetableSetupProfileId })
             .HasFilter("[IsDeleted] = 0")
             .IsUnique();
 
+        builder.HasOne(x => x.BellScheduleRevision).WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.BellScheduleRevisionId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.School).WithMany().HasForeignKey(x => x.SchoolId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.AcademicYear).WithMany().HasForeignKey(x => x.AcademicYearId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.TimetableSetupProfile).WithMany(x => x.Timetables)
+            .HasForeignKey(x => new { x.SchoolId, x.TimetableSetupProfileId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.UpdatedByUser).WithMany().HasForeignKey(x => x.UpdatedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.PublishedByUser).WithMany().HasForeignKey(x => x.PublishedByUserId).OnDelete(DeleteBehavior.Restrict);

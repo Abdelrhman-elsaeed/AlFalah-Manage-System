@@ -7,10 +7,11 @@ public sealed record TeacherContextLookup(
     string TeacherUserId,
     DateOnly SchoolLocalDate,
     TimetableDay? SchoolLocalDay,
-    byte? CurrentPeriod,
-    byte FallbackPeriod,
+    int? CurrentPeriod,
+    int FallbackPeriod,
     bool AllowOffHoursFallback,
-    DateTimeOffset UtcNow);
+    DateTimeOffset UtcNow,
+    int? BellScheduleRevisionId = null);
 
 public sealed record TeacherIdentitySnapshot(
     int InstructorProfileId,
@@ -26,7 +27,7 @@ public sealed record TeacherClassroomSnapshot(
 
 public sealed record TeacherTimetablePeriodSnapshot(
     int TimetableEntryId,
-    byte Period,
+    int Period,
     string Subject,
     TeacherClassroomSnapshot Classroom);
 
@@ -58,5 +59,6 @@ public interface ITeacherContextRepository
         string teacherUserId,
         int timetableEntryId,
         DateOnly localDate,
+        int? timingRevisionId,
         CancellationToken cancellationToken);
 }

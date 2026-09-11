@@ -1,3 +1,5 @@
+using AlFalah.Application.IntelligentTimetable;
+using AlFalah.Application.IntelligentTimetable.DTOs;
 using AlFalah.Domain.Enums;
 
 namespace AlFalah.Application.StudentAffairs.TeacherContext;
@@ -5,113 +7,37 @@ namespace AlFalah.Application.StudentAffairs.TeacherContext;
 public sealed class TeacherContextScheduleOptions
 {
     public string SchoolTimeZoneId { get; init; } = "Africa/Cairo";
-    public TimeOnly FirstPeriodStartsAt { get; init; } = new(7, 0);
-    public int PeriodDurationMinutes { get; init; } = 45;
-    public int PassingTimeMinutes { get; init; } = 5;
-    public bool AllowOffHoursFallback { get; init; }
+
 }
 
-public readonly record struct TeacherPeriodWindow(
-    byte Period,
-    DateTimeOffset StartsAt,
-    DateTimeOffset EndsAt);
+public readonly record struct TeacherPeriodWindow(int Period, DateTimeOffset StartsAt, DateTimeOffset EndsAt);
 
-public sealed class TeacherContextSchedule
+/// <summary>Request-scoped view of the immutable published timing revision.</summary>
+public sealed class TeacherContextSchedule(TeacherContextScheduleOptions options, IBellScheduleRepository repository)
 {
-    public const byte PeriodCount = 8;
-
-    private readonly TeacherContextScheduleOptions _options;
-
-    public TeacherContextSchedule(TeacherContextScheduleOptions options)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.PeriodDurationMinutes);
-        ArgumentOutOfRangeException.ThrowIfNegative(options.PassingTimeMinutes);
-        _options = options;
-        TimeZone = ResolveTimeZone(options.SchoolTimeZoneId);
-    }
-
-    public TimeZoneInfo TimeZone { get; }
+    private BellScheduleDto? _schedule;
+    private DateOnly _date;
+    public int? RevisionId => _schedule?.RevisionId;
+    public TimeZoneInfo TimeZone => TimeZoneInfo.FindSystemTimeZoneById(_schedule?.SchoolTimeZoneId ?? options.SchoolTimeZoneId);
     public string TimeZoneId => TimeZone.Id;
-    public bool AllowOffHoursFallback => _options.AllowOffHoursFallback;
+    public bool AllowOffHoursFallback => false;
 
-    public DateTimeOffset ToSchoolLocalTime(DateTimeOffset utcNow) =>
-        TimeZoneInfo.ConvertTime(utcNow, TimeZone);
-
-    public byte? GetCurrentPeriod(TimeOnly schoolLocalTime)
+    public async Task LoadAsync(int schoolId, DateTimeOffset instant, CancellationToken ct)
     {
-        for (byte period = 1; period <= PeriodCount; period++)
-        {
-            var (startsAt, endsAt) = GetLocalTimes(period);
-            if (schoolLocalTime >= startsAt && schoolLocalTime < endsAt)
-            {
-                return period;
-            }
-        }
-
-        return null;
+        _schedule = await repository.GetPublishedAsync(schoolId, instant, ct);
+        _date = DateOnly.FromDateTime(ToSchoolLocalTime(instant).DateTime);
     }
-
-    public byte GetFallbackPeriod(TimeOnly schoolLocalTime)
+    public DateTimeOffset ToSchoolLocalTime(DateTimeOffset instant) => TimeZoneInfo.ConvertTime(instant, TimeZone);
+    public int? GetCurrentPeriod(TimeOnly time) => BellScheduleResolver.EffectivePeriods(_schedule, BellScheduleResolver.ToDay(_date.DayOfWeek))
+        .SingleOrDefault(x => x.StartLocalTime <= time && time < x.EndLocalTime)?.Sequence;
+    public int GetFallbackPeriod(TimeOnly time) => 0;
+    public bool HasPeriod(DateOnly date, int period) => BellScheduleResolver.EffectivePeriods(_schedule, BellScheduleResolver.ToDay(date.DayOfWeek)).Any(x => x.Sequence == period);
+    public TeacherPeriodWindow GetWindow(DateOnly date, int period)
     {
-        var slotMinutes = _options.PeriodDurationMinutes + _options.PassingTimeMinutes;
-        var elapsedMinutes = (schoolLocalTime.ToTimeSpan() - _options.FirstPeriodStartsAt.ToTimeSpan()).TotalMinutes;
-        var period = (int)Math.Floor(elapsedMinutes / slotMinutes) + 1;
-        return (byte)Math.Clamp(period, 1, PeriodCount);
+        var slot = BellScheduleResolver.EffectivePeriods(_schedule, BellScheduleResolver.ToDay(date.DayOfWeek)).Single(x => x.Sequence == period);
+        var start = date.ToDateTime(slot.StartLocalTime, DateTimeKind.Unspecified);
+        var end = date.ToDateTime(slot.EndLocalTime, DateTimeKind.Unspecified);
+        return new(period, new DateTimeOffset(start, TimeZone.GetUtcOffset(start)), new DateTimeOffset(end, TimeZone.GetUtcOffset(end)));
     }
-
-    public TeacherPeriodWindow GetWindow(DateOnly schoolLocalDate, byte period)
-    {
-        if (period is < 1 or > PeriodCount)
-        {
-            throw new ArgumentOutOfRangeException(nameof(period));
-        }
-
-        var (startTime, endTime) = GetLocalTimes(period);
-        var start = schoolLocalDate.ToDateTime(startTime, DateTimeKind.Unspecified);
-        var end = schoolLocalDate.ToDateTime(endTime, DateTimeKind.Unspecified);
-        return new TeacherPeriodWindow(
-            period,
-            new DateTimeOffset(start, TimeZone.GetUtcOffset(start)),
-            new DateTimeOffset(end, TimeZone.GetUtcOffset(end)));
-    }
-
-    public static TimetableDay? ToTimetableDay(DayOfWeek dayOfWeek) => dayOfWeek switch
-    {
-        DayOfWeek.Saturday => TimetableDay.Saturday,
-        DayOfWeek.Sunday => TimetableDay.Sunday,
-        DayOfWeek.Monday => TimetableDay.Monday,
-        DayOfWeek.Tuesday => TimetableDay.Tuesday,
-        DayOfWeek.Wednesday => TimetableDay.Wednesday,
-        DayOfWeek.Thursday => TimetableDay.Thursday,
-        _ => null
-    };
-
-    private (TimeOnly StartsAt, TimeOnly EndsAt) GetLocalTimes(byte period)
-    {
-        var offsetMinutes = (period - 1)
-            * (_options.PeriodDurationMinutes + _options.PassingTimeMinutes);
-        var startsAt = _options.FirstPeriodStartsAt.AddMinutes(offsetMinutes);
-        return (startsAt, startsAt.AddMinutes(_options.PeriodDurationMinutes));
-    }
-
-    private static TimeZoneInfo ResolveTimeZone(string configuredId)
-    {
-        if (string.IsNullOrWhiteSpace(configuredId))
-        {
-            return TimeZoneInfo.Utc;
-        }
-
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById(configuredId);
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            return TimeZoneInfo.Utc;
-        }
-        catch (InvalidTimeZoneException)
-        {
-            return TimeZoneInfo.Utc;
-        }
-    }
+    public static TimetableDay? ToTimetableDay(DayOfWeek day) => BellScheduleResolver.ToDay(day);
 }

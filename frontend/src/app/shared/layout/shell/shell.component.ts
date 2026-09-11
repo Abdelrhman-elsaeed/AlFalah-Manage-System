@@ -23,7 +23,7 @@ interface NavItem {
 }
 
 interface NavCategory {
-  id: 'evaluation' | 'people' | 'administration' | 'reports' | 'settings';
+  id: 'evaluation' | 'people' | 'administration' | 'intelligent-timetable' | 'reports' | 'settings';
   labelKey: string;
   icon: string;
   items: NavItem[];
@@ -102,13 +102,6 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         route: '/parent-surveys',
         roles: ['SchoolManager', 'Moderator', 'SuperAdmin'],
         permissions: ['ParentSurvey.Manage']
-      },
-      {
-        labelKey: 'الجدول المدرسي',
-        icon: 'pi pi-calendar-plus',
-        route: '/timetable',
-        roles: ['SchoolManager', 'Moderator'],
-        permissions: ['Timetable.View']
       },
       {
         labelKey: 'حضور وانصراف الموظفين',
@@ -228,6 +221,24 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         roles: ['Guardian', 'StudentAffairsOfficer', 'SocialWorker'],
         permissions: ['Messaging.ViewOwn']
       }
+    ]
+  },
+  {
+    id: 'intelligent-timetable',
+    labelKey: 'الجدول الذكي',
+    icon: 'pi pi-calendar-clock',
+    items: [
+      { labelKey: 'الجدول الدراسي', icon: 'pi pi-calendar', route: '/timetable', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'توقيتات الجدول', icon: 'pi pi-clock', route: '/intelligent-timetable/timings', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'الاستراحة', icon: 'pi pi-stopwatch', route: '/intelligent-timetable/breaks', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'إعدادات المعلمين', icon: 'pi pi-id-card', route: '/intelligent-timetable/teachers', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.Manage'] },
+      { labelKey: 'المواد', icon: 'pi pi-book', route: '/intelligent-timetable/subjects', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'إسنادات التدريس', icon: 'pi pi-link', route: '/intelligent-timetable/assignments', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'تخصيص المواد', icon: 'pi pi-sliders-h', route: '/intelligent-timetable/subject-rules', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'المراجعة والتحليل', icon: 'pi pi-chart-bar', route: '/intelligent-timetable/review', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'التبديل والاحتياطي', icon: 'pi pi-sync', route: '/intelligent-timetable/substitutions', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'الطباعة', icon: 'pi pi-print', route: '/intelligent-timetable/print', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'إعدادات الجدول', icon: 'pi pi-cog', route: '/intelligent-timetable/settings', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] }
     ]
   },
   {

@@ -72,7 +72,7 @@ public sealed class GatePass : IStudentAffairsMutableEntity, IStudentAffairsConc
     public int? SchoolTimetableId { get; set; }
     public int? SchoolTimetableEntryId { get; set; }
     public int? CurrentInstructorProfileId { get; set; }
-    public byte? CurrentPeriod { get; set; }
+    public int? CurrentPeriod { get; set; }
     public string? SecurityAcknowledgedByUserId { get; set; }
     public DateTimeOffset? SecurityAcknowledgedAt { get; set; }
     public PickupVerificationMethod? PickupVerificationMethod { get; set; }

@@ -127,7 +127,7 @@ internal sealed class SessionDelayConfiguration : StudentAffairsMutableEntityCon
     {
         builder.ToTable(TableName, table =>
         {
-            table.HasCheckConstraint("CK_SessionDelays_Period", "[Period] BETWEEN 1 AND 8");
+            table.HasCheckConstraint("CK_SessionDelays_Period", "[Period] > 0");
             table.HasCheckConstraint("CK_SessionDelays_DelayMinutes", "[DelayMinutes] IS NULL OR [DelayMinutes] >= 0");
         });
         builder.Property(x => x.Reason).IsOptionalArabicText(1000);

@@ -1,7 +1,7 @@
 # Phase 03 — Breaks and Non-Teaching Intervals
 
 **Module:** Intelligent Timetable (الجدول الذكي)  
-**Status:** Requirements draft — no implementation  
+**Status:** Implemented — Phase 03 (2026-09-06)  
 **Primary actor:** Secretary / authorized timetable editor
 
 ## Overview
@@ -58,7 +58,7 @@ Breaks are first-class schedule intervals. They are not lesson entries, do not c
 
 - `Id`, `ScheduleBreakDefinitionId`, `DayOfWeek`.
 - `StartLocalTime`, `EndLocalTime`.
-- Optional `AfterPeriodSequence` as placement metadata, not the source of truth.
+- No period ID or sequence is persisted. “After period” exists only in the UI and fills the start time once.
 - `IsInheritedFromDefault` or an equivalent override mechanism.
 - Unique constraint appropriate to `(BreakDefinitionId, DayOfWeek)`.
 
@@ -77,7 +77,7 @@ An alternative aggregate may store default windows and explicit day overrides. W
 - `StartLocalTime < EndLocalTime`.
 - A break must apply only to study days in the owning template.
 - On each effective day, a break may touch but not intersect a lesson or another break.
-- The optional `AfterPeriodSequence` must exist on that day and must agree with the resulting chronology.
+- The optional “after period” helper lists effective lesson periods for the displayed day; it is never sent to the backend.
 - Break operations use template revision/concurrency protection.
 - Updating/removing a break referenced by a published schedule creates a new template revision and marks dependent drafts for revalidation.
 
@@ -93,9 +93,17 @@ An alternative aggregate may store default windows and explicit day overrides. W
 8. Current-period and gate-pass teacher resolution must return no lesson/teacher when local time falls inside a break.
 9. Applying a break to multiple days is atomic: if any target day is invalid, no target day is changed.
 
-## ❓ Pending Questions for the User
+## Finalized User Decisions
 
-1. Must a break always sit directly between two lesson periods, or can it occur before the first period, after the last period, or with intentional gaps?
-2. Should “after period” remain a required business field, or only a UI helper derived from the exact start/end times?
-3. Can the same named break have different times on different days while remaining one logical break, or should each variation be a separate break record?
-4. Should break names be free text only, or should there also be predefined categories such as recess, prayer, meal, and assembly?
+1. Must a break always sit directly between two lesson periods, or can it occur before the first period, after the last period, or with intentional gaps? 3 cenarioos can be work its ok
+2. Should “after period” remain a required business field, or only a UI helper derived from the exact start/end times? Make it only a UI helper based on exact start and end times. Breaks must be strictly independent time intervals. If we tie a break to a specific period number, future features like 'Swapping Periods' would accidentally shift the break's position or cause logical errors.
+3. Can the same named break have different times on different days while remaining one logical break, or should each variation be a separate break record? separate break i think better because maybe i make diffrent period time for each break
+4. Should break names be free text only, or should there also be predefined categories such as recess, prayer, meal, and assembly? make it free text and categories will be fine also
+
+## Implemented Physical Model
+
+`BellScheduleTemplate → BellScheduleRevision → BellScheduleDay → ScheduleBreakDefinition → ScheduleBreakWindow` scopes every break to its school and immutable revision through existing relationships. Day `0` owns default breaks; each actual study day independently chooses `UsesDefaultBreaks` or its own definitions. Each definition has one exact-time window, with a unique foreign key. Different daily variations create separate definitions and windows, even when their names match. Period inheritance and break inheritance are independent.
+
+The editor saves the complete schedule atomically; the dedicated breaks endpoint also supports replacing the break collection without sending lesson edits. Both paths validate the final effective days and share the template concurrency token. Removed breaks disappear from the new revision while historical definitions remain immutable. No break creates a lesson/teacher entry. The ordered effective API and existing general/teacher timetable grid and PDF render break names and times. Excel assignment import remains lesson-only.
+
+Implementation and verification: [Phase 03 report](../../phases/PHASE-TT-03-BREAKS.md).

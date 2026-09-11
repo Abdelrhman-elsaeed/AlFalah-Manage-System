@@ -136,6 +136,7 @@ public sealed class Classroom : IStudentAffairsMutableEntity
     public byte GradeLevel { get; set; }
     public string Section { get; set; } = string.Empty;
     public string ClassLabel { get; set; } = string.Empty;
+    public string PhysicalLocation { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string CreatedByUserId { get; set; } = string.Empty;

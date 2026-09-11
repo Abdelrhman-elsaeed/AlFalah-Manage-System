@@ -1,7 +1,7 @@
 # Phase 07 — Timetable Review and Quality Analysis
 
 **Module:** Intelligent Timetable (الجدول الذكي)  
-**Status:** Requirements draft — no implementation  
+**Status:** Implemented — see [Phase 7 delivery notes](../../phases/PHASE-TT-07-REVIEW-AND-REPAIR.md)  
 **Primary actors:** Secretary, School Manager, authorized timetable editor/reviewer
 
 ## Overview
@@ -44,7 +44,7 @@ Analysis separates hard violations—which make the timetable operationally inva
 
 - Display each finding with severity, rule name, affected teacher/class/subject/day/period, explanation, and recommended action.
 - Provide **إصلاح الجداول** only to authorized users.
-- Any automatic repair must show a preview of proposed movements, constraints affected, and resulting analysis score before confirmation.
+- Every repair proposal must show proposed movements, constraints affected, and predicted error/warning counts before explicit confirmation.
 - A repair is never applied implicitly while the user is merely reviewing/filtering.
 
 ## Backend & Data Models
@@ -58,7 +58,7 @@ Analysis is primarily derived from a timetable revision plus the exact setup/tem
 - `Id`, `SchoolId`, `SchoolTimetableId`, `TimetableRevision`.
 - `SetupRevision`, `BellScheduleTemplateRevision`.
 - `StartedAt`, `CompletedAt`, `RequestedByUserId`.
-- `HardViolationCount`, `WarningCount`, optional quality score.
+- `HardViolationCount`, `WarningCount`; no numeric quality score.
 - Analyzer/ruleset version.
 
 `TimetableAnalysisFinding`
@@ -68,7 +68,7 @@ Analysis is primarily derived from a timetable revision plus the exact setup/tem
 - Optional `ClassroomId`, `InstructorProfileId`, `SubjectId`, `LocationId`, day, and period.
 - Structured evidence/related occurrence IDs and suggested repair metadata.
 
-Analysis records are immutable. A timetable or setup revision change creates a new run; it never mutates old results.
+Analysis records are immutable except for recorded soft-violation override metadata. A timetable or setup revision change creates a new run; it never changes old finding evidence or severity counts.
 
 ### Required views/read models
 
@@ -122,7 +122,7 @@ Analysis records are immutable. A timetable or setup revision change creates a n
 
 ## ❓ Pending Questions for the User
 
-1. Which findings must block publication, and may an authorized role override any hard violation with a recorded reason?
-2. What exact thresholds define excessive consecutive lessons, unfair last periods, excessive gaps, and acceptable subject distribution?
-3. Should quality be shown as a numeric weighted score, severity counts only, or both—and who defines the rule weights?
-4. Should **إصلاح الجداول** automatically choose and apply one best repair after preview, or present several ranked repair proposals for the user to select?
+1. Which findings must block publication, and may an authorized role override any hard violation with a recorded reason? Hard violations (like double-booking a teacher or exceeding maximum load) MUST strictly block publication and cannot be overridden. Soft violations (like too many consecutive periods) can be overridden by an authorized role (Management) with a recorded reason.
+2. What exact thresholds define excessive consecutive lessons, unfair last periods, excessive gaps, and acceptable subject distribution? Use these default thresholds: Excessive consecutive lessons = more than 3. Unfair last periods = more than 2 per week. Excessive gaps (waiting periods) = more than 2 per day. Acceptable subject distribution = max 1 period per day per class (unless it's a paired block)
+3. Should quality be shown as a numeric weighted score, severity counts only, or both—and who defines the rule weights?Show severity counts only (e.g., 3 Critical Errors, 5 Warnings). Avoid numeric weighted scores as they are subjective and overly complex for the user.
+4. Should **إصلاح الجداول** automatically choose and apply one best repair after preview, or present several ranked repair proposals for the user to select?Present several ranked repair proposals for the user to select. The system must NEVER automatically apply a repair without explicit user confirmation

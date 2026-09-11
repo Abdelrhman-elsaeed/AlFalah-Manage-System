@@ -1,0 +1,62 @@
+<main dir="rtl" class="daily-dashboard" [attr.aria-busy]="busy">
+  <header><div><span class="eyebrow">الجدول الذكي · التشغيل اليومي</span><h1>التبديل والاحتياطي</h1>
+    <p>اختر الحصة، راجع البدائل، واعتمد التغيير لجميع فترات الحصة المزدوجة معاً.</p></div>
+    <a pButton class="p-button-outlined" routerLink="/intelligent-timetable/review" [queryParams]="{timetableId: timetableId}">مراجعة الجدول</a></header>
+  <p class="error" role="alert" *ngIf="error">{{error}}</p><p class="notice" role="status" *ngIf="notice">{{notice}}</p>
+  <section class="toolbar" aria-label="اختيار الجدول واليوم">
+    <label>الجدول<p-dropdown [options]="timetables" optionLabel="title" optionValue="id" [(ngModel)]="timetableId" [disabled]="busy || !!source" (onChange)="refresh()" placeholder="اختر الجدول"></p-dropdown></label>
+    <label>يوم العمل<p-calendar [(ngModel)]="date" [showIcon]="true" dateFormat="yy-mm-dd" [readonlyInput]="true" [disabled]="busy || !!source" (onSelect)="refresh()" appendTo="body"></p-calendar></label>
+    <label>نوع العملية<p-dropdown [options]="modes" [(ngModel)]="mode" [disabled]="busy || !!source"></p-dropdown></label>
+    <button pButton icon="pi pi-refresh" label="تحديث" class="p-button-outlined" [disabled]="busy || !!source" (click)="refresh()"></button>
+  </section>
+  <p *ngIf="!timetables.length && !busy">لا توجد جداول متاحة. أنشئ جدولاً من شاشة الجدول الدراسي أولاً.</p>
+  <ng-container *ngIf="dashboard as d">
+    <div class="status-row"><h2>{{d.title}}</h2><p-tag [severity]="d.isPublished ? 'success' : 'info'" [value]="d.isPublished ? 'منشور · مباشر' : 'مسودة'"></p-tag><span>المراجعة {{d.revision}}</span></div>
+    <p *ngIf="mode === 'Substitution'">الاحتياطي يسري في التاريخ المختار فقط؛ تعود الحصص إلى معلميها الأصليين في الأيام الأخرى.</p>
+    <p *ngIf="mode === 'Swap'">التبديل يغيّر مواضع الحصص في الجدول الأسبوعي ضمن اليوم نفسه. يصبح الجدول المنشور محدثاً فور التأكيد.</p>
+    <section class="legend" aria-label="دليل ألوان البدائل"><p-tag severity="success" icon="pi pi-check-circle" value="الأخضر: متاح تماماً"></p-tag>
+      <p-tag severity="warning" icon="pi pi-exclamation-triangle" value="الأصفر: متاح مع تجاوز وسبب مسجل"></p-tag><p-tag severity="danger" icon="pi pi-ban" value="الأحمر: غير متاح"></p-tag></section>
+    <section *ngIf="!source; else selection">
+      <div class="toolbar"><label>المعلم الغائب / المعلم<p-dropdown [options]="teachers" optionLabel="name" optionValue="id" [(ngModel)]="teacherId" [showClear]="true" [filter]="true" placeholder="جميع المعلمين"></p-dropdown></label>
+        <label>بحث عن فصل أو مادة أو حصة<input pInputText [(ngModel)]="search" placeholder="ابحث في حصص اليوم"></label></div>
+      <div class="lesson-grid"><article class="lesson" *ngFor="let l of lessons"><div class="status-row"><strong>{{l.classroom}} · {{l.subject}}</strong><p-tag *ngIf="l.periods.length > 1" severity="info" value="كتلة مترابطة"></p-tag></div>
+        <h3>{{l.teacherName}}</h3><p>الحصص {{l.periods.join('، ')}} · <span dir="ltr">{{l.start}}–{{l.end}}</span></p><p *ngIf="l.roomId">القاعة {{l.roomId}}</p>
+        <button pButton label="عرض البدائل" icon="pi pi-users" [disabled]="busy || !d.canManage || mode === 'Substitution' && !d.isPublished" (click)="selectSource(l)"></button></article></div>
+      <p *ngIf="!lessons.length" class="empty">لا توجد حصص مطابقة في هذا اليوم.</p>
+      <p *ngIf="!d.canManage">لديك صلاحية العرض فقط. اعتماد التغييرات يتطلب صلاحية إدارة الجدول.</p>
+    </section>
+    <ng-template #selection>
+      <section class="source"><div><h2>الحصة المختارة: {{source?.subject}} · {{source?.classroom}}</h2><p>{{source?.teacherName}} — الحصص {{source?.periods?.join('، ')}}</p>
+        <p *ngIf="(source?.periods?.length ?? 0) > 1">سيتم تنفيذ العملية لجميع فترات هذه الكتلة معاً؛ لا يمكن تقسيمها.</p></div>
+        <button pButton label="إلغاء الاختيار" class="p-button-outlined" [disabled]="busy" (click)="cancel()"></button></section>
+      <label>بحث في البدائل<input pInputText [(ngModel)]="candidateSearch" placeholder="اسم المعلم"></label>
+      <p *ngIf="busy" role="status">جارٍ التحقق من القيود والبدائل…</p>
+      <p *ngIf="proposals && !candidates.length">لا توجد بدائل مطابقة.</p>
+      <div class="candidate-grid"><article *ngFor="let c of candidates" class="candidate" [ngClass]="c.color">
+        <p-tag [severity]="severities[c.color]" [icon]="icons[c.color]" [value]="labels[c.color]"></p-tag><h3>{{c.label}}</h3>
+        <p *ngIf="c.kind === 'ThreeWaySwap'">حل ثلاثي متاح — تعرض المراجعة جميع التحركات قبل التأكيد.</p>
+        <ul *ngIf="c.errors.length"><li *ngFor="let error of c.errors">{{error}}</li></ul><ul *ngIf="c.warnings.length"><li *ngFor="let warning of c.warnings">{{warning}}</li></ul>
+        <p *ngIf="c.color === 'Yellow' && !proposals?.canOverride">يتطلب اعتماد الإدارة أو سكرتير مخول بإدارة الجدول.</p>
+        <button pButton label="مراجعة واعتماد" [disabled]="busy || c.color === 'Red' || c.color === 'Yellow' && !proposals?.canOverride" (click)="choose(c)"></button>
+      </article></div>
+    </ng-template>
+    <section class="history"><h2>سجل اليوم</h2><p *ngIf="!d.history.length">لم يتم تسجيل تغييرات لهذا اليوم.</p>
+      <article *ngFor="let h of d.history"><strong>{{h.kind === 'Substitution' ? 'احتياطي يومي' : h.kind === 'ThreeWaySwap' ? 'تبديل ثلاثي' : 'تبديل حصتين'}}</strong>
+        <span> المراجعة {{h.beforeRevision}} ← {{h.afterRevision}} · {{h.confirmedAt | date:'short'}}</span>
+        <p>طلب واعتماد: {{h.requestedBy}} / {{h.approvedBy}}</p><p *ngIf="h.reason">سبب التجاوز: {{h.reason}}</p></article></section>
+  </ng-container>
+</main>
+<p-dialog [(visible)]="dialog" [modal]="true" [closable]="!busy" [closeOnEscape]="!busy" [style]="{width:'880px', maxWidth:'96vw'}" header="مراجعة التبديل والاحتياطي" [draggable]="false">
+  <div dir="rtl" *ngIf="selected as c"><p-tag [severity]="severities[c.color]" [value]="labels[c.color]"></p-tag>
+    <p *ngIf="c.color === 'Green'">لا توجد مشاكل — جاهز للتبديل.</p><p *ngFor="let w of c.warnings" class="warning">{{w}}</p>
+    <p *ngIf="c.kind === 'ThreeWaySwap'">كل صف يوضح انتقال حصة إلى وجهتها. سيتم تنفيذ الدورة كاملة في عملية واحدة.</p>
+    <div class="preview-grid"><article *ngFor="let p of c.preview"><h3>{{p.classroom}} · {{p.subject}}</h3><p *ngIf="p.roomId">القاعة {{p.roomId}}</p>
+      <div class="before-after"><div><strong>قبل</strong><p>{{p.teacherName}}</p><p>الحصة {{p.fromPeriod}}</p><span dir="ltr">{{p.fromTime}}</span></div>
+        <div><strong>بعد</strong><p>{{p.toTeacherName}}</p><p>الحصة {{p.toPeriod}}</p><span dir="ltr">{{p.toTime}}</span></div></div></article></div>
+    <label *ngIf="c.color === 'Yellow'" class="reason">سبب التجاوز (إلزامي ومسجل)<textarea pInputTextarea [(ngModel)]="reason" [disabled]="busy" rows="3" maxlength="1000" aria-required="true"></textarea></label>
+    <p class="error" *ngIf="expired">انتهت صلاحية الاقتراح. أغلق المراجعة وأعد اختيار الحصة لتحديث البدائل.</p>
+    <p class="error" role="alert" *ngIf="error">{{error}}</p>
+    <div class="dialog-actions"><button pButton label="رجوع" class="p-button-outlined" [disabled]="busy" (click)="dialog = false"></button>
+      <button pButton label="تأكيد التبديل" icon="pi pi-check" [loading]="busy" [disabled]="busy || expired || c.color === 'Yellow' && (!reason.trim() || !proposals?.canOverride)" (click)="confirm()"></button></div>
+  </div>
+</p-dialog>

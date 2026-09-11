@@ -1,0 +1,54 @@
+<section class="teacher-settings" dir="rtl">
+  <header class="page-heading"><div><a routerLink="/intelligent-timetable/settings">الجدول الذكي</a><h1>إعدادات المعلمين</h1>
+    <p>تخصيص نصاب المعلم وأوقات تواجده خلال الأسبوع الدراسي.</p></div><i class="pi pi-id-card" aria-hidden="true"></i></header>
+  <div class="context-bar">
+    <label>العام الدراسي<app-clearable-select [options]="overview?.academicYears ?? []" optionLabel="nameAr" optionValue="id"
+      [clearable]="false" [ngModel]="yearId" (ngModelChange)="changeContext($event, semester)" [disabled]="loading || saving" /></label>
+    <label>الفصل الدراسي<app-clearable-select [options]="semesters" optionLabel="label" optionValue="value"
+      [clearable]="false" [ngModel]="semester" (ngModelChange)="changeContext(yearId, $event)" [disabled]="loading || saving" /></label>
+    <label>ملف إعداد الجدول<app-clearable-select [options]="overview?.profiles ?? []" optionLabel="name" optionValue="id"
+      [clearable]="false" [ngModel]="setupId" (ngModelChange)="chooseSetup($event)" [disabled]="loading || saving" /></label>
+    <label>المعلم<app-clearable-select [options]="teachers" optionLabel="name" optionValue="id" [filter]="true" filterBy="name"
+      placeholder="ابحث عن معلم" [clearable]="false" [ngModel]="teacherId" (ngModelChange)="chooseTeacher($event)" [disabled]="loading || saving" /></label>
+  </div>
+  <div *ngIf="error" class="notice error" role="alert">{{ error }} <button pButton type="button" class="p-button-text p-button-sm" label="إعادة التحميل" (click)="reload()" [disabled]="saving" ></button></div>
+  <p *ngIf="loading" role="status" class="notice">جارٍ تحميل إعدادات المعلمين…</p>
+  <div *ngIf="!loading && !setupId" class="notice">أنشئ ملف إعداد واختر توقيت الحصص أولاً. <a routerLink="/intelligent-timetable/settings">إعدادات الجدول</a></div>
+  <p *ngIf="!loading && setupId && !teachers.length && !error" class="notice">لا يوجد معلمون نشطون في المدرسة.</p>
+  <ng-container *ngIf="draft as d">
+    <div class="teacher-heading"><div><h2>تخصيص المعلم {{ d.teacherName }}</h2><p>{{ d.scheduleName }} · {{ availableCount }} حصة متاحة</p></div>
+      <span class="save-state" role="status">{{ saving ? 'جارٍ الحفظ…' : hasUnsavedChanges() ? 'تغييرات غير محفوظة' : d.revision ? 'جميع التغييرات محفوظة' : 'إعداد جديد — جميع الحصص متاحة' }}</span></div>
+    <fieldset [disabled]="saving" class="profile-form"><legend>بيانات المعلم والنصاب</legend>
+      <label for="short-name">اسم الاختصار<input pInputText id="short-name" [(ngModel)]="d.shortDisplayName" maxlength="60" placeholder="الاسم المختصر في الجدول" /></label>
+      <label for="maximum-load">أقصى عدد للحصص أسبوعياً<p-inputNumber inputId="maximum-load" [(ngModel)]="d.maximumWeeklyPeriods" [min]="0" [max]="availableCount" [useGrouping]="false" [maxFractionDigits]="0" [disabled]="saving" />
+        <small>حد صارم لا يمكن تجاوزه أو خفضه عن النصاب المسند.</small></label>
+      <div class="flag"><p-checkbox inputId="visiting" [(ngModel)]="d.isVisiting" [binary]="true" [disabled]="saving" /><label for="visiting">معلم منتدب<small>دوام جزئي: حدّد أيام وحصص تواجده في شبكة الإتاحة أدناه.</small></label></div>
+      <div class="flag"><p-checkbox inputId="hide-print" [(ngModel)]="d.hideFromPrint" [binary]="true" [disabled]="saving" /><label for="hide-print">إخفاء الطباعة<small>يُحفظ هذا الخيار لاستبعاد المعلم من مخرجات الطباعة النهائية.</small></label></div>
+    </fieldset>
+    <div class="load-summary"><span>النصاب المسند <strong>{{ d.allocatedPeriods }}</strong></span><span>النصاب المتبقي <strong>{{ remaining }}</strong></span><span>المتاح <strong>{{ availableCount }} / {{ d.slots.length }}</strong></span></div>
+    <div *ngIf="d.requiresScheduleReview" class="notice warning" role="alert">
+      <strong>تغيّر التوقيت — مراجعة الإتاحة مطلوبة</strong><p>احتُفظ بالاختيارات المطابقة لليوم والوقت. الحصص الجديدة متاحة افتراضياً؛ راجع الشبكة قبل اعتمادها.</p>
+      <details *ngIf="d.orphanedSlots.length"><summary>حصص سابقة لم يعد لها توقيت مطابق ({{ d.orphanedSlots.length }})</summary>
+        <p *ngFor="let slot of d.orphanedSlots">{{ days[slot.day - 1].name }} · {{ slot.startLocalTime.slice(0, 5) }} – {{ slot.endLocalTime.slice(0, 5) }} · {{ slot.isAvailable ? 'متاح' : 'غير متاح' }}</p></details>
+      <label class="review-confirm"><input type="checkbox" [(ngModel)]="confirmScheduleReview" [disabled]="saving" /> راجعت توزيع الحصص وأعتمد الإتاحة الجديدة</label>
+    </div>
+    <div *ngIf="d.violations.length" class="notice warning"><p *ngFor="let issue of d.violations">{{ issue }}</p></div>
+    <div class="grid-toolbar"><div><h3>أوقات العمل المتاحة</h3><small>محدد = متاح · غير محدد = غير متاح · — = لا توجد حصة. استخدم Tab للتنقل وSpace للتحديد.</small></div>
+      <div class="actions"><button pButton type="button" class="p-button-outlined p-button-sm" label="تحديد الكل" (click)="bulk(true)" [disabled]="saving" ></button>
+        <button pButton type="button" class="p-button-outlined p-button-sm" label="إلغاء تحديد الكل" (click)="bulk(false)" [disabled]="saving" ></button></div></div>
+    <div class="matrix-scroll" tabindex="0" role="region" aria-label="إتاحة المعلم الأسبوعية">
+      <table><caption class="sr-only">إتاحة {{ d.teacherName }} حسب اليوم والحصة</caption><thead><tr><th scope="col" class="sticky-day">اليوم</th>
+        <th *ngFor="let period of columns" scope="col">الحصة {{ period }}<small dir="ltr">{{ commonTime(period) }}</small></th><th scope="col">إجراء اليوم</th></tr></thead>
+        <tbody><tr *ngFor="let day of days" [class.non-study]="!dayCells(day.id).length"><th scope="row" class="sticky-day">{{ day.name }}<small *ngIf="!dayCells(day.id).length">غير دراسي</small></th>
+          <td *ngFor="let period of columns"><ng-container *ngIf="cell(day.id, period) as slot; else absent">
+            <label class="availability-cell" [class.unavailable]="!slot.isAvailable"><input type="checkbox" [(ngModel)]="slot.isAvailable" [disabled]="saving" [attr.aria-label]="cellLabel(slot)" />
+              <span>{{ slot.isAvailable ? 'متاح' : 'غير متاح' }}</span><small dir="ltr">{{ slot.startLocalTime.slice(0, 5) }} – {{ slot.endLocalTime.slice(0, 5) }}</small></label>
+          </ng-container><ng-template #absent><span aria-label="لا توجد حصة">—</span></ng-template></td>
+          <td><div class="day-actions" *ngIf="dayCells(day.id).length"><button type="button" (click)="bulk(true, day.id)" [disabled]="saving" [attr.aria-label]="'تحديد كل حصص ' + day.name">تحديد الكل</button>
+            <button type="button" (click)="bulk(false, day.id)" [disabled]="saving" [attr.aria-label]="'إلغاء كل حصص ' + day.name">إلغاء الكل</button></div></td></tr></tbody></table>
+    </div>
+    <p *ngIf="availableCount < d.slots.length / 2" class="notice warning">إغلاق عدد كبير من الحصص قد يجعل توليد جدول صالح غير ممكن.</p>
+    <p *ngIf="d.maximumWeeklyPeriods > availableCount || remaining < 0" class="notice error" role="alert">يجب أن يكون الحد الأسبوعي بين النصاب المسند ({{ d.allocatedPeriods }}) وعدد الحصص المتاحة ({{ availableCount }}).</p>
+    <footer><small>الإتاحة والنصاب قيود إلزامية على جميع الإسنادات.</small><button pButton type="button" label="حفظ" icon="pi pi-check" [loading]="saving" [disabled]="!valid || saving" (click)="save()" ></button></footer>
+  </ng-container>
+</section>

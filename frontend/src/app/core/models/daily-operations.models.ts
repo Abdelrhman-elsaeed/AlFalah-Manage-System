@@ -19,6 +19,7 @@ export interface ClassroomDto {
   readonly stage: string;
   readonly gradeLevel: number;
   readonly section: string;
+  readonly physicalLocation: string;
   readonly academicYearId: number;
   readonly academicYearLabel: string;
   readonly isActive: boolean;
@@ -41,11 +42,13 @@ export interface CreateClassroomRequestDto {
   readonly gradeLevel: number;
   readonly section: string;
   readonly classLabel: string;
+  readonly physicalLocation: string;
 }
 
 export interface UpdateClassroomRequestDto {
   readonly classLabel: string;
   readonly section: string;
+  readonly physicalLocation: string;
   readonly isActive: boolean;
   readonly rowVersion: string;
 }
@@ -291,4 +294,3 @@ export interface StudentAnalyticsProfileDto {
 export interface StudentStatsPage extends PagedResult<StudentStatsDto> {
   readonly totalClassrooms: number;
 }
-

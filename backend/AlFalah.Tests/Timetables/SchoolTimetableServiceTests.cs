@@ -85,9 +85,10 @@ public sealed class SchoolTimetableServiceTests
     }
 
     [Fact]
-    public async Task Instructor_sees_only_published_schedule_and_then_receives_live_saved_changes()
+    public async Task Instructor_sees_only_published_schedule_and_edits_require_publication_again()
     {
         await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
         var manager = harness.Service(harness.Manager());
         var timetable = await manager.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
         timetable = await manager.SaveAsync(timetable.Id, new("الجدول", timetable.Revision, new[]
@@ -110,13 +111,15 @@ public sealed class SchoolTimetableServiceTests
 
         timetable = await manager.SaveAsync(timetable.Id, new("الجدول المعدل", timetable.Revision, new[]
         {
-            Lesson(1, "3/1", "علوم"),
-            new SaveTimetableEntryRequest(2, TimetableDay.Saturday, 2, TimetableEntryType.Lesson, "4/1", "لغة عربية")
+            Lesson(1, "3/1", "رياضيات"),
+            new SaveTimetableEntryRequest(2, TimetableDay.Saturday, 2, TimetableEntryType.Lesson, "4/1", "علوم")
         }));
+        (await instructor.GetCurrentAsync(1, TimetableSemester.First, null)).Should().BeNull();
+        await manager.PublishAsync(timetable.Id, new(timetable.Revision));
         var live = await instructor.GetCurrentAsync(1, TimetableSemester.First, null);
         live!.Title.Should().Be("الجدول المعدل");
         live.Entries.Should().OnlyContain(x => x.InstructorProfileId == 1);
-        live.Entries.Single().Subject.Should().Be("علوم");
+        live.Entries.Single().Subject.Should().Be("رياضيات");
     }
 
     [Fact]
@@ -178,6 +181,7 @@ public sealed class SchoolTimetableServiceTests
                 new InstructorProfile { Id = 1, UserId = InstructorId, SchoolId = 1, EmployeeNumber = "T-1", SubjectSpecialization = "رياضيات", IsActive = true },
                 new InstructorProfile { Id = 2, UserId = "teacher-2", SchoolId = 1, EmployeeNumber = "T-2", SubjectSpecialization = "علوم", IsActive = true });
             await context.SaveChangesAsync();
+            await BellScheduleTestData.SeedAsync(context);
             return new TimetableHarness(context);
         }
 
@@ -185,7 +189,30 @@ public sealed class SchoolTimetableServiceTests
         {
             var repository = new SchoolTimetableRepository(_context);
             var guard = new SchoolScopeGuard(_context, currentUser, NullLogger<SchoolScopeGuard>.Instance);
-            return new SchoolTimetableService(repository, new StubDocuments(), currentUser, guard);
+            return new SchoolTimetableService(repository, new StubDocuments(), currentUser, guard, new BellScheduleRepository(_context),
+                new AlFalah.Application.IntelligentTimetable.TeacherAvailabilityService(new TeacherAvailabilityRepository(_context)),
+                new AlFalah.Application.IntelligentTimetable.SubjectAssignmentService(new SubjectRepository(_context)),
+                new AlFalah.Application.IntelligentTimetable.TimetableReviewService(new TimetableReviewRepository(_context),
+                    new AlFalah.Application.IntelligentTimetable.TimetableValidationEngine(),
+                    new AlFalah.Application.IntelligentTimetable.TimetableRepairEngine(new AlFalah.Application.IntelligentTimetable.TimetableValidationEngine()), currentUser));
+        }
+
+        public async Task ConfigureReviewAsync()
+        {
+            var setup = await _context.TimetableSetupProfiles.SingleAsync();
+            var timing = await _context.Set<BellScheduleRevision>().SingleAsync();
+            foreach (var i in new[] { 1, 2 })
+            {
+                _context.Classrooms.Add(new() { Id = i, SchoolId = 1, AcademicYearId = 1, ClassLabel = i == 1 ? "3/1" : "4/1" });
+                _context.Add(new SubjectDefinition { Id = i, SchoolId = 1, Name = i == 1 ? "رياضيات" : "علوم" });
+                _context.TeacherTimetableProfiles.Add(new() { Id = i, SchoolId = 1, TimetableSetupProfileId = setup.Id,
+                    InstructorProfileId = i, BellScheduleRevisionId = timing.Id, MaximumWeeklyPeriods = 20 });
+                _context.Add(new ClassSubjectRequirement { Id = i, SchoolId = 1, TimetableSetupProfileId = setup.Id,
+                    ClassroomId = i, SubjectId = i, IndividualPeriodCount = 1 });
+                _context.Add(new TeachingAssignment { Id = i, SchoolId = 1, TimetableSetupProfileId = setup.Id, ClassSubjectRequirementId = i,
+                    Members = [new() { SchoolId = 1, TimetableSetupProfileId = setup.Id, TeacherTimetableProfileId = i, AllocatedPeriodCount = 1 }] });
+            }
+            await _context.SaveChangesAsync();
         }
 
         public ICurrentUserService Manager() => new TestCurrentUser(ManagerId, RoleNames.SchoolManager);
@@ -208,7 +235,7 @@ public sealed class SchoolTimetableServiceTests
         public string? PreferredLanguage => "ar";
         public bool IsAuthenticated => true;
         public bool IsInRole(string roleName) => roleName == role;
-        public bool HasPermission(string permissionName) => true;
+        public bool HasPermission(string permissionName) => permissionName == PermissionNames.TimetableView || role == RoleNames.SchoolManager;
         public IEnumerable<string> GetRoles() => new[] { role };
         public IEnumerable<string> GetPermissions() => new[] { PermissionNames.TimetableView };
         public bool IsGlobalAdmin() => false;

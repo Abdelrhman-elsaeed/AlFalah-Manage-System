@@ -1,7 +1,7 @@
 # Phase 06 — Teaching Assignments
 
 **Module:** Intelligent Timetable (الجدول الذكي)  
-**Status:** Requirements draft — no implementation  
+**Status:** Implemented — see [Phase 6 delivery and verification](../../phases/PHASE-TT-06-TEACHING-ASSIGNMENTS.md)  
 **Primary actor:** Secretary / authorized timetable editor
 
 ## Overview
@@ -62,6 +62,8 @@ The final UI should follow the requested revision: the class-by-subject assignme
 
 - `Id`, `TeachingAssignmentId`, `InstructorProfileId`.
 - `AllocatedPeriodCount` (required for split mode; equals the requirement total for single/co-teaching modes).
+- `TeacherTimetableProfileId` links the member to the Phase 4 profile in the same school/setup; the instructor identity is obtained through that profile.
+- `AllocatedPairedBlockCount` records whole double periods included in the member's allocated periods. A split allocation must distribute exactly the requirement's pair count, with `2 * AllocatedPairedBlockCount <= AllocatedPeriodCount` for every member. In co-teaching, each participating teacher remains present for both periods of every pair.
 - `Role`: Primary or Assistant where co-teaching role labels are required.
 - Optional effective dates if mid-term assignment changes are in scope.
 - Unique constraint on `(TeachingAssignmentId, InstructorProfileId)`.
@@ -71,6 +73,7 @@ The final UI should follow the requested revision: the class-by-subject assignme
 - `TeachingAssignment` has one or more members and belongs to one `ClassSubjectRequirement`.
 - A generated lesson references the assignment and the participating teacher(s). Because the existing `SchoolTimetableEntry` represents one teacher slot, co-teaching may produce one entry per participating teacher linked by a shared lesson occurrence ID.
 - Introduce a logical `TimetableLessonOccurrence` (or equivalent grouping key) for one class/subject/day/period/location, with one-to-many instructor entries. This avoids treating co-teachers as conflicting duplicate lessons.
+- Implemented equivalent grouping key: `(SchoolTimetableId, ClassSubjectRequirementId, Day, Period)`, validated with one shared room and the assignment's exact teacher set. Existing teacher entries and snapshots remain usable; no generation algorithm is introduced in Phase 6.
 - Split assignments allocate distinct occurrences to different members; one occurrence normally has only its allocated teacher unless co-teaching is additionally modeled.
 
 ### Validation
@@ -100,7 +103,7 @@ The final UI should follow the requested revision: the class-by-subject assignme
 
 ## ❓ Pending Questions for the User
 
-1. Can an assignment contain more than two teachers, or should both co-teaching and split quota be limited to exactly two?
-2. Must a teacher's subject specialization match the assigned subject as a hard rule, or is it only a search preference/warning?
-3. When a requirement includes paired blocks, may the two periods of one pair be split between different teachers, or must one teacher own the complete pair?
-4. In co-teaching mode, do you need explicit Primary/Assistant roles, and should assistant teachers appear on all printed/student-facing timetables?
+1. Can an assignment contain more than two teachers, or should both co-teaching and split quota be limited to exactly two?split quota
+2. Must a teacher's subject specialization match the assigned subject as a hard rule, or is it only a search preference/warning? better to be warning
+3. When a requirement includes paired blocks, may the two periods of one pair be split between different teachers, or must one teacher own the complete pair? A single teacher must own the complete pair. Splitting a paired block (double period) between different teachers is strictly prohibited.
+4. In co-teaching mode, do you need explicit Primary/Assistant roles, and should assistant teachers appear on all printed/student-facing timetables? you dont have to show who is assistant and who is primary "i think better to show 2 names it must yeah"

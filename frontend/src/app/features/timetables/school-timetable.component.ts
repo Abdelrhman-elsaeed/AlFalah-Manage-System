@@ -1,3 +1,9 @@
+import { RouterLink } from '@angular/router';
+import { TimetableSettingsService } from '../../core/services/timetable-settings.service';
+import { TimetableSetupProfile } from '../../core/models/timetable-settings.models';
+import { ClearableSelectComponent } from '../../shared/components/clearable-select/clearable-select.component';
+import { effectivePeriods } from '../../core/models/bell-schedule.models';
+import { effectiveIntervals } from '../../core/models/schedule-break.models';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -29,13 +35,17 @@ interface CellAddress {
 @Component({
   selector: 'app-school-timetable',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule],
+  imports: [RouterLink, ClearableSelectComponent, CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule],
   templateUrl: './school-timetable.component.html',
   styleUrls: ['./school-timetable.component.css']
 })
 export class SchoolTimetableComponent implements OnInit {
   private readonly api = inject(TimetableService);
   private readonly toast = inject(ToastService);
+  private readonly settings = inject(TimetableSettingsService);
+  setupProfiles: TimetableSetupProfile[] = [];
+  newProfileId: number | null = null;
+  profilesLoading = false;
 
   readonly catalog = signal<TimetableCatalog | null>(null);
   readonly timetable = signal<SchoolTimetable | null>(null);
@@ -59,7 +69,20 @@ export class SchoolTimetableComponent implements OnInit {
     const teachers = this.catalog()?.teachers ?? [];
     return !this.canManage() && teachers.length === 1 && teachers[0].isCurrentUser;
   });
-  readonly periodNumbers = computed(() => Array.from({ length: this.catalog()?.periodCount ?? 8 }, (_, index) => index + 1));
+  readonly studyDays = computed(() => (this.catalog()?.days ?? []).filter(day => this.periodsFor(day.value).length > 0));
+  periodsFor(day: number): number[] {
+    const schedule = this.timetable()?.bellSchedule;
+    return schedule ? effectivePeriods(schedule, day).map(x => x.sequence) : [];
+  }
+  intervalsFor(day: number) {
+    const schedule = this.timetable()?.bellSchedule;
+    return schedule ? effectiveIntervals(schedule, day) : [];
+  }
+  periodLabel(day: number, sequence: number): string {
+    const schedule = this.timetable()?.bellSchedule;
+    const slot = schedule ? effectivePeriods(schedule, day).find(x => x.sequence === sequence) : null;
+    return slot ? `${slot.displayLabel || sequence} · ${slot.startLocalTime.slice(0, 5)}–${slot.endLocalTime.slice(0, 5)}` : String(sequence);
+  }
 
   selectedCell: CellAddress | null = null;
   draftType: 0 | TimetableEntryType = 0;
@@ -127,7 +150,19 @@ export class SchoolTimetableComponent implements OnInit {
     const year = this.catalog()?.academicYears.find(item => item.id === this.selectedYearId());
     const semester = this.catalog()?.semesters.find(item => item.value === this.selectedSemester());
     this.newTitle = `الجدول المدرسي - ${year?.nameAr ?? ''} - ${semester?.labelAr ?? ''}`.trim();
+    this.setupProfiles = []; this.newProfileId = null; this.profilesLoading = true;
     this.createDialogVisible.set(true);
+    this.settings.getOverview(this.selectedYearId()!, this.selectedSemester()).subscribe({
+      next: response => {
+        this.setupProfiles = response.data?.profiles.filter(x => x.bellScheduleTemplateId !== null) ?? [];
+        this.newProfileId = this.setupProfiles[0]?.id ?? null;
+        this.profilesLoading = false;
+      },
+      error: error => {
+        this.profilesLoading = false;
+        this.toast.error('تعذر تحميل ملفات الإعداد', extractHttpErrorMessage(error) ?? '');
+      }
+    });
   }
 
   create(): void {
@@ -136,8 +171,9 @@ export class SchoolTimetableComponent implements OnInit {
       this.toast.warn('أدخل عنوان الجدول', '');
       return;
     }
+    if (!this.newProfileId || this.profilesLoading) return;
     this.saving.set(true);
-    this.api.create({ academicYearId, semester: this.selectedSemester(), title: this.newTitle.trim() }).subscribe({
+    this.api.create({ academicYearId, semester: this.selectedSemester(), title: this.newTitle.trim(), timetableSetupProfileId: this.newProfileId }).subscribe({
       next: response => {
         this.saving.set(false);
         if (response.data) this.applyTimetable(response.data);

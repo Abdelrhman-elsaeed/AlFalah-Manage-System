@@ -1,7 +1,7 @@
 # Phase 04 — Teacher Availability and Load Settings
 
 **Module:** Intelligent Timetable (الجدول الذكي)  
-**Status:** Requirements draft — no implementation  
+**Status:** Phase 4 implemented — teacher settings, API, persistence and existing timetable write constraints
 **Primary actor:** Secretary / authorized timetable editor
 
 ## Overview
@@ -93,9 +93,21 @@ Stable period IDs are preferable to raw sequence numbers so an inserted period d
 8. Teacher availability remains scoped to the timetable setup unless the user intentionally copies it to another setup.
 9. The supplied warning about excessive closures is advisory during editing, but generation is blocked when no feasible schedule can satisfy hard constraints.
 
-## ❓ Pending Questions for the User
+## Finalized User Decisions
 
-1. Should new teacher profiles default to all periods available, all unavailable, or inherit a school-wide availability template?
-2. Is **أقصى عدد للحصص** a hard limit that may never be exceeded, or a warning that an authorized user can override with a reason?
-3. What exactly should **معلم منتدب** and **إخفاء الطباعة** change in generation, assignment, and printed outputs?
-4. Do teachers ever manage their own availability, or is this exclusively maintained by the secretary/management team?
+1. Should new teacher profiles default to all periods available, all unavailable, or inherit a school-wide availability template? New teacher profiles should default to all periods available (all cells checked). The secretary will only uncheck the specific periods where the teacher is unavailable
+2. Is **أقصى عدد للحصص** a hard limit that may never be exceeded, or a warning that an authorized user can override with a reason? never be exceeded
+3. What exactly should **معلم منتدب** and **إخفاء الطباعة** change in generation, assignment, and printed outputs? Visiting Teacher' (معلم منتدب) indicates a part-time or per-period contract, meaning the system should handle their scheduling with specific day/time constraints. 'Hide from print' (إخفاء الطباعة) simply omits this teacher from the final printed schedules or public boards
+4. Do teachers ever manage their own availability, or is this exclusively maintained by the secretary/management team? maintained by secretary/management team ony
+
+## Implementation Notes — 2026-09-07
+
+- Screen: `/intelligent-timetable/teachers`; access requires `Timetable.Manage`, and Instructor/Guardian roles are explicitly rejected by the backend.
+- Profile and the complete availability grid save atomically through one MediatR command. Revision checks, a shared setup concurrency fence, and before/after audit records protect changes.
+- New profiles show all effective periods checked. The initial maximum defaults to the total effective weekly periods; changing availability never silently changes that maximum.
+- Slots reference immutable `BellPeriod` IDs plus the real study day. A new timing revision proposes matches by exact day/start/end time, lists unmatched old slots, and requires explicit review. No sequence-only remapping occurs.
+- Existing timetable saves, imports, restores and publishing enforce availability and the hard weekly maximum. A zero maximum prohibits lessons. Standby also respects availability; weekly teaching load counts lesson entries.
+- Closing an already assigned slot records a visible review violation without deleting the lesson. Lowering the maximum below current assignments is rejected.
+- Phase 6 allocations, automatic generation, swaps and final print/public-board integration remain in their planned phases. Current load is derived from existing non-deleted timetable lesson entries. `IsVisiting` uses the configured day/time restrictions, and `HideFromPrint` is persisted for later output filtering.
+- Migration: `20260907042123_AddTeacherAvailability`, applied to the local development database `AlFalahDb`.
+- Implementation and testing details: [Phase 4 delivery](../../phases/PHASE-TT-04-TEACHER-AVAILABILITY.md).

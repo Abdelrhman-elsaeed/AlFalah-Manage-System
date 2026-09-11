@@ -1,0 +1,103 @@
+<main dir="rtl" class="assignments-page">
+  <header class="page-heading"><div><span class="eyebrow">الجدول الذكي · ٠٦</span><h1>إسناد المواد للمعلمين</h1>
+    <p>وزّع مواد الفصول، ووازن أنصبة المعلمين قبل بناء الجدول.</p></div>
+    <a routerLink="/intelligent-timetable/settings" [queryParams]="{ profileId: setupId, academicYearId: yearId, semester: semester }">إعدادات الجدول <i class="pi pi-arrow-left"></i></a>
+  </header>
+  <div *ngIf="error" class="notice danger" role="alert">{{ error }}</div>
+  <div *ngIf="message" class="notice success" role="status">{{ message }}</div>
+  <section class="context-bar" *ngIf="context as ctx">
+    <label>العام الدراسي<p-dropdown [options]="$any(ctx.academicYears)" optionLabel="nameAr" optionValue="id" [ngModel]="yearId"
+      (onChange)="changeContext($event.value, semester)" [disabled]="loading || saving" /></label>
+    <label>الفصل الدراسي<p-dropdown [options]="[{ label: 'الأول', value: 1 }, { label: 'الثاني', value: 2 }]"
+      optionLabel="label" optionValue="value" [ngModel]="semester" (onChange)="changeContext(yearId, $event.value)" [disabled]="loading || saving" /></label>
+    <label>ملف الإعداد<p-dropdown [options]="$any(ctx.profiles)" optionLabel="name" optionValue="id" [ngModel]="setupId"
+      (onChange)="chooseSetup($event.value)" [disabled]="loading || saving" /></label>
+  </section>
+  <p *ngIf="loading" role="status"><i class="pi pi-spin pi-spinner"></i> جارٍ تحميل الإسنادات…</p>
+  <section *ngIf="!loading && !setupId" class="empty">أنشئ ملف إعداد من إعدادات الجدول أولاً.</section>
+  <ng-container *ngIf="data as d">
+    <div *ngFor="let warning of d.warnings" class="notice warning">{{ warning }}</div>
+    <div *ngFor="let a of orphanedAssignments" class="notice warning">إسناد لمادة أو فصل لم يعد متاحاً:
+      <span *ngFor="let m of a.members">{{ m.name }} </span>
+      <button pButton type="button" label="إلغاء الإسناد" class="p-button-text p-button-danger" (click)="clearId(a.classSubjectRequirementId)" [disabled]="saving || drafts.has(a.classSubjectRequirementId)"></button>
+    </div>
+    <section class="stats"><div><strong>{{ d.requirements.length - pending }}</strong><span>مادة مسندة لفصل</span></div>
+      <div><strong>{{ pending }}</strong><span>بانتظار الإسناد</span></div><div><strong>{{ d.teachers.length }}</strong><span>ملف معلم</span></div>
+      <div><strong>{{ drafts.size }}</strong><span>خلية معدلة</span></div></section>
+    <div *ngIf="drafts.size" class="notice warning" role="status">لديك تغييرات غير محفوظة. النصاب المعروض يشمل التعديلات الحالية.</div>
+    <section class="workspace">
+      <div class="workspace-heading"><h2>مصفوفة الفصول والمواد</h2><button pButton type="button" class="p-button-text" [label]="teacherView ? 'عرض المصفوفة' : 'ملخص المعلمين'" (click)="teacherView = !teacherView"></button></div>
+      <div class="filters" *ngIf="!teacherView">
+        <label>بحث<input pInputText [(ngModel)]="search" placeholder="اسم المعلم أو المادة" /></label>
+        <label>الفصل<p-dropdown [options]="d.classrooms" optionLabel="name" optionValue="id" [(ngModel)]="classroomId" [showClear]="true" placeholder="كل الفصول" /></label>
+        <label>المادة<p-dropdown [options]="d.subjects" optionLabel="name" optionValue="id" [(ngModel)]="subjectId" [showClear]="true" placeholder="كل المواد" /></label>
+        <label>المرحلة<p-dropdown [options]="stages" optionLabel="label" optionValue="value" [(ngModel)]="stage" [showClear]="true" placeholder="كل المراحل" /></label>
+        <label>الصف<p-dropdown [options]="grades" optionLabel="label" optionValue="value" [(ngModel)]="grade" [showClear]="true" placeholder="كل الصفوف" /></label>
+        <label>الحالة<p-dropdown [options]="statuses" optionLabel="label" optionValue="value" [(ngModel)]="status" [showClear]="true" placeholder="كل الحالات" /></label>
+        <button pButton type="button" label="مسح الفلاتر" class="p-button-text" (click)="resetFilters()"></button>
+      </div>
+      <div class="matrix-scroll" *ngIf="!teacherView">
+        <table class="matrix"><caption class="sr-only">إسناد المواد حسب الفصل؛ الخلايا غير المقررة غير قابلة للإسناد</caption>
+          <thead><tr><th scope="col">الفصل / المادة</th><th scope="col" *ngFor="let subject of columns"><span class="subject-dot" [style.background]="subject.color"></span>{{ subject.name }}</th></tr></thead>
+          <tbody><tr *ngFor="let classroom of rows"><th scope="row">{{ classroom.name }}<small>الصف {{ classroom.gradeLevel }}</small></th>
+            <td *ngFor="let subject of columns" [class.disabled-cell]="!requirement(classroom.id, subject.id)" [class.changed-cell]="drafts.has(requirement(classroom.id, subject.id)?.id || 0)">
+              <ng-container *ngIf="requirement(classroom.id, subject.id) as r; else notStudied">
+                <ng-container *ngIf="visibleRequirement(classroom.id, subject.id); else filtered">
+                  <div class="quota">{{ r.totalWeeklyPeriods }} حصص أسبوعياً <small *ngIf="r.rules.pairedBlockCount">· {{ r.rules.pairedBlockCount }} مزدوجة</small></div>
+                  <span *ngIf="cell(r.id).members.length" class="mode">{{ modeLabel(cell(r.id).mode) }}</span>
+                  <div class="teacher-chips"><span class="teacher-chip" *ngFor="let member of cell(r.id).members">{{ teacher(member.teacherTimetableProfileId)?.name || 'معلم غير متاح' }} <b>{{ member.allocatedPeriodCount }}</b></span></div>
+                  <span class="pending" *ngIf="!cell(r.id).members.length">بانتظار الإسناد</span>
+                  <div class="cell-actions"><button pButton type="button" [label]="cell(r.id).members.length ? 'تعديل / إضافة' : 'إضافة'" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="open(r)" [disabled]="saving || loading"></button>
+                    <button *ngIf="cell(r.id).members.length" pButton type="button" label="إلغاء الإسناد" class="p-button-text p-button-danger p-button-sm" (click)="clear(r)" [disabled]="saving || loading"></button></div>
+                </ng-container><ng-template #filtered><span class="muted">لا يطابق الفلتر</span></ng-template>
+              </ng-container><ng-template #notStudied><span class="muted">غير مقرر</span></ng-template>
+            </td></tr></tbody>
+        </table>
+        <p *ngIf="!rows.length" class="empty">لا توجد مواد وفصول تطابق البحث. أضف متطلبات الفصول من <a routerLink="/intelligent-timetable/subjects" [queryParams]="{ profileId: setupId }">صفحة المواد</a>.</p>
+      </div>
+      <p-table *ngIf="teacherView" [value]="d.teachers" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '40rem' }">
+        <ng-template pTemplate="header"><tr><th>المعلم</th><th>المواد</th><th>الفصول</th><th>المسند / الحد</th><th>المتبقي</th></tr></ng-template>
+        <ng-template pTemplate="body" let-t><tr><td>{{ t.name }}</td><td>{{ workload(t.id).subjects }}</td><td>{{ workload(t.id).classrooms }}</td>
+          <td><bdi dir="ltr">{{ workload(t.id).periods }} / {{ t.maximumWeeklyPeriods }}</bdi></td><td [class.at-limit]="workload(t.id).periods >= t.maximumWeeklyPeriods">{{ t.maximumWeeklyPeriods - workload(t.id).periods }} <span *ngIf="workload(t.id).periods >= t.maximumWeeklyPeriods">— النصاب مكتمل أو متجاوز</span></td></tr></ng-template>
+      </p-table>
+    </section>
+    <footer class="save-bar"><span *ngIf="invalidDraft" class="at-limit">صحّح توزيع الحصص أو تجاوز النصاب قبل الحفظ.</span><span *ngIf="!invalidDraft">كل حصة مزدوجة تبقى كاملة لدى المعلم نفسه.</span>
+      <div><button pButton type="button" label="تجاهل" class="p-button-outlined" (click)="discard()" [disabled]="saving || loading"></button>
+      <button pButton type="button" label="حفظ التغييرات" icon="pi pi-check" (click)="save()" [loading]="saving" [disabled]="!drafts.size || invalidDraft || loading"></button></div></footer>
+  </ng-container>
+</main>
+
+<p-dialog header="اختيار المعلمين وإسناد الحصص" [visible]="dialogOpen" [modal]="true" [closable]="false" [draggable]="false" [style]="{ width: 'min(1100px, 96vw)' }" [contentStyle]="{ overflow: 'auto' }">
+  <div dir="rtl" *ngIf="editing as r">
+    <p class="dialog-description">{{ r.classroomName }} · {{ r.totalWeeklyPeriods }} حصص، منها {{ r.rules.pairedBlockCount }} حصص مزدوجة. تُحسب المزدوجة حصتين في النصاب.</p>
+    <div class="teacher-filters"><label>بحث<input pInputText [(ngModel)]="teacherSearch" (keyup.enter)="searchTeachers()" placeholder="اسم المعلم أو تخصصه" /></label>
+      <label>التخصص<input pInputText [(ngModel)]="specialization" (keyup.enter)="searchTeachers()" placeholder="تصفية بالتخصص" /></label>
+      <label>الحالة<p-dropdown [options]="activeOptions" optionLabel="label" optionValue="value" [(ngModel)]="activeFilter" (onChange)="searchTeachers()" [showClear]="true" placeholder="الكل" appendTo="body" /></label>
+      <label>نوع المعلم<p-dropdown [options]="visitingOptions" optionLabel="label" optionValue="value" [(ngModel)]="visitingFilter" (onChange)="searchTeachers()" [showClear]="true" placeholder="الكل" appendTo="body" /></label>
+      <label class="checkbox-label"><input type="checkbox" [(ngModel)]="capacityOnly" (change)="searchTeachers()" /> لديه نصاب متبقٍ محفوظ</label>
+      <button pButton type="button" label="بحث" icon="pi pi-search" (click)="searchTeachers()"></button></div>
+    <p-table [value]="teacherRows" [lazy]="true" (onLazyLoad)="lazyTeachers($event)" [paginator]="true" [rows]="pageSize" [first]="first" [totalRecords]="teacherTotal" [loading]="teacherLoading" [tableStyle]="{ 'min-width': '55rem' }">
+      <ng-template pTemplate="header"><tr><th>اختيار</th><th pSortableColumn="name">المعلم <p-sortIcon field="name" /></th><th>التخصص / الحالة</th><th pSortableColumn="load">المسند / الحد <p-sortIcon field="load" /></th><th pSortableColumn="remaining">المتبقي <p-sortIcon field="remaining" /></th><th>المواد / الفصول</th><th>ملاحظات</th></tr></ng-template>
+      <ng-template pTemplate="body" let-t><tr [class.selected-row]="selected(t.id)"><td><input type="checkbox" [checked]="selected(t.id)" (change)="toggle(t)" [disabled]="!t.isActive && !selected(t.id)" [attr.aria-label]="'اختيار ' + t.name" /></td>
+        <td>{{ t.name }}</td><td>{{ t.specialization || 'غير محدد' }}<small>{{ t.isActive ? 'نشط' : 'غير نشط' }} {{ t.isVisiting ? '· زائر' : '' }}</small></td>
+        <td><strong><bdi dir="ltr">{{ workload(t.id, true).periods }} / {{ t.maximumWeeklyPeriods }}</bdi></strong><small>يشمل المسودة</small></td>
+        <td [class.at-limit]="workload(t.id, true).periods >= t.maximumWeeklyPeriods">{{ t.maximumWeeklyPeriods - workload(t.id, true).periods }}<small *ngIf="workload(t.id, true).periods >= t.maximumWeeklyPeriods">{{ workload(t.id, true).periods > t.maximumWeeklyPeriods ? 'تجاوز الحد' : 'النصاب مكتمل' }}</small></td>
+        <td>{{ workload(t.id, true).subjects }} / {{ workload(t.id, true).classrooms }}</td>
+        <td><small *ngFor="let warning of t.warnings">{{ warning }}</small><small *ngIf="specializationWarning(t)" class="at-limit">التخصص مختلف؛ الإسناد مسموح بعد المراجعة.</small></td></tr></ng-template>
+      <ng-template pTemplate="emptymessage"><tr><td colspan="7">لا يوجد معلمون يطابقون البحث. تأكد من حفظ ملفاتهم في <a routerLink="/intelligent-timetable/teachers" [queryParams]="{ profileId: setupId }">إعدادات المعلمين</a>.</td></tr></ng-template>
+    </p-table>
+    <section class="allocation-editor"><h3>المعلمون المختارون ({{ members.length }})</h3>
+      <label>نوع الإسناد<p-dropdown [options]="modes" optionLabel="label" optionValue="value" [(ngModel)]="mode" (onChange)="modeChanged()" placeholder="اختر نوع الإسناد" appendTo="body" /></label>
+      <p *ngIf="mode === 'CoTeaching'">كل المعلمين يدرّسون الحصص معاً؛ يُحتسب النصاب كاملاً لكل معلم، ويبقون معاً طوال الحصة المزدوجة.</p>
+      <p *ngIf="mode === 'SplitQuota'">تقسيم الحصص: المتبقي {{ remaining }} حصة، و{{ remainingPairs }} زوج. عدد الأزواج جزء من عدد الحصص، وليس إضافة إليه.</p>
+      <div class="allocation-row" *ngFor="let m of members"><strong>{{ teacher(m.teacherTimetableProfileId)?.name || 'معلم غير متاح' }}</strong>
+        <label>عدد الحصص<p-inputNumber [(ngModel)]="m.allocatedPeriodCount" [min]="0" [max]="r.totalWeeklyPeriods" [maxFractionDigits]="0" [disabled]="mode !== 'SplitQuota'" [inputId]="'periods-' + m.teacherTimetableProfileId" /></label>
+        <label>منها أزواج كاملة<p-inputNumber [(ngModel)]="m.allocatedPairedBlockCount" [min]="0" [max]="r.rules.pairedBlockCount" [maxFractionDigits]="0" [disabled]="mode !== 'SplitQuota'" [inputId]="'pairs-' + m.teacherTimetableProfileId" /></label>
+        <button pButton type="button" label="إزالة" class="p-button-text p-button-danger" (click)="removeMember(m.teacherTimetableProfileId)"></button></div>
+      <div *ngIf="dialogError" class="notice danger" role="alert">{{ dialogError }}</div>
+      <div *ngIf="error" class="notice danger" role="alert">{{ error }}</div>
+    </section>
+  </div>
+  <ng-template pTemplate="footer"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="closeDialog()"></button>
+    <button pButton type="button" label="تأكيد الخلية" icon="pi pi-check" [disabled]="!!dialogError" (click)="confirmCell()"></button></ng-template>
+</p-dialog>

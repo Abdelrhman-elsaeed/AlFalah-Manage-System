@@ -1,5 +1,7 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.Common;
 using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
+using AlFalah.Shared.Models;
 using AlFalah.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +38,11 @@ public sealed class ClassroomsController : StudentAffairsControllerBase
     public async Task<IActionResult> Create([FromBody] CreateClassroomRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentEnrollmentManage, PermissionNames.ClassroomManage)) return PermissionDenied();
+        if (ControllerContext.HttpContext is not null)
+        {
+            var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
+            if (errors.Count > 0) return BadRequest(ApiResponse<ClassroomDto>.Fail(errors));
+        }
         var response = await Mediator.Send(new CreateClassroomCommand(request), cancellationToken);
         return StatusCode(StatusCodes.Status201Created, response);
     }
@@ -44,6 +51,11 @@ public sealed class ClassroomsController : StudentAffairsControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] UpdateClassroomRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentEnrollmentManage, PermissionNames.ClassroomManage)) return PermissionDenied();
+        if (ControllerContext.HttpContext is not null)
+        {
+            var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
+            if (errors.Count > 0) return BadRequest(ApiResponse<ClassroomDto>.Fail(errors));
+        }
         return Ok(await Mediator.Send(new UpdateClassroomCommand(id, request), cancellationToken));
     }
 

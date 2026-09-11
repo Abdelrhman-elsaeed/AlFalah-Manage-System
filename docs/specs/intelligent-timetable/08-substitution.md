@@ -1,14 +1,14 @@
 # Phase 08 — Lesson Swaps and Substitution
 
 **Module:** Intelligent Timetable (الجدول الذكي)  
-**Status:** Requirements draft — no implementation  
+**Status:** Implemented — see [Phase 8 delivery notes](../../phases/PHASE-TT-08-SUBSTITUTION.md)
 **Primary actor:** Authorized timetable editor
 
 ## Overview
 
 This phase allows a user to move a selected lesson by swapping it with another lesson while preserving the timetable's hard constraints. The system classifies candidate cells as a safe direct swap, a possible swap with warnings, a three-way swap requiring a third lesson/teacher, or impossible.
 
-Despite the folder's use of “substitution,” the supplied flow describes structural lesson swaps, not temporary teacher absence cover. Any future daily substitute-teacher workflow should be modeled separately unless the user confirms they are one feature.
+The finalized scope includes both structural same-day lesson swaps and temporary teacher absence cover. They share the operational dashboard, validation and audit workflow. Structural swaps update the weekly schedule; daily cover is a separate date-specific overlay and does not rewrite permanent teaching assignments.
 
 ## UI/UX Requirements
 
@@ -19,10 +19,10 @@ Despite the folder's use of “substitution,” the supplied flow describes stru
 - Evaluate and mark candidate cells:
   - **Green — لا توجد تعارضات:** safe direct two-way swap.
   - **Yellow — توجد تنبيهات:** feasible only if the user accepts one or more soft-rule or policy warnings.
-  - **Red — بحاجة إلى تبديل ثلاثي:** direct swap conflicts, but a feasible three-way cycle exists.
+  - **Red — غير متاح:** hard conflict; confirmation is disabled. Feasible three-way cycles are separate green/yellow proposals with every movement disclosed.
   - **No highlight/disabled:** swap is impossible; optionally expose the reason on hover/focus.
 - Use labels/icons/patterns in addition to color.
-- Preserve day navigation and search while in selection mode, but never lose the chosen source cell without confirmation.
+- Preserve search while in selection mode. Changing the timetable, date or operation requires explicitly cancelling the selected source first.
 
 ### Direct-swap review
 
@@ -98,26 +98,26 @@ Confirmation repeats validation inside the transaction using the latest row/revi
 - If any movement fails, roll back the complete operation.
 - Increment `SchoolTimetable.Revision`, update audit fields, and create an immutable `SchoolTimetableVersion` with a swap-specific change kind.
 - Invalidate prior analysis runs and rerun affected rules (or the full analysis) for the new revision.
-- If the timetable is published, define whether the swap immediately updates the live schedule or creates a draft requiring republish.
+- Published swaps are live immediately and enqueue notifications to all affected teachers; no republishing is required.
 
 ## Business Rules
 
 1. A direct swap exchanges the complete logical lesson occurrences, including all co-teachers and required location—not just display text.
 2. A green candidate has no hard violations or warnings after the exchange.
 3. A yellow candidate has no hard violation but does have explicitly disclosed soft/policy warnings; confirmation records acceptance.
-4. A red candidate cannot be exchanged directly but has at least one valid three-way cycle.
+4. A red candidate cannot be confirmed. A feasible three-way alternative is classified independently against all constraints.
 5. An unhighlighted candidate has no valid proposal and cannot be confirmed.
 6. A three-way proposal moves three occurrences so each affected teacher, class, and room remains conflict-free.
 7. Required subject counts do not change during a swap; only placement changes.
 8. Individual subject distribution, paired blocks, early preference, availability, meetings/blocked slots, and location constraints must all be reevaluated.
-9. Hard constraints can never be bypassed through the swap UI unless a separate explicit override policy is approved.
+9. Hard constraints can never be bypassed through the swap UI or API. Yellow proposals require an authorized approver and a recorded reason.
 10. Proposal confirmation is revision-bound, atomic, idempotent, audited, and versioned.
 11. After any successful swap, all current-context consumers use the new published/live revision and exact bell-schedule boundaries.
 12. Users without timetable-management permission may view the timetable but cannot enter swap mode or confirm a proposal.
 
-## ❓ Pending Questions for the User
+## Finalized User Decisions
 
-1. Are swaps limited to periods within the same day, or may the engine propose cross-day direct and three-way swaps?
-2. When a yellow proposal violates a soft rule, which roles may accept it, and must they enter a reason?
-3. Can one period of a paired block be swapped independently, or must every swap move the entire paired block as one occurrence group?
-4. For a published timetable, should a confirmed swap become live immediately and notify affected teachers, or create a draft revision that requires republishing?
+1. Are swaps limited to periods within the same day, or may the engine propose cross-day direct and three-way swaps? same day
+2. When a yellow proposal violates a soft rule, which roles may accept it, and must they enter a reason? Only authorized roles (e.g., Management or Secretary) may accept a yellow proposal that violates a soft rule, and they MUST enter a recorded reason for the override.
+3. Can one period of a paired block be swapped independently, or must every swap move the entire paired block as one occurrence group? Every swap must move the entire paired block as one cohesive group. Splitting or swapping one period of a paired block independently is strictly prohibited
+4. For a published timetable, should a confirmed swap become live immediately and notify affected teachers, or create a draft revision that requires republishing?A confirmed swap should become live immediately and notify the affected teachers. It should NOT create a full draft revision that requires republishing the entire timetable

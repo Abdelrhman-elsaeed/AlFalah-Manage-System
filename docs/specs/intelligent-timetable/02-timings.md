@@ -1,7 +1,7 @@
 # Phase 02 — Study Days and Bell-Schedule Timings
 
 **Module:** Intelligent Timetable (الجدول الذكي)  
-**Status:** Requirements draft — no implementation  
+**Status:** Completed — ready for testing (2026-09-06)
 **Primary actor:** Secretary / authorized timetable editor
 
 ## Overview
@@ -113,7 +113,55 @@ The effective schedule resolver combines the template default with any day overr
 
 ## ❓ Pending Questions for the User
 
-1. Are templates school-global and reusable across academic years, or must each template belong to one academic year/semester?
-2. Can any of the seven weekdays be a study day, including Friday, or is the supported week permanently Saturday–Thursday with exactly two holidays?
-3. What are the allowed minimum/maximum number of periods and the minimum period duration?
-4. When “apply to selected days” overwrites existing overrides, should the user receive a simple confirmation or a before/after comparison of affected periods and breaks?
+1. Are templates school-global and reusable across academic years, or must each template belong to one academic year/semester? i think every semester maytable change so i think it shoulld bbe relate to semester or acadmic year
+2. Can any of the seven weekdays be a study day, including Friday, or is the supported week permanently Saturday–Thursday with exactly two holidays? any of the seven can "i think it is better to make the user set this"
+3. What are the allowed minimum/maximum number of periods and the minimum period duration? there is no limit but in suadia arabbia it betweenn 45 to 50 min i think "let it flexible user who definne this period loong"
+4. When “apply to selected days” overwrites existing overrides, should the user receive a simple confirmation or a before/after comparison of affected periods and breaks? both
+
+## Phase 02 implementation
+
+The answers above are implemented: templates belong to a school, academic year, and semester; any of the seven weekdays may be selected; durations are user-defined with no eight-period or byte-sized sequence limit; applying to selected days opens a before/after comparison with an explicit confirmation button.
+
+### Persistence and revision contract
+
+- `BellScheduleTemplate` is the named template header; `BellScheduleRevision` is append-only. Every save appends a complete revision, even before publication, which avoids conditional historical mutation.
+- `BellScheduleDay.Day = 0` owns the default periods. Days `1–7` use the existing `TimetableDay` numbering (Saturday = 1, Friday = 7), with explicit study/inheritance flags. Inherited and holiday days persist no independent periods.
+- `BellPeriod` owns the sequence, optional display label, and SQL `time` boundaries. Unique keys cover revision/day and day/sequence. School-composite foreign keys protect template selection and timetable revision references.
+- `TimetableSetupProfile.BellScheduleTemplateId` selects the template. `SchoolTimetable.BellScheduleRevisionId` pins the exact revision. Timetable version JSON also embeds the materialized timing definition and labels.
+- Template edits and selections increment dependent setup/timetable revisions, reset setup readiness to Draft, and mark existing timetables `TimingsRequireRevalidation`. Published operational lookups keep their pinned revision until explicit republishing validates every entry against the new daily periods.
+- There is no current-context timing cache: each request loads the published revision. Future availability/constraint/generation phases must use the setup revision as their invalidation key. Those future modules are not implemented in Phase 02.
+
+### API and integration
+
+All endpoints return `ApiResponse<T>` and derive the school from the authenticated active school. Mutations enforce `Timetable.Manage` or the existing explicit timetable editor grant, with Instructor/Guardian exclusions. Failures use 400/403/404/409 as appropriate.
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/api/v1/intelligent-timetable/timings?academicYearId=…&semester=…` | List active templates, latest revisions, day/inheritance metadata, and selected setup IDs |
+| POST | `/api/v1/intelligent-timetable/timings` | Create a named template and initial revision |
+| PUT | `/api/v1/intelligent-timetable/timings/{id}` | Append a revision using the expected `revision` |
+| PUT | `/api/v1/intelligent-timetable/timings/profiles/{profileId}/selection` | Select a template using `templateId` and expected `profileRevision` |
+
+School timetable settings responses now expose `bellSchedule`. The timetable grid, PDF and Excel exports/import validation use saved per-day slots, including Friday and different day lengths. Teacher context, priority and roster handlers use the published revision with half-open boundaries. Gate-pass requests derive study dates in the published timezone; approval resolves the lesson at the requested exit instant, and fails safely when no unique current lesson exists.
+
+### UI
+
+`/intelligent-timetable/timings` replaces the Phase 02 placeholder. It provides academic context and template selectors, profile selection, study/holiday checkboxes, default/day tabs, inherited/override indicators, an adjustable period count, labels and times, duration feedback, overlap messages on both affected rows, comparison/confirmation, and sticky save/discard actions. Route navigation and browser unload protect unsaved work. The **الاستراحة** tab remains a link to the Phase 03 placeholder.
+
+### Migration and compatibility
+
+`20260905163146_AddTimetableTimings` has been applied to the development `AlFalahDb` database. The migration adds the normalized timing tables and references, widens period references to `int`, and permits Friday. It temporarily removes and restores the existing `CK_TeacherOfficeHours_TimeShape` constraint because SQL Server cannot widen a referenced column while that constraint exists.
+
+Development seed data now supplies a realistic six-period schedule with gaps and targeted first/third-period lessons. Existing non-seeded legacy timetables without a timing revision need a selected template and explicit validation/publication; the system does not invent historical bell times. Ambiguous published timing contexts resolve to no lesson. Named breaks, availability, scheduling constraints, and generation remain in their assigned later phases.
+
+The live workflow also required correcting Phase 01's `GetProfileDtoAsync`: filter the entity query by school/profile before projecting the DTO so SQL Server can translate the setup-creation response query.
+
+### Verification completed (2026-09-06)
+
+- Backend: 354/354 tests pass; solution build succeeds with zero warnings/errors.
+- Frontend: production build succeeds; 9/9 timing editor tests pass, including unchanged dropdown initialization and stale response protection.
+- Live SQL/API + Chrome: invalid overlap and duplicate names rejected, Instructor forbidden, setup selection succeeds, day edits preserved after save/reload, comparison/confirmation works, mobile page has no horizontal overflow, zero browser page errors. Concurrent saves produce one 200 and one 409.
+- Published timetable integration: the seeded five-day/six-period grid renders 30 configured cells per teacher with timing labels; PDF and Excel endpoints return 200. New timetable creation requires a setup with a selected template.
+- Temporary QA templates/profiles were soft-deleted after verification; their immutable revisions/audits remain. The normal development seeded timetable was preserved.
+
+The test build reports the existing nullable warning in `SocialWorkerWorkflowTests.cs:41`. Frontend build retains the existing dashboard CSS budget warning and three PrimeNG organization-chart selector warnings. See the [phase report](../../phases/PHASE-TT-02-TIMINGS.md) for commands and manual testing steps.

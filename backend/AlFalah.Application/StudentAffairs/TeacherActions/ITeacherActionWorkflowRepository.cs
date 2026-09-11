@@ -12,7 +12,7 @@ public sealed record TeacherActionScopeSnapshot(
     int ClassroomId,
     int SchoolTimetableId,
     int SchoolTimetableEntryId,
-    byte Period);
+    int Period);
 
 public interface ITeacherActionWorkflowRepository
 {

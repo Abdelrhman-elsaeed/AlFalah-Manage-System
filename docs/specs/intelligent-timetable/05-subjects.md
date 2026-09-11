@@ -1,7 +1,7 @@
 # Phase 05 — Subjects, Class Quotas, and Scheduling Constraints
 
 **Module:** Intelligent Timetable (الجدول الذكي)  
-**Status:** Requirements draft — no implementation  
+**Status:** Implemented — Phase 5 (2026-09-08); see [implementation notes](../../phases/PHASE-TT-05-SUBJECTS.md)
 **Primary actor:** Secretary / authorized timetable editor
 
 ## Overview
@@ -110,9 +110,9 @@ The revised requirement supersedes the reference product's free-text “add subj
 11. Removing a subject from one classroom does not remove it from other classrooms or delete the master subject.
 12. Requirement changes after generation mark the timetable stale and require review/regeneration or a controlled manual reconciliation.
 
-## ❓ Pending Questions for the User
+## Finalized User Decisions (2026-09-08)
 
-1. Is an “early lesson” merely a soft preference, or must the generator fail when it cannot keep every occurrence inside the selected early-period window?
-2. May a paired block span a break, or must its two periods be directly adjacent in real time as well as consecutive by sequence?
-3. Can one subject requirement allow several interchangeable rooms, and does each room have a capacity or equipment type that the generator must consider?
-4. When bulk-configuring classes that already have this subject, should save replace all existing rules, merge only changed fields, or ask per class?
+1. Early timing is always a soft preference. It ranks candidate periods without blocking generation when the preferred window cannot be met. Late timing uses the same soft semantics.
+2. Double periods must be strictly adjacent in real time and consecutive by sequence. A break or other time gap cannot split a double. This supersedes the earlier draft answer suggesting an optional break-spanning setting.
+3. Multiple interchangeable rooms and a preferred room are supported. Capacity and equipment checks are out of scope.
+4. Bulk saving prompts the user to keep or replace existing class rules. The API defaults to keeping existing rules; replacement requires explicit intent and the revision of every existing class requirement.

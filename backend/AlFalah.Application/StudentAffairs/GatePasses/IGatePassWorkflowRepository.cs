@@ -24,10 +24,12 @@ public sealed record GatePassTimetableSnapshot(
     int SchoolTimetableId,
     int SchoolTimetableEntryId,
     int InstructorProfileId,
-    byte Period);
+    int Period);
 
 public interface IGatePassWorkflowRepository
 {
+    Task<DateOnly?> GetPublishedStudyDateAsync(int schoolId, DateTimeOffset instant, CancellationToken ct);
+
     Task<GuardianGatePassLinkSnapshot?> GetGuardianLinkAsync(
         int schoolId,
         string guardianUserId,
@@ -68,7 +70,7 @@ public interface IGatePassWorkflowRepository
         TimetableSemester semester,
         int classroomId,
         string classroomLabel,
-        TimetableDay day,
+        DateTimeOffset instant,
         CancellationToken cancellationToken);
 
     void Add(GatePass gatePass);

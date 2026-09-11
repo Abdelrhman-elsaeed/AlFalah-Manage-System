@@ -63,7 +63,9 @@ public sealed class ApproveGatePassCommandHandler
         if (string.IsNullOrWhiteSpace(gatePass.PickupPersonName))
             return ApiResponse<GatePassDto>.Fail("Pickup person details are required before approval");
 
-        var requestedDate = DateOnly.FromDateTime(gatePass.RequestedExitAt.DateTime);
+        var schoolDate = await _repository.GetPublishedStudyDateAsync(schoolId.Value, gatePass.RequestedExitAt, cancellationToken);
+        if (schoolDate is null) return ApiResponse<GatePassDto>.Fail("Requested exit time must be on a configured published study day");
+        var requestedDate = schoolDate.Value;
         var guardianLinkIsActive = await _repository.IsGuardianLinkActiveAsync(
             schoolId.Value,
             gatePass.RequestedByGuardianProfileId,
@@ -81,16 +83,13 @@ public sealed class ApproveGatePassCommandHandler
         if (enrollment is null || enrollment.AcademicTermId != gatePass.AcademicTermId)
             return ApiResponse<GatePassDto>.Fail("Student does not have an active enrollment");
 
-        var timetableDay = GatePassHandlerSupport.ToTimetableDay(request.WindowStartsAt.DayOfWeek);
-        if (timetableDay is null)
-            return ApiResponse<GatePassDto>.Fail("Approved execution window must be on a school day");
         var timetable = await _repository.ResolvePublishedTimetableAsync(
             schoolId.Value,
             enrollment.AcademicYearId,
             enrollment.Semester,
             enrollment.ClassroomId,
             enrollment.ClassroomLabel,
-            timetableDay.Value,
+            gatePass.RequestedExitAt,
             cancellationToken).ConfigureAwait(false);
         if (timetable is null)
             return ApiResponse<GatePassDto>.Fail(

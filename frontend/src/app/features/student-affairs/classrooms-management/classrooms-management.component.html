@@ -39,6 +39,7 @@
             <th>المرحلة</th>
             <th>الصف</th>
             <th>الشعبة</th>
+            <th>الموقع / الدور</th>
             <th>العام الدراسي</th>
             <th>الطلاب النشطون</th>
             <th>الحالة</th>
@@ -51,6 +52,7 @@
             <td>{{ stageLabel(classroom.stage) }}</td>
             <td>{{ classroom.gradeLevel }}</td>
             <td>{{ classroom.section }}</td>
+            <td>{{ classroom.physicalLocation }}</td>
             <td>{{ classroom.academicYearLabel }}</td>
             <td>{{ classroom.activeEnrollmentCount }}</td>
             <td><p-tag [value]="classroom.isActive ? 'نشط' : 'غير نشط'" [severity]="classroom.isActive ? 'success' : 'warning'"></p-tag></td>
@@ -63,7 +65,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="8" class="empty">لا توجد فصول مطابقة. أضف فصلًا جديدًا للبدء.</td></tr>
+          <tr><td colspan="9" class="empty">لا توجد فصول مطابقة. أضف فصلًا جديدًا للبدء.</td></tr>
         </ng-template>
       </p-table>
     }
@@ -102,6 +104,12 @@
       <label class="form-field form-field--wide" for="classroom-label">
         <span>اسم الفصل الظاهر <b>*</b></span>
         <input id="classroom-label" pInputText formControlName="classLabel" maxlength="50" placeholder="مثال: الصف الأول - أ" />
+      </label>
+
+      <label class="form-field form-field--wide" for="classroom-location">
+        <span>الموقع الفعلي / الدور <b>*</b></span>
+        <input id="classroom-location" pInputText formControlName="physicalLocation" maxlength="120" placeholder="مثال: الدور الثاني - الجناح الشرقي" />
+        <small>يظهر هذا الوصف للمعلمين وفي نسخ الجدول المطبوعة.</small>
       </label>
 
       @if (editing()) {

@@ -50,10 +50,9 @@ public sealed class CreateGatePassCommandHandler
         var now = _timeProvider.GetUtcNow();
         if (request.DesiredExitTime <= now)
             return ApiResponse<GatePassDto>.Fail("Requested exit time must be in the future");
-        if (GatePassHandlerSupport.ToTimetableDay(request.DesiredExitTime.DayOfWeek) is null)
-            return ApiResponse<GatePassDto>.Fail("Requested exit time must be on a school day");
-
-        var requestedDate = DateOnly.FromDateTime(request.DesiredExitTime.DateTime);
+        var schoolDate = await _repository.GetPublishedStudyDateAsync(schoolId.Value, request.DesiredExitTime, cancellationToken);
+        if (schoolDate is null) return ApiResponse<GatePassDto>.Fail("Requested exit time must be on a configured published study day");
+        var requestedDate = schoolDate.Value;
         var link = await _repository.GetGuardianLinkAsync(
             schoolId.Value,
             userId,

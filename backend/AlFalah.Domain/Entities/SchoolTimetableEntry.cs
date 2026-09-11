@@ -12,10 +12,14 @@ public class SchoolTimetableEntry
     public int? ClassroomId { get; set; }
     public int InstructorProfileId { get; set; }
     public TimetableDay Day { get; set; }
-    public byte Period { get; set; }
+    public int Period { get; set; }
     public TimetableEntryType EntryType { get; set; }
     public string? ClassLabel { get; set; }
     public string? Subject { get; set; }
+    public int? SubjectId { get; set; }
+    public int? ClassSubjectRequirementId { get; set; }
+    public int? RoomId { get; set; }
+    public SubjectDefinition? SubjectDefinition { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public bool IsDeleted { get; set; }

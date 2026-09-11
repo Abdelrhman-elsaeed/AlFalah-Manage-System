@@ -101,7 +101,7 @@ public sealed class TeacherOfficeHour : IStudentAffairsMutableEntity
     public int InstructorProfileId { get; set; }
     public int AcademicTermId { get; set; }
     public TimetableDay Day { get; set; }
-    public byte? Period { get; set; }
+    public int? Period { get; set; }
     public TimeOnly? LocalStartTime { get; set; }
     public TimeOnly? LocalEndTime { get; set; }
     public TeacherOfficeHourSource Source { get; set; }

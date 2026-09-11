@@ -6,3 +6,7 @@
 @import './styles/primeng.css';
 @import './styles/motion.css';
 @import './styles/responsive.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

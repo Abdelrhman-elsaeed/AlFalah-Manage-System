@@ -40,7 +40,10 @@ public sealed class TeacherActionWorkflowRepository : ITeacherActionWorkflowRepo
                     && entry.ClassroomId != null
                     && entry.InstructorProfile.SchoolId == schoolId
                     && entry.InstructorProfile.IsActive
-                    && (allowOverride || entry.InstructorProfileId == reporter.Id)
+                    && (allowOverride || (_context.Set<AlFalah.Domain.Entities.TimetableSubstitutionMovement>()
+                        .Where(m => m.SchoolId == schoolId && m.SchoolTimetableEntryId == entry.Id &&
+                            m.Substitution.LocalDate == occurrenceDate && m.Substitution.Kind == "Substitution")
+                        .OrderByDescending(m => m.TimetableSubstitutionId).Select(m => (int?)m.ToTeacherId).FirstOrDefault() ?? entry.InstructorProfileId) == reporter.Id)
                     && entry.SchoolTimetable.SchoolId == schoolId
                     && entry.SchoolTimetable.IsPublished)
                 .SelectMany(entry => _context.StudentEnrollments

@@ -1,3 +1,5 @@
+using AlFalah.Application.IntelligentTimetable;
+using AlFalah.Application.IntelligentTimetable.DTOs;
 using AlFalah.Application.DTOs.Timetables;
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Enums;
@@ -10,16 +12,6 @@ namespace AlFalah.Infrastructure.Services;
 
 public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentService
 {
-    private static readonly TimetableDay[] PhysicalDays =
-    {
-        TimetableDay.Thursday,
-        TimetableDay.Wednesday,
-        TimetableDay.Tuesday,
-        TimetableDay.Monday,
-        TimetableDay.Sunday,
-        TimetableDay.Saturday
-    };
-
     public TimetableFileDto BuildPdf(
         SchoolTimetableDto timetable,
         TimetableCatalogDto catalog,
@@ -27,6 +19,8 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
     {
         PdfTheme.EnsureFonts();
         var palette = PdfPalette.For(colorMode);
+        var timingCatalog = catalog with { BellSchedule = timetable.BellSchedule ?? catalog.BellSchedule };
+        var slots = Slots(timingCatalog, includeBreaks: true);
         var entries = timetable.Entries
             .GroupBy(x => (x.InstructorProfileId, x.Day, x.Period))
             .ToDictionary(g => g.Key, g => g.Last());
@@ -42,7 +36,7 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
             page.DefaultTextStyle(style => style.FontFamily(PdfTheme.Font).FontSize(4.5f)
                 .DirectionFromRightToLeft().FontColor(palette.BodyText));
             page.Header().Height(30).Element(header => ComposeHeader(header, timetable, catalog, logo, palette));
-            page.Content().PaddingTop(2).Element(content => ComposeGrid(content, catalog.Teachers, entries, palette));
+            page.Content().PaddingTop(2).Element(content => ComposeGrid(content, catalog.Teachers, entries, palette, slots));
             page.Footer().Height(9).AlignCenter().Text(
                 $"نسخة رقم {timetable.Revision} • آخر تحديث {timetable.UpdatedAt:yyyy-MM-dd HH:mm} • A4 أفقي • {palette.Label}")
                 .FontSize(3.6f).FontColor(palette.Muted);
@@ -64,10 +58,11 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
         sheet.SheetView.FreezeColumns(2);
         sheet.Cell(1, 1).Value = "الرقم الوظيفي";
         sheet.Cell(1, 2).Value = "اسم المعلم";
+        var slots = Slots(catalog with { BellSchedule = timetable.BellSchedule ?? catalog.BellSchedule });
+        var columnCount = 2 + slots.Count;
         var column = 3;
-        foreach (var day in Enum.GetValues<TimetableDay>())
-        foreach (var period in Enumerable.Range(1, 8))
-            sheet.Cell(1, column++).Value = $"{SchoolTimetableService.DayLabel(day)} - {period}";
+        foreach (var slot in slots)
+            sheet.Cell(1, column++).Value = $"{SchoolTimetableService.DayLabel(slot.Day)} - {slot.Period}";
 
         var entryLookup = timetable.Entries.ToDictionary(x => (x.InstructorProfileId, x.Day, x.Period));
         var row = 2;
@@ -76,10 +71,11 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
             sheet.Cell(row, 1).Value = teacher.EmployeeNumber ?? string.Empty;
             sheet.Cell(row, 2).Value = teacher.FullName;
             column = 3;
-            foreach (var day in Enum.GetValues<TimetableDay>())
-            foreach (var period in Enumerable.Range(1, 8))
+            foreach (var slot in slots)
             {
-                if (entryLookup.TryGetValue((teacher.InstructorProfileId, day, (byte)period), out var entry))
+                var day = slot.Day;
+                var period = slot.Period;
+                if (entryLookup.TryGetValue((teacher.InstructorProfileId, day, period), out var entry))
                 {
                     sheet.Cell(row, column).Value = entry.EntryType == TimetableEntryType.Standby
                         ? "منتظر"
@@ -90,17 +86,17 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
             row++;
         }
 
-        var used = sheet.Range(1, 1, Math.Max(2, row - 1), 50);
+        var used = sheet.Range(1, 1, Math.Max(2, row - 1), columnCount);
         used.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         used.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         used.Style.Alignment.WrapText = true;
         used.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
         used.Style.Border.InsideBorder = XLBorderStyleValues.Hair;
-        sheet.Range(1, 1, 1, 50).Style.Font.Bold = true;
-        sheet.Range(1, 1, 1, 50).Style.Fill.BackgroundColor = XLColor.FromHtml("#DFF1E9");
+        sheet.Range(1, 1, 1, columnCount).Style.Font.Bold = true;
+        sheet.Range(1, 1, 1, columnCount).Style.Fill.BackgroundColor = XLColor.FromHtml("#DFF1E9");
         sheet.Column(1).Width = 16;
         sheet.Column(2).Width = 28;
-        for (var index = 3; index <= 50; index++) sheet.Column(index).Width = 16;
+        for (var index = 3; index <= columnCount; index++) sheet.Column(index).Width = 16;
         sheet.Rows().Height = 28;
 
         var notes = workbook.Worksheets.Add("تعليمات");
@@ -136,6 +132,15 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
             .ToDictionary(x => x.Key, x => x.Single(), StringComparer.OrdinalIgnoreCase);
         var warnings = new List<string>();
         var importedRows = new List<TimetableImportedRow>();
+        var slots = Slots(catalog);
+        for (var index = 0; index < slots.Count; index++)
+        {
+            var expected = $"{SchoolTimetableService.DayLabel(slots[index].Day)} - {slots[index].Period}";
+            if (sheet.Cell(1, index + 3).GetString().Trim() != expected)
+                throw new ArgumentException("أعمدة الملف لا تطابق توقيت الجدول الحالي. نزّل نموذجاً حديثاً.");
+        }
+        if ((sheet.LastColumnUsed()?.ColumnNumber() ?? 0) != slots.Count + 2)
+            throw new ArgumentException("عدد أعمدة الملف لا يطابق توقيت الجدول الحالي.");
 
         for (var row = 2; row <= lastRow; row++)
         {
@@ -153,14 +158,15 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
 
             var entries = new List<SaveTimetableEntryRequest>();
             var column = 3;
-            foreach (var day in Enum.GetValues<TimetableDay>())
-            foreach (var period in Enumerable.Range(1, 8))
+            foreach (var slot in slots)
             {
+                var day = slot.Day;
+                var period = slot.Period;
                 var value = sheet.Cell(row, column++).GetString().Trim();
                 if (value.Length == 0) continue;
                 if (string.Equals(value, "منتظر", StringComparison.OrdinalIgnoreCase))
                 {
-                    entries.Add(new SaveTimetableEntryRequest(teacher.InstructorProfileId, day, (byte)period, TimetableEntryType.Standby, null, null));
+                    entries.Add(new SaveTimetableEntryRequest(teacher.InstructorProfileId, day, period, TimetableEntryType.Standby, null, null));
                     continue;
                 }
 
@@ -173,7 +179,7 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
                 }
                 var classLabel = value[..separator].Trim();
                 var subject = value[(separator + 1)..].Trim();
-                entries.Add(new SaveTimetableEntryRequest(teacher.InstructorProfileId, day, (byte)period, TimetableEntryType.Lesson, classLabel, subject));
+                entries.Add(new SaveTimetableEntryRequest(teacher.InstructorProfileId, day, period, TimetableEntryType.Lesson, classLabel, subject));
             }
             importedRows.Add(new TimetableImportedRow(teacher.InstructorProfileId, entries));
         }
@@ -207,36 +213,42 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
     private static void ComposeGrid(
         IContainer container,
         IReadOnlyList<TimetableTeacherDto> teachers,
-        IReadOnlyDictionary<(int InstructorProfileId, TimetableDay Day, byte Period), TimetableEntryDto> entries,
-        PdfPalette palette)
+        IReadOnlyDictionary<(int InstructorProfileId, TimetableDay Day, int Period), TimetableEntryDto> entries,
+        PdfPalette palette, IReadOnlyList<DocumentSlot> slots)
     {
+        var days = slots.GroupBy(x => x.Day).Reverse().ToArray();
         container.Table(table =>
         {
             table.ColumnsDefinition(columns =>
             {
-                for (var index = 0; index < 48; index++) columns.RelativeColumn();
+                for (var index = 0; index < slots.Count; index++) columns.RelativeColumn();
                 columns.ConstantColumn(58);
             });
 
             table.Header(header =>
             {
-                foreach (var day in PhysicalDays)
-                    HeaderCell(header.Cell().ColumnSpan(8), SchoolTimetableService.DayLabel(day), palette, 5.2f);
+                foreach (var day in days)
+                    HeaderCell(header.Cell().ColumnSpan((uint)day.Count()), SchoolTimetableService.DayLabel(day.Key), palette, 5.2f);
                 HeaderCell(header.Cell(), string.Empty, palette);
 
-                foreach (var _ in PhysicalDays)
-                for (var period = 8; period >= 1; period--)
-                    HeaderCell(header.Cell(), period.ToString(), palette, 4.5f);
+                foreach (var slot in days.SelectMany(x => x.Reverse()))
+                    HeaderCell(header.Cell(), slot.Label, palette, 4.5f);
                 HeaderCell(header.Cell(), "المعلم", palette, 5.2f);
             });
 
             var rowIndex = 0;
             foreach (var teacher in teachers)
             {
-                foreach (var day in PhysicalDays)
-                for (var period = 8; period >= 1; period--)
+                foreach (var slot in days.SelectMany(x => x.Reverse()))
                 {
-                    entries.TryGetValue((teacher.InstructorProfileId, day, (byte)period), out var entry);
+                    var day = slot.Day;
+                    var period = slot.Period;
+                    if (slot.IsBreak)
+                    {
+                        BodyCell(table.Cell(), slot.BreakName!, true, rowIndex, palette);
+                        continue;
+                    }
+                    entries.TryGetValue((teacher.InstructorProfileId, day, period), out var entry);
                     if (entry?.EntryType == TimetableEntryType.Standby)
                         BodyCell(table.Cell(), "منتظر", true, rowIndex, palette);
                     else if (entry is not null)
@@ -249,6 +261,13 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
             }
         });
     }
+
+    private sealed record DocumentSlot(TimetableDay Day, int Period, string Label, bool IsBreak = false, string? BreakName = null);
+    private static IReadOnlyList<DocumentSlot> Slots(TimetableCatalogDto catalog, bool includeBreaks = false) => catalog.BellSchedule is null
+        ? catalog.Days.SelectMany(d => Enumerable.Range(1, catalog.PeriodCount).Select(p => new DocumentSlot((TimetableDay)d.Value, p, p.ToString()))).ToArray()
+        : catalog.BellSchedule.Days.Where(x => x.IsStudyDay).SelectMany(d => BellScheduleResolver.EffectiveIntervals(catalog.BellSchedule, (TimetableDay)d.Day)
+            .Where(x => includeBreaks || x.Kind == "Lesson")
+            .Select(p => new DocumentSlot((TimetableDay)d.Day, p.PeriodSequence ?? 0, $"{p.Name}\n{p.StartLocalTime:HH:mm}–{p.EndLocalTime:HH:mm}", p.Kind == "Break", p.Kind == "Break" ? p.Name : null))).ToArray();
 
     private static void HeaderCell(
         IContainer cell,

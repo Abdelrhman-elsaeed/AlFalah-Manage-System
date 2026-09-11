@@ -76,6 +76,7 @@ export class ClassroomsManagementComponent {
     gradeLevel: new FormControl<number | null>(1, [Validators.required, Validators.min(1), Validators.max(12)]),
     section: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     classLabel: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+    physicalLocation: new FormControl('', [Validators.required, Validators.maxLength(120)]),
     isActive: new FormControl(true, { nonNullable: true })
   });
 
@@ -90,6 +91,7 @@ export class ClassroomsManagementComponent {
     return this.classrooms().filter(classroom =>
       classroom.label.toLocaleLowerCase('ar').includes(term) ||
       classroom.section.toLocaleLowerCase('ar').includes(term) ||
+      classroom.physicalLocation.toLocaleLowerCase('ar').includes(term) ||
       classroom.academicYearLabel.toLocaleLowerCase('ar').includes(term));
   }
 
@@ -110,6 +112,7 @@ export class ClassroomsManagementComponent {
       gradeLevel: 1,
       section: '',
       classLabel: '',
+      physicalLocation: '',
       isActive: true
     });
     this.dialogVisible.set(true);
@@ -123,6 +126,7 @@ export class ClassroomsManagementComponent {
       gradeLevel: classroom.gradeLevel,
       section: classroom.section,
       classLabel: classroom.label,
+      physicalLocation: classroom.physicalLocation,
       isActive: classroom.isActive
     });
     this.setImmutableFieldsDisabled(true);
@@ -144,6 +148,7 @@ export class ClassroomsManagementComponent {
       ? this.api.updateClassroom(editing.id, {
           classLabel: value.classLabel!.trim(),
           section: value.section!.trim(),
+          physicalLocation: value.physicalLocation!.trim(),
           isActive: value.isActive,
           rowVersion: editing.rowVersion
         })
@@ -152,7 +157,8 @@ export class ClassroomsManagementComponent {
           stage: value.stage!,
           gradeLevel: value.gradeLevel!,
           section: value.section!.trim(),
-          classLabel: value.classLabel!.trim()
+          classLabel: value.classLabel!.trim(),
+          physicalLocation: value.physicalLocation!.trim()
         });
 
     request$.pipe(finalize(() => this.saving.set(false))).subscribe({

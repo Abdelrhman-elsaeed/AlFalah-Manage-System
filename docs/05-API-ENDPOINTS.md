@@ -342,3 +342,18 @@ All dashboard reads return `ApiResponse<T>` and all queries are scoped in
 Supported narrowing parameters are `academicYear`, `semester`, `schoolId`,
 `subject`, `stage`, `moderatorUserId`, `fromDate`, and `toDate` where applicable.
 School-scoped callers cannot widen scope with query parameters.
+
+## Intelligent Timetable Phase 02 — timings (2026-09-06)
+
+All timing endpoints are school-scoped through the authenticated active school and return `ApiResponse<T>`. Read requires timetable view access; mutations require `Timetable.Manage` or the existing explicit editor grant, with Instructor/Guardian exclusions. Validation, forbidden, missing-resource and stale-revision responses use HTTP 400, 403, 404 and 409.
+
+| Method | Route | Contract |
+|---|---|---|
+| GET | `/api/v1/intelligent-timetable/timings?academicYearId=…&semester=…` | Latest active templates with default/day periods and selected setup IDs |
+| POST | `/api/v1/intelligent-timetable/timings` | Create template plus initial timing revision |
+| PUT | `/api/v1/intelligent-timetable/timings/{id}` | Append timing revision; body includes expected `revision` |
+| PUT | `/api/v1/intelligent-timetable/timings/profiles/{profileId}/selection` | `{ templateId, profileRevision }` selects the scoped template |
+
+Save bodies include `academicYearId`, `semester`, `name`, `revision`, `schoolTimeZoneId`, `defaultPeriods`, and all seven `days`. Periods contain `sequence`, optional `displayLabel`, `startLocalTime`, and `endLocalTime` (unambiguous time-only strings). Days contain `day`, `isStudyDay`, `usesDefaultSchedule`, and `periods`; inherited/holiday days carry empty period arrays.
+
+Timetable settings overview now includes `bellSchedule`. `POST /api/v1/timetables` accepts optional `timetableSetupProfileId`; specify it when the scope has more than one selected timing template. Timetable responses include the pinned `bellSchedule` and `timingsRequireRevalidation`. Existing save/publication/restore/export endpoints use per-day timing definitions. Teacher context and gate-pass resolution use the published revision and the requested instant in its school timezone.

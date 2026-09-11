@@ -1,0 +1,63 @@
+<fieldset [disabled]="disabled" class="lesson-editor break-editor" dir="rtl" *ngIf="validation as feedback">
+  <div class="editor-toolbar">
+    <div class="break-heading"><h2>أوقات الراحة · {{ dayNames[activeDay] }}</h2><p>{{ !activeDay ? 'تسري التغييرات على الأيام التي ترث الاستراحات الافتراضية.' : inherited ? 'تعديل الاستراحة ينشئ سجلاً مستقلاً لهذا اليوم.' : 'استراحات مخصصة لهذا اليوم.' }}</p></div>
+    <div class="stepper">
+      <label id="break-count-label" for="break-count">عدد الاستراحات</label>
+      <div class="stepper-control" role="group" aria-labelledby="break-count-label">
+        <button type="button" aria-label="تقليل عدد الاستراحات" [disabled]="disabled || !rows.length" (click)="resize(rows.length - 1)"><i class="pi pi-minus" aria-hidden="true"></i></button>
+        <input id="break-count" type="number" min="0" step="1" inputmode="numeric" [ngModel]="rows.length" (change)="resize(+$any($event.target).value)">
+        <button type="button" aria-label="إضافة استراحة" (click)="resize(rows.length + 1)"><i class="pi pi-plus" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </div>
+  <p class="break-placement-hint">يمكن وضع الاستراحة قبل الحصص أو بينها أو بعدها؛ الفواصل وتلامس الأوقات مسموحان.</p>
+  <p *ngIf="error" class="error-banner" role="alert">{{ error }}</p>
+  <div *ngIf="!rows.length" class="empty-breaks"><i class="pi pi-stopwatch"></i><p>لا توجد استراحات في هذا التوقيت.</p><button pButton label="أضف استراحة" icon="pi pi-plus" class="p-button-sm" (click)="resize(1)"></button></div>
+  <div class="break-list grid grid-cols-1 gap-4">
+    <article *ngFor="let item of orderedRows; trackBy: trackRow" class="break-card p-4" [class.invalid]="feedback.rows.has(item.index)" [class.border-red-500]="feedback.rows.has(item.index)">
+      <div class="period-heading">
+        <strong>{{ item.row.name || 'استراحة جديدة' }}</strong>
+        <button type="button" class="break-delete flex items-center justify-center" [attr.aria-label]="'حذف ' + (item.row.name || 'الاستراحة')" (click)="remove(item.index)"><i class="pi pi-trash" aria-hidden="true"></i></button>
+      </div>
+      <div class="break-fields grid grid-cols-1 md:grid-cols-2 gap-4">
+        <label [for]="'break-category-' + item.index">الفئة (اختياري)
+          <app-clearable-select [inputId]="'break-category-' + item.index" [options]="categories" optionLabel="label" optionValue="value" placeholder="اختر الفئة" styleClass="w-full p-inputtext-sm" [ngModel]="item.row.category" (ngModelChange)="edit(item.index, 'category', $event)" [disabled]="disabled"></app-clearable-select>
+        </label>
+        <label [for]="'break-name-' + item.index">اسم الاستراحة
+          <input pInputText class="p-inputtext-sm" [id]="'break-name-' + item.index" [value]="item.row.name" (input)="edit(item.index, 'name', $any($event.target).value)" required maxlength="120" placeholder="مثال: فسحة الصباح">
+        </label>
+      </div>
+      <div class="break-fields grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <label class="md:col-span-2 lg:col-span-1" [for]="'break-after-' + item.index">بعد الحصة (اختياري)
+          <app-clearable-select [inputId]="'break-after-' + item.index" [options]="periodOptions" optionLabel="label" optionValue="value" placeholder="ملء وقت البداية" styleClass="w-full p-inputtext-sm" [ngModel]="null" (ngModelChange)="afterPeriod(item.index, $event)" [disabled]="disabled"></app-clearable-select>
+        </label>
+        <label [for]="'break-start-' + item.index">البداية
+          <input type="time" class="p-inputtext-sm" step="1" [id]="'break-start-' + item.index" [value]="item.row.startLocalTime" (input)="edit(item.index, 'startLocalTime', $any($event.target).value)" [attr.aria-invalid]="feedback.rows.has(item.index)" [attr.aria-describedby]="'break-error-' + item.index" required>
+        </label>
+        <label [for]="'break-end-' + item.index">النهاية
+          <input type="time" class="p-inputtext-sm" step="1" [id]="'break-end-' + item.index" [value]="item.row.endLocalTime" (input)="edit(item.index, 'endLocalTime', $any($event.target).value)" [attr.aria-invalid]="feedback.rows.has(item.index)" [attr.aria-describedby]="'break-error-' + item.index" required>
+        </label>
+      </div>
+      <div class="break-card-meta flex flex-wrap items-center justify-between gap-2">
+        <small>«بعد الحصة» يملأ البداية مرة واحدة، ويمكن تعديلها.</small>
+        <small>الأيام المطبقة: {{ appliedDays.join('، ') || 'لا توجد أيام موروثة حالياً' }}</small>
+      </div>
+      <div class="break-error" [id]="'break-error-' + item.index" aria-live="polite">
+        <p *ngIf="feedback.summaries.get(item.index) as message" class="flex items-center gap-2"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><span>{{ message }}</span></p>
+      </div>
+    </article>
+  </div>
+  <div class="break-apply-actions flex flex-wrap items-center justify-end gap-2">
+    <button *ngIf="activeDay && !inherited" pButton label="استعادة الاستراحات الافتراضية" icon="pi pi-link" class="p-button-text p-button-sm" (click)="inherit()"></button>
+    <button pButton label="تطبيق هذا التوقيت على الأيام المحددة" icon="pi pi-copy" class="p-button-outlined p-button-sm" [disabled]="disabled || !selectedDays.size || feedback.rows.size > 0" (click)="applyToDays()"></button>
+  </div>
+  <div class="lesson-reference-section">
+    <h3>الحصص في هذا اليوم</h3>
+    <div class="lesson-reference">
+      <div *ngFor="let period of periods; let i = index" [class.invalid]="feedback.lessons.has(i)">
+        <strong>{{ period.displayLabel || 'الحصة ' + period.sequence }} <i *ngIf="feedback.lessons.has(i)" class="pi pi-exclamation-circle" role="img" aria-label="تداخل مع استراحة"></i></strong>
+        <bdi>{{ period.startLocalTime.slice(0, 5) }} – {{ period.endLocalTime.slice(0, 5) }}</bdi>
+      </div>
+    </div>
+  </div>
+</fieldset>

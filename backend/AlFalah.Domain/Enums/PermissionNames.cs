@@ -86,6 +86,7 @@ public static class PermissionNames
     // School timetable
     public const string TimetableView = "Timetable.View";
     public const string TimetableManage = "Timetable.Manage";
+    public const string TimetableReview = "Timetable.Review";
     public const string TimetableDelegate = "Timetable.Delegate";
 
     // Parent surveys and reusable templates

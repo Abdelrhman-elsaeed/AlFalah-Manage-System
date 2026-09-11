@@ -243,3 +243,11 @@ IsDeleted, DeletedAt, DeletedByUserId
 - A row is only inserted when the current user is the visit's Instructor AND the visit
   is `Status == Approved` (both checks enforced in `VisitService.GetInstructorReportAsync`).
 - Soft-delete cascades from `Visit` via FK.
+
+## Intelligent Timetable Phase 02 — timings (2026-09-06)
+
+`BellScheduleTemplate` belongs to one school, academic year and semester. A `TimetableSetupProfile` selects one template. Each save appends a complete `BellScheduleRevision` carrying the name and school timezone; its `BellScheduleDay` children own default/day definitions and `BellPeriod` children own ordered time-only boundaries and optional labels. Day 0 is the default; 1–7 are Saturday through Friday.
+
+Periods are positive contiguous integer sequences with flexible duration/count, no overlap and no midnight crossing. Holidays have no effective periods; study days inherit defaults or own independent overrides. `SchoolTimetable.BellScheduleRevisionId` pins historical operational times. Changes reset dependent setup readiness and mark timetables for revalidation; explicit publication validates entries before changing the pinned revision. Version snapshots embed labels and times. Teacher context and gate-pass lookups share school-local, half-open period resolution and return no lesson in gaps.
+
+See [Phase 02 blueprint](specs/intelligent-timetable/02-timings.md) for the full contract.

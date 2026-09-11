@@ -20,6 +20,7 @@ public sealed class StudentAffairsNotificationDispatcher
 
     public Task ProcessAsync(IDomainEvent domainEvent, CancellationToken cancellationToken) => domainEvent switch
     {
+        TeacherTimetableChangedEvent changed => TimetableChangedAsync(changed, cancellationToken),
         StudentAbsentRecordedEvent absence => CreateGuardianNotificationsAsync(
             absence, absence.StudentId, absence.AttendanceDate,
             nameof(DailyStudentAttendance), absence.DailyStudentAttendanceId,
@@ -43,6 +44,24 @@ public sealed class StudentAffairsNotificationDispatcher
             "student-affairs.academic-concern.approval", NotificationPriority.High, true, cancellationToken),
         _ => Task.CompletedTask
     };
+
+    private async Task TimetableChangedAsync(TeacherTimetableChangedEvent change, CancellationToken ct)
+    {
+        var prefix = $"timetable:{change.EventId:N}:";
+        var delivered = await _context.Notifications.IgnoreQueryFilters().AsNoTracking()
+            .Where(n => n.SchoolId == change.SchoolId && n.CorrelationId == change.EventId)
+            .Select(n => n.UserId).ToListAsync(ct);
+        foreach (var userId in change.TeacherUserIds.Distinct().Except(delivered))
+            _context.Notifications.Add(new Notification {
+                SchoolId = change.SchoolId, UserId = userId, Title = "تغيير في الجدول الدراسي",
+                Message = change.Kind == "Substitution"
+                    ? $"تم اعتماد احتياطي يوم {change.LocalDate:yyyy-MM-dd}. راجع جدولك اليومي (المراجعة {change.Revision})."
+                    : $"تم تبديل حصص في جدولك المنشور وأصبح التغيير سارياً فوراً (المراجعة {change.Revision}).",
+                Type = "TeacherTimetableChanged", RelatedEntityType = nameof(TimetableSubstitution), RelatedEntityId = change.SubstitutionId.ToString(),
+                CorrelationId = change.EventId, DeduplicationKey = prefix + userId, Priority = NotificationPriority.High,
+                DeliveryStatus = NotificationDeliveryStatus.Delivered, DeliveredAt = _timeProvider.GetUtcNow()
+            });
+    }
 
     private async Task ProcessSessionDelayAsync(
         SessionDelayLoggedEvent domainEvent,

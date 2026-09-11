@@ -294,9 +294,11 @@ public sealed class GatePassWorkflowTests
             return Task.FromResult(Tracked);
         }
 
+        public Task<DateOnly?> GetPublishedStudyDateAsync(int schoolId, DateTimeOffset instant, CancellationToken ct) => Task.FromResult<DateOnly?>(DateOnly.FromDateTime(instant.DateTime));
+
         public Task<GatePassTimetableSnapshot?> ResolvePublishedTimetableAsync(
             int schoolId, int academicYearId, TimetableSemester semester, int classroomId,
-            string classroomLabel, TimetableDay day, CancellationToken cancellationToken)
+            string classroomLabel, DateTimeOffset instant, CancellationToken cancellationToken)
         {
             SchoolIds.Add(schoolId);
             return Task.FromResult(Timetable);

@@ -14,6 +14,7 @@ public sealed class StudentAffairsOutboxProcessor
 {
     private static readonly string[] SupportedEventTypes =
     {
+        typeof(TeacherTimetableChangedEvent).FullName!,
         typeof(BehaviorIncidentLoggedEvent).FullName!,
         typeof(AcademicConcernLoggedEvent).FullName!,
         typeof(SessionDelayLoggedEvent).FullName!,
@@ -149,6 +150,8 @@ public sealed class StudentAffairsOutboxProcessor
     {
         object? value = message.EventType switch
         {
+            var type when type.EndsWith(nameof(TeacherTimetableChangedEvent), StringComparison.Ordinal) =>
+                JsonSerializer.Deserialize<TeacherTimetableChangedEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(BehaviorIncidentLoggedEvent), StringComparison.Ordinal) =>
                 JsonSerializer.Deserialize<BehaviorIncidentLoggedEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(AcademicConcernLoggedEvent), StringComparison.Ordinal) =>
