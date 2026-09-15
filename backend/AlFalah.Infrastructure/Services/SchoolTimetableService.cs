@@ -49,8 +49,20 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             ?? throw new KeyNotFoundException("المدرسة غير موجودة أو غير نشطة.");
 
         var capabilities = await GetCapabilitiesAsync(resolvedSchoolId, cancellationToken);
-        var academicYears = await _repository.GetAcademicYears()
-            .Select(x => new TimetableAcademicYearDto(x.Id, x.Code, x.NameAr, x.IsActive))
+        var academicYears = await _repository.GetAcademicTerms(resolvedSchoolId)
+            .GroupBy(term => new
+            {
+                term.AcademicYear.Id,
+                term.AcademicYear.Code,
+                term.AcademicYear.NameAr,
+                term.AcademicYear.StartsOn
+            })
+            .OrderByDescending(group => group.Key.StartsOn)
+            .Select(group => new TimetableAcademicYearDto(
+                group.Key.Id,
+                group.Key.Code,
+                group.Key.NameAr,
+                group.Any(term => term.IsActive)))
             .ToListAsync(cancellationToken);
 
         var teacherQuery = _repository.GetTeachers(resolvedSchoolId);
@@ -142,8 +154,12 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         EnsureSemester(request.Semester);
         var resolvedSchoolId = ResolveSchoolId(schoolId);
         await EnsureManageAsync(resolvedSchoolId, cancellationToken);
-        if (!await _repository.AcademicYearExistsAsync(request.AcademicYearId, cancellationToken))
-            throw new ArgumentException("العام الدراسي المحدد غير موجود.");
+        if (!await _repository.AcademicScopeExistsAsync(
+                resolvedSchoolId,
+                request.AcademicYearId,
+                request.Semester,
+                cancellationToken))
+            throw new ArgumentException("العام أو الفصل الدراسي المحدد غير متاح للمدرسة النشطة.");
         var title = NormalizeRequired(request.Title, 250, "عنوان الجدول");
         if (await _repository.GetAll().AnyAsync(x =>
                 x.SchoolId == resolvedSchoolId
@@ -188,6 +204,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     {
         var timetable = await RequireTrackedAsync(timetableId, cancellationToken);
         await EnsureManageAsync(timetable.SchoolId, cancellationToken);
+        EnsureDraft(timetable);
         EnsureRevision(timetable, request.Revision);
         var title = NormalizeRequired(request.Title, 250, "عنوان الجدول");
         var entries = await NormalizeAndValidateEntriesAsync(timetable, request.Entries, cancellationToken);
@@ -233,6 +250,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     {
         var timetable = await RequireTrackedAsync(timetableId, cancellationToken);
         await EnsureManageAsync(timetable.SchoolId, cancellationToken);
+        EnsureDraft(timetable);
         EnsureRevision(timetable, request.Revision);
         var version = await _repository.GetVersions(timetableId)
             .FirstOrDefaultAsync(x => x.VersionNumber == versionNumber, cancellationToken)
@@ -295,6 +313,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     {
         var timetable = await RequireTrackedAsync(timetableId, cancellationToken);
         await EnsureManageAsync(timetable.SchoolId, cancellationToken);
+        EnsureDraft(timetable);
         EnsureRevision(timetable, revision);
         var catalog = await GetCatalogAsync(timetable.SchoolId, cancellationToken);
         var imported = _documents.ParseImport(stream, catalog with { BellSchedule = (await GetByIdAsync(timetableId, cancellationToken)).BellSchedule });
@@ -336,6 +355,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         int? restoredFromVersion,
         CancellationToken cancellationToken)
     {
+        EnsureDraft(timetable);
         var userId = RequireUserId();
         var now = DateTimeOffset.UtcNow;
         await _repository.ExecuteInTransactionAsync(async ct =>
@@ -373,6 +393,12 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             await AddVersionAsync(timetable, entries, changeKind, restoredFromVersion, ct);
             await _repository.SaveChangesAsync(ct);
         }, cancellationToken);
+    }
+
+    private static void EnsureDraft(SchoolTimetable timetable)
+    {
+        if (timetable.IsPublished)
+            throw new InvalidOperationException("الجدول المنشور لقطة ثابتة؛ أنشئ مسودة جديدة لإجراء التعديلات.");
     }
 
     private async Task AddVersionAsync(

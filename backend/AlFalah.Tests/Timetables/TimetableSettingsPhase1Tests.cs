@@ -3,6 +3,7 @@ using AlFalah.Application.IntelligentTimetable.Handlers;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.Validators.IntelligentTimetable;
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Repositories;
@@ -27,6 +28,145 @@ public sealed class TimetableSettingsPhase1Tests
         result.IsValid.Should().BeFalse();
         result.Errors.Select(x => x.PropertyName).Should().Contain(
             new[] { "AcademicYearId", "Semester", "Name" });
+    }
+
+    [Fact]
+    public void Academic_year_validator_rejects_overlapping_or_out_of_range_semesters()
+    {
+        var validator = new CreateTimetableAcademicYearRequestValidator();
+
+        var result = validator.Validate(new CreateTimetableAcademicYearRequest(
+            "2026-2027",
+            "العام الدراسي 2026-2027",
+            new DateOnly(2026, 8, 1),
+            new DateOnly(2027, 7, 31),
+            new DateOnly(2026, 7, 20),
+            new DateOnly(2027, 1, 15),
+            new DateOnly(2027, 1, 10),
+            new DateOnly(2027, 8, 1),
+            TimetableSemester.First));
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(error => error.PropertyName == "FirstSemesterStartsOn");
+        result.Errors.Should().Contain(error => error.PropertyName == "SecondSemesterStartsOn");
+        result.Errors.Should().Contain(error => error.ErrorMessage.Contains("داخل العام الدراسي", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Create_academic_year_reuses_global_year_and_creates_two_school_terms()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase($"timetable-academic-year-{Guid.NewGuid()}")
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        context.AcademicYears.Add(new AcademicYear
+        {
+            Id = 7,
+            Code = "2026-2027",
+            NameAr = "العام الدراسي 2026-2027",
+            StartsOn = new DateOnly(2026, 8, 1),
+            EndsOn = new DateOnly(2027, 7, 31),
+            IsActive = true
+        });
+        await context.SaveChangesAsync();
+
+        var repository = new TimetableSettingsRepository(context);
+        var handler = new CreateTimetableAcademicYearCommandHandler(
+            repository,
+            new TestCurrentUser(RoleNames.Secretary, PermissionNames.TimetableManage),
+            TimeProvider.System);
+
+        var response = await handler.Handle(
+            new CreateTimetableAcademicYearCommand(ValidAcademicYearRequest(TimetableSemester.Second)),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        response.Data!.Id.Should().Be(7);
+        (await context.AcademicYears.CountAsync()).Should().Be(1);
+        var terms = await context.AcademicTerms.OrderBy(term => term.Semester).ToListAsync();
+        terms.Should().HaveCount(2);
+        terms.Should().OnlyContain(term => term.SchoolId == 1 && term.AcademicYearId == 7);
+        terms.Single(term => term.Semester == TimetableSemester.Second).IsActive.Should().BeTrue();
+        terms.Single(term => term.Semester == TimetableSemester.First).IsActive.Should().BeFalse();
+
+        var listedYears = await repository.GetAcademicYearsAsync(1, CancellationToken.None);
+        listedYears.Should().ContainSingle(year => year.Id == 7 && year.IsActive);
+    }
+
+    [Fact]
+    public async Task Create_academic_year_rejects_duplicate_school_scope()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase($"timetable-academic-year-duplicate-{Guid.NewGuid()}")
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        context.AcademicYears.Add(new AcademicYear
+        {
+            Id = 7,
+            Code = "2026-2027",
+            NameAr = "العام الدراسي 2026-2027",
+            StartsOn = new DateOnly(2026, 8, 1),
+            EndsOn = new DateOnly(2027, 7, 31),
+            IsActive = true
+        });
+        context.AcademicTerms.Add(new AcademicTerm
+        {
+            SchoolId = 1,
+            AcademicYearId = 7,
+            Semester = TimetableSemester.First,
+            StartsOn = new DateOnly(2026, 8, 1),
+            EndsOn = new DateOnly(2026, 12, 31),
+            IsActive = true,
+            CreatedByUserId = "user-1",
+            UpdatedByUserId = "user-1"
+        });
+        await context.SaveChangesAsync();
+
+        var handler = new CreateTimetableAcademicYearCommandHandler(
+            new TimetableSettingsRepository(context),
+            new TestCurrentUser(RoleNames.Secretary, PermissionNames.TimetableManage),
+            TimeProvider.System);
+
+        var response = await handler.Handle(
+            new CreateTimetableAcademicYearCommand(ValidAcademicYearRequest(TimetableSemester.First)),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().Contain(TimetableSettingsHandlerSupport.DuplicateAcademicYearScope);
+        (await context.AcademicTerms.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Create_school_scope_does_not_replace_the_platform_global_active_year()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase($"timetable-academic-year-global-active-{Guid.NewGuid()}")
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        context.AcademicYears.Add(new AcademicYear
+        {
+            Id = 3,
+            Code = "2025-2026",
+            NameAr = "العام الدراسي 2025-2026",
+            StartsOn = new DateOnly(2025, 8, 1),
+            EndsOn = new DateOnly(2026, 7, 31),
+            IsActive = true
+        });
+        await context.SaveChangesAsync();
+
+        var handler = new CreateTimetableAcademicYearCommandHandler(
+            new TimetableSettingsRepository(context),
+            new TestCurrentUser(RoleNames.Secretary, PermissionNames.TimetableManage),
+            TimeProvider.System);
+
+        var response = await handler.Handle(
+            new CreateTimetableAcademicYearCommand(ValidAcademicYearRequest(TimetableSemester.First)),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        (await context.AcademicYears.SingleAsync(year => year.Id == 3)).IsActive.Should().BeTrue();
+        (await context.AcademicYears.SingleAsync(year => year.Code == "2026-2027")).IsActive.Should().BeFalse();
+        (await context.AcademicTerms.SingleAsync(term => term.IsActive)).AcademicYearId.Should().Be(response.Data!.Id);
     }
 
     [Fact]
@@ -113,6 +253,17 @@ public sealed class TimetableSettingsPhase1Tests
         StatusLabelAr: "مسودة",
         Revision: 1,
         UpdatedAt: DateTimeOffset.UtcNow);
+
+    private static CreateTimetableAcademicYearRequest ValidAcademicYearRequest(TimetableSemester activeSemester) => new(
+        "2026-2027",
+        "العام الدراسي 2026-2027",
+        new DateOnly(2026, 8, 1),
+        new DateOnly(2027, 7, 31),
+        new DateOnly(2026, 8, 1),
+        new DateOnly(2026, 12, 31),
+        new DateOnly(2027, 1, 1),
+        new DateOnly(2027, 7, 31),
+        activeSemester);
 
     private sealed class TestCurrentUser(string role, params string[] permissions) : ICurrentUserService
     {

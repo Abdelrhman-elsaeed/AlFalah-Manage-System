@@ -193,6 +193,25 @@ public sealed class TimetableReviewPhase7Tests
         published.Findings.Single(x => x.RuleCode == ViolationRuleCode.EarlyPreferenceMissed).IsOverridden.Should().BeTrue();
         published.Findings.Single().OverrideReason.Should().Be("Accepted for this revision");
     }
+    [Fact] public async Task Published_review_remains_pinned_to_the_publication_snapshot_after_setup_changes()
+    {
+        await using var db = await Seed(); var service = Service(db);
+        var published = await service.PublishAsync(1, 1, default);
+        published.HardViolationCount.Should().Be(0);
+
+        var teacher = db.TeacherTimetableProfiles.Single(x => x.Id == 1);
+        teacher.MaximumWeeklyPeriods = 0;
+        teacher.Revision++;
+        var setup = db.TimetableSetupProfiles.Single();
+        setup.Revision++;
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var reviewedAgain = await Service(db).EvaluateAsync(1, default);
+        reviewedAgain.AnalysisRunId.Should().Be(published.AnalysisRunId);
+        reviewedAgain.TimetableRevision.Should().Be(published.TimetableRevision);
+        reviewedAgain.HardViolationCount.Should().Be(0);
+    }
     [Fact] public async Task School_scope_role_permissions_and_management_override_are_enforced()
     {
         await using var db = await Seed();

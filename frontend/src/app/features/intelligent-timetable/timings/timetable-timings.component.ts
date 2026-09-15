@@ -5,7 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { BellDay, BellPeriod, BellSchedule, SaveBellSchedule, effectivePeriods, periodErrors } from '../../../core/models/bell-schedule.models';
 import { TimetableSettingsOverview } from '../../../core/models/timetable-settings.models';
 import { BellScheduleService } from '../../../core/services/bell-schedule.service';
@@ -25,7 +25,8 @@ export class TimetableTimingsComponent implements OnInit {
   private readonly api = inject(BellScheduleService);
   private readonly settings = inject(TimetableSettingsService);
   private readonly toast = inject(ToastService);
-  activeTab: 'periods' | 'breaks' = inject(ActivatedRoute, { optional: true })?.snapshot.data['tab'] === 'breaks' ? 'breaks' : 'periods';
+  private readonly route = inject(ActivatedRoute, { optional: true });
+  activeTab: 'periods' | 'breaks' = this.route?.snapshot.data['tab'] === 'breaks' ? 'breaks' : 'periods';
   overview: TimetableSettingsOverview | null = null;
   templates: BellSchedule[] = [];
   draft: SaveBellSchedule | null = null;
@@ -65,7 +66,14 @@ export class TimetableTimingsComponent implements OnInit {
       && this.studyDays.every(x => effectivePeriods(this.draft!, x.day).length > 0 && !periodErrors(effectivePeriods(this.draft!, x.day)).size)
       && this.breakIssues.length === 0;
   }
-  ngOnInit() { this.loadContext(); }
+  ngOnInit() {
+    const queryYear = Number(this.route?.snapshot.queryParamMap.get('academicYearId')) || 0;
+    const querySemester = Number(this.route?.snapshot.queryParamMap.get('semester'));
+    const remembered = this.settings.getRememberedContext();
+    this.semester = querySemester === 1 || querySemester === 2 ? querySemester : remembered?.semester ?? this.semester;
+    this.yearId = queryYear || (remembered?.semester === this.semester ? remembered.academicYearId : 0);
+    this.loadContext();
+  }
   hasUnsavedChanges() { return this.canManage && JSON.stringify(this.draft) !== this.baseline; }
   @HostListener('window:beforeunload', ['$event']) beforeUnload(event: BeforeUnloadEvent) {
     if (this.hasUnsavedChanges()) { event.preventDefault(); event.returnValue = ''; }
@@ -79,6 +87,31 @@ export class TimetableTimingsComponent implements OnInit {
   loadContext() {
     const version = ++this.contextVersion;
     this.loading = true; this.error = ''; this.draft = null; this.baseline = 'null';
+    if (this.yearId) {
+      forkJoin({
+        overview: this.settings.getOverview(this.yearId, this.semester),
+        templates: this.api.list(this.yearId, this.semester)
+      }).subscribe({
+        next: ({ overview, templates }) => {
+          if (version !== this.contextVersion) return;
+          if (!overview.data) {
+            this.loading = false;
+            this.error = overview.message || 'تعذر تحميل إعدادات المدرسة.';
+            return;
+          }
+          this.overview = overview.data;
+          this.yearId = overview.data.selectedAcademicYearId;
+          this.profileId = overview.data.selectedProfile?.id ?? null;
+          this.applyTemplates(templates.data ?? []);
+        },
+        error: e => {
+          if (version !== this.contextVersion) return;
+          this.loading = false;
+          this.error = extractHttpErrorMessage(e) ?? 'تعذر تحميل بيانات التوقيت.';
+        }
+      });
+      return;
+    }
     this.settings.getOverview(this.yearId || undefined, this.semester).subscribe({ next: response => {
       if (version !== this.contextVersion) return;
       if (!response.data) { this.loading = false; this.error = response.message || 'تعذر تحميل إعدادات المدرسة.'; return; }
@@ -92,12 +125,15 @@ export class TimetableTimingsComponent implements OnInit {
     this.loading = true;
     this.api.list(this.yearId, this.semester).subscribe({ next: response => {
       if (version !== this.contextVersion) return;
-      this.loading = false;
-      this.templates = response.data ?? [];
-      const item = this.templates.find(x => x.id === preferredId)
-        ?? this.templates.find(x => x.selectedByProfileIds.includes(this.profileId ?? 0)) ?? this.templates[0];
-      item ? this.apply(item) : this.newTemplate(false);
+      this.applyTemplates(response.data ?? [], preferredId);
     }, error: e => { if (version !== this.contextVersion) return; this.loading = false; this.error = extractHttpErrorMessage(e) ?? 'تعذر تحميل التوقيتات.'; } });
+  }
+  private applyTemplates(templates: BellSchedule[], preferredId?: number) {
+    this.loading = false;
+    this.templates = templates;
+    const item = this.templates.find(x => x.id === preferredId)
+      ?? this.templates.find(x => x.selectedByProfileIds.includes(this.profileId ?? 0)) ?? this.templates[0];
+    item ? this.apply(item) : this.newTemplate(false);
   }
   choose(id: number) {
     if (id === this.selectedId) return;

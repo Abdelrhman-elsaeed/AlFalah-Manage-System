@@ -6,6 +6,28 @@
   padding: 0;
 }
 
+.context-header-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, .7fr) minmax(560px, 1.65fr) auto;
+  align-items: end;
+  gap: 1rem 1.25rem;
+  width: 100%;
+}
+
+.context-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  min-width: 0;
+}
+
+/* PrimeFlex defines w-12/h-12 as 100%, while Tailwind defines them as 3rem.
+   Use a component-owned size so the title icon cannot expand over the heading. */
+.context-icon {
+  width: 3rem !important;
+  height: 3rem !important;
+}
+
 /* PrimeNG's card content has no reliable horizontal inset after the global
    reset. The form carries its own responsive inset in the template. */
 :host ::ng-deep .p-card .p-card-content {
@@ -23,19 +45,205 @@
   font-weight: 800;
 }
 
-.setup-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(190px, 1fr));
-  gap: .85rem;
-  margin: 0;
-  padding: .15rem 0 .65rem;
-  overflow-x: auto;
-  list-style: none;
-  scrollbar-width: thin;
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
 }
 
+:host ::ng-deep .academic-year-button.p-button {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #fff;
+}
+
+:host ::ng-deep .profile-button.p-button {
+  border-color: transparent;
+  background: linear-gradient(145deg, #caa633, #a77c0d);
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(167, 124, 13, .18);
+}
+
+.setup-overview {
+  display: grid;
+  gap: .9rem;
+  margin-bottom: 1rem;
+}
+
+.readiness-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(225px, .65fr) minmax(320px, 1.45fr) minmax(220px, .65fr);
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 1.15rem;
+  overflow: hidden;
+  border: 1px solid rgba(15, 113, 50, .22);
+  border-inline-start: 4px solid #c9a227;
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 12% 0, rgba(201, 162, 39, .16), transparent 25%),
+    linear-gradient(115deg, #0e7551 0%, #0b6044 58%, #084a36 100%);
+  color: #fff;
+  box-shadow: 0 9px 22px rgba(8, 74, 54, .14);
+}
+
+.readiness-banner::after {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.11) 1px, transparent 1.2px);
+  background-size: 18px 18px;
+  content: '';
+  pointer-events: none;
+  opacity: .3;
+}
+
+.readiness-banner > * { position: relative; z-index: 1; min-width: 0; }
+.readiness-summary { display: flex; align-items: center; gap: .85rem; }
+.readiness-emblem {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 14px;
+  background: rgba(255,255,255,.12);
+  color: #f6df89;
+  font-size: 1.15rem;
+}
+.readiness-summary p { margin: 0 0 .2rem; color: #cfebe0; font-size: .75rem; font-weight: 800; }
+.readiness-summary strong { display: inline-block; margin-inline-end: .55rem; font-size: 1.8rem; line-height: 1; }
+.readiness-summary span { color: #e5f4ee; font-size: .76rem; }
+.readiness-track { display: grid; gap: .45rem; }
+.readiness-track-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .76rem; }
+.readiness-track-heading span, .readiness-track small { color: #cce7dc; }
+:host ::ng-deep .readiness-track .p-progressbar { height: .55rem; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.16); }
+:host ::ng-deep .readiness-track .p-progressbar-value { background: linear-gradient(90deg, #e3be44, #f4dd85); }
+.generation-state {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-height: 62px;
+  padding: .7rem .85rem;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: .8rem;
+  background: rgba(4, 40, 29, .25);
+}
+.generation-state > i { color: #f4d875; font-size: 1.1rem; }
+.generation-state span { display: block; color: #cce7dc; font-size: .72rem; }
+.generation-state strong { display: block; margin-top: .18rem; font-size: .8rem; }
+.generation-state.is-ready { background: rgba(255,255,255,.13); }
+
+:host ::ng-deep .profile-card.p-card {
+  overflow: hidden;
+  border: 1px solid rgba(17, 86, 55, .14);
+  border-radius: 1rem;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 5px 16px rgba(17,62,40,.06);
+}
+
+.profile-form-layout {
+  display: grid;
+  grid-template-areas:
+    'name facts actions'
+    'updated facts actions';
+  grid-template-columns: minmax(280px, 1.1fr) minmax(430px, 1.35fr) auto;
+  align-items: center;
+  gap: .45rem 1rem;
+  padding: 1rem 1.25rem 1.15rem;
+}
+
+.profile-name-field { grid-area: name; }
+.profile-facts { grid-area: facts; margin: 0; }
+.profile-updated { grid-area: updated; }
+.profile-actions { grid-area: actions; justify-content: flex-start; }
+
+.academic-year-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.dialog-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .85rem 1rem;
+  border: 1px solid #a7f3d0;
+  border-radius: .9rem;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.dialog-intro p { margin: 0; line-height: 1.7; }
+
+.academic-year-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem;
+}
+
+.academic-year-form label > span {
+  display: block;
+  margin-bottom: .4rem;
+  color: #334155;
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.academic-year-form label > span b { color: #dc2626; }
+.academic-year-form input { width: 100%; }
+
+.academic-year-form fieldset {
+  margin: 0;
+  padding: .9rem 1rem 1rem;
+  border: 1px solid #dbe6df;
+  border-radius: 1rem;
+  background: #fbfdfc;
+}
+
+.academic-year-form legend {
+  padding: 0 .45rem;
+  color: #0f5132;
+  font-size: .85rem;
+  font-weight: 900;
+}
+
+.active-semester-field { display: block; }
+:host ::ng-deep .active-semester-field .p-dropdown { width: 100%; }
+.form-error { color: #be123c; font-weight: 700; }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: .65rem;
+  padding-top: .25rem;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: .85rem;
+  margin: 0;
+  padding: .15rem 0;
+  list-style: none;
+}
+
+.setup-journey {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(17, 86, 55, .14) !important;
+  border-top: 2px solid rgba(201, 162, 39, .85) !important;
+  border-radius: 1rem !important;
+  background:
+    radial-gradient(circle at 4% 0, rgba(201,162,39,.1), transparent 20%),
+    linear-gradient(120deg, rgba(255,255,255,.98), rgba(246,250,247,.96)) !important;
+}
+
+.journey-heading { padding-bottom: .85rem; border-bottom: 1px solid rgba(17,86,55,.1); }
+
 .setup-step {
-  min-height: 210px;
+  min-height: 195px;
   padding: 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 1.15rem;
@@ -110,5 +318,29 @@
 
 @media (max-width: 640px) {
   .context-header { position: static; }
+  .header-actions, .header-actions button { width: 100%; }
+  .academic-year-grid { grid-template-columns: 1fr; }
   .unsaved-bar { align-items: stretch; flex-direction: column; }
+}
+
+@media (max-width: 1180px) {
+  .context-header-layout { grid-template-columns: 1fr; align-items: stretch; }
+  .header-actions { justify-content: flex-start; }
+  .readiness-banner { grid-template-columns: 1fr 1.4fr; }
+  .generation-state { grid-column: 1 / -1; }
+  .profile-form-layout {
+    grid-template-areas: 'name facts' 'updated facts' 'actions actions';
+    grid-template-columns: minmax(250px, 1fr) minmax(360px, 1.25fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .context-fields, .readiness-banner { grid-template-columns: 1fr; }
+  .generation-state { grid-column: auto; }
+  .readiness-track-heading { align-items: flex-start; flex-direction: column; gap: .15rem; }
+  .profile-form-layout {
+    grid-template-areas: 'name' 'facts' 'updated' 'actions';
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
 }

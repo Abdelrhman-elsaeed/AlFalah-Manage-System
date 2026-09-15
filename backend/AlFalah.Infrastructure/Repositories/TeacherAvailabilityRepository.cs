@@ -32,7 +32,7 @@ public sealed class TeacherAvailabilityRepository(AlFalahDbContext context) : IT
         await Profiles(schoolId, setupId).ToListAsync(ct);
     public async Task<IReadOnlyList<SchoolTimetableEntry>> GetAssignmentsAsync(int schoolId, int setupId, int teacherId, CancellationToken ct) =>
         await context.SchoolTimetableEntries.AsNoTracking().Where(x => x.SchoolId == schoolId && x.InstructorProfileId == teacherId &&
-            x.SchoolTimetable.TimetableSetupProfileId == setupId && !x.SchoolTimetable.IsDeleted).ToListAsync(ct);
+            x.SchoolTimetable.TimetableSetupProfileId == setupId && !x.SchoolTimetable.IsDeleted && !x.SchoolTimetable.IsPublished).ToListAsync(ct);
     public async Task<int> GetTeachingLoadAsync(int schoolId, int setupId, int teacherId, CancellationToken ct) =>
         await context.Set<TeachingAssignmentMember>().Where(m => m.SchoolId == schoolId && m.TimetableSetupProfileId == setupId &&
             m.Teacher.InstructorProfileId == teacherId).SumAsync(m => (int?)m.AllocatedPeriodCount, ct) ?? 0;

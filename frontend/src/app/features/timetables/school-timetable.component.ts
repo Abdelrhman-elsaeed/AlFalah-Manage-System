@@ -2,7 +2,7 @@ import { RouterLink } from '@angular/router';
 import { TimetableSettingsService } from '../../core/services/timetable-settings.service';
 import { TimetableSetupProfile } from '../../core/models/timetable-settings.models';
 import { ClearableSelectComponent } from '../../shared/components/clearable-select/clearable-select.component';
-import { effectivePeriods } from '../../core/models/bell-schedule.models';
+import { BellSchedule, effectivePeriods } from '../../core/models/bell-schedule.models';
 import { effectiveIntervals } from '../../core/models/schedule-break.models';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
@@ -30,6 +30,14 @@ interface CellAddress {
   teacherId: number;
   day: TimetableDay;
   period: number;
+}
+
+interface DisplayInterval {
+  readonly kind: 'Lesson' | 'Break';
+  readonly name: string;
+  readonly startLocalTime: string;
+  readonly endLocalTime: string;
+  readonly periodSequence: number | null;
 }
 
 @Component({
@@ -62,6 +70,7 @@ export class SchoolTimetableComponent implements OnInit {
   readonly grantsDialogVisible = signal(false);
   readonly versions = signal<TimetableVersion[]>([]);
   readonly versionsLoading = signal(false);
+  readonly contextBellSchedule = signal<BellSchedule | null>(null);
 
   readonly canManage = computed(() => this.timetable()?.capabilities.canManage ?? this.catalog()?.capabilities.canManage ?? false);
   readonly canDelegate = computed(() => this.catalog()?.capabilities.canDelegate ?? false);
@@ -69,14 +78,29 @@ export class SchoolTimetableComponent implements OnInit {
     const teachers = this.catalog()?.teachers ?? [];
     return !this.canManage() && teachers.length === 1 && teachers[0].isCurrentUser;
   });
-  readonly studyDays = computed(() => (this.catalog()?.days ?? []).filter(day => this.periodsFor(day.value).length > 0));
+  readonly gridEditable = computed(() => this.canManage() && this.timetable() !== null);
+  readonly usingFallbackGrid = computed(() => this.displayBellSchedule() === null);
+  readonly studyDays = computed(() => {
+    const days = this.catalog()?.days ?? [];
+    return this.displayBellSchedule()
+      ? days.filter(day => this.periodsFor(day.value).length > 0)
+      : days.filter(day => day.value >= 2 && day.value <= 6);
+  });
   periodsFor(day: number): number[] {
-    const schedule = this.timetable()?.bellSchedule;
-    return schedule ? effectivePeriods(schedule, day).map(x => x.sequence) : [];
+    const schedule = this.displayBellSchedule();
+    return schedule ? effectivePeriods(schedule, day).map(x => x.sequence) : this.fallbackPeriodNumbers;
   }
-  intervalsFor(day: number) {
-    const schedule = this.timetable()?.bellSchedule;
-    return schedule ? effectiveIntervals(schedule, day) : [];
+  intervalsFor(day: number): DisplayInterval[] {
+    const schedule = this.displayBellSchedule();
+    return schedule
+      ? effectiveIntervals(schedule, day) as DisplayInterval[]
+      : this.fallbackPeriodNumbers.map(period => ({
+          kind: 'Lesson',
+          name: `الحصة ${period}`,
+          startLocalTime: '',
+          endLocalTime: '',
+          periodSequence: period
+        }));
   }
   periodLabel(day: number, sequence: number): string {
     const schedule = this.timetable()?.bellSchedule;
@@ -123,11 +147,14 @@ export class SchoolTimetableComponent implements OnInit {
       this.loading.set(false);
       return;
     }
+    this.contextBellSchedule.set(null);
     this.loading.set(true);
     this.api.getCurrent(academicYearId, this.selectedSemester()).subscribe({
       next: response => {
         this.loading.set(false);
-        this.applyTimetable(response.data ?? null);
+        const timetable = response.data ?? null;
+        this.applyTimetable(timetable);
+        if (!timetable?.bellSchedule) this.loadContextBellSchedule(academicYearId, this.selectedSemester());
       },
       error: error => {
         this.loading.set(false);
@@ -235,7 +262,7 @@ export class SchoolTimetableComponent implements OnInit {
   }
 
   openCell(teacher: TimetableTeacher, day: TimetableDay, period: number): void {
-    if (!this.canManage()) return;
+    if (!this.gridEditable()) return;
     this.selectedCell = { teacherId: teacher.instructorProfileId, day, period };
     const entry = this.getEntry(teacher.instructorProfileId, day, period);
     this.draftType = entry?.entryType ?? 0;
@@ -491,6 +518,21 @@ export class SchoolTimetableComponent implements OnInit {
     for (const entry of timetable?.entries ?? []) lookup[this.cellKey(entry.instructorProfileId, entry.day, entry.period)] = entry;
     this.entries.set(lookup);
     this.dirty.set(false);
+  }
+
+  private readonly fallbackPeriodNumbers = Array.from({ length: 8 }, (_, index) => index + 1);
+
+  private displayBellSchedule(): BellSchedule | null {
+    return this.timetable()?.bellSchedule ?? this.contextBellSchedule();
+  }
+
+  private loadContextBellSchedule(academicYearId: number, semester: TimetableSemester): void {
+    this.settings.getOverview(academicYearId, semester).subscribe({
+      next: response => {
+        if (this.selectedYearId() !== academicYearId || this.selectedSemester() !== semester) return;
+        this.contextBellSchedule.set(response.data?.bellSchedule ?? null);
+      }
+    });
   }
 
   private cellKey(teacherId: number, day: TimetableDay, period: number): string {

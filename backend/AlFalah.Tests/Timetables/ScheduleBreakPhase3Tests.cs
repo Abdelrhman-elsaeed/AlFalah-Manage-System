@@ -93,7 +93,8 @@ public sealed class ScheduleBreakPhase3Tests
         BellScheduleResolver.EffectiveBreaks(saved.Data, TimetableDay.Friday).Should().BeEmpty();
         db.ScheduleBreakDefinitions.Count().Should().Be(2); // Each timing variation has its own record.
         db.SchoolTimetables.Single().BellScheduleRevisionId.Should().Be(original.Id);
-        db.SchoolTimetables.Single().TimingsRequireRevalidation.Should().BeTrue();
+        db.SchoolTimetables.Single().TimingsRequireRevalidation.Should().BeFalse();
+        db.SchoolTimetables.Single().Revision.Should().Be(1);
         (await new BellScheduleRepository(db).GetRevisionAsync(1, original.Id, default))!.DefaultBreaks.Should().BeEmpty();
         (await mediator.Send(new SaveScheduleBreaksCommand(id, request))).Errors.Should().Contain(TimetableSettingsHandlerSupport.ConcurrencyConflict);
 

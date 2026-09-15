@@ -2,6 +2,7 @@ using System.Text.Json;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.IntelligentTimetable.DTOs;
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
@@ -28,10 +29,35 @@ public sealed class TimetableSettingsRepository : ITimetableSettingsRepository
         await _context.AcademicTerms
             .AsNoTracking()
             .Where(term => term.SchoolId == schoolId && !term.IsDeleted)
-            .Select(term => term.AcademicYear)
-            .Distinct()
-            .OrderByDescending(year => year.StartsOn)
-            .Select(year => new TimetableSetupAcademicYearDto(year.Id, year.Code, year.NameAr, year.IsActive))
+            .GroupBy(term => new
+            {
+                term.AcademicYear.Id,
+                term.AcademicYear.Code,
+                term.AcademicYear.NameAr,
+                term.AcademicYear.StartsOn
+            })
+            .OrderByDescending(group => group.Key.StartsOn)
+            .Select(group => new TimetableSetupAcademicYearDto(
+                group.Key.Id,
+                group.Key.Code,
+                group.Key.NameAr,
+                group.Any(term => term.IsActive)))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+    public Task<AcademicYear?> GetAcademicYearByCodeForUpdateAsync(
+        string normalizedCode,
+        CancellationToken cancellationToken) =>
+        _context.AcademicYears
+            .AsTracking()
+            .SingleOrDefaultAsync(year => year.Code == normalizedCode, cancellationToken);
+
+    public async Task<IReadOnlyList<AcademicTerm>> GetAcademicTermsForUpdateAsync(
+        int schoolId,
+        CancellationToken cancellationToken) =>
+        await _context.AcademicTerms
+            .AsTracking()
+            .Where(term => term.SchoolId == schoolId && !term.IsDeleted)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -146,7 +172,35 @@ public sealed class TimetableSettingsRepository : ITimetableSettingsRepository
                 && !x.IsDeleted,
                 cancellationToken);
 
+    public void Add(AcademicYear academicYear) => _context.AcademicYears.Add(academicYear);
+
+    public void Add(AcademicTerm academicTerm) => _context.AcademicTerms.Add(academicTerm);
+
     public void Add(TimetableSetupProfile profile) => _context.TimetableSetupProfiles.Add(profile);
+
+    public void WriteAcademicScopeAudit(
+        int schoolId,
+        string userId,
+        AcademicYear academicYear,
+        TimetableSemester activeSemester) =>
+        _context.AuditLogs.Add(new AuditLog
+        {
+            SchoolId = schoolId,
+            UserId = userId,
+            Action = "Timetable.AcademicYear.Created",
+            EntityName = nameof(AcademicYear),
+            EntityId = academicYear.Id.ToString(),
+            NewValues = JsonSerializer.Serialize(new
+            {
+                academicYear.Code,
+                academicYear.NameAr,
+                academicYear.StartsOn,
+                academicYear.EndsOn,
+                ActiveSemester = activeSemester
+            }),
+            Reason = "إضافة عام دراسي وربطه بإعدادات الجدول",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
 
     public void WriteAudit(
         int schoolId,

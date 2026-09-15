@@ -464,9 +464,9 @@ public sealed class StudentAffairsDataSeeder
                 AcademicYearId = academicYear.Id,
                 Semester = TimetableSemester.First,
                 Title = "E2E Published Timetable",
-                IsPublished = true,
-                PublishedAt = _timeProvider.GetUtcNow(),
-                PublishedByUserId = actorUserId,
+                // Development data must pass through the real review/publish boundary.
+                // Seeding a live row directly would create no immutable version or analysis.
+                IsPublished = false,
                 Revision = 1,
                 CreatedByUserId = actorUserId,
                 UpdatedByUserId = actorUserId
@@ -476,10 +476,21 @@ public sealed class StudentAffairsDataSeeder
         }
         else
         {
+            var hasPublishedSnapshot = await _context.SchoolTimetableVersions
+                .AsNoTracking()
+                .AnyAsync(version => version.SchoolTimetableId == timetable.Id &&
+                    version.ChangeKind == TimetableChangeKind.Published, cancellationToken)
+                .ConfigureAwait(false);
+            if (timetable.IsPublished && hasPublishedSnapshot)
+                return;
+
             timetable.Title = "E2E Published Timetable";
-            timetable.IsPublished = true;
-            timetable.PublishedAt ??= _timeProvider.GetUtcNow();
-            timetable.PublishedByUserId = actorUserId;
+            // Legacy development rows were marked live without a publication snapshot.
+            // Their original state cannot be reconstructed safely, so quarantine them as
+            // drafts instead of presenting a mutable/invalid timetable as operational.
+            timetable.IsPublished = false;
+            timetable.PublishedAt = null;
+            timetable.PublishedByUserId = null;
             timetable.UpdatedByUserId = actorUserId;
             timetable.IsDeleted = false;
             timetable.DeletedAt = null;

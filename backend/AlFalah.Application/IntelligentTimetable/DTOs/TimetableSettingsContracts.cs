@@ -6,6 +6,17 @@ namespace AlFalah.Application.IntelligentTimetable.DTOs;
 
 public sealed record TimetableSetupAcademicYearDto(int Id, string Code, string NameAr, bool IsActive);
 
+public sealed record CreateTimetableAcademicYearRequest(
+    string Code,
+    string NameAr,
+    DateOnly StartsOn,
+    DateOnly EndsOn,
+    DateOnly FirstSemesterStartsOn,
+    DateOnly FirstSemesterEndsOn,
+    DateOnly SecondSemesterStartsOn,
+    DateOnly SecondSemesterEndsOn,
+    TimetableSemester ActiveSemester);
+
 public sealed record TimetableSetupProfileDto(
     int Id,
     int SchoolId,
@@ -67,6 +78,9 @@ public sealed record GetTimetableSettingsQuery(
 
 public sealed record CreateTimetableSetupProfileCommand(
     CreateTimetableSetupProfileRequest Request) : IRequest<ApiResponse<TimetableSetupProfileDto>>;
+
+public sealed record CreateTimetableAcademicYearCommand(
+    CreateTimetableAcademicYearRequest Request) : IRequest<ApiResponse<TimetableSetupAcademicYearDto>>;
 
 public sealed record UpdateTimetableSetupProfileCommand(
     int ProfileId,

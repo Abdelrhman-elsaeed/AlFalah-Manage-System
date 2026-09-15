@@ -1,5 +1,5 @@
-<main class="subjects-page" dir="rtl">
-  <header class="page-header"><div><a routerLink="/intelligent-timetable/settings">الجدول الذكي</a><h1>إعدادات المواد</h1><p>دليل مواد المدرسة وأنصبة الحصص لكل فصل</p></div>
+<main class="subjects-page tt-workspace" dir="rtl">
+  <header class="page-header tt-page-header"><div><a routerLink="/intelligent-timetable/settings">الجدول الذكي · متطلبات المواد</a><h1>إعدادات المواد</h1><p>اربط دليل مواد المدرسة بالفصول وحدد الأنصبة وقواعد التوزيع الأسبوعي.</p></div>
     <div class="actions"><button pButton label="إضافة مادة للدليل" icon="pi pi-plus" (click)="openCatalog()" [disabled]="!data || loading || saving"></button>
       <button pButton class="p-button-outlined" label="إضافة غرفة" icon="pi pi-building" (click)="roomsOpen = true" [disabled]="!data || loading || saving"></button></div></header>
   <section class="context panel" *ngIf="context as ctx">

@@ -1,4 +1,5 @@
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 
 namespace AlFalah.Application.Interfaces;
@@ -8,13 +9,17 @@ public interface ISchoolTimetableRepository
     IQueryable<SchoolTimetable> GetAll();
     IQueryable<SchoolTimetableVersion> GetVersions(int timetableId);
     IQueryable<InstructorProfile> GetTeachers(int schoolId);
-    IQueryable<AcademicYear> GetAcademicYears();
+    IQueryable<AcademicTerm> GetAcademicTerms(int schoolId);
     IQueryable<School> GetSchools();
     IQueryable<ApplicationUser> GetModerators(int schoolId);
     IQueryable<TimetableEditorGrant> GetGrants(int schoolId);
     Task<List<TimetableEditorGrant>> GetTrackedGrantsAsync(int schoolId, CancellationToken cancellationToken = default);
     Task<SchoolTimetable?> GetTrackedWithEntriesAsync(int timetableId, CancellationToken cancellationToken = default);
-    Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken = default);
+    Task<bool> AcademicScopeExistsAsync(
+        int schoolId,
+        int academicYearId,
+        TimetableSemester semester,
+        CancellationToken cancellationToken = default);
     Task AddAsync(SchoolTimetable timetable, CancellationToken cancellationToken = default);
     Task AddVersionAsync(SchoolTimetableVersion version, CancellationToken cancellationToken = default);
     Task AddEntriesAsync(IEnumerable<SchoolTimetableEntry> entries, CancellationToken cancellationToken = default);

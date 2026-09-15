@@ -1,5 +1,5 @@
-<section class="timings-page" dir="rtl">
-  <header><div><span class="eyebrow">الجدول الذكي</span><h1>توقيتات الجدول</h1><p>حدد أيام الدراسة وأوقات الحصص، وخصص توقيت كل يوم عند الحاجة.</p></div>
+<section class="timings-page tt-workspace" dir="rtl">
+  <header class="tt-page-header"><div><span class="eyebrow">الجدول الذكي · أوقات اليوم الدراسي</span><h1>توقيتات الجدول</h1><p>حدد أيام الدراسة، وابنِ قالب الحصص والاستراحات الذي تعتمد عليه كل مراحل الجدول.</p></div>
     <a pButton class="p-button-outlined" routerLink="/intelligent-timetable/settings" label="إعدادات الجدول" icon="pi pi-arrow-right"></a></header>
   <p *ngIf="error" class="error-banner" role="alert"><i class="pi pi-exclamation-circle"></i> {{ error }} <button pButton class="p-button-text" label="إعادة التحميل" (click)="confirmDiscard() && loadContext()"></button></p>
   <p *ngIf="loading" role="status"><i class="pi pi-spin pi-spinner"></i> جارٍ تحميل التوقيتات...</p>
@@ -10,18 +10,23 @@
     <button pButton label="قالب جديد" icon="pi pi-plus" class="p-button-outlined" [disabled]="!canManage || loading || saving || !yearId" (click)="newTemplate()"></button>
   </div>
   <ng-container *ngIf="!loading && draft as model">
-    <div class="selection-card" *ngIf="overview as context">
+    <div class="selection-card template-selection" *ngIf="overview as context">
       <label>ملف إعداد الجدول<app-clearable-select [options]="context.profiles" optionLabel="name" optionValue="id" [(ngModel)]="profileId" [clearable]="false" placeholder="أنشئ ملف إعداد أولاً"></app-clearable-select></label>
       <button pButton label="استخدام هذا القالب" icon="pi pi-check-circle" [disabled]="!canManage || !selectedId || !profileId || hasUnsavedChanges() || saving" (click)="selectForProfile()"></button>
       <ng-container *ngFor="let template of templates"><span *ngIf="template.id === selectedId" class="muted">الإصدار {{ template.revision }} · مستخدم في {{ template.selectedByProfileIds.length }} ملف إعداد</span></ng-container>
     </div>
-    <fieldset [disabled]="!canManage || saving">
+    <fieldset [disabled]="!canManage || saving" class="schedule-basics">
       <div class="template-fields">
         <label for="timing-name">اسم التوقيت / اسم القالب<input id="timing-name" pInputText [(ngModel)]="model.name" maxlength="120" required placeholder="مثال: التوقيت المعتاد — الفصل الأول"></label>
         <label>المنطقة الزمنية للمدرسة<app-clearable-select [options]="zones" optionLabel="label" optionValue="value" [(ngModel)]="model.schoolTimeZoneId" [clearable]="false" [disabled]="!canManage || saving"></app-clearable-select></label>
       </div>
-      <h2>أيام الدراسة والعطلات</h2>
-      <div class="weekdays"><label *ngFor="let day of model.days" [class.holiday]="!day.isStudyDay"><input type="checkbox" [checked]="day.isStudyDay" (change)="setStudyDay(day, $any($event.target).checked)"> {{ dayNames[day.day] }} <small>{{ day.isStudyDay ? 'دراسة' : 'عطلة' }}</small></label></div>
+      <section class="days-section" aria-labelledby="study-days-title">
+        <div class="section-title">
+          <div><span class="section-kicker">نطاق الأسبوع</span><h2 id="study-days-title">أيام الدراسة والعطلات</h2></div>
+          <p>حدد الأيام الفعلية للدراسة؛ ستظهر الأيام المختارة فقط داخل محرر الحصص والاستراحات.</p>
+        </div>
+        <div class="weekdays"><label *ngFor="let day of model.days" [class.holiday]="!day.isStudyDay"><input type="checkbox" [checked]="day.isStudyDay" (change)="setStudyDay(day, $any($event.target).checked)"><span>{{ dayNames[day.day] }} <small>{{ day.isStudyDay ? 'يوم دراسي' : 'عطلة' }}</small></span></label></div>
+      </section>
     </fieldset>
     <nav class="main-tabs" role="tablist" aria-label="أقسام التوقيت"><button role="tab" [attr.aria-selected]="activeTab === 'periods'" [class.active]="activeTab === 'periods'" (click)="activeTab = 'periods'"><i class="pi pi-clock"></i> الحصص</button><button role="tab" [attr.aria-selected]="activeTab === 'breaks'" [class.active]="activeTab === 'breaks'" (click)="activeTab = 'breaks'"><i class="pi pi-stopwatch"></i> الاستراحة</button></nav>
     <div class="day-tabs" role="tablist" aria-label="توقيت أيام الدراسة">

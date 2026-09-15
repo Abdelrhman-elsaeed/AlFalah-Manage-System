@@ -86,7 +86,8 @@ public sealed class TeachingAssignmentRepository(AlFalahDbContext db) : ITeachin
     }
     public async Task SaveAsync(TimetableSetupProfile setup, string actor, object before, object after, CancellationToken ct)
     {
-        var timetables = await db.SchoolTimetables.AsTracking().Where(x => x.SchoolId == setup.SchoolId && x.TimetableSetupProfileId == setup.Id).ToListAsync(ct);
+        var timetables = await db.SchoolTimetables.AsTracking().Where(x => x.SchoolId == setup.SchoolId &&
+            x.TimetableSetupProfileId == setup.Id && !x.IsPublished).ToListAsync(ct);
         foreach (var timetable in timetables) { timetable.TimingsRequireRevalidation = true; timetable.Revision++; }
         db.AuditLogs.Add(new() { SchoolId = setup.SchoolId, UserId = actor, Action = "Timetable.TeachingAssignments.Saved",
             EntityName = nameof(TeachingAssignment), EntityId = setup.Id.ToString(), OldValues = JsonSerializer.Serialize(before),

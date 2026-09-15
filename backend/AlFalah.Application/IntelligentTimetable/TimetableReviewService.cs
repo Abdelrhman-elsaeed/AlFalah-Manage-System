@@ -52,6 +52,7 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
     }
     public Task<TimetableReviewResultDto> ApplyAsync(int id, RepairProposalDto proposal, CancellationToken ct) => repository.ExecuteAsync(async token => {
         School(true); var c = await Context(id, token); var finding = await CurrentFinding(c, proposal.FindingId, token);
+        EnsureDraft(c.Timetable);
         if (proposal.AnalysisRunId != finding.AnalysisRunId || proposal.TimetableRevision != c.Timetable.Revision)
             throw new BellScheduleConflictException("Stale proposal");
         var accepted = repair.Propose(c, finding.AnalysisRun, finding, token).SingleOrDefault(x => x.Id == proposal.Id)
@@ -97,8 +98,11 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
     {
         var finding = await repository.GetFindingByIdAsync(School(), id, ct) ?? throw new KeyNotFoundException();
         if (finding.AnalysisRun.SchoolTimetableId != c.Timetable.Id) throw new KeyNotFoundException();
-        var latest = await repository.GetLatestAnalysisRunAsync(School(), c.Timetable.Id, ct);
-        if (latest?.Id != finding.AnalysisRunId || !Fresh(c, finding.AnalysisRun)) throw new BellScheduleConflictException("Stale analysis");
+        var latest = c.Timetable.IsPublished
+            ? await repository.GetPublishedSnapshotAnalysisRunAsync(School(), c.Timetable.Id, ct)
+            : await repository.GetLatestAnalysisRunAsync(School(), c.Timetable.Id, ct);
+        if (latest?.Id != finding.AnalysisRunId || !c.Timetable.IsPublished && !Fresh(c, finding.AnalysisRun))
+            throw new BellScheduleConflictException("Stale analysis");
         return finding;
     }
     private bool Fresh(TimetableValidationContext c, TimetableAnalysisRun run) => run.CompletedAt.HasValue &&
@@ -106,6 +110,11 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
         run.BellScheduleRevisionId == c.Schedule?.Id && run.AnalyzerVersion == Fingerprint(c);
     private async Task<TimetableAnalysisRun> Analyze(TimetableValidationContext c, bool force, CancellationToken ct)
     {
+        if (c.Timetable.IsPublished)
+        {
+            var frozen = await repository.GetPublishedSnapshotAnalysisRunAsync(School(), c.Timetable.Id, ct);
+            if (frozen is not null) return frozen;
+        }
         var latest = await repository.GetLatestAnalysisRunAsync(School(), c.Timetable.Id, ct);
         if (!force && latest is not null && Fresh(c, latest)) return latest;
         var run = CreateRun(c); repository.AddAnalysis(run); await repository.SaveAsync(ct); return run;
@@ -154,6 +163,11 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
         repository.AddVersion(version);
         return version;
     }
+    private static void EnsureDraft(SchoolTimetable timetable)
+    {
+        if (timetable.IsPublished)
+            throw new InvalidOperationException("الجدول المنشور لقطة ثابتة؛ أنشئ مسودة جديدة لإجراء التعديلات.");
+    }
     private void Audit(TimetableValidationContext c, string action, object evidence) => repository.AddAudit(new() {
         SchoolId = c.Timetable.SchoolId, UserId = user.UserId!, Action = action, EntityName = nameof(SchoolTimetable),
         EntityId = c.Timetable.Id.ToString(), NewValues = JsonSerializer.Serialize(evidence), CreatedAt = DateTimeOffset.UtcNow });
@@ -170,7 +184,7 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
             CanManage, CanOverride, run.Findings.OrderBy(x => x.Severity).ThenBy(x => x.RuleCode).Select(f => new ValidationFindingDto(f.Id, f.RuleCode, RuleName(f.RuleCode), f.Severity,
                 f.MessageAr, f.ClassroomId, Classroom(f.ClassroomId), f.InstructorProfileId, Teacher(f.InstructorProfileId), f.SubjectId, Subject(f.SubjectId),
                 f.Day, f.Period, f.IsOverridden, f.OverrideReason, f.OverriddenByUserId, f.OverriddenAt,
-                f.Severity == ViolationSeverity.Error && JsonSerializer.Deserialize<ValidationViolation>(f.EvidenceJson ?? "null")?.EntryIds.Length > 0)).ToArray(),
+                !c.Timetable.IsPublished && f.Severity == ViolationSeverity.Error && JsonSerializer.Deserialize<ValidationViolation>(f.EvidenceJson ?? "null")?.EntryIds.Length > 0)).ToArray(),
             entries, Enumerable.Range(1, 7).SelectMany(day => TimetableValidationEngine.Periods(c.Schedule, day).Select(p => new ReviewPeriodDto(day, p.Sequence, p.StartLocalTime.ToString("HH:mm"), p.EndLocalTime.ToString("HH:mm")))).ToArray(),
             c.Teachers.SelectMany(t => t.Slots.Where(s => !s.IsAvailable).Select(s => new ReviewUnavailableDto(t.InstructorProfileId, s.Day, s.Period.Sequence))).ToArray(),
             c.Teachers.Select(x => new ReviewOption(x.InstructorProfileId, Teacher(x.InstructorProfileId)!)).ToArray(),

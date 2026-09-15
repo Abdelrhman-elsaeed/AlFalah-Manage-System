@@ -1,6 +1,7 @@
 using System.Data;
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +24,9 @@ public sealed class SchoolTimetableRepository : ISchoolTimetableRepository
             .Where(x => x.SchoolId == schoolId && x.IsActive && x.User.IsActive)
             .OrderBy(x => x.User.FirstName).ThenBy(x => x.User.LastName);
 
-    public IQueryable<AcademicYear> GetAcademicYears() =>
-        _context.AcademicYears.AsNoTracking().OrderByDescending(x => x.StartsOn);
+    public IQueryable<AcademicTerm> GetAcademicTerms(int schoolId) =>
+        _context.AcademicTerms.AsNoTracking()
+            .Where(term => term.SchoolId == schoolId && !term.IsDeleted);
 
     public IQueryable<School> GetSchools() => _context.Schools.AsNoTracking();
 
@@ -51,8 +53,17 @@ public sealed class SchoolTimetableRepository : ISchoolTimetableRepository
             .Include(x => x.Entries)
             .FirstOrDefaultAsync(x => x.Id == timetableId, cancellationToken);
 
-    public Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken = default) =>
-        _context.AcademicYears.AnyAsync(x => x.Id == academicYearId, cancellationToken);
+    public Task<bool> AcademicScopeExistsAsync(
+        int schoolId,
+        int academicYearId,
+        TimetableSemester semester,
+        CancellationToken cancellationToken = default) =>
+        _context.AcademicTerms.AsNoTracking().AnyAsync(term =>
+            term.SchoolId == schoolId
+            && term.AcademicYearId == academicYearId
+            && term.Semester == semester
+            && !term.IsDeleted,
+            cancellationToken);
 
     public async Task AddAsync(SchoolTimetable timetable, CancellationToken cancellationToken = default) =>
         await _context.SchoolTimetables.AddAsync(timetable, cancellationToken);

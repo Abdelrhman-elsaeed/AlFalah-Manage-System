@@ -41,6 +41,27 @@ public class TimetableReviewRepository(AlFalahDbContext db) : ITimetableReviewRe
     public Task<TimetableAnalysisRun?> GetLatestAnalysisRunAsync(int school, int timetableId, CancellationToken ct) =>
         db.TimetableAnalysisRuns.AsTracking().Where(x => x.SchoolId == school && x.SchoolTimetableId == timetableId)
             .Include(x => x.Findings).OrderByDescending(x => x.Id).FirstOrDefaultAsync(ct);
+    public async Task<TimetableAnalysisRun?> GetPublishedSnapshotAnalysisRunAsync(int school, int timetableId, CancellationToken ct)
+    {
+        // Published schedules are immutable structural versions. Select the first analysis
+        // produced for the latest such version; later setup-only analyses cannot redefine it.
+        var snapshotCreatedAt = await db.SchoolTimetableVersions.AsNoTracking()
+            .Where(x => x.SchoolTimetableId == timetableId &&
+                (x.ChangeKind == AlFalah.Domain.Enums.TimetableChangeKind.Published ||
+                 x.ChangeKind == AlFalah.Domain.Enums.TimetableChangeKind.DirectSwap ||
+                 x.ChangeKind == AlFalah.Domain.Enums.TimetableChangeKind.ThreeWaySwap))
+            .OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
+            .Select(x => (DateTimeOffset?)x.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+        if (snapshotCreatedAt is null) return null;
+
+        return await db.TimetableAnalysisRuns.AsTracking()
+            .Where(x => x.SchoolId == school && x.SchoolTimetableId == timetableId &&
+                x.CompletedAt.HasValue && x.StartedAt >= snapshotCreatedAt.Value)
+            .Include(x => x.Findings)
+            .OrderBy(x => x.StartedAt).ThenBy(x => x.Id)
+            .FirstOrDefaultAsync(ct);
+    }
     public Task<TimetableAnalysisFinding?> GetFindingByIdAsync(int school, int findingId, CancellationToken ct) =>
         db.TimetableAnalysisFindings.AsTracking().Include(x => x.AnalysisRun).ThenInclude(x => x.Findings)
             .SingleOrDefaultAsync(x => x.Id == findingId && x.AnalysisRun.SchoolId == school && !x.AnalysisRun.SchoolTimetable.IsDeleted, ct);

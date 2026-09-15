@@ -296,13 +296,6 @@
     "SAVE": "حفظ بيانات التدريس",
     "SAVE_SUCCESS": "تم حفظ بيانات التدريس"
   },
-  "ROLES": {
-    "SUPER_ADMIN": "مدير النظام",
-    "MAIN_MANAGER": "مدير المدارس العام",
-    "SCHOOL_MANAGER": "مدير المدرسة",
-    "MODERATOR": "مشرف",
-    "INSTRUCTOR": "معلم"
-  },
   "USER_SCHOOL_ROLES": {
     "TITLE": "تعيينات المستخدمين",
     "NEW": "تعيين جديد",

@@ -6,6 +6,7 @@
 @import './styles/primeng.css';
 @import './styles/motion.css';
 @import './styles/responsive.css';
+@import './styles/intelligent-timetable.css';
 
 @tailwind base;
 @tailwind components;

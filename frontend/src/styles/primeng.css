@@ -3,6 +3,14 @@
 /* Inputs / dropdowns / textarea — white surface, green focus ring.
    D-41: every control unified to the same 2.4rem height as buttons so
    fields stack neatly without visual misalignment. */
+/* PrimeNG's bundled Inter asset is not used by this Arabic-first UI. The
+   Google-hosted families are declared in index.html and avoid decoding the
+   damaged local variable-font file shipped with the current theme install. */
+:root {
+  --font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
+  --font-feature-settings: normal;
+}
+
 .p-inputtext,
 .p-inputtext-input,
 .p-password input,

@@ -14,6 +14,7 @@ public interface ITimetableReviewRepository
     Task<IReadOnlyList<ReviewTimetableOption>> GetTimetablesAsync(int school, CancellationToken ct);
     Task<TimetableValidationContext?> GetValidationContextAsync(int school, int timetableId, CancellationToken ct);
     Task<TimetableAnalysisRun?> GetLatestAnalysisRunAsync(int school, int timetableId, CancellationToken ct);
+    Task<TimetableAnalysisRun?> GetPublishedSnapshotAnalysisRunAsync(int school, int timetableId, CancellationToken ct);
     Task<TimetableAnalysisFinding?> GetFindingByIdAsync(int school, int findingId, CancellationToken ct);
     void AddAnalysis(TimetableAnalysisRun run);
     void AddVersion(SchoolTimetableVersion version);

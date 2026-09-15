@@ -10,6 +10,8 @@ public static class TimetableSettingsHandlerSupport
     public const string PermissionDenied = "ليس لديك صلاحية للوصول إلى إعدادات الجدول الذكي.";
     public const string NotFound = "ملف إعداد الجدول غير موجود في المدرسة النشطة.";
     public const string DuplicateName = "يوجد ملف إعداد بالاسم نفسه لهذا العام والفصل الدراسي.";
+    public const string DuplicateAcademicYearScope = "العام الدراسي مرتبط بالفعل بهذه المدرسة.";
+    public const string AcademicYearCodeConflict = "كود العام الدراسي مستخدم بتواريخ مختلفة. راجع الكود أو التواريخ.";
     public const string InvalidAcademicScope = "العام أو الفصل الدراسي المحدد غير متاح للمدرسة النشطة.";
     public const string ConcurrencyConflict = "تم تعديل ملف الإعداد بواسطة مستخدم آخر. أعد تحميل أحدث نسخة وراجع تغييراتك.";
 

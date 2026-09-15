@@ -82,7 +82,7 @@ public sealed class BellSchedulePhase2Tests
     }
 
     [Fact]
-    public async Task Revisions_preserve_published_times_and_invalidate_dependent_setups()
+    public async Task Revisions_preserve_published_times_and_only_invalidate_draft_dependents()
     {
         await using var db = Database();
         var old = await BellScheduleTestData.SeedAsync(db, published: true);
@@ -98,7 +98,8 @@ public sealed class BellSchedulePhase2Tests
         var published = await repository.GetPublishedAsync(1, new DateTimeOffset(2026, 9, 1, 4, 10, 0, TimeSpan.Zero), default);
         published!.Revision.Should().Be(1);
         db.SchoolTimetables.Single().BellScheduleRevisionId.Should().Be(old.Id);
-        db.SchoolTimetables.Single().TimingsRequireRevalidation.Should().BeTrue();
+        db.SchoolTimetables.Single().TimingsRequireRevalidation.Should().BeFalse();
+        db.SchoolTimetables.Single().Revision.Should().Be(1);
         db.TimetableSetupProfiles.Single().Revision.Should().Be(2);
         var stale = await handler.Handle(new(old.BellScheduleTemplateId, request), default);
         stale.IsSuccess.Should().BeFalse();

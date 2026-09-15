@@ -28,7 +28,7 @@ public sealed record BellScheduleDependencies(IReadOnlyList<TimetableSetupProfil
             profile.UpdatedAt = changedAt;
             profile.UpdatedByUserId = userId;
         }
-        foreach (var timetable in Timetables)
+        foreach (var timetable in Timetables.Where(x => !x.IsPublished))
         {
             timetable.TimingsRequireRevalidation = true;
             timetable.Revision++;

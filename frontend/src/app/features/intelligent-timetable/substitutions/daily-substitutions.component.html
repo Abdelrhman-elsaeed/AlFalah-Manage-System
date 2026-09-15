@@ -1,5 +1,5 @@
-<main dir="rtl" class="daily-dashboard" [attr.aria-busy]="busy">
-  <header><div><span class="eyebrow">الجدول الذكي · التشغيل اليومي</span><h1>التبديل والاحتياطي</h1>
+<main dir="rtl" class="daily-dashboard tt-workspace" [attr.aria-busy]="busy">
+  <header class="tt-page-header"><div><span class="eyebrow">الجدول الذكي · التشغيل اليومي</span><h1>التبديل والاحتياطي</h1>
     <p>اختر الحصة، راجع البدائل، واعتمد التغيير لجميع فترات الحصة المزدوجة معاً.</p></div>
     <a pButton class="p-button-outlined" routerLink="/intelligent-timetable/review" [queryParams]="{timetableId: timetableId}">مراجعة الجدول</a></header>
   <p class="error" role="alert" *ngIf="error">{{error}}</p><p class="notice" role="status" *ngIf="notice">{{notice}}</p>

@@ -85,7 +85,7 @@ public sealed class SchoolTimetableServiceTests
     }
 
     [Fact]
-    public async Task Instructor_sees_only_published_schedule_and_edits_require_publication_again()
+    public async Task Instructor_sees_only_published_schedule_and_published_snapshot_rejects_direct_edits()
     {
         await using var harness = await TimetableHarness.CreateAsync();
         await harness.ConfigureReviewAsync();
@@ -109,15 +109,15 @@ public sealed class SchoolTimetableServiceTests
         published!.Entries.Single().Subject.Should().Be("رياضيات");
         (await instructor.GetByIdAsync(timetable.Id)).Entries.Should().OnlyContain(x => x.InstructorProfileId == 1);
 
-        timetable = await manager.SaveAsync(timetable.Id, new("الجدول المعدل", timetable.Revision, new[]
-        {
-            Lesson(1, "3/1", "رياضيات"),
-            new SaveTimetableEntryRequest(2, TimetableDay.Saturday, 2, TimetableEntryType.Lesson, "4/1", "علوم")
-        }));
-        (await instructor.GetCurrentAsync(1, TimetableSemester.First, null)).Should().BeNull();
-        await manager.PublishAsync(timetable.Id, new(timetable.Revision));
+        await manager.Invoking(x => x.SaveAsync(timetable.Id, new("الجدول المعدل", timetable.Revision, new[]
+            {
+                Lesson(1, "3/1", "رياضيات"),
+                new SaveTimetableEntryRequest(2, TimetableDay.Saturday, 2, TimetableEntryType.Lesson, "4/1", "علوم")
+            })))
+            .Should().ThrowAsync<InvalidOperationException>().WithMessage("*لقطة ثابتة*");
+
         var live = await instructor.GetCurrentAsync(1, TimetableSemester.First, null);
-        live!.Title.Should().Be("الجدول المعدل");
+        live!.Title.Should().Be("الجدول");
         live.Entries.Should().OnlyContain(x => x.InstructorProfileId == 1);
         live.Entries.Single().Subject.Should().Be("رياضيات");
     }

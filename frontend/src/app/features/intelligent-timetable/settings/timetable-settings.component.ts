@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
+import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -36,6 +37,7 @@ interface SelectOption<T> {
     RouterLink,
     ButtonModule,
     CardModule,
+    DialogModule,
     DropdownModule,
     InputTextModule,
     ProgressBarModule,
@@ -53,6 +55,8 @@ export class TimetableSettingsComponent implements OnInit, HasUnsavedTimetableSe
   readonly overview = signal<TimetableSettingsOverview | null>(null);
   readonly loading = signal(true);
   readonly saving = signal(false);
+  readonly savingAcademicYear = signal(false);
+  readonly academicYearDialogOpen = signal(false);
   readonly creating = signal(false);
   readonly guideDismissed = signal(false);
   readonly conflictMessage = signal('');
@@ -76,6 +80,18 @@ export class TimetableSettingsComponent implements OnInit, HasUnsavedTimetableSe
     })
   });
 
+  readonly academicYearForm = new FormGroup({
+    code: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(32)] }),
+    nameAr: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(128)] }),
+    startsOn: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    endsOn: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    firstSemesterStartsOn: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    firstSemesterEndsOn: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    secondSemesterStartsOn: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    secondSemesterEndsOn: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    activeSemester: new FormControl<number>(1, { nonNullable: true, validators: Validators.required })
+  });
+
   readonly canManage = computed(() => this.overview()?.canManage ?? false);
   readonly selectedProfile = computed(() => this.overview()?.selectedProfile ?? null);
   readonly completedSteps = computed(() => this.overview()?.steps.filter(step => step.status === 'complete').length ?? 0);
@@ -92,7 +108,8 @@ export class TimetableSettingsComponent implements OnInit, HasUnsavedTimetableSe
   }
 
   hasUnsavedChanges(): boolean {
-    return this.profileForm.dirty && this.canManage();
+    return this.canManage()
+      && (this.profileForm.dirty || (this.academicYearDialogOpen() && this.academicYearForm.dirty));
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -125,6 +142,10 @@ export class TimetableSettingsComponent implements OnInit, HasUnsavedTimetableSe
   }
 
   startCreate(): void {
+    if (!this.contextForm.controls.academicYearId.value) {
+      this.openAcademicYearDialog();
+      return;
+    }
     if (!this.confirmDiscard()) return;
     this.creating.set(true);
     this.conflictMessage.set('');
@@ -132,6 +153,66 @@ export class TimetableSettingsComponent implements OnInit, HasUnsavedTimetableSe
     this.contextForm.controls.profileId.setValue(null, { emitEvent: false });
     this.profileForm.reset({ name: '' });
     this.profileForm.markAsPristine();
+  }
+
+  openAcademicYearDialog(): void {
+    if (!this.canManage() || this.savingAcademicYear()) return;
+
+    const today = new Date();
+    const startYear = today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
+    const endYear = startYear + 1;
+    const code = `${startYear}-${endYear}`;
+    this.academicYearForm.reset({
+      code,
+      nameAr: `العام الدراسي ${code}`,
+      startsOn: `${startYear}-08-01`,
+      endsOn: `${endYear}-07-31`,
+      firstSemesterStartsOn: `${startYear}-08-01`,
+      firstSemesterEndsOn: `${startYear}-12-31`,
+      secondSemesterStartsOn: `${endYear}-01-01`,
+      secondSemesterEndsOn: `${endYear}-07-31`,
+      activeSemester: today.getMonth() >= 7 ? 1 : 2
+    });
+    this.academicYearForm.markAsPristine();
+    this.academicYearDialogOpen.set(true);
+  }
+
+  closeAcademicYearDialog(): void {
+    if (this.savingAcademicYear()) return;
+    this.academicYearDialogOpen.set(false);
+    this.academicYearForm.markAsPristine();
+  }
+
+  saveAcademicYear(): void {
+    this.academicYearForm.markAllAsTouched();
+    if (this.academicYearForm.invalid || this.savingAcademicYear() || !this.canManage()) return;
+
+    const request = this.academicYearForm.getRawValue();
+    this.savingAcademicYear.set(true);
+    this.api.createAcademicYear(request)
+      .pipe(finalize(() => this.savingAcademicYear.set(false)))
+      .subscribe({
+        next: response => {
+          if (!response.isSuccess || !response.data) {
+            this.toast.error('تعذر إضافة العام الدراسي', response.errors[0] ?? response.message ?? '');
+            return;
+          }
+          this.academicYearDialogOpen.set(false);
+          this.academicYearForm.markAsPristine();
+          this.toast.success('تمت إضافة العام الدراسي', response.message || 'أصبح العام متاحًا في جميع شاشات الجدول الذكي.');
+          this.loadOverview(response.data.id, request.activeSemester);
+        },
+        error: (error: HttpErrorResponse) =>
+          this.toast.error('تعذر إضافة العام الدراسي', extractHttpErrorMessage(error) ?? 'تحقق من التواريخ وحاول مرة أخرى.')
+      });
+  }
+
+  savePendingChanges(): void {
+    if (this.academicYearDialogOpen() && this.academicYearForm.dirty) {
+      this.saveAcademicYear();
+      return;
+    }
+    this.save();
   }
 
   cancelCreate(): void {

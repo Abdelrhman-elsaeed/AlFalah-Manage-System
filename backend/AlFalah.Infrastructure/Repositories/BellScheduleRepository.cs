@@ -69,7 +69,7 @@ public sealed class BellScheduleRepository(AlFalahDbContext context) : IBellSche
         var profiles = await context.TimetableSetupProfiles.AsTracking().Where(x => x.SchoolId == schoolId &&
             ((templateId != null && x.BellScheduleTemplateId == templateId) || (profileId != null && x.Id == profileId))).ToListAsync(ct);
         var ids = profiles.Select(x => x.Id).ToArray();
-        var timetables = await context.SchoolTimetables.AsTracking().Where(x => x.SchoolId == schoolId &&
+        var timetables = await context.SchoolTimetables.AsTracking().Where(x => x.SchoolId == schoolId && !x.IsPublished &&
             x.TimetableSetupProfileId != null && ids.Contains(x.TimetableSetupProfileId.Value)).ToListAsync(ct);
         return new(profiles, timetables);
     }

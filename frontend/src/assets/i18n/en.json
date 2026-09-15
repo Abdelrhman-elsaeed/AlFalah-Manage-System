@@ -296,13 +296,6 @@
     "SAVE": "Save Teaching Details",
     "SAVE_SUCCESS": "Teaching details saved"
   },
-  "ROLES": {
-    "SUPER_ADMIN": "Super Admin",
-    "MAIN_MANAGER": "Main Manager",
-    "SCHOOL_MANAGER": "School Manager",
-    "MODERATOR": "Moderator",
-    "INSTRUCTOR": "Instructor"
-  },
   "USER_SCHOOL_ROLES": {
     "TITLE": "User-School Assignments",
     "NEW": "New Assignment",

@@ -1,3 +1,5 @@
+import { BellSchedule } from './bell-schedule.models';
+
 export type TimetableSetupStatus = 'Draft' | 'ReadyForGeneration' | 'Generated' | 'Archived';
 export type TimetableStepStatus = 'not-started' | 'incomplete' | 'complete' | 'blocked';
 
@@ -6,6 +8,18 @@ export interface TimetableSetupAcademicYear {
   readonly code: string;
   readonly nameAr: string;
   readonly isActive: boolean;
+}
+
+export interface CreateTimetableAcademicYearRequest {
+  readonly code: string;
+  readonly nameAr: string;
+  readonly startsOn: string;
+  readonly endsOn: string;
+  readonly firstSemesterStartsOn: string;
+  readonly firstSemesterEndsOn: string;
+  readonly secondSemesterStartsOn: string;
+  readonly secondSemesterEndsOn: string;
+  readonly activeSemester: number;
 }
 
 export interface TimetableSetupProfile {
@@ -54,6 +68,7 @@ export interface TimetableSettingsOverview {
   readonly counts: TimetableReadinessCounts;
   readonly steps: readonly TimetableSetupStep[];
   readonly warnings: readonly string[];
+  readonly bellSchedule?: BellSchedule | null;
 }
 
 export interface CreateTimetableSetupProfileRequest {

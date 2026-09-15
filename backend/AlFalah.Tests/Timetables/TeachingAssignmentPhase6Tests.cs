@@ -144,6 +144,26 @@ public sealed class TeachingAssignmentPhase6Tests
         var setup = await other.TimetableSetupProfiles.SingleAsync(); setup.Revision++; await other.SaveChangesAsync();
         await service.Invoking(s => s.SaveAsync(1, 1, new(1, [Cell(1, 1)]), "manager", default)).Should().ThrowAsync<BellScheduleConflictException>();
     }
+    [Fact]
+    public async Task Assignment_changes_invalidate_drafts_without_mutating_published_timetables()
+    {
+        await using var db = await Seed();
+        db.SchoolTimetables.AddRange(
+            new SchoolTimetable { Id = 1, SchoolId = 1, AcademicYearId = 1, TimetableSetupProfileId = 1,
+                Semester = TimetableSemester.First, Title = "Published", Revision = 7, IsPublished = true,
+                CreatedByUserId = "manager", UpdatedByUserId = "manager" },
+            new SchoolTimetable { Id = 2, SchoolId = 1, AcademicYearId = 1, TimetableSetupProfileId = 1,
+                Semester = TimetableSemester.First, Title = "Draft", Revision = 3,
+                CreatedByUserId = "manager", UpdatedByUserId = "manager" });
+        await db.SaveChangesAsync();
+
+        await Service(db).SaveAsync(1, 1, new(1, [Cell(1, 1)]), "manager", default);
+
+        db.SchoolTimetables.Single(x => x.Id == 1).Should().Match<SchoolTimetable>(x =>
+            x.IsPublished && x.Revision == 7 && !x.TimingsRequireRevalidation);
+        db.SchoolTimetables.Single(x => x.Id == 2).Should().Match<SchoolTimetable>(x =>
+            !x.IsPublished && x.Revision == 4 && x.TimingsRequireRevalidation);
+    }
     private static TeachingCellRequest Cell(int requirement, int teacher) => new(requirement, "SingleTeacher", [new(teacher, 4, 1)]);
     [Fact]
     public async Task Exact_maximum_is_allowed_and_inactive_class_assignments_can_be_removed()

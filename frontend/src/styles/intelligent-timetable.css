@@ -1,0 +1,594 @@
+/* Shared visual language for the complete Intelligent Timetable workspace. */
+:is(
+  app-school-timetable,
+  app-timetable-settings,
+  app-timetable-timings,
+  app-teacher-settings,
+  app-subject-settings,
+  app-teaching-assignments,
+  app-timetable-review,
+  app-daily-substitutions,
+  app-timetable-module-placeholder
+) {
+  --tt-brand: var(--brand-700, #0f7132);
+  --tt-brand-dark: var(--brand-950, #0b3f29);
+  --tt-brand-soft: var(--brand-50, #edf7f1);
+  --tt-gold: var(--gold, #c9a227);
+  --tt-gold-soft: rgba(201, 162, 39, .11);
+  --tt-line: rgba(17, 86, 55, .14);
+  --tt-shadow: 0 9px 26px rgba(17, 62, 40, .075);
+}
+
+.tt-workspace {
+  min-height: calc(100dvh - var(--topbar-height, 56px));
+  background-color: #f8f7f2;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(15, 113, 50, .045) 1px, transparent 1.2px),
+    linear-gradient(135deg, rgba(201, 162, 39, .025) 25%, transparent 25%, transparent 75%, rgba(201, 162, 39, .025) 75%);
+  background-position: 0 0, 0 0;
+  background-size: 24px 24px, 48px 48px;
+}
+
+.tt-workspace.timetable-page,
+.tt-workspace.timings-page,
+.tt-workspace.teacher-settings,
+.tt-workspace.subjects-page,
+.tt-workspace.assignments-page,
+.tt-workspace.review-page,
+.tt-workspace.daily-dashboard,
+.tt-workspace.placeholder {
+  width: 100%;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding: clamp(.2rem, .45vw, .5rem) !important;
+  background-color: #f8f7f2 !important;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(15, 113, 50, .045) 1px, transparent 1.2px),
+    linear-gradient(135deg, rgba(201, 162, 39, .025) 25%, transparent 25%, transparent 75%, rgba(201, 162, 39, .025) 75%) !important;
+  background-size: 24px 24px, 48px 48px !important;
+}
+
+.tt-page-header,
+.tt-workspace > header {
+  isolation: isolate;
+  position: relative;
+  min-height: 96px;
+  margin-bottom: .85rem !important;
+  padding: .9rem 1.1rem !important;
+  overflow: hidden;
+  border: 1px solid var(--tt-line) !important;
+  border-top: 3px solid var(--tt-gold) !important;
+  border-radius: 15px !important;
+  background:
+    radial-gradient(circle at 8% 15%, rgba(201, 162, 39, .09), transparent 24%),
+    linear-gradient(115deg, rgba(255, 255, 255, .97), rgba(241, 248, 244, .94)) !important;
+  box-shadow: var(--tt-shadow) !important;
+}
+
+/* 2026 workspace layout: every tab consumes the available shell width and
+   shares the same density, surface hierarchy and green/gold brand language. */
+.tt-workspace {
+  --tt-surface: rgba(255, 255, 255, .96);
+  --tt-surface-soft: rgba(246, 250, 247, .95);
+  --tt-gold-strong: #b48a14;
+  --tt-radius: 14px;
+  --tt-control-height: 40px;
+  box-sizing: border-box;
+  color: var(--tt-brand-dark);
+}
+
+.tt-workspace *,
+.tt-workspace *::before,
+.tt-workspace *::after { box-sizing: border-box; }
+
+.tt-workspace :is(h1, h2, h3) { text-wrap: balance; }
+.tt-workspace :is(h2, h3) { color: var(--tt-brand-dark); line-height: 1.45; }
+.tt-workspace :is(p, small) { line-height: 1.65; }
+
+.tt-workspace :is(.context-bar, .context-grid, .filters-card, .toolbar, .selection-card, .profile-form, .panel, .workspace, .editor-toolbar, .viewer-title) {
+  border: 1px solid var(--tt-line) !important;
+  border-radius: var(--tt-radius) !important;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,.98), rgba(248,252,249,.96)) !important;
+  box-shadow: 0 4px 14px rgba(17, 62, 40, .055) !important;
+}
+
+.tt-workspace :is(.context-bar, .context-grid, .toolbar, .selection-card) {
+  position: relative;
+  overflow: visible;
+}
+
+.tt-workspace :is(.context-bar, .context-grid, .toolbar, .selection-card)::before {
+  position: absolute;
+  inset-block: .7rem;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--tt-gold), rgba(201,162,39,.25));
+  content: '';
+}
+
+.tt-workspace :is(label, .context-field) {
+  min-width: 0;
+  color: #385047;
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.tt-workspace :is(input:not([type='checkbox']):not([type='radio']), select, textarea),
+.tt-workspace :is(.p-dropdown, .p-multiselect, .p-calendar, .p-inputnumber) {
+  min-height: var(--tt-control-height);
+  border-color: rgba(17, 86, 55, .22);
+  border-radius: 9px;
+  background: rgba(255,255,255,.98);
+}
+
+.tt-workspace :is(input[type='checkbox'], input[type='radio']) { accent-color: var(--tt-brand); }
+
+.tt-workspace .p-button {
+  padding-inline: .82rem;
+  letter-spacing: 0;
+}
+
+.tt-workspace .p-button .p-button-icon { font-size: .86rem; }
+
+.tt-workspace :is(.stats, .summary) > div,
+.tt-workspace .metric {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--tt-line) !important;
+  border-top: 2px solid rgba(201, 162, 39, .8) !important;
+  border-radius: 13px !important;
+  background:
+    radial-gradient(circle at 12% 0, rgba(201,162,39,.1), transparent 35%),
+    linear-gradient(135deg, #fff, #f5faf7) !important;
+  box-shadow: 0 4px 12px rgba(17,62,40,.045);
+}
+
+.tt-workspace :is(.stats, .summary) strong { color: var(--tt-brand-dark); }
+
+/* Timings + breaks: context first, then clearly separated template basics and
+   weekly scope. This removes the title/field collision at medium widths. */
+.tt-workspace.timings-page .context-grid {
+  grid-template-columns: repeat(3, minmax(180px, 1fr)) auto;
+  gap: .75rem;
+  margin: 0 0 .8rem;
+  padding: .85rem !important;
+}
+
+.tt-workspace.timings-page .template-selection {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto minmax(220px, auto);
+  align-items: end;
+  gap: .75rem 1rem;
+  margin: 0 0 .8rem;
+  padding: .85rem 1rem !important;
+}
+
+.tt-workspace.timings-page .schedule-basics {
+  margin: 0 0 .8rem;
+  padding: 1rem !important;
+  border-color: var(--tt-line);
+  background: var(--tt-surface);
+  box-shadow: 0 4px 14px rgba(17,62,40,.05);
+}
+
+.tt-workspace.timings-page .days-section {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(17,86,55,.11);
+}
+
+.tt-workspace.timings-page .section-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: .75rem 1.5rem;
+  margin-bottom: .75rem;
+}
+
+.tt-workspace.timings-page .section-title h2 { margin: .15rem 0 0; font-size: 1rem; }
+.tt-workspace.timings-page .section-title p { max-width: 42rem; margin: 0; color: #6b7d75; font-size: .76rem; }
+.tt-workspace.timings-page .section-kicker { color: var(--tt-gold-strong); font-size: .68rem; font-weight: 900; }
+.tt-workspace.timings-page .weekdays { display: grid; grid-template-columns: repeat(7, minmax(100px, 1fr)); gap: .55rem; }
+.tt-workspace.timings-page .weekdays label {
+  min-height: 52px;
+  justify-content: center;
+  padding: .55rem .65rem;
+  border: 1px solid rgba(15,113,50,.13);
+  background: linear-gradient(145deg, #f0f8f3, #e7f3eb);
+}
+.tt-workspace.timings-page .weekdays label.holiday { border-color: rgba(100,116,139,.12); background: #f4f6f5; }
+.tt-workspace.timings-page .weekdays label > span { display: flex; flex-direction: column; gap: .1rem; }
+.tt-workspace.timings-page .weekdays small { font-size: .66rem; }
+.tt-workspace.timings-page .main-tabs { margin-top: .85rem; }
+.tt-workspace.timings-page .day-tabs { padding: .65rem; border-radius: 12px; background: rgba(255,255,255,.64); }
+.tt-workspace.timings-page .lesson-editor { margin-top: .75rem; }
+
+/* Dense data tabs still use cards, but the data matrix remains the visual
+   priority and gets the majority of the available viewport. */
+.tt-workspace.teacher-settings .context-bar,
+.tt-workspace.subjects-page .context,
+.tt-workspace.assignments-page .context-bar {
+  margin-bottom: .85rem;
+  padding: .85rem !important;
+}
+
+.tt-workspace.assignments-page .context-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  align-items: end;
+}
+
+.tt-workspace.teacher-settings .teacher-heading {
+  top: -.5rem;
+  margin-top: .75rem;
+  padding: .75rem .15rem;
+  background: rgba(248,247,242,.94);
+  backdrop-filter: blur(10px);
+}
+
+.tt-workspace.teacher-settings .profile-form { padding: 1rem !important; }
+.tt-workspace.teacher-settings .matrix-scroll,
+.tt-workspace.assignments-page .matrix-scroll,
+.tt-workspace.subjects-page .table-scroll,
+.tt-workspace.review-page .grid-scroll {
+  border-radius: 11px;
+  scrollbar-color: #8eb09d #edf3ef;
+  scrollbar-width: thin;
+}
+
+.tt-workspace.subjects-page .panel { padding: 1rem; margin-bottom: .85rem; }
+.tt-workspace.subjects-page .stats,
+.tt-workspace.assignments-page .stats,
+.tt-workspace.review-page .summary { gap: .75rem; margin: .85rem 0; }
+.tt-workspace.subjects-page .stats > div,
+.tt-workspace.assignments-page .stats > div { padding: .9rem 1rem; }
+.tt-workspace.subjects-page .stats strong,
+.tt-workspace.assignments-page .stats strong { color: var(--tt-brand); font-size: 1.55rem; }
+
+.tt-workspace.assignments-page .workspace { margin-top: .85rem; }
+.tt-workspace.assignments-page .workspace-heading,
+.tt-workspace.assignments-page .filters { padding: .85rem 1rem; }
+
+.tt-workspace.review-page .metric { padding: 1.1rem 1.2rem; }
+.tt-workspace.review-page .metric strong { font-size: 2.1rem; }
+.tt-workspace.review-page .panel { margin-bottom: .85rem; }
+.tt-workspace.review-page .section-heading { padding: 1rem; }
+.tt-workspace.review-page .context-bar {
+  display: grid;
+  grid-template-columns: auto minmax(320px, 1fr) auto auto;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .85rem;
+  padding: .85rem 1rem;
+}
+
+/* Daily operations benefits from one wide control rail and a second focused
+   search rail; both now use the full page instead of a narrow centred column. */
+.tt-workspace.daily-dashboard > .toolbar,
+.tt-workspace.daily-dashboard section > .toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.5fr) repeat(2, minmax(190px, .8fr)) auto;
+  align-items: end;
+  gap: .75rem;
+  margin: 0 0 .85rem;
+  padding: .9rem 1rem;
+}
+
+.tt-workspace.daily-dashboard .status-row {
+  gap: .65rem;
+  margin: .4rem 0;
+}
+
+.tt-workspace.daily-dashboard .legend {
+  margin: .75rem 0;
+  padding: .65rem .75rem;
+  border: 1px solid rgba(201,162,39,.18);
+  border-radius: 11px;
+  background: linear-gradient(120deg, rgba(255,251,235,.8), rgba(244,250,246,.9));
+}
+
+.tt-workspace.daily-dashboard .lesson-grid,
+.tt-workspace.daily-dashboard .candidate-grid { gap: .85rem; }
+.tt-workspace.daily-dashboard .lesson,
+.tt-workspace.daily-dashboard .candidate { padding: 1rem; box-shadow: 0 4px 12px rgba(17,62,40,.045); }
+.tt-workspace.daily-dashboard .history {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--tt-line);
+  border-radius: var(--tt-radius);
+  background: rgba(255,255,255,.9);
+}
+
+.tt-workspace.daily-dashboard .empty {
+  display: grid;
+  min-height: 130px;
+  place-items: center;
+  margin: .85rem 0;
+  border: 1px dashed rgba(17,86,55,.2);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(201,162,39,.08), transparent 45%),
+    rgba(255,255,255,.72);
+  color: #61766c;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .tt-workspace.timings-page .context-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tt-workspace.timings-page .template-selection { grid-template-columns: 1fr auto; }
+  .tt-workspace.timings-page .template-selection .muted { grid-column: 1 / -1; }
+  .tt-workspace.timings-page .weekdays { grid-template-columns: repeat(4, minmax(100px, 1fr)); }
+  .tt-workspace.daily-dashboard > .toolbar,
+  .tt-workspace.daily-dashboard section > .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tt-workspace.review-page .context-bar { grid-template-columns: auto minmax(240px, 1fr) auto; }
+  .tt-workspace.review-page .context-bar > button { grid-column: 1 / -1; justify-self: start; }
+}
+
+@media (max-width: 760px) {
+  .tt-workspace.timetable-page,
+  .tt-workspace.timings-page,
+  .tt-workspace.teacher-settings,
+  .tt-workspace.subjects-page,
+  .tt-workspace.assignments-page,
+  .tt-workspace.review-page,
+  .tt-workspace.daily-dashboard,
+  .tt-workspace.placeholder { padding: 0 !important; }
+  .tt-workspace.timings-page :is(.context-grid, .template-selection) { grid-template-columns: minmax(0, 1fr); }
+  .tt-workspace.timings-page .section-title { align-items: flex-start; flex-direction: column; }
+  .tt-workspace.timings-page .weekdays { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tt-workspace.daily-dashboard > .toolbar,
+  .tt-workspace.daily-dashboard section > .toolbar { grid-template-columns: minmax(0, 1fr); }
+  .tt-workspace.assignments-page .context-bar,
+  .tt-workspace.review-page .context-bar { grid-template-columns: minmax(0, 1fr); }
+  .tt-workspace.review-page .context-bar > button { grid-column: auto; width: 100%; }
+}
+
+.tt-page-header::after,
+.tt-workspace > header::after {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -54px;
+  inset-inline-end: -38px;
+  width: 150px;
+  height: 150px;
+  border: 24px solid rgba(15, 113, 50, .035);
+  border-radius: 50%;
+  content: '';
+}
+
+.tt-page-header > div,
+.tt-workspace > header > div { min-width: 0; }
+
+.tt-page-header h1,
+.tt-workspace > header h1 {
+  margin: .2rem 0 .25rem !important;
+  color: var(--tt-brand-dark) !important;
+  font-size: clamp(1.45rem, 2.15vw, 1.9rem) !important;
+  font-weight: 850 !important;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+
+.tt-page-header p,
+.tt-workspace > header p {
+  max-width: 58rem;
+  margin: 0 !important;
+  color: var(--text-muted, #67756d) !important;
+  font-size: .84rem;
+  line-height: 1.65;
+}
+
+.tt-page-header .eyebrow,
+.tt-workspace > header .eyebrow,
+.tt-page-header > div > a:first-child,
+.tt-workspace > header > div > a:first-child,
+.tt-page-header > div > span:first-child,
+.tt-workspace > header > div > span:first-child {
+  color: var(--tt-brand) !important;
+  font-size: .72rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .025em;
+  text-decoration: none;
+}
+
+.tt-page-header > i,
+.tt-workspace > header > i {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  border-radius: 13px;
+  background: linear-gradient(145deg, var(--tt-brand), var(--tt-brand-dark));
+  color: #fff !important;
+  box-shadow: 0 7px 16px rgba(15, 113, 50, .2);
+  font-size: 1.2rem !important;
+}
+
+.tt-page-header > a:not(.p-button),
+.tt-workspace > header > a:not(.p-button),
+.tt-page-header .editor-link {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: .45rem;
+  padding: .55rem .8rem;
+  border: 0;
+  border-radius: 9px;
+  background: var(--tt-gold-soft);
+  color: #795d0b !important;
+  font-size: .78rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform var(--duration-fast, 120ms) ease, background var(--duration-fast, 120ms) ease;
+}
+
+.tt-page-header > a:not(.p-button):hover,
+.tt-workspace > header > a:not(.p-button):hover,
+.tt-page-header .editor-link:hover {
+  transform: translateY(-1px);
+  background: rgba(201, 162, 39, .18);
+}
+
+/* Cards and selectors use one density and elevation across every timetable tab. */
+.tt-workspace :is(.context-bar, .context-grid, .filters-card, .toolbar, .selection-card, .profile-form, .panel, .workspace, .editor-toolbar, .viewer-title) {
+  border-color: var(--tt-line) !important;
+  border-radius: 12px !important;
+  background-color: rgba(255, 255, 255, .94) !important;
+  box-shadow: 0 3px 12px rgba(17, 62, 40, .055);
+}
+
+.tt-workspace .context-grid {
+  padding: .85rem;
+  margin: .75rem 0 1rem;
+}
+
+.tt-workspace :is(.context-bar, .context-grid) label {
+  color: var(--text, #3f4d45);
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+/* Filled button hierarchy: green primary, soft-green secondary, gold emphasis. */
+.tt-workspace .p-button,
+:is(
+  app-school-timetable,
+  app-timetable-settings,
+  app-timetable-timings,
+  app-teacher-settings,
+  app-subject-settings,
+  app-teaching-assignments,
+  app-timetable-review,
+  app-daily-substitutions,
+  app-timetable-module-placeholder
+) .p-button {
+  min-height: 38px;
+  border-color: transparent;
+  border-radius: 9px;
+  background: linear-gradient(145deg, var(--tt-brand), var(--brand-800, #0d6434));
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(15, 113, 50, .13);
+  transition: transform var(--duration-fast, 120ms) ease, box-shadow var(--duration-fast, 120ms) ease, background var(--duration-fast, 120ms) ease;
+}
+
+.tt-workspace .p-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 15px rgba(15, 113, 50, .18);
+}
+
+.tt-workspace .p-button.p-button-outlined,
+:is(
+  app-school-timetable,
+  app-timetable-settings,
+  app-timetable-timings,
+  app-teacher-settings,
+  app-subject-settings,
+  app-teaching-assignments,
+  app-timetable-review,
+  app-daily-substitutions
+) .p-button.p-button-outlined {
+  border-color: rgba(15, 113, 50, .12);
+  background: linear-gradient(145deg, #f2faf5, #e4f3ea);
+  color: var(--tt-brand-dark);
+  box-shadow: none;
+}
+
+.tt-workspace .p-button.p-button-outlined:hover:not(:disabled) {
+  border-color: rgba(15, 113, 50, .2);
+  background: #dcefe4;
+  color: var(--tt-brand-dark);
+}
+
+.tt-workspace .p-button.p-button-text,
+:is(
+  app-school-timetable,
+  app-timetable-settings,
+  app-timetable-timings,
+  app-teacher-settings,
+  app-subject-settings,
+  app-teaching-assignments,
+  app-timetable-review,
+  app-daily-substitutions
+) .p-button.p-button-text {
+  border-color: transparent;
+  background: rgba(15, 113, 50, .075);
+  color: var(--tt-brand);
+  box-shadow: none;
+}
+
+.tt-workspace .p-button.p-button-text:hover:not(:disabled) {
+  background: rgba(15, 113, 50, .13);
+  color: var(--tt-brand-dark);
+}
+
+.tt-workspace .p-button.p-button-warning { background: linear-gradient(145deg, #c7a12b, #a77c0c); color: #fff; }
+.tt-workspace .p-button.p-button-danger,
+.tt-workspace .p-button.p-button-text.p-button-danger { background: rgba(211, 59, 59, .09); color: var(--danger, #d33b3b); }
+.tt-workspace .p-button:disabled { transform: none; opacity: .52; box-shadow: none; }
+.tt-workspace .monochrome-pdf-button { border-color: transparent !important; background: #eef1ef !important; color: #3f4d45 !important; }
+.tt-workspace .publish-button { background: linear-gradient(145deg, #c5a02c, #98710a) !important; color: #fff !important; }
+.tt-workspace .profile-button.p-button {
+  border-color: transparent !important;
+  background: linear-gradient(145deg, #caa633, #a77c0d) !important;
+  color: #fff !important;
+  box-shadow: 0 5px 12px rgba(167,124,13,.18) !important;
+}
+
+.tt-workspace .day-tabs button:not(.active),
+.tt-workspace .grid-toolbar button:not(.active) {
+  border-color: transparent;
+  background: #eef5f1;
+  color: var(--tt-brand-dark);
+}
+
+.tt-workspace .day-tabs button:not(.active):hover,
+.tt-workspace .grid-toolbar button:not(.active):hover { background: #e1efe7; }
+
+.tt-workspace :is(input, select, textarea):focus,
+.tt-workspace .p-inputwrapper-focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 113, 50, .11) !important;
+}
+
+.tt-workspace > [role='status']:has(.pi-spinner) {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  gap: .65rem;
+  margin: .75rem 0;
+  padding: 1rem;
+  border: 1px solid var(--tt-line);
+  border-radius: 12px;
+  background: linear-gradient(100deg, rgba(255, 255, 255, .96), rgba(237, 247, 241, .9), rgba(255, 255, 255, .96));
+  background-size: 220% 100%;
+  color: var(--tt-brand);
+  box-shadow: 0 3px 12px rgba(17, 62, 40, .05);
+  animation: tt-loading-sheen 1.35s ease-in-out infinite;
+}
+
+@keyframes tt-loading-sheen {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@media (max-width: 760px) {
+  .tt-page-header,
+  .tt-workspace > header { min-height: 0; align-items: flex-start !important; }
+  .tt-page-header > a,
+  .tt-workspace > header > a,
+  .tt-page-header > .header-actions,
+  .tt-workspace > header > .header-actions,
+  .tt-page-header > .actions,
+  .tt-workspace > header > .actions { max-width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-workspace .p-button,
+  .tt-page-header > a,
+  .tt-workspace > header > a { transition: none; }
+  .tt-workspace > [role='status']:has(.pi-spinner) { animation: none; }
+}

@@ -53,6 +53,21 @@ public sealed class TimetableSettingsController : ControllerBase
             : Failure(response);
     }
 
+    [HttpPost("academic-years")]
+    public async Task<IActionResult> CreateAcademicYear(
+        [FromBody] CreateTimetableAcademicYearRequest request,
+        CancellationToken cancellationToken)
+    {
+        var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
+        if (errors.Count > 0)
+            return BadRequest(ApiResponse<TimetableSetupAcademicYearDto>.Fail(errors));
+
+        var response = await _mediator.Send(new CreateTimetableAcademicYearCommand(request), cancellationToken);
+        return response.IsSuccess
+            ? StatusCode(StatusCodes.Status201Created, response)
+            : Failure(response);
+    }
+
     [HttpPut("profiles/{profileId:int}")]
     public async Task<IActionResult> Update(
         int profileId,
@@ -86,6 +101,9 @@ public sealed class TimetableSettingsController : ControllerBase
         if (error == TimetableSettingsHandlerSupport.NotFound)
             return NotFound(response);
         if (error == TimetableSettingsHandlerSupport.ConcurrencyConflict)
+            return Conflict(response);
+        if (error == TimetableSettingsHandlerSupport.DuplicateAcademicYearScope
+            || error == TimetableSettingsHandlerSupport.AcademicYearCodeConflict)
             return Conflict(response);
         return BadRequest(response);
     }

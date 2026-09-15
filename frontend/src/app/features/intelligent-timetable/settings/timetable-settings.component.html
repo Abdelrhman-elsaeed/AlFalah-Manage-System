@@ -1,8 +1,8 @@
-<main class="timetable-settings-page min-h-full bg-slate-50/70" dir="rtl">
-  <section class="context-header sticky top-0 z-20 mb-6 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur md:p-5">
-    <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+<main class="timetable-settings-page tt-workspace min-h-full" dir="rtl">
+  <section class="context-header tt-page-header">
+    <div class="context-header-layout">
       <div class="flex items-center gap-3">
-        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-emerald-100 text-emerald-700">
+        <span class="context-icon inline-flex shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
           <i class="pi pi-calendar-clock text-xl"></i>
         </span>
         <div>
@@ -12,11 +12,12 @@
         </div>
       </div>
 
-      <form [formGroup]="contextForm" class="grid min-w-0 flex-1 grid-cols-1 gap-3 md:grid-cols-3 xl:max-w-4xl">
+      <form [formGroup]="contextForm" class="context-fields">
         <label class="context-field">
           <span>العام الدراسي</span>
           <p-dropdown formControlName="academicYearId" [options]="yearOptions()" optionLabel="label" optionValue="value"
-            placeholder="اختر العام" [showClear]="false" (onChange)="changeAcademicContext()" appendTo="body"></p-dropdown>
+            placeholder="اختر العام" emptyMessage="لا توجد أعوام دراسية" [showClear]="false"
+            (onChange)="changeAcademicContext()" appendTo="body"></p-dropdown>
         </label>
         <label class="context-field">
           <span>الفصل الدراسي</span>
@@ -31,7 +32,12 @@
       </form>
 
       @if (canManage()) {
-        <button pButton type="button" class="p-button-outlined shrink-0" icon="pi pi-plus" label="ملف إعداد جديد" (click)="startCreate()"></button>
+        <div class="header-actions">
+          <button pButton type="button" class="academic-year-button" icon="pi pi-calendar-plus"
+            label="إضافة عام دراسي" (click)="openAcademicYearDialog()"></button>
+          <button pButton type="button" class="profile-button" icon="pi pi-plus" label="ملف إعداد جديد"
+            [disabled]="yearOptions().length === 0" (click)="startCreate()"></button>
+        </div>
       }
     </div>
   </section>
@@ -48,7 +54,11 @@
       <section class="empty-panel">
         <i class="pi pi-calendar-times"></i>
         <h2>لا يوجد نطاق دراسي مفعّل لهذه المدرسة</h2>
-        <p>أضف فصلاً دراسياً مرتبطاً بالمدرسة قبل إنشاء ملف إعداد للجدول.</p>
+        <p>أضف عاماً دراسياً مرة واحدة، وسينشئ النظام الفصلين ويربطهما بهذه المدرسة.</p>
+        @if (vm.canManage) {
+          <button pButton type="button" class="mt-4" icon="pi pi-calendar-plus" label="إضافة أول عام دراسي"
+            (click)="openAcademicYearDialog()"></button>
+        }
       </section>
     } @else {
       @if (conflictMessage()) {
@@ -61,8 +71,34 @@
         </section>
       }
 
-      <section class="mb-6 grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,.75fr)]">
-        <p-card styleClass="h-full overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
+      <section class="setup-overview">
+        <aside class="readiness-banner" aria-label="جاهزية ملف الإعداد">
+          <div class="readiness-summary">
+            <span class="readiness-emblem"><i class="pi pi-chart-line"></i></span>
+            <div>
+              <p>جاهزية الإعداد</p>
+              <strong>{{ vm.completionPercent }}%</strong>
+              <span>{{ completedSteps() }} من {{ vm.steps.length }} خطوات مكتملة</span>
+            </div>
+          </div>
+          <div class="readiness-track">
+            <div class="readiness-track-heading">
+              <strong>تقدم رحلة الإعداد</strong>
+              <span>تُحسب من البيانات المحفوظة فعلياً</span>
+            </div>
+            <p-progressBar [value]="vm.completionPercent" [showValue]="false"></p-progressBar>
+            <small>أي حذف أو تعطيل لمتطلب أساسي يعيد الخطوة تلقائياً إلى حالة غير مكتملة.</small>
+          </div>
+          <div class="generation-state" [class.is-ready]="vm.hardPrerequisitesValid">
+            <i [class]="vm.hardPrerequisitesValid ? 'pi pi-check-circle' : 'pi pi-lock'"></i>
+            <div>
+              <span>التوليد التلقائي</span>
+              <strong>{{ vm.hardPrerequisitesValid ? 'متاح الآن' : 'بانتظار المتطلبات الصلبة' }}</strong>
+            </div>
+          </div>
+        </aside>
+
+        <p-card styleClass="profile-card">
           <ng-template pTemplate="header">
             <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
               <div>
@@ -79,8 +115,8 @@
             <div class="mb-4 flex gap-2 rounded-xl bg-sky-50 p-3 text-sm text-sky-900"><i class="pi pi-eye mt-0.5"></i>هذه الشاشة للعرض فقط وفق صلاحياتك الحالية.</div>
           }
 
-          <form [formGroup]="profileForm" (ngSubmit)="save()" class="space-y-5 px-5 pb-5 pt-5 md:px-6 md:pb-6">
-            <label class="block">
+          <form [formGroup]="profileForm" (ngSubmit)="save()" class="profile-form-layout">
+            <label class="profile-name-field block">
               <span class="mb-2 block text-sm font-bold text-slate-700">اسم ملف الإعداد <b class="text-rose-600">*</b></span>
               <input pInputText formControlName="name" maxlength="120" class="w-full" [readonly]="!vm.canManage"
                 placeholder="مثال: الجدول الاعتيادي أو جدول رمضان" />
@@ -89,7 +125,7 @@
               }
             </label>
 
-            <div class="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm sm:grid-cols-2">
+            <div class="profile-facts grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm sm:grid-cols-2">
               <div><span class="block text-slate-500">العام الدراسي</span><strong>{{ vm.selectedProfile?.academicYearName || yearOptions()[0]?.label }}</strong></div>
               <div><span class="block text-slate-500">الفصل الدراسي</span><strong>{{ vm.selectedSemesterLabelAr }}</strong></div>
               <div><span class="block text-slate-500">قالب أوقات الحصص</span><strong>{{ vm.selectedProfile?.bellScheduleTemplateId ? 'تم الاختيار' : 'لم يُحدد بعد' }}</strong></div>
@@ -97,11 +133,11 @@
             </div>
 
             @if (vm.selectedProfile; as profile) {
-              <p class="m-0 text-xs text-slate-500">آخر حفظ: {{ formatUpdatedAt(profile.updatedAt) }}</p>
+              <p class="profile-updated m-0 text-xs text-slate-500">آخر حفظ: {{ formatUpdatedAt(profile.updatedAt) }}</p>
             }
 
             @if (vm.canManage) {
-              <div class="flex flex-wrap gap-3">
+              <div class="profile-actions flex flex-wrap gap-3">
                 <button pButton type="submit" icon="pi pi-save" [loading]="saving()"
                   [label]="creating() ? 'إنشاء ملف الإعداد' : 'حفظ التغييرات'" [disabled]="!profileForm.dirty && !creating()"></button>
                 @if (creating() && vm.selectedProfile) {
@@ -111,24 +147,11 @@
             }
           </form>
         </p-card>
-
-        <aside class="rounded-3xl bg-gradient-to-br from-emerald-700 to-teal-900 p-6 text-white shadow-lg">
-          <div class="flex items-start justify-between gap-4">
-            <div><p class="m-0 text-sm text-emerald-100">جاهزية الإعداد</p><strong class="mt-2 block text-4xl font-black">{{ vm.completionPercent }}%</strong></div>
-            <span class="rounded-full bg-white/15 px-3 py-1 text-sm">{{ completedSteps() }} من {{ vm.steps.length }}</span>
-          </div>
-          <p-progressBar [value]="vm.completionPercent" [showValue]="false" styleClass="mt-5 h-2 bg-white/20"></p-progressBar>
-          <p class="mt-5 text-sm leading-7 text-emerald-50">تُحسب الجاهزية من البيانات المحفوظة فعلياً، وتعود الخطوة إلى غير مكتملة عند حذف متطلب أو تعطيله.</p>
-          <div class="mt-5 rounded-2xl border border-white/15 bg-white/10 p-4">
-            <div class="flex items-center gap-2 font-bold"><i class="pi pi-shield"></i> التوليد التلقائي</div>
-            <p class="mb-0 mt-2 text-sm text-emerald-50">{{ vm.hardPrerequisitesValid ? 'متاح الآن' : 'متوقف حتى اكتمال المتطلبات الصلبة' }}</p>
-          </div>
-        </aside>
       </section>
 
       @if (!guideDismissed()) {
-        <section class="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-          <div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <section class="setup-journey mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+          <div class="journey-heading mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div><p class="m-0 text-xs font-bold text-emerald-700">رحلة الإعداد</p><h2 class="mb-0 mt-1 text-xl font-black text-slate-900">أكمل الخطوات بالترتيب المناسب</h2></div>
             <div class="flex flex-wrap gap-2"><button pButton type="button" icon="pi pi-arrow-left" label="متابعة الإعداد" (click)="continueSetup()"></button><button pButton type="button" class="p-button-text" label="سأفعلها لاحقاً" (click)="dismissGuide()"></button></div>
           </div>
@@ -180,10 +203,75 @@
     }
   }
 
+  <p-dialog header="إضافة عام دراسي" [visible]="academicYearDialogOpen()"
+    (visibleChange)="$event ? academicYearDialogOpen.set(true) : closeAcademicYearDialog()"
+    [modal]="true" [draggable]="false" [resizable]="false" [closable]="!savingAcademicYear()"
+    [style]="{ width: 'min(46rem, calc(100vw - 2rem))' }" appendTo="body">
+    <form [formGroup]="academicYearForm" (ngSubmit)="saveAcademicYear()" class="academic-year-form" dir="rtl">
+      <div class="dialog-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>سيُضاف العام للمدرسة الحالية مع الفصلين الدراسيين، وسيصبح الفصل الذي تختاره هو النطاق النشط.</p>
+      </div>
+
+      <div class="academic-year-grid">
+        <label>
+          <span>كود العام الدراسي <b>*</b></span>
+          <input pInputText formControlName="code" maxlength="32" placeholder="مثال: 2026-2027" />
+        </label>
+        <label>
+          <span>اسم العام الدراسي <b>*</b></span>
+          <input pInputText formControlName="nameAr" maxlength="128" placeholder="العام الدراسي 2026-2027" />
+        </label>
+        <label>
+          <span>بداية العام <b>*</b></span>
+          <input pInputText type="date" formControlName="startsOn" />
+        </label>
+        <label>
+          <span>نهاية العام <b>*</b></span>
+          <input pInputText type="date" formControlName="endsOn" />
+        </label>
+      </div>
+
+      <fieldset>
+        <legend>الفصل الدراسي الأول</legend>
+        <div class="academic-year-grid">
+          <label><span>تاريخ البداية <b>*</b></span><input pInputText type="date" formControlName="firstSemesterStartsOn" /></label>
+          <label><span>تاريخ النهاية <b>*</b></span><input pInputText type="date" formControlName="firstSemesterEndsOn" /></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>الفصل الدراسي الثاني</legend>
+        <div class="academic-year-grid">
+          <label><span>تاريخ البداية <b>*</b></span><input pInputText type="date" formControlName="secondSemesterStartsOn" /></label>
+          <label><span>تاريخ النهاية <b>*</b></span><input pInputText type="date" formControlName="secondSemesterEndsOn" /></label>
+        </div>
+      </fieldset>
+
+      <label class="active-semester-field">
+        <span>الفصل النشط الآن</span>
+        <p-dropdown formControlName="activeSemester" [options]="semesterOptions" optionLabel="label" optionValue="value"
+          [showClear]="false" appendTo="body"></p-dropdown>
+      </label>
+
+      @if (academicYearForm.touched && academicYearForm.invalid) {
+        <small class="form-error">أكمل جميع الحقول المطلوبة، وتأكد من ترتيب التواريخ.</small>
+      }
+
+      <div class="dialog-actions">
+        <button pButton type="submit" icon="pi pi-check" label="إضافة العام الدراسي"
+          [loading]="savingAcademicYear()"></button>
+        <button pButton type="button" class="p-button-secondary" icon="pi pi-times" label="إلغاء"
+          [disabled]="savingAcademicYear()" (click)="closeAcademicYearDialog()"></button>
+      </div>
+    </form>
+  </p-dialog>
+
   @if (hasUnsavedChanges()) {
     <div class="unsaved-bar" role="status">
       <div class="flex items-center gap-3"><span class="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-400"></span><div><strong>لديك تغييرات غير محفوظة</strong><small>احفظها قبل الانتقال إلى نطاق أو صفحة أخرى.</small></div></div>
-      <button pButton type="button" icon="pi pi-save" label="حفظ الآن" [loading]="saving()" (click)="save()"></button>
+      <button pButton type="button" icon="pi pi-save" label="حفظ الآن"
+        [loading]="saving() || savingAcademicYear()" (click)="savePendingChanges()"></button>
     </div>
   }
 </main>

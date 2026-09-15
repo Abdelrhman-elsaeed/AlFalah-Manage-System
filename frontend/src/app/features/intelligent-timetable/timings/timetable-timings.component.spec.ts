@@ -11,7 +11,7 @@ describe('Timetable timing editor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [
       { provide: BellScheduleService, useValue: {} },
-      { provide: TimetableSettingsService, useValue: { getOverview: () => of({}) } },
+      { provide: TimetableSettingsService, useValue: { getOverview: () => of({}), getRememberedContext: () => null } },
       { provide: ToastService, useValue: {} }
     ] });
     component = TestBed.runInInjectionContext(() => new TimetableTimingsComponent());
@@ -36,6 +36,19 @@ describe('Timetable timing editor', () => {
     expect(component.yearId).toBe(2);
     expect(component.draft).toBeNull();
     expect(component.templates).toEqual([]);
+  });
+  it('starts loading templates immediately when the academic context is already known', () => {
+    const overview = new Subject<any>();
+    const templates = new Subject<any>();
+    TestBed.inject(TimetableSettingsService).getOverview = () => overview;
+    const list = jasmine.createSpy('list').and.returnValue(templates);
+    TestBed.inject(BellScheduleService).list = list;
+
+    component.yearId = 1;
+    component.semester = 1;
+    component.loadContext();
+
+    expect(list).toHaveBeenCalledOnceWith(1, 1);
   });
   it('creates an independent override without changing defaults or another day', () => {
     component.activeDay = 2;

@@ -1,5 +1,5 @@
-<section class="timetable-page" dir="rtl">
-  <header class="page-header">
+<section class="timetable-page tt-workspace" dir="rtl">
+  <header class="page-header tt-page-header">
     <div>
       <span class="eyebrow">الإدارة الأكاديمية</span>
       <h1>الجدول المدرسي</h1>
@@ -50,7 +50,8 @@
     <button *ngIf="canManage()" pButton type="button" icon="pi pi-plus" label="إنشاء الجدول" (click)="openCreate()"></button>
   </div>
 
-  <ng-container *ngIf="!loading() && timetable() as current">
+  <ng-container *ngIf="!loading()">
+    <ng-container *ngIf="timetable() as current">
     <p *ngIf="current.timingsRequireRevalidation" role="status">تم تغيير إعدادات الجدول أو متطلبات المواد. راجع الحصص ثم أعد النشر لتطبيق الإعدادات الجديدة.</p>
     <div class="editor-toolbar" *ngIf="canManage()">
       <label class="title-field">
@@ -72,10 +73,25 @@
       </div>
       <span class="my-row-key" *ngIf="isPersonalView()"><i></i> يظهر هنا جدولك فقط</span>
     </div>
+    </ng-container>
 
-    <div class="grid-shell" *ngIf="catalog() as data">
+    <div class="grid-preview-note" *ngIf="!timetable() || usingFallbackGrid()">
+      <i class="pi pi-eye"></i>
+      <span *ngIf="!timetable()">معاينة شبكة الجدول قبل إنشاء المسودة.</span>
+      <span *ngIf="usingFallbackGrid()">تظهر 8 حصص افتراضية حتى يتم ربط قالب توقيت بملف الإعداد.</span>
+    </div>
+
+    <div class="grid-shell" *ngIf="selectedYearId() && catalog() as data">
       <div class="grid-scroll">
         <table class="schedule-grid">
+          <colgroup>
+            <col class="teacher-track">
+            <ng-container *ngFor="let day of studyDays()">
+              <col *ngFor="let slot of intervalsFor(day.value)" class="schedule-track">
+            </ng-container>
+            <col class="total-track">
+            <col class="standby-total-track">
+          </colgroup>
           <thead>
             <tr class="day-row">
               <th class="teacher-column" rowspan="2">المعلم</th>
@@ -85,7 +101,10 @@
             </tr>
             <tr class="period-row">
               <ng-container *ngFor="let day of studyDays()">
-                <th *ngFor="let slot of intervalsFor(day.value)" [class.break-heading]="slot.kind === 'Break'">{{ slot.name }}<br><bdi>{{ slot.startLocalTime.slice(0, 5) }}–{{ slot.endLocalTime.slice(0, 5) }}</bdi></th>
+                <th *ngFor="let slot of intervalsFor(day.value)" [class.break-heading]="slot.kind === 'Break'">
+                  {{ slot.name }}
+                  <ng-container *ngIf="slot.startLocalTime"><br><bdi>{{ slot.startLocalTime.slice(0, 5) }}–{{ slot.endLocalTime.slice(0, 5) }}</bdi></ng-container>
+                </th>
               </ng-container>
             </tr>
           </thead>
@@ -104,9 +123,9 @@
                     [style.border-top]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.subjectColor ? '3px solid ' + getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.subjectColor : null"
                     [class.has-entry]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
                     [class.standby-cell]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.entryType === 2"
-                    [class.editable]="canManage()"
-                    tabindex="0"
-                    [draggable]="canManage() && !!getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
+                    [class.editable]="gridEditable()"
+                    [attr.tabindex]="gridEditable() ? 0 : -1"
+                    [draggable]="gridEditable() && !!getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
                     (click)="openCell(teacher, dayValue(day.value), period)"
                     (dragstart)="onDragStart($event, { teacherId: teacher.instructorProfileId, day: dayValue(day.value), period: period })"
                     (dragover)="onDragOver($event)"
@@ -120,7 +139,7 @@
                       <small>{{ entry.subject }}</small>
                     </ng-container>
                   </ng-container>
-                  <ng-template #emptyCell><span class="empty-cell-mark" *ngIf="canManage()">+</span></ng-template>
+                  <ng-template #emptyCell><span class="empty-cell-mark" *ngIf="gridEditable()">+</span></ng-template>
                 </td>
                 </ng-container>
                 </ng-container>
