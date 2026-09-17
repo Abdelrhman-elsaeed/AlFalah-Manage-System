@@ -77,3 +77,12 @@ describe('shell classroom master data navigation', () => {
     expect(students?.permissions).toEqual(['Student.Manage']);
   });
 });
+
+describe('shell intelligent timetable navigation', () => {
+  const intelligentTimetable = SHELL_NAV_CATEGORIES.find(category => category.id === 'intelligent-timetable');
+
+  it('exposes subject catalog and allocation through one navigation item', () => {
+    expect(intelligentTimetable?.items.filter(item => item.route === '/intelligent-timetable/subjects').length).toBe(1);
+    expect(intelligentTimetable?.items.some(item => item.route === '/intelligent-timetable/subject-rules')).toBe(false);
+  });
+});

@@ -53,11 +53,13 @@ export interface TimetableCatalog {
 }
 
 export interface TimetableEntry {
+  id: number | null;
   subjectColor?: string | null;
   classroomId?: number | null;
   subjectId?: number | null;
   classSubjectRequirementId?: number | null;
   roomId?: number | null;
+  roomName?: string | null;
   instructorProfileId: number;
   day: TimetableDay;
   period: number;

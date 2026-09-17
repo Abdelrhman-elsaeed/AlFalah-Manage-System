@@ -81,10 +81,11 @@ public sealed class TimetableRepairEngine(TimetableValidationEngine validator)
     public static TimetableValidationContext Simulate(TimetableValidationContext c, IReadOnlyList<RepairMovementDto> moves)
     {
         var t = c.Timetable;
+        var movesByEntry = moves.ToDictionary(x => x.EntryId);
         var copy = new SchoolTimetable { Id = t.Id, SchoolId = t.SchoolId, AcademicYearId = t.AcademicYearId, Semester = t.Semester,
             Revision = t.Revision, TimetableSetupProfileId = t.TimetableSetupProfileId, BellScheduleRevisionId = t.BellScheduleRevisionId };
         copy.Entries = t.Entries.Where(x => !x.IsDeleted).Select(e => {
-            var m = moves.SingleOrDefault(x => x.EntryId == e.Id);
+            movesByEntry.TryGetValue(e.Id, out var m);
             return new SchoolTimetableEntry { Id = e.Id, SchoolId = e.SchoolId, SchoolTimetableId = e.SchoolTimetableId,
                 ClassroomId = e.ClassroomId, SubjectId = e.SubjectId, ClassSubjectRequirementId = e.ClassSubjectRequirementId,
                 RoomId = e.RoomId, InstructorProfileId = m?.ToTeacherId ?? e.InstructorProfileId, Day = m?.ToDay ?? e.Day,

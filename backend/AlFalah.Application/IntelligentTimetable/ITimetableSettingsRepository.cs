@@ -5,11 +5,31 @@ using AlFalah.Domain.Enums;
 
 namespace AlFalah.Application.IntelligentTimetable;
 
+public sealed record TimetableAssignmentMemberReadinessData(
+    int TeacherTimetableProfileId,
+    int AllocatedPeriodCount,
+    int AllocatedPairedBlockCount,
+    bool IsTeacherReady);
+
+public sealed record TimetableAssignmentReadinessData(
+    int RequirementId,
+    string Mode,
+    int IndividualPeriodCount,
+    int PairedBlockCount,
+    IReadOnlyList<TimetableAssignmentMemberReadinessData> Members);
+
 public sealed record TimetableReadinessData(
     int ActiveClassrooms,
     int ActiveStudents,
     int ClassroomsMissingLocation,
-    int ActiveTeachers);
+    int ActiveTeachers,
+    int ConfiguredTeachers,
+    int AvailableSubjects,
+    int CoveredClassrooms,
+    int RequirementCount,
+    IReadOnlyList<TimetableAssignmentReadinessData> Assignments,
+    bool TimetableExists,
+    bool HasCurrentTimetable);
 
 public interface ITimetableSettingsRepository
 {
@@ -28,6 +48,7 @@ public interface ITimetableSettingsRepository
         int schoolId,
         int academicYearId,
         TimetableSemester semester,
+        int? profileId,
         CancellationToken cancellationToken);
     Task<bool> AcademicScopeExistsAsync(
         int schoolId,

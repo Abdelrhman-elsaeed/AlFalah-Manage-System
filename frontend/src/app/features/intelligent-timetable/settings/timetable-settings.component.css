@@ -134,6 +134,13 @@
 .generation-state span { display: block; color: #cce7dc; font-size: .72rem; }
 .generation-state strong { display: block; margin-top: .18rem; font-size: .8rem; }
 .generation-state.is-ready { background: rgba(255,255,255,.13); }
+:host ::ng-deep .generation-state .generation-action {
+  margin-inline-start: auto;
+  border-color: #f4d875;
+  background: #f4d875;
+  color: #164e3b;
+  white-space: nowrap;
+}
 
 :host ::ng-deep .profile-card.p-card {
   overflow: hidden;

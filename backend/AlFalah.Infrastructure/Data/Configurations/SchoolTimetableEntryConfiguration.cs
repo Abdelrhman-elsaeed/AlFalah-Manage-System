@@ -24,7 +24,7 @@ public sealed class SchoolTimetableEntryConfiguration : IEntityTypeConfiguration
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ClassSubjectRequirement>().WithMany().HasForeignKey(x => new { x.SchoolId, x.ClassSubjectRequirementId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<TimetableRoom>().WithMany().HasForeignKey(x => new { x.SchoolId, x.RoomId })
+        builder.HasOne(x => x.Room).WithMany().HasForeignKey(x => new { x.SchoolId, x.RoomId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         // Co-teachers share a room/class occurrence. The transactional validator checks logical collisions.
         builder.HasIndex(x => new { x.SchoolTimetableId, x.Day, x.Period, x.RoomId })

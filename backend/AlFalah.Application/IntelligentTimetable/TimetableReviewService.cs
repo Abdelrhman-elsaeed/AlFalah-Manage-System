@@ -148,7 +148,7 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
     public async Task<SchoolTimetableVersion> Snapshot(TimetableValidationContext c, TimetableChangeKind kind, CancellationToken ct)
     {
         var entries = c.Timetable.Entries.Where(x => !x.IsDeleted).Select(x => new TimetableEntryDto(x.InstructorProfileId, x.Day, x.Period,
-            x.EntryType, x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId)).ToArray();
+            x.EntryType, x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId, Id: x.Id)).ToArray();
         BellPeriodDto Period(BellPeriod p) => new(p.Sequence, p.DisplayLabel, p.StartLocalTime, p.EndLocalTime);
         var s = c.Schedule;
         BellScheduleDto? schedule = s is null ? null : new(s.BellScheduleTemplateId, s.Id, s.SchoolId, c.Timetable.AcademicYearId,

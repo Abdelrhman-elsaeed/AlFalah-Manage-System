@@ -1,10 +1,14 @@
 <#
 .SYNOPSIS
   One-click build and deploy script for Al-Falah System to MonsterASP.net via WebDeploy.
+
+.PARAMETER PackageOnly
+  Build the current Angular frontend and create publish_out without contacting MonsterASP.
 #>
 
 param(
-    [string]$PublishSettingsPath
+    [string]$PublishSettingsPath,
+    [switch]$PackageOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,8 +21,14 @@ $WorkspaceRoot = $PSScriptRoot
 $FrontendPath = Join-Path $WorkspaceRoot "frontend"
 $BackendPath = Join-Path $WorkspaceRoot "backend\AlFalah.Api"
 $PublishOut = Join-Path $WorkspaceRoot "publish_out"
+$FrontendOutput = Join-Path $FrontendPath "dist\al-falah-app\browser"
+$StepCount = if ($PackageOnly) { 3 } else { 4 }
 $WebDeployHost = $null
-if (-not [string]::IsNullOrWhiteSpace($PublishSettingsPath)) {
+if ($PackageOnly) {
+    $WebDeploySite = $null
+    $WebDeployUser = $null
+    $WebDeployPassword = $null
+} elseif (-not [string]::IsNullOrWhiteSpace($PublishSettingsPath)) {
     if (-not (Test-Path -LiteralPath $PublishSettingsPath)) {
         throw "Publish settings file was not found: $PublishSettingsPath"
     }
@@ -42,35 +52,62 @@ if (-not [string]::IsNullOrWhiteSpace($PublishSettingsPath)) {
     $WebDeployPassword = $env:MONSTERASP_WEBDEPLOY_PASSWORD
 }
 
-if ([string]::IsNullOrWhiteSpace($WebDeployPassword)) {
+if (-not $PackageOnly -and [string]::IsNullOrWhiteSpace($WebDeployPassword)) {
     throw "Set MONSTERASP_WEBDEPLOY_PASSWORD before deploying. Deployment secrets must not be stored in source control."
 }
 
 # 1. Build Frontend
-Write-Host "`n[1/4] Building Angular Frontend..." -ForegroundColor Yellow
+Write-Host "`n[1/$StepCount] Building Angular Frontend..." -ForegroundColor Yellow
 Push-Location $FrontendPath
 try {
     npm run build
+    if ($LASTEXITCODE -ne 0) {
+        throw "Angular build failed with exit code $LASTEXITCODE."
+    }
 } finally {
     Pop-Location
 }
 
 # 2. Copy Frontend to Backend wwwroot
-Write-Host "`n[2/4] Copying Frontend files to wwwroot..." -ForegroundColor Yellow
+Write-Host "`n[2/$StepCount] Copying Frontend files to wwwroot..." -ForegroundColor Yellow
 $WwwRoot = Join-Path $BackendPath "wwwroot"
-if (Test-Path $WwwRoot) {
-    Remove-Item -Path "$WwwRoot\*" -Recurse -Force
-} else {
-    New-Item -ItemType Directory -Path $WwwRoot -Force | Out-Null
+if (-not (Test-Path -LiteralPath (Join-Path $FrontendOutput "index.html"))) {
+    throw "Angular build output was not found at: $FrontendOutput"
 }
-Copy-Item -Path "$FrontendPath\dist\al-falah-app\browser\*" -Destination $WwwRoot -Recurse -Force
+
+if (Test-Path $WwwRoot) {
+    $ResolvedWwwRoot = (Resolve-Path -LiteralPath $WwwRoot).Path
+    $ExpectedWwwRoot = [System.IO.Path]::GetFullPath($WwwRoot)
+    if (-not [string]::Equals($ResolvedWwwRoot, $ExpectedWwwRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to clean an unexpected wwwroot path: $ResolvedWwwRoot"
+    }
+
+    Get-ChildItem -LiteralPath $ResolvedWwwRoot -Force | Remove-Item -Recurse -Force
+} else {
+    New-Item -ItemType Directory -Path $WwwRoot | Out-Null
+}
+Get-ChildItem -LiteralPath $FrontendOutput -Force | Copy-Item -Destination $WwwRoot -Recurse -Force
 
 # 3. Publish Backend (Self-Contained win-x86)
-Write-Host "`n[3/4] Publishing .NET Backend..." -ForegroundColor Yellow
+Write-Host "`n[3/$StepCount] Publishing .NET Backend..." -ForegroundColor Yellow
 if (Test-Path $PublishOut) {
-    Remove-Item -Path $PublishOut -Recurse -Force
+    $ResolvedPublishOut = (Resolve-Path -LiteralPath $PublishOut).Path
+    $ExpectedPublishOut = [System.IO.Path]::GetFullPath($PublishOut)
+    if (-not [string]::Equals($ResolvedPublishOut, $ExpectedPublishOut, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to clean an unexpected publish output path: $ResolvedPublishOut"
+    }
+
+    Remove-Item -LiteralPath $ResolvedPublishOut -Recurse -Force
 }
 dotnet publish "$BackendPath\AlFalah.Api.csproj" -c Release -r win-x86 --self-contained true -o $PublishOut
+if ($LASTEXITCODE -ne 0) {
+    throw "dotnet publish failed with exit code $LASTEXITCODE."
+}
+
+if ($PackageOnly) {
+    Write-Host "`n Production package created locally: $PublishOut" -ForegroundColor Green
+    return
+}
 
 # 4. Sync via WebDeploy
 Write-Host "`n[4/4] Deploying to MonsterASP via WebDeploy..." -ForegroundColor Yellow

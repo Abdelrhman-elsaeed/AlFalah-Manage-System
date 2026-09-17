@@ -12,16 +12,15 @@ public sealed class GetTimetableSettingsQueryHandler
     private readonly ITimetableSettingsRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly IBellScheduleRepository _timings;
-    private readonly ISubjectRepository _subjects;
 
     public GetTimetableSettingsQueryHandler(
         ITimetableSettingsRepository repository,
-        ICurrentUserService currentUser, IBellScheduleRepository timings, ISubjectRepository subjects)
+        ICurrentUserService currentUser,
+        IBellScheduleRepository timings)
     {
         _repository = repository;
         _currentUser = currentUser;
         _timings = timings;
-        _subjects = subjects;
     }
 
     public async Task<ApiResponse<TimetableSettingsOverviewDto>> Handle(
@@ -54,20 +53,20 @@ public sealed class GetTimetableSettingsQueryHandler
             ? profiles.FirstOrDefault(x => x.Id == query.ProfileId.Value)
             : profiles.FirstOrDefault();
         var readiness = selectedYearId > 0
-            ? await _repository.GetReadinessDataAsync(schoolId.Value, selectedYearId, semester, cancellationToken).ConfigureAwait(false)
-            : new TimetableReadinessData(0, 0, 0, 0);
+            ? await _repository.GetReadinessDataAsync(
+                schoolId.Value,
+                selectedYearId,
+                semester,
+                selectedProfile?.Id,
+                cancellationToken).ConfigureAwait(false)
+            : new TimetableReadinessData(0, 0, 0, 0, 0, 0, 0, 0, [], false, false);
         var canManage = await TimetableSettingsHandlerSupport.CanManageAsync(
             _currentUser, _repository, schoolId.Value, cancellationToken).ConfigureAwait(false);
         var (steps, warnings) = TimetableSettingsHandlerSupport.BuildReadiness(selectedProfile, readiness);
-        var subjects = await _subjects.GetSubjectsAsync(schoolId.Value, cancellationToken);
-        var requirements = selectedProfile is null ? [] : await _subjects.GetRequirementsAsync(schoolId.Value, selectedProfile.Id, cancellationToken);
-        var coveredClasses = requirements.Select(x => x.ClassroomId).Distinct().Count();
-        steps = steps.Select(step => step.Key is "subjects" or "subject-rules" ? step with {
-            Status = subjects.Count == 0 ? "not-started" : coveredClasses > 0 && coveredClasses == readiness.ActiveClassrooms ? "complete" : "incomplete",
-            DescriptionAr = subjects.Count == 0 ? "أضف مواد إلى دليل المدرسة." : $"{subjects.Count} مادة، متطلبات مسجلة لـ {coveredClasses} فصل.",
-            Route = "/intelligent-timetable/subjects"
-        } : step).ToArray();
         var completeCount = steps.Count(x => x.Status == "complete");
+        var hardPrerequisitesValid = steps
+            .Where(x => x.Key != "timetable")
+            .All(x => x.Status == "complete");
 
         var overview = new TimetableSettingsOverviewDto(
             schoolId.Value,
@@ -80,13 +79,13 @@ public sealed class GetTimetableSettingsQueryHandler
             TimetableSettingsHandlerSupport.SemesterLabel(semester),
             canManage,
             (int)Math.Round(completeCount * 100d / steps.Count),
-            steps.All(x => x.Status == "complete"),
+            hardPrerequisitesValid,
             new TimetableReadinessCountsDto(
                 readiness.ActiveClassrooms,
                 readiness.ActiveStudents,
                 readiness.ClassroomsMissingLocation,
                 readiness.ActiveTeachers,
-                subjects.Count),
+                readiness.AvailableSubjects),
             steps,
             warnings, selectedProfile is null ? null : await _timings.GetSelectedAsync(schoolId.Value, selectedYearId, semester, selectedProfile.Id, cancellationToken));
 

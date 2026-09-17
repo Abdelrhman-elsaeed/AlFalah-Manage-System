@@ -46,18 +46,36 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
         return new DailySubstitutionDto(id, c.Timetable.Title, c.Timetable.Revision, c.Timetable.IsPublished, CanManage, CanOverride,
             lessons, changes.OrderByDescending(x => x.Id).Select(History).ToArray());
     }, ct);
-    public Task<SwapCandidatesDto> CandidatesAsync(int id, DateOnly date, int source, string mode, CancellationToken ct) => repository.ExecuteAsync(async token => {
-        School(true); var c = await Context(id, date, token); EnsureOperational(c, date, mode);
+    public async Task<SwapCandidatesDto> CandidatesAsync(int id, DateOnly date, int source, string mode, CancellationToken ct)
+    {
+        School(true); var c = await Context(id, date, ct); EnsureOperational(c, date, mode);
         var expires = clock.GetUtcNow().AddMinutes(5);
         return new SwapCandidatesDto(id, c.Timetable.Revision, date, source, mode, expires, CanOverride,
-            await Candidates(c, date, source, mode, expires, token));
-    }, ct);
-    private async Task<IReadOnlyList<SwapCandidateDto>> Candidates(TimetableValidationContext c, DateOnly date, int source, string mode, DateTimeOffset expires, CancellationToken ct)
+            await Candidates(c, date, source, mode, expires, SwapSearchScope.SameDay, ct));
+    }
+    public async Task<InlineSwapCandidatesDto> InlineCandidatesAsync(int id, DateOnly date, int source,
+        SwapSearchScope scope, CancellationToken ct)
+    {
+        School(true);
+        if (!Enum.IsDefined(scope)) throw new ArgumentException("نطاق البحث غير صالح.");
+        var c = await Context(id, date, ct);
+        EnsureOperational(c, date, "Swap");
+        var expires = clock.GetUtcNow().AddMinutes(5);
+        var proposals = await Candidates(c, date, source, "Swap", expires, scope, ct);
+        var sourceEntry = c.Timetable.Entries.SingleOrDefault(e => !e.IsDeleted && e.Id == source && e.EntryType == TimetableEntryType.Lesson)
+            ?? throw new KeyNotFoundException();
+        var sourceEntryIds = TimetableSwapEngine.Block(c, sourceEntry).Select(e => e.Id).ToHashSet();
+        var cells = ProjectInlineCells(c, sourceEntryIds, proposals);
+        return new InlineSwapCandidatesDto(id, c.Timetable.Revision, date, source, sourceEntryIds.Order().ToArray(),
+            scope, expires, CanOverride, cells, proposals);
+    }
+    private async Task<IReadOnlyList<SwapCandidateDto>> Candidates(TimetableValidationContext c, DateOnly date, int source,
+        string mode, DateTimeOffset expires, SwapSearchScope scope, CancellationToken ct)
     {
         var changes = await repository.GetChangesAsync(School(), c.Timetable.Id, null, ct);
         var context = mode == "Substitution" ? Effective(c, changes.Where(x => x.LocalDate == date)) : c;
         var assigned = mode == "Substitution" ? c.Timetable.Entries.ToDictionary(e => e.Id, e => e.InstructorProfileId) : null;
-        var candidates = engine.Candidates(context, source, mode, date, expires, assigned, ct);
+        var candidates = engine.Candidates(context, source, mode, date, expires, assigned, ct, scope);
         if (mode == "Substitution")
         {
             var absent = await repository.GetAbsentTeachersAsync(School(), date, ct);
@@ -68,15 +86,38 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
         {
             // Structural moves also have to preserve already-confirmed daily cover on every affected date.
             var future = changes.Where(x => x.Kind == "Substitution" && x.LocalDate >= Today(c)).GroupBy(x => x.LocalDate).ToArray();
+            var futureCoveredEntries = future.SelectMany(x => x).SelectMany(x => x.Movements)
+                .Select(x => x.SchoolTimetableEntryId).ToHashSet();
+            var scheduledTeachers = assigned ?? c.Timetable.Entries.ToDictionary(e => e.Id, e => e.InstructorProfileId);
+            var futureChecks = future.Select(group => {
+                var effective = Effective(c, group);
+                return (Validation: validator.PrepareSwap(effective, "Swap", scheduledTeachers, ct),
+                    Teachers: effective.Timetable.Entries.ToDictionary(x => x.Id, x => x.InstructorProfileId));
+            }).ToArray();
             candidates = candidates.Select(candidate => {
-                var moved = TimetableRepairEngine.Simulate(c, candidate.Movements);
-                var findings = future.SelectMany(g => validator.Evaluate(Effective(moved, g), scheduledTeachers: assigned ?? c.Timetable.Entries.ToDictionary(e => e.Id, e => e.InstructorProfileId))).ToArray();
-                var errors = candidate.Errors.Concat(findings.Where(v => v.Severity == ViolationSeverity.Error).Select(v => v.MessageAr)).Distinct().ToArray();
-                var warnings = candidate.Warnings.Concat(findings.Where(v => v.Severity == ViolationSeverity.Warning).Select(v => v.MessageAr)).Distinct().ToArray();
+                var futureEvaluations = futureChecks.Select(check => {
+                    // Structural moves keep the date-specific covering teacher. Applying the
+                    // movement as a delta after the cover avoids rebuilding a full validator for
+                    // every proposal/date pair while producing the same effective timetable.
+                    var movements = candidate.Movements.Select(move => {
+                        var teacher = check.Teachers.GetValueOrDefault(move.EntryId, move.ToTeacherId);
+                        return move with { FromTeacherId = teacher, ToTeacherId = teacher };
+                    }).ToArray();
+                    return check.Validation.Evaluate(movements);
+                }).ToArray();
+                var isCrossDay = candidate.Movements.Any(m => m.FromDay != m.ToDay);
+                var invalidatesConfirmedCover = scope == SwapSearchScope.WholeTimetable && isCrossDay &&
+                    candidate.Movements.Any(m => futureCoveredEntries.Contains(m.EntryId));
+                var policyErrors = invalidatesConfirmedCover
+                    ? new[] { "لا يمكن نقل حصة بين يومين لأنها مرتبطة باحتياطي مستقبلي مؤكد." }
+                    : [];
+                var errors = candidate.Errors.Concat(policyErrors).Concat(futureEvaluations.SelectMany(x => x.Errors)).Distinct().ToArray();
+                var warnings = candidate.Warnings.Concat(futureEvaluations.SelectMany(x => x.Warnings)).Distinct().ToArray();
                 var stamp = candidate.Id + JsonSerializer.Serialize(new { errors, warnings });
                 return candidate with { Id = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(stamp))),
                     Color = errors.Length > 0 ? "Red" : warnings.Length > 0 ? "Yellow" : "Green", Errors = errors, Warnings = warnings };
-            }).ToArray();
+            }).OrderBy(x => x.Color == "Green" ? 0 : x.Color == "Yellow" ? 1 : 2)
+                .ThenBy(x => x.Warnings.Length).ToArray();
         }
         return candidates;
     }
@@ -89,6 +130,7 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
     }
     public Task<SubstitutionHistoryDto> ExecuteAsync(int id, ExecuteSwapRequest request, CancellationToken ct) => repository.ExecuteAsync(async token => {
         School(true);
+        if (!Enum.IsDefined(request.Scope)) throw new ArgumentException("نطاق البحث غير صالح.");
         if (request.RequestId == Guid.Empty) throw new ArgumentException("معرف العملية مطلوب.");
         var existing = await repository.FindRequestAsync(School(), request.RequestId, token);
         if (existing is not null)
@@ -100,7 +142,7 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
         var c = await Context(id, request.Date, token); EnsureOperational(c, request.Date, request.Mode);
         if (request.Revision != c.Timetable.Revision || request.ExpiresAt <= clock.GetUtcNow() || request.ExpiresAt > clock.GetUtcNow().AddMinutes(5))
             throw new BellScheduleConflictException("Stale proposal");
-        var candidate = (await Candidates(c, request.Date, request.SourceEntryId, request.Mode, request.ExpiresAt, token))
+        var candidate = (await Candidates(c, request.Date, request.SourceEntryId, request.Mode, request.ExpiresAt, request.Scope, token))
             .SingleOrDefault(x => x.Id == request.ProposalId) ?? throw new BellScheduleConflictException("Proposal changed");
         if (candidate.Color == "Red") throw new ArgumentException("لا يمكن تنفيذ تبديل ذي تعارض حرج: " + string.Join("، ", candidate.Errors));
         if (candidate.Color == "Yellow")
@@ -118,7 +160,8 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
             AfterRevision = c.Timetable.Revision, RequestedByUserId = user.UserId!, ApprovedByUserId = user.UserId!,
             OverrideReason = request.OverrideReason?.Trim(), WarningsJson = JsonSerializer.Serialize(candidate.Warnings), Version = version,
             Movements = candidate.Movements.Select(m => new TimetableSubstitutionMovement { SchoolId = School(), SchoolTimetableEntryId = m.EntryId,
-                FromTeacherId = m.FromTeacherId, ToTeacherId = m.ToTeacherId, Day = (int)m.FromDay, FromPeriod = m.FromPeriod, ToPeriod = m.ToPeriod }).ToList() };
+                FromTeacherId = m.FromTeacherId, ToTeacherId = m.ToTeacherId, Day = (int)m.FromDay, ToDay = (int)m.ToDay,
+                FromPeriod = m.FromPeriod, ToPeriod = m.ToPeriod }).ToList() };
         if (c.Timetable.IsPublished)
         {
             var ids = candidate.Movements.SelectMany(m => new[] { m.FromTeacherId, m.ToTeacherId }).ToHashSet();
@@ -133,6 +176,57 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
         if (candidate.Kind != "Substitution") await review.EvaluateAsync(id, token);
         return History(change);
     }, ct);
+    private static IReadOnlyList<InlineCandidateCellDto> ProjectInlineCells(TimetableValidationContext c,
+        IReadOnlySet<int> sourceEntryIds, IReadOnlyList<SwapCandidateDto> proposals)
+    {
+        var projected = new Dictionary<int, InlineCellProjection>();
+        foreach (var proposal in proposals)
+        {
+            var reason = proposal.Errors.FirstOrDefault() ?? proposal.Warnings.FirstOrDefault();
+            var targetEntries = proposal.Movements.Select(m => m.EntryId).Where(id => !sourceEntryIds.Contains(id)).Distinct();
+            foreach (var targetEntryId in targetEntries)
+            {
+                var target = c.Timetable.Entries.Single(e => e.Id == targetEntryId);
+                var block = TimetableSwapEngine.Block(c, target);
+                var blockIds = block.Select(e => e.Id).Order().ToArray();
+                var anchor = blockIds[0];
+                foreach (var entry in block)
+                {
+                    if (!projected.TryGetValue(entry.Id, out var cell))
+                    {
+                        cell = new InlineCellProjection(anchor, blockIds, entry.InstructorProfileId, entry.Day, entry.Period);
+                        projected.Add(entry.Id, cell);
+                    }
+                    if (proposal.Kind == "DirectSwap")
+                    {
+                        cell.Color = proposal.Color;
+                        cell.DirectProposalId = proposal.Id;
+                        cell.ReasonSummary = reason;
+                    }
+                    else if (!cell.AlternativeProposalIds.Contains(proposal.Id))
+                    {
+                        cell.AlternativeProposalIds.Add(proposal.Id);
+                    }
+                }
+            }
+        }
+        return projected.Values.OrderBy(x => x.Day).ThenBy(x => x.Period).ThenBy(x => x.TeacherId)
+            .Select(x => new InlineCandidateCellDto(x.AnchorEntryId, x.EntryIds, x.TeacherId, x.Day, x.Period,
+                x.Color, x.DirectProposalId, x.AlternativeProposalIds, x.ReasonSummary)).ToArray();
+    }
+    private sealed class InlineCellProjection(int anchorEntryId, IReadOnlyList<int> entryIds, int teacherId,
+        TimetableDay day, int period)
+    {
+        public int AnchorEntryId { get; } = anchorEntryId;
+        public IReadOnlyList<int> EntryIds { get; } = entryIds;
+        public int TeacherId { get; } = teacherId;
+        public TimetableDay Day { get; } = day;
+        public int Period { get; } = period;
+        public string Color { get; set; } = "Red";
+        public string? DirectProposalId { get; set; }
+        public List<string> AlternativeProposalIds { get; } = [];
+        public string? ReasonSummary { get; set; }
+    }
     public static TimetableValidationContext Effective(TimetableValidationContext c, IEnumerable<TimetableSubstitution> changes)
     {
         var replacements = changes.Where(x => x.Kind == "Substitution").OrderBy(x => x.Id).SelectMany(x => x.Movements)

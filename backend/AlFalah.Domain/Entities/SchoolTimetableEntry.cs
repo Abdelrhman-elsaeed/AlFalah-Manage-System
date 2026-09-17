@@ -20,6 +20,7 @@ public class SchoolTimetableEntry
     public int? ClassSubjectRequirementId { get; set; }
     public int? RoomId { get; set; }
     public SubjectDefinition? SubjectDefinition { get; set; }
+    public TimetableRoom? Room { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public bool IsDeleted { get; set; }

@@ -68,6 +68,39 @@ describe('Timetable settings academic years', () => {
     expect(settingsService.getOverview).toHaveBeenCalledWith(7, 2, undefined);
   });
 
+  it('opens the timetable generation step when every prerequisite is complete', () => {
+    const ready = overview();
+    ready.hardPrerequisitesValid = true;
+    ready.completionPercent = 100;
+    ready.selectedProfile = { id: 15 };
+    ready.steps = [
+      { key: 'study-days', status: 'complete', route: '/intelligent-timetable/timings' },
+      { key: 'teachers', status: 'complete', route: '/intelligent-timetable/teachers' },
+      { key: 'classrooms', status: 'complete', route: '/student-affairs/classrooms' },
+      { key: 'subjects', status: 'complete', route: '/intelligent-timetable/subjects' },
+      { key: 'assignments', status: 'complete', route: '/intelligent-timetable/assignments' },
+      { key: 'subject-rules', status: 'complete', route: '/intelligent-timetable/subjects' },
+      { key: 'timetable', status: 'complete', route: '/timetable' }
+    ];
+    component.overview.set(ready);
+
+    component.continueSetup();
+
+    expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/timetable');
+  });
+
+  it('opens the generated timetable from the ready-state action', () => {
+    const ready = overview();
+    ready.hardPrerequisitesValid = true;
+    ready.steps = [{ key: 'timetable', status: 'complete', route: '/timetable' }];
+    component.overview.set(ready);
+
+    expect(component.generationActionLabel()).toBe('عرض الجدول المولّد');
+    component.openGeneration();
+
+    expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/timetable');
+  });
+
   function overview(): any {
     return {
       schoolId: 1,

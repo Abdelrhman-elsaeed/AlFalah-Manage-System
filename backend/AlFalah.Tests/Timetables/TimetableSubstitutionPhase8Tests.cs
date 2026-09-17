@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.IntelligentTimetable.DTOs;
@@ -91,6 +92,82 @@ public sealed class TimetableSubstitutionPhase8Tests
         var c = Context(); AddLesson(c, 2, 2, 2, 1);
         Engine.Candidates(c, 1, "Swap", Date, Expires, null, default).Should().BeEmpty();
     }
+    [Fact] public void Whole_timetable_moves_day_and_period_and_uses_the_destination_day_time()
+    {
+        var c = Context();
+        var monday = c.Schedule!.Days.Single(x => x.Day == (int)TimetableDay.Monday);
+        monday.UsesDefaultSchedule = false;
+        monday.Periods.Add(new() { Id = 101, BellScheduleDayId = monday.Id, Sequence = 2,
+            StartLocalTime = new(10, 0), EndLocalTime = new(10, 45) });
+        AddLesson(c, 2, 2, 2, 2, TimetableDay.Monday);
+
+        Engine.Candidates(c, 1, "Swap", Date, Expires, null, default).Should().BeEmpty();
+        var candidates = Engine.Candidates(c, 1, "Swap", Date, Expires, null, default, SwapSearchScope.WholeTimetable);
+        var direct = candidates.Single(x => x.Kind == "DirectSwap");
+
+        direct.Color.Should().Be("Green");
+        direct.Movements.Should().Contain(x => x.EntryId == 1 && x.FromDay == TimetableDay.Sunday &&
+            x.ToDay == TimetableDay.Monday && x.ToPeriod == 2);
+        direct.Movements.Should().Contain(x => x.EntryId == 2 && x.ToDay == TimetableDay.Sunday && x.ToPeriod == 1);
+        direct.Preview.Single(x => x.EntryId == 1).ToTime.Should().Be("10:00–10:45");
+    }
+    [Fact] public void Whole_timetable_marks_disallowed_destination_days_red()
+    {
+        var c = Context();
+        c.Requirements[0].AllowedDays.Add(new() { Id = 1, ClassSubjectRequirementId = 1, Day = (int)TimetableDay.Sunday });
+        AddLesson(c, 2, 2, 2, 2, TimetableDay.Monday);
+
+        var direct = Engine.Candidates(c, 1, "Swap", Date, Expires, null, default, SwapSearchScope.WholeTimetable)
+            .Single(x => x.Kind == "DirectSwap");
+
+        direct.Color.Should().Be("Red");
+        direct.Errors.Should().Contain(x => x.Contains("يوم غير مسموح"));
+    }
+    [Fact] public void Busy_same_day_candidate_search_completes_within_the_interactive_budget()
+    {
+        var c = Context();
+        for (var id = 2; id <= 40; id++)
+            AddLesson(c, id, 2, 2, 2 + id % 7);
+
+        var elapsed = Stopwatch.StartNew();
+        var candidates = Engine.Candidates(c, 1, "Swap", Date, Expires, null, default);
+        elapsed.Stop();
+
+        candidates.Should().NotBeEmpty();
+        elapsed.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2),
+            "candidate analysis is interactive and must not revalidate the full timetable for every move");
+    }
+    [Fact] public void Prepared_swap_validation_matches_the_full_validator_for_generated_moves()
+    {
+        var c = Context();
+        AddLesson(c, 2, 2, 2, 2);
+        AddLesson(c, 3, 1, 1, 3, TimetableDay.Monday);
+        AddLesson(c, 4, 2, 2, 4, TimetableDay.Monday);
+
+        var candidates = Engine.Candidates(c, 1, "Swap", Date, Expires, null, default,
+            SwapSearchScope.WholeTimetable);
+
+        candidates.Should().NotBeEmpty();
+        foreach (var candidate in candidates)
+        {
+            var expected = Validator.Evaluate(TimetableRepairEngine.Simulate(c, candidate.Movements));
+            candidate.Errors.Should().BeEquivalentTo(expected
+                .Where(x => x.Severity == ViolationSeverity.Error).Select(x => x.MessageAr).Distinct());
+            if (candidate.Color != "Red")
+                candidate.Warnings.Should().BeEquivalentTo(expected
+                    .Where(x => x.Severity == ViolationSeverity.Warning).Select(x => x.MessageAr).Distinct());
+        }
+    }
+    [Fact] public void Candidate_search_honors_cancellation_before_entering_the_hot_loop()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Action search = () => Engine.Candidates(Context(), 1, "Swap", Date, Expires, null,
+            cancellation.Token, SwapSearchScope.WholeTimetable);
+
+        search.Should().Throw<OperationCanceledException>();
+    }
     [Fact] public async Task Paired_cover_is_persisted_as_one_change_and_both_slots_become_live()
     {
         await using var db = await Seed();
@@ -141,6 +218,55 @@ public sealed class TimetableSubstitutionPhase8Tests
         db.SchoolTimetableEntries.Single(e => e.Id == 1).Period.Should().Be(2);
         db.SchoolTimetableEntries.Single(e => e.Id == 2).Period.Should().Be(1);
         db.TimetableAnalysisRuns.Single().TimetableRevision.Should().Be(2);
+    }
+    [Fact] public async Task Inline_same_day_contract_projects_server_proposals_to_grid_cells()
+    {
+        await using var db = await Seed();
+        var c = await new TimetableReviewRepository(db).GetValidationContextAsync(1, 1, default);
+        AddLesson(c!, 2, 2, 2, 2); AddNewGraph(db, c!); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+
+        var service = Service(db);
+        var legacy = await service.CandidatesAsync(1, Date, 1, "Swap", default);
+        var result = await service.InlineCandidatesAsync(1, Date, 1, SwapSearchScope.SameDay, default);
+
+        result.SourceEntryIds.Should().Contain(1);
+        result.Proposals.Should().NotBeEmpty();
+        result.Proposals.Select(x => x.Id).Should().Equal(legacy.Candidates.Select(x => x.Id));
+        result.Cells.Should().Contain(cell => cell.EntryIds.Contains(2) && cell.DirectProposalId != null);
+        result.Cells.Should().OnlyContain(cell => cell.Day == TimetableDay.Sunday);
+    }
+    [Fact] public async Task Whole_timetable_executes_atomically_and_persists_both_days()
+    {
+        await using var db = await Seed();
+        var c = await new TimetableReviewRepository(db).GetValidationContextAsync(1, 1, default);
+        AddLesson(c!, 2, 2, 2, 2, TimetableDay.Monday); AddNewGraph(db, c!);
+        await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+        var service = Service(db);
+        var result = await service.InlineCandidatesAsync(1, Date, 1, SwapSearchScope.WholeTimetable, default);
+        var candidate = result.Proposals.First(x => x.Kind == "DirectSwap" && x.Color != "Red");
+
+        await service.ExecuteAsync(1, Request(result, candidate, candidate.Color == "Yellow" ? "Approved" : null), default);
+
+        db.SchoolTimetableEntries.Single(x => x.Id == 1).Day.Should().Be(TimetableDay.Monday);
+        db.SchoolTimetableEntries.Single(x => x.Id == 2).Day.Should().Be(TimetableDay.Sunday);
+        db.Set<TimetableSubstitutionMovement>().Should().OnlyContain(x => x.ToDay.HasValue && x.Day != x.ToDay);
+        db.TimetableAnalysisRuns.Single().TimetableRevision.Should().Be(2);
+    }
+    [Fact] public async Task Whole_timetable_rejects_cross_day_candidates_that_touch_confirmed_future_cover()
+    {
+        await using var db = await Seed();
+        var c = await new TimetableReviewRepository(db).GetValidationContextAsync(1, 1, default);
+        AddLesson(c!, 2, 2, 2, 2, TimetableDay.Monday); AddNewGraph(db, c!);
+        await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+        var service = Service(db);
+        var cover = await service.CandidatesAsync(1, Date.AddDays(7), 1, "Substitution", default);
+        await service.ExecuteAsync(1, Request(cover, cover.Candidates.Single()), default);
+
+        var result = await service.InlineCandidatesAsync(1, Date, 1, SwapSearchScope.WholeTimetable, default);
+        var direct = result.Proposals.Single(x => x.Kind == "DirectSwap");
+
+        direct.Color.Should().Be("Red");
+        direct.Errors.Should().Contain(x => x.Contains("احتياطي مستقبلي مؤكد"));
     }
     [Fact] public async Task Stale_expired_and_tampered_proposals_never_write()
     {
@@ -204,11 +330,12 @@ public sealed class TimetableSubstitutionPhase8Tests
         c.Assignments[0].Members.Single().AllocatedPeriodCount = 2; c.Assignments[0].Members.Single().AllocatedPairedBlockCount = 1;
         c.Timetable.Entries.Add(Copy(c.Timetable.Entries.First(), 2, 1, 2)); return c;
     }
-    private static SchoolTimetableEntry Copy(SchoolTimetableEntry e, int id, int teacher, int period) => new() {
+    private static SchoolTimetableEntry Copy(SchoolTimetableEntry e, int id, int teacher, int period, TimetableDay? day = null) => new() {
         Id = id, SchoolId = 1, SchoolTimetableId = 1, InstructorProfileId = teacher, ClassroomId = e.ClassroomId,
         SubjectId = e.SubjectId, ClassSubjectRequirementId = e.ClassSubjectRequirementId, EntryType = TimetableEntryType.Lesson,
-        ClassLabel = e.ClassLabel, Subject = e.Subject, Day = e.Day, Period = period };
-    private static void AddLesson(TimetableValidationContext c, int id, int teacher, int classroom, int period)
+        ClassLabel = e.ClassLabel, Subject = e.Subject, Day = day ?? e.Day, Period = period };
+    private static void AddLesson(TimetableValidationContext c, int id, int teacher, int classroom, int period,
+        TimetableDay day = TimetableDay.Sunday)
     {
         var subject = new SubjectDefinition { Id = id, SchoolId = 1, Name = "Subject " + id };
         var requirement = new ClassSubjectRequirement { Id = id, SchoolId = 1, TimetableSetupProfileId = 1, ClassroomId = classroom,
@@ -218,7 +345,7 @@ public sealed class TimetableSubstitutionPhase8Tests
         // Fixtures use mutable lists for extension while production exposes readonly collections.
         ((List<SubjectDefinition>)c.Subjects).Add(subject); ((List<ClassSubjectRequirement>)c.Requirements).Add(requirement); ((List<TeachingAssignment>)c.Assignments).Add(assignment);
         c.Timetable.Entries.Add(new() { Id = id, SchoolId = 1, SchoolTimetableId = 1, InstructorProfileId = teacher, ClassroomId = classroom,
-            SubjectId = id, ClassSubjectRequirementId = id, ClassLabel = "Class " + classroom, Subject = subject.Name, Day = TimetableDay.Sunday,
+            SubjectId = id, ClassSubjectRequirementId = id, ClassLabel = "Class " + classroom, Subject = subject.Name, Day = day,
             Period = period, EntryType = TimetableEntryType.Lesson });
     }
     private static void AddNewGraph(AlFalahDbContext db, TimetableValidationContext c)
@@ -236,6 +363,8 @@ public sealed class TimetableSubstitutionPhase8Tests
     }
     private static ExecuteSwapRequest Request(SwapCandidatesDto p, SwapCandidateDto c, string? reason = null) =>
         new(Guid.NewGuid(), p.Revision, p.Date, p.SourceEntryId, p.Mode, c.Id, p.ExpiresAt, reason);
+    private static ExecuteSwapRequest Request(InlineSwapCandidatesDto p, SwapCandidateDto c, string? reason = null) =>
+        new(Guid.NewGuid(), p.Revision, p.Date, p.SourceEntryId, "Swap", c.Id, p.ExpiresAt, reason, p.Scope);
     private static TimetableSubstitutionService Service(AlFalahDbContext db, User? user = null)
     {
         user ??= new(); var repo = new TimetableSubstitutionRepository(db);

@@ -41,8 +41,9 @@ dotnet ef database update --project AlFalah.Infrastructure --startup-project AlF
 dotnet run --project AlFalah.Api
 ```
 
-- **API**: https://localhost:7100
-- **Swagger**: https://localhost:7100/swagger
+- **API**: http://localhost:5264
+- **Swagger**: http://localhost:5264/swagger
+- In Development, port `5264` serves the API and Swagger only; it does not serve Angular.
 
 ### Frontend
 
@@ -54,6 +55,9 @@ npm start
 ```
 
 - **Frontend**: http://localhost:4200
+
+`frontend/src` is the only frontend source of truth. The backend `wwwroot` directory is a
+generated Production artifact and is intentionally not committed.
 
 ---
 

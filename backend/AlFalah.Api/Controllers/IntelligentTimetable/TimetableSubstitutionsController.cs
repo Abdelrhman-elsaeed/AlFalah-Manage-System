@@ -19,6 +19,10 @@ public sealed class TimetableSubstitutionsController(IMediator mediator) : Contr
     [HttpGet("{id:int}/candidates")]
     public async Task<IActionResult> Candidates(int id, [FromQuery] DateOnly date, [FromQuery] int sourceEntryId, [FromQuery] string mode, CancellationToken ct) =>
         Respond(await mediator.Send(new GetSwapCandidatesQuery(id, date, sourceEntryId, mode), ct));
+    [HttpGet("{id:int}/inline-candidates")]
+    public async Task<IActionResult> InlineCandidates(int id, [FromQuery] DateOnly date, [FromQuery] int sourceEntryId,
+        [FromQuery] SwapSearchScope scope = SwapSearchScope.SameDay, CancellationToken ct = default) =>
+        Respond(await mediator.Send(new GetInlineSwapCandidatesQuery(id, date, sourceEntryId, scope), ct));
     [HttpPost("{id:int}/execute")]
     public async Task<IActionResult> Execute(int id, ExecuteSwapRequest request, CancellationToken ct) => Respond(await mediator.Send(new ExecuteSwapCommand(id, request), ct));
     private IActionResult Respond<T>(ApiResponse<T> response) => response.IsSuccess ? Ok(response) : StatusCode(

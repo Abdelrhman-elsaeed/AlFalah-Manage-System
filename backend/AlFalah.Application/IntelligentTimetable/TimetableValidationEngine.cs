@@ -15,6 +15,10 @@ public sealed record ValidationViolation(ViolationRuleCode RuleCode, ViolationSe
 /// <summary>Pure rule evaluation; no persistence or mutations. Counts lessons by logical occurrence.</summary>
 public sealed class TimetableValidationEngine
 {
+    internal TimetableSwapValidationSession PrepareSwap(TimetableValidationContext context, string mode,
+        IReadOnlyDictionary<int, int>? scheduledTeachers, CancellationToken cancellationToken) =>
+        new(context, mode, scheduledTeachers, cancellationToken);
+
     public static IReadOnlyList<BellPeriod> Periods(BellScheduleRevision? schedule, int day)
     {
         var d = schedule?.Days.SingleOrDefault(x => x.Day == day);

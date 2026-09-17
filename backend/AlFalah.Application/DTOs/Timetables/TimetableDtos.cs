@@ -41,7 +41,8 @@ public sealed record TimetableEntryDto(
     TimetableEntryType EntryType,
     string? ClassLabel,
     string? Subject,
-    int? ClassroomId = null, int? SubjectId = null, int? ClassSubjectRequirementId = null, int? RoomId = null, string? SubjectColor = null);
+    int? ClassroomId = null, int? SubjectId = null, int? ClassSubjectRequirementId = null, int? RoomId = null,
+    string? SubjectColor = null, string? RoomName = null, int? Id = null);
 
 public sealed record TimetableTeacherSummaryDto(
     int InstructorProfileId,

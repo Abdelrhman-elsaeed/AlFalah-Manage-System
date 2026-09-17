@@ -95,6 +95,10 @@
               <span>التوليد التلقائي</span>
               <strong>{{ vm.hardPrerequisitesValid ? 'متاح الآن' : 'بانتظار المتطلبات الصلبة' }}</strong>
             </div>
+            @if (vm.hardPrerequisitesValid) {
+              <button pButton type="button" class="generation-action p-button-sm" icon="pi pi-sparkles"
+                [label]="generationActionLabel()" (click)="openGeneration()"></button>
+            }
           </div>
         </aside>
 

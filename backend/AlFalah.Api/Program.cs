@@ -59,6 +59,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<StudentAffairsDataSeeder>();
+    builder.Services.AddScoped<IntermediateSchoolTimetableDataSeeder>();
 }
 
 // Phase 3 Student Affairs contracts are dispatched through MediatR. Handlers are
@@ -266,15 +267,24 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseCors("AlFalahCors");
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+// During development Angular is served only by its dev server on port 4200.
+// wwwroot is a generated production artifact, so exposing it here can show a
+// stale frontend and make the two local URLs appear to be different apps.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
-app.MapFallbackToFile("index.html");
+if (!app.Environment.IsDevelopment())
+{
+    app.MapFallbackToFile("index.html");
+}
 
 // ─── Database Migration and Seeding ──────────────────────────────────────────
 
@@ -297,6 +307,10 @@ using (var scope = app.Services.CreateScope())
             logger.LogInformation("Running development Student Affairs data seeder...");
             var studentAffairsSeeder = scope.ServiceProvider.GetRequiredService<StudentAffairsDataSeeder>();
             await studentAffairsSeeder.SeedAsync();
+
+            logger.LogInformation("Running development intelligent timetable data seeder...");
+            var timetableSeeder = scope.ServiceProvider.GetRequiredService<IntermediateSchoolTimetableDataSeeder>();
+            await timetableSeeder.SeedAsync();
         }
     }
     catch (Exception ex)

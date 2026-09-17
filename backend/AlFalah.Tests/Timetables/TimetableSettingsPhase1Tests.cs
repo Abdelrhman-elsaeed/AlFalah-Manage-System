@@ -1,3 +1,4 @@
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.IntelligentTimetable.DTOs;
 using AlFalah.Application.IntelligentTimetable.Handlers;
 using AlFalah.Application.Interfaces;
@@ -176,7 +177,7 @@ public sealed class TimetableSettingsPhase1Tests
 
         var (steps, warnings) = TimetableSettingsHandlerSupport.BuildReadiness(
             profile,
-            new(ActiveClassrooms: 1, ActiveStudents: 0, ClassroomsMissingLocation: 0, ActiveTeachers: 1));
+            Readiness(ActiveClassrooms: 1, ActiveTeachers: 1));
 
         steps.Single(x => x.Key == "classrooms").Status.Should().Be("complete");
         warnings.Should().NotContain(x => x.Contains("طالب", StringComparison.Ordinal));
@@ -187,10 +188,193 @@ public sealed class TimetableSettingsPhase1Tests
     {
         var (steps, warnings) = TimetableSettingsHandlerSupport.BuildReadiness(
             Profile(),
-            new(ActiveClassrooms: 3, ActiveStudents: 20, ClassroomsMissingLocation: 1, ActiveTeachers: 2));
+            Readiness(ActiveClassrooms: 3, ActiveStudents: 20, ClassroomsMissingLocation: 1, ActiveTeachers: 2));
 
         steps.Single(x => x.Key == "classrooms").Status.Should().Be("incomplete");
         warnings.Should().Contain(x => x.Contains("1 فصل", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Readiness_marks_a_complete_seeded_setup_as_fully_ready()
+    {
+        var assignments = Enumerable.Range(1, 6)
+            .Select(requirementId => new TimetableAssignmentReadinessData(
+                requirementId,
+                "SingleTeacher",
+                IndividualPeriodCount: 5,
+                PairedBlockCount: 1,
+                [new(TeacherTimetableProfileId: requirementId, AllocatedPeriodCount: 7, AllocatedPairedBlockCount: 1, IsTeacherReady: true)]))
+            .ToArray();
+        var readiness = new TimetableReadinessData(
+            ActiveClassrooms: 6,
+            ActiveStudents: 0,
+            ClassroomsMissingLocation: 0,
+            ActiveTeachers: 20,
+            ConfiguredTeachers: 20,
+            AvailableSubjects: 10,
+            CoveredClassrooms: 6,
+            RequirementCount: 6,
+            Assignments: assignments,
+            TimetableExists: true,
+            HasCurrentTimetable: true);
+
+        var (steps, warnings) = TimetableSettingsHandlerSupport.BuildReadiness(
+            Profile() with { BellScheduleTemplateId = 1, Status = TimetableSetupStatus.Generated },
+            readiness);
+
+        steps.Should().OnlyContain(step => step.Status == "complete");
+        warnings.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Readiness_repository_reads_the_complete_saved_setup()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase($"timetable-readiness-{Guid.NewGuid()}")
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        context.Schools.Add(new School { Id = 1, Name = "مدرسة الاختبار", IsActive = true });
+        context.AcademicYears.Add(new AcademicYear
+        {
+            Id = 1,
+            Code = "2026-2027",
+            NameAr = "العام الدراسي 2026-2027",
+            StartsOn = new DateOnly(2026, 8, 1),
+            EndsOn = new DateOnly(2027, 7, 31),
+            IsActive = true
+        });
+        await context.SaveChangesAsync();
+        var schedule = await BellScheduleTestData.SeedAsync(context);
+        var setup = await context.TimetableSetupProfiles.SingleAsync();
+        setup.Revision = 3;
+
+        context.Users.Add(new ApplicationUser
+        {
+            Id = "teacher-1",
+            UserName = "teacher-1",
+            FirstName = "أحمد",
+            LastName = "المعلم",
+            IsActive = true
+        });
+        context.InstructorProfiles.Add(new InstructorProfile
+        {
+            Id = 1,
+            UserId = "teacher-1",
+            SchoolId = 1,
+            IsActive = true
+        });
+        context.TeacherTimetableProfiles.Add(new TeacherTimetableProfile
+        {
+            Id = 1,
+            SchoolId = 1,
+            TimetableSetupProfileId = setup.Id,
+            InstructorProfileId = 1,
+            BellScheduleRevisionId = schedule.Id,
+            ShortDisplayName = "أحمد",
+            MaximumWeeklyPeriods = 10
+        });
+        context.Classrooms.Add(new Classroom
+        {
+            Id = 1,
+            SchoolId = 1,
+            AcademicYearId = 1,
+            ClassLabel = "الأول - أ",
+            PhysicalLocation = "الدور الأول",
+            IsActive = true
+        });
+        context.Set<SubjectDefinition>().Add(new SubjectDefinition
+        {
+            Id = 1,
+            SchoolId = 1,
+            Name = "الرياضيات",
+            IsActive = true
+        });
+        context.Set<ClassSubjectRequirement>().Add(new ClassSubjectRequirement
+        {
+            Id = 1,
+            SchoolId = 1,
+            TimetableSetupProfileId = setup.Id,
+            ClassroomId = 1,
+            SubjectId = 1,
+            IndividualPeriodCount = 1
+        });
+        context.Set<TeachingAssignment>().Add(new TeachingAssignment
+        {
+            Id = 1,
+            SchoolId = 1,
+            TimetableSetupProfileId = setup.Id,
+            ClassSubjectRequirementId = 1,
+            Mode = "SingleTeacher",
+            Members =
+            [
+                new TeachingAssignmentMember
+                {
+                    SchoolId = 1,
+                    TimetableSetupProfileId = setup.Id,
+                    TeacherTimetableProfileId = 1,
+                    AllocatedPeriodCount = 1
+                }
+            ]
+        });
+        context.SchoolTimetables.Add(new SchoolTimetable
+        {
+            Id = 1,
+            SchoolId = 1,
+            AcademicYearId = 1,
+            TimetableSetupProfileId = setup.Id,
+            BellScheduleRevisionId = schedule.Id,
+            Semester = TimetableSemester.First,
+            Title = "الجدول الكامل",
+            SetupRevision = setup.Revision,
+            CreatedByUserId = "manager",
+            UpdatedByUserId = "manager",
+            Entries =
+            [
+                new SchoolTimetableEntry
+                {
+                    SchoolId = 1,
+                    ClassroomId = 1,
+                    InstructorProfileId = 1,
+                    Day = TimetableDay.Sunday,
+                    Period = 1,
+                    EntryType = TimetableEntryType.Lesson,
+                    ClassSubjectRequirementId = 1
+                }
+            ]
+        });
+        await context.SaveChangesAsync();
+
+        var readiness = await new TimetableSettingsRepository(context).GetReadinessDataAsync(
+            schoolId: 1,
+            academicYearId: 1,
+            TimetableSemester.First,
+            setup.Id,
+            CancellationToken.None);
+
+        readiness.Should().Match<TimetableReadinessData>(x =>
+            x.ActiveClassrooms == 1
+            && x.ClassroomsMissingLocation == 0
+            && x.ActiveTeachers == 1
+            && x.ConfiguredTeachers == 1
+            && x.AvailableSubjects == 1
+            && x.CoveredClassrooms == 1
+            && x.RequirementCount == 1
+            && x.Assignments.Count == 1
+            && x.Assignments[0].Members.Count == 1
+            && x.Assignments[0].Members[0].IsTeacherReady
+            && x.TimetableExists
+            && x.HasCurrentTimetable);
+
+        var response = await new GetTimetableSettingsQueryHandler(
+                new TimetableSettingsRepository(context),
+                new TestCurrentUser(RoleNames.Secretary, PermissionNames.TimetableManage),
+                new BellScheduleRepository(context))
+            .Handle(new GetTimetableSettingsQuery(1, TimetableSemester.First, setup.Id), CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        response.Data!.CompletionPercent.Should().Be(100);
+        response.Data.HardPrerequisitesValid.Should().BeTrue();
+        response.Data.Steps.Should().OnlyContain(step => step.Status == "complete");
     }
 
     [Fact]
@@ -253,6 +437,23 @@ public sealed class TimetableSettingsPhase1Tests
         StatusLabelAr: "مسودة",
         Revision: 1,
         UpdatedAt: DateTimeOffset.UtcNow);
+
+    private static TimetableReadinessData Readiness(
+        int ActiveClassrooms = 0,
+        int ActiveStudents = 0,
+        int ClassroomsMissingLocation = 0,
+        int ActiveTeachers = 0) => new(
+            ActiveClassrooms,
+            ActiveStudents,
+            ClassroomsMissingLocation,
+            ActiveTeachers,
+            ConfiguredTeachers: 0,
+            AvailableSubjects: 0,
+            CoveredClassrooms: 0,
+            RequirementCount: 0,
+            Assignments: [],
+            TimetableExists: false,
+            HasCurrentTimetable: false);
 
     private static CreateTimetableAcademicYearRequest ValidAcademicYearRequest(TimetableSemester activeSemester) => new(
         "2026-2027",

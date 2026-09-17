@@ -122,6 +122,15 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 && x.AcademicYearId == academicYearId
                 && x.Semester == semester
                 && (x.IsPublished || capabilities.CanManage))
+            .OrderByDescending(x => !x.TimingsRequireRevalidation
+                && x.SetupRevision.HasValue
+                && x.TimetableSetupProfileId.HasValue
+                && x.TimetableSetupProfile != null
+                && x.SetupRevision == x.TimetableSetupProfile.Revision)
+            .ThenByDescending(x => x.Entries.Any())
+            .ThenByDescending(x => x.IsPublished)
+            .ThenByDescending(x => x.UpdatedAt)
+            .ThenByDescending(x => x.Id)
             .Select(x => (int?)x.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -492,7 +501,9 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 x.Entries
                     .Where(e => currentInstructorUserId == null || e.InstructorProfile.UserId == currentInstructorUserId)
                     .OrderBy(e => e.InstructorProfileId).ThenBy(e => e.Day).ThenBy(e => e.Period)
-                    .Select(e => new TimetableEntryDto(e.InstructorProfileId, e.Day, e.Period, e.EntryType, e.ClassLabel, e.Subject, e.ClassroomId, e.SubjectId, e.ClassSubjectRequirementId, e.RoomId, e.SubjectDefinition != null ? e.SubjectDefinition.Color : null))
+                    .Select(e => new TimetableEntryDto(e.InstructorProfileId, e.Day, e.Period, e.EntryType, e.ClassLabel, e.Subject, e.ClassroomId, e.SubjectId, e.ClassSubjectRequirementId, e.RoomId,
+                        e.SubjectDefinition != null ? e.SubjectDefinition.Color : null,
+                        e.Room != null ? e.Room.Name : null, e.Id))
                     .ToList()))
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new KeyNotFoundException("الجدول غير موجود.");
@@ -632,7 +643,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         entry.Period,
         entry.EntryType,
         entry.ClassLabel,
-        entry.Subject, entry.ClassroomId, entry.SubjectId, entry.ClassSubjectRequirementId, entry.RoomId, entry.SubjectDefinition?.Color);
+        entry.Subject, entry.ClassroomId, entry.SubjectId, entry.ClassSubjectRequirementId, entry.RoomId, entry.SubjectDefinition?.Color, entry.Room?.Name);
 
     private static string SemesterLabel(TimetableSemester semester) => semester switch
     {

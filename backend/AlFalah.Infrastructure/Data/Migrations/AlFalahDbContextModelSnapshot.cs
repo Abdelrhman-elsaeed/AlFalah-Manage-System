@@ -7387,6 +7387,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("ToPeriod")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ToDay")
+                        .HasColumnType("int");
+
                     b.Property<int>("ToTeacherId")
                         .HasColumnType("int");
 

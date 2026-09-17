@@ -94,6 +94,7 @@ public sealed class TimetableSettingsRepository : ITimetableSettingsRepository
         int schoolId,
         int academicYearId,
         TimetableSemester semester,
+        int? profileId,
         CancellationToken cancellationToken)
     {
         var activeClassrooms = _context.Classrooms
@@ -102,15 +103,23 @@ public sealed class TimetableSettingsRepository : ITimetableSettingsRepository
                 && x.AcademicYearId == academicYearId
                 && x.IsActive
                 && !x.IsDeleted);
+        var activeTeachers = _context.InstructorProfiles
+            .AsNoTracking()
+            .Where(x => x.SchoolId == schoolId
+                && x.IsActive
+                && !x.IsDeleted
+                && x.User.IsActive
+                && !x.User.IsDeleted);
+        var activeSubjects = _context.Set<SubjectDefinition>()
+            .AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && x.IsActive && !x.IsDeleted);
 
         var classroomCount = await activeClassrooms.CountAsync(cancellationToken).ConfigureAwait(false);
         var missingLocationCount = await activeClassrooms
             .CountAsync(x => x.PhysicalLocation == null || x.PhysicalLocation == "", cancellationToken)
             .ConfigureAwait(false);
-        var teacherCount = await _context.InstructorProfiles
-            .AsNoTracking()
-            .CountAsync(x => x.SchoolId == schoolId && x.IsActive && !x.IsDeleted, cancellationToken)
-            .ConfigureAwait(false);
+        var teacherCount = await activeTeachers.CountAsync(cancellationToken).ConfigureAwait(false);
+        var subjectCount = await activeSubjects.CountAsync(cancellationToken).ConfigureAwait(false);
 
         var termId = await _context.AcademicTerms
             .AsNoTracking()
@@ -132,7 +141,171 @@ public sealed class TimetableSettingsRepository : ITimetableSettingsRepository
                 .ConfigureAwait(false)
             : 0;
 
-        return new TimetableReadinessData(classroomCount, studentCount, missingLocationCount, teacherCount);
+        if (!profileId.HasValue)
+        {
+            return new TimetableReadinessData(
+                classroomCount,
+                studentCount,
+                missingLocationCount,
+                teacherCount,
+                ConfiguredTeachers: 0,
+                AvailableSubjects: subjectCount,
+                CoveredClassrooms: 0,
+                RequirementCount: 0,
+                Assignments: [],
+                TimetableExists: false,
+                HasCurrentTimetable: false);
+        }
+
+        var setup = await _context.TimetableSetupProfiles
+            .AsNoTracking()
+            .Where(x => x.Id == profileId.Value
+                && x.SchoolId == schoolId
+                && x.AcademicYearId == academicYearId
+                && x.Semester == semester
+                && !x.IsDeleted)
+            .Select(x => new { x.Id, x.BellScheduleTemplateId, x.Revision })
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (setup is null)
+        {
+            return new TimetableReadinessData(
+                classroomCount,
+                studentCount,
+                missingLocationCount,
+                teacherCount,
+                ConfiguredTeachers: 0,
+                AvailableSubjects: subjectCount,
+                CoveredClassrooms: 0,
+                RequirementCount: 0,
+                Assignments: [],
+                TimetableExists: false,
+                HasCurrentTimetable: false);
+        }
+
+        var currentScheduleRevisionId = setup.BellScheduleTemplateId.HasValue
+            ? await _context.Set<BellScheduleRevision>()
+                .AsNoTracking()
+                .Where(x => x.SchoolId == schoolId
+                    && x.BellScheduleTemplateId == setup.BellScheduleTemplateId.Value
+                    && x.Template.IsActive
+                    && !x.Template.IsDeleted
+                    && x.Revision == x.Template.Revision)
+                .Select(x => (int?)x.Id)
+                .SingleOrDefaultAsync(cancellationToken)
+                .ConfigureAwait(false)
+            : null;
+
+        var configuredTeacherCount = currentScheduleRevisionId.HasValue
+            ? await _context.TeacherTimetableProfiles
+                .AsNoTracking()
+                .CountAsync(profile => profile.SchoolId == schoolId
+                    && profile.TimetableSetupProfileId == setup.Id
+                    && profile.BellScheduleRevisionId == currentScheduleRevisionId.Value
+                    && profile.Instructor.IsActive
+                    && !profile.Instructor.IsDeleted
+                    && profile.Instructor.User.IsActive
+                    && !profile.Instructor.User.IsDeleted,
+                    cancellationToken)
+                .ConfigureAwait(false)
+            : 0;
+
+        var requirementsQuery = _context.Set<ClassSubjectRequirement>()
+            .AsNoTracking()
+            .Where(x => x.SchoolId == schoolId
+                && x.TimetableSetupProfileId == setup.Id
+                && !x.IsDeleted
+                && x.Classroom.AcademicYearId == academicYearId
+                && x.Classroom.IsActive
+                && !x.Classroom.IsDeleted
+                && x.Subject.IsActive
+                && !x.Subject.IsDeleted);
+        var requirementRows = await requirementsQuery
+            .Select(x => new
+            {
+                x.Id,
+                x.ClassroomId,
+                x.IndividualPeriodCount,
+                x.PairedBlockCount
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var requirementIds = requirementRows.Select(x => x.Id).ToArray();
+
+        var assignmentRows = await _context.Set<TeachingAssignment>()
+            .AsNoTracking()
+            .Where(x => x.SchoolId == schoolId
+                && x.TimetableSetupProfileId == setup.Id
+                && !x.IsDeleted
+                && requirementIds.Contains(x.ClassSubjectRequirementId))
+            .Select(x => new { x.Id, x.ClassSubjectRequirementId, x.Mode })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var assignmentIds = assignmentRows.Select(x => x.Id).ToArray();
+        var memberRows = await _context.Set<TeachingAssignmentMember>()
+            .AsNoTracking()
+            .Where(x => x.SchoolId == schoolId
+                && x.TimetableSetupProfileId == setup.Id
+                && assignmentIds.Contains(x.TeachingAssignmentId))
+            .Select(x => new
+            {
+                x.TeachingAssignmentId,
+                x.TeacherTimetableProfileId,
+                x.AllocatedPeriodCount,
+                x.AllocatedPairedBlockCount,
+                IsTeacherReady = currentScheduleRevisionId.HasValue
+                    && x.Teacher.BellScheduleRevisionId == currentScheduleRevisionId.Value
+                    && x.Teacher.Instructor.IsActive
+                    && !x.Teacher.Instructor.IsDeleted
+                    && x.Teacher.Instructor.User.IsActive
+                    && !x.Teacher.Instructor.User.IsDeleted
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var assignments = assignmentRows.Select(assignment =>
+        {
+            var requirement = requirementRows.Single(x => x.Id == assignment.ClassSubjectRequirementId);
+            return new TimetableAssignmentReadinessData(
+                requirement.Id,
+                assignment.Mode,
+                requirement.IndividualPeriodCount,
+                requirement.PairedBlockCount,
+                memberRows.Where(x => x.TeachingAssignmentId == assignment.Id)
+                    .Select(member => new TimetableAssignmentMemberReadinessData(
+                        member.TeacherTimetableProfileId,
+                        member.AllocatedPeriodCount,
+                        member.AllocatedPairedBlockCount,
+                        member.IsTeacherReady))
+                    .ToArray());
+        }).ToArray();
+
+        var timetables = _context.SchoolTimetables
+            .AsNoTracking()
+            .Where(x => x.SchoolId == schoolId
+                && x.AcademicYearId == academicYearId
+                && x.Semester == semester
+                && x.TimetableSetupProfileId == setup.Id
+                && !x.IsDeleted);
+        var timetableExists = await timetables.AnyAsync(cancellationToken).ConfigureAwait(false);
+        var hasCurrentTimetable = await timetables.AnyAsync(
+                x => !x.TimingsRequireRevalidation
+                    && x.SetupRevision == setup.Revision
+                    && x.Entries.Any(entry => !entry.IsDeleted && entry.EntryType == TimetableEntryType.Lesson),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        return new TimetableReadinessData(
+            classroomCount,
+            studentCount,
+            missingLocationCount,
+            teacherCount,
+            configuredTeacherCount,
+            subjectCount,
+            requirementRows.Select(x => x.ClassroomId).Distinct().Count(),
+            requirementRows.Count,
+            assignments,
+            timetableExists,
+            hasCurrentTimetable);
     }
 
     public Task<bool> AcademicScopeExistsAsync(

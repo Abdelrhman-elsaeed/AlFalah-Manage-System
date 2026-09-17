@@ -5,7 +5,7 @@ import { ClearableSelectComponent } from '../../shared/components/clearable-sele
 import { BellSchedule, effectivePeriods } from '../../core/models/bell-schedule.models';
 import { effectiveIntervals } from '../../core/models/schedule-break.models';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -25,6 +25,13 @@ import {
 } from '../../core/models/timetable.models';
 import { TimetableService } from '../../core/services/timetable.service';
 import { ToastService } from '../../core/services/toast.service';
+import { SwapSearchScope } from '../../core/models/timetable-substitution.models';
+import { InlineSwapChooserComponent } from './inline-swap/inline-swap-chooser.component';
+import { InlineSwapSessionStore, InlineSwapSource } from './inline-swap/inline-swap-session.store';
+import { SwapAnalysisOverlayComponent } from './inline-swap/swap-analysis-overlay.component';
+import { SwapGridLegendComponent } from './inline-swap/swap-grid-legend.component';
+import { SwapModeBarComponent } from './inline-swap/swap-mode-bar.component';
+import { SwapReviewDialogComponent } from './inline-swap/swap-review-dialog.component';
 
 interface CellAddress {
   teacherId: number;
@@ -40,10 +47,18 @@ interface DisplayInterval {
   readonly periodSequence: number | null;
 }
 
+interface DisplayDay {
+  readonly value: number;
+  readonly labelAr: string;
+  readonly intervals: readonly DisplayInterval[];
+}
+
 @Component({
   selector: 'app-school-timetable',
   standalone: true,
-  imports: [RouterLink, ClearableSelectComponent, CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule],
+  imports: [RouterLink, ClearableSelectComponent, CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule,
+    InlineSwapChooserComponent, SwapAnalysisOverlayComponent, SwapGridLegendComponent, SwapModeBarComponent, SwapReviewDialogComponent],
+  providers: [InlineSwapSessionStore],
   templateUrl: './school-timetable.component.html',
   styleUrls: ['./school-timetable.component.css']
 })
@@ -51,6 +66,7 @@ export class SchoolTimetableComponent implements OnInit {
   private readonly api = inject(TimetableService);
   private readonly toast = inject(ToastService);
   private readonly settings = inject(TimetableSettingsService);
+  readonly inlineSwap = inject(InlineSwapSessionStore);
   setupProfiles: TimetableSetupProfile[] = [];
   newProfileId: number | null = null;
   profilesLoading = false;
@@ -71,6 +87,8 @@ export class SchoolTimetableComponent implements OnInit {
   readonly versions = signal<TimetableVersion[]>([]);
   readonly versionsLoading = signal(false);
   readonly contextBellSchedule = signal<BellSchedule | null>(null);
+  readonly gridFullscreen = signal(false);
+  readonly cellDialogTab = signal<'edit' | 'swap'>('edit');
 
   readonly canManage = computed(() => this.timetable()?.capabilities.canManage ?? this.catalog()?.capabilities.canManage ?? false);
   readonly canDelegate = computed(() => this.catalog()?.capabilities.canDelegate ?? false);
@@ -79,28 +97,36 @@ export class SchoolTimetableComponent implements OnInit {
     return !this.canManage() && teachers.length === 1 && teachers[0].isCurrentUser;
   });
   readonly gridEditable = computed(() => this.canManage() && this.timetable() !== null);
+  readonly gridModificationEnabled = computed(() => this.gridEditable() && !this.inlineSwap.active());
   readonly usingFallbackGrid = computed(() => this.displayBellSchedule() === null);
-  readonly studyDays = computed(() => {
+  readonly gridDays = computed<readonly DisplayDay[]>(() => {
     const days = this.catalog()?.days ?? [];
-    return this.displayBellSchedule()
-      ? days.filter(day => this.periodsFor(day.value).length > 0)
-      : days.filter(day => day.value >= 2 && day.value <= 6);
-  });
-  periodsFor(day: number): number[] {
-    const schedule = this.displayBellSchedule();
-    return schedule ? effectivePeriods(schedule, day).map(x => x.sequence) : this.fallbackPeriodNumbers;
-  }
-  intervalsFor(day: number): DisplayInterval[] {
     const schedule = this.displayBellSchedule();
     return schedule
-      ? effectiveIntervals(schedule, day) as DisplayInterval[]
-      : this.fallbackPeriodNumbers.map(period => ({
-          kind: 'Lesson',
-          name: `الحصة ${period}`,
-          startLocalTime: '',
-          endLocalTime: '',
-          periodSequence: period
-        }));
+      ? days
+          .filter(day => effectivePeriods(schedule, day.value).length > 0)
+          .map(day => ({ ...day, intervals: effectiveIntervals(schedule, day.value) as DisplayInterval[] }))
+      : days
+          .filter(day => day.value >= 2 && day.value <= 6)
+          .map(day => ({ ...day, intervals: this.fallbackIntervals }));
+  });
+  readonly studyDays = computed(() => this.gridDays().map(day => ({ value: day.value, labelAr: day.labelAr })));
+  readonly teacherCounts = computed(() => {
+    const counts = new Map<number, { lessons: number; standby: number }>();
+    for (const entry of Object.values(this.entries())) {
+      const count = counts.get(entry.instructorProfileId) ?? { lessons: 0, standby: 0 };
+      entry.entryType === 1 ? count.lessons++ : count.standby++;
+      counts.set(entry.instructorProfileId, count);
+    }
+    return counts;
+  });
+  periodsFor(day: number): number[] {
+    return this.intervalsFor(day)
+      .filter(interval => interval.kind === 'Lesson')
+      .map(interval => interval.periodSequence!);
+  }
+  intervalsFor(day: number): readonly DisplayInterval[] {
+    return this.gridDays().find(item => item.value === day)?.intervals ?? [];
   }
   periodLabel(day: number, sequence: number): string {
     const schedule = this.timetable()?.bellSchedule;
@@ -117,6 +143,28 @@ export class SchoolTimetableComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalog();
+  }
+
+  toggleGridFullscreen(): void {
+    this.gridFullscreen.update(value => !value);
+  }
+
+  closeGridFullscreen(): void {
+    this.gridFullscreen.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeGridFullscreenOnEscape(): void {
+    if (this.inlineSwap.phase() === 'executing') return;
+    if (this.inlineSwap.phase() === 'reviewing') {
+      this.inlineSwap.backToGrid();
+      return;
+    }
+    if (this.inlineSwap.active()) {
+      if (window.confirm('إلغاء عملية التبديل الحالية؟')) this.inlineSwap.cancel();
+      return;
+    }
+    this.closeGridFullscreen();
   }
 
   loadCatalog(): void {
@@ -219,9 +267,10 @@ export class SchoolTimetableComponent implements OnInit {
     this.dirty.set(true);
   }
 
-  save(): void {
+  save(resumeInlineSwap = false): void {
     const timetable = this.timetable();
     if (!timetable || !this.title().trim()) return;
+    const selectedCell = resumeInlineSwap ? this.selectedCell : null;
     this.saving.set(true);
     this.api.save(timetable.id, {
       title: this.title().trim(),
@@ -232,6 +281,10 @@ export class SchoolTimetableComponent implements OnInit {
         this.saving.set(false);
         if (response.data) this.applyTimetable(response.data);
         this.toast.success('تم حفظ الجدول', 'تم إنشاء نسخة جديدة تلقائيًا.');
+        if (selectedCell && response.data) {
+          this.selectedCell = selectedCell;
+          this.openSwapChooser();
+        }
       },
       error: error => {
         this.saving.set(false);
@@ -262,30 +315,109 @@ export class SchoolTimetableComponent implements OnInit {
   }
 
   openCell(teacher: TimetableTeacher, day: TimetableDay, period: number): void {
-    if (!this.gridEditable()) return;
+    if (!this.gridModificationEnabled()) return;
     this.selectedCell = { teacherId: teacher.instructorProfileId, day, period };
     const entry = this.getEntry(teacher.instructorProfileId, day, period);
     this.draftType = entry?.entryType ?? 0;
     this.draftClass = entry?.classLabel ?? teacher.classes[0] ?? '';
     this.draftSubject = entry?.subject ?? teacher.subject ?? '';
+    this.cellDialogTab.set('edit');
     this.cellDialogVisible.set(true);
+  }
+
+  setCellDialogVisible(visible: boolean): void {
+    this.cellDialogVisible.set(visible);
+    if (!visible && this.inlineSwap.phase() === 'choosing') this.inlineSwap.cancel();
+  }
+
+  handleCellClick(teacher: TimetableTeacher, day: TimetableDay, period: number): void {
+    const entry = this.getEntry(teacher.instructorProfileId, day, period);
+    if (this.inlineSwap.phase() === 'selecting') {
+      const candidate = this.inlineSwap.cellFor(entry?.id ?? null);
+      if (candidate) this.inlineSwap.review(candidate);
+      return;
+    }
+    if (this.inlineSwap.active()) return;
+    this.openCell(teacher, day, period);
+  }
+
+  openSwapChooser(): void {
+    const source = this.inlineSwapSource();
+    if (!source) return;
+    this.inlineSwap.begin(source);
+    this.cellDialogTab.set('swap');
+  }
+
+  selectCellDialogTab(tab: 'edit' | 'swap'): void {
+    this.cellDialogTab.set(tab);
+    if (tab === 'swap') this.openSwapChooser();
+  }
+
+  startInlineSwap(scope: SwapSearchScope): void {
+    const timetable = this.timetable();
+    const source = this.inlineSwap.source();
+    if (!timetable || !source?.entry.id || this.dirty()) return;
+    this.cellDialogVisible.set(false);
+    this.inlineSwap.analyse(timetable.id, this.nextOccurrenceDate(source.entry.day), scope);
+  }
+
+  cancelInlineSwap(): void {
+    if (this.inlineSwap.phase() === 'executing') return;
+    this.inlineSwap.cancel();
+  }
+
+  async confirmInlineSwap(reason: string | null): Promise<void> {
+    try {
+      const result = await this.inlineSwap.execute(reason);
+      const sourceEntryId = this.inlineSwap.source()?.entry.id ?? null;
+      this.inlineSwap.cancel();
+      this.reloadAfterSwap(result.afterRevision, sourceEntryId);
+    } catch {
+      // The store owns the precise validation/concurrency message shown in the review dialog.
+    }
+  }
+
+  reanalyseInlineSwap(): void {
+    const source = this.inlineSwap.source();
+    const scope = this.inlineSwap.scope();
+    const academicYearId = this.selectedYearId();
+    if (!source || !academicYearId) return;
+    this.loading.set(true);
+    this.api.getCurrent(academicYearId, this.selectedSemester()).subscribe({
+      next: response => {
+        this.loading.set(false);
+        if (!response.data) return;
+        this.applyTimetable(response.data);
+        const fresh = response.data.entries.find(entry => entry.id === source.entry.id);
+        if (!fresh?.id) { this.inlineSwap.cancel(); return; }
+        this.inlineSwap.begin({ ...source, entry: fresh });
+        this.inlineSwap.analyse(response.data.id, this.nextOccurrenceDate(fresh.day), scope);
+      },
+      error: error => {
+        this.loading.set(false);
+        this.toast.error('تعذر تحديث الجدول', extractHttpErrorMessage(error) ?? '');
+      }
+    });
   }
 
   saveCell(): void {
     const cell = this.selectedCell;
     if (!cell) return;
     const key = this.cellKey(cell.teacherId, cell.day, cell.period);
+    const current = this.entries()[key];
     const next = { ...this.entries() };
     if (this.draftType === 0) {
       delete next[key];
     } else if (this.draftType === 2) {
-      next[key] = { instructorProfileId: cell.teacherId, day: cell.day, period: cell.period, entryType: 2, classLabel: null, subject: null };
+      next[key] = { id: null, instructorProfileId: cell.teacherId, day: cell.day, period: cell.period, entryType: 2, classLabel: null, subject: null };
     } else {
       if (!this.draftClass.trim() || !this.draftSubject.trim()) {
         this.toast.warn('الفصل والمادة مطلوبان للحصة', '');
         return;
       }
       next[key] = {
+        ...current,
+        id: current?.id ?? null,
         instructorProfileId: cell.teacherId,
         day: cell.day,
         period: cell.period,
@@ -309,27 +441,27 @@ export class SchoolTimetableComponent implements OnInit {
   }
 
   lessonCount(teacherId: number): number {
-    return Object.values(this.entries()).filter(entry => entry.instructorProfileId === teacherId && entry.entryType === 1).length;
+    return this.teacherCounts().get(teacherId)?.lessons ?? 0;
   }
 
   standbyCount(teacherId: number): number {
-    return Object.values(this.entries()).filter(entry => entry.instructorProfileId === teacherId && entry.entryType === 2).length;
+    return this.teacherCounts().get(teacherId)?.standby ?? 0;
   }
 
   onDragStart(event: DragEvent, cell: CellAddress): void {
-    if (!this.canManage() || !this.getEntry(cell.teacherId, cell.day, cell.period)) return;
+    if (!this.gridModificationEnabled() || !this.getEntry(cell.teacherId, cell.day, cell.period)) return;
     event.dataTransfer?.setData('text/timetable-cell', this.cellKey(cell.teacherId, cell.day, cell.period));
     if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
   }
 
   onDragOver(event: DragEvent): void {
-    if (!this.canManage()) return;
+    if (!this.gridModificationEnabled()) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
   }
 
   onDrop(event: DragEvent, target: CellAddress): void {
-    if (!this.canManage()) return;
+    if (!this.gridModificationEnabled()) return;
     event.preventDefault();
     const sourceKey = event.dataTransfer?.getData('text/timetable-cell');
     if (!sourceKey) return;
@@ -352,6 +484,7 @@ export class SchoolTimetableComponent implements OnInit {
   }
 
   copyCell(event: ClipboardEvent, cell: CellAddress): void {
+    if (!this.gridModificationEnabled()) return;
     const entry = this.getEntry(cell.teacherId, cell.day, cell.period);
     if (!entry) return;
     event.preventDefault();
@@ -359,13 +492,13 @@ export class SchoolTimetableComponent implements OnInit {
   }
 
   pasteCell(event: ClipboardEvent, target: CellAddress): void {
-    if (!this.canManage()) return;
+    if (!this.gridModificationEnabled()) return;
     const text = event.clipboardData?.getData('text/plain').trim();
     if (!text) return;
     event.preventDefault();
     let entry: TimetableEntry;
     if (text === 'منتظر') {
-      entry = { instructorProfileId: target.teacherId, day: target.day, period: target.period, entryType: 2, classLabel: null, subject: null };
+      entry = { id: null, instructorProfileId: target.teacherId, day: target.day, period: target.period, entryType: 2, classLabel: null, subject: null };
     } else {
       const separator = text.indexOf('|');
       if (separator <= 0 || separator >= text.length - 1) {
@@ -373,6 +506,7 @@ export class SchoolTimetableComponent implements OnInit {
         return;
       }
       entry = {
+        id: null,
         instructorProfileId: target.teacherId,
         day: target.day,
         period: target.period,
@@ -503,6 +637,33 @@ export class SchoolTimetableComponent implements OnInit {
     return this.catalog()?.teachers.find(item => item.instructorProfileId === this.selectedCell?.teacherId) ?? null;
   }
 
+  selectedEntry(): TimetableEntry | null {
+    const cell = this.selectedCell;
+    return cell ? this.getEntry(cell.teacherId, cell.day, cell.period) : null;
+  }
+
+  inlineSwapSource(): InlineSwapSource | null {
+    const entry = this.selectedEntry();
+    const teacher = this.selectedTeacher();
+    if (!entry || entry.entryType !== 1 || !teacher || !this.canManage()) return null;
+    return { entry, teacherName: teacher.fullName, dayLabel: this.dayLabel(entry.day), periodLabel: this.periodLabel(entry.day, entry.period) };
+  }
+
+  swapCellState(entry: TimetableEntry | null): 'source' | 'Green' | 'Yellow' | 'Red' | null {
+    if (!entry?.id || !this.inlineSwap.result()) return null;
+    if (this.inlineSwap.isSource(entry.id)) return 'source';
+    return this.inlineSwap.cellFor(entry.id)?.color ?? null;
+  }
+
+  swapCellLabel(entry: TimetableEntry | null): string | null {
+    const state = this.swapCellState(entry);
+    if (state === 'source') return 'الحصة المختارة';
+    if (state === 'Green') return 'متاح';
+    if (state === 'Yellow') return 'بتنبيه';
+    if (state === 'Red') return this.inlineSwap.cellFor(entry?.id ?? null)?.alternativeProposalIds.length ? 'غير متاح · يتوفر حل ثلاثي' : 'غير متاح';
+    return null;
+  }
+
   dayLabel(day: TimetableDay): string {
     return this.catalog()?.days.find(item => item.value === day)?.labelAr ?? '';
   }
@@ -520,7 +681,41 @@ export class SchoolTimetableComponent implements OnInit {
     this.dirty.set(false);
   }
 
+  private reloadAfterSwap(revision: number, sourceEntryId: number | null): void {
+    const academicYearId = this.selectedYearId();
+    if (!academicYearId) return;
+    this.loading.set(true);
+    this.api.getCurrent(academicYearId, this.selectedSemester()).subscribe({
+      next: response => {
+        this.loading.set(false);
+        this.applyTimetable(response.data ?? null);
+        this.toast.success(`تم التبديل وحفظ المراجعة رقم ${revision}`, 'تم تحديث الجدول من الخادم.');
+        if (sourceEntryId) setTimeout(() => document.querySelector<HTMLElement>(`[data-entry-id="${sourceEntryId}"]`)?.focus());
+      },
+      error: error => {
+        this.loading.set(false);
+        this.toast.success(`تم التبديل وحفظ المراجعة رقم ${revision}`, 'تعذر تحديث العرض فقط؛ استخدم زر تحديث الصفحة.');
+        this.toast.error('تعذر تحديث الجدول', extractHttpErrorMessage(error) ?? '');
+      }
+    });
+  }
+
+  private nextOccurrenceDate(day: TimetableDay): string {
+    const now = new Date();
+    now.setHours(12, 0, 0, 0);
+    const currentTimetableDay = now.getDay() === 6 ? 1 : now.getDay() + 2;
+    now.setDate(now.getDate() + (Number(day) - currentTimetableDay + 7) % 7);
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
+
   private readonly fallbackPeriodNumbers = Array.from({ length: 8 }, (_, index) => index + 1);
+  private readonly fallbackIntervals: readonly DisplayInterval[] = this.fallbackPeriodNumbers.map(period => ({
+    kind: 'Lesson',
+    name: `الحصة ${period}`,
+    startLocalTime: '',
+    endLocalTime: '',
+    periodSequence: period
+  }));
 
   private displayBellSchedule(): BellSchedule | null {
     return this.timetable()?.bellSchedule ?? this.contextBellSchedule();

@@ -81,7 +81,36 @@
       <span *ngIf="usingFallbackGrid()">تظهر 8 حصص افتراضية حتى يتم ربط قالب توقيت بملف الإعداد.</span>
     </div>
 
-    <div class="grid-shell" *ngIf="selectedYearId() && catalog() as data">
+    <div
+        class="grid-shell"
+        *ngIf="selectedYearId() && catalog() as data"
+        [class.grid-shell--fullscreen]="gridFullscreen()"
+        [attr.role]="gridFullscreen() ? 'dialog' : null"
+        [attr.aria-modal]="gridFullscreen() ? 'true' : null"
+        [attr.aria-label]="gridFullscreen() ? 'الجدول الدراسي في وضع ملء الشاشة' : null">
+      <div class="grid-actions" [class.grid-actions--fullscreen]="gridFullscreen()">
+        <strong *ngIf="gridFullscreen()">{{ timetable()?.title || 'الجدول الدراسي' }}</strong>
+        <button
+            pButton
+            type="button"
+            class="p-button-text p-button-rounded grid-expand-button"
+            [icon]="gridFullscreen() ? 'pi pi-window-minimize' : 'pi pi-expand'"
+            [attr.aria-label]="gridFullscreen() ? 'تصغير الجدول' : 'تكبير الجدول'"
+            [attr.aria-pressed]="gridFullscreen()"
+            [title]="gridFullscreen() ? 'العودة إلى العرض العادي (Esc)' : 'فتح الجدول في شاشة كاملة'"
+            (click)="toggleGridFullscreen()"></button>
+      </div>
+      <app-swap-mode-bar
+          *ngIf="inlineSwap.result() && inlineSwap.active()"
+          [source]="inlineSwap.source()"
+          [scope]="inlineSwap.scope()"
+          [green]="inlineSwap.counts().green"
+          [yellow]="inlineSwap.counts().yellow"
+          [red]="inlineSwap.counts().red"
+          [expiresAt]="inlineSwap.result()?.expiresAt ?? null"
+          (cancel)="cancelInlineSwap()"></app-swap-mode-bar>
+      <app-swap-grid-legend *ngIf="inlineSwap.result() && inlineSwap.active()"></app-swap-grid-legend>
+      <app-swap-analysis-overlay *ngIf="inlineSwap.phase() === 'analysing'" (cancel)="cancelInlineSwap()"></app-swap-analysis-overlay>
       <div class="grid-scroll">
         <table class="schedule-grid">
           <colgroup>
@@ -123,10 +152,18 @@
                     [style.border-top]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.subjectColor ? '3px solid ' + getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.subjectColor : null"
                     [class.has-entry]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
                     [class.standby-cell]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.entryType === 2"
-                    [class.editable]="gridEditable()"
-                    [attr.tabindex]="gridEditable() ? 0 : -1"
-                    [draggable]="gridEditable() && !!getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
-                    (click)="openCell(teacher, dayValue(day.value), period)"
+                    [class.editable]="gridModificationEnabled() || inlineSwap.phase() === 'selecting' && !!inlineSwap.cellFor(getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.id ?? null)"
+                    [class.swap-source]="swapCellState(getEntry(teacher.instructorProfileId, dayValue(day.value), period)) === 'source'"
+                    [class.swap-green]="swapCellState(getEntry(teacher.instructorProfileId, dayValue(day.value), period)) === 'Green'"
+                    [class.swap-yellow]="swapCellState(getEntry(teacher.instructorProfileId, dayValue(day.value), period)) === 'Yellow'"
+                    [class.swap-red]="swapCellState(getEntry(teacher.instructorProfileId, dayValue(day.value), period)) === 'Red'"
+                    [class.swap-outside]="inlineSwap.phase() === 'selecting' && !swapCellState(getEntry(teacher.instructorProfileId, dayValue(day.value), period))"
+                    [attr.aria-disabled]="swapCellState(getEntry(teacher.instructorProfileId, dayValue(day.value), period)) === 'Red' ? 'true' : null"
+                    [attr.aria-label]="swapCellLabel(getEntry(teacher.instructorProfileId, dayValue(day.value), period))"
+                    [attr.data-entry-id]="getEntry(teacher.instructorProfileId, dayValue(day.value), period)?.id"
+                    [attr.tabindex]="gridModificationEnabled() || inlineSwap.phase() === 'selecting' && !!swapCellState(getEntry(teacher.instructorProfileId, dayValue(day.value), period)) ? 0 : -1"
+                    [draggable]="gridModificationEnabled() && !!getEntry(teacher.instructorProfileId, dayValue(day.value), period)"
+                    (click)="handleCellClick(teacher, dayValue(day.value), period)"
                     (dragstart)="onDragStart($event, { teacherId: teacher.instructorProfileId, day: dayValue(day.value), period: period })"
                     (dragover)="onDragOver($event)"
                     (drop)="onDrop($event, { teacherId: teacher.instructorProfileId, day: dayValue(day.value), period: period })"
@@ -137,7 +174,10 @@
                     <ng-container *ngIf="entry.entryType === 1">
                       <strong>{{ entry.classLabel }}</strong>
                       <small>{{ entry.subject }}</small>
+                      <small *ngIf="entry.roomName" class="room-label"><i class="pi pi-map-marker"></i>{{ entry.roomName }}</small>
+                      <span *ngIf="entry.classSubjectRequirementId" class="generated-label">مولّد</span>
                     </ng-container>
+                    <span class="swap-state-label" *ngIf="swapCellLabel(entry) as swapLabel">{{swapLabel}}</span>
                   </ng-container>
                   <ng-template #emptyCell><span class="empty-cell-mark" *ngIf="gridEditable()">+</span></ng-template>
                 </td>
@@ -154,11 +194,19 @@
   </ng-container>
 </section>
 
-<p-dialog header="تعديل الفترة" [visible]="cellDialogVisible()" (visibleChange)="cellDialogVisible.set($event)" [modal]="true" [style]="{ width: '430px', maxWidth: '94vw' }" dir="rtl">
-  <div class="cell-editor" *ngIf="selectedCell">
+<p-dialog header="تفاصيل الحصة" [visible]="cellDialogVisible()" (visibleChange)="setCellDialogVisible($event)" [modal]="true" [style]="{ width: '720px', maxWidth: '96vw' }" dir="rtl">
+  <div class="cell-dialog-tabs" role="tablist" *ngIf="selectedEntry()?.entryType === 1 && canManage()">
+    <button type="button" role="tab" [attr.aria-selected]="cellDialogTab() === 'edit'" [class.active]="cellDialogTab() === 'edit'" (click)="selectCellDialogTab('edit')">التعديل</button>
+    <button type="button" role="tab" [attr.aria-selected]="cellDialogTab() === 'swap'" [class.active]="cellDialogTab() === 'swap'" (click)="selectCellDialogTab('swap')">التبديل</button>
+  </div>
+  <div class="cell-editor" *ngIf="selectedCell && cellDialogTab() === 'edit'">
     <div class="cell-context">
       <strong>{{ selectedTeacher()?.fullName }}</strong>
       <span>{{ dayLabel(selectedCell.day) }} • الفترة {{ selectedCell.period }}</span>
+    </div>
+    <div class="generated-entry-context" *ngIf="selectedEntry()?.classSubjectRequirementId">
+      <i class="pi pi-sparkles"></i>
+      <span>حصة مرتبطة بنتيجة التوليد<span *ngIf="selectedEntry()?.roomName"> • {{ selectedEntry()?.roomName }}</span></span>
     </div>
     <label>
       <span>نوع الفترة</span>
@@ -171,22 +219,45 @@
     <ng-container *ngIf="draftType === 1">
       <label>
         <span>الفصل</span>
-        <input pInputText [(ngModel)]="draftClass" list="teacher-classes" maxlength="50" placeholder="مثال: 3/1">
+        <input pInputText [(ngModel)]="draftClass" list="teacher-classes" maxlength="50" placeholder="مثال: 3/1" [readonly]="!!selectedEntry()?.classSubjectRequirementId">
         <datalist id="teacher-classes"><option *ngFor="let item of selectedTeacher()?.classes" [value]="item"></option></datalist>
       </label>
       <label>
         <span>المادة</span>
-        <input pInputText [(ngModel)]="draftSubject" list="teacher-subject" maxlength="200" placeholder="اسم المادة">
+        <input pInputText [(ngModel)]="draftSubject" list="teacher-subject" maxlength="200" placeholder="اسم المادة" [readonly]="!!selectedEntry()?.classSubjectRequirementId">
         <datalist id="teacher-subject"><option *ngIf="selectedTeacher()?.subject as subject" [value]="subject"></option></datalist>
       </label>
     </ng-container>
     <div class="standby-explanation" *ngIf="draftType === 2"><i class="pi pi-clock"></i> المعلم متاح كاحتياطي خلال هذه الفترة.</div>
   </div>
+  <app-inline-swap-chooser
+      *ngIf="cellDialogTab() === 'swap'"
+      [source]="inlineSwap.source()"
+      [dirty]="dirty() || !selectedEntry()?.id"
+      [wholeTimetableEnabled]="true"
+      (search)="startInlineSwap($event)"
+      (saveRequested)="save(true)"></app-inline-swap-chooser>
   <ng-template pTemplate="footer">
-    <button pButton type="button" class="p-button-text" label="إلغاء" (click)="cellDialogVisible.set(false)"></button>
-    <button pButton type="button" label="تطبيق" icon="pi pi-check" (click)="saveCell()"></button>
+    <ng-container *ngIf="cellDialogTab() === 'edit'">
+      <button pButton type="button" class="p-button-text" label="إلغاء" (click)="setCellDialogVisible(false)"></button>
+      <button pButton type="button" label="تطبيق" icon="pi pi-check" (click)="saveCell()"></button>
+    </ng-container>
   </ng-template>
 </p-dialog>
+
+<app-swap-review-dialog
+    [visible]="inlineSwap.phase() === 'reviewing' || inlineSwap.phase() === 'executing'"
+    [proposal]="inlineSwap.selectedProposal()"
+    [alternatives]="inlineSwap.alternativeProposals()"
+    [canOverride]="inlineSwap.result()?.canOverride ?? false"
+    [expired]="inlineSwap.isExpired()"
+    [busy]="inlineSwap.phase() === 'executing'"
+    [stale]="inlineSwap.stale()"
+    [error]="inlineSwap.error()"
+    (back)="inlineSwap.backToGrid()"
+    (selectProposal)="inlineSwap.selectProposal($event)"
+    (reanalyze)="reanalyseInlineSwap()"
+    (confirm)="confirmInlineSwap($event)"></app-swap-review-dialog>
 
 <p-dialog header="إنشاء جدول جديد" [visible]="createDialogVisible()" (visibleChange)="createDialogVisible.set($event)" [modal]="true" [style]="{ width: '520px', maxWidth: '94vw' }" dir="rtl">
   <label class="dialog-field">

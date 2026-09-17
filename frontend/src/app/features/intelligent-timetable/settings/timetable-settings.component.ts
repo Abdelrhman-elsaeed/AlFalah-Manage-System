@@ -95,6 +95,9 @@ export class TimetableSettingsComponent implements OnInit, HasUnsavedTimetableSe
   readonly canManage = computed(() => this.overview()?.canManage ?? false);
   readonly selectedProfile = computed(() => this.overview()?.selectedProfile ?? null);
   readonly completedSteps = computed(() => this.overview()?.steps.filter(step => step.status === 'complete').length ?? 0);
+  readonly timetableStep = computed(() => this.overview()?.steps.find(step => step.key === 'timetable') ?? null);
+  readonly generationActionLabel = computed(() =>
+    this.timetableStep()?.status === 'complete' ? 'عرض الجدول المولّد' : 'فتح خطوة التوليد');
   readonly profileOptions = computed<readonly SelectOption<number>[]>(() =>
     (this.overview()?.profiles ?? []).map(profile => ({ label: profile.name, value: profile.id })));
   readonly yearOptions = computed<readonly SelectOption<number>[]>(() =>
@@ -274,6 +277,12 @@ export class TimetableSettingsComponent implements OnInit, HasUnsavedTimetableSe
 
   continueSetup(): void {
     const step = this.overview()?.steps.find(item => item.status !== 'complete');
+    const destination = step ?? this.timetableStep();
+    if (destination) void this.router.navigateByUrl(destination.route);
+  }
+
+  openGeneration(): void {
+    const step = this.timetableStep();
     if (step) void this.router.navigateByUrl(step.route);
   }
 

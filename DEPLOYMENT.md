@@ -15,8 +15,8 @@ changes the configuration surface.
 |-------|------|--------|---------------------|
 | Backend API | .NET 8 (ASP.NET Core Web API) | `backend/AlFalah.Api` | `dotnet publish` → self-contained exe or framework-dependent dll |
 | Persistence | SQL Server (LocalDB for dev, SQL Server 2019+ for prod) | `backend/AlFalah.Infrastructure/Data` | EF Core migrations on first run |
-| Frontend | Angular 17.3 + PrimeNG 17 (Saudi light-green theme) | `frontend/src` | `ng build` → static bundle under `frontend/dist/al-falah-app` |
-| Reverse proxy | nginx / IIS / Azure App Service | — | Routes `/api/*` → backend, `/` → frontend |
+| Frontend | Angular 17.3 + PrimeNG 17 (Saudi light-green theme) | `frontend/src` | `ng build` → copied into the API publish under `wwwroot` |
+| Host | ASP.NET Core / IIS | — | Production serves the API and Angular bundle from one origin |
 | Email / SMS | NOT IN SCOPE for MVP (D-04) | — | Forgot/reset-password returns the token in Development only |
 
 The system is a **modular monolith**, not microservices. There is one backend
@@ -166,18 +166,23 @@ dotnet run --project AlFalah.Api      # listens on http://localhost:5264
 
 Swagger UI: `http://localhost:5264/swagger`
 
+In Development, the backend serves API/Swagger only. Run Angular separately on
+`http://localhost:4200`; the backend does not expose any files left under `wwwroot`.
+
 ### 5.2 Production
 
-```bash
-cd backend
-dotnet publish AlFalah.Api -c Release -o ./publish
-cd publish
-ASPNETCORE_ENVIRONMENT=Production \
-ASPNETCORE_URLS=http://0.0.0.0:8080 \
-dotnet AlFalah.Api.dll
+```powershell
+# Builds Angular, replaces backend wwwroot, then publishes the combined app.
+.\deploy-to-monsterasp.ps1 -PackageOnly
+
+Set-Location publish_out
+$env:ASPNETCORE_ENVIRONMENT = 'Production'
+$env:ASPNETCORE_URLS = 'http://0.0.0.0:8080'
+.\AlFalah.Api.exe
 ```
 
-Or run as a service via systemd / IIS / Windows Service.
+The published app serves the current Angular bundle and API from one origin. Run it as an
+IIS / Windows Service, or use a framework-dependent publish for non-Windows hosting.
 
 ### 5.3 Health check
 
@@ -202,25 +207,30 @@ npm start                            # ng serve on http://localhost:4200
 ```bash
 cd frontend
 npm ci
-npm run build                        # → dist/al-falah-app
+npm run build                        # → dist/al-falah-app/browser
 ```
 
-The static bundle in `frontend/dist/al-falah-app` is what you deploy.
-Upload it to any static host (nginx, S3, Azure Static Web Apps, Cloudflare Pages, …).
+For the repository's single-host deployment, do not commit or manually maintain a second
+frontend under `backend/AlFalah.Api/wwwroot`. Use `deploy-to-monsterasp.ps1`; it always builds
+from `frontend/src`, copies `dist/al-falah-app/browser` into `wwwroot`, and only then runs
+`dotnet publish`. `-PackageOnly` performs those steps without contacting MonsterASP.
 
 Configure the backend URL via `frontend/src/environments/environment.prod.ts`:
 
 ```typescript
 export const environment = {
   production: true,
-  apiUrl: 'https://api.alfalah.example.com/api/v1'
+  apiUrl: '' // same origin as the ASP.NET Core host
 };
 ```
 
+Only set an absolute API URL when deliberately deploying Angular to a separate host; that
+alternative also requires adding the frontend origin to `Cors:AllowedOrigins`.
+
 ### 6.3 Runtime requirements
 
-- The frontend is a SPA — the host must rewrite all unknown routes to
-  `index.html` (Angular router needs it).
+- The frontend is a SPA. In Production, ASP.NET Core rewrites unknown non-API routes to
+  `index.html`; Development deliberately does not.
 - CORS on the backend **MUST** include the frontend origin in
   `Cors:AllowedOrigins` (Section 3.1).
 - The bundle is large (~1 MB initial, ~30 lazy chunks). Enable gzip/brotli
@@ -228,9 +238,11 @@ export const environment = {
 
 ---
 
-## 7. Reverse proxy
+## 7. Optional separate frontend host
 
-A minimal `nginx` example for a single host serving both:
+The standard MonsterASP flow does not need this section: the published ASP.NET Core app serves
+both API and Angular. If you deliberately deploy Angular as separate static files, a minimal
+`nginx` setup is:
 
 ```nginx
 server {

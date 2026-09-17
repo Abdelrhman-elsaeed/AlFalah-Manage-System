@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-08-29
+**Last updated:** 2026-09-16
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -63,6 +63,7 @@
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-09-16 | Added the implementation-ready [inline timetable swap experience plan](specs/intelligent-timetable/09-inline-swap-experience.md): the main timetable cell dialog gains Edit/Swap tabs, an accessible analysis overlay, a persistent grid-selection mode and cancel action, while the existing substitutions dashboard remains intact. Same-day search reuses Phase 8; whole-timetable cross-day search is isolated as a backend expansion and remains gated on the policy for already-confirmed future daily cover. No runtime code, endpoint, migration, or current behavior changed. | Codex |
 | 2026-09-06 | Intelligent Timetable Phase 02 implemented: scoped bell templates and immutable revisions, flexible daily slots, strict overlap/order validation, applied local migration, RTL timing editor, setup selection/invalidation, shared teacher/gate-pass resolution and dynamic timetable exports. Backend 354 tests and build pass; frontend 9 tests, production build and live desktop/mobile save-reload checks pass. See [phase report](phases/PHASE-TT-02-TIMINGS.md). | Codex |
 | 2026-08-29 | Locked the five-phase Student Affairs Technical Specification Kit with final thresholds/settings CRUD, dynamic behavior recalculation, `AbsentExcused`, Secretary absent-only roster submission, the final notification-approval split, manual gate pickup verification, and aggregate-only School Manager oversight. Biometric devices, Noor export format, and the 14 quality forms are explicitly blocked with no adapter/schema/API design pending client input. No C# code, migration, or runtime configuration was generated. | Codex |
 | 2026-07-15 | **Desktop-parity Phase 5 completed / closure achieved:** verified all four live role dashboards against `/api/v1/dashboard/main-manager|school-manager|moderator|instructor`, with scoped KPI cards, PrimeNG charts, and Excel/PDF exports. Instructor dashboard school filters are now forced through `SchoolScopeGuard`; regression coverage proves a cross-school filter resolves to `ActiveSchoolId`. Main Manager and Moderator dashboard contracts remain structurally complaint-free. D-73 navigation remains role/permission-filtered, with the Instructor surface exactly الرئيسية + تقاريري + إعدادات. Removed the final blue information-button variants, localized the radar label and all 29 browser route titles, and confirmed zero direct feature dropdowns/native selects/native date inputs. Release build is 0-warning/0-error, 97/97 tests pass, frontend production build is green, and ar/en parity is 683/683 with no duplicate top-level keys. D1–D5 and D-24/D-28/D-36/D-37/D-53/D-75 remain intact. | Codex |

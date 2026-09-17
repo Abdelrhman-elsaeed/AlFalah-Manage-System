@@ -40,6 +40,7 @@ public sealed class TimetableSubstitutionMovement
     public int FromTeacherId { get; set; }
     public int ToTeacherId { get; set; }
     public int Day { get; set; }
+    public int? ToDay { get; set; }
     public int FromPeriod { get; set; }
     public int ToPeriod { get; set; }
     public TimetableSubstitution Substitution { get; set; } = null!;

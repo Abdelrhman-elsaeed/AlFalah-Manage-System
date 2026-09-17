@@ -144,6 +144,23 @@ public sealed class SchoolTimetableServiceTests
         versions.First().RestoredFromVersionNumber.Should().Be(2);
     }
 
+    [Fact]
+    public async Task Manager_current_schedule_prefers_the_generated_populated_timetable_over_an_empty_draft()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.SeedEmptyDraftAndGeneratedTimetableAsync();
+
+        var current = await harness.Service(harness.Manager())
+            .GetCurrentAsync(1, TimetableSemester.First, null);
+
+        current.Should().NotBeNull();
+        current!.Title.Should().Be("الجدول المولد");
+        current.Entries.Should().ContainSingle();
+        current.Entries[0].Id.Should().NotBeNull();
+        current.Entries[0].ClassSubjectRequirementId.Should().Be(1);
+        current.Entries[0].RoomName.Should().Be("معمل الرياضيات");
+    }
+
     private static SaveTimetableEntryRequest Lesson(int teacherId, string classLabel, string subject) =>
         new(teacherId, TimetableDay.Saturday, 1, TimetableEntryType.Lesson, classLabel, subject);
 
@@ -212,6 +229,82 @@ public sealed class SchoolTimetableServiceTests
                 _context.Add(new TeachingAssignment { Id = i, SchoolId = 1, TimetableSetupProfileId = setup.Id, ClassSubjectRequirementId = i,
                     Members = [new() { SchoolId = 1, TimetableSetupProfileId = setup.Id, TeacherTimetableProfileId = i, AllocatedPeriodCount = 1 }] });
             }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SeedEmptyDraftAndGeneratedTimetableAsync()
+        {
+            var originalSetup = await _context.TimetableSetupProfiles.SingleAsync();
+            var timing = await _context.Set<BellScheduleRevision>().SingleAsync();
+            originalSetup.Revision = 1;
+
+            var generatedSetup = new TimetableSetupProfile
+            {
+                SchoolId = 1,
+                AcademicYearId = 1,
+                Semester = TimetableSemester.First,
+                Name = "ملف التوليد",
+                BellScheduleTemplateId = timing.BellScheduleTemplateId,
+                Status = TimetableSetupStatus.Generated,
+                Revision = 4,
+                CreatedByUserId = ManagerId,
+                UpdatedByUserId = ManagerId
+            };
+            _context.TimetableSetupProfiles.Add(generatedSetup);
+            _context.Set<TimetableRoom>().Add(new TimetableRoom
+            {
+                Id = 1,
+                SchoolId = 1,
+                Name = "معمل الرياضيات"
+            });
+            await _context.SaveChangesAsync();
+
+            _context.SchoolTimetables.Add(new SchoolTimetable
+            {
+                SchoolId = 1,
+                AcademicYearId = 1,
+                TimetableSetupProfileId = originalSetup.Id,
+                BellScheduleRevisionId = timing.Id,
+                SetupRevision = originalSetup.Revision,
+                Semester = TimetableSemester.First,
+                Title = "مسودة فارغة قديمة",
+                CreatedByUserId = ManagerId,
+                UpdatedByUserId = ManagerId,
+                UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1)
+            });
+            await _context.SaveChangesAsync();
+
+            _context.SchoolTimetables.Add(
+                new SchoolTimetable
+                {
+                    SchoolId = 1,
+                    AcademicYearId = 1,
+                    TimetableSetupProfileId = generatedSetup.Id,
+                    BellScheduleRevisionId = timing.Id,
+                    SetupRevision = generatedSetup.Revision,
+                    Semester = TimetableSemester.First,
+                    Title = "الجدول المولد",
+                    IsPublished = true,
+                    PublishedAt = DateTimeOffset.UtcNow,
+                    PublishedByUserId = ManagerId,
+                    CreatedByUserId = ManagerId,
+                    UpdatedByUserId = ManagerId,
+                    Entries =
+                    [
+                        new SchoolTimetableEntry
+                        {
+                            SchoolId = 1,
+                            InstructorProfileId = 1,
+                            Day = TimetableDay.Sunday,
+                            Period = 1,
+                            EntryType = TimetableEntryType.Lesson,
+                            ClassLabel = "الأول - أ",
+                            Subject = "الرياضيات",
+                            ClassSubjectRequirementId = 1,
+                            RoomId = 1
+                        }
+                    ]
+                });
             await _context.SaveChangesAsync();
         }
 
