@@ -377,6 +377,13 @@ export class SchoolTimetableComponent implements OnInit {
     }
   }
 
+  async acceptInlineSwapSuggestion(proposalId: string): Promise<void> {
+    const proposal = this.inlineSwap.selectProposal(proposalId);
+    if (!proposal || proposal.color === 'Red') return;
+    if (proposal.color === 'Yellow') return;
+    await this.confirmInlineSwap(null);
+  }
+
   reanalyseInlineSwap(): void {
     const source = this.inlineSwap.source();
     const scope = this.inlineSwap.scope();
@@ -660,7 +667,10 @@ export class SchoolTimetableComponent implements OnInit {
     if (state === 'source') return 'الحصة المختارة';
     if (state === 'Green') return 'متاح';
     if (state === 'Yellow') return 'بتنبيه';
-    if (state === 'Red') return this.inlineSwap.cellFor(entry?.id ?? null)?.alternativeProposalIds.length ? 'غير متاح · يتوفر حل ثلاثي' : 'غير متاح';
+    if (state === 'Red') {
+      const cell = this.inlineSwap.cellFor(entry?.id ?? null);
+      return cell && this.inlineSwap.hasAvailableAlternative(cell) ? 'غير متاح · يتوفر اقتراح بديل' : 'غير متاح';
+    }
     return null;
   }
 

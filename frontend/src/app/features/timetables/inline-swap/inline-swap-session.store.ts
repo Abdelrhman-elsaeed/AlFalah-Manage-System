@@ -39,7 +39,11 @@ export class InlineSwapSessionStore implements OnDestroy {
   readonly selectedProposal = computed(() => this.proposal(this.selectedProposalId()));
   readonly alternativeProposals = computed(() => {
     const cell = this.selectedCell();
-    return cell ? cell.alternativeProposalIds.map(id => this.proposal(id)).filter((item): item is SwapCandidate => !!item) : [];
+    return cell
+      ? cell.alternativeProposalIds
+          .map(id => this.proposal(id))
+          .filter((item): item is SwapCandidate => !!item && this.isAvailableAlternative(item))
+      : [];
   });
   readonly counts = computed(() => {
     const unique = new Map<number, InlineCandidateCell>();
@@ -114,10 +118,19 @@ export class InlineSwapSessionStore implements OnDestroy {
     this.phase.set('reviewing');
   }
 
-  selectProposal(proposalId: string): void {
-    if (!this.proposal(proposalId)) return;
+  selectProposal(proposalId: string): SwapCandidate | null {
+    const proposal = this.proposal(proposalId);
+    if (!proposal || !this.isAvailableAlternative(proposal)) return null;
     this.selectedProposalId.set(proposalId);
     this.error.set('');
+    return proposal;
+  }
+
+  hasAvailableAlternative(cell: InlineCandidateCell): boolean {
+    return cell.alternativeProposalIds.some(id => {
+      const proposal = this.proposal(id);
+      return !!proposal && this.isAvailableAlternative(proposal);
+    });
   }
 
   backToGrid(): void {
@@ -169,6 +182,10 @@ export class InlineSwapSessionStore implements OnDestroy {
 
   private proposal(id: string | null): SwapCandidate | null {
     return this.result()?.proposals.find(item => item.id === id) ?? null;
+  }
+
+  private isAvailableAlternative(proposal: SwapCandidate): boolean {
+    return proposal.color === 'Green' || (proposal.color === 'Yellow' && !!this.result()?.canOverride);
   }
 
   private unwrap<T>(response: ApiResponse<T>): T {

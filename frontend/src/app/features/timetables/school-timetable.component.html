@@ -255,7 +255,8 @@
     [stale]="inlineSwap.stale()"
     [error]="inlineSwap.error()"
     (back)="inlineSwap.backToGrid()"
-    (selectProposal)="inlineSwap.selectProposal($event)"
+    (acceptSuggestion)="acceptInlineSwapSuggestion($event)"
+    (rejectSuggestion)="inlineSwap.backToGrid()"
     (reanalyze)="reanalyseInlineSwap()"
     (confirm)="confirmInlineSwap($event)"></app-swap-review-dialog>
 

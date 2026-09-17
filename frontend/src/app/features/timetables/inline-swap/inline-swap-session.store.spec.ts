@@ -55,6 +55,25 @@ describe('InlineSwapSessionStore', () => {
     expect(store.phase()).toBe('selecting');
   });
 
+  it('does not present a red alternative as an executable suggestion', () => {
+    store.analyse(1, '2026-09-20', 'SameDay');
+    const response = successResult();
+    response.data!.cells[0].alternativeProposalIds.push('blocked-three-way');
+    response.data!.proposals.push({
+      id: 'blocked-three-way', kind: 'ThreeWaySwap', color: 'Red', label: 'Blocked',
+      errors: ['collision'], warnings: [], preview: []
+    });
+    responses.next(response);
+
+    const cell = store.cellFor(20)!;
+    store.review(cell);
+
+    expect(store.alternativeProposals().map(item => item.id)).toEqual(['three-way']);
+    expect(store.hasAvailableAlternative(cell)).toBeTrue();
+    expect(store.selectProposal('blocked-three-way')).toBeNull();
+    expect(store.selectedProposal()?.id).toBe('direct');
+  });
+
   function successResult(scope: InlineSwapCandidates['scope'] = 'SameDay'): ApiResponse<InlineSwapCandidates> {
     return {
       isSuccess: true,

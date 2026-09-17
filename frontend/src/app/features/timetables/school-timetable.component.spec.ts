@@ -175,6 +175,71 @@ describe('School timetable empty grid', () => {
     expect(component.gridFullscreen()).toBeTrue();
   });
 
+  it('executes an accepted green alternative automatically', async () => {
+    const timetable = generatedTimetable();
+    (component as any).applyTimetable(timetable);
+    component.inlineSwap.begin({
+      entry: timetable.entries[0],
+      teacherName: 'معلم تجريبي',
+      dayLabel: 'الأحد',
+      periodLabel: 'الأولى'
+    });
+    component.inlineSwap.result.set({
+      timetableId: timetable.id,
+      revision: timetable.revision,
+      date: '2026-09-20',
+      sourceEntryId: 100,
+      sourceEntryIds: [100],
+      scope: 'SameDay',
+      expiresAt: '2099-01-01T00:00:00Z',
+      canOverride: true,
+      cells: [{
+        anchorEntryId: 200,
+        entryIds: [200],
+        teacherId: 5,
+        day: 2,
+        period: 2,
+        color: 'Red',
+        directProposalId: 'direct',
+        alternativeProposalIds: ['safe-three-way'],
+        reasonSummary: 'تعارض'
+      }],
+      proposals: [
+        { id: 'direct', kind: 'DirectSwap', color: 'Red', label: 'تبديل مباشر', errors: ['تعارض'], warnings: [], preview: [] },
+        { id: 'safe-three-way', kind: 'ThreeWaySwap', color: 'Green', label: 'تبديل ثلاثي آمن', errors: [], warnings: [], preview: [] }
+      ]
+    });
+    component.inlineSwap.selectedCell.set(component.inlineSwap.result()!.cells[0]);
+    component.inlineSwap.selectedProposalId.set('direct');
+    component.inlineSwap.phase.set('reviewing');
+    substitutionApi.executeInline.and.returnValue(of({
+      isSuccess: true,
+      message: '',
+      errors: [],
+      data: {
+        id: 1,
+        kind: 'ThreeWaySwap',
+        date: '2026-09-20',
+        beforeRevision: 3,
+        afterRevision: 4,
+        requestedBy: 'user',
+        approvedBy: 'user',
+        reason: null,
+        confirmedAt: '2026-09-17T00:00:00Z'
+      }
+    }));
+    timetableApi.getCurrent.and.returnValue(NEVER);
+
+    await component.acceptInlineSwapSuggestion('safe-three-way');
+
+    expect(substitutionApi.executeInline).toHaveBeenCalledOnceWith(
+      jasmine.objectContaining({ timetableId: timetable.id }),
+      'safe-three-way',
+      jasmine.any(String),
+      null);
+    expect(component.inlineSwap.phase()).toBe('idle');
+  });
+
   function bellSchedule(): BellSchedule {
     return {
       id: 1,
