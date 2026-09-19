@@ -643,13 +643,16 @@ h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
 
 /* p-button-warning — gold */
 .p-button.p-button-warning {
-  background: var(--warning);
-  border-color: var(--warning);
-  color: #1E293B;
+  background: var(--gold-gradient);
+  border-color: var(--gold-600);
+  color: var(--brand-950);
+  box-shadow: 0 5px 14px rgba(201, 149, 8, 0.2);
 }
 .p-button.p-button-warning:enabled:hover {
-  background: #B8941F;
-  border-color: #B8941F;
+  background: var(--gold-gradient-hover);
+  border-color: var(--gold-700);
+  color: var(--brand-950);
+  box-shadow: var(--gold-shadow);
 }
 .p-button.p-button-text.p-button-warning { color: var(--warning); background: transparent; }
 .p-button.p-button-text.p-button-warning:enabled:hover { background: var(--warning-bg); }

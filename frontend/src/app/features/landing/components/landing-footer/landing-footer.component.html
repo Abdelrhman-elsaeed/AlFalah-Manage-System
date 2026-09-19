@@ -1,0 +1,56 @@
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="brand-line">
+        <img
+          src="assets/Logo.png"
+          width="56"
+          height="56"
+          [alt]="'LANDING.LOGO_ALT' | translate"
+          loading="lazy"
+        /><strong>{{ 'LANDING.SCHOOL' | translate }}</strong>
+      </div>
+      <p>{{ 'LANDING.EYEBROW' | translate }}</p>
+    </div>
+    <div>
+      <h2>{{ 'LANDING.FOOTER_EXPLORE' | translate }}</h2>
+      <a href="#home">{{ 'LANDING.NAV.home' | translate }}</a
+      ><a href="#vision">{{ 'LANDING.NAV.vision' | translate }}</a
+      ><a href="#achievements">{{ 'LANDING.NAV.achievements' | translate }}</a>
+    </div>
+    <div>
+      <h2>{{ 'LANDING.FOOTER_PLATFORM' | translate }}</h2>
+      <a routerLink="/auth/school-login">{{ 'LANDING.LOGIN' | translate }}</a
+      ><a routerLink="/auth/main-manager-login">{{ 'LANDING.MANAGER_LOGIN' | translate }}</a>
+    </div>
+    <div>
+      <h2>{{ 'LANDING.NAV.contact' | translate }}</h2>
+      <p class="location">
+        <i class="pi pi-map-marker" aria-hidden="true"></i>{{ 'LANDING.LOCATION' | translate }}
+      </p>
+      <nav class="social-links" [attr.aria-label]="'LANDING.SOCIAL_LABEL' | translate">
+        <a
+          href="https://x.com/alfla7_school"
+          target="_blank"
+          rel="noopener noreferrer"
+          [attr.aria-label]="'LANDING.SOCIAL_X' | translate"
+          ><i class="pi pi-twitter" aria-hidden="true"></i
+        ></a>
+        <a
+          href="https://www.alfalah.edu.sa/"
+          target="_blank"
+          rel="noopener noreferrer"
+          [attr.aria-label]="'LANDING.WEBSITE' | translate"
+          ><i class="pi pi-globe" aria-hidden="true"></i
+        ></a>
+        <a href="mailto:admin-finance@alfalah.edu.sa" [attr.aria-label]="'LANDING.EMAIL' | translate"
+          ><i class="pi pi-envelope" aria-hidden="true"></i
+        ></a>
+      </nav>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© {{ year }} {{ 'LANDING.SCHOOL_FULL' | translate }}. {{ 'LANDING.COPYRIGHT' | translate }}</span
+    ><a href="#home">{{ 'LANDING.BACK_TOP' | translate }}<i class="pi pi-arrow-up" aria-hidden="true"></i></a>
+  </div>
+</footer>

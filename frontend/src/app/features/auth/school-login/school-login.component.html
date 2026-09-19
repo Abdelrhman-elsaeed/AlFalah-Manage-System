@@ -9,20 +9,16 @@
     <div class="bg-glow-left"></div>
   </div>
 
-  <div class="split-login-container">
+  <div class="login-container">
 
-    <!-- Right Side: Achievements Showcase (Desktop) -->
-    <section class="achievements-column">
-      <app-achievements-showcase></app-achievements-showcase>
-    </section>
-
-    <!-- Left Side: Login Form & Branding -->
+<!-- Left Side: Login Form & Branding -->
     <section class="auth-column">
       
+      <a routerLink="/" class="back-home"><i class="pi pi-arrow-right" aria-hidden="true"></i>{{ 'LANDING.BACK_HOME' | translate }}</a>
       <!-- Brand Header -->
       <div class="auth-brand-block">
         <div class="logo-circle">
-          <img src="assets/Logo.png" alt="شعار مدارس الفلاح" class="logo-image" />
+          <img src="assets/Logo.png" alt="شعار مدارس الفلاح" class="logo-image" width="72" height="72" />
         </div>
         <span class="brand-kicker">{{ 'AUTH.BRAND_NAME' | translate }}</span>
         <h1 class="brand-title">{{ 'APP.NAME' | translate }}</h1>

@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-09-16
+**Last updated:** 2026-09-17
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -37,6 +37,7 @@
 | 12 | [12-QUALITY-RULES.md](12-QUALITY-RULES.md) | Coding & quality rules |
 | 13 | [13-GLOSSARY.md](13-GLOSSARY.md) | Bilingual glossary |
 | 14 | [14-DECISIONS-AND-DEVIATIONS.md](14-DECISIONS-AND-DEVIATIONS.md) | Decisions & deviations log (living) |
+| HP-01 | [specs/homepage/01-premium-landing-page.md](specs/homepage/01-premium-landing-page.md) | Proposed premium Arabic landing page, separate login route, achievements redesign, and acceptance plan |
 | SA-1 | [Phase1-Domain-And-Database-Schema.md](Phase1-Domain-And-Database-Schema.md) | Student Affairs domain and EF Core schema specification |
 | SA-2 | [Phase2-Identity-Roles-And-Permissions.md](Phase2-Identity-Roles-And-Permissions.md) | Student Affairs Identity roles and granular permissions |
 | SA-3 | [Phase3-Core-API-Contracts.md](Phase3-Core-API-Contracts.md) | Student Affairs REST/CQRS contracts |
@@ -63,6 +64,7 @@
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-09-17 | Added the approval-gated [premium Arabic landing-page specification](specs/homepage/01-premium-landing-page.md) using the project Spec Kit format. It defines the public `/` route, a separate unchanged `/auth/school-login` flow, sticky glass navigation, hero/vision/achievements/footer composition, component and CSS strategy, accessibility/performance requirements, phased implementation gates, measurable success criteria, and verification matrix. No runtime code, route, API, database, or authentication behavior changed. | Codex |
 | 2026-09-16 | Added the implementation-ready [inline timetable swap experience plan](specs/intelligent-timetable/09-inline-swap-experience.md): the main timetable cell dialog gains Edit/Swap tabs, an accessible analysis overlay, a persistent grid-selection mode and cancel action, while the existing substitutions dashboard remains intact. Same-day search reuses Phase 8; whole-timetable cross-day search is isolated as a backend expansion and remains gated on the policy for already-confirmed future daily cover. No runtime code, endpoint, migration, or current behavior changed. | Codex |
 | 2026-09-06 | Intelligent Timetable Phase 02 implemented: scoped bell templates and immutable revisions, flexible daily slots, strict overlap/order validation, applied local migration, RTL timing editor, setup selection/invalidation, shared teacher/gate-pass resolution and dynamic timetable exports. Backend 354 tests and build pass; frontend 9 tests, production build and live desktop/mobile save-reload checks pass. See [phase report](phases/PHASE-TT-02-TIMINGS.md). | Codex |
 | 2026-08-29 | Locked the five-phase Student Affairs Technical Specification Kit with final thresholds/settings CRUD, dynamic behavior recalculation, `AbsentExcused`, Secretary absent-only roster submission, the final notification-approval split, manual gate pickup verification, and aggregate-only School Manager oversight. Biometric devices, Noor export format, and the 14 quality forms are explicitly blocked with no adapter/schema/API design pending client input. No C# code, migration, or runtime configuration was generated. | Codex |

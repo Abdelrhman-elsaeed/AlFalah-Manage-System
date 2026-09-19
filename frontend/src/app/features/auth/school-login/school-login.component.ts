@@ -6,7 +6,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { SchoolLookup } from '../../../core/models/auth.models';
 import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
-import { AchievementsShowcaseComponent } from '../../../shared/components/achievements-showcase/achievements-showcase.component';
 
 @Component({
   selector: 'app-school-login',
@@ -16,8 +15,7 @@ import { AchievementsShowcaseComponent } from '../../../shared/components/achiev
     ReactiveFormsModule,
     TranslateModule,
     RouterLink,
-    ClearableSelectComponent,
-    AchievementsShowcaseComponent
+    ClearableSelectComponent
   ],
   templateUrl: './school-login.component.html',
   styleUrls: ['./school-login.component.css'],

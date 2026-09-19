@@ -1,0 +1,62 @@
+:host {
+  display: block;
+  --landing-container: min(100% - 2rem, 1200px);
+  --landing-header-height: 88px;
+}
+.landing-page {
+  background: var(--bg-surface);
+  color: var(--brand-950);
+  font-family: var(--font-app);
+}
+app-landing-header {
+  display: block;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 100;
+}
+app-landing-hero,
+app-vision-strip,
+app-achievements-section,
+app-landing-footer,
+main {
+  display: block;
+  scroll-margin-block-start: calc(var(--landing-header-height) + 20px);
+}
+main:focus {
+  outline: none;
+}
+.skip-link {
+  position: fixed;
+  inset-block-start: 8px;
+  inset-inline-start: 16px;
+  transform: translateY(-150%);
+  z-index: 200;
+  padding: 14px 24px;
+  background: var(--bg-surface);
+  color: var(--brand-950);
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+}
+.skip-link:focus {
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .is-revealed {
+    animation: reveal 0.7s ease both;
+  }
+}
+@keyframes reveal {
+  from {
+    opacity: 0.6;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 768px) {
+  :host {
+    --landing-header-height: 76px;
+  }
+}

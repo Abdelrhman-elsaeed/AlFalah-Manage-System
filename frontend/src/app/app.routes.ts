@@ -12,8 +12,13 @@ function translatedTitle(key: string): ResolveFn<string> {
 }
 
 export const routes: Routes = [
-  // Default redirect
-  { path: '', redirectTo: '/auth/school-login', pathMatch: 'full' },
+  // Public homepage
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./features/landing/landing-page.component').then(m => m.LandingPageComponent),
+    title: translatedTitle('LANDING.PAGE_TITLE')
+  },
 
   // Auth routes (no guard needed)
   {
@@ -818,5 +823,5 @@ export const routes: Routes = [
   },
 
   // Wildcard — 404
-  { path: '**', redirectTo: '/auth/school-login' }
+  { path: '**', redirectTo: '/' }
 ];

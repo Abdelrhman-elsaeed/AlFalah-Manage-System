@@ -1,4 +1,4 @@
-{
+﻿{
   "APP": {
     "NAME": "Al-Falah Schools Evaluation System",
     "NAME_SHORT": "Al-Falah"
@@ -862,5 +862,165 @@
     "STATUS_RESOLVED": "Resolved",
     "STATUS_REJECTED": "Rejected",
     "STATUS_CLOSED": "Closed"
+  },
+  "LANDING": {
+    "PAGE_TITLE": "Al-Falah Private Middle School, Makkah | Learning for the future",
+    "SCHOOL": "Al-Falah Private Middle School",
+    "SCHOOL_FULL": "Al-Falah Private Middle School in Makkah",
+    "MAKKAH": "Makkah",
+    "LOGO_ALT": "Al-Falah Schools logo",
+    "LOCATION": "Makkah, Kingdom of Saudi Arabia",
+    "SKIP": "Skip to content",
+    "MENU": "Menu",
+    "NAV_LABEL": "Main navigation",
+    "NAV": {
+      "home": "Home",
+      "vision": "Our vision",
+      "achievements": "Achievements",
+      "contact": "Contact us"
+    },
+    "LOGIN": "Sign in",
+    "ENTER": "Enter the platform",
+    "MANAGER_LOGIN": "General manager sign in",
+    "BACK_HOME": "Back to home",
+    "BACK_TOP": "Back to top",
+    "EYEBROW": "Grounded in learning. Inspired by the future.",
+    "TITLE_START": "Nurturing excellence,",
+    "TITLE_END": "raising a generation for our nation’s future",
+    "DESCRIPTION": "At Al-Falah Private Middle School in Makkah, we bring values, knowledge and innovation together so every student can reach their potential.",
+    "EXPLORE": "Explore our achievements",
+    "VISION_TITLE": "Rooted in values, looking to the future",
+    "PILLARS": {
+      "VALUES": "Authentic values",
+      "EDUCATION": "Quality education",
+      "AMBITION": "National ambition"
+    },
+    "PILLAR_DESCRIPTIONS": {
+      "VALUES": "We nurture sound principles and responsible, thoughtful character.",
+      "EDUCATION": "We use modern methods to develop every student's skills.",
+      "AMBITION": "We prepare creative learners to shape their nation's future."
+    },
+    "ACHIEVEMENTS_EYEBROW": "School record of distinction • 1447 AH",
+    "ACHIEVEMENTS_TITLE": "Achievements to celebrate. Ambition to grow.",
+    "ACHIEVEMENTS_DESCRIPTION": "Achievements of Al-Falah Private Middle School in Makkah",
+    "FOOTER_EXPLORE": "Discover Al-Falah",
+    "FOOTER_PLATFORM": "Learning platform",
+    "SOCIAL_LABEL": "Follow us online",
+    "SOCIAL_X": "School account on X",
+    "WEBSITE": "Official Al-Falah Schools website",
+    "EMAIL": "Email Al-Falah Schools",
+    "COPYRIGHT": "All rights reserved.",
+    "STATS": {
+      "students": "Students at our school",
+      "participations": "Student participations",
+      "projects": "Ibdaa projects",
+      "medals": "Medals",
+      "ranks": "Top placements"
+    },
+    "STORIES": {
+      "story-1": {
+        "badge": "Official recognition",
+        "title": "Makkah’s Director General of Education honors Al-Falah for its 2026 Nasmo Olympiad success",
+        "summary": "Recognizing the school’s support for students and its success in the national Nasmo Olympiad.",
+        "fullText": "Abdullah Al-Ghannam, Director General of Education in Makkah, honored Al-Falah Middle School for its outstanding support of students, competitive learning outcomes and success in the 2026 national Nasmo Olympiad.",
+        "dateStr": "1447 AH",
+        "tags": {
+          "0": "Makkah Education",
+          "1": "Nasmo Olympiad 2026",
+          "2": "Recognition and excellence"
+        }
+      },
+      "story-5": {
+        "badge": "Nasmo Olympiad • 4 photos",
+        "title": "Honoring Al-Falah’s Nasmo winners and qualifiers for the national elite gathering",
+        "summary": "Celebrating national Nasmo winners and students qualifying for the national elite gathering at KAUST.",
+        "fullText": "Honoring students who won the national Nasmo competition and qualified for the elite gathering after exceptional performances, selection for scientific teams and medal achievements that reflect Al-Falah’s excellence.",
+        "dateStr": "1447 AH",
+        "tags": {
+          "0": "Elite gathering",
+          "1": "Al-Falah champions",
+          "2": "National champions"
+        }
+      },
+      "story-3": {
+        "badge": "Partnership and accreditation",
+        "title": "A strategic partnership with the Education and Training Evaluation Commission",
+        "summary": "Dr. Wajdi bin Hamed Babtain signed a partnership agreement in preparation for school accreditation.",
+        "fullText": "Dr. Wajdi bin Hamed Babtain, Director General of Educational Affairs and Development at Al-Falah Schools, signed a memorandum of understanding with the Education and Training Evaluation Commission to prepare for school accreditation and strengthen educational quality standards.",
+        "dateStr": "1447 AH",
+        "tags": {
+          "0": "School accreditation",
+          "1": "Educational affairs",
+          "2": "Quality"
+        }
+      }
+    },
+    "ALL_HONORS": "Honors and awards",
+    "HONORS_TITLE": "Annual honors and achievements — 1447 AH",
+    "HONORS_DESCRIPTION": "Al-Falah Private Middle School in Makkah • Competitive learning outcomes",
+    "HONORS_LIST": "Participations, achievements and events",
+    "FEATURED": "Stories of excellence",
+    "PREVIOUS": "Previous story",
+    "NEXT": "Next story",
+    "PAUSE": "Pause automatic slideshow",
+    "PLAY": "Play automatic slideshow",
+    "READ_STORY": "Read the story and view photos",
+    "GO_STORY": "Go to story {{number}}",
+    "CLOSE": "Close",
+    "PREVIOUS_IMAGE": "Previous photo",
+    "NEXT_IMAGE": "Next photo",
+    "IMAGE_NUMBER": "Photo {{number}}",
+    "IMAGE_UNAVAILABLE": "Image could not be loaded",
+    "SLIDE_STATUS": "Story {{current}} of {{total}}",
+    "HONORS": {
+      "0": {
+        "title": "Excellence shield for the second consecutive year",
+        "description": "Recognized at the forum for positive practices supporting school excellence for its experience in learning outcomes."
+      },
+      "1": {
+        "title": "VEX IQ Robotics Championship",
+        "description": "Fifth place nationally in the robotics and artificial intelligence championship."
+      },
+      "2": {
+        "title": "World Robot Olympiad WRO 2025",
+        "description": "Fourth place and a bronze medal nationally; four students achieved top placements."
+      },
+      "3": {
+        "title": "KAUST Competition 2026",
+        "description": "66 students participated, five reached the finals and three silver medals were awarded."
+      },
+      "4": {
+        "title": "International Kangaroo Mawhiba Competition 2026",
+        "description": "172 participants; two gold, two silver and five bronze medals."
+      },
+      "5": {
+        "title": "National Ibdaa Competition 2026",
+        "description": "169 participants and 19 innovative research projects submitted on the platform."
+      },
+      "6": {
+        "title": "Bebras Mawhiba Informatics Competition",
+        "description": "219 participants; one gold, two silver and seven bronze medals."
+      },
+      "7": {
+        "title": "Nasmo Science and Mathematics Olympiad",
+        "description": "243 participants; five national qualifiers, four elite gathering qualifiers at KAUST and a bronze medal."
+      },
+      "8": {
+        "title": "Arab Reading Challenge and Iqra Competition",
+        "description": "317 participants and five students qualified for the final rounds."
+      },
+      "9": {
+        "title": "Holy Quran and Mishkat Al-Nubuwwah competitions",
+        "description": "270 participants and two students qualified for the final rounds in Makkah."
+      },
+      "10": {
+        "title": "FIFA Schools competition",
+        "description": "22 participants and qualification for the semifinal."
+      },
+      "11": {
+        "title": "Makkah Education volleyball league",
+        "description": "Second place in Makkah."
+      }
+    }
   }
 }

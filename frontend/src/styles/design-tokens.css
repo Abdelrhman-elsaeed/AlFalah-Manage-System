@@ -12,10 +12,16 @@
   --brand-50: #edf7f1;
 
   /* Accent */
-  --gold: #c9a227;
-  --gold-700: #8d6810;
-  --gold-bg: rgba(201, 162, 39, 0.10);
-  --gold-border: rgba(201, 162, 39, 0.36);
+  --gold: #e0b31b;
+  --gold-600: #c99508;
+  --gold-700: #946800;
+  --gold-800: #704d00;
+  --gold-highlight: #f7d667;
+  --gold-bg: rgba(224, 179, 27, 0.13);
+  --gold-border: rgba(201, 149, 8, 0.46);
+  --gold-gradient: linear-gradient(135deg, var(--gold-highlight) 0%, var(--gold) 48%, var(--gold-600) 100%);
+  --gold-gradient-hover: linear-gradient(135deg, #ffe27f 0%, #eabb22 48%, #b98200 100%);
+  --gold-shadow: 0 10px 24px rgba(201, 149, 8, 0.28);
 
   /* Surfaces */
   --bg-page: #f5f4ef;
@@ -40,9 +46,9 @@
   --success: #239a55;
   --success-bg: rgba(35, 154, 85, 0.10);
   --success-border: rgba(35, 154, 85, 0.32);
-  --warning: #c99a20;
-  --warning-bg: rgba(201, 154, 32, 0.11);
-  --warning-border: rgba(201, 154, 32, 0.38);
+  --warning: var(--gold);
+  --warning-bg: var(--gold-bg);
+  --warning-border: var(--gold-border);
   --danger: #d33b3b;
   --danger-bg: rgba(211, 59, 59, 0.08);
   --danger-border: rgba(211, 59, 59, 0.30);

@@ -1,0 +1,41 @@
+<header class="landing-header" [class.scrolled]="isScrolled()">
+  <div class="header-inner">
+    <a class="brand" href="#home" (click)="navigate($event, 'home')">
+      <img src="assets/Logo.png" width="52" height="52" [alt]="'LANDING.LOGO_ALT' | translate" />
+      <span
+        ><strong>{{ 'LANDING.SCHOOL' | translate }}</strong
+        ><small>{{ 'LANDING.MAKKAH' | translate }}</small></span
+      >
+    </a>
+    <button
+      #menuToggle
+      class="menu-toggle"
+      type="button"
+      aria-controls="landing-navigation"
+      [attr.aria-expanded]="menuOpen()"
+      (click)="menuOpen.set(!menuOpen())"
+    >
+      <i class="pi" [class.pi-bars]="!menuOpen()" [class.pi-times]="menuOpen()" aria-hidden="true"></i
+      >{{ 'LANDING.MENU' | translate }}
+    </button>
+    <nav
+      id="landing-navigation"
+      [class.open]="menuOpen()"
+      [attr.aria-label]="'LANDING.NAV_LABEL' | translate"
+    >
+      <div class="nav-links">
+        @for (link of links; track link) {
+          <a
+            [href]="'#' + link"
+            (click)="navigate($event, link)"
+            [attr.aria-current]="activeSection() === link ? 'location' : null"
+            >{{ 'LANDING.NAV.' + link | translate }}</a
+          >
+        }
+      </div>
+      <a class="login" routerLink="/auth/school-login" (click)="closeMenu()"
+        >{{ 'LANDING.LOGIN' | translate }}<i class="pi pi-sign-in" aria-hidden="true"></i
+      ></a>
+    </nav>
+  </div>
+</header>

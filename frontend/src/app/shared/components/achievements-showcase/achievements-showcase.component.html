@@ -1,367 +1,237 @@
-<div class="showcase-container" dir="rtl" aria-label="لوحة منجزات مدارس الفلاح">
-
-  <!-- Showcase Top Header & Counters -->
-  <div class="showcase-header">
-    <div class="header-text-group">
-      <div class="header-badge">
-        <i class="pi pi-trophy trophy-sparkle"></i>
-        <span>سجل الشرف والتميز المدرسي • 1447هـ</span>
-      </div>
-      <h2 class="header-title">منجزات متوسطة الفلاح الأهلية بمكة المكرمة</h2>
+﻿<div class="showcase" dir="rtl" (focusin)="onFocusIn()" (focusout)="onFocusOut($event)">
+  <div class="stats-panel">
+    <div class="stats-ribbon">
+      @for (stat of stats(); track stat.id) {
+        <button
+          type="button"
+          [class]="'stat-card stat-card--' + stat.id"
+          (click)="openAllHonors()"
+          [attr.aria-label]="
+            (stat.prefix || '') + (stat.targetNumber | number) + ' ' + (stat.label | translate)
+          "
+        >
+          <span class="stat-icon" aria-hidden="true">
+            <svg
+              [lucideIcon]="stat.icon"
+              [size]="25"
+              [strokeWidth]="2.15"
+              [absoluteStrokeWidth]="true"
+            ></svg>
+          </span>
+          <strong dir="ltr" aria-hidden="true">{{ stat.prefix }}{{ stat.currentDisplay | number }}</strong>
+          <span class="stat-label" aria-hidden="true">{{ stat.label | translate }}</span>
+        </button>
+      }
     </div>
-
-    <!-- Quick Action to Full Honors List -->
-    <button type="button" class="btn-all-honors" (click)="openAllHonors()" title="عرض كافة الجوائز والإحصائيات">
-      <i class="pi pi-list"></i>
-      <span>سجل الشرف والجوائز</span>
+  </div>
+  <div class="stories-heading">
+    <h3>{{ 'LANDING.FEATURED' | translate }}</h3>
+    <button class="text-button" type="button" (click)="openAllHonors()">
+      {{ 'LANDING.ALL_HONORS' | translate }}<i class="pi pi-arrow-up-left" aria-hidden="true"></i>
     </button>
   </div>
-
-  <!-- 5 Animated Numbers Stats Strip -->
-  <div class="stats-ribbon">
-    @for (stat of stats(); track stat.id) {
-      <div class="stat-pill" (click)="openAllHonors()" role="button" tabindex="0">
-        <div class="pill-icon">
-          <i class="pi" [ngClass]="stat.icon"></i>
-        </div>
-        <div class="pill-data">
-          <span class="pill-num">
-            <span *ngIf="stat.prefix" class="prefix">{{ stat.prefix }}</span>{{ stat.currentDisplay | number }}
-          </span>
-          <span class="pill-lbl">{{ stat.label }}</span>
-        </div>
-      </div>
-    }
-  </div>
-
-  <!-- Single Spacious Featured News Slider Card -->
-  @if (stories[activeStoryIndex()]; as story) {
-    <div 
-      class="featured-slider-card"
-      (mouseenter)="pauseSlider()"
-      (mouseleave)="resumeSlider()"
-      (click)="openStoryModal(story)"
-      role="region"
-      aria-label="الخبر المميز">
-
-      <!-- Background Cover Photo -->
-      <div class="slider-img-wrapper">
-        <img 
-          [src]="story.coverImage" 
-          [alt]="story.title" 
-          class="slider-photo" 
-          loading="eager" />
-        <!-- Dark Graphic Gradient Overlay -->
-        <div class="slider-gradient-overlay"></div>
-      </div>
-
-      <!-- Top Overlay Bar -->
-      <div class="slider-top-bar" (click)="$event.stopPropagation()">
-        <!-- Story Badge -->
-        <div class="badge-group">
-          <span class="story-badge">
-            <i class="pi" [ngClass]="story.badgeIcon"></i>
-            <span>{{ story.badge }}</span>
-          </span>
-          <span class="year-pill" *ngIf="story.dateStr">{{ story.dateStr }}</span>
-        </div>
-
-        <!-- Slider Controls (Prev / Next & Counter) -->
-        <div class="slider-controls">
-          <button 
-            type="button" 
-            class="ctrl-btn" 
-            (click)="prevStory()" 
-            title="الخبر السابق" 
-            aria-label="الخبر السابق">
-            <i class="pi pi-chevron-right"></i>
-          </button>
-          
-          <span class="slider-counter">{{ activeStoryIndex() + 1 }} / {{ stories.length }}</span>
-
-          <button 
-            type="button" 
-            class="ctrl-btn" 
-            (click)="nextStory()" 
-            title="الخبر التالي" 
-            aria-label="الخبر التالي">
-            <i class="pi pi-chevron-left"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Bottom Graphic Text Card -->
-      <div class="slider-bottom-content">
-        <h3 class="slider-story-title">{{ story.title }}</h3>
-        <p class="slider-story-summary">{{ story.summary }}</p>
-        
-        <div class="slider-action-row">
-          <span class="btn-read-more">
-            <span>عرض التغطية والصور الكاملة</span>
-            <i class="pi pi-arrow-left"></i>
-          </span>
-          
-          <!-- Pagination Dots -->
-          <div class="pagination-dots" (click)="$event.stopPropagation()">
-            @for (s of stories; track s.id; let idx = $index) {
-              <button 
-                type="button" 
-                class="dot-pill" 
-                [class.active]="activeStoryIndex() === idx"
-                (click)="goToStory(idx)"
-                [attr.aria-label]="'الانتقال للخبر ' + (idx + 1)">
+  <div
+    class="story-carousel"
+    role="region"
+    [attr.aria-label]="'LANDING.FEATURED' | translate"
+    (mouseenter)="setHovered(true)"
+    (mouseleave)="setHovered(false)"
+    (keydown)="onSliderKey($event)"
+  >
+    <button
+      class="carousel-arrow carousel-prev"
+      type="button"
+      (click)="prevStory()"
+      [attr.aria-label]="'LANDING.PREVIOUS' | translate"
+    >
+      <i class="pi pi-chevron-right" aria-hidden="true"></i>
+    </button>
+    <div class="story-viewport">
+      <div class="story-track" dir="ltr" [style.--track-offset]="storyTrackTransform()">
+        @for (story of stories; track story.id; let i = $index) {
+          <article class="story-card" dir="rtl" [class.is-active]="i === activeStoryIndex()">
+            <button
+              class="story-image"
+              type="button"
+              (click)="openStoryModal(story)"
+              [attr.aria-label]="story.title | translate"
+            >
+              <img
+                [achievementImage]="story.coverImage"
+                [alt]="story.title | translate"
+                width="720"
+                height="440"
+                [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+                decoding="async"
+              />
+              <span class="image-gradient" aria-hidden="true"></span>
+              <span class="image-mark" aria-hidden="true"><i class="pi pi-arrow-up-left"></i></span>
+            </button>
+            <div class="story-copy">
+              <div class="story-meta">
+                <span class="story-badge"
+                  ><i [class]="'pi ' + story.badgeIcon" aria-hidden="true"></i
+                  >{{ story.badge | translate }}</span
+                ><span>{{ (story.dateStr || '') | translate }}</span>
+              </div>
+              <h4>{{ story.title | translate }}</h4>
+              <p>{{ story.summary | translate }}</p>
+              <button class="read-story" type="button" (click)="openStoryModal(story)">
+                {{ 'LANDING.READ_STORY' | translate }}<i class="pi pi-arrow-left" aria-hidden="true"></i>
               </button>
-            }
-          </div>
-        </div>
-      </div>
-
-      <!-- Golden Border Glow -->
-      <div class="slider-glow-border"></div>
-
-    </div>
-  }
-
-</div>
-
-<!-- Photo Story & Gallery Modal -->
-@if (selectedStory(); as story) {
-  <div class="modal-backdrop" (click)="closeStoryModal()">
-    <div class="modal-dialog story-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
-      
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <div class="modal-title-box">
-          <span class="modal-category-tag">
-            <i class="pi" [ngClass]="story.badgeIcon"></i>
-            <span>{{ story.badge }}</span>
-          </span>
-          <h3 class="modal-main-title">{{ story.title }}</h3>
-        </div>
-        <button type="button" class="modal-close-btn" (click)="closeStoryModal()" aria-label="إغلاق">
-          <i class="pi pi-times"></i>
-        </button>
-      </div>
-
-      <!-- Modal Gallery Viewer -->
-      <div class="gallery-viewport">
-        <div class="main-photo-container">
-          <img 
-            [src]="story.images[currentModalImageIndex()]" 
-            [alt]="story.title" 
-            class="gallery-main-img" />
-          
-          <!-- Prev / Next Navigation for multiple photos -->
-          @if (story.images.length > 1) {
-            <button 
-              type="button" 
-              class="gallery-nav-btn nav-prev" 
-              (click)="prevModalImage()" 
-              aria-label="الصورة السابقة">
-              <i class="pi pi-chevron-right"></i>
-            </button>
-            <button 
-              type="button" 
-              class="gallery-nav-btn nav-next" 
-              (click)="nextModalImage()" 
-              aria-label="الصورة التالية">
-              <i class="pi pi-chevron-left"></i>
-            </button>
-
-            <!-- Counter Badge -->
-            <div class="photo-counter-badge">
-              <i class="pi pi-images"></i>
-              <span>{{ currentModalImageIndex() + 1 }} من {{ story.images.length }}</span>
             </div>
+          </article>
+        }
+      </div>
+    </div>
+    <button
+      class="carousel-arrow carousel-next"
+      type="button"
+      (click)="nextStory()"
+      [attr.aria-label]="'LANDING.NEXT' | translate"
+    >
+      <i class="pi pi-chevron-left" aria-hidden="true"></i>
+    </button>
+    <div class="story-controls">
+      <span class="counter" dir="ltr">0{{ activeStoryIndex() + 1 }} <span>/ 03</span></span>
+      <div class="dots">
+        @for (story of stories; track story.id; let i = $index) {
+          <button
+            type="button"
+            [class.active]="i === activeStoryIndex()"
+            [attr.aria-current]="i === activeStoryIndex() ? 'true' : null"
+            [attr.aria-label]="'LANDING.GO_STORY' | translate: { number: i + 1 }"
+            (click)="goToStory(i)"
+          >
+            <span></span>
+          </button>
+        }
+      </div>
+      <button
+        class="playback"
+        type="button"
+        [disabled]="reducedMotion()"
+        [attr.aria-label]="
+          (manuallyPaused() || reducedMotion() ? 'LANDING.PLAY' : 'LANDING.PAUSE') | translate
+        "
+        [attr.aria-pressed]="manuallyPaused()"
+        (click)="togglePlayback()"
+      >
+        <i
+          class="pi"
+          [class.pi-play]="manuallyPaused() || reducedMotion()"
+          [class.pi-pause]="!manuallyPaused() && !reducedMotion()"
+          aria-hidden="true"
+        ></i>
+      </button>
+    </div>
+    <p class="sr-only" [attr.aria-live]="isPaused() ? 'polite' : 'off'" aria-atomic="true">
+      {{ 'LANDING.SLIDE_STATUS' | translate: { current: activeStoryIndex() + 1, total: stories.length } }}:
+      {{ activeStory().title | translate }}
+    </p>
+  </div>
+</div>
+<dialog
+  #detailsDialog
+  class="details-dialog"
+  dir="rtl"
+  lang="ar-SA"
+  aria-labelledby="achievement-dialog-title"
+  aria-describedby="achievement-dialog-description"
+  (close)="onDialogClosed()"
+  (click)="onBackdropClick($event)"
+>
+  <div class="dialog-header">
+    <h2 id="achievement-dialog-title">{{ selectedStory()?.title || 'LANDING.HONORS_TITLE' | translate }}</h2>
+    <button
+      type="button"
+      autofocus
+      class="close-button"
+      (click)="closeDialog()"
+      [attr.aria-label]="'LANDING.CLOSE' | translate"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </div>
+  @if (selectedStory(); as story) {
+    <div class="gallery" (keydown)="onGalleryKey($event)">
+      <div class="gallery-main">
+        <img
+          [achievementImage]="story.images[currentModalImageIndex()]"
+          [alt]="story.title | translate"
+          width="1000"
+          height="650"
+          decoding="async"
+        />
+        @if (story.images.length > 1) {
+          <button
+            class="gallery-prev"
+            type="button"
+            (click)="prevModalImage()"
+            [attr.aria-label]="'LANDING.PREVIOUS_IMAGE' | translate"
+          >
+            <i class="pi pi-chevron-right" aria-hidden="true"></i></button
+          ><button
+            class="gallery-next"
+            type="button"
+            (click)="nextModalImage()"
+            [attr.aria-label]="'LANDING.NEXT_IMAGE' | translate"
+          >
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+      @if (story.images.length > 1) {
+        <div class="thumbnails">
+          @for (image of story.images; track image; let i = $index) {
+            <button
+              type="button"
+              [attr.aria-label]="'LANDING.IMAGE_NUMBER' | translate: { number: i + 1 }"
+              [attr.aria-pressed]="i === currentModalImageIndex()"
+              (click)="setModalImageIndex(i)"
+            >
+              <img [achievementImage]="image" alt="" width="90" height="64" loading="lazy" />
+            </button>
           }
         </div>
-
-        <!-- Thumbnails Strip (if > 1 image) -->
-        @if (story.images.length > 1) {
-          <div class="thumbnails-strip">
-            @for (img of story.images; track img; let i = $index) {
-              <button 
-                type="button" 
-                class="thumb-btn" 
-                [class.active]="currentModalImageIndex() === i"
-                (click)="setModalImageIndex(i)">
-                <img [src]="img" [alt]="'صورة ' + (i + 1)" class="thumb-img" />
-              </button>
-            }
+      }
+    </div>
+    <div class="dialog-body">
+      <p id="achievement-dialog-description">{{ story.fullText | translate }}</p>
+      <div class="tags">
+        @for (tag of story.tags; track tag) {
+          <span>{{ tag | translate }}</span>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="dialog-body">
+      <p id="achievement-dialog-description">{{ 'LANDING.HONORS_DESCRIPTION' | translate }}</p>
+      <div class="honors-stats">
+        @for (stat of stats(); track stat.id) {
+          <div>
+            <strong dir="ltr">{{ stat.prefix }}{{ stat.targetNumber | number }}</strong
+            ><span>{{ stat.label | translate }}</span>
           </div>
         }
       </div>
-
-      <!-- Story Full Text Body -->
-      <div class="story-modal-body">
-        <div class="story-full-text">
-          <p>{{ story.fullText }}</p>
-        </div>
-
-        <!-- Tags -->
-        <div class="story-tags-row">
-          @for (tag of story.tags; track tag) {
-            <span class="story-tag"># {{ tag }}</span>
-          }
-        </div>
+      <h3>{{ 'LANDING.HONORS_LIST' | translate }}</h3>
+      <div class="honors-list">
+        @for (honor of honors; track honor) {
+          <article>
+            <i class="pi pi-trophy" aria-hidden="true"></i>
+            <div>
+              <h4>{{ 'LANDING.HONORS.' + honor + '.title' | translate }}</h4>
+              <p>{{ 'LANDING.HONORS.' + honor + '.description' | translate }}</p>
+            </div>
+          </article>
+        }
       </div>
-
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn-modal-close" (click)="closeStoryModal()">
-          <span>إغلاق التغطية</span>
-        </button>
-      </div>
-
     </div>
+  }
+  <div class="dialog-footer">
+    <button type="button" class="read-story" (click)="closeDialog()">
+      {{ 'LANDING.CLOSE' | translate }}
+    </button>
   </div>
-}
-
-<!-- Full Honors & Infographic Modal -->
-@if (showAllHonorsModal()) {
-  <div class="modal-backdrop" (click)="closeAllHonors()">
-    <div class="modal-dialog honors-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
-      
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <div class="modal-title-box">
-          <div class="honors-emblem">
-            <i class="pi pi-trophy"></i>
-          </div>
-          <div>
-            <h3 class="modal-main-title">سجل الشرف والمنجزات السنوي — 1447هـ</h3>
-            <span class="modal-subtext">متوسطة الفلاح الأهلية بمكة المكرمة • نواتج تعلم تنافسية</span>
-          </div>
-        </div>
-        <button type="button" class="modal-close-btn" (click)="closeAllHonors()" aria-label="إغلاق">
-          <i class="pi pi-times"></i>
-        </button>
-      </div>
-
-      <div class="honors-modal-body">
-        <!-- Top Stats Row -->
-        <div class="honors-stats-grid">
-          @for (s of stats(); track s.id) {
-            <div class="honor-stat-card">
-              <i class="pi" [ngClass]="s.icon"></i>
-              <div class="hstat-val">{{ s.prefix || '' }}{{ s.targetNumber | number }}</div>
-              <div class="hstat-lbl">{{ s.label }}</div>
-            </div>
-          }
-        </div>
-
-        <!-- List of Major Awards -->
-        <h4 class="honors-list-title">
-          <i class="pi pi-star-fill gold-icon"></i>
-          <span>قائمة المشاركات والإنجازات والفعاليات:</span>
-        </h4>
-
-        <div class="honors-cards-list">
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-shield"></i></div>
-            <div class="h-content">
-              <strong>درع التميز للعام الثاني على التوالي</strong>
-              <p>ملتقى الممارسات الإيجابية الداعمة للتميز المدرسي بتجربتها في نواتج التعلم.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-cog"></i></div>
-            <div class="h-content">
-              <strong>بطولة VEX IQ Robotics</strong>
-              <p>المركز الخامس على مستوى المملكة في بطولة الروبوت والذكاء الاصطناعي.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-globe"></i></div>
-            <div class="h-content">
-              <strong>الأولمبياد العالمي للروبوت WRO 2025</strong>
-              <p>المركز الرابع والميدالية البرونزية على مستوى المملكة، و 4 طلاب حققوا مراكز متقدمة.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-compass"></i></div>
-            <div class="h-content">
-              <strong>مسابقة كاوست KAUST 2026م</strong>
-              <p>مشاركة 66 طالباً، تأهل 5 للتصفيات النهائية، وحصد 3 ميداليات فضية.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-sparkles"></i></div>
-            <div class="h-content">
-              <strong>مسابقة كانجارو موهبة الدولية 2026م</strong>
-              <p>172 مشاركاً — 2 ميدالية ذهبية 🥇، 2 فضية 🥈، 5 برونزية 🥉.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-lightbulb"></i></div>
-            <div class="h-content">
-              <strong>مسابقة إبداع الوطنية 2026م</strong>
-              <p>مشاركة 169 طالباً ورفع 19 مشروعاً ابتكارياً وبحثياً معتمداً على المنصة.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-code"></i></div>
-            <div class="h-content">
-              <strong>مسابقة بيبراس موهبة للمعلوماتية</strong>
-              <p>219 مشاركاً — ميدالية ذهبية 🥇، 2 فضية 🥈، 7 برونزية 🥉.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-bolt"></i></div>
-            <div class="h-content">
-              <strong>أولمبياد نسمو للعلوم والرياضيات</strong>
-              <p>243 مشاركاً — تأهل 5 بالمملكة و 4 لملتقى النخبة بكاوست وميدالية برونزية.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-book"></i></div>
-            <div class="h-content">
-              <strong>تحدي القراءة العربي ومسابقة اقرأ</strong>
-              <p>مشاركة 317 طالباً وتأهل 5 طلاب للتصفيات الختامية.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-sun"></i></div>
-            <div class="h-content">
-              <strong>مسابقات القرآن الكريم ومشكات النبوة</strong>
-              <p>270 مشاركاً وتأهل طالبين للتصفيات الختامية بمكة.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-flag"></i></div>
-            <div class="h-content">
-              <strong>مسابقة فيفا المدارس FIFA Schools</strong>
-              <p>مشاركة 22 طالباً والتأهل للدور نصف النهائي.</p>
-            </div>
-          </div>
-
-          <div class="h-card">
-            <div class="h-icon"><i class="pi pi-trophy"></i></div>
-            <div class="h-content">
-              <strong>دوري كرة الطائرة - تعليم مكة</strong>
-              <p>المركز الثاني على مستوى مكة المكرمة.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn-modal-close" (click)="closeAllHonors()">
-          <span>إغلاق السجل</span>
-        </button>
-      </div>
-
-    </div>
-  </div>
-}
+</dialog>
