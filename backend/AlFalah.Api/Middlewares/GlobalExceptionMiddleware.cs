@@ -16,16 +16,12 @@ public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
-    private readonly IHostEnvironment _env;
-
     public GlobalExceptionMiddleware(
         RequestDelegate next,
-        ILogger<GlobalExceptionMiddleware> logger,
-        IHostEnvironment env)
+        ILogger<GlobalExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -52,16 +48,15 @@ public class GlobalExceptionMiddleware
             TeacherDriveAccessDeniedException => (StatusCodes.Status403Forbidden, exception.Message),
             KeyNotFoundException => (StatusCodes.Status404NotFound, exception.Message),
             ArgumentException => (StatusCodes.Status400BadRequest, exception.Message),
-            InvalidOperationException => (StatusCodes.Status400BadRequest, exception.Message),
-            _ => (StatusCodes.Status500InternalServerError, "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.")
+            BusinessRuleException => (StatusCodes.Status400BadRequest, exception.Message),
+            _ => (StatusCodes.Status500InternalServerError,
+                "تعذر إكمال الطلب حاليًا. يرجى المحاولة مرة أخرى. / Unable to complete the request. Please try again.")
         };
 
         context.Response.StatusCode = statusCode;
 
-        var errorDetail = _env.IsDevelopment() ? exception.Message : message;
-
         var response = ApiResponse.Fail(
-            error: errorDetail,
+            error: message,
             message: message
         );
 

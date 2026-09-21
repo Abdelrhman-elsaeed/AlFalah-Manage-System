@@ -2030,6 +2030,60 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("RubricDomains");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.RubricIndicator", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RubricStandardId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TextAr")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(500)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("RubricStandardId");
+
+                    b.HasIndex("RubricStandardId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("UX_RubricIndicator_Standard_Code");
+
+                    b.HasIndex("RubricStandardId", "SortOrder");
+
+                    b.ToTable("RubricIndicators");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricStandard", b =>
                 {
                     b.Property<int>("Id")
@@ -7384,10 +7438,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("TimetableSubstitutionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ToPeriod")
+                    b.Property<int?>("ToDay")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ToDay")
+                    b.Property<int>("ToPeriod")
                         .HasColumnType("int");
 
                     b.Property<int>("ToTeacherId")
@@ -7528,6 +7582,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("ClassroomPeriod")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -7542,6 +7599,23 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<string>("DeletedByUserId")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EvaluatorNameSnapshot")
+                        .HasMaxLength(200)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(200)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("EvaluatorRoleSnapshot")
+                        .HasMaxLength(200)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(200)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("ExperienceVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("GradeClass")
                         .HasMaxLength(100)
@@ -7593,6 +7667,11 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.Property<int>("SchoolId")
                         .HasColumnType("int");
+
+                    b.Property<int>("ScoringRuleSetVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -7646,7 +7725,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "VisitDate");
 
-                    b.ToTable("Visits");
+                    b.ToTable("Visits", t =>
+                        {
+                            t.HasCheckConstraint("CK_Visits_ClassroomPeriod", "[ClassroomPeriod] IS NULL OR ([ClassroomPeriod] >= 1 AND [ClassroomPeriod] <= 7)");
+                        });
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitAnalysis", b =>
@@ -7678,6 +7760,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<decimal>("MaximumScore")
                         .HasColumnType("decimal(8,3)");
 
+                    b.Property<int?>("OverallPercentage")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("OverallScore")
                         .HasColumnType("decimal(6,3)");
 
@@ -7692,6 +7777,11 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsRequired()
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RuleSetVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("StrengthsJson")
                         .IsRequired()
@@ -7748,6 +7838,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("PercentageScore")
+                        .HasColumnType("int");
+
                     b.Property<int>("RubricDomainId")
                         .HasColumnType("int");
 
@@ -7763,6 +7856,56 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("VisitAnalysisId");
 
                     b.ToTable("VisitDomainAverages");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.VisitObservedIndicator", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("IndicatorTextArSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(500)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RubricIndicatorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VisitScoreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("RubricIndicatorId");
+
+                    b.HasIndex("VisitScoreId");
+
+                    b.HasIndex("VisitScoreId", "RubricIndicatorId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0")
+                        .HasDatabaseName("UX_VisitObservedIndicator_Score_Indicator");
+
+                    b.ToTable("VisitObservedIndicators");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitScore", b =>
@@ -7817,6 +7960,83 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasDatabaseName("UX_VisitScore_Visit_Standard");
 
                     b.ToTable("VisitScores");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.VisitTreatmentSnapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Actions")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(4000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("DomainNameArSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(300)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("Goal")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("RubricDomainId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SuccessIndicators")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(2000)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("VisitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("RubricDomainId");
+
+                    b.HasIndex("VisitId");
+
+                    b.HasIndex("VisitId", "SortOrder");
+
+                    b.ToTable("VisitTreatmentSnapshots");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -8399,6 +8619,17 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Version");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.RubricIndicator", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.RubricStandard", "Standard")
+                        .WithMany("Indicators")
+                        .HasForeignKey("RubricStandardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Standard");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricStandard", b =>
                 {
                     b.HasOne("AlFalah.Domain.Entities.RubricDomain", "Domain")
@@ -8592,7 +8823,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("AlFalah.Domain.Entities.TimetableRoom", null)
+                    b.HasOne("AlFalah.Domain.Entities.TimetableRoom", "Room")
                         .WithMany()
                         .HasForeignKey("SchoolId", "RoomId")
                         .HasPrincipalKey("SchoolId", "Id")
@@ -8614,6 +8845,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Classroom");
 
                     b.Navigation("InstructorProfile");
+
+                    b.Navigation("Room");
 
                     b.Navigation("School");
 
@@ -10912,6 +11145,25 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("VisitAnalysis");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.VisitObservedIndicator", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.RubricIndicator", "RubricIndicator")
+                        .WithMany()
+                        .HasForeignKey("RubricIndicatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.VisitScore", "VisitScore")
+                        .WithMany("ObservedIndicators")
+                        .HasForeignKey("VisitScoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RubricIndicator");
+
+                    b.Navigation("VisitScore");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitScore", b =>
                 {
                     b.HasOne("AlFalah.Domain.Entities.RubricStandard", "RubricStandard")
@@ -10927,6 +11179,24 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("RubricStandard");
+
+                    b.Navigation("Visit");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.VisitTreatmentSnapshot", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.RubricDomain", "RubricDomain")
+                        .WithMany()
+                        .HasForeignKey("RubricDomainId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.Visit", "Visit")
+                        .WithMany("TreatmentSnapshots")
+                        .HasForeignKey("VisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RubricDomain");
 
                     b.Navigation("Visit");
                 });
@@ -11055,6 +11325,11 @@ namespace AlFalah.Infrastructure.Data.Migrations
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricDomain", b =>
                 {
                     b.Navigation("Standards");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.RubricStandard", b =>
+                {
+                    b.Navigation("Indicators");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricVersion", b =>
@@ -11186,12 +11461,19 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.Navigation("Scores");
 
+                    b.Navigation("TreatmentSnapshots");
+
                     b.Navigation("ViewLogs");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitAnalysis", b =>
                 {
                     b.Navigation("DomainAverages");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.VisitScore", b =>
+                {
+                    b.Navigation("ObservedIndicators");
                 });
 #pragma warning restore 612, 618
         }

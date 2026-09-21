@@ -26,4 +26,10 @@ public class RubricStandard
 
     // Navigation
     public RubricDomain Domain { get; set; } = null!;
+
+    /// <summary>
+    /// Performance indicators for this standard. V1 standards have none;
+    /// V2 prototype standards have 2–3 indicators each (66 total).
+    /// </summary>
+    public ICollection<RubricIndicator> Indicators { get; set; } = new List<RubricIndicator>();
 }

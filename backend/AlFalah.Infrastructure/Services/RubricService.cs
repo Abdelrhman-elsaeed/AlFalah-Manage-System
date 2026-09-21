@@ -41,6 +41,7 @@ public class RubricService : IRubricService
             .AsNoTracking()
             .Include(v => v.Domains.OrderBy(d => d.SortOrder))
                 .ThenInclude(d => d.Standards.OrderBy(s => s.SortOrder))
+                    .ThenInclude(s => s.Indicators.OrderBy(i => i.SortOrder))
             .FirstOrDefaultAsync(v => v.IsActive, cancellationToken);
 
         if (version == null)
@@ -76,6 +77,7 @@ public class RubricService : IRubricService
             .AsNoTracking()
             .Include(v => v.Domains.OrderBy(d => d.SortOrder))
                 .ThenInclude(d => d.Standards.OrderBy(s => s.SortOrder))
+                    .ThenInclude(s => s.Indicators.OrderBy(i => i.SortOrder))
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
 
         if (version == null)
@@ -131,12 +133,24 @@ public class RubricService : IRubricService
 
             foreach (var stdDto in domainDto.Standards.OrderBy(s => s.SortOrder))
             {
-                domain.Standards.Add(new RubricStandard
+                var standard = new RubricStandard
                 {
                     Code = stdDto.Code,
                     TextAr = stdDto.TextAr,
                     SortOrder = stdDto.SortOrder
-                });
+                };
+
+                foreach (var indicatorDto in stdDto.Indicators.OrderBy(i => i.SortOrder))
+                {
+                    standard.Indicators.Add(new RubricIndicator
+                    {
+                        Code = indicatorDto.Code,
+                        TextAr = indicatorDto.TextAr,
+                        SortOrder = indicatorDto.SortOrder
+                    });
+                }
+
+                domain.Standards.Add(standard);
             }
 
             newVersion.Domains.Add(domain);
@@ -234,7 +248,16 @@ public class RubricService : IRubricService
                         Id = s.Id,
                         Code = s.Code,
                         TextAr = s.TextAr,
-                        SortOrder = s.SortOrder
+                        SortOrder = s.SortOrder,
+                        Indicators = s.Indicators
+                            .OrderBy(i => i.SortOrder)
+                            .Select(i => new RubricIndicatorDto
+                            {
+                                Id = i.Id,
+                                Code = i.Code,
+                                TextAr = i.TextAr,
+                                SortOrder = i.SortOrder
+                            }).ToList()
                     }).ToList()
             }).ToList()
     };

@@ -9,6 +9,15 @@ public class RubricStandardDto
     public string Code { get; set; } = string.Empty;
     public string TextAr { get; set; } = string.Empty;
     public int SortOrder { get; set; }
+    public List<RubricIndicatorDto> Indicators { get; set; } = new();
+}
+
+public class RubricIndicatorDto
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string TextAr { get; set; } = string.Empty;
+    public int SortOrder { get; set; }
 }
 
 /// <summary>A domain with its nested standards.</summary>
@@ -48,6 +57,14 @@ public class RubricVersionListDto
 
 /// <summary>A standard entry in the create-version request.</summary>
 public class RubricStandardWriteDto
+{
+    public string Code { get; set; } = string.Empty;
+    public string TextAr { get; set; } = string.Empty;
+    public int SortOrder { get; set; }
+    public List<RubricIndicatorWriteDto> Indicators { get; set; } = new();
+}
+
+public class RubricIndicatorWriteDto
 {
     public string Code { get; set; } = string.Empty;
     public string TextAr { get; set; } = string.Empty;

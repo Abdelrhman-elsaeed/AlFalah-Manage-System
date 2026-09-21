@@ -29,6 +29,12 @@ public class VisitDomainAverage
     /// <summary>Domain average, decimal to preserve precision.</summary>
     public decimal AverageScore { get; set; }
 
+    /// <summary>
+    /// Exact rounded 0..100 domain result for the V2 rule set. Null for legacy
+    /// snapshots, whose historical /4 average remains in <see cref="AverageScore"/>.
+    /// </summary>
+    public int? PercentageScore { get; set; }
+
     // Soft delete
     public bool IsDeleted { get; set; } = false;
     public DateTimeOffset? DeletedAt { get; set; }

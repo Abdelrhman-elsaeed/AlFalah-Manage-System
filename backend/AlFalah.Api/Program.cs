@@ -302,6 +302,10 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Running database seeder...");
         await seeder.SeedAsync();
 
+        logger.LogInformation("Ensuring the inactive Visits V2 rubric fixture exists...");
+        var rubricV2Seeder = scope.ServiceProvider.GetRequiredService<RubricV2Seeder>();
+        await rubricV2Seeder.SeedAsync();
+
         if (app.Environment.IsDevelopment())
         {
             logger.LogInformation("Running development Student Affairs data seeder...");

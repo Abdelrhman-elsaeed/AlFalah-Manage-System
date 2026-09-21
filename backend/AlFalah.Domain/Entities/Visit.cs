@@ -1,4 +1,5 @@
 using AlFalah.Domain.Enums;
+using System.Collections.Generic;
 
 namespace AlFalah.Domain.Entities;
 
@@ -67,6 +68,29 @@ public class Visit
     public int PresentCount { get; set; }
     public int AbsentCount { get; set; }
 
+    // ─── Phase 2 (Visits V2): Additive fields ────────────────────────────────
+
+    /// <summary>Classroom period number (1..7). Nullable for legacy visits created before V2.</summary>
+    public int? ClassroomPeriod { get; set; }
+
+    /// <summary>
+    /// Identifies whether this visit uses the legacy V1 or the V2 prototype experience.
+    /// Defaults to Legacy (1) so existing rows are unaffected.
+    /// </summary>
+    public ExperienceVersion ExperienceVersion { get; set; } = ExperienceVersion.Legacy;
+
+    /// <summary>
+    /// Snapshot of the scoring rules used by this visit. Legacy visits use 1;
+    /// prototype-compatible visits use 2. The value is immutable after create.
+    /// </summary>
+    public int ScoringRuleSetVersion { get; set; } = 1;
+
+    /// <summary>Snapshot of the evaluator's display name at visit creation time, for historical report stability.</summary>
+    public string? EvaluatorNameSnapshot { get; set; }
+
+    /// <summary>Snapshot of the evaluator's role title at visit creation time.</summary>
+    public string? EvaluatorRoleSnapshot { get; set; }
+
     /// <summary>Free-form notes (optional).</summary>
     public string? Notes { get; set; }
 
@@ -119,4 +143,10 @@ public class Visit
     public ICollection<VisitScore> Scores { get; set; } = new List<VisitScore>();
     public VisitAnalysis? Analysis { get; set; }
     public ICollection<ReportViewLog> ViewLogs { get; set; } = new List<ReportViewLog>();
+
+    /// <summary>
+    /// V2 treatment plan recommendations owned by this visit.
+    /// Replaces the standalone ImprovementPlan module for V2 visits (Decision #7).
+    /// </summary>
+    public ICollection<VisitTreatmentSnapshot> TreatmentSnapshots { get; set; } = new List<VisitTreatmentSnapshot>();
 }

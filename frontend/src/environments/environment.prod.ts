@@ -1,4 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: ''
+  apiUrl: '',
+  featureFlags: {
+    visitsV2: false
+  }
 };

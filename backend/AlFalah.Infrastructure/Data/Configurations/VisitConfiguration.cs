@@ -25,6 +25,15 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
         builder.Property(x => x.RejectionReason).HasMaxLength(1000).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.ReopenReason).HasMaxLength(1000).IsUnicode(true).UseCollation("Arabic_CI_AS");
 
+        // Phase 2 (Visits V2): additive columns
+        builder.Property(x => x.EvaluatorNameSnapshot).HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");
+        builder.Property(x => x.EvaluatorRoleSnapshot).HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");
+        builder.Property(x => x.ExperienceVersion).HasDefaultValue(AlFalah.Domain.Enums.ExperienceVersion.Legacy);
+        builder.Property(x => x.ScoringRuleSetVersion).HasDefaultValue(1);
+        builder.ToTable(t => t.HasCheckConstraint(
+            "CK_Visits_ClassroomPeriod",
+            "[ClassroomPeriod] IS NULL OR ([ClassroomPeriod] >= 1 AND [ClassroomPeriod] <= 7)"));
+
         // FK: School
         builder.HasOne(x => x.School)
             .WithMany()
@@ -83,6 +92,12 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
         builder.HasMany(x => x.ViewLogs)
             .WithOne(v => v.Visit)
             .HasForeignKey(v => v.VisitId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Phase 2 (Visits V2): treatment plan snapshots
+        builder.HasMany(x => x.TreatmentSnapshots)
+            .WithOne(t => t.Visit)
+            .HasForeignKey(t => t.VisitId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes

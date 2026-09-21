@@ -33,4 +33,10 @@ public class VisitScore
     // Navigation
     public Visit Visit { get; set; } = null!;
     public RubricStandard RubricStandard { get; set; } = null!;
+
+    /// <summary>
+    /// Indicators that were observed/checked for this standard's score.
+    /// Only V2 visits have observed indicators; V1 visits use EvidenceNote only.
+    /// </summary>
+    public ICollection<VisitObservedIndicator> ObservedIndicators { get; set; } = new List<VisitObservedIndicator>();
 }

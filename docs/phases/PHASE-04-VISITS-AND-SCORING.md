@@ -1,6 +1,13 @@
 # Phase 4 — Visits & Scoring
 
-**Status:** COMPLETED ✅ + desktop-parity Phases 1–2 and teacher longitudinal Phase 4 completed · **Last updated:** 2026-07-15
+**Status:** COMPLETED ✅ + desktop-parity Phases 1–2 and teacher longitudinal Phase 4 completed · **Last updated:** 2026-09-19 (Visits V2 Phase 0 COMPLETED ✅)
+
+> **2026-09-19 Visits V2 Status (Phase 0 COMPLETED ✅):** The [Classroom Visits V2 Spec Kit Plan](../specs/classroom-visits-v2/plan.md)
+> Phase 0 (Decision lock and immutable acceptance fixtures) is fully executed.
+> Prototype SHA-256 is verified (`86302A58348798B5BAD6A250708B26677BC6E11ACE3CDEC5C272B2AC2FC47827`),
+> and the 5 domains, 25 standards, 66 indicators, 5 treatment templates, 5 seeded visits, 24 teachers, 3 evaluators,
+> and 22 CSV headers are locked as strongly-typed and JSON Golden Test Fixtures with 17 passing acceptance tests.
+> All baseline builds and tests remain green. Phase 1 (Baseline protection & characterization tests) is queued.
 
 ## Goal
 Create and score classroom visits against the standards in the snapshotted rubric version, with analysis.
@@ -135,6 +142,17 @@ The snapshot (`VisitAnalysis` + `VisitDomainAverage[]`) is computed and persiste
 
 ## Dependencies
 Phase 3 (rubric — reused for snapshot), Phase 2 (users/schools, school-scoping via `SchoolScopeGuard`).
+
+## Classroom Visits V2 extension (2026-09-21)
+
+The approved prototype replacement is implemented additively and remains behind global/per-school feature flags. V1 records and routes remain readable and operational for rollback.
+
+- V2 markers isolate the scoring rule set; historical V1 analyses are never recomputed.
+- `RubricIndicator`, `VisitObservedIndicator`, and `VisitTreatmentSnapshot` persist the 66 observations and inline treatment plan.
+- Scores start at 1; total is 25–100; domain/overall percentages use 50/65/85 level thresholds, strength at 75+, and improvement below 65.
+- `/api/v2/visits` owns the new workspace/archive/dashboard/report surface while approval, complaints, and report-view governance remain shared.
+- The Angular `/visits-v2` workspace is selected only when backend availability is enabled for the current school. Legacy improvement-plan routes redirect to the embedded V2 treatment plan only for enabled schools.
+- See the [implementation plan](../specs/classroom-visits-v2/plan.md) and [rollout runbook](../specs/classroom-visits-v2/rollout-runbook.md).
 
 ## Acceptance (all PASS)
 

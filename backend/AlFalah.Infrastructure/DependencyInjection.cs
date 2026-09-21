@@ -104,6 +104,9 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserSchoolRoleService, UserSchoolRoleService>();
         services.AddScoped<IRubricService, RubricService>();
+        services.AddScoped<IVisitV2Repository, VisitV2Repository>();
+        services.AddScoped<IVisitV2DocumentService, VisitV2DocumentService>();
+        services.AddScoped<IVisitV2Service, VisitV2Service>();
         services.AddScoped<IVisitService, VisitService>();
         services.AddScoped<ITeacherService, TeacherService>();
         services.AddScoped<IComplaintService, ComplaintService>();
@@ -158,6 +161,9 @@ public static class DependencyInjection
         // no extra NuGet package required — the assembly ships with .NET 8).
         services.AddScoped<IVisitsBulkExportService, VisitsBulkExportService>();
         services.AddScoped<IAccountService, AccountService>();
+        services.Configure<AlFalah.Application.Common.FeatureFlagsOptions>(
+            configuration.GetSection(AlFalah.Application.Common.FeatureFlagsOptions.SectionName));
+        services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         // ─── Teacher evidence files on Google Drive ───────────────────────────
         // The whole feature reaches Drive through ONE school-owned credential, so the
         // credential protector, the token minter and the folder guard are all required
@@ -195,6 +201,7 @@ public static class DependencyInjection
         services.AddSingleton<ImageAssetLoader>();
 
         services.AddScoped<DatabaseSeeder>();
+        services.AddScoped<RubricV2Seeder>();
 
         return services;
     }

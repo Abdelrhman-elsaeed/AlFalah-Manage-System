@@ -36,6 +36,23 @@ public class VisitAnalysis
     /// <summary>Serialized JSON array of standard snapshots that are priority (score &lt;= 1.5). Each entry: { domainCode, standardCode, textAr, score }.</summary>
     public string PriorityStandardsJson { get; set; } = "[]";
 
+    // ─── Phase 2 (Visits V2): Additive fields ────────────────────────────────
+
+    /// <summary>
+    /// Identifies which scoring rule set produced this analysis.
+    /// 1 = Legacy V1 thresholds (0–4 scale, 6-level labels).
+    /// 2 = V2 prototype thresholds (percentage-based, 4-level labels).
+    /// Prevents interpreting old analyses with V2 thresholds or vice versa.
+    /// Defaults to 1 so existing rows are unaffected.
+    /// </summary>
+    public int RuleSetVersion { get; set; } = 1;
+
+    /// <summary>
+    /// Explicit 0..100 percentage result for V2 visits.
+    /// Nullable so legacy analysis rows (which don't compute a percentage) remain valid.
+    /// </summary>
+    public int? OverallPercentage { get; set; }
+
     /// <summary>When the snapshot was computed (i.e. when the visit was submitted).</summary>
     public DateTimeOffset ComputedAt { get; set; } = DateTimeOffset.UtcNow;
 

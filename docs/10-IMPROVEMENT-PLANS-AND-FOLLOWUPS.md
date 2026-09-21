@@ -157,3 +157,8 @@
 - Desktop-parity Phase 3 keeps multiple plans and all chart rules. Reversed dates
   are blocked in UI/API; completed/cancelled plans are read-only until the explicit
   Reactivate endpoint/action returns them to active (locked D5).
+# V2 treatment-plan replacement (2026-09-21)
+
+For a V2 visit, domains below 65% generate a visit-owned `VisitTreatmentSnapshot`. Goal, actions, and success indicators are editable while the visit is editable and are persisted for reload and official PDF output. The standalone Improvement Plans and Follow-ups frontend routes redirect to `/visits-v2` only when V2 is enabled for the current school.
+
+Legacy plan/follow-up entities, history, and endpoints are retained for V1 and rollback. Removing them is an optional Phase 9 operation requiring separate written approval; it is not part of the V2 release.

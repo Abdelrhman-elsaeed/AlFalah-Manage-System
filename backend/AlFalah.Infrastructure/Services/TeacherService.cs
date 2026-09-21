@@ -420,7 +420,9 @@ public class TeacherService : ITeacherService
                     {
                         d.DomainCode,
                         d.DomainNameAr,
-                        d.AverageScore
+                        AverageScore = d.PercentageScore.HasValue
+                            ? d.PercentageScore.Value / 25m
+                            : d.AverageScore
                     })
                     .ToList()
             })

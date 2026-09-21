@@ -88,6 +88,30 @@ Score scale returned by `GET /api/v1/rubric/score-scale`:
 
 Phase 4 (Visits & Scoring) MUST use this endpoint as the source of truth for labels and thresholds.
 
+### Classroom Visits V2 — feature-gated
+
+All JSON endpoints use `ApiResponse<T>`; CSV/PDF endpoints return binary files. Every operation is backend school-scoped. Moderator lists/details are creator-only, and Instructor access is own + Approved only. V2 uses the frozen rubric version 2 (5 domains, 25 standards, 66 indicators) and persists rule-set-2 analyses and treatment snapshots.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v2/visits/availability` | Resolve global/per-school feature availability. |
+| GET | `/api/v2/visits/observation-card` | Frozen V2 rubric, indicators, default score 1, and labels. |
+| POST | `/api/v2/visits` | Create school-scoped draft with 25 default score rows. |
+| PUT | `/api/v2/visits/{id}` | Atomically update metadata, scores, evidence, and observed indicators. |
+| POST | `/api/v2/visits/{id}/finalize` | Persist the exact V2 analysis/treatments and enter the retained approval workflow. |
+| GET | `/api/v2/visits` | Scoped, searched, filtered, paged archive plus evaluator filter values. |
+| GET | `/api/v2/visits/{id}` | Authorized detail/report; Instructor reads record `ReportViewLog`. |
+| DELETE | `/api/v2/visits/{id}` | Individual soft delete with child soft-delete behavior. |
+| POST | `/api/v2/visits/{id}/approve` | Reuse manager approval workflow. |
+| POST | `/api/v2/visits/{id}/reject` | Reuse reason-required rejection workflow. |
+| POST | `/api/v2/visits/{id}/reopen` | Reuse reason-required reopen workflow. |
+| PUT | `/api/v2/visits/{id}/treatment-recommendations` | Persist visit-owned treatment-plan edits. |
+| GET | `/api/v2/visits/dashboard` | SQL-side V2 KPIs, domain averages, and top/bottom standards. |
+| GET | `/api/v2/visits/export/csv` | Exact 22-column UTF-8 BOM CSV. |
+| GET | `/api/v2/visits/{id}/report/pdf` | Arabic QuestPDF report with school branding and persisted signature fallbacks. |
+
+JSON backup/import and whole-archive deletion are intentionally absent.
+
 ### Phase 4 — Visits & Scoring ✅ DONE
 Visits are **school-scoped** (see **D-24**): school-scoped callers can only read/mutate visits
 within their JWT `active_school_id`; global admins (SuperAdmin, MainManager) bypass. On create

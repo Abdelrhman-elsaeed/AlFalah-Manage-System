@@ -6,6 +6,8 @@ import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { studentAnalyzerGuard } from './core/guards/student-analyzer.guard';
 import { unsavedTimetableSettingsGuard } from './core/guards/unsaved-timetable-settings.guard';
+import { visitV2UnsavedGuard } from './features/visits-v2/visit-v2-unsaved.guard';
+import { legacyImprovementPlanGuard } from './core/guards/legacy-improvement-plan.guard';
 
 function translatedTitle(key: string): ResolveFn<string> {
   return () => inject(TranslateService).get(key);
@@ -429,6 +431,15 @@ export const routes: Routes = [
 
       // ─── Phase 4: Visits (permission-gated) ────────────────────────────
       {
+        path: 'visits-v2',
+        canActivate: [roleGuard],
+        canDeactivate: [visitV2UnsavedGuard],
+        data: { roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin', 'Instructor'] },
+        loadComponent: () => import('./features/visits-v2/visit-workspace/visit-workspace.component')
+          .then(m => m.VisitWorkspaceComponent),
+        title: translatedTitle('VISITS_V2.TITLE')
+      },
+      {
         path: 'visits',
         canActivate: [roleGuard, permissionGuard],
         data: {
@@ -473,7 +484,7 @@ export const routes: Routes = [
       {
         path: 'improvement-plans',
         pathMatch: 'full',
-        canActivate: [permissionGuard],
+        canActivate: [legacyImprovementPlanGuard, permissionGuard],
         data: { permissions: ['Plan.View'] },
         loadComponent: () => import('./features/improvement-plans/plan-overview/plan-overview.component')
           .then(m => m.PlanOverviewComponent),
@@ -481,7 +492,7 @@ export const routes: Routes = [
       },
       {
         path: 'visits/:visitId/improvement-plans',
-        canActivate: [permissionGuard],
+        canActivate: [legacyImprovementPlanGuard, permissionGuard],
         data: { permissions: ['Plan.View'] },
         loadComponent: () => import('./features/improvement-plans/plan-list/plan-list.component')
           .then(m => m.PlanListComponent),
@@ -489,7 +500,7 @@ export const routes: Routes = [
       },
       {
         path: 'improvement-plans/:id',
-        canActivate: [permissionGuard],
+        canActivate: [legacyImprovementPlanGuard, permissionGuard],
         data: { permissions: ['Plan.View'] },
         loadComponent: () => import('./features/improvement-plans/plan-detail/plan-detail.component')
           .then(m => m.PlanDetailComponent),

@@ -251,3 +251,12 @@ IsDeleted, DeletedAt, DeletedByUserId
 Periods are positive contiguous integer sequences with flexible duration/count, no overlap and no midnight crossing. Holidays have no effective periods; study days inherit defaults or own independent overrides. `SchoolTimetable.BellScheduleRevisionId` pins historical operational times. Changes reset dependent setup readiness and mark timetables for revalidation; explicit publication validates entries before changing the pinned revision. Version snapshots embed labels and times. Teacher context and gate-pass lookups share school-local, half-open period resolution and return no lesson in gaps.
 
 See [Phase 02 blueprint](specs/intelligent-timetable/02-timings.md) for the full contract.
+# Classroom Visits V2 additions (2026-09-21)
+
+`Visit.ExperienceVersion` and `Visit.ScoringRuleSetVersion` select legacy versus prototype behavior without rewriting historical records. V2 adds `ClassroomPeriod` plus evaluator name/role snapshots. `VisitAnalysis.RuleSetVersion` and `OverallPercentage`, and `VisitDomainAverage.PercentageScore`, preserve exact V2 results alongside the compatible `/4` values used by existing charts.
+
+- `RubricIndicator` is a versioned child of `RubricStandard`; V2 freezes 66 rows beneath 25 standards.
+- `VisitObservedIndicator` is the soft-deletable join between a visit score and an observed rubric indicator, unique per active `(VisitScoreId, RubricIndicatorId)`.
+- `VisitTreatmentSnapshot` is visit-owned and persists generated or manually edited goal/actions/success-indicator text. It replaces the standalone improvement-plan UI only for V2; existing plan/follow-up records remain retained.
+
+The additive migration is `20260920233213_ClassroomVisitsV2AdditiveSchema`. No V1 column/table is dropped or renamed.

@@ -15,10 +15,12 @@ describe('LandingHeaderComponent', () => {
   it('closes the mobile menu on Escape and restores focus to the toggle', () => {
     const fixture = TestBed.createComponent(LandingHeaderComponent);
     fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('.menu-toggle') as HTMLButtonElement;
+    const focusSpy = spyOn(button, 'focus');
     fixture.componentInstance.menuOpen.set(true);
     fixture.componentInstance.onEscape();
     expect(fixture.componentInstance.menuOpen()).toBeFalse();
-    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.menu-toggle'));
+    expect(focusSpy).toHaveBeenCalled();
   });
 
   it('closes on navigation and unsubscribes on destruction', () => {

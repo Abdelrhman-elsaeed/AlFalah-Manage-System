@@ -51,16 +51,19 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Notification> Notifications => Set<Notification>();
 
-    // Rubric (Phase 3)
+    // Rubric (Phase 3 + Phase 2 V2)
     public DbSet<RubricVersion> RubricVersions => Set<RubricVersion>();
     public DbSet<RubricDomain> RubricDomains => Set<RubricDomain>();
     public DbSet<RubricStandard> RubricStandards => Set<RubricStandard>();
+    public DbSet<RubricIndicator> RubricIndicators => Set<RubricIndicator>();  // Phase 2 (Visits V2)
 
-    // Visits (Phase 4)
+    // Visits (Phase 4 + Phase 2 V2)
     public DbSet<Visit> Visits => Set<Visit>();
     public DbSet<VisitScore> VisitScores => Set<VisitScore>();
     public DbSet<VisitAnalysis> VisitAnalyses => Set<VisitAnalysis>();
     public DbSet<VisitDomainAverage> VisitDomainAverages => Set<VisitDomainAverage>();
+    public DbSet<VisitObservedIndicator> VisitObservedIndicators => Set<VisitObservedIndicator>();  // Phase 2 (Visits V2)
+    public DbSet<VisitTreatmentSnapshot> VisitTreatmentSnapshots => Set<VisitTreatmentSnapshot>();  // Phase 2 (Visits V2)
 
     // Visits (Phase 5) — instructor report-view tracking
     public DbSet<ReportViewLog> ReportViewLogs => Set<ReportViewLog>();
@@ -182,12 +185,15 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         builder.Entity<RubricVersion>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<RubricDomain>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<RubricStandard>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<RubricIndicator>().HasQueryFilter(x => !x.IsDeleted);  // Phase 2 (Visits V2)
 
-        // Visits soft-delete filters (Phase 4)
+        // Visits soft-delete filters (Phase 4 + Phase 2 V2)
         builder.Entity<Visit>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<VisitScore>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<VisitAnalysis>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<VisitDomainAverage>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<VisitObservedIndicator>().HasQueryFilter(x => !x.IsDeleted);  // Phase 2 (Visits V2)
+        builder.Entity<VisitTreatmentSnapshot>().HasQueryFilter(x => !x.IsDeleted);  // Phase 2 (Visits V2)
 
         // Visits (Phase 5) — report view tracking.
         builder.Entity<ReportViewLog>().HasQueryFilter(x => !x.IsDeleted);
@@ -331,6 +337,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 case UserSchoolRole usr: usr.UpdatedAt = now; break;
                 case Visit v: v.UpdatedAt = now; break;
                 case VisitScore vs: vs.UpdatedAt = now; break;
+                case VisitTreatmentSnapshot vts: vts.UpdatedAt = now; break;  // Phase 2 (Visits V2)
                 case ImprovementPlan ip: ip.UpdatedAt = now; break;
                 case PlanFollowUp pfu: pfu.UpdatedAt = now; break;
                 case ParentSurvey ps: ps.UpdatedAt = now; break;

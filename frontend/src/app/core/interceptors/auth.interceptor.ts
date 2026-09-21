@@ -49,8 +49,13 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
           !isUnreadBlobError(error)) {
         const translate = injector.get(TranslateService);
         const summary = translate.instant(error.status === 0 ? 'ERRORS.NETWORK_ERROR' : 'COMMON.ERROR');
-        const detail = extractHttpErrorMessage(error) ||
-          translate.instant(error.status === 0 ? 'ERRORS.NETWORK_ERROR' : 'ERRORS.SERVER_ERROR');
+        // A 5xx response is never a user-facing business error. Even if an upstream
+        // server accidentally includes an exception or SQL/LINQ detail, do not render
+        // it in the global toast. Expected 4xx business messages remain visible.
+        const detail = error.status >= 500
+          ? translate.instant('ERRORS.SERVER_ERROR')
+          : extractHttpErrorMessage(error) ||
+            translate.instant(error.status === 0 ? 'ERRORS.NETWORK_ERROR' : 'ERRORS.SERVER_ERROR');
         toast.error(summary, detail);
       }
 

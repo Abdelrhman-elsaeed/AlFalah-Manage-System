@@ -54,3 +54,15 @@ weak domains (avg < 2.5) and priority standards (score <= 1.5) feed improvement 
 - Score labels and performance-level thresholds above are **exposed verbatim** by `GET /api/v1/rubric/score-scale` (see [05-API-ENDPOINTS.md](05-API-ENDPOINTS.md) Phase 3 section). Phase 4 analysis MUST consume that endpoint — do not hardcode values elsewhere.
 - Rubric is **GLOBAL** (one platform-wide active version), enforced at the DB level by filtered unique index `UX_RubricVersion_Active` on `RubricVersions(IsActive)` filtered on `IsActive=1 AND IsDeleted=0`. See **D-21** in [14-DECISIONS-AND-DEVIATIONS.md](14-DECISIONS-AND-DEVIATIONS.md).
 - Main Manager edits via `POST /api/v1/rubric/versions` create a new version via **copy-on-write** (new rows for every domain/standard, the previous active version is deactivated). Historical visit rows (Phase 4) keep pointing at their original `RubricVersionId` so old reports remain accurate.
+# Classroom Visits V2 rule set (2026-09-21)
+
+Rubric version 2 is a frozen approved snapshot: 5 domains, 25 standards distributed `5/5/6/3/6`, and 66 indicators distributed `13/13/18/9/13`. Every standard starts at score 1 and accepts only 1–4.
+
+- Total: sum of 25 scores, range 25–100.
+- Domain percentage: `round(sum / (standard count × 4) × 100)`.
+- Levels: very high `>=85`, high `>=65`, medium `>=50`, low `<50`.
+- Strength: domain `>=75`; improvement area: domain `<65`.
+- Indicator suggestion: none → 1; all → 4; one of three → 2; two of three → 3; one of two → 3.
+- Quick rating: 4 observes all; 3 observes the first two; 2 observes the first one; 1 clears observations.
+
+The backend `VisitV2AnalysisEngine` is authoritative at finalize; the Angular calculator is a live preview covered by the same boundary cases. Persisted V1 analyses are never recalculated under this rule set.

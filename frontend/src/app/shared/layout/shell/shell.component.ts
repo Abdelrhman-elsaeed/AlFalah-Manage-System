@@ -7,6 +7,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { StudentAnalyzerService } from '../../../core/services/student-analyzer.service';
+import { VisitsV2Service } from '../../../core/services/visits-v2.service';
 import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 
 interface NavItem {
@@ -284,6 +285,7 @@ export class ShellComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly studentAnalyzer = inject(StudentAnalyzerService);
+  private readonly visitsV2 = inject(VisitsV2Service);
   private readonly sidebarStorageKey = 'alfalah-shell-sidebar-collapsed';
 
   /** Stable references so `routerLinkActiveOptions` isn't a fresh object per CD pass. */
@@ -294,6 +296,7 @@ export class ShellComponent implements OnInit {
   readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());
   readonly isSidebarCollapsed = signal(this.getInitialSidebarState());
   readonly hasStudentAnalyzerAccess = signal(false);
+  readonly visitsV2Enabled = signal(false);
   readonly ksaTime = signal<string>('');
   private clockInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -326,7 +329,7 @@ export class ShellComponent implements OnInit {
         { labelKey: 'إدارة الفصل', icon: 'pi pi-users', route: '/student-affairs/teacher', permissions: ['TeacherQuickAction.View'] },
         { labelKey: 'الجدول المدرسي', icon: 'pi pi-calendar-plus', route: '/timetable', permissions: ['Timetable.View'] },
         { labelKey: 'الحضور والانصراف', icon: 'pi pi-calendar', route: '/attendance', permissions: ['Attendance.View'] },
-        { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
+        { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: this.visitsV2Enabled() ? '/visits-v2' : '/instructor/reports' },
         { labelKey: 'ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/instructor/evidence-files' },
         { labelKey: 'NAV.COMPLAINT_RESULTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
         { labelKey: 'الساعات المكتبية', icon: 'pi pi-clock', route: '/student-affairs/office-hours', permissions: ['OfficeHours.ManageOwn'] },
@@ -350,7 +353,8 @@ export class ShellComponent implements OnInit {
     return this.categories
       .map(category => ({
         ...category,
-        items: category.items.filter(item => this.canSee(item))
+        items: category.items.filter(item => this.canSee(item)).map(item =>
+          item.route === '/visits' && this.visitsV2Enabled() ? { ...item, route: '/visits-v2' } : item)
       }))
       .filter(category => category.items.length > 0);
   });
@@ -371,6 +375,7 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.visitsV2.availability().subscribe({ next: response => this.visitsV2Enabled.set(!!response.data?.isEnabled) });
     this.updateKsaTime();
     if (typeof window !== 'undefined') {
       this.clockInterval = setInterval(() => this.updateKsaTime(), 1000);

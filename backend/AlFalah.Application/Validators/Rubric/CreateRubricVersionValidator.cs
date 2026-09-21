@@ -55,5 +55,25 @@ public class RubricStandardWriteValidator : AbstractValidator<RubricStandardWrit
 
         RuleFor(x => x.SortOrder)
             .GreaterThan(0).WithMessage("ترتيب المعيار يجب أن يكون أكبر من الصفر.");
+
+        RuleFor(x => x.Indicators)
+            .Must(i => i.Count <= 20).WithMessage("لا يمكن أن تتجاوز المؤشرات 20 مؤشراً لكل معيار.");
+
+        RuleForEach(x => x.Indicators).SetValidator(new RubricIndicatorWriteValidator());
+    }
+}
+
+public class RubricIndicatorWriteValidator : AbstractValidator<RubricIndicatorWriteDto>
+{
+    public RubricIndicatorWriteValidator()
+    {
+        RuleFor(x => x.Code)
+            .NotEmpty().WithMessage("رمز المؤشر مطلوب.")
+            .MaximumLength(30).WithMessage("رمز المؤشر يجب أن لا يتجاوز 30 حرفاً.");
+        RuleFor(x => x.TextAr)
+            .NotEmpty().WithMessage("نص المؤشر بالعربية مطلوب.")
+            .MaximumLength(500).WithMessage("نص المؤشر يجب أن لا يتجاوز 500 حرف.");
+        RuleFor(x => x.SortOrder)
+            .GreaterThan(0).WithMessage("ترتيب المؤشر يجب أن يكون أكبر من الصفر.");
     }
 }

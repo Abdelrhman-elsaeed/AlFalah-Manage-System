@@ -104,6 +104,13 @@ export class ErrorInterceptor implements HttpInterceptor {
   }
 
   private extractMessage(error: HttpErrorResponse): string {
+    // Server-side technical details are intentionally never user-facing. The
+    // API logs the exception and returns a safe envelope; the localized UI copy
+    // remains the final fallback for every unexpected 5xx response.
+    if (error.status >= 500) {
+      return this.translate.instant('ERRORS.SERVER_ERROR');
+    }
+
     const message = extractHttpErrorMessage(error);
     if (message) return message;
 

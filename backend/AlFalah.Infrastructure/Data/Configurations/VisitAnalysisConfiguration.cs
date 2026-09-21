@@ -19,6 +19,10 @@ public class VisitAnalysisConfiguration : IEntityTypeConfiguration<VisitAnalysis
         builder.Property(x => x.MaximumScore).HasColumnType("decimal(8,3)");
         builder.Property(x => x.DeletedByUserId).HasMaxLength(450);
 
+        // Phase 2 (Visits V2): additive columns
+        builder.Property(x => x.RuleSetVersion).HasDefaultValue(1);
+        // OverallPercentage is nullable — no default needed for legacy rows
+
         // FK: VisitId is already mapped on VisitConfiguration (HasOne + WithOne).
 
         // One analysis per visit
