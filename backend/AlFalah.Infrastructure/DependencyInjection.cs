@@ -107,6 +107,7 @@ public static class DependencyInjection
         services.AddScoped<IVisitV2Repository, VisitV2Repository>();
         services.AddScoped<IVisitV2DocumentService, VisitV2DocumentService>();
         services.AddScoped<IVisitV2Service, VisitV2Service>();
+        services.AddScoped<IVisitWorkflowDispatcher, VisitWorkflowDispatcher>();
         services.AddScoped<IVisitService, VisitService>();
         services.AddScoped<ITeacherService, TeacherService>();
         services.AddScoped<IComplaintService, ComplaintService>();

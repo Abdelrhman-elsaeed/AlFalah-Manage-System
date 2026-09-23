@@ -81,11 +81,13 @@ export class VisitDetailComponent implements OnInit {
   readonly isModerator = computed(() => this.auth.hasRole('Moderator'));
   readonly isGlobalAdmin = computed(() => this.auth.hasRole('SuperAdmin') || this.auth.hasRole('MainManager'));
 
-  readonly canApprove = computed(() => this.auth.hasPermission('Visit.Approve'));
-  readonly canReopen = computed(() => this.auth.hasPermission('Visit.Reopen'));
-  readonly canEdit = computed(() => this.auth.hasPermission('Visit.Edit'));
-  readonly canViewPlans = computed(() => this.auth.hasPermission('Plan.View'));
-  readonly canCreateComplaint = computed(() => this.auth.hasPermission('Complaint.Create'));
+  // This component is now mounted only on the explicit legacy route. Historical
+  // visits remain readable/exportable, but every workflow mutation is retired.
+  readonly canApprove = computed(() => false);
+  readonly canReopen = computed(() => false);
+  readonly canEdit = computed(() => false);
+  readonly canViewPlans = computed(() => false);
+  readonly canCreateComplaint = computed(() => false);
   readonly isInstructorOnly = computed(() => {
     const roles = this.auth.roles();
     return roles.includes('Instructor')
@@ -115,7 +117,7 @@ export class VisitDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
-      this.router.navigate(['/visits']);
+      this.router.navigate(this.isInstructor() ? ['/instructor/reports'] : ['/visits-legacy']);
       return;
     }
     this.load(id);
@@ -201,12 +203,12 @@ export class VisitDetailComponent implements OnInit {
 
   goEdit(): void {
     const v = this.visit();
-    if (v) this.router.navigate(['/visits', v.id, 'edit']);
+    if (v) this.router.navigate(['/visits-legacy', v.id]);
   }
 
   goImprovementPlans(): void {
     const v = this.visit();
-    if (v) this.router.navigate(['/visits', v.id, 'improvement-plans']);
+    if (v) this.router.navigate(['/visits-legacy', v.id]);
   }
 
   goReportPreview(): void {
@@ -215,7 +217,7 @@ export class VisitDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(this.isInstructor() ? ['/instructor/reports'] : ['/visits']);
+    this.router.navigate(this.isInstructor() ? ['/instructor/reports'] : ['/visits-legacy']);
   }
 
   openComplaintDialog(): void {

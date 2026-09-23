@@ -390,7 +390,7 @@ public sealed class ScopeVisibilityIntegrationTests
             context,
             user,
             Guard(context, user),
-            visitService: null!,
+            visitWorkflow: null!,
             new HttpContextAccessor(),
             NullLogger<ComplaintService>.Instance);
 

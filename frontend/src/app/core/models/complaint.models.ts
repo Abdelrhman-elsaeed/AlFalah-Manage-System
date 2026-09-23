@@ -5,6 +5,7 @@ export interface Complaint {
   schoolId: number;
   schoolName: string;
   visitId: number;
+  experienceVersion: number;
   visitSubject: string | null;
   visitDate: string;
   instructorUserId: string;

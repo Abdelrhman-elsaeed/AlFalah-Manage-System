@@ -133,7 +133,15 @@ export class ComplaintsListComponent implements OnInit {
   }
 
   goToVisit(c: Complaint): void {
-    this.router.navigate(['/visits', c.visitId]);
+    if (c.experienceVersion === 2) {
+      this.router.navigate(['/visits'], { queryParams: { visitId: c.visitId } });
+      return;
+    }
+    if (this.isInstructorOnly()) {
+      this.router.navigate(['/instructor/reports', c.visitId]);
+      return;
+    }
+    this.router.navigate(['/visits-legacy', c.visitId]);
   }
 
   saveStatus(): void {

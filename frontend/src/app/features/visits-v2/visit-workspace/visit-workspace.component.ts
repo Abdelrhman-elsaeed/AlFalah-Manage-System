@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
@@ -12,6 +13,9 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TeachersService } from '../../../core/services/teachers.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { VisitsV2Service } from '../../../core/services/visits-v2.service';
+import { ComplaintsService } from '../../../core/services/complaints.service';
+import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
+import { downloadBlob, fileNameFromResponse } from '../../../core/utils/browser-download';
 import { applyQuickScore, liveTotals, suggestedScore } from '../visit-v2-calculator';
 
 type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report';
@@ -25,14 +29,17 @@ type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report';
 })
 export class VisitWorkspaceComponent implements OnInit {
   private readonly visits = inject(VisitsV2Service);
+  private readonly complaints = inject(ComplaintsService);
   private readonly teachers = inject(TeachersService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly enabled = signal<boolean | null>(null);
   readonly busy = signal(false);
   readonly dirty = signal(false);
+  readonly cardStep = signal<1 | 2>(1);
   readonly tab = signal<WorkspaceTab>('card');
   readonly card = signal<VisitV2ObservationCard | null>(null);
   readonly domains = signal<VisitV2Domain[]>([]);
@@ -50,10 +57,11 @@ export class VisitWorkspaceComponent implements OnInit {
   readonly scoreValues = [1, 2, 3, 4];
   readonly archiveStatuses = [
     { value: 1, key: 'VISITS_V2.STATUS_DRAFT' },
-    { value: 2, key: 'VISITS_V2.STATUS_REJECTED' },
+    { value: 2, key: 'VISITS_V2.STATUS_SUBMITTED' },
     { value: 3, key: 'VISITS_V2.STATUS_PENDING' },
     { value: 4, key: 'VISITS_V2.STATUS_APPROVED' },
-    { value: 5, key: 'VISITS_V2.STATUS_REOPENED' }
+    { value: 5, key: 'VISITS_V2.STATUS_REJECTED' },
+    { value: 6, key: 'VISITS_V2.STATUS_REOPENED' }
   ];
   readonly isInstructor = computed(() => this.auth.roles().includes('Instructor') && !this.canManage());
   readonly total = computed(() => liveTotals(this.domains()));
@@ -61,6 +69,11 @@ export class VisitWorkspaceComponent implements OnInit {
   readonly indicatorsCount = computed(() => this.domains().reduce(
     (sum, domain) => sum + domain.standards.reduce((domainSum, standard) => domainSum + standard.indicators.length, 0), 0));
   readonly isReadOnly = computed(() => this.detail()?.isReadOnly ?? false);
+  readonly canSubmitComplaint = computed(() => this.isInstructor() && this.detail()?.status === 4);
+  readonly complaintSubmitting = signal(false);
+  readonly pdfDownloadingId = signal<number | null>(null);
+  complaintSubject = '';
+  complaintBody = '';
 
   model: CreateVisitV2Request = this.emptyModel();
   query: VisitV2ArchiveQuery = { page: 1, pageSize: 20 };
@@ -71,6 +84,11 @@ export class VisitWorkspaceComponent implements OnInit {
         const available = !!response.data?.isEnabled;
         this.enabled.set(available);
         if (!available) return;
+        const requestedVisitId = Number(this.route.snapshot.queryParamMap.get('visitId'));
+        if (requestedVisitId > 0) {
+          this.openVisit(requestedVisitId);
+          return;
+        }
         if (this.isInstructor()) {
           this.tab.set('archive');
           this.loadArchive();
@@ -88,7 +106,35 @@ export class VisitWorkspaceComponent implements OnInit {
   }
 
   canEditTreatments(visit: VisitV2Detail): boolean {
-    return this.canManage();
+    return this.canEditVisitStatus(visit.status);
+  }
+
+  readonly isVisitLocked = computed(() => {
+    const visit = this.detail();
+    return visit ? !this.canEditVisitStatus(visit.status) : false;
+  });
+
+  readonly managerAutoApproves = computed(() =>
+    this.auth.roles().some(role => ['SchoolManager', 'MainManager', 'SuperAdmin'].includes(role)));
+
+  canEditVisitStatus(status: number): boolean {
+    const roles = this.auth.roles();
+    const manager = roles.some(role => ['SchoolManager', 'MainManager', 'SuperAdmin'].includes(role));
+    return manager ? [1, 3, 5, 6].includes(status) : [1, 5, 6].includes(status);
+  }
+
+  goToScoring(): void {
+    if (!this.validMetadata()) {
+      this.toast.warn('VISITS_V2.VALIDATION');
+      return;
+    }
+    this.cardStep.set(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  goToMetadata(): void {
+    this.cardStep.set(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   selectTab(tab: WorkspaceTab): void {
@@ -113,6 +159,11 @@ export class VisitWorkspaceComponent implements OnInit {
   loadTeachers(): void {
     this.teachers.list({ page: 1, pageSize: 100 }).subscribe(response => {
       this.instructors.set((response.data?.items ?? []).filter(x => x.isActive).map(x => ({ userId: x.userId, fullName: x.fullName })));
+      const requestedInstructorId = this.route.snapshot.queryParamMap.get('instructorId');
+      if (requestedInstructorId && this.instructors().some(x => x.userId === requestedInstructorId)) {
+        this.model.instructorId = requestedInstructorId;
+        this.teacherChanged();
+      }
     });
   }
 
@@ -189,7 +240,9 @@ export class VisitWorkspaceComponent implements OnInit {
           if (!finalized.data) return;
           this.applyDetail(finalized.data);
           this.tab.set('report');
-          this.toast.success('VISITS_V2.FINALIZED');
+          this.toast.success(finalized.data.status === 4
+            ? 'VISITS_V2.FINALIZED_AND_APPROVED'
+            : 'VISITS_V2.FINALIZED');
         });
       },
       error: () => this.busy.set(false)
@@ -201,6 +254,7 @@ export class VisitWorkspaceComponent implements OnInit {
     this.detail.set(null);
     this.model = this.emptyModel();
     this.dirty.set(false);
+    this.cardStep.set(1);
     this.tab.set('card');
     this.loadCard();
   }
@@ -210,7 +264,20 @@ export class VisitWorkspaceComponent implements OnInit {
     this.visits.get(id).pipe(finalize(() => this.busy.set(false))).subscribe(response => {
       if (!response.data) return;
       this.applyDetail(response.data);
+      this.cardStep.set(1);
       this.tab.set(response.data.isReadOnly ? 'report' : 'card');
+      this.dirty.set(false);
+    });
+  }
+
+  editVisit(item: VisitV2ArchiveItem): void {
+    if (!this.canEditVisitStatus(item.status)) return;
+    this.busy.set(true);
+    this.visits.get(item.id).pipe(finalize(() => this.busy.set(false))).subscribe(response => {
+      if (!response.data) return;
+      this.applyDetail(response.data);
+      this.cardStep.set(1);
+      this.tab.set('card');
       this.dirty.set(false);
     });
   }
@@ -308,12 +375,56 @@ export class VisitWorkspaceComponent implements OnInit {
     this.visits.exportCsv(this.query).subscribe(response => this.download(response.body, 'classroom-visits-v2.csv'));
   }
 
-  downloadPdf(): void {
-    const visit = this.detail();
-    if (visit) this.visits.exportPdf(visit.id).subscribe(response => this.download(response.body, `visit-${visit.id}.pdf`));
+  downloadZip(): void {
+    this.visits.exportZip(this.query).subscribe(response => this.download(response.body, 'classroom-visits-v2.zip'));
   }
 
-  markDirty(): void { if (!this.isReadOnly()) this.dirty.set(true); }
+  downloadPdf(visitId?: number): void {
+    const id = visitId ?? this.detail()?.id;
+    if (!id || this.pdfDownloadingId() !== null) return;
+
+    this.pdfDownloadingId.set(id);
+    this.visits.exportPdf(id).pipe(finalize(() => this.pdfDownloadingId.set(null))).subscribe({
+      next: response => {
+        if (!response.body) {
+          this.toast.error('VISITS_V2.PDF_EXPORT_FAILED', 'VISITS_V2.PDF_EMPTY_RESPONSE');
+          return;
+        }
+        downloadBlob(response.body, fileNameFromResponse(response, `visit-${id}.pdf`));
+      },
+      error: async error => {
+        await readHttpErrorBody(error);
+        this.toast.error(
+          'VISITS_V2.PDF_EXPORT_FAILED',
+          extractHttpErrorMessage(error) || this.translate.instant('VISITS_V2.PDF_EXPORT_FAILED_BODY'));
+      }
+    });
+  }
+
+  submitComplaint(): void {
+    const visit = this.detail();
+    const subject = this.complaintSubject.trim();
+    const body = this.complaintBody.trim();
+    if (!visit || !this.canSubmitComplaint() || !subject || !body) return;
+
+    this.complaintSubmitting.set(true);
+    this.complaints.create(visit.id, { subject, body })
+      .pipe(finalize(() => this.complaintSubmitting.set(false)))
+      .subscribe({
+        next: response => {
+          if (!response.isSuccess) {
+            this.toast.error('COMPLAINTS.SUBMIT_FAILED', response.message || '');
+            return;
+          }
+          this.complaintSubject = '';
+          this.complaintBody = '';
+          this.toast.success('COMPLAINTS.SUBMIT_SUCCESS', 'COMPLAINTS.SUBMIT_SUCCESS_DESC');
+        },
+        error: error => this.toast.error('COMPLAINTS.SUBMIT_FAILED', error?.error?.message || '')
+      });
+  }
+
+  markDirty(): void { if (!this.isVisitLocked()) this.dirty.set(true); }
   hasUnsavedChanges(): boolean { return this.dirty(); }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -321,11 +432,13 @@ export class VisitWorkspaceComponent implements OnInit {
     if (this.hasUnsavedChanges()) event.preventDefault();
   }
 
-  private valid(): boolean {
+  private validMetadata(): boolean {
     return !!this.model.instructorId && !!this.model.subject.trim() && !!this.model.gradeClass.trim()
       && !!this.model.lessonTitle.trim() && this.model.classroomPeriod >= 1 && this.model.classroomPeriod <= 7
       && this.model.presentCount >= 0 && this.model.absentCount >= 0;
   }
+
+  private valid(): boolean { return this.validMetadata(); }
 
   private updateRequest(): UpdateVisitV2Request {
     const { instructorId: _, ...metadata } = this.model;

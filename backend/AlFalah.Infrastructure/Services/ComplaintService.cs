@@ -20,16 +20,14 @@ namespace AlFalah.Infrastructure.Services;
 ///    read/write — even if a Complaint.* permission were ever leaked to those
 ///    roles. SuperAdmin support is the only Moderator-role exception.
 ///  - Status machine: Open → InReview → Resolved | Rejected → Closed.
-///  - Reopen-from-complaint delegates to Phase 5 <see cref="IVisitService.ReopenAsync"/>
-///    so the state machine / audit / same-RubricVersionId recompute are reused
-///    verbatim (never rewrite working code).
+///  - Reopen-from-complaint delegates to the version-aware workflow dispatcher.
 /// </summary>
 public class ComplaintService : IComplaintService
 {
     private readonly AlFalahDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly SchoolScopeGuard _scopeGuard;
-    private readonly IVisitService _visitService;
+    private readonly IVisitWorkflowDispatcher _visitWorkflow;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<ComplaintService> _logger;
 
@@ -37,14 +35,14 @@ public class ComplaintService : IComplaintService
         AlFalahDbContext context,
         ICurrentUserService currentUser,
         SchoolScopeGuard scopeGuard,
-        IVisitService visitService,
+        IVisitWorkflowDispatcher visitWorkflow,
         IHttpContextAccessor httpContextAccessor,
         ILogger<ComplaintService> logger)
     {
         _context = context;
         _currentUser = currentUser;
         _scopeGuard = scopeGuard;
-        _visitService = visitService;
+        _visitWorkflow = visitWorkflow;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
@@ -86,6 +84,9 @@ public class ComplaintService : IComplaintService
             .AsNoTracking()
             .FirstOrDefaultAsync(v => v.Id == visitId, cancellationToken)
             ?? throw new KeyNotFoundException("الزيارة غير موجودة.");
+
+        if (visit.ExperienceVersion != ExperienceVersion.PrototypeV2)
+            throw new BusinessRuleException("سجل الزيارات القديم متاح للقراءة فقط ولا يقبل شكاوى جديدة بعد الانتقال إلى V2.");
 
         // D-36-consistent: ONLY the visit's own Instructor may complain.
         if (visit.InstructorId != currentUserId)
@@ -255,7 +256,11 @@ public class ComplaintService : IComplaintService
         // analysis snapshot on the SAME RubricVersionId (Phase 5 SubmitAsync).
         // The reason is prefixed with the complaint reference so the reopen is
         // permanently linked to this complaint in the visit history.
-        await _visitService.ReopenAsync(complaint.VisitId, $"شكوى رقم {complaint.Id}: {reason}", cancellationToken);
+        await _visitWorkflow.ReopenAsync(
+            complaint.VisitId,
+            complaint.Visit.ExperienceVersion,
+            $"شكوى رقم {complaint.Id}: {reason}",
+            cancellationToken);
 
         var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException("يجب تسجيل الدخول.");
         var now = DateTimeOffset.UtcNow;
@@ -410,6 +415,7 @@ public class ComplaintService : IComplaintService
         SchoolId = c.SchoolId,
         SchoolName = c.School?.Name ?? string.Empty,
         VisitId = c.VisitId,
+        ExperienceVersion = (int)(c.Visit?.ExperienceVersion ?? ExperienceVersion.Legacy),
         VisitSubject = c.Visit?.Subject,
         VisitDate = c.Visit?.VisitDate ?? default,
         InstructorUserId = c.InstructorUserId,

@@ -91,12 +91,12 @@ export class ReportPreviewComponent implements OnInit {
 
   goBack(): void {
     const id = this.report()?.id;
-    this.router.navigate(this.instructorOnly() ? ['/instructor/reports', id ?? ''] : ['/visits', id ?? '']);
+    this.router.navigate(this.instructorOnly() ? ['/instructor/reports'] : ['/visits-legacy', id ?? '']);
   }
   print(): void { window.print(); }
   goPlans(): void {
     const id = this.report()?.id;
-    if (id) this.router.navigate(['/visits', id, 'improvement-plans']);
+    if (id) this.router.navigate(['/visits-legacy', id]);
   }
 }
 

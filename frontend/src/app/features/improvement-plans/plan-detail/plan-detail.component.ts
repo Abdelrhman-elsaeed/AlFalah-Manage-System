@@ -316,7 +316,7 @@ export class PlanDetailComponent implements OnInit {
   goBack(): void {
     const p = this.plan();
     if (p) {
-      this.router.navigate(['/visits', p.visitId, 'improvement-plans']);
+      this.router.navigate(['/visits-legacy', p.visitId]);
     } else {
       this.router.navigate(['/visits']);
     }

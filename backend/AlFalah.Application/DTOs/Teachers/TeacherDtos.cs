@@ -73,6 +73,7 @@ public class TeacherProfileDto
 public class TeacherVisitSummaryDto
 {
     public int Id { get; set; }
+    public int ExperienceVersion { get; set; }
     public DateTimeOffset VisitDate { get; set; }
     public int VisitSequence { get; set; }
     public string VisitSequenceLabelAr { get; set; } = string.Empty;
@@ -98,6 +99,7 @@ public class TeacherVisitSummaryDto
 public class TeacherVisitProgressDto
 {
     public int VisitId { get; set; }
+    public int ExperienceVersion { get; set; }
     public DateTimeOffset VisitDate { get; set; }
     /// <summary>Sequence label for the legend (e.g. "الزيارة 1 — 2026-07-13").</summary>
     public string LegendLabel { get; set; } = string.Empty;
@@ -144,6 +146,8 @@ public class TeacherLongitudinalComparisonDto
 public class TeacherProgressDto
 {
     public string UserId { get; set; } = string.Empty;
+    /// <summary>The single experience version represented by every series in this response.</summary>
+    public int? ExperienceVersion { get; set; }
     /// <summary>Axis labels (one entry per domain in the active rubric). Dynamic — D-65 spirit.</summary>
     public List<TeacherDomainAverageDto> AxisLabels { get; set; } = new();
     /// <summary>One series per visit. Order = visit creation order (oldest first).</summary>

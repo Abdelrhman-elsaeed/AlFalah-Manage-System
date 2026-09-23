@@ -10,9 +10,8 @@ namespace AlFalah.Application.Interfaces;
 ///    global support. **Main Manager = HARD 403** and **Moderator = HARD 403**
 ///    (D-75), even if a Complaint.* permission were ever leaked.
 ///  - Status transitions: Open → InReview → Resolved | Rejected → Closed.
-///  - Reopen-from-complaint reuses Phase 5 <c>IVisitService.ReopenAsync</c>
-///    (reason required, audited; resubmit recomputes the analysis snapshot on
-///    the SAME RubricVersionId).
+///  - Reopen-from-complaint dispatches by ExperienceVersion. V2 reuses its
+///    transactional workflow; legacy records remain read-only after cutover.
 ///  - Every mutation writes an AuditLog row.
 /// </summary>
 public interface IComplaintService

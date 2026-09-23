@@ -407,7 +407,7 @@ export class VisitFormComponent implements OnInit {
         resp.message || this.translate.instant('VISITS.SAVE_SUCCESS_DESC'));
       if (isCreate) {
         // After create, redirect to observation mode for the snapshotted standards.
-        this.router.navigate(['/visits', resp.data.id, 'edit']);
+        this.router.navigate(['/visits-legacy', resp.data.id]);
       } else {
         // Reload to pick up fresh state (in case rubricVersion etc. changed)
         this.visitId.set(resp.data.id);
@@ -481,7 +481,7 @@ export class VisitFormComponent implements OnInit {
               this.toast.success(
                 this.translate.instant('VISITS.SUBMIT_SUCCESS_TITLE'),
                 subResp.message || this.translate.instant('VISITS.SUBMIT_SUCCESS_DESC'));
-              this.router.navigate(['/visits', this.visitId()]);
+              this.router.navigate(['/visits-legacy', this.visitId()]);
             } else {
               this.toast.error(
                 this.translate.instant('VISITS.SUBMIT_FAILED'),

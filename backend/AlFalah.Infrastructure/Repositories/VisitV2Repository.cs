@@ -60,6 +60,56 @@ public sealed class VisitV2Repository(AlFalahDbContext db) : IVisitV2Repository
             visit.ShowManager);
     }
 
+    public async Task<IReadOnlyDictionary<int, VisitV2PdfAssetSources>> GetPdfAssetSourcesAsync(
+        IReadOnlyCollection<int> visitIds,
+        CancellationToken cancellationToken = default)
+    {
+        var visits = await db.Visits.AsNoTracking()
+            .Where(v => visitIds.Contains(v.Id) && v.ExperienceVersion == ExperienceVersion.PrototypeV2)
+            .Select(v => new
+            {
+                v.Id,
+                v.InstructorId,
+                EvaluatorId = v.CreatedByUserId,
+                ManagerId = v.ApprovedByUserId,
+                SchoolName = v.School.Name,
+                SchoolLogo = v.School.LogoUrl,
+                Header = v.School.ReportSettings == null ? null : v.School.ReportSettings.ReportHeaderText,
+                Footer = v.School.ReportSettings == null ? null : v.School.ReportSettings.ReportFooterText,
+                Logo = v.School.ReportSettings == null ? null : v.School.ReportSettings.LogoUrl,
+                Color = v.School.ReportSettings == null ? null : v.School.ReportSettings.PrimaryColor,
+                ShowEvaluator = v.School.ReportSettings == null || v.School.ReportSettings.ShowModeratorSignature,
+                ShowManager = v.School.ReportSettings == null || v.School.ReportSettings.ShowManagerSignature
+            })
+            .ToListAsync(cancellationToken);
+
+        var userIds = visits
+            .SelectMany(v => new[] { v.InstructorId, v.EvaluatorId, v.ManagerId })
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Cast<string>()
+            .Distinct()
+            .ToArray();
+        var signatures = await db.UserSignatures.AsNoTracking()
+            .Where(s => userIds.Contains(s.UserId))
+            .ToDictionaryAsync(
+                s => s.UserId,
+                s => !string.IsNullOrWhiteSpace(s.SignatureImageUrl) ? s.SignatureImageUrl : s.SignatureDrawnData,
+                cancellationToken);
+
+        return visits.ToDictionary(
+            v => v.Id,
+            v => new VisitV2PdfAssetSources(
+                string.IsNullOrWhiteSpace(v.Header) ? v.SchoolName : v.Header.Trim(),
+                v.Footer?.Trim() ?? string.Empty,
+                string.IsNullOrWhiteSpace(v.Color) ? "#0F7132" : v.Color,
+                !string.IsNullOrWhiteSpace(v.Logo) ? v.Logo : v.SchoolLogo,
+                signatures.GetValueOrDefault(v.InstructorId),
+                signatures.GetValueOrDefault(v.EvaluatorId),
+                v.ManagerId is null ? null : signatures.GetValueOrDefault(v.ManagerId),
+                v.ShowEvaluator,
+                v.ShowManager));
+    }
+
     public Task<RubricVersion?> GetRubricAsync(CancellationToken cancellationToken = default) =>
         db.RubricVersions
             .AsNoTracking()
@@ -201,12 +251,27 @@ public sealed class VisitV2Repository(AlFalahDbContext db) : IVisitV2Repository
         VisitV2ArchiveQuery request,
         int? schoolId,
         string? creatorUserId,
+        string? instructorUserId,
+        bool approvedOnly,
         CancellationToken cancellationToken = default) =>
         await ApplyScopeAndFilters(db.Visits.AsNoTracking(), request, schoolId, creatorUserId)
+            .Where(v => instructorUserId == null || v.InstructorId == instructorUserId)
+            .Where(v => !approvedOnly || v.Status == VisitStatus.Approved)
+            .Include(v => v.School)
             .Include(v => v.Instructor)
             .Include(v => v.CreatedByUser)
+            .Include(v => v.RubricVersion)
+            .Include(v => v.Scores)
+                .ThenInclude(s => s.RubricStandard)
+                    .ThenInclude(s => s.Domain)
+            .Include(v => v.Scores)
+                .ThenInclude(s => s.RubricStandard)
+                    .ThenInclude(s => s.Indicators)
+            .Include(v => v.Scores)
+                .ThenInclude(s => s.ObservedIndicators)
             .Include(v => v.Analysis)
                 .ThenInclude(a => a!.DomainAverages)
+            .Include(v => v.TreatmentSnapshots)
             .OrderByDescending(v => v.VisitDate)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);

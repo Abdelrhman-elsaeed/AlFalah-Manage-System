@@ -432,6 +432,11 @@ export const routes: Routes = [
       // ─── Phase 4: Visits (permission-gated) ────────────────────────────
       {
         path: 'visits-v2',
+        redirectTo: 'visits',
+        pathMatch: 'full'
+      },
+      {
+        path: 'visits',
         canActivate: [roleGuard],
         canDeactivate: [visitV2UnsavedGuard],
         data: { roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin', 'Instructor'] },
@@ -440,7 +445,7 @@ export const routes: Routes = [
         title: translatedTitle('VISITS_V2.TITLE')
       },
       {
-        path: 'visits',
+        path: 'visits-legacy',
         canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin'],
@@ -454,28 +459,12 @@ export const routes: Routes = [
             title: translatedTitle('ROUTE_TITLES.VISITS')
           },
           {
-            path: 'new',
-            canActivate: [permissionGuard],
-            data: { permissions: ['Visit.Create'] },
-            loadComponent: () => import('./features/visits/visit-form/visit-form.component')
-              .then(m => m.VisitFormComponent),
-            title: translatedTitle('ROUTE_TITLES.NEW_VISIT')
-          },
-          {
             path: ':id',
             canActivate: [permissionGuard],
             data: { permissions: ['Visit.View'] },
             loadComponent: () => import('./features/visits/visit-detail/visit-detail.component')
               .then(m => m.VisitDetailComponent),
             title: translatedTitle('ROUTE_TITLES.VISIT_DETAILS')
-          },
-          {
-            path: ':id/edit',
-            canActivate: [permissionGuard],
-            data: { permissions: ['Visit.Edit'] },
-            loadComponent: () => import('./features/visits/visit-form/visit-form.component')
-              .then(m => m.VisitFormComponent),
-            title: translatedTitle('ROUTE_TITLES.EDIT_VISIT')
           }
         ]
       },

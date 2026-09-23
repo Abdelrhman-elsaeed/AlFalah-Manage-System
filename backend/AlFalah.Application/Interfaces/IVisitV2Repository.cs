@@ -31,6 +31,8 @@ public interface IVisitV2Repository
         VisitV2ArchiveQuery query,
         int? schoolId,
         string? creatorUserId,
+        string? instructorUserId,
+        bool approvedOnly,
         CancellationToken cancellationToken = default);
     Task<int> CountActiveInstructorsAsync(int? schoolId, CancellationToken cancellationToken = default);
     Task<IReadOnlyDictionary<string, string?>> GetEmployeeNumbersAsync(
@@ -42,6 +44,9 @@ public interface IVisitV2Repository
         int totalActiveTeachers,
         CancellationToken cancellationToken = default);
     Task<VisitV2PdfAssetSources> GetPdfAssetSourcesAsync(int visitId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<int, VisitV2PdfAssetSources>> GetPdfAssetSourcesAsync(
+        IReadOnlyCollection<int> visitIds,
+        CancellationToken cancellationToken = default);
     Task AddReportViewAsync(int visitId, string instructorUserId, CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
     Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken = default);

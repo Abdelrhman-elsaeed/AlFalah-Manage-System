@@ -25,6 +25,7 @@ public sealed class DashboardScopeTests
             new School { Id = 1, Name = "Active School", City = "Riyadh" },
             new School { Id = 2, Name = "Other School", City = "Riyadh" },
             Visit(10, schoolId: 1),
+            Visit(11, schoolId: 1, ExperienceVersion.Legacy),
             Visit(20, schoolId: 2));
         await context.SaveChangesAsync();
 
@@ -72,13 +73,17 @@ public sealed class DashboardScopeTests
         LastName = lastName
     };
 
-    private static Visit Visit(int id, int schoolId) => new()
+    private static Visit Visit(
+        int id,
+        int schoolId,
+        ExperienceVersion experienceVersion = ExperienceVersion.PrototypeV2) => new()
     {
         Id = id,
         SchoolId = schoolId,
         InstructorId = "INSTRUCTOR-1",
         CreatedByUserId = "MODERATOR-1",
-        RubricVersionId = 1,
+        RubricVersionId = 2,
+        ExperienceVersion = experienceVersion,
         VisitCategory = VisitCategory.ClassroomOrPeriodic,
         VisitSequence = VisitSequence.First,
         Status = VisitStatus.Approved,

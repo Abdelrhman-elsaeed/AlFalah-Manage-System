@@ -67,7 +67,8 @@ public class DashboardService : IDashboardService
 
         // Build the base visit query — global (school filter is widened, narrowed
         // by client filter if provided).
-        var visitQuery = _context.Visits.AsNoTracking().AsQueryable();
+        var visitQuery = _context.Visits.AsNoTracking()
+            .Where(v => v.ExperienceVersion == ExperienceVersion.PrototypeV2);
         if (filter.SchoolId is not null) visitQuery = visitQuery.Where(v => v.SchoolId == filter.SchoolId);
         if (filter.ModeratorUserId is not null) visitQuery = visitQuery.Where(v => v.CreatedByUserId == filter.ModeratorUserId);
         if (filter.Subject is not null && filter.Subject.Length > 0) visitQuery = visitQuery.Where(v => v.Subject == filter.Subject);
@@ -255,7 +256,7 @@ public class DashboardService : IDashboardService
 
         // Visit query for this school
         var visitQuery = _context.Visits.AsNoTracking()
-            .Where(v => v.SchoolId == schoolId);
+            .Where(v => v.SchoolId == schoolId && v.ExperienceVersion == ExperienceVersion.PrototypeV2);
         if (filter.Subject is not null && filter.Subject.Length > 0) visitQuery = visitQuery.Where(v => v.Subject == filter.Subject);
         if (filter.ModeratorUserId is not null) visitQuery = visitQuery.Where(v => v.CreatedByUserId == filter.ModeratorUserId);
         if (filter.FromDate is not null) visitQuery = visitQuery.Where(v => v.VisitDate >= filter.FromDate);
@@ -368,7 +369,9 @@ public class DashboardService : IDashboardService
 
         // D-37 — base query: school-scoped AND CreatedByUserId == self
         var visitQuery = _context.Visits.AsNoTracking()
-            .Where(v => v.SchoolId == schoolId && v.CreatedByUserId == currentUserId);
+            .Where(v => v.SchoolId == schoolId
+                     && v.CreatedByUserId == currentUserId
+                     && v.ExperienceVersion == ExperienceVersion.PrototypeV2);
         if (filter.Subject is not null && filter.Subject.Length > 0) visitQuery = visitQuery.Where(v => v.Subject == filter.Subject);
         if (filter.FromDate is not null) visitQuery = visitQuery.Where(v => v.VisitDate >= filter.FromDate);
         if (filter.ToDate is not null) visitQuery = visitQuery.Where(v => v.VisitDate <= filter.ToDate);
@@ -515,6 +518,7 @@ public class DashboardService : IDashboardService
             .Include(v => v.CreatedByUser)
             .Where(v => v.InstructorId == currentUserId
                      && v.Status == VisitStatus.Approved
+                     && v.ExperienceVersion == ExperienceVersion.PrototypeV2
                      && v.SchoolId == schoolId)
             .OrderBy(v => v.VisitDate)
             .ToListAsync(cancellationToken);

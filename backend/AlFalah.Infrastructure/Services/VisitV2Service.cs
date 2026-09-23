@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text.Json;
 using AlFalah.Application.Analysis;
 using AlFalah.Application.Common;
@@ -7,6 +8,7 @@ using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data.Seeders;
 using AlFalah.Shared.Models;
+using Microsoft.Extensions.Logging;
 
 namespace AlFalah.Infrastructure.Services;
 
@@ -16,7 +18,8 @@ public sealed class VisitV2Service(
     ICurrentUserService currentUser,
     IFeatureFlagService featureFlags,
     SchoolScopeGuard schoolScope,
-    AuditLogWriter audit) : IVisitV2Service
+    AuditLogWriter audit,
+    ILogger<VisitV2Service> logger) : IVisitV2Service
 {
     public VisitV2AvailabilityDto GetAvailability() =>
         new(featureFlags.IsVisitsV2Enabled(currentUser.ActiveSchoolId));
@@ -197,6 +200,8 @@ public sealed class VisitV2Service(
         }).ToList();
         var result = VisitV2AnalysisEngine.Calculate(inputs);
         var now = DateTimeOffset.UtcNow;
+        var autoApprove = IsManager() && currentUser.HasPermission(PermissionNames.VisitApprove);
+        var actorId = RequireCurrentUser();
 
         await repository.ExecuteInTransactionAsync(async ct =>
         {
@@ -252,11 +257,108 @@ public sealed class VisitV2Service(
                 }
             }
 
-            visit.Status = VisitStatus.PendingApproval;
+            visit.Status = autoApprove ? VisitStatus.Approved : VisitStatus.PendingApproval;
             visit.SubmittedAt = now;
+            visit.ApprovedByUserId = autoApprove ? actorId : null;
+            visit.ApprovedAt = autoApprove ? now : null;
+            visit.RejectionReason = null;
+            visit.ReopenReason = null;
             visit.UpdatedAt = now;
-            audit.Write(visit.SchoolId, currentUser.UserId, "VisitV2.Finalize", nameof(Visit), visit.Id.ToString(), null,
-                newValues: new { result.TotalScore, result.OverallPercent, Status = VisitStatus.PendingApproval });
+            audit.Write(visit.SchoolId, actorId, "VisitV2.Finalize", nameof(Visit), visit.Id.ToString(), null,
+                newValues: new { result.TotalScore, result.OverallPercent, visit.Status, AutoApproved = autoApprove });
+            if (autoApprove)
+            {
+                audit.Write(visit.SchoolId, actorId, "VisitV2.AutoApprove", nameof(Visit), visit.Id.ToString(),
+                    "اعتماد تلقائي لأن مُنهي الزيارة مدير مخول بالاعتماد.",
+                    newValues: new { visit.Status, visit.ApprovedByUserId, visit.ApprovedAt });
+            }
+            await repository.SaveChangesAsync(ct);
+        }, cancellationToken);
+
+        return await GetAsync(id, cancellationToken);
+    }
+
+    public async Task<VisitV2DetailDto> ApproveAsync(int id, CancellationToken cancellationToken = default)
+    {
+        EnsureEnabled();
+        EnsureWorkflowPermission(PermissionNames.VisitApprove, "هذا الإجراء متاح فقط لمدير المدرسة المعني بالزيارة.");
+        var visit = await GetWorkflowVisitAsync(id, VisitStatus.PendingApproval, "اعتماد", cancellationToken);
+        var userId = RequireCurrentUser();
+        var now = DateTimeOffset.UtcNow;
+        var oldStatus = visit.Status;
+
+        await repository.ExecuteInTransactionAsync(async ct =>
+        {
+            visit.Status = VisitStatus.Approved;
+            visit.ApprovedByUserId = userId;
+            visit.ApprovedAt = now;
+            visit.RejectionReason = null;
+            visit.ReopenReason = null;
+            visit.ReopenedByUserId = null;
+            visit.ReopenedAt = null;
+            visit.UpdatedAt = now;
+            audit.Write(visit.SchoolId, userId, "VisitV2.Approve", nameof(Visit), visit.Id.ToString(), "اعتماد الزيارة",
+                new { Status = oldStatus }, new { visit.Status, visit.ApprovedByUserId, visit.ApprovedAt });
+            await repository.SaveChangesAsync(ct);
+        }, cancellationToken);
+
+        return await GetAsync(id, cancellationToken);
+    }
+
+    public async Task<VisitV2DetailDto> RejectAsync(
+        int id,
+        string reason,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureEnabled();
+        EnsureWorkflowPermission(PermissionNames.VisitApprove, "هذا الإجراء متاح فقط لمدير المدرسة المعني بالزيارة.");
+        reason = RequireReason(reason, "سبب الرفض مطلوب.");
+        var visit = await GetWorkflowVisitAsync(id, VisitStatus.PendingApproval, "رفض", cancellationToken);
+        var userId = RequireCurrentUser();
+        var now = DateTimeOffset.UtcNow;
+        var oldStatus = visit.Status;
+
+        await repository.ExecuteInTransactionAsync(async ct =>
+        {
+            visit.Status = VisitStatus.RejectedForChanges;
+            visit.RejectionReason = reason;
+            visit.ApprovedByUserId = null;
+            visit.ApprovedAt = null;
+            visit.ReopenReason = null;
+            visit.ReopenedByUserId = null;
+            visit.ReopenedAt = null;
+            visit.UpdatedAt = now;
+            audit.Write(visit.SchoolId, userId, "VisitV2.Reject", nameof(Visit), visit.Id.ToString(), reason,
+                new { Status = oldStatus }, new { visit.Status, visit.RejectionReason });
+            await repository.SaveChangesAsync(ct);
+        }, cancellationToken);
+
+        return await GetAsync(id, cancellationToken);
+    }
+
+    public async Task<VisitV2DetailDto> ReopenAsync(
+        int id,
+        string reason,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureEnabled();
+        EnsureWorkflowPermission(PermissionNames.VisitReopen, "هذا الإجراء متاح فقط لمدير المدرسة المعني بالزيارة.");
+        reason = RequireReason(reason, "سبب إعادة الفتح مطلوب.");
+        var visit = await GetWorkflowVisitAsync(id, VisitStatus.Approved, "إعادة فتح", cancellationToken);
+        var userId = RequireCurrentUser();
+        var now = DateTimeOffset.UtcNow;
+        var oldStatus = visit.Status;
+
+        await repository.ExecuteInTransactionAsync(async ct =>
+        {
+            visit.Status = VisitStatus.Reopened;
+            visit.ReopenReason = reason;
+            visit.ReopenedByUserId = userId;
+            visit.ReopenedAt = now;
+            visit.RejectionReason = null;
+            visit.UpdatedAt = now;
+            audit.Write(visit.SchoolId, userId, "VisitV2.Reopen", nameof(Visit), visit.Id.ToString(), reason,
+                new { Status = oldStatus }, new { visit.Status, visit.ReopenReason, visit.ReopenedByUserId, visit.ReopenedAt });
             await repository.SaveChangesAsync(ct);
         }, cancellationToken);
 
@@ -395,8 +497,9 @@ public sealed class VisitV2Service(
         CancellationToken cancellationToken = default)
     {
         EnsureEnabled();
-        ResolveReadScope(out var schoolId, out var creatorId, out _, out _);
-        var visits = await repository.ListForExportAsync(query, schoolId, creatorId, cancellationToken);
+        ResolveReadScope(out var schoolId, out var creatorId, out var instructorId, out var approvedOnly);
+        var visits = await repository.ListForExportAsync(
+            query, schoolId, creatorId, instructorId, approvedOnly, cancellationToken);
         var employees = await repository.GetEmployeeNumbersAsync(visits.Select(v => v.InstructorId).Distinct().ToArray(), cancellationToken);
         var rows = visits.Select(v =>
         {
@@ -419,6 +522,52 @@ public sealed class VisitV2Service(
                 string.Join("، ", strengths), string.Join("، ", improvements));
         }).ToList();
         return documents.BuildCsv(rows);
+    }
+
+    public async Task<BulkExportResult> ExportZipAsync(
+        VisitV2ArchiveQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureEnabled();
+        ResolveReadScope(out var schoolId, out var creatorId, out var instructorId, out var approvedOnly);
+        var visits = await repository.ListForExportAsync(
+            query, schoolId, creatorId, instructorId, approvedOnly, cancellationToken);
+        var assets = await repository.GetPdfAssetSourcesAsync(
+            visits.Select(v => v.Id).ToArray(), cancellationToken);
+
+        var renderedCount = 0;
+        using var stream = new MemoryStream();
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var visit in visits)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    if (!assets.TryGetValue(visit.Id, out var visitAssets))
+                        continue;
+                    var pdf = await documents.BuildPdfAsync(MapDetail(visit), visitAssets, cancellationToken);
+                    var entry = archive.CreateEntry($"visit-v2-{visit.Id}.pdf", CompressionLevel.Optimal);
+                    await using var entryStream = entry.Open();
+                    await entryStream.WriteAsync(pdf.Content, cancellationToken);
+                    renderedCount++;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogWarning(ex, "V2 ZIP export skipped visit {VisitId}.", visit.Id);
+                }
+            }
+        }
+
+        logger.LogInformation(
+            "V2 ZIP export completed: matched={MatchedCount} rendered={RenderedCount} user={UserId}",
+            visits.Count, renderedCount, currentUser.UserId);
+        return new BulkExportResult
+        {
+            ZipBytes = stream.ToArray(),
+            FileName = $"visits-v2-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}.zip",
+            VisitCount = renderedCount
+        };
     }
 
     public async Task<VisitV2PdfExportDto> ExportPdfAsync(int id, CancellationToken cancellationToken = default)
@@ -456,6 +605,35 @@ public sealed class VisitV2Service(
                 throw new UnauthorizedSchoolAccessException("لا تملك صلاحية الوصول إلى هذا التقرير.");
         }
         return visit;
+    }
+
+    private async Task<Visit> GetWorkflowVisitAsync(
+        int id,
+        VisitStatus requiredStatus,
+        string actionName,
+        CancellationToken cancellationToken)
+    {
+        var visit = await GetAuthorizedVisitAsync(id, true, true, cancellationToken);
+        if (visit.ExperienceVersion != ExperienceVersion.PrototypeV2)
+            throw new KeyNotFoundException("الزيارة V2 غير موجودة.");
+        if (visit.Status != requiredStatus)
+            throw new BusinessRuleException($"لا يمكن {actionName} الزيارة في حالتها الحالية.");
+        return visit;
+    }
+
+    private void EnsureWorkflowPermission(string permission, string message)
+    {
+        if (!currentUser.HasPermission(permission) || (!currentUser.IsGlobalAdmin() && !currentUser.IsInRole(RoleNames.SchoolManager)))
+            throw new UnauthorizedSchoolAccessException(message);
+    }
+
+    private string RequireCurrentUser() => currentUser.UserId
+        ?? throw new UnauthorizedAccessException("المستخدم غير مسجل الدخول.");
+
+    private static string RequireReason(string reason, string message)
+    {
+        if (string.IsNullOrWhiteSpace(reason)) throw new BusinessRuleException(message);
+        return reason.Trim();
     }
 
     private void ResolveReadScope(

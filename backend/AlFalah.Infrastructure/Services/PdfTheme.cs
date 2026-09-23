@@ -220,9 +220,11 @@ internal static class PdfTheme
     /// The previous shape — a two-column table with a relative value column —
     /// gave the value all the leftover width of a landscape sheet, so every
     /// value printed floating near the middle of the page with a void between
-    /// it and its own label. Pairs are laid out two-per-row instead, exactly
-    /// like the visit report's identification card: the label always holds the
-    /// RTL start edge of its half and the value sits immediately beside it.
+    /// it and its own label. Pairs are laid out two-per-row instead. QuestPDF
+    /// reverses table-cell placement when the page uses ContentFromRightToLeft,
+    /// so cells are emitted in logical RTL reading order: label, then value.
+    /// The rendered result places the label on the visual right and its value
+    /// immediately beside it on the left.
     /// </summary>
     public static void DetailGrid(
         IContainer container,
@@ -235,23 +237,21 @@ internal static class PdfTheme
         {
             table.ColumnsDefinition(columns =>
             {
-                // Physical L→R per pair: [value][label]; reading RTL the label
-                // of the RIGHT-most pair is what the eye meets first.
+                // Column widths alternate between the compact label and the
+                // flexible value. RTL rendering mirrors their visual position.
                 for (var i = 0; i < pairsPerRow; i++)
                 {
-                    columns.RelativeColumn();
                     columns.ConstantColumn(104);
+                    columns.RelativeColumn();
                 }
             });
 
-            // QuestPDF fills cells left-to-right, so a row's pairs are emitted
-            // in reverse to put rows[i] on the visual right.
             for (var i = 0; i < rows.Count; i += pairsPerRow)
             {
                 var zebra = (i / pairsPerRow) % 2 == 1;
                 var take = Math.Min(pairsPerRow, rows.Count - i);
 
-                for (var slot = pairsPerRow - 1; slot >= 0; slot--)
+                for (var slot = 0; slot < pairsPerRow; slot++)
                 {
                     if (slot >= take)
                     {
@@ -262,8 +262,8 @@ internal static class PdfTheme
                     }
 
                     var (label, value, color) = rows[i + slot];
-                    BodyCell(table.Cell(), value, zebra: zebra, strong: true, color: color);
                     BodyCell(table.Cell(), label, zebra: zebra, color: Muted);
+                    BodyCell(table.Cell(), value, zebra: zebra, strong: true, color: color);
                 }
             }
         });

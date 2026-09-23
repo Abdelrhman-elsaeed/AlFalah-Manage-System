@@ -317,6 +317,7 @@ public class TeacherService : ITeacherService
             .Select(v => new
             {
                 v.Id,
+                v.ExperienceVersion,
                 v.VisitDate,
                 v.VisitSequence,
                 v.VisitCategory,
@@ -339,6 +340,7 @@ public class TeacherService : ITeacherService
         return rows.Select(r => new TeacherVisitSummaryDto
         {
             Id = r.Id,
+            ExperienceVersion = (int)r.ExperienceVersion,
             VisitDate = r.VisitDate,
             VisitSequence = (int)r.VisitSequence,
             VisitSequenceLabelAr = ((VisitSequence)r.VisitSequence).ToArabicString(),
@@ -405,6 +407,16 @@ public class TeacherService : ITeacherService
             q = q.Where(v => v.CreatedByUserId == currentUserId);
         }
 
+        // Never combine the legacy 0..4 rubric with the V2 percentage model in
+        // one longitudinal chart. Prefer the active experience when it has
+        // approved history; otherwise retain a readable legacy-only series.
+        var experienceVersion = await q.AnyAsync(
+            v => v.ExperienceVersion == ExperienceVersion.PrototypeV2,
+            cancellationToken)
+            ? ExperienceVersion.PrototypeV2
+            : ExperienceVersion.Legacy;
+        q = q.Where(v => v.ExperienceVersion == experienceVersion);
+
         // Pull each analyzed visit + its persisted domain averages. Order is
         // explicitly chronological so delta = latest - earliest.
         var visits = await q
@@ -412,6 +424,7 @@ public class TeacherService : ITeacherService
             .Select(v => new
             {
                 v.Id,
+                v.ExperienceVersion,
                 v.VisitDate,
                 v.Analysis!.ComputedAt,
                 DomainAverages = v.Analysis!.DomainAverages
@@ -451,6 +464,7 @@ public class TeacherService : ITeacherService
             return new TeacherVisitProgressDto
             {
                 VisitId = v.Id,
+                ExperienceVersion = (int)v.ExperienceVersion,
                 VisitDate = v.VisitDate,
                 LegendLabel = $"الزيارة {sequence} — {legendDate}",
                 DomainAverages = axisLabels.Select(axis =>
@@ -505,6 +519,7 @@ public class TeacherService : ITeacherService
         return new TeacherProgressDto
         {
             UserId = userId,
+            ExperienceVersion = perVisit.Count == 0 ? null : (int)experienceVersion,
             AxisLabels = axisLabels,
             Visits = perVisit,
             FirstToLastComparison = comparison

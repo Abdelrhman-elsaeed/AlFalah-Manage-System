@@ -329,7 +329,7 @@ export class ShellComponent implements OnInit {
         { labelKey: 'إدارة الفصل', icon: 'pi pi-users', route: '/student-affairs/teacher', permissions: ['TeacherQuickAction.View'] },
         { labelKey: 'الجدول المدرسي', icon: 'pi pi-calendar-plus', route: '/timetable', permissions: ['Timetable.View'] },
         { labelKey: 'الحضور والانصراف', icon: 'pi pi-calendar', route: '/attendance', permissions: ['Attendance.View'] },
-        { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: this.visitsV2Enabled() ? '/visits-v2' : '/instructor/reports' },
+        { labelKey: 'NAV.MY_REPORTS', icon: 'pi pi-file', route: '/instructor/reports' },
         { labelKey: 'ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/instructor/evidence-files' },
         { labelKey: 'NAV.COMPLAINT_RESULTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
         { labelKey: 'الساعات المكتبية', icon: 'pi pi-clock', route: '/student-affairs/office-hours', permissions: ['OfficeHours.ManageOwn'] },
@@ -353,8 +353,7 @@ export class ShellComponent implements OnInit {
     return this.categories
       .map(category => ({
         ...category,
-        items: category.items.filter(item => this.canSee(item)).map(item =>
-          item.route === '/visits' && this.visitsV2Enabled() ? { ...item, route: '/visits-v2' } : item)
+        items: category.items.filter(item => this.canSee(item))
       }))
       .filter(category => category.items.length > 0);
   });

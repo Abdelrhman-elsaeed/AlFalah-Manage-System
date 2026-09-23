@@ -48,6 +48,78 @@ public sealed class VisitV2DocumentServiceTests
         Encoding.ASCII.GetString(result.Content, 0, 4).Should().Be("%PDF");
     }
 
+    [Fact]
+    public async Task Dump_professional_v2_visit_report_for_visual_review()
+    {
+        var dir = Environment.GetEnvironmentVariable("PDF_DUMP_DIR");
+        if (string.IsNullOrWhiteSpace(dir)) return;
+
+        var now = new DateTimeOffset(2026, 9, 22, 8, 30, 0, TimeSpan.Zero);
+        var domains = new[]
+        {
+            Domain(11, "D1", "بيئة التعلم", 4,
+                ("D1-S1", "يوفر المعلم بيئة تعلم آمنة ومحفزة تدعم مشاركة جميع المتعلمين.", 4),
+                ("D1-S2", "يوظف مصادر التعلم بما يلائم احتياجات المتعلمين والفروق الفردية.", 3)),
+            Domain(12, "D2", "التدريس والتعلم", 3,
+                ("D2-S1", "يخطط المعلم لنواتج تعلم واضحة وقابلة للقياس.", 3),
+                ("D2-S2", "ينوع استراتيجيات التدريس ويحفز التفكير الناقد وحل المشكلات.", 2)),
+            Domain(13, "D3", "التقويم", 2,
+                ("D3-S1", "يستخدم أدوات تقويم متنوعة ويتابع تقدم المتعلمين أثناء الحصة.", 2),
+                ("D3-S2", "يقدم تغذية راجعة محددة تساعد المتعلم على تحسين أدائه.", 3))
+        };
+        var analysis = new VisitV2AnalysisDto(
+            17, 24, 71, "متحقق بدرجة جيدة", new[]
+            {
+                new VisitV2DomainAnalysisDto(11, "D1", "بيئة التعلم", 7, 8, 88, "مرتفع", true, false),
+                new VisitV2DomainAnalysisDto(12, "D2", "التدريس والتعلم", 5, 8, 63, "متوسط", false, true),
+                new VisitV2DomainAnalysisDto(13, "D3", "التقويم", 5, 8, 63, "متوسط", false, true)
+            },
+            new[] { "بيئة تعلم آمنة ومحفزة", "إدارة صفية فعالة" },
+            new[] { "تنويع أدوات التقويم البنائي", "رفع مستوى الأسئلة العليا" }, now);
+        var detail = new VisitV2DetailDto(
+            2042, 1, "مدارس الفلاح الأهلية", "teacher-1", "أحمد عبدالرحمن السعيد",
+            "محمد عبدالله القحطاني", "مشرف تربوي", 1, "استطلاعية", 1, "الأولى", 4, "معتمدة",
+            now, 3, "الرياضيات", "الثاني المتوسط / أ", "حل المعادلات الخطية", 24, 2,
+            "ظهر وضوح أهداف الدرس وحسن إدارة زمن الحصة، ويوصى بتوسيع فرص التقويم الذاتي بين الطلاب.",
+            2, domains, analysis,
+            new[]
+            {
+                new VisitV2TreatmentDto(1, 12, "التدريس والتعلم", "رفع مستوى الأسئلة الصفية العليا",
+                    "تصميم ثلاثة أسئلة تحليلية في كل تحضير ومناقشتها مع المشرف أسبوعياً.",
+                    "وصول نسبة مشاركة الطلاب في الإجابات التحليلية إلى 70٪.", 1, 1),
+                new VisitV2TreatmentDto(2, 13, "التقويم", "تنويع أدوات التقويم البنائي",
+                    "تطبيق بطاقة خروج وتقويم الأقران في حصتين أسبوعياً.",
+                    "توثيق أربع عينات طلابية وتحسن نتائج بطاقة الخروج خلال شهر.", 1, 2)
+            },
+            now.AddDays(-2), now, now.AddHours(1), now.AddHours(8), null, null, true);
+
+        var result = await new VisitV2DocumentService(new ImageAssetLoader()).BuildPdfAsync(
+            detail,
+            new VisitV2PdfAssetSources("مدارس الفلاح الأهلية", "تقرير رسمي صادر عن نظام مدارس الفلاح",
+                "#176B58", null, null, null, null, true, true));
+
+        Directory.CreateDirectory(dir);
+        await File.WriteAllBytesAsync(Path.Combine(dir, "visit-v2-report.pdf"), result.Content);
+    }
+
+    private static VisitV2DomainDto Domain(
+        int id,
+        string code,
+        string name,
+        int seed,
+        params (string Code, string Text, int Score)[] standards) =>
+        new(id, code, name, id, standards.Select((standard, index) =>
+            new VisitV2StandardDto(
+                id * 10 + index, standard.Code, standard.Text, index, standard.Score,
+                index == 1 ? "تمت ملاحظة تطبيق جزئي أثناء النشاط التعاوني." : null,
+                new[]
+                {
+                    new VisitV2IndicatorDto(id * 100 + index * 2, $"I-{seed}-{index}-1",
+                        "مؤشر ملاحظ وموثق في أثناء الحصة.", 1, true),
+                    new VisitV2IndicatorDto(id * 100 + index * 2 + 1, $"I-{seed}-{index}-2",
+                        "مؤشر إضافي لم يظهر بصورة مكتملة.", 2, false)
+                })).ToArray());
+
     private static IReadOnlyList<string> ParseCsv(string line)
     {
         var fields = new List<string>();

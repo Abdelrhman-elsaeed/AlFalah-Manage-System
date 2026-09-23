@@ -108,8 +108,7 @@ export class VisitsListComponent implements OnInit {
     this.load();
   }
 
-  goToCreate(): void { this.router.navigate(['/visits/new']); }
-  goToDetail(v: VisitListItem): void { this.router.navigate(['/visits', v.id]); }
+  goToDetail(v: VisitListItem): void { this.router.navigate(['/visits-legacy', v.id]); }
 
   confirmDelete(v: VisitListItem, event: Event): void {
     this.confirm.confirm({

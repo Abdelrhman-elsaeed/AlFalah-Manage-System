@@ -194,6 +194,14 @@ decisions. **Update it whenever a deviation is accepted.**
 - Whole-archive deletion and browser JSON backup/import are excluded. CSV is server-generated with exactly 22 columns and an explicit UTF-8 BOM; PDF is server-generated with safe branding/signature fallbacks.
 - Phase 8 technical mechanisms are release-ready, but enabling a pilot/global cutover requires an identified school, backup confirmation, and client acceptance. Phase 9 physical retirement requires separate written approval and was not executed.
 
+## D-81 — Classroom Visits V2 global code cutover (2026-09-22)
+
+- V2 now owns its approve/reject/reopen state machine transactionally through `IVisitV2Service` and `IVisitV2Repository`; neither the V2 controller nor service references `IVisitService`/`VisitService`.
+- `/visits` is the V2 workspace, `/visits-v2` is an alias, and `/visits-legacy` exposes V1 historical reads. Every V1 visit write endpoint returns a safe, logged `410 Gone`.
+- Cross-module operations use explicit `ExperienceVersion`: teacher history and reports route to the correct reader; progress and role dashboards never combine V1 and V2 scales; complaint reopen uses a neutral dispatcher and refuses legacy mutation; V2 CSV/PDF/ZIP never calls the V1 service and bulk data/assets are loaded in batches.
+- A read-only development check found 16 non-deleted V1 visits: 2 Draft, 8 PendingApproval, and 6 Approved. The 10 non-final records are an operational blocker until their dispositions are documented. No row was changed.
+- No physical retirement, legacy migration removal, table/column/FK deletion, data deletion, or V1 analysis recomputation was performed.
+
 ## TT-02 — Intelligent Timetable timings (2026-09-06)
 
 - Implements the user's blueprint answers: academic year/semester templates, any of seven weekdays, flexible count/duration, and comparison plus explicit confirmation before replacing selected days.

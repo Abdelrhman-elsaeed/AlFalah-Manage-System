@@ -10,6 +10,7 @@ public class ComplaintDto
     public string SchoolName { get; set; } = string.Empty;
 
     public int VisitId { get; set; }
+    public int ExperienceVersion { get; set; }
     public string? VisitSubject { get; set; }
     public DateTimeOffset VisitDate { get; set; }
 

@@ -412,9 +412,7 @@ export class TeacherProfileComponent implements OnInit {
   startNewVisitForTeacher(): void {
     const id = this.userId();
     if (!id) return;
-    // Reuse the existing visit-create flow with the instructor preselected
-    // (visit-form already reads `instructorId` from queryParam if present).
-    this.router.navigate(['/visits/new'], { queryParams: { instructorId: id } });
+    this.router.navigate(['/visits'], { queryParams: { instructorId: id } });
   }
 
   statusSeverity(status: number): 'success' | 'warning' | 'danger' | 'info' | 'secondary' {
@@ -428,9 +426,13 @@ export class TeacherProfileComponent implements OnInit {
 
   readonly canViewVisit = computed(() => this.auth.hasPermission('Visit.View'));
 
-  openVisit(visitId: number): void {
+  openVisit(visit: TeacherVisitSummary): void {
     if (!this.canViewVisit()) return;
-    this.router.navigate(['/visits', visitId]);
+    if (visit.experienceVersion === 2) {
+      this.router.navigate(['/visits'], { queryParams: { visitId: visit.id } });
+      return;
+    }
+    this.router.navigate(['/visits-legacy', visit.id]);
   }
 
   trackVisit(_idx: number, v: TeacherVisitSummary): number { return v.id; }

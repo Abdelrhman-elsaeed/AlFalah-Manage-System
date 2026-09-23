@@ -335,7 +335,7 @@ export class PlanListComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/visits', this.visitId()]);
+    this.router.navigate(['/visits-legacy', this.visitId()]);
   }
 
   private addMonths(date: Date, months: number): Date {

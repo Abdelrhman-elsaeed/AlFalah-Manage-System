@@ -1,8 +1,9 @@
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response.model';
+import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 import {
   CreateVisitV2Request, UpdateVisitV2Request, VisitV2ArchiveQuery, VisitV2ArchiveResult,
   VisitV2Availability, VisitV2Dashboard, VisitV2Detail, VisitV2ObservationCard, VisitV2Treatment
@@ -37,8 +38,16 @@ export class VisitsV2Service {
   exportCsv(query: VisitV2ArchiveQuery = {}): Observable<HttpResponse<Blob>> {
     return this.http.get(`${this.base}/export/csv`, { params: this.params(query), responseType: 'blob', observe: 'response' });
   }
+  exportZip(query: VisitV2ArchiveQuery = {}): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.base}/export/zip`, { params: this.params(query), responseType: 'blob', observe: 'response' });
+  }
   exportPdf(id: number): Observable<HttpResponse<Blob>> {
-    return this.http.get(`${this.base}/${id}/report/pdf`, { responseType: 'blob', observe: 'response' });
+    return this.http.get(`${this.base}/${id}/report/pdf`, {
+      headers: { Accept: 'application/pdf' },
+      responseType: 'blob',
+      observe: 'response',
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
+    });
   }
 
   private params(query: VisitV2ArchiveQuery): HttpParams {
@@ -49,4 +58,3 @@ export class VisitsV2Service {
     return params;
   }
 }
-

@@ -12,7 +12,6 @@ namespace AlFalah.Api.Controllers;
 [Route("api/v2/visits")]
 public sealed class VisitsV2Controller(
     IVisitV2Service visits,
-    IVisitService legacyWorkflow,
     ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet("availability")]
@@ -44,8 +43,11 @@ public sealed class VisitsV2Controller(
     {
         if (!currentUser.HasPermission(PermissionNames.VisitSubmit) && !currentUser.HasPermission(PermissionNames.VisitEdit))
             return Forbidden("ليس لديك صلاحية لإنهاء الزيارة.");
-        return Ok(ApiResponse<VisitV2DetailDto>.Success(
-            await visits.FinalizeAsync(id, cancellationToken), "تم إنهاء الزيارة وإرسالها للاعتماد."));
+        var result = await visits.FinalizeAsync(id, cancellationToken);
+        var message = result.Status == (int)VisitStatus.Approved
+            ? "تم إنهاء الزيارة واعتمادها تلقائياً."
+            : "تم إنهاء الزيارة وإرسالها للاعتماد.";
+        return Ok(ApiResponse<VisitV2DetailDto>.Success(result, message));
     }
 
     [HttpGet]
@@ -69,6 +71,15 @@ public sealed class VisitsV2Controller(
         if (!currentUser.HasPermission(PermissionNames.VisitView)) return Forbidden("ليس لديك صلاحية لتصدير الزيارات.");
         var file = await visits.ExportCsvAsync(query, cancellationToken);
         return File(file.Content, "text/csv; charset=utf-8", file.FileName);
+    }
+
+    [HttpGet("export/zip")]
+    public async Task<IActionResult> ExportZip([FromQuery] VisitV2ArchiveQuery query, CancellationToken cancellationToken)
+    {
+        if (!currentUser.HasPermission(PermissionNames.VisitView)) return Forbidden("ليس لديك صلاحية لتصدير الزيارات.");
+        var file = await visits.ExportZipAsync(query, cancellationToken);
+        Response.Headers["X-Visit-Count"] = file.VisitCount.ToString();
+        return File(file.ZipBytes, "application/zip", file.FileName);
     }
 
     [HttpGet("{id:int}")]
@@ -105,24 +116,24 @@ public sealed class VisitsV2Controller(
     public async Task<IActionResult> Approve(int id, CancellationToken cancellationToken)
     {
         if (!currentUser.HasPermission(PermissionNames.VisitApprove)) return Forbidden("ليس لديك صلاحية اعتماد الزيارة.");
-        await legacyWorkflow.ApproveAsync(id, cancellationToken);
-        return Ok(ApiResponse<VisitV2DetailDto>.Success(await visits.GetAsync(id, cancellationToken), "تم اعتماد الزيارة."));
+        return Ok(ApiResponse<VisitV2DetailDto>.Success(
+            await visits.ApproveAsync(id, cancellationToken), "تم اعتماد الزيارة."));
     }
 
     [HttpPost("{id:int}/reject")]
     public async Task<IActionResult> Reject(int id, RejectVisitRequestDto request, CancellationToken cancellationToken)
     {
         if (!currentUser.HasPermission(PermissionNames.VisitApprove)) return Forbidden("ليس لديك صلاحية رفض الزيارة.");
-        await legacyWorkflow.RejectAsync(id, request.Reason, cancellationToken);
-        return Ok(ApiResponse<VisitV2DetailDto>.Success(await visits.GetAsync(id, cancellationToken), "تمت إعادة الزيارة للتعديل."));
+        return Ok(ApiResponse<VisitV2DetailDto>.Success(
+            await visits.RejectAsync(id, request.Reason, cancellationToken), "تمت إعادة الزيارة للتعديل."));
     }
 
     [HttpPost("{id:int}/reopen")]
     public async Task<IActionResult> Reopen(int id, ReopenVisitRequestDto request, CancellationToken cancellationToken)
     {
         if (!currentUser.HasPermission(PermissionNames.VisitReopen)) return Forbidden("ليس لديك صلاحية إعادة فتح الزيارة.");
-        await legacyWorkflow.ReopenAsync(id, request.Reason, cancellationToken);
-        return Ok(ApiResponse<VisitV2DetailDto>.Success(await visits.GetAsync(id, cancellationToken), "تمت إعادة فتح الزيارة."));
+        return Ok(ApiResponse<VisitV2DetailDto>.Success(
+            await visits.ReopenAsync(id, request.Reason, cancellationToken), "تمت إعادة فتح الزيارة."));
     }
 
     private ObjectResult Forbidden(string message) => StatusCode(StatusCodes.Status403Forbidden, ApiResponse.Fail(message));

@@ -577,7 +577,7 @@ public class VisitService : IVisitService
         EnsureSupervisorVisitSurfaceAccess();
         var visit = await _context.Visits
             .AsNoTracking()
-            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken)
+            .FirstOrDefaultAsync(v => v.Id == id && v.ExperienceVersion == ExperienceVersion.Legacy, cancellationToken)
             ?? throw new KeyNotFoundException("الزيارة غير موجودة.");
 
         var effectiveSchoolId = _scopeGuard.ResolveAllowedSchoolId(visit.SchoolId);
@@ -635,6 +635,7 @@ public class VisitService : IVisitService
             .Include(v => v.CreatedByUser)
             .Include(v => v.RubricVersion)
             .Include(v => v.Scores)
+            .Where(v => v.ExperienceVersion == ExperienceVersion.Legacy)
             .AsQueryable();
 
         if (effectiveSchoolId.HasValue)
@@ -736,7 +737,8 @@ public class VisitService : IVisitService
             .Include(v => v.CreatedByUser)
             .Include(v => v.RubricVersion)
             .Include(v => v.Scores)
-            .Where(v => v.InstructorId == currentUserId && v.Status == VisitStatus.Approved)
+            .Where(v => v.ExperienceVersion == ExperienceVersion.Legacy &&
+                        v.InstructorId == currentUserId && v.Status == VisitStatus.Approved)
             .AsQueryable();
 
         if (effectiveSchoolId.HasValue)
@@ -1160,7 +1162,7 @@ public class VisitService : IVisitService
         EnsureSupervisorVisitSurfaceAccess();
         var visit = await _context.Visits
             .AsNoTracking()
-            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken)
+            .FirstOrDefaultAsync(v => v.Id == id && v.ExperienceVersion == ExperienceVersion.Legacy, cancellationToken)
             ?? throw new KeyNotFoundException("الزيارة غير موجودة.");
 
         var effectiveSchoolId = _scopeGuard.ResolveAllowedSchoolId(visit.SchoolId);
@@ -1305,6 +1307,7 @@ public class VisitService : IVisitService
 
         var q = _context.Visits
             .AsNoTracking()
+            .Where(v => v.ExperienceVersion == ExperienceVersion.Legacy)
             .AsQueryable();
 
         if (effectiveSchoolId.HasValue)
@@ -1744,7 +1747,9 @@ public class VisitService : IVisitService
         if (includeAnalysis)
             q = q.Include(v => v.Analysis!).ThenInclude(a => a.DomainAverages);
 
-        var visit = await q.FirstOrDefaultAsync(v => v.Id == id, cancellationToken)
+        var visit = await q.FirstOrDefaultAsync(
+                v => v.Id == id && v.ExperienceVersion == ExperienceVersion.Legacy,
+                cancellationToken)
             ?? throw new KeyNotFoundException("الزيارة غير موجودة.");
 
         return visit;

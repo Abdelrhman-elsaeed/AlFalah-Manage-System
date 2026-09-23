@@ -6,6 +6,7 @@ using AlFalah.Infrastructure.Services;
 using AlFalah.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace AlFalah.Api.Controllers;
 
@@ -37,17 +38,20 @@ public class VisitsController : ControllerBase
     private readonly ICurrentUserService _currentUser;
     private readonly IPdfReportService _pdfReportService;
     private readonly IVisitsBulkExportService _bulkExportService;
+    private readonly ILogger<VisitsController> _logger;
 
     public VisitsController(
         IVisitService visitService,
         ICurrentUserService currentUser,
         IPdfReportService pdfReportService,
-        IVisitsBulkExportService bulkExportService)
+        IVisitsBulkExportService bulkExportService,
+        ILogger<VisitsController> logger)
     {
         _visitService = visitService;
         _currentUser = currentUser;
         _pdfReportService = pdfReportService;
         _bulkExportService = bulkExportService;
+        _logger = logger;
     }
 
     // ─── GET list ─────────────────────────────────────────────────────────────
@@ -131,18 +135,9 @@ public class VisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 201)]
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 400)]
     [ProducesResponseType(typeof(ApiResponse), 403)]
-    public async Task<IActionResult> Create([FromBody] CreateVisitRequestDto request, CancellationToken cancellationToken)
-    {
-        if (!_currentUser.HasPermission(PermissionNames.VisitCreate))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإنشاء زيارة."));
-
-        var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
-        if (errors.Count > 0)
-            return BadRequest(ApiResponse<VisitDetailDto>.Fail(errors));
-
-        var result = await _visitService.CreateAsync(request, cancellationToken);
-        return StatusCode(201, ApiResponse<VisitDetailDto>.Success(result, "تم إنشاء مسودة الزيارة بنجاح."));
-    }
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status410Gone)]
+    public Task<IActionResult> Create([FromBody] CreateVisitRequestDto request, CancellationToken cancellationToken) =>
+        Task.FromResult(LegacyWriteGone("create"));
 
     // ─── PUT update draft ─────────────────────────────────────────────────────
 
@@ -151,18 +146,9 @@ public class VisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 400)]
     [ProducesResponseType(typeof(ApiResponse), 403)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateVisitRequestDto request, CancellationToken cancellationToken)
-    {
-        if (!_currentUser.HasPermission(PermissionNames.VisitEdit))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لتعديل الزيارات."));
-
-        var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
-        if (errors.Count > 0)
-            return BadRequest(ApiResponse<VisitDetailDto>.Fail(errors));
-
-        var result = await _visitService.UpdateAsync(id, request, cancellationToken);
-        return Ok(ApiResponse<VisitDetailDto>.Success(result, "تم حفظ مسودة الزيارة."));
-    }
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status410Gone)]
+    public Task<IActionResult> Update(int id, [FromBody] UpdateVisitRequestDto request, CancellationToken cancellationToken) =>
+        Task.FromResult(LegacyWriteGone("update", id));
 
     // ─── POST submit ─────────────────────────────────────────────────────────
 
@@ -171,14 +157,9 @@ public class VisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 400)]
     [ProducesResponseType(typeof(ApiResponse), 403)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<IActionResult> Submit(int id, CancellationToken cancellationToken)
-    {
-        if (!_currentUser.HasPermission(PermissionNames.VisitEdit))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لتسليم الزيارات."));
-
-        var result = await _visitService.SubmitAsync(id, cancellationToken);
-        return Ok(ApiResponse<VisitDetailDto>.Success(result, "تم إرسال الزيارة للاعتماد."));
-    }
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status410Gone)]
+    public Task<IActionResult> Submit(int id, CancellationToken cancellationToken) =>
+        Task.FromResult(LegacyWriteGone("submit", id));
 
     // ─── DELETE soft delete ──────────────────────────────────────────────────
 
@@ -186,14 +167,9 @@ public class VisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), 200)]
     [ProducesResponseType(typeof(ApiResponse), 403)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<IActionResult> SoftDelete(int id, CancellationToken cancellationToken)
-    {
-        if (!_currentUser.HasPermission(PermissionNames.VisitDelete))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لحذف الزيارات."));
-
-        await _visitService.SoftDeleteAsync(id, cancellationToken);
-        return Ok(ApiResponse.Success("تم حذف الزيارة."));
-    }
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status410Gone)]
+    public Task<IActionResult> SoftDelete(int id, CancellationToken cancellationToken) =>
+        Task.FromResult(LegacyWriteGone("delete", id));
 
     // ─── GET analysis snapshot ───────────────────────────────────────────────
 
@@ -221,14 +197,9 @@ public class VisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 400)]
     [ProducesResponseType(typeof(ApiResponse), 403)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<IActionResult> Approve(int id, CancellationToken cancellationToken)
-    {
-        if (!_currentUser.HasPermission(PermissionNames.VisitApprove))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لاعتماد الزيارات."));
-
-        var result = await _visitService.ApproveAsync(id, cancellationToken);
-        return Ok(ApiResponse<VisitDetailDto>.Success(result, "تم اعتماد الزيارة."));
-    }
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status410Gone)]
+    public Task<IActionResult> Approve(int id, CancellationToken cancellationToken) =>
+        Task.FromResult(LegacyWriteGone("approve", id));
 
     /// <summary>POST /api/v1/visits/{id}/reject — PendingApproval → RejectedForChanges (reason required).</summary>
     [HttpPost("{id:int}/reject")]
@@ -236,18 +207,9 @@ public class VisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 400)]
     [ProducesResponseType(typeof(ApiResponse), 403)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<IActionResult> Reject(int id, [FromBody] RejectVisitRequestDto request, CancellationToken cancellationToken)
-    {
-        if (!_currentUser.HasPermission(PermissionNames.VisitApprove))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لرفض الزيارات."));
-
-        var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
-        if (errors.Count > 0)
-            return BadRequest(ApiResponse<VisitDetailDto>.Fail(errors));
-
-        var result = await _visitService.RejectAsync(id, request.Reason, cancellationToken);
-        return Ok(ApiResponse<VisitDetailDto>.Success(result, "تم رفض الزيارة وإعادتها إلى المنشئ للتعديل."));
-    }
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status410Gone)]
+    public Task<IActionResult> Reject(int id, [FromBody] RejectVisitRequestDto request, CancellationToken cancellationToken) =>
+        Task.FromResult(LegacyWriteGone("reject", id));
 
     /// <summary>POST /api/v1/visits/{id}/reopen — Approved → Reopened (reason required).</summary>
     [HttpPost("{id:int}/reopen")]
@@ -255,18 +217,9 @@ public class VisitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<VisitDetailDto>), 400)]
     [ProducesResponseType(typeof(ApiResponse), 403)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<IActionResult> Reopen(int id, [FromBody] ReopenVisitRequestDto request, CancellationToken cancellationToken)
-    {
-        if (!_currentUser.HasPermission(PermissionNames.VisitReopen))
-            return StatusCode(403, ApiResponse.Fail("ليس لديك صلاحية لإعادة فتح الزيارات."));
-
-        var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
-        if (errors.Count > 0)
-            return BadRequest(ApiResponse<VisitDetailDto>.Fail(errors));
-
-        var result = await _visitService.ReopenAsync(id, request.Reason, cancellationToken);
-        return Ok(ApiResponse<VisitDetailDto>.Success(result, "تم إعادة فتح الزيارة."));
-    }
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status410Gone)]
+    public Task<IActionResult> Reopen(int id, [FromBody] ReopenVisitRequestDto request, CancellationToken cancellationToken) =>
+        Task.FromResult(LegacyWriteGone("reopen", id));
 
     // ─── Phase 5: Instructor visibility + view-status ────────────────────────
 
@@ -433,5 +386,14 @@ public class VisitsController : ControllerBase
         {
             return StatusCode(403, ApiResponse.Fail(ex.Message));
         }
+    }
+
+    private IActionResult LegacyWriteGone(string action, int? visitId = null)
+    {
+        _logger.LogWarning(
+            "Legacy visit write blocked after V2 cutover: action={Action} visit={VisitId} user={UserId} school={SchoolId}",
+            action, visitId, _currentUser.UserId, _currentUser.ActiveSchoolId);
+        const string message = "سجل الزيارات القديم متاح للقراءة فقط. انتقلت جميع عمليات الكتابة إلى نظام الزيارات V2.";
+        return StatusCode(StatusCodes.Status410Gone, ApiResponse.Fail(message, message));
     }
 }

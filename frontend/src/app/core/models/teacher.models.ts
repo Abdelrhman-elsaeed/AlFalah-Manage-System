@@ -48,6 +48,7 @@ export interface TeacherProfile {
 
 export interface TeacherVisitSummary {
   id: number;
+  experienceVersion: number;
   visitDate: string;
   visitSequence: number;
   visitSequenceLabelAr: string;
@@ -87,6 +88,7 @@ export interface TeacherLongitudinalComparison {
 
 export interface TeacherVisitProgress {
   visitId: number;
+  experienceVersion: number;
   visitDate: string;
   legendLabel: string;
   domainAverages: TeacherDomainAverage[];
@@ -94,6 +96,7 @@ export interface TeacherVisitProgress {
 
 export interface TeacherProgress {
   userId: string;
+  experienceVersion?: number | null;
   axisLabels: TeacherDomainAverage[];
   visits: TeacherVisitProgress[];
   firstToLastComparison?: TeacherLongitudinalComparison | null;

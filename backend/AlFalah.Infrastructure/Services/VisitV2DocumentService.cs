@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using AlFalah.Application.DTOs.Visits;
 using AlFalah.Application.Interfaces;
@@ -62,154 +63,454 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
         var managerSignature = assets.ShowManagerSignature
             ? await imageLoader.TryLoadAsync(assets.ManagerSignatureSource, cancellationToken: cancellationToken) : null;
         PdfTheme.EnsureFonts();
+        var brand = NormalizeColor(assets.PrimaryColor);
+        var generatedAt = DateTimeOffset.UtcNow;
+        var logoBytes = logo.HasValue && !logo.Value.IsEmpty ? logo.Value.Bytes : null;
+
         var bytes = Document.Create(document => document.Page(page =>
         {
             page.Size(PageSizes.A4);
             page.Margin(24);
-            page.DefaultTextStyle(x => x.FontFamily(PdfTheme.Font).FontSize(9).FontColor(PdfTheme.Text));
+            page.PageColor(PdfTheme.White);
+            page.DefaultTextStyle(x => x.FontFamily(PdfTheme.Font).FontSize(8.8f).FontColor(PdfTheme.Text));
             page.ContentFromRightToLeft();
-            page.Header().Background(NormalizeColor(assets.PrimaryColor)).Padding(12).Row(header =>
+            page.Header().Column(header =>
             {
-                header.RelativeItem().AlignMiddle().Column(text =>
-                {
-                    text.Item().AlignCenter().Text("تقرير الزيارة الصفية V2").Bold().FontSize(18).FontColor(Colors.White);
-                    text.Item().AlignCenter().Text(assets.HeaderText).FontSize(11).FontColor("#EAF5EE");
-                });
-                if (logo.HasValue && !logo.Value.IsEmpty)
-                    header.ConstantItem(58).Height(48).AlignMiddle().Image(logo.Value.Bytes).FitArea();
+                header.Item().ShowOnce().Element(c => ComposePrimaryHeader(c, visit, assets, logoBytes, brand));
+                header.Item().SkipOnce().Element(c => ComposeRunningHeader(c, visit, brand));
             });
-            page.Content().PaddingVertical(12).Column(col =>
-            {
-                col.Spacing(10);
-                col.Item().Element(c => PdfTheme.SectionCard(c, "بيانات الزيارة", body =>
-                {
-                    body.Item().Element(grid => PdfTheme.DetailGrid(grid, new[]
-                    {
-                        ("المعلم", visit.InstructorName, (string?)null),
-                        ("المقيم", $"{visit.EvaluatorName} — {visit.EvaluatorRole}", (string?)null),
-                        ("التاريخ", visit.VisitDate.ToString("yyyy-MM-dd"), (string?)null),
-                        ("الحصة", visit.ClassroomPeriod.ToString(), (string?)null),
-                        ("المادة", visit.Subject, (string?)null),
-                        ("الصف والفصل", visit.GradeClass, (string?)null),
-                        ("عنوان الدرس", visit.LessonTitle, (string?)null),
-                        ("الفئة والتسلسل", $"{visit.VisitCategoryLabelAr} — {visit.VisitSequenceLabelAr}", (string?)null),
-                        ("الحضور", visit.PresentCount.ToString(), (string?)null),
-                        ("الغياب", visit.AbsentCount.ToString(), (string?)null),
-                    }));
-                }));
-
-                if (visit.Analysis != null)
-                {
-                    col.Item().Element(c => PdfTheme.SectionCard(c, "نتيجة التقييم", body =>
-                    {
-                        body.Item().AlignCenter().Text($"{visit.Analysis.TotalScore} / {visit.Analysis.MaximumScore}")
-                            .Bold().FontSize(24).FontColor(PdfTheme.Brand);
-                        body.Item().AlignCenter().Text($"{visit.Analysis.OverallPercentage}% — {visit.Analysis.PerformanceLevelAr}")
-                            .Bold().FontSize(12);
-                        body.Item().PaddingTop(6).Row(row =>
-                        {
-                            var cells = visit.Analysis.Domains.Select(domain => (Action<IContainer>)(cell =>
-                                cell.Border(0.5f).BorderColor(PdfTheme.Border).Padding(5).AlignCenter().Column(domainCol =>
-                                {
-                                    domainCol.Item().Text(domain.DomainNameAr).Bold().FontSize(8);
-                                    domainCol.Item().Text($"{domain.Percentage}%").Bold().FontSize(12).FontColor(PdfTheme.Brand);
-                                }))).ToList();
-                            PdfTheme.RtlRow(row, cells);
-                        });
-                    }));
-                }
-
-                foreach (var domain in visit.Domains)
-                {
-                    col.Item().Element(c => PdfTheme.TableSection(c, domain.NameAr, domain.Standards.Count, table =>
-                    {
-                        table.ColumnsDefinition(columns =>
-                        {
-                            columns.ConstantColumn(38);
-                            columns.RelativeColumn();
-                            columns.ConstantColumn(42);
-                        });
-                        table.Header(header =>
-                        {
-                            PdfTheme.HeaderCell(header.Cell(), "الدرجة", PdfTheme.CellAlign.Center);
-                            PdfTheme.HeaderCell(header.Cell(), "المعيار");
-                            PdfTheme.HeaderCell(header.Cell(), "الرمز", PdfTheme.CellAlign.Center);
-                        });
-                        var index = 0;
-                        foreach (var standard in domain.Standards)
-                        {
-                            var observed = standard.Indicators.Where(i => i.IsObserved).Select(i => "✓ " + i.TextAr);
-                            var text = standard.TextAr +
-                                       (observed.Any() ? "\n" + string.Join("\n", observed) : string.Empty) +
-                                       (!string.IsNullOrWhiteSpace(standard.EvidenceNote) ? "\nشواهد: " + standard.EvidenceNote : string.Empty);
-                            PdfTheme.BodyCell(table.Cell(), standard.Score.ToString(), PdfTheme.CellAlign.Center, index % 2 == 1, true);
-                            PdfTheme.BodyCell(table.Cell(), text, zebra: index % 2 == 1);
-                            PdfTheme.BodyCell(table.Cell(), standard.Code, PdfTheme.CellAlign.Center, index % 2 == 1);
-                            index++;
-                        }
-                    }));
-                }
-
-                if (visit.Treatments.Count > 0)
-                    col.Item().Element(c => PdfTheme.SectionCard(c, "الخطة العلاجية", body =>
-                    {
-                        foreach (var item in visit.Treatments)
-                        {
-                            body.Item().PaddingBottom(6).BorderBottom(0.5f).BorderColor(PdfTheme.Border).Column(t =>
-                            {
-                                t.Item().Text(item.DomainNameAr).Bold().FontColor(PdfTheme.Brand);
-                                t.Item().Text("الهدف: " + item.Goal);
-                                t.Item().Text("الإجراءات: " + item.Actions);
-                                t.Item().Text("مؤشرات النجاح: " + item.SuccessIndicators);
-                            });
-                        }
-                    }));
-
-                if (!string.IsNullOrWhiteSpace(visit.Notes))
-                    col.Item().Element(c => PdfTheme.SectionCard(c, "ملاحظات عامة", body => body.Item().Text(visit.Notes!)));
-
-                col.Item().PaddingTop(8).Row(row =>
-                {
-                    row.RelativeItem().AlignCenter().Column(x =>
-                    {
-                        x.Item().Text("توقيع المعلم").Bold();
-                        RenderSignature(x.Item(), instructorSignature?.Bytes);
-                        x.Item().Text(visit.InstructorName).FontSize(8);
-                    });
-                    row.ConstantItem(24);
-                    row.RelativeItem().AlignCenter().Column(x =>
-                    {
-                        x.Item().Text("توقيع المقيم").Bold();
-                        RenderSignature(x.Item(), evaluatorSignature?.Bytes);
-                        x.Item().Text(visit.EvaluatorName).FontSize(8);
-                    });
-                    if (visit.ApprovedAt.HasValue && assets.ShowManagerSignature)
-                    {
-                        row.ConstantItem(24);
-                        row.RelativeItem().AlignCenter().Column(x =>
-                        {
-                            x.Item().Text("توقيع المعتمد").Bold();
-                            RenderSignature(x.Item(), managerSignature?.Bytes);
-                        });
-                    }
-                });
-            });
-            page.Footer().AlignCenter().Text(text =>
-                text.Span(string.IsNullOrWhiteSpace(assets.FooterText)
-                    ? $"زيارة رقم {visit.Id} • {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm} UTC"
-                    : assets.FooterText)
-                    .FontFamily(PdfTheme.Font).FontSize(8).FontColor(PdfTheme.Muted));
+            page.Content().Element(c => ComposeContent(
+                c, visit, brand, instructorSignature?.Bytes, evaluatorSignature?.Bytes, managerSignature?.Bytes,
+                assets.ShowManagerSignature));
+            page.Footer().Element(c => ComposeFooter(c, visit, assets.FooterText, generatedAt));
         })).GeneratePdf();
 
         return new VisitV2PdfExportDto(bytes, $"تقرير-زيارة-{visit.Id}.pdf");
     }
 
+    private static void ComposePrimaryHeader(
+        IContainer container,
+        VisitV2DetailDto visit,
+        VisitV2PdfAssetSources assets,
+        byte[]? logo,
+        string brand)
+    {
+        container.PaddingBottom(8).Column(outer =>
+        {
+            outer.Item().Background(brand).PaddingVertical(10).PaddingHorizontal(14).Row(row =>
+            {
+                // QuestPDF positions row items physically LTR. Text is emitted first so the logo lands on the visual right.
+                row.RelativeItem().AlignMiddle().Column(text =>
+                {
+                    text.Item().AlignRight().Text(string.IsNullOrWhiteSpace(assets.HeaderText) ? visit.SchoolName : assets.HeaderText)
+                        .Bold().FontSize(11).FontColor("#DDF2E5");
+                    text.Item().PaddingTop(2).AlignRight().Text("تقرير الزيارة الصفية")
+                        .Bold().FontSize(20).FontColor(PdfTheme.White);
+                    text.Item().PaddingTop(3).AlignRight().Text($"{visit.VisitCategoryLabelAr} • {visit.VisitSequenceLabelAr}")
+                        .FontSize(9.5f).FontColor("#EAF5EE");
+                });
+
+                row.ConstantItem(14);
+                row.ConstantItem(64).Height(56).Background(PdfTheme.White).Padding(5)
+                    .AlignMiddle().AlignCenter().Element(c => RenderLogo(c, logo, visit.SchoolName, brand));
+            });
+
+            outer.Item().Height(3).Background(PdfTheme.Gold);
+            outer.Item().PaddingTop(5).Row(row =>
+            {
+                row.RelativeItem().AlignLeft().Text($"#{visit.Id.ToString(CultureInfo.InvariantCulture)}")
+                    .Bold().FontSize(9).FontColor(PdfTheme.Muted);
+                row.RelativeItem().AlignCenter().Text(visit.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
+                    .FontSize(9).FontColor(PdfTheme.Muted);
+                row.RelativeItem().AlignRight().Text(visit.StatusLabelAr)
+                    .Bold().FontSize(9).FontColor(brand);
+            });
+        });
+    }
+
+    private static void ComposeRunningHeader(IContainer container, VisitV2DetailDto visit, string brand)
+    {
+        container.PaddingBottom(9).BorderBottom(1).BorderColor(brand).PaddingBottom(5).Row(row =>
+        {
+            row.ConstantItem(120).AlignLeft().Text($"زيارة #{visit.Id}")
+                .FontSize(8.5f).FontColor(PdfTheme.Muted);
+            row.ConstantItem(10);
+            row.RelativeItem().AlignRight().Text($"تقرير الزيارة الصفية — {visit.InstructorName}")
+                .Bold().FontSize(9).FontColor(brand);
+        });
+    }
+
+    private static void ComposeContent(
+        IContainer container,
+        VisitV2DetailDto visit,
+        string brand,
+        byte[]? instructorSignature,
+        byte[]? evaluatorSignature,
+        byte[]? managerSignature,
+        bool showManagerSignature)
+    {
+        container.PaddingVertical(5).Column(col =>
+        {
+            col.Spacing(7);
+            col.Item().ShowEntire().Element(c => ComposeExecutiveSummary(c, visit, brand));
+            col.Item().ShowEntire().Element(c => ComposeVisitDetails(c, visit));
+
+            if (visit.Analysis != null)
+            {
+                col.Item().ShowEntire().Element(c => ComposeDomainPerformance(c, visit.Analysis, brand));
+                if (visit.Analysis.Strengths.Count > 0 || visit.Analysis.ImprovementAreas.Count > 0)
+                    col.Item().ShowEntire().Element(c => ComposeInsights(c, visit.Analysis));
+            }
+
+            if (visit.Domains.Count > 0)
+            {
+                col.Item().Element(c => PdfTheme.SectionHeading(c, "تفاصيل بطاقة الملاحظة", brand));
+                foreach (var domain in visit.Domains)
+                    col.Item().Element(c => ComposeDomainDetails(c, domain, visit.Analysis, brand));
+            }
+
+            if (visit.Treatments.Count > 0)
+                col.Item().Element(c => ComposeTreatments(c, visit.Treatments, brand));
+
+            if (!string.IsNullOrWhiteSpace(visit.Notes))
+                col.Item().ShowEntire().Element(c => ComposeNotes(c, visit.Notes!));
+
+            col.Item().ShowEntire().Element(c => ComposeSignatures(
+                c, visit, instructorSignature, evaluatorSignature, managerSignature, showManagerSignature, brand));
+        });
+    }
+
+    private static void ComposeExecutiveSummary(IContainer container, VisitV2DetailDto visit, string brand)
+    {
+        container.Border(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border).Background(PdfTheme.White).Padding(9).Row(row =>
+        {
+            row.RelativeItem().AlignMiddle().Column(info =>
+            {
+                info.Item().Text("المعلم محل الزيارة").FontSize(8).FontColor(PdfTheme.Muted);
+                info.Item().PaddingTop(1).Text(visit.InstructorName).Bold().FontSize(14).FontColor(PdfTheme.Text);
+                info.Item().PaddingTop(4).Text(visit.LessonTitle).Bold().FontSize(10).FontColor(brand);
+                info.Item().PaddingTop(2).Text($"{visit.Subject} • {visit.GradeClass} • الحصة {visit.ClassroomPeriod}")
+                    .FontSize(8.5f).FontColor(PdfTheme.Muted);
+            });
+
+            row.ConstantItem(14);
+            row.ConstantItem(126).MinHeight(82).Background(brand).Padding(7).AlignCenter().AlignMiddle().Column(score =>
+            {
+                score.Item().Text("النتيجة الإجمالية").FontSize(8.5f).FontColor("#DDF2E5");
+                if (visit.Analysis == null)
+                {
+                    score.Item().PaddingTop(7).Text("—").Bold().FontSize(28).FontColor(PdfTheme.White);
+                    score.Item().Text("لم تحسب بعد").FontSize(8).FontColor("#DDF2E5");
+                    return;
+                }
+
+                score.Item().PaddingTop(2).Text($"{visit.Analysis.OverallPercentage}%")
+                    .Bold().FontSize(24).FontColor(PdfTheme.White);
+                score.Item().Text(visit.Analysis.PerformanceLevelAr).Bold().FontSize(9).FontColor(PdfTheme.Gold);
+                score.Item().PaddingTop(2).Text($"{visit.Analysis.TotalScore} من {visit.Analysis.MaximumScore}")
+                    .FontSize(7.5f).FontColor("#DDF2E5");
+            });
+        });
+    }
+
+    private static void ComposeVisitDetails(IContainer container, VisitV2DetailDto visit)
+    {
+        PdfTheme.SectionCard(container, "بيانات الزيارة", body =>
+        {
+            body.Item().Element(grid => PdfTheme.DetailGrid(grid, new[]
+            {
+                ("المدرسة", visit.SchoolName, (string?)null),
+                ("المقيم", $"{visit.EvaluatorName} — {visit.EvaluatorRole}", (string?)null),
+                ("تاريخ الزيارة", visit.VisitDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), (string?)null),
+                ("الحصة", visit.ClassroomPeriod.ToString(CultureInfo.InvariantCulture), (string?)null),
+                ("المادة", visit.Subject, (string?)null),
+                ("الصف والفصل", visit.GradeClass, (string?)null),
+                ("عنوان الدرس", visit.LessonTitle, (string?)null),
+                ("نوع الزيارة", $"{visit.VisitCategoryLabelAr} — {visit.VisitSequenceLabelAr}", (string?)null),
+                ("الحضور", visit.PresentCount.ToString(CultureInfo.InvariantCulture), (string?)null),
+                ("الغياب", visit.AbsentCount.ToString(CultureInfo.InvariantCulture), (string?)null)
+            }));
+        });
+    }
+
+    private static void ComposeDomainPerformance(IContainer container, VisitV2AnalysisDto analysis, string brand)
+    {
+        PdfTheme.SectionCard(container, "ملخص الأداء حسب المجال", body =>
+        {
+            foreach (var domain in analysis.Domains)
+            {
+                body.Item().PaddingVertical(2).Row(row =>
+                {
+                    row.ConstantItem(48).AlignLeft().Text($"{domain.Percentage}%")
+                        .Bold().FontSize(10).FontColor(ScoreColor(domain.Percentage));
+                    row.RelativeItem().PaddingHorizontal(7).AlignMiddle()
+                        .Element(c => PdfTheme.ProgressBar(c, domain.Percentage / 100d, ScoreColor(domain.Percentage)));
+                    row.ConstantItem(175).AlignRight().Text(domain.DomainNameAr)
+                        .Bold().FontSize(9).FontColor(PdfTheme.Text);
+                });
+            }
+        }, brand);
+    }
+
+    private static void ComposeInsights(IContainer container, VisitV2AnalysisDto analysis)
+    {
+        container.Row(row =>
+        {
+            row.RelativeItem().Element(c => ComposeInsightCard(
+                c, "فرص التحسين", analysis.ImprovementAreas, "#FFF7ED", "#C2410C"));
+            row.ConstantItem(8);
+            row.RelativeItem().Element(c => ComposeInsightCard(
+                c, "نقاط القوة", analysis.Strengths, "#ECFDF5", PdfTheme.Brand));
+        });
+    }
+
+    private static void ComposeInsightCard(
+        IContainer container,
+        string title,
+        IReadOnlyList<string> items,
+        string background,
+        string accent)
+    {
+        container.MinHeight(58).Background(background).Border(PdfTheme.BorderWidth).BorderColor(accent).Padding(7).Column(col =>
+        {
+            col.Item().Text(title).Bold().FontSize(10).FontColor(accent);
+            if (items.Count == 0)
+            {
+                col.Item().PaddingTop(5).Text("لا توجد عناصر مسجلة").FontSize(8).FontColor(PdfTheme.Muted);
+                return;
+            }
+
+            foreach (var item in items)
+                col.Item().PaddingTop(4).Text($"• {item}").FontSize(8.5f).FontColor(PdfTheme.Text);
+        });
+    }
+
+    private static void ComposeDomainDetails(
+        IContainer container,
+        VisitV2DomainDto domain,
+        VisitV2AnalysisDto? analysis,
+        string brand)
+    {
+        var domainResult = analysis?.Domains.FirstOrDefault(x =>
+            x.RubricDomainId == domain.Id || string.Equals(x.DomainCode, domain.Code, StringComparison.OrdinalIgnoreCase));
+
+        container.Column(col =>
+        {
+            col.Item().Background("#F5F9F7").Border(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border)
+                .PaddingVertical(4).PaddingHorizontal(8).Row(header =>
+                {
+                    header.ConstantItem(58).Background(PdfTheme.White).Border(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border)
+                        .PaddingVertical(2).AlignCenter().Text(domainResult == null ? "—" : $"{domainResult.Percentage}%")
+                        .Bold().FontSize(10).FontColor(domainResult == null ? PdfTheme.Muted : ScoreColor(domainResult.Percentage));
+                    header.ConstantItem(8);
+                    header.RelativeItem().AlignRight().Text($"{domain.Code}  |  {domain.NameAr}")
+                        .Bold().FontSize(11).FontColor(brand);
+                });
+
+            col.Item().Table(table =>
+            {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.ConstantColumn(48);
+                    columns.RelativeColumn();
+                    columns.ConstantColumn(52);
+                });
+                table.Header(header =>
+                {
+                    PdfTheme.HeaderCell(header.Cell(), "الدرجة", PdfTheme.CellAlign.Center);
+                    PdfTheme.HeaderCell(header.Cell(), "المعيار والشواهد المرصودة");
+                    PdfTheme.HeaderCell(header.Cell(), "الرمز", PdfTheme.CellAlign.Center);
+                });
+
+                var index = 0;
+                foreach (var standard in domain.Standards)
+                {
+                    var observed = standard.Indicators.Where(i => i.IsObserved).Select(i => $"✓ {i.TextAr}").ToArray();
+                    var details = standard.TextAr;
+                    if (observed.Length > 0)
+                        details += "\n" + string.Join("\n", observed);
+                    if (!string.IsNullOrWhiteSpace(standard.EvidenceNote))
+                        details += $"\nشاهد المقيم: {standard.EvidenceNote}";
+
+                    ComposeScoreCell(table.Cell(), standard.Score, index % 2 == 1);
+                    PdfTheme.BodyCell(table.Cell(), details, zebra: index % 2 == 1);
+                    PdfTheme.BodyCell(table.Cell(), standard.Code, PdfTheme.CellAlign.Center, index % 2 == 1, true, brand);
+                    index++;
+                }
+
+                if (domain.Standards.Count == 0)
+                    PdfTheme.EmptyRow(table, 3, "لا توجد معايير مسجلة لهذا المجال.");
+            });
+        });
+    }
+
+    private static void ComposeScoreCell(IContainer container, int score, bool zebra)
+    {
+        container.Background(zebra ? PdfTheme.ZebraRow : PdfTheme.White)
+            .BorderBottom(PdfTheme.BorderWidth).BorderRight(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border)
+            .PaddingVertical(4).PaddingHorizontal(5).AlignMiddle().AlignCenter().Column(col =>
+            {
+                col.Item().Text(score.ToString(CultureInfo.InvariantCulture)).Bold().FontSize(12).FontColor(ScoreColor(score * 25));
+                col.Item().Text("من 4").FontSize(7).FontColor(PdfTheme.Muted);
+            });
+    }
+
+    private static void ComposeTreatments(
+        IContainer container,
+        IReadOnlyList<VisitV2TreatmentDto> treatments,
+        string brand)
+    {
+        container.Column(section =>
+        {
+            section.Item().Element(c => PdfTheme.SectionHeading(c, "الخطة العلاجية ومتابعة التحسين", brand));
+            var ordered = treatments.OrderBy(x => x.SortOrder).ToArray();
+            for (var index = 0; index < ordered.Length; index++)
+            {
+                var item = ordered[index];
+                section.Item().PaddingTop(5).Border(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border)
+                    .Background(PdfTheme.White).Column(card =>
+                    {
+                        card.Item().Background("#F2F8F5").PaddingVertical(5).PaddingHorizontal(8).Row(header =>
+                        {
+                            header.ConstantItem(28).Height(22).Background(PdfTheme.Gold).AlignCenter().AlignMiddle()
+                                .Text((index + 1).ToString(CultureInfo.InvariantCulture)).Bold().FontSize(9).FontColor(PdfTheme.Text);
+                            header.ConstantItem(8);
+                            header.RelativeItem().AlignRight().AlignMiddle().Text(item.DomainNameAr)
+                                .Bold().FontSize(11).FontColor(brand);
+                        });
+
+                        card.Item().Padding(6).Column(fields =>
+                        {
+                            fields.Spacing(6);
+                            fields.Item().Element(c => ComposeTreatmentField(c, "الهدف", item.Goal, "#EFF8F4", brand));
+                            fields.Item().Row(row => PdfTheme.RtlRow(row, new Action<IContainer>[]
+                            {
+                                c => ComposeTreatmentField(c, "الإجراءات التنفيذية", item.Actions, "#F8FAF9", PdfTheme.Text),
+                                c => ComposeTreatmentField(c, "مؤشرات النجاح", item.SuccessIndicators, "#FFFBEB", "#8A6415")
+                            }, spacing: 6));
+                        });
+                    });
+            }
+        });
+    }
+
+    private static void ComposeTreatmentField(
+        IContainer container,
+        string label,
+        string value,
+        string background,
+        string accent)
+    {
+        container.Background(background).BorderRight(3).BorderColor(accent).PaddingVertical(5).PaddingHorizontal(7).Column(col =>
+        {
+            col.Item().AlignRight().Text(label).Bold().FontSize(8).FontColor(accent);
+            col.Item().PaddingTop(2).AlignRight().Text(string.IsNullOrWhiteSpace(value) ? "—" : value)
+                .FontSize(8.5f).FontColor(PdfTheme.Text).LineHeight(1.15f);
+        });
+    }
+
+    private static void ComposeNotes(IContainer container, string notes)
+    {
+        container.Background("#FFFBEB").Border(PdfTheme.BorderWidth).BorderColor("#E5C765").Padding(7).Column(col =>
+        {
+            col.Item().Text("ملاحظات المقيم").Bold().FontSize(10).FontColor("#8A6415");
+            col.Item().PaddingTop(3).Text(notes).FontSize(8.5f).FontColor(PdfTheme.Text);
+        });
+    }
+
+    private static void ComposeSignatures(
+        IContainer container,
+        VisitV2DetailDto visit,
+        byte[]? instructorSignature,
+        byte[]? evaluatorSignature,
+        byte[]? managerSignature,
+        bool showManagerSignature,
+        string brand)
+    {
+        container.Border(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border).Background(PdfTheme.White).Column(card =>
+        {
+            card.Item().Element(c => PdfTheme.SectionHeading(c, "الاعتماد والتوقيعات", brand));
+            card.Item().PaddingVertical(5).PaddingHorizontal(9).Row(row =>
+            {
+                // PdfTheme.RtlRow maps this list from visual left to right in the generated page.
+                var signatures = new List<Action<IContainer>>();
+                if (visit.ApprovedAt.HasValue && showManagerSignature)
+                    signatures.Add(c => ComposeSignature(c, "توقيع المعتمد", "مدير المدرسة / المعتمد", managerSignature));
+                signatures.Add(c => ComposeSignature(c, "توقيع المقيم", visit.EvaluatorName, evaluatorSignature));
+                signatures.Add(c => ComposeSignature(c, "توقيع المعلم", visit.InstructorName, instructorSignature));
+                PdfTheme.RtlRow(row, signatures, signatures.Count, 14);
+            });
+        });
+    }
+
+    private static void ComposeSignature(IContainer container, string label, string name, byte[]? signature)
+    {
+        container.AlignCenter().Column(col =>
+        {
+            col.Item().AlignCenter().Text(label).Bold().FontSize(9).FontColor(PdfTheme.Text);
+            RenderSignature(col.Item(), signature);
+            col.Item().PaddingTop(3).AlignCenter().Text(name).FontSize(8).FontColor(PdfTheme.Muted);
+        });
+    }
+
+    private static void ComposeFooter(
+        IContainer container,
+        VisitV2DetailDto visit,
+        string? footerText,
+        DateTimeOffset generatedAt)
+    {
+        container.PaddingTop(8).BorderTop(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border).PaddingTop(5).Row(row =>
+        {
+            row.ConstantItem(92).AlignLeft().Text(text =>
+            {
+                text.DefaultTextStyle(style => style.FontFamily(PdfTheme.Font).FontSize(8).FontColor(PdfTheme.Muted));
+                text.Span("صفحة ");
+                text.CurrentPageNumber();
+                text.Span(" من ");
+                text.TotalPages();
+            });
+            row.RelativeItem().AlignCenter().Text($"أُصدر في {generatedAt:yyyy-MM-dd HH:mm} UTC")
+                .FontSize(7.5f).FontColor(PdfTheme.Muted);
+            row.RelativeItem().AlignRight().Text(string.IsNullOrWhiteSpace(footerText)
+                    ? $"{visit.SchoolName} • زيارة #{visit.Id}"
+                    : footerText)
+                .FontSize(8).FontColor(PdfTheme.Muted);
+        });
+    }
+
+    private static void RenderLogo(IContainer container, byte[]? logo, string schoolName, string brand)
+    {
+        if (logo is { Length: > 0 })
+        {
+            try
+            {
+                container.Image(logo).FitArea();
+                return;
+            }
+            catch
+            {
+                // A broken optional branding asset must not prevent an official report from being generated.
+            }
+        }
+
+        var initials = string.Concat(schoolName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(x => x[0]));
+        container.Text(string.IsNullOrWhiteSpace(initials) ? "ف" : initials).Bold().FontSize(20).FontColor(brand);
+    }
+
+    private static string ScoreColor(int percentage) => percentage switch
+    {
+        >= 85 => PdfTheme.Brand,
+        >= 70 => "#1D6F91",
+        >= 50 => "#A96A16",
+        _ => "#B42318"
+    };
+
     private static void RenderSignature(IContainer container, byte[]? bytes)
     {
         if (bytes is { Length: > 0 })
-            container.Height(38).PaddingTop(3).Image(bytes).FitArea();
+            container.Height(20).PaddingTop(2).Image(bytes).FitArea();
         else
-            container.Height(38).PaddingTop(18).BorderBottom(0.5f).BorderColor(PdfTheme.Muted);
+            container.Height(20).PaddingTop(9).BorderBottom(0.5f).BorderColor(PdfTheme.Muted);
     }
 
     private static string NormalizeColor(string? value) =>

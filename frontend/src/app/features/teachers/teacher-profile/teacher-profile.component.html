@@ -237,9 +237,9 @@
               [attr.tabindex]="canViewVisit() ? 0 : null"
               [attr.role]="canViewVisit() ? 'link' : null"
               [attr.aria-label]="canViewVisit() ? ('TEACHERS.OPEN_VISIT' | translate) : null"
-              (click)="openVisit(v.id)"
-              (keydown.enter)="openVisit(v.id)"
-              (keydown.space)="openVisit(v.id); $event.preventDefault()">
+              (click)="openVisit(v)"
+              (keydown.enter)="openVisit(v)"
+              (keydown.space)="openVisit(v); $event.preventDefault()">
             <td>{{ v.visitDate | date:'mediumDate' }}</td>
             <td>{{ v.lesson }}</td>
             <td>{{ v.gradeClass || '—' }}</td>

@@ -88,7 +88,7 @@ Score scale returned by `GET /api/v1/rubric/score-scale`:
 
 Phase 4 (Visits & Scoring) MUST use this endpoint as the source of truth for labels and thresholds.
 
-### Classroom Visits V2 — feature-gated
+### Classroom Visits V2 — global default
 
 All JSON endpoints use `ApiResponse<T>`; CSV/PDF endpoints return binary files. Every operation is backend school-scoped. Moderator lists/details are creator-only, and Instructor access is own + Approved only. V2 uses the frozen rubric version 2 (5 domains, 25 standards, 66 indicators) and persists rule-set-2 analyses and treatment snapshots.
 
@@ -102,15 +102,18 @@ All JSON endpoints use `ApiResponse<T>`; CSV/PDF endpoints return binary files. 
 | GET | `/api/v2/visits` | Scoped, searched, filtered, paged archive plus evaluator filter values. |
 | GET | `/api/v2/visits/{id}` | Authorized detail/report; Instructor reads record `ReportViewLog`. |
 | DELETE | `/api/v2/visits/{id}` | Individual soft delete with child soft-delete behavior. |
-| POST | `/api/v2/visits/{id}/approve` | Reuse manager approval workflow. |
-| POST | `/api/v2/visits/{id}/reject` | Reuse reason-required rejection workflow. |
-| POST | `/api/v2/visits/{id}/reopen` | Reuse reason-required reopen workflow. |
+| POST | `/api/v2/visits/{id}/approve` | Transactional V2 manager approval with audit fields. |
+| POST | `/api/v2/visits/{id}/reject` | Transactional V2 reason-required rejection with audit fields. |
+| POST | `/api/v2/visits/{id}/reopen` | Transactional V2 reason-required reopen with audit fields. |
 | PUT | `/api/v2/visits/{id}/treatment-recommendations` | Persist visit-owned treatment-plan edits. |
 | GET | `/api/v2/visits/dashboard` | SQL-side V2 KPIs, domain averages, and top/bottom standards. |
 | GET | `/api/v2/visits/export/csv` | Exact 22-column UTF-8 BOM CSV. |
+| GET | `/api/v2/visits/export/zip` | Scoped bulk ZIP of V2 PDFs; batch projections/assets avoid N+1 and do not call V1. |
 | GET | `/api/v2/visits/{id}/report/pdf` | Arabic QuestPDF report with school branding and persisted signature fallbacks. |
 
 JSON backup/import and whole-archive deletion are intentionally absent.
+
+After the 2026-09-22 cutover, `/api/v1/visits` is a historical reader restricted to `ExperienceVersion.Legacy`. Every V1 create/update/submit/approve/reject/reopen/delete request returns `410 Gone` with a safe `ApiResponse` and a warning log. The V1 mutation descriptions below are retained only as historical design documentation and are no longer executable.
 
 ### Phase 4 — Visits & Scoring ✅ DONE
 Visits are **school-scoped** (see **D-24**): school-scoped callers can only read/mutate visits

@@ -166,7 +166,7 @@
   </ng-container>
 
   <ng-template pTemplate="footer">
-    <button *ngIf="canReopenVisit() && selected() && selected()!.status !== 5"
+    <button *ngIf="canReopenVisit() && selected() && selected()!.experienceVersion === 2 && selected()!.status !== 5"
             pButton type="button" icon="pi pi-history"
             class="p-button-warning"
             [label]="'COMPLAINTS.REOPEN_VISIT' | translate"

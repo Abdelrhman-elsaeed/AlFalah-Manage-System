@@ -239,7 +239,7 @@ public class VisibilityGateTests
         context: null!,
         currentUser,
         scopeGuard: null!,
-        visitService: null!,
+        visitWorkflow: null!,
         httpContextAccessor: null!,
         logger: NullLogger<ComplaintService>.Instance);
 

@@ -2,7 +2,7 @@
 
 **Branch:** `main`  
 **Date:** 2026-09-19  
-**Status:** IMPLEMENTED — Phases 2–7 complete; Phase 8 rollout tooling ready with client acceptance pending; Phase 9 requires separate approval  
+**Status:** CUTOVER IMPLEMENTED — V2 is globally configured as default and V1 is read-only; operational acceptance is blocked by 10 non-final development V1 records and the pending browser/restore rehearsal; Phase 9 requires separate approval
 **Prototype source:** `C:\Users\abdelrhman\Desktop\index.html`  
 **Prototype SHA-256:** `86302A58348798B5BAD6A250708B26677BC6E11ACE3CDEC5C272B2AC2FC47827` (VERIFIED MATCH ✅)  
 **Method:** GitHub Spec Kit `plan.md` structure، مع دمج Research/Data Model/Contracts داخل ملف واحد بطلب صاحب المشروع  
@@ -513,7 +513,7 @@ Existing `TotalScore`, `MaximumScore`, domain rows and JSON snapshots remain use
 
 ### Phase 7 — Dependent-module integration (COMPLETED ✅)
 
-1. teacher profile visit history and progress charts read both legacy and V2 with explicit scale conversion.
+1. teacher history carries `experienceVersion`; progress charts select one version (V2 when present, otherwise V1) and never combine scales.
 2. role dashboards use V2 percentage safely and do not mix 0–4 with 0–100.
 3. instructor reports، view logs، complaints، approval banners updated if retained.
 4. improvement-plan/follow-up navigation hidden or adapted exactly as approved.
@@ -521,15 +521,14 @@ Existing `TotalScore`, `MaximumScore`, domain rows and JSON snapshots remain use
 
 **Exit gate:** full dependency map green؛ no broken deep links or unauthorized data exposure.
 
-### Phase 8 — Pilot, cutover and rollback rehearsal (IMPLEMENTED; CLIENT ACCEPTANCE PENDING ⏸)
+### Phase 8 — Global cutover (CODE COMPLETE; OPERATIONAL REHEARSAL BLOCKED ⏸)
 
-1. deploy feature flag OFF.
-2. enable for one test school/account set.
-3. compare frontend live totals to backend persisted results for agreed golden visits.
-4. verify exports/PDF/signatures/permissions with all affected roles.
-5. rehearse flag rollback؛ legacy route remains operational.
-6. enable by school تدريجيًا، then default ON after acceptance.
-7. convert old route to explicit legacy read-only only after all dependencies point to V2.
+1. Production and Development flags are globally ON; `/visits` owns V2 and `/visits-v2` remains an alias.
+2. V1 is exposed only at `/visits-legacy`; all seven V1 visit mutations return `410 Gone`.
+3. Teacher history, instructor reports, complaint workflow, dashboards, CSV/PDF/ZIP and deep links dispatch by explicit experience version.
+4. The 2026-09-22 development readiness query found 2 Draft + 8 PendingApproval V1 records. No automatic transition was performed.
+5. Production deployment remains blocked until each pending V1 record has a documented disposition, a production-like restore is proven, and the role/browser matrix is completed with screenshots.
+6. Rollback requires the previous approved API/frontend pair; disabling the V2 flag alone does not restore legacy writes.
 
 **Exit gate:** client acceptance + backup confirmation + monitoring window with no unresolved severity-1/2 defect.
 
@@ -547,7 +546,7 @@ Existing `TotalScore`, `MaximumScore`, domain rows and JSON snapshots remain use
 |---|---|---|
 | Existing Visit rows | KEEP, read-only by version | archive per retention policy |
 | Existing VisitScore/Analysis/DomainAverage | KEEP unchanged | never reinterpret; archive only |
-| Current `/api/v1/visits` | KEEP during pilot | disable writes then deprecate |
+| Current `/api/v1/visits` | KEEP historical GETs; writes return 410 | deprecate only after retention approval |
 | Current Angular visit pages | KEEP behind legacy route/flag | delete after dependency proof |
 | ImprovementPlan/PlanFollowUp data | KEEP even if UI hidden | removal needs explicit approval |
 | Complaints/ViewLogs/AuditLogs | KEEP | preserve for audit unless retention policy says otherwise |
