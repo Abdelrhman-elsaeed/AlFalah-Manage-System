@@ -29,7 +29,7 @@
       <p class="description">{{ 'LANDING.DESCRIPTION' | translate }}</p>
 
       <div class="hero-actions">
-        <a class="primary" routerLink="/auth/school-login"
+        <a class="primary" href="/auth/school-login" (click)="requestLogin($event)"
           >{{ 'LANDING.ENTER' | translate }}<i class="pi pi-arrow-left" aria-hidden="true"></i
         ></a>
         <a class="secondary" href="#achievements" (click)="explore($event)"

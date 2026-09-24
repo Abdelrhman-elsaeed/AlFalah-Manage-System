@@ -35,11 +35,17 @@
     <!-- Phase 6 / Stage 1: Amiri (Arabic-capable) font shipped as an embedded content asset
          so the generated PDF does not depend on system fonts for correct Arabic
          RTL / shaping. -->
+    <EmbeddedResource Include="Assets\Fonts\Amiri-Regular.ttf"
+                      LogicalName="AlFalah.Infrastructure.Assets.Fonts.Amiri-Regular.ttf" />
+    <EmbeddedResource Include="Assets\Fonts\Amiri-Bold.ttf"
+                      LogicalName="AlFalah.Infrastructure.Assets.Fonts.Amiri-Bold.ttf" />
     <None Update="Assets\Fonts\Amiri-Regular.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </None>
     <None Update="Assets\Fonts\Amiri-Bold.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </None>
     <!-- Reuse the official application logo in server-generated PDF headers. -->
     <None Include="..\..\frontend\src\assets\Logo.png"

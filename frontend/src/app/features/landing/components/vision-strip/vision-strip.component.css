@@ -2,7 +2,7 @@
   display: block;
 }
 .vision {
-  background: var(--bg-surface);
+  background: transparent;
 }
 .vision-inner {
   width: var(--landing-container);
@@ -58,11 +58,28 @@ h2 {
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: var(--gold-bg);
+  border: 1px solid color-mix(in srgb, var(--pillar-color, var(--gold-700)) 22%, white);
+  background: color-mix(in srgb, var(--pillar-color, var(--gold-700)) 11%, white);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--pillar-color, var(--gold-700)) 14%, transparent);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 .pillar i {
-  color: var(--gold-700);
+  color: var(--pillar-color, var(--gold-700));
   font-size: 1.6rem;
+}
+.pillar:nth-of-type(1) { --pillar-color: #b85b73; }
+.pillar:nth-of-type(2) { --pillar-color: #286d9c; }
+.pillar:nth-of-type(3) { --pillar-color: #b17a0c; }
+.pillar:hover .pillar-icon {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--pillar-color) 20%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pillar:nth-of-type(1):hover i { animation: pillar-heart 0.8s ease-in-out; }
+  .pillar:nth-of-type(2):hover i { animation: pillar-book 0.75s ease-in-out; }
+  .pillar:nth-of-type(3):hover i { animation: pillar-flag 0.8s ease-in-out; transform-origin: bottom right; }
 }
 h3 {
   color: var(--brand-950);
@@ -97,4 +114,19 @@ h3 {
   .pillar {
     transition: none;
   }
+}
+@keyframes pillar-heart {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  45% { transform: scale(0.96); }
+  65% { transform: scale(1.12); }
+}
+@keyframes pillar-book {
+  0%, 100% { transform: perspective(80px) rotateY(0); }
+  45% { transform: perspective(80px) rotateY(-22deg) translateX(-2px); }
+}
+@keyframes pillar-flag {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-8deg); }
+  65% { transform: rotate(6deg); }
 }

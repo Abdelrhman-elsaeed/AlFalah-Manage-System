@@ -8,6 +8,7 @@
   ViewChild,
   computed,
   inject,
+  input,
   signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -25,7 +26,8 @@ import { AchievementImageDirective } from './achievement-image.directive';
   styleUrls: ['./achievements-showcase.component.css']
 })
 export class AchievementsShowcaseComponent implements AfterViewInit, OnDestroy {
-  readonly activeStoryIndex = signal(0);
+  readonly view = input<'all' | 'achievements' | 'news'>('all');
+  readonly activeStoryIndex = signal(1);
   readonly selectedStory = signal<AchievementStory | null>(null);
   readonly currentModalImageIndex = signal(0);
   readonly showAllHonorsModal = signal(false);
@@ -45,6 +47,12 @@ export class AchievementsShowcaseComponent implements AfterViewInit, OnDestroy {
     const index = this.activeStoryIndex();
     return index === 0 ? 'translateX(0)' : `translateX(calc(${-100 * index}% - ${18 * index}px))`;
   });
+  isPreviousStory(index: number): boolean {
+    return index === (this.activeStoryIndex() - 1 + this.stories.length) % this.stories.length;
+  }
+  isNextStory(index: number): boolean {
+    return index === (this.activeStoryIndex() + 1) % this.stories.length;
+  }
   @ViewChild('detailsDialog', { static: true }) detailsDialog!: ElementRef<HTMLDialogElement>;
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly changeDetector = inject(ChangeDetectorRef);
@@ -70,7 +78,7 @@ export class AchievementsShowcaseComponent implements AfterViewInit, OnDestroy {
     this.observer = new IntersectionObserver(
       (entries) => {
         this.visible = entries.some((entry) => entry.isIntersecting);
-        if (this.visible && !this.hasAnimated) {
+        if (this.visible && !this.hasAnimated && this.view() !== 'news') {
           this.hasAnimated = true;
           if (!this.reducedMotion()) this.animateCounters();
         }
@@ -107,6 +115,7 @@ export class AchievementsShowcaseComponent implements AfterViewInit, OnDestroy {
   }
   private syncPlayback(): void {
     const paused =
+      this.view() === 'achievements' ||
       !this.visible ||
       this.hovered ||
       this.focused ||

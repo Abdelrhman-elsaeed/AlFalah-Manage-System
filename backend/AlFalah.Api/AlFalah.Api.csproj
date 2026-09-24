@@ -24,4 +24,18 @@
     <ProjectReference Include="..\AlFalah.Shared\AlFalah.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Project-reference content is not reliably propagated into the web
+         output. Keep valid Arabic fonts beside the API as a deployment
+         fallback; PdfTheme also embeds the same files in Infrastructure. -->
+    <None Include="..\AlFalah.Infrastructure\Assets\Fonts\Amiri-Regular.ttf"
+          Link="Assets\Fonts\Amiri-Regular.ttf"
+          CopyToOutputDirectory="Always"
+          CopyToPublishDirectory="Always" />
+    <None Include="..\AlFalah.Infrastructure\Assets\Fonts\Amiri-Bold.ttf"
+          Link="Assets\Fonts\Amiri-Bold.ttf"
+          CopyToOutputDirectory="Always"
+          CopyToPublishDirectory="Always" />
+  </ItemGroup>
+
 </Project>

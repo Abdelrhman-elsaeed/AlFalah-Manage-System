@@ -1,7 +1,7 @@
 <header class="landing-header" [class.scrolled]="isScrolled()">
   <div class="header-inner">
     <a class="brand" href="#home" (click)="navigate($event, 'home')">
-      <img src="assets/Logo.png" width="52" height="52" [alt]="'LANDING.LOGO_ALT' | translate" />
+      <img src="assets/Logo.png" width="52" height="52" decoding="async" [alt]="'LANDING.LOGO_ALT' | translate" />
       <span
         ><strong>{{ 'LANDING.SCHOOL' | translate }}</strong
         ><small>{{ 'LANDING.MAKKAH' | translate }}</small></span
@@ -33,7 +33,7 @@
           >
         }
       </div>
-      <a class="login" routerLink="/auth/school-login" (click)="closeMenu()"
+      <a class="login" href="/auth/school-login" (click)="requestLogin($event)"
         >{{ 'LANDING.LOGIN' | translate }}<i class="pi pi-sign-in" aria-hidden="true"></i
       ></a>
     </nav>

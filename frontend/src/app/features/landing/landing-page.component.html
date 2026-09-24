@@ -1,10 +1,27 @@
 <div class="landing-page" dir="rtl" lang="ar-SA">
+  @if (preloaderState() !== 'hidden') {
+    <div
+      class="page-preloader"
+      [class.is-leaving]="preloaderState() === 'leaving'"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="'LANDING.SCHOOL' | translate"
+    >
+      <div class="preloader-mark" aria-hidden="true">
+        <span class="preloader-ring"></span>
+        <img src="assets/Logo.png" width="108" height="108" alt="" fetchpriority="high" />
+      </div>
+      <span class="preloader-line" aria-hidden="true"></span>
+    </div>
+  }
   <a class="skip-link" href="#main-content">{{ 'LANDING.SKIP' | translate }}</a>
-  <app-landing-header />
+  <app-landing-header (loginRequested)="openLogin()" />
   <main id="main-content" tabindex="-1">
-    <app-landing-hero id="home" />
+    <app-landing-hero id="home" (loginRequested)="openLogin()" />
     <app-vision-strip id="vision" data-reveal />
+    <app-organization-section id="organization" />
     <app-achievements-section id="achievements" data-reveal />
+    <app-news-section id="news" data-reveal />
   </main>
-  <app-landing-footer id="contact" />
+  <app-landing-footer id="contact" data-reveal />
 </div>

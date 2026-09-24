@@ -1,5 +1,4 @@
-import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { AfterViewInit, Component, ElementRef, EventEmitter, NgZone, OnDestroy, Output, ViewChild, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 interface NetworkInformationLike {
@@ -17,11 +16,12 @@ const HERO_VIDEO_WEBM = 'assets/media/hero.webm';
 @Component({
   selector: 'app-landing-hero',
   standalone: true,
-  imports: [RouterLink, TranslateModule],
+  imports: [TranslateModule],
   templateUrl: './landing-hero.component.html',
   styleUrls: ['./landing-hero.component.css']
 })
 export class LandingHeroComponent implements AfterViewInit, OnDestroy {
+  @Output() readonly loginRequested = new EventEmitter<void>();
   @ViewChild('heroVideo') private heroVideo?: ElementRef<HTMLVideoElement>;
 
   readonly videoReady = signal(false);
@@ -77,6 +77,11 @@ export class LandingHeroComponent implements AfterViewInit, OnDestroy {
       behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
     });
     history.replaceState(history.state, '', '#achievements');
+  }
+
+  requestLogin(event: MouseEvent): void {
+    event.preventDefault();
+    this.loginRequested.emit();
   }
 
   private readonly handleWindowLoad = (): void => {

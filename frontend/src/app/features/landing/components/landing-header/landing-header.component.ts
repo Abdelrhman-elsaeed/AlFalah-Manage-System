@@ -3,27 +3,30 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  EventEmitter,
   HostListener,
+  Output,
   ViewChild,
   inject,
   signal
 } from '@angular/core';
-import { NavigationStart, Router, RouterLink } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-landing-header',
   standalone: true,
-  imports: [RouterLink, TranslateModule],
+  imports: [TranslateModule],
   templateUrl: './landing-header.component.html',
   styleUrls: ['./landing-header.component.css']
 })
 export class LandingHeaderComponent implements AfterViewInit {
+  @Output() readonly loginRequested = new EventEmitter<void>();
   readonly menuOpen = signal(false);
   readonly isScrolled = signal(false);
   readonly activeSection = signal('home');
-  readonly links = ['home', 'vision', 'achievements', 'contact'];
+  readonly links = ['home', 'vision', 'organization', 'achievements', 'news', 'contact'];
   @ViewChild('menuToggle') menuToggle?: ElementRef<HTMLButtonElement>;
   private readonly destroyRef = inject(DestroyRef);
   private readonly desktop = window.matchMedia('(min-width: 769px)');
@@ -67,6 +70,11 @@ export class LandingHeaderComponent implements AfterViewInit {
   }
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+  requestLogin(event: MouseEvent): void {
+    event.preventDefault();
+    this.closeMenu();
+    this.loginRequested.emit();
   }
   navigate(event: MouseEvent, id: string): void {
     event.preventDefault();

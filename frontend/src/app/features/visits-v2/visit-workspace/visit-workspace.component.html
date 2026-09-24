@@ -24,7 +24,10 @@
       <button *ngIf="detail()?.analysis" type="button" [class.active]="tab() === 'report'" (click)="selectTab('report')"><i class="pi pi-file"></i><span>{{ 'VISITS_V2.REPORT' | translate }}</span></button>
     </nav>
 
-    <div class="loading" *ngIf="busy()"><i class="pi pi-spin pi-spinner"></i><span>{{ 'COMMON.LOADING' | translate }}</span></div>
+    <div class="loading" *ngIf="activeLoading()" role="status" aria-live="polite">
+      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+      <span>{{ 'COMMON.LOADING' | translate }}</span>
+    </div>
 
     <main *ngIf="tab() === 'card' && canManage()" class="card-view">
       <section class="state-panel error-state" *ngIf="cardError()"><i class="pi pi-exclamation-circle"></i><h2>{{ 'VISITS_V2.LOAD_ERROR_TITLE' | translate }}</h2><p>{{ 'VISITS_V2.LOAD_ERROR_BODY' | translate }}</p><button type="button" (click)="loadCard()">{{ 'COMMON.RETRY' | translate }}</button></section>
@@ -64,7 +67,19 @@
                 <article class="standard" *ngFor="let standard of domain.standards; let standardIndex = index">
                   <header class="standard-heading"><div class="standard-copy"><span class="standard-code">{{ standard.code }}</span><div><small>{{ 'VISITS_V2.STANDARD_NUMBER' | translate:{ number: standardIndex + 1 } }}</small><h3>{{ standard.textAr }}</h3></div></div><div class="quick-scores" role="group" [attr.aria-label]="standard.code"><button type="button" *ngFor="let score of scoreValues" [class.selected]="standard.score === score" [attr.data-score]="score" [attr.aria-pressed]="standard.score === score" [attr.title]="scoreKey(score) | translate" (click)="quickScore(standard, score)" [disabled]="isVisitLocked()"><strong>{{ score }}</strong><span>{{ scoreKey(score) | translate }}</span></button></div></header>
                   <div class="indicator-section"><div class="indicator-title"><i class="pi pi-check-square"></i><div><strong>{{ 'VISITS_V2.OBSERVED_INDICATORS' | translate }}</strong><span>{{ 'VISITS_V2.OBSERVED_INDICATORS_HINT' | translate }}</span></div></div><div class="indicators"><label *ngFor="let indicator of standard.indicators" [class.observed]="indicator.isObserved"><input type="checkbox" [(ngModel)]="indicator.isObserved" (ngModelChange)="indicatorChanged(standard)" [disabled]="isVisitLocked()"><span class="check-mark"><i class="pi pi-check"></i></span><span>{{ indicator.textAr }}</span></label></div></div>
-                  <label class="evidence-field"><span><i class="pi pi-comment"></i>{{ 'VISITS_V2.EVIDENCE' | translate }}</span><textarea rows="2" [(ngModel)]="standard.evidenceNote" (ngModelChange)="markDirty()" [disabled]="isVisitLocked()"></textarea></label>
+                  <div class="evidence-disclosure" [class.expanded]="isEvidenceExpanded(standard)" [class.has-value]="hasEvidence(standard)">
+                    <button type="button" class="evidence-toggle" (click)="toggleEvidence(standard)" [attr.aria-expanded]="isEvidenceExpanded(standard)" [attr.aria-controls]="'evidence-note-' + standard.id">
+                      <span class="evidence-toggle-icon"><i class="pi pi-comment"></i></span>
+                      <span class="evidence-toggle-copy">
+                        <strong>{{ (isEvidenceExpanded(standard) ? 'VISITS_V2.EVIDENCE_HIDE' : (hasEvidence(standard) ? 'VISITS_V2.EVIDENCE_EDIT' : 'VISITS_V2.EVIDENCE_ADD')) | translate }}</strong>
+                        <small *ngIf="hasEvidence(standard) && !isEvidenceExpanded(standard)">{{ 'VISITS_V2.EVIDENCE_ADDED' | translate }}</small>
+                      </span>
+                      <i class="pi evidence-chevron" [class.pi-chevron-up]="isEvidenceExpanded(standard)" [class.pi-chevron-down]="!isEvidenceExpanded(standard)"></i>
+                    </button>
+                    <div class="evidence-panel" *ngIf="isEvidenceExpanded(standard)" [id]="'evidence-note-' + standard.id">
+                      <label class="evidence-field" [for]="'evidence-input-' + standard.id"><span>{{ 'VISITS_V2.EVIDENCE' | translate }}</span><textarea [id]="'evidence-input-' + standard.id" rows="2" [(ngModel)]="standard.evidenceNote" (ngModelChange)="markDirty()" [placeholder]="'VISITS_V2.EVIDENCE_PLACEHOLDER' | translate" [disabled]="isVisitLocked()"></textarea></label>
+                    </div>
+                  </div>
                 </article>
               </div>
             </section>
@@ -79,7 +94,7 @@
       <div class="filters"><input class="search-filter" [(ngModel)]="query.search" [placeholder]="'VISITS_V2.SEARCH' | translate" (keyup.enter)="loadArchive()"><select *ngIf="canManage()" [(ngModel)]="query.evaluatorUserId"><option value="">{{ 'VISITS_V2.ALL_EVALUATORS' | translate }}</option><option *ngFor="let evaluator of evaluators()" [value]="evaluator.userId">{{ evaluator.displayName }}</option></select><select [(ngModel)]="query.status"><option [ngValue]="undefined">{{ 'VISITS_V2.ALL_STATUSES' | translate }}</option><option *ngFor="let status of archiveStatuses" [ngValue]="status.value">{{ status.key | translate }}</option></select><select [(ngModel)]="query.visitCategory"><option [ngValue]="undefined">{{ 'VISITS_V2.ALL_CATEGORIES' | translate }}</option><option *ngFor="let item of categories" [ngValue]="item.value">{{ item.labelKey | translate }}</option></select><label class="date-filter"><span>{{ 'VISITS_V2.FROM_DATE' | translate }}</span><input type="date" [(ngModel)]="query.fromDate"></label><label class="date-filter"><span>{{ 'VISITS_V2.TO_DATE' | translate }}</span><input type="date" [(ngModel)]="query.toDate"></label><div class="filter-actions"><button type="button" class="primary" (click)="loadArchive()"><i class="pi pi-filter"></i>{{ 'VISITS_V2.FILTER' | translate }}</button><button *ngIf="canManage()" type="button" (click)="downloadCsv()"><i class="pi pi-download"></i>CSV</button><button *ngIf="canManage()" type="button" (click)="downloadZip()"><i class="pi pi-file-export"></i>ZIP</button></div></div>
       <section class="state-panel error-state" *ngIf="archiveError()"><i class="pi pi-exclamation-circle"></i><h2>{{ 'VISITS_V2.LOAD_ERROR_TITLE' | translate }}</h2><button type="button" (click)="loadArchive()">{{ 'COMMON.RETRY' | translate }}</button></section>
       <div class="table-wrap" *ngIf="!archiveError() && archive().length"><table><thead><tr><th>{{ 'VISITS_V2.DATE' | translate }}</th><th>{{ 'VISITS_V2.TEACHER' | translate }}</th><th>{{ 'VISITS_V2.SUBJECT' | translate }}</th><th>{{ 'VISITS_V2.EVALUATOR' | translate }}</th><th>{{ 'VISITS_V2.STATUS' | translate }}</th><th>{{ 'VISITS_V2.RESULT' | translate }}</th><th>{{ 'COMMON.ACTIONS' | translate }}</th></tr></thead><tbody><tr *ngFor="let item of archive()"><td>{{ item.visitDate | date:'yyyy-MM-dd' }}</td><td><strong>{{ item.instructorName }}</strong></td><td>{{ item.subject }} <small>{{ item.gradeClass }}</small></td><td>{{ item.evaluatorName }}</td><td><span class="badge status-{{ item.status }}">{{ item.statusLabelAr }}</span></td><td><strong>{{ item.overallPercentage == null ? '—' : item.overallPercentage + '%' }}</strong></td><td><div class="row-actions"><button class="icon-button export" type="button" (click)="downloadPdf(item.id)" [disabled]="pdfDownloadingId() !== null" [attr.aria-label]="'VISITS_V2.EXPORT_PDF' | translate" [attr.title]="'VISITS_V2.EXPORT_PDF' | translate"><i class="pi" [class.pi-spin]="pdfDownloadingId() === item.id" [class.pi-spinner]="pdfDownloadingId() === item.id" [class.pi-file-pdf]="pdfDownloadingId() !== item.id"></i></button><button class="icon-button edit" type="button" (click)="editVisit(item)" [disabled]="!canEditVisitStatus(item.status)" [attr.aria-label]="'VISITS_V2.EDIT_VISIT' | translate" [attr.title]="'VISITS_V2.EDIT_VISIT' | translate"><i class="pi pi-pencil"></i></button><button *ngIf="canManage()" class="icon-button danger" type="button" (click)="deleteVisit(item)" [attr.aria-label]="'COMMON.DELETE' | translate" [attr.title]="'COMMON.DELETE' | translate"><i class="pi pi-trash"></i></button></div></td></tr></tbody></table></div>
-      <section class="state-panel empty-state" *ngIf="!busy() && !archiveError() && !archive().length"><i class="pi pi-inbox"></i><h2>{{ 'VISITS_V2.EMPTY_ARCHIVE_TITLE' | translate }}</h2><p>{{ 'VISITS_V2.EMPTY_ARCHIVE_BODY' | translate }}</p></section>
+      <section class="state-panel empty-state" *ngIf="!archiveLoading() && archiveLoaded() && !archiveError() && !archive().length"><i class="pi pi-inbox"></i><h2>{{ 'VISITS_V2.EMPTY_ARCHIVE_TITLE' | translate }}</h2><p>{{ 'VISITS_V2.EMPTY_ARCHIVE_BODY' | translate }}</p></section>
       <div class="pager" *ngIf="archiveTotal()"><button type="button" (click)="changePage(-1)" [disabled]="query.page === 1"><i class="pi pi-angle-right"></i></button><span>{{ query.page }} · {{ archiveTotal() }}</span><button type="button" (click)="changePage(1)" [disabled]="archive().length < (query.pageSize || 20)"><i class="pi pi-angle-left"></i></button></div>
     </section>
 
@@ -113,5 +128,17 @@
       <section class="standards-report panel"><header class="content-heading"><div><span>{{ 'VISITS_V2.RUBRIC_DETAILS' | translate }}</span><h2>{{ 'VISITS_V2.DETAILED_RESULTS' | translate }}</h2></div></header><div class="report-domain" *ngFor="let domain of visit.domains"><header><span>{{ domain.code }}</span><h3>{{ domain.nameAr }}</h3></header><article *ngFor="let standard of domain.standards" class="report-standard"><div class="report-standard-heading"><span>{{ standard.code }}</span><p>{{ standard.textAr }}</p><strong>{{ standard.score }}<small>/4</small></strong></div><div class="report-indicators"><span *ngFor="let indicator of standard.indicators" [class.observed]="indicator.isObserved"><i class="pi" [class.pi-check-circle]="indicator.isObserved" [class.pi-circle]="!indicator.isObserved"></i>{{ indicator.textAr }}</span></div><div class="report-evidence"><b>{{ 'VISITS_V2.EVIDENCE_LABEL' | translate }}</b><span>{{ standard.evidenceNote || ('VISITS_V2.NO_EVIDENCE' | translate) }}</span></div></article></div></section>
       <footer class="signatures panel"><header><i class="pi pi-verified"></i><h2>{{ 'VISITS_V2.SIGNATURES' | translate }}</h2></header><div><article><span>{{ 'VISITS_V2.TEACHER_SIGNATURE' | translate }}</span><strong>{{ visit.instructorName }}</strong></article><article><span>{{ 'VISITS_V2.EVALUATOR_SIGNATURE' | translate }}</span><strong>{{ visit.evaluatorName }}</strong></article></div></footer>
     </main>
+
+    <button
+      type="button"
+      class="page-jump"
+      (click)="togglePageEdge()"
+      [attr.aria-label]="(atPageTop() ? 'VISITS_V2.GO_TO_BOTTOM' : 'VISITS_V2.GO_TO_TOP') | translate"
+      [attr.title]="(atPageTop() ? 'VISITS_V2.GO_TO_BOTTOM' : 'VISITS_V2.GO_TO_TOP') | translate">
+      <span class="page-jump__icon" aria-hidden="true">
+        <i class="pi" [class.pi-arrow-down]="atPageTop()" [class.pi-arrow-up]="!atPageTop()"></i>
+      </span>
+      <span class="page-jump__label">{{ (atPageTop() ? 'VISITS_V2.GO_TO_BOTTOM' : 'VISITS_V2.GO_TO_TOP') | translate }}</span>
+    </button>
   </ng-container>
 </section>

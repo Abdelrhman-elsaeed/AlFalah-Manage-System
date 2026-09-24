@@ -14,7 +14,7 @@
 }
 
 * { box-sizing: border-box; }
-.workspace { max-width: 1500px; margin: 0 auto; padding: 1.25rem; direction: rtl; }
+.workspace { position: relative; max-width: 1500px; min-height: 100%; margin: 0 auto; padding: 1.25rem; direction: rtl; }
 button, input, select, textarea { font: inherit; }
 button { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 42px; padding: .65rem .95rem; cursor: pointer; color: var(--visit-ink); background: #fff; border: 1px solid #cddbd5; border-radius: 11px; transition: border-color .18s, box-shadow .18s, transform .18s, background .18s; }
 button:hover:not(:disabled) { border-color: #9dbbb0; box-shadow: 0 5px 14px rgba(23, 61, 53, .09); transform: translateY(-1px); }
@@ -126,9 +126,23 @@ button:disabled { opacity: .48; cursor: not-allowed; transform: none; }
 .indicators input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .check-mark { display: grid; width: 22px; height: 22px; place-items: center; color: transparent; background: #fff; border: 1px solid #b9cbc4; border-radius: 6px; }
 .observed .check-mark { color: #fff; background: var(--visit-green-800); border-color: var(--visit-green-800); }
-.evidence-field { display: flex; flex-direction: column; gap: .4rem; padding: 0 1rem 1rem; }
-.evidence-field > span { display: flex; align-items: center; gap: .4rem; color: var(--visit-muted); font-size: .75rem; font-weight: 800; }
-.actions { position: sticky; bottom: .5rem; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem; background: rgba(255, 255, 255, .96); border: 1px solid var(--visit-border); border-radius: 16px; box-shadow: 0 12px 30px rgba(23, 61, 53, .13); backdrop-filter: blur(10px); }
+.evidence-disclosure { margin: 0 1rem 1rem; overflow: hidden; background: #f8fbfa; border: 1px solid #dfe9e5; border-radius: 12px; transition: border-color .18s, background .18s, box-shadow .18s; }
+.evidence-disclosure.expanded { background: #fff; border-color: #acd0c3; box-shadow: 0 6px 18px rgba(23, 61, 53, .06); }
+.evidence-disclosure.has-value:not(.expanded) { background: #f1f8f5; border-color: #c7dfd6; }
+.evidence-toggle { width: 100%; min-height: 46px; justify-content: flex-start; padding: .55rem .7rem; text-align: start; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.evidence-toggle:hover:not(:disabled) { background: #f1f7f4; border-color: transparent; box-shadow: none; transform: none; }
+.evidence-toggle-icon { display: grid; flex: 0 0 32px; height: 32px; place-items: center; color: var(--visit-green-800); background: var(--visit-green-100); border-radius: 50%; }
+.evidence-toggle-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .05rem; }
+.evidence-toggle-copy strong { color: #40534d; font-size: .76rem; }
+.evidence-toggle-copy small { color: var(--visit-green-800); font-size: .64rem; font-weight: 700; }
+.evidence-chevron { color: var(--visit-muted); font-size: .72rem; transition: color .18s; }
+.evidence-disclosure.expanded .evidence-chevron { color: var(--visit-green-800); }
+.evidence-panel { padding: 0 .7rem .7rem; animation: evidence-reveal .18s ease-out; }
+.evidence-field { display: flex; flex-direction: column; gap: .4rem; }
+.evidence-field > span { color: var(--visit-muted); font-size: .72rem; font-weight: 800; }
+.evidence-field textarea { min-height: 72px; }
+@keyframes evidence-reveal { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem; background: #fff; border: 1px solid var(--visit-border); border-radius: 16px; box-shadow: 0 8px 24px rgba(23, 61, 53, .08); }
 .action-group { display: flex; gap: .55rem; }
 .finalize-button { min-width: 205px; }
 
@@ -304,8 +318,14 @@ td small { margin-inline-start: .35rem; color: var(--visit-muted); }
 .signatures article strong { padding-top: .4rem; border-top: 1px solid #9aaca5; }
 
 /* States */
-.loading { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .65rem; background: rgba(255, 255, 255, .76); backdrop-filter: blur(3px); }
-.loading i { color: var(--visit-green-800); font-size: 2rem; }
+.loading { position: sticky; top: .5rem; z-index: 6; display: flex; width: fit-content; min-height: 38px; align-items: center; justify-content: center; gap: .5rem; margin: -.25rem auto .75rem; padding: .45rem .8rem; color: var(--visit-green-800); background: rgba(255, 255, 255, .96); border: 1px solid var(--visit-border); border-radius: 999px; box-shadow: 0 6px 18px rgba(23, 61, 53, .1); }
+.loading i { font-size: 1rem; }
+.loading span { color: var(--visit-muted); font-size: .75rem; font-weight: 700; }
+.page-jump { position: fixed; left: 1.35rem; bottom: 1.35rem; z-index: 20; min-height: 0; flex-direction: column; gap: .35rem; padding: 0; color: var(--visit-green-800); background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.page-jump:hover:not(:disabled) { background: transparent; border-color: transparent; box-shadow: none; transform: translateY(-2px); }
+.page-jump__icon { display: grid; width: 52px; height: 52px; place-items: center; color: #fff; background: linear-gradient(145deg, var(--visit-green-700), var(--visit-green-950)); border: 2px solid rgba(255, 255, 255, .9); border-radius: 50%; box-shadow: 0 10px 24px rgba(18, 61, 52, .26); }
+.page-jump__icon i { font-size: 1.15rem; }
+.page-jump__label { padding: .3rem .6rem; color: var(--visit-green-950); background: rgba(255, 255, 255, .96); border: 1px solid var(--visit-border); border-radius: 999px; box-shadow: 0 5px 14px rgba(23, 61, 53, .1); font-size: .68rem; font-weight: 800; white-space: nowrap; }
 .state-panel { padding: 2rem; text-align: center; }
 .state-panel > i { color: #8a9b95; font-size: 2.2rem; }
 .state-panel h2 { margin: .65rem 0 .25rem; }
@@ -357,6 +377,8 @@ td small { margin-inline-start: .35rem; color: var(--visit-muted); }
   .report-standard-heading { grid-template-columns: auto minmax(0, 1fr); }
   .report-standard-heading > strong { grid-column: 2; }
   .signatures > div { gap: 1rem; padding-inline: .5rem; }
+  .page-jump { left: .75rem; bottom: .75rem; }
+  .page-jump__icon { width: 46px; height: 46px; }
 }
 
 @media (max-width: 480px) {

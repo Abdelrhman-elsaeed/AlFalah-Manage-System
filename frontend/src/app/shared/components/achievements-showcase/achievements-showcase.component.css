@@ -152,7 +152,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-block: clamp(68px, 8vw, 96px) 26px;
+  margin-block: var(--stories-heading-margin, clamp(68px, 8vw, 96px)) 26px;
 }
 .stories-heading h3 {
   color: var(--brand-950);
@@ -175,18 +175,21 @@ button:disabled {
 }
 .story-viewport {
   overflow: hidden;
-  padding: 4px;
-  margin: -4px;
+  padding: 24px 4px;
+  margin: -24px -4px;
 }
 .story-track {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
   gap: 18px;
 }
 .story-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 0 0 calc((100% - 36px) / 3);
+  opacity: 0.64;
+  filter: saturate(0.72);
+  transform: scale(0.9);
   border: 1px solid var(--brand-100);
   border-radius: 18px;
   overflow: hidden;
@@ -195,15 +198,32 @@ button:disabled {
   transition:
     transform 0.25s ease,
     box-shadow 0.25s ease,
-    border-color 0.25s ease;
+    border-color 0.25s ease,
+    opacity 0.35s ease,
+    filter 0.35s ease;
 }
+.story-card.is-previous { order: 1; }
+.story-card.is-active { order: 2; }
+.story-card.is-next { order: 3; }
 .story-card:hover,
 .story-card.is-active {
   border-color: var(--gold-border);
   box-shadow: 0 18px 38px rgba(5, 58, 44, 0.14);
 }
+.story-card.is-active {
+  position: relative;
+  z-index: 2;
+  opacity: 1;
+  filter: none;
+  transform: scale(1.045);
+}
 .story-card:hover {
-  transform: translateY(-4px);
+  opacity: 1;
+  filter: none;
+  transform: translateY(-4px) scale(0.93);
+}
+.story-card.is-active:hover {
+  transform: translateY(-4px) scale(1.045);
 }
 .story-image {
   position: relative;
@@ -596,11 +616,19 @@ img.image-fallback {
     padding-inline: 18px;
   }
   .story-track {
-    grid-template-columns: repeat(3, 100%);
     transform: var(--track-offset);
     transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .story-card:hover {
+  .story-card,
+  .story-card.is-previous,
+  .story-card.is-active,
+  .story-card.is-next,
+  .story-card:hover,
+  .story-card.is-active:hover {
+    order: initial;
+    flex-basis: 100%;
+    opacity: 1;
+    filter: none;
     transform: none;
   }
   .carousel-arrow {

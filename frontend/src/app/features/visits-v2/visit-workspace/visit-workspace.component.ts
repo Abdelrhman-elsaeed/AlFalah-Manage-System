@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -27,7 +27,7 @@ type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report';
   templateUrl: './visit-workspace.component.html',
   styleUrls: ['./visit-workspace.component.css']
 })
-export class VisitWorkspaceComponent implements OnInit {
+export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly visits = inject(VisitsV2Service);
   private readonly complaints = inject(ComplaintsService);
   private readonly teachers = inject(TeachersService);
@@ -35,9 +35,18 @@ export class VisitWorkspaceComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly enabled = signal<boolean | null>(null);
   readonly busy = signal(false);
+  readonly cardLoading = signal(false);
+  readonly archiveLoading = signal(false);
+  readonly dashboardLoading = signal(false);
+  readonly visitLoading = signal(false);
+  readonly archiveLoaded = signal(false);
+  readonly dashboardLoaded = signal(false);
+  readonly atPageTop = signal(true);
+  readonly expandedEvidence = signal<ReadonlySet<number>>(new Set<number>());
   readonly dirty = signal(false);
   readonly cardStep = signal<1 | 2>(1);
   readonly tab = signal<WorkspaceTab>('card');
@@ -52,6 +61,10 @@ export class VisitWorkspaceComponent implements OnInit {
   readonly cardError = signal(false);
   readonly archiveError = signal(false);
   readonly dashboardError = signal(false);
+  readonly activeLoading = computed(() => this.busy() || this.visitLoading()
+    || (this.tab() === 'card' && this.cardLoading())
+    || (this.tab() === 'archive' && this.archiveLoading())
+    || (this.tab() === 'dashboard' && this.dashboardLoading()));
   readonly categories = VISIT_CATEGORIES;
   readonly sequences = VISIT_SEQUENCES;
   readonly scoreValues = [1, 2, 3, 4];
@@ -74,6 +87,13 @@ export class VisitWorkspaceComponent implements OnInit {
   readonly pdfDownloadingId = signal<number | null>(null);
   complaintSubject = '';
   complaintBody = '';
+
+  private cardRequestVersion = 0;
+  private archiveRequestVersion = 0;
+  private dashboardRequestVersion = 0;
+  private visitRequestVersion = 0;
+  private scrollContainer: HTMLElement | null = null;
+  private readonly handlePageScroll = (): void => this.updatePagePosition();
 
   model: CreateVisitV2Request = this.emptyModel();
   query: VisitV2ArchiveQuery = { page: 1, pageSize: 20 };
@@ -99,6 +119,16 @@ export class VisitWorkspaceComponent implements OnInit {
       },
       error: () => this.enabled.set(false)
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.scrollContainer = this.host.nativeElement.closest('.shell-content') as HTMLElement | null;
+    this.scrollContainer?.addEventListener('scroll', this.handlePageScroll, { passive: true });
+    this.updatePagePosition();
+  }
+
+  ngOnDestroy(): void {
+    this.scrollContainer?.removeEventListener('scroll', this.handlePageScroll);
   }
 
   canManage(): boolean {
@@ -129,30 +159,50 @@ export class VisitWorkspaceComponent implements OnInit {
       return;
     }
     this.cardStep.set(2);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.scrollPageTo(0);
   }
 
   goToMetadata(): void {
     this.cardStep.set(1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.scrollPageTo(0);
+  }
+
+  togglePageEdge(): void {
+    const container = this.scrollContainer;
+    if (!container) {
+      window.scrollTo({ top: this.atPageTop() ? document.documentElement.scrollHeight : 0, behavior: 'smooth' });
+      return;
+    }
+
+    const destination = this.atPageTop()
+      ? Math.max(0, container.scrollHeight - container.clientHeight)
+      : 0;
+    this.scrollPageTo(destination);
   }
 
   selectTab(tab: WorkspaceTab): void {
     this.tab.set(tab);
-    if (tab === 'archive') this.loadArchive();
-    if (tab === 'dashboard' && this.canManage()) this.loadDashboard();
+    if (tab === 'archive' && !this.archiveLoaded() && !this.archiveLoading()) this.loadArchive();
+    if (tab === 'dashboard' && this.canManage() && !this.dashboardLoaded() && !this.dashboardLoading()) this.loadDashboard();
   }
 
   loadCard(): void {
-    this.busy.set(true);
+    const requestVersion = ++this.cardRequestVersion;
+    this.cardLoading.set(true);
     this.cardError.set(false);
-    this.visits.observationCard().pipe(finalize(() => this.busy.set(false))).subscribe({
+    this.visits.observationCard().pipe(finalize(() => {
+      if (requestVersion === this.cardRequestVersion) this.cardLoading.set(false);
+    })).subscribe({
       next: response => {
+        if (requestVersion !== this.cardRequestVersion) return;
         if (!response.data) return;
         this.card.set(response.data);
         this.domains.set(this.cloneDomains(response.data.domains));
+        this.expandedEvidence.set(new Set<number>());
       },
-      error: () => this.cardError.set(true)
+      error: () => {
+        if (requestVersion === this.cardRequestVersion) this.cardError.set(true);
+      }
     });
   }
 
@@ -204,6 +254,23 @@ export class VisitWorkspaceComponent implements OnInit {
 
   scoreKey(score: number): string { return `VISITS_V2.SCORE_${score}`; }
 
+  isEvidenceExpanded(standard: VisitV2Standard): boolean {
+    return this.expandedEvidence().has(standard.id);
+  }
+
+  hasEvidence(standard: VisitV2Standard): boolean {
+    return !!standard.evidenceNote?.trim();
+  }
+
+  toggleEvidence(standard: VisitV2Standard): void {
+    this.expandedEvidence.update(current => {
+      const next = new Set(current);
+      if (next.has(standard.id)) next.delete(standard.id);
+      else next.add(standard.id);
+      return next;
+    });
+  }
+
   save(finalizeVisit = false): void {
     if (!this.valid()) {
       this.toast.warn('VISITS_V2.VALIDATION');
@@ -230,6 +297,7 @@ export class VisitWorkspaceComponent implements OnInit {
       next: response => {
         if (!response.data) { this.busy.set(false); return; }
         this.applyDetail(response.data);
+        this.invalidateAggregates();
         this.dirty.set(false);
         if (!finalizeVisit) {
           this.busy.set(false);
@@ -253,6 +321,7 @@ export class VisitWorkspaceComponent implements OnInit {
     if (this.hasUnsavedChanges() && !window.confirm(this.translate.instant('VISITS_V2.DISCARD_CONFIRM'))) return;
     this.detail.set(null);
     this.model = this.emptyModel();
+    this.expandedEvidence.set(new Set<number>());
     this.dirty.set(false);
     this.cardStep.set(1);
     this.tab.set('card');
@@ -260,8 +329,12 @@ export class VisitWorkspaceComponent implements OnInit {
   }
 
   openVisit(id: number): void {
-    this.busy.set(true);
-    this.visits.get(id).pipe(finalize(() => this.busy.set(false))).subscribe(response => {
+    const requestVersion = ++this.visitRequestVersion;
+    this.visitLoading.set(true);
+    this.visits.get(id).pipe(finalize(() => {
+      if (requestVersion === this.visitRequestVersion) this.visitLoading.set(false);
+    })).subscribe(response => {
+      if (requestVersion !== this.visitRequestVersion) return;
       if (!response.data) return;
       this.applyDetail(response.data);
       this.cardStep.set(1);
@@ -272,8 +345,12 @@ export class VisitWorkspaceComponent implements OnInit {
 
   editVisit(item: VisitV2ArchiveItem): void {
     if (!this.canEditVisitStatus(item.status)) return;
-    this.busy.set(true);
-    this.visits.get(item.id).pipe(finalize(() => this.busy.set(false))).subscribe(response => {
+    const requestVersion = ++this.visitRequestVersion;
+    this.visitLoading.set(true);
+    this.visits.get(item.id).pipe(finalize(() => {
+      if (requestVersion === this.visitRequestVersion) this.visitLoading.set(false);
+    })).subscribe(response => {
+      if (requestVersion !== this.visitRequestVersion) return;
       if (!response.data) return;
       this.applyDetail(response.data);
       this.cardStep.set(1);
@@ -283,16 +360,23 @@ export class VisitWorkspaceComponent implements OnInit {
   }
 
   loadArchive(): void {
-    this.busy.set(true);
+    const requestVersion = ++this.archiveRequestVersion;
+    this.archiveLoading.set(true);
     this.archiveError.set(false);
-    this.visits.list(this.query).pipe(finalize(() => this.busy.set(false))).subscribe({
+    this.visits.list({ ...this.query }).pipe(finalize(() => {
+      if (requestVersion === this.archiveRequestVersion) this.archiveLoading.set(false);
+    })).subscribe({
       next: response => {
+        if (requestVersion !== this.archiveRequestVersion) return;
         if (!response.data) return;
         this.archive.set([...response.data.page.items]);
         this.archiveTotal.set(response.data.page.totalCount);
         this.evaluators.set(response.data.evaluators);
+        this.archiveLoaded.set(true);
       },
-      error: () => this.archiveError.set(true)
+      error: () => {
+        if (requestVersion === this.archiveRequestVersion) this.archiveError.set(true);
+      }
     });
   }
 
@@ -302,17 +386,27 @@ export class VisitWorkspaceComponent implements OnInit {
   }
 
   loadDashboard(): void {
-    this.busy.set(true);
+    const requestVersion = ++this.dashboardRequestVersion;
+    this.dashboardLoading.set(true);
     this.dashboardError.set(false);
-    this.visits.dashboard().pipe(finalize(() => this.busy.set(false))).subscribe({
-      next: response => this.dashboard.set(response.data ?? null),
-      error: () => this.dashboardError.set(true)
+    this.visits.dashboard().pipe(finalize(() => {
+      if (requestVersion === this.dashboardRequestVersion) this.dashboardLoading.set(false);
+    })).subscribe({
+      next: response => {
+        if (requestVersion !== this.dashboardRequestVersion) return;
+        this.dashboard.set(response.data ?? null);
+        this.dashboardLoaded.set(true);
+      },
+      error: () => {
+        if (requestVersion === this.dashboardRequestVersion) this.dashboardError.set(true);
+      }
     });
   }
 
   deleteVisit(item: VisitV2ArchiveItem): void {
     if (!window.confirm(this.translate.instant('VISITS_V2.DELETE_CONFIRM'))) return;
     this.visits.softDelete(item.id).subscribe(() => {
+      this.dashboardLoaded.set(false);
       this.toast.success('VISITS_V2.DELETED');
       this.loadArchive();
     });
@@ -331,7 +425,10 @@ export class VisitWorkspaceComponent implements OnInit {
   private workflow(request: () => ReturnType<VisitsV2Service['approve']>): void {
     this.busy.set(true);
     request().pipe(finalize(() => this.busy.set(false))).subscribe(response => {
-      if (response.data) this.applyDetail(response.data);
+      if (response.data) {
+        this.applyDetail(response.data);
+        this.invalidateAggregates();
+      }
     });
   }
 
@@ -393,6 +490,10 @@ export class VisitWorkspaceComponent implements OnInit {
         downloadBlob(response.body, fileNameFromResponse(response, `visit-${id}.pdf`));
       },
       error: async error => {
+        // External download managers can take ownership of a successful PDF
+        // response and abort the browser's XHR. Angular reports that hand-off
+        // as status 0 even though the file download has already started.
+        if (error?.status === 0) return;
         await readHttpErrorBody(error);
         this.toast.error(
           'VISITS_V2.PDF_EXPORT_FAILED',
@@ -456,6 +557,7 @@ export class VisitWorkspaceComponent implements OnInit {
   private applyDetail(detail: VisitV2Detail): void {
     this.detail.set(detail);
     this.domains.set(this.cloneDomains(detail.domains));
+    this.expandedEvidence.set(new Set<number>());
     this.model = {
       instructorId: detail.instructorId, visitCategory: detail.visitCategory, visitSequence: detail.visitSequence,
       visitDate: detail.visitDate.substring(0, 10), classroomPeriod: detail.classroomPeriod,
@@ -468,6 +570,24 @@ export class VisitWorkspaceComponent implements OnInit {
     return domains.map(domain => ({ ...domain, standards: domain.standards.map(standard => ({
       ...standard, indicators: standard.indicators.map(indicator => ({ ...indicator }))
     })) }));
+  }
+
+  private invalidateAggregates(): void {
+    this.archiveLoaded.set(false);
+    this.dashboardLoaded.set(false);
+  }
+
+  private scrollPageTo(top: number): void {
+    if (this.scrollContainer) {
+      this.scrollContainer.scrollTo({ top, behavior: 'smooth' });
+      this.atPageTop.set(top <= 80);
+      return;
+    }
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  private updatePagePosition(): void {
+    this.atPageTop.set((this.scrollContainer?.scrollTop ?? window.scrollY) <= 80);
   }
 
   private emptyModel(): CreateVisitV2Request {

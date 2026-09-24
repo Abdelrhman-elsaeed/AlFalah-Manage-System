@@ -1,4 +1,5 @@
 ﻿<div class="showcase" dir="rtl" (focusin)="onFocusIn()" (focusout)="onFocusOut($event)">
+  @if (view() !== 'news') {
   <div class="stats-panel">
     <div class="stats-ribbon">
       @for (stat of stats(); track stat.id) {
@@ -24,11 +25,15 @@
       }
     </div>
   </div>
+  }
+  @if (view() !== 'achievements') {
   <div class="stories-heading">
     <h3>{{ 'LANDING.FEATURED' | translate }}</h3>
-    <button class="text-button" type="button" (click)="openAllHonors()">
-      {{ 'LANDING.ALL_HONORS' | translate }}<i class="pi pi-arrow-up-left" aria-hidden="true"></i>
-    </button>
+    @if (view() === 'all') {
+      <button class="text-button" type="button" (click)="openAllHonors()">
+        {{ 'LANDING.ALL_HONORS' | translate }}<i class="pi pi-arrow-up-left" aria-hidden="true"></i>
+      </button>
+    }
   </div>
   <div
     class="story-carousel"
@@ -49,7 +54,13 @@
     <div class="story-viewport">
       <div class="story-track" dir="ltr" [style.--track-offset]="storyTrackTransform()">
         @for (story of stories; track story.id; let i = $index) {
-          <article class="story-card" dir="rtl" [class.is-active]="i === activeStoryIndex()">
+          <article
+            class="story-card"
+            dir="rtl"
+            [class.is-previous]="isPreviousStory(i)"
+            [class.is-active]="i === activeStoryIndex()"
+            [class.is-next]="isNextStory(i)"
+          >
             <button
               class="story-image"
               type="button"
@@ -107,29 +118,32 @@
           </button>
         }
       </div>
-      <button
-        class="playback"
-        type="button"
-        [disabled]="reducedMotion()"
-        [attr.aria-label]="
-          (manuallyPaused() || reducedMotion() ? 'LANDING.PLAY' : 'LANDING.PAUSE') | translate
-        "
-        [attr.aria-pressed]="manuallyPaused()"
-        (click)="togglePlayback()"
-      >
-        <i
-          class="pi"
-          [class.pi-play]="manuallyPaused() || reducedMotion()"
-          [class.pi-pause]="!manuallyPaused() && !reducedMotion()"
-          aria-hidden="true"
-        ></i>
-      </button>
+      @if (view() !== 'news') {
+        <button
+          class="playback"
+          type="button"
+          [disabled]="reducedMotion()"
+          [attr.aria-label]="
+            (manuallyPaused() || reducedMotion() ? 'LANDING.PLAY' : 'LANDING.PAUSE') | translate
+          "
+          [attr.aria-pressed]="manuallyPaused()"
+          (click)="togglePlayback()"
+        >
+          <i
+            class="pi"
+            [class.pi-play]="manuallyPaused() || reducedMotion()"
+            [class.pi-pause]="!manuallyPaused() && !reducedMotion()"
+            aria-hidden="true"
+          ></i>
+        </button>
+      }
     </div>
     <p class="sr-only" [attr.aria-live]="isPaused() ? 'polite' : 'off'" aria-atomic="true">
       {{ 'LANDING.SLIDE_STATUS' | translate: { current: activeStoryIndex() + 1, total: stories.length } }}:
       {{ activeStory().title | translate }}
     </p>
   </div>
+  }
 </div>
 <dialog
   #detailsDialog

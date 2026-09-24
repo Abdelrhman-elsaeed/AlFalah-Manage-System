@@ -8,16 +8,17 @@
   background: var(--brand-950);
   color: var(--text-on-brand);
   border-block-end: 1px solid var(--gold-border);
-  transition: box-shadow 0.2s;
-}
-@supports (backdrop-filter: blur(16px)) {
-  .landing-header {
-    background: color-mix(in srgb, var(--brand-950) 94%, transparent);
-    backdrop-filter: blur(16px);
-  }
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 .scrolled {
-  box-shadow: var(--shadow-lg);
+  background: rgba(3, 56, 42, 0.82);
+  border-block-end-color: rgba(217, 174, 34, 0.28);
+  box-shadow: 0 14px 38px rgba(0, 32, 23, 0.2);
+  -webkit-backdrop-filter: saturate(145%) blur(18px);
+  backdrop-filter: saturate(145%) blur(18px);
 }
 .header-inner {
   width: var(--landing-container);
@@ -179,7 +180,9 @@ nav {
     inset-inline: 0;
     inset-block-start: 100%;
     padding: 20px;
-    background: var(--brand-950);
+    background: rgba(3, 56, 42, 0.96);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
     border: 1px solid var(--gold-border);
     border-radius: 0 0 12px 12px;
     max-height: calc(100dvh - var(--landing-header-height) - 16px);

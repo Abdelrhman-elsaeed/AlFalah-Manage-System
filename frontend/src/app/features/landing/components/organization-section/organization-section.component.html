@@ -1,0 +1,130 @@
+<section class="organization" aria-labelledby="organization-title">
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <div class="section-shell">
+    <header class="section-heading">
+      <div class="heading-copy">
+        <span class="eyebrow"><i class="pi pi-sitemap" aria-hidden="true"></i> نعمل بروح الفريق</span>
+        <h2 id="organization-title">الهيكل التنظيمي <em>للمدرسة</em></h2>
+        <p>قيادة تربوية وكفاءات متخصصة، يجمعها هدف واحد: صناعة بيئة تعليمية ملهمة لكل طالب.</p>
+      </div>
+
+      <div class="team-summary" aria-label="ملخص فريق المدرسة">
+        <span class="summary-number">31</span>
+        <span><strong>كفاءة تعليمية وإدارية</strong><small>ضمن 9 تخصصات أكاديمية</small></span>
+      </div>
+    </header>
+
+    <div class="chart" [class.is-open]="chartOpen()">
+      <article class="person-card director-card" aria-label="مدير المدرسة">
+        <div class="leadership-badge"><i class="pi pi-star-fill" aria-hidden="true"></i> قيادة المدرسة</div>
+        <div class="avatar avatar-director" aria-hidden="true">{{ initials(director.name) }}</div>
+        <div class="person-copy">
+          <span class="role">{{ director.role }}</span>
+          <h3>{{ director.name }}</h3>
+          <p><i class="pi pi-graduation-cap" aria-hidden="true"></i>{{ director.specialty }}</p>
+        </div>
+        <span class="card-shine" aria-hidden="true"></span>
+      </article>
+
+      <button
+        class="reveal-button"
+        type="button"
+        aria-controls="organization-branches"
+        [attr.aria-expanded]="chartOpen()"
+        (click)="toggleChart()"
+      >
+        <span>{{ chartOpen() ? 'طي الهيكل التنظيمي' : 'استكشف فريق المدرسة' }}</span>
+        <span class="button-icon" aria-hidden="true"><i class="pi pi-chevron-down"></i></span>
+      </button>
+
+      <div id="organization-branches" class="branches" [attr.aria-hidden]="!chartOpen()">
+        <div class="branches-inner">
+          <svg class="connector leadership-connector" viewBox="0 0 680 88" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="leadershipLine" x1="0" x2="1">
+                <stop offset="0" stop-color="#e0b31b" stop-opacity=".15" />
+                <stop offset=".5" stop-color="#f7d667" />
+                <stop offset="1" stop-color="#e0b31b" stop-opacity=".15" />
+              </linearGradient>
+              <filter id="lineGlow"><feGaussianBlur stdDeviation="2.6" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+            </defs>
+            <path class="connector-glow" d="M340 0V32M170 32H510M170 32V88M510 32V88" />
+            <path class="connector-line" d="M340 0V32M170 32H510M170 32V88M510 32V88" />
+            <circle cx="340" cy="32" r="5" />
+          </svg>
+
+          <div class="leadership-grid">
+            @for (deputy of deputies; track deputy.id; let index = $index) {
+              <article class="person-card deputy-card" [style.--node-index]="index">
+                <div class="avatar" aria-hidden="true">{{ initials(deputy.name) }}</div>
+                <div class="person-copy">
+                  <span class="role">{{ deputy.role }}</span>
+                  <h3>{{ deputy.name }}</h3>
+                  <p><i class="pi pi-graduation-cap" aria-hidden="true"></i>{{ deputy.specialty }}</p>
+                </div>
+                <span class="card-shine" aria-hidden="true"></span>
+              </article>
+            }
+          </div>
+
+          <svg class="connector departments-connector" viewBox="0 0 1000 82" preserveAspectRatio="none" aria-hidden="true">
+            <path class="connector-glow" d="M300 0V18C300 28 308 33 319 39L500 76M700 0V18C700 28 692 33 681 39L500 76M500 76V82" />
+            <path class="connector-line" d="M300 0V18C300 28 308 33 319 39L500 76M700 0V18C700 28 692 33 681 39L500 76M500 76V82" />
+            <circle cx="500" cy="76" r="5" />
+          </svg>
+
+          <div class="departments-heading">
+            <span><i class="pi pi-users" aria-hidden="true"></i></span>
+            <div><strong>الإدارات والأقسام التعليمية</strong><small>اضغط على أي قسم للتعرّف على فريقه</small></div>
+          </div>
+
+          <div class="departments-grid">
+            @for (department of departments; track department.id; let index = $index) {
+              <article
+                class="department"
+                [class.is-expanded]="isDepartmentOpen(department.id)"
+                [style.--node-index]="index"
+              >
+                <button
+                  class="department-toggle"
+                  type="button"
+                  [attr.aria-controls]="'department-' + department.id"
+                  [attr.aria-expanded]="isDepartmentOpen(department.id)"
+                  (click)="toggleDepartment(department.id)"
+                >
+                  <span class="department-icon"><i class="pi" [class]="'pi ' + department.icon" aria-hidden="true"></i></span>
+                  <span class="department-title">
+                    <strong>{{ department.shortTitle }}</strong>
+                    <small>{{ department.members.length }} {{ department.members.length > 2 ? 'أعضاء' : 'عضوان' }}</small>
+                  </span>
+                  <span class="department-arrow" aria-hidden="true"><i class="pi pi-chevron-down"></i></span>
+                </button>
+
+                <div
+                  class="department-team"
+                  [id]="'department-' + department.id"
+                  [attr.aria-hidden]="!isDepartmentOpen(department.id)"
+                >
+                  <div class="team-inner">
+                    @for (member of department.members; track member.id; let memberIndex = $index) {
+                      <div class="member-card" [style.--member-index]="memberIndex">
+                        <span class="member-avatar" aria-hidden="true">{{ initials(member.name) }}</span>
+                        <span class="member-data">
+                          <strong>{{ member.name }}</strong>
+                          <small class="member-role">{{ member.role }}</small>
+                          <small class="member-specialty"><i class="pi pi-graduation-cap" aria-hidden="true"></i>{{ member.specialty }}</small>
+                        </span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

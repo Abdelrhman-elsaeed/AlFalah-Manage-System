@@ -38,31 +38,33 @@ describe('AchievementsShowcaseComponent', () => {
     expect(component.stats().map((stat) => stat.targetNumber)).toEqual([9, 26, 19, 1970, 317]);
     expect(component.stats().every((stat) => stat.currentDisplay === 0)).toBeTrue();
     expect(fixture.nativeElement.querySelectorAll('.story-card').length).toBe(3);
+    expect(component.activeStoryIndex()).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.story-card.is-active').length).toBe(1);
     component.prevStory();
-    expect(component.activeStoryIndex()).toBe(2);
-    component.nextStory();
     expect(component.activeStoryIndex()).toBe(0);
+    component.nextStory();
+    expect(component.activeStoryIndex()).toBe(1);
     component.goToStory(1);
     expect(component.activeStory().images.length).toBe(4);
   });
 
   it('runs only while visible and pauses independently for hover and focus', fakeAsync(() => {
     tick(6500);
-    expect(component.activeStoryIndex()).toBe(0);
+    expect(component.activeStoryIndex()).toBe(1);
     visible(true);
     tick(6500);
-    expect(component.activeStoryIndex()).toBe(1);
+    expect(component.activeStoryIndex()).toBe(2);
     component.setHovered(true);
     component.onFocusIn();
     component.setHovered(false);
     tick(6500);
-    expect(component.activeStoryIndex()).toBe(1);
+    expect(component.activeStoryIndex()).toBe(2);
     component.onFocusOut(new FocusEvent('focusout'));
     tick(6500);
-    expect(component.activeStoryIndex()).toBe(2);
+    expect(component.activeStoryIndex()).toBe(0);
     visible(false);
     tick(6500);
-    expect(component.activeStoryIndex()).toBe(2);
+    expect(component.activeStoryIndex()).toBe(0);
     fixture.destroy();
   }));
 
@@ -71,7 +73,7 @@ describe('AchievementsShowcaseComponent', () => {
     Object.defineProperty(motion, 'matches', { value: true });
     changeMotion();
     tick(14000);
-    expect(component.activeStoryIndex()).toBe(0);
+    expect(component.activeStoryIndex()).toBe(1);
     expect(component.stats().every((stat) => stat.currentDisplay === stat.targetNumber)).toBeTrue();
     fixture.destroy();
     expect(disconnect).toHaveBeenCalled();
@@ -84,10 +86,10 @@ describe('AchievementsShowcaseComponent', () => {
     component.setHovered(false);
     component.onFocusOut(new FocusEvent('focusout'));
     tick(14000);
-    expect(component.activeStoryIndex()).toBe(0);
+    expect(component.activeStoryIndex()).toBe(1);
     component.togglePlayback();
     tick(6500);
-    expect(component.activeStoryIndex()).toBe(1);
+    expect(component.activeStoryIndex()).toBe(2);
     fixture.destroy();
   }));
 

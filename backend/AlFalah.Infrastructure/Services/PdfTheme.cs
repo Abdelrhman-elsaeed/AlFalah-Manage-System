@@ -1,6 +1,7 @@
 using QuestPDF.Drawing;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using System.Globalization;
 
 namespace AlFalah.Infrastructure.Services;
 
@@ -35,6 +36,8 @@ internal static class PdfTheme
     public const string ZebraRow = "#F7FAF8";
 
     public const float BorderWidth = 0.6f;
+    public const float CardRadius = 9f;
+    public const float PillRadius = 12f;
 
     // ─── Fonts ───────────────────────────────────────────────────────────────
 
@@ -53,9 +56,13 @@ internal static class PdfTheme
         {
             try
             {
-                var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", file);
-                if (!File.Exists(path)) continue;
-                using var stream = File.OpenRead(path);
+                var resourceName = $"AlFalah.Infrastructure.Assets.Fonts.{file}";
+                using var embedded = typeof(PdfTheme).Assembly.GetManifestResourceStream(resourceName);
+                using var disk = embedded == null
+                    ? OpenFontFromOutput(file)
+                    : null;
+                var stream = embedded ?? disk;
+                if (stream == null) continue;
                 FontManager.RegisterFont(stream);
             }
             catch
@@ -64,6 +71,12 @@ internal static class PdfTheme
                 // report from being produced.
             }
         }
+    }
+
+    private static Stream? OpenFontFromOutput(string file)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", file);
+        return File.Exists(path) ? File.OpenRead(path) : null;
     }
 
     // ─── Sections ────────────────────────────────────────────────────────────
@@ -79,25 +92,13 @@ internal static class PdfTheme
         Action<ColumnDescriptor> body,
         string? accent = null)
     {
-        container
-            .Background(White)
-            .Border(BorderWidth).BorderColor(Border)
-            .Column(card =>
+        RoundedPanel(container, card =>
+            card.Column(column =>
             {
-                card.Item()
-                    .Background(BrandTint)
-                    .BorderBottom(BorderWidth).BorderColor(Border)
-                    .PaddingVertical(5).PaddingHorizontal(9)
-                    .Row(row =>
-                    {
-                        row.ConstantItem(3).Background(accent ?? Gold);
-                        row.RelativeItem().PaddingHorizontal(6).AlignRight()
-                            .Text(title)
-                            .FontFamily(Font).FontSize(11).Bold().FontColor(BrandDark);
-                    });
+                column.Item().Element(c => SectionHeading(c, title, accent));
 
-                card.Item().Padding(8).Column(body);
-            });
+                column.Item().Padding(8).Column(body);
+            }), White, Border, CardRadius);
     }
 
     /// <summary>
@@ -108,18 +109,41 @@ internal static class PdfTheme
     /// </summary>
     public static void SectionHeading(IContainer container, string title, string? accent = null)
     {
-        container
-            .Background(BrandTint)
-            .Border(BorderWidth).BorderColor(Border)
+        RoundedPanel(container, content => content
             .PaddingVertical(5).PaddingHorizontal(9)
             .Row(row =>
             {
-                row.ConstantItem(3).Background(accent ?? Gold);
+                row.ConstantItem(5).Height(18).Element(c => Circle(c, accent ?? Gold));
                 row.RelativeItem().PaddingHorizontal(6).AlignRight()
                     .Text(title)
                     .FontFamily(Font).FontSize(11).Bold().FontColor(BrandDark);
-            });
+            }), BrandTint, Border, PillRadius);
     }
+
+    /// <summary>
+    /// Draws a genuine rounded background/border using SVG, then places normal
+    /// QuestPDF content above it. QuestPDF 2024.3 has no native corner-radius
+    /// container, so this keeps the platform's soft card language in print.
+    /// </summary>
+    public static void RoundedPanel(
+        IContainer container,
+        Action<IContainer> content,
+        string background,
+        string border,
+        float radius = CardRadius,
+        float borderWidth = BorderWidth)
+    {
+        container.Layers(layers =>
+        {
+            layers.Layer().Svg(size => string.Create(CultureInfo.InvariantCulture,
+                $"<svg xmlns='http://www.w3.org/2000/svg' width='{size.Width}' height='{size.Height}' viewBox='0 0 {size.Width} {size.Height}'><rect x='{borderWidth / 2}' y='{borderWidth / 2}' width='{Math.Max(0, size.Width - borderWidth)}' height='{Math.Max(0, size.Height - borderWidth)}' rx='{radius}' ry='{radius}' fill='{background}' stroke='{border}' stroke-width='{borderWidth}'/></svg>"));
+            layers.PrimaryLayer().Element(content);
+        });
+    }
+
+    public static void Circle(IContainer container, string color) =>
+        container.Svg(size => string.Create(CultureInfo.InvariantCulture,
+            $"<svg xmlns='http://www.w3.org/2000/svg' width='{size.Width}' height='{size.Height}' viewBox='0 0 {size.Width} {size.Height}'><circle cx='{size.Width / 2}' cy='{size.Height / 2}' r='{Math.Max(0, Math.Min(size.Width, size.Height) / 2 - 0.5f)}' fill='{color}'/></svg>"));
 
     /// <summary>
     /// Rows a section may hold and still be forced onto a single sheet.
@@ -204,13 +228,13 @@ internal static class PdfTheme
     public static void ProgressBar(IContainer container, double fraction, string? fill = null)
     {
         var filled = (float)Math.Clamp(fraction, 0d, 1d);
-        var empty = 1f - filled;
-
-        container.Height(9).Border(BorderWidth).BorderColor(Border).Row(bar =>
+        container.Height(9).Svg(size =>
         {
-            // Physical L→R: [remainder][filled] → the fill sits on the right.
-            if (empty > 0f) bar.RelativeItem(empty).Background("#EDF3EF");
-            if (filled > 0f) bar.RelativeItem(filled).Background(fill ?? Brand);
+            var radius = size.Height / 2;
+            var fillWidth = size.Width * filled;
+            var fillX = size.Width - fillWidth;
+            return string.Create(CultureInfo.InvariantCulture,
+                $"<svg xmlns='http://www.w3.org/2000/svg' width='{size.Width}' height='{size.Height}' viewBox='0 0 {size.Width} {size.Height}'><rect x='0.3' y='0.3' width='{Math.Max(0, size.Width - 0.6f)}' height='{Math.Max(0, size.Height - 0.6f)}' rx='{radius}' fill='#EDF3EF' stroke='{Border}' stroke-width='0.6'/>{(fillWidth > 0 ? $"<rect x='{fillX}' y='0' width='{fillWidth}' height='{size.Height}' rx='{radius}' fill='{fill ?? Brand}'/>" : string.Empty)}</svg>");
         });
     }
 

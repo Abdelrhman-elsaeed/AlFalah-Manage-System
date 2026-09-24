@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using AlFalah.Application.DTOs.Visits;
 using AlFalah.Application.Interfaces;
 using AlFalah.Infrastructure.Services;
@@ -49,6 +50,37 @@ public sealed class VisitV2DocumentServiceTests
     }
 
     [Fact]
+    public void Embedded_Amiri_assets_are_real_font_files()
+    {
+        foreach (var file in new[] { "Amiri-Regular.ttf", "Amiri-Bold.ttf" })
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", file);
+            File.Exists(path).Should().BeTrue();
+            var magic = File.ReadAllBytes(path).Take(4).ToArray();
+            magic.Should().Equal(new byte[] { 0x00, 0x01, 0x00, 0x00 },
+                $"{file} must be a TrueType font, not an HTML download page");
+        }
+    }
+
+    [Fact]
+    public void Amiri_fonts_are_embedded_in_the_infrastructure_assembly()
+    {
+        var resources = typeof(VisitV2DocumentService).Assembly.GetManifestResourceNames();
+
+        resources.Should().Contain("AlFalah.Infrastructure.Assets.Fonts.Amiri-Regular.ttf");
+        resources.Should().Contain("AlFalah.Infrastructure.Assets.Fonts.Amiri-Bold.ttf");
+    }
+
+    [Theory]
+    [InlineData("?????? ?????? - ?????? ?????", "مدرسة الفلاح النموذجية", "مدرسة الفلاح النموذجية")]
+    [InlineData("0112345678 · ????? ?????", "زيارة #3026", "زيارة #3026")]
+    [InlineData("نص عربي سليم", "بديل", "نص عربي سليم")]
+    public void Pdf_brand_text_rejects_corrupted_question_mark_sequences(string value, string fallback, string expected)
+    {
+        VisitV2DocumentService.SafeBrandText(value, fallback).Should().Be(expected);
+    }
+
+    [Fact]
     public async Task Dump_professional_v2_visit_report_for_visual_review()
     {
         var dir = Environment.GetEnvironmentVariable("PDF_DUMP_DIR");
@@ -93,10 +125,17 @@ public sealed class VisitV2DocumentServiceTests
             },
             now.AddDays(-2), now, now.AddHours(1), now.AddHours(8), null, null, true);
 
+        var signatureFixture = Environment.GetEnvironmentVariable("PDF_SIGNATURE_FIXTURE");
+        var signatureSources = !string.IsNullOrWhiteSpace(signatureFixture) && File.Exists(signatureFixture)
+            ? (JsonSerializer.Deserialize<Dictionary<string, string>>(await File.ReadAllTextAsync(signatureFixture))
+                ?.Values.Take(2).ToArray() ?? Array.Empty<string>())
+            : Array.Empty<string>();
+
         var result = await new VisitV2DocumentService(new ImageAssetLoader()).BuildPdfAsync(
             detail,
             new VisitV2PdfAssetSources("مدارس الفلاح الأهلية", "تقرير رسمي صادر عن نظام مدارس الفلاح",
-                "#176B58", null, null, null, null, true, true));
+                "#176B58", null, signatureSources.ElementAtOrDefault(0), signatureSources.ElementAtOrDefault(1),
+                signatureSources.ElementAtOrDefault(0), true, true));
 
         Directory.CreateDirectory(dir);
         await File.WriteAllBytesAsync(Path.Combine(dir, "visit-v2-report.pdf"), result.Content);
