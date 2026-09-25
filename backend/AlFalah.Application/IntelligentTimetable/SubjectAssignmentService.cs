@@ -97,11 +97,16 @@ public sealed class SubjectAssignmentService(ISubjectRepository repository)
             }
             var occurrences = placed.GroupBy(e => new { e.Day, e.Period }).Select(g => g.First()).ToArray();
             if (occurrences.Length > r.TotalWeeklyPeriods) throw new ArgumentException("الحصص المسندة تتجاوز نصاب المادة للفصل.");
+            if (r.FixedSlots.Any(slot => normalized.Any(e => e.EntryType == TimetableEntryType.Lesson &&
+                    e.ClassroomId == r.ClassroomId && (int)e.Day == slot.Day && e.Period == slot.Period &&
+                    e.ClassSubjectRequirementId != r.Id)))
+                throw new ArgumentException("الحصة المثبتة محجوزة لهذه المادة ولا يمكن إسناد مادة أخرى مكانها.");
+            if ((publishing || occurrences.Length == r.TotalWeeklyPeriods) &&
+                r.FixedSlots.Any(slot => !occurrences.Any(e => (int)e.Day == slot.Day && e.Period == slot.Period)))
+                throw new ArgumentException("توجد حصة مثبتة لم يتم الالتزام بها.");
             if (!publishing) continue;
             SubjectSchedulingPolicy.Validate(SubjectService.Rules(r), schedule);
             if (occurrences.Length != r.TotalWeeklyPeriods) throw new ArgumentException("أكمل نصاب كل مادة قبل نشر الجدول.");
-            if (r.FixedSlots.Any(f => !placed.Any(e => (int)e.Day == f.Day && e.Period == f.Period)))
-                throw new ArgumentException("توجد حصة مثبتة لم يتم الالتزام بها.");
             if (assignment is null && CountPairs(occurrences, schedule) < r.PairedBlockCount)
                 throw new ArgumentException("أكمل الحصص الزوجية المتجاورة دون استراحة وبنفس المعلم والغرفة قبل النشر.");
         }

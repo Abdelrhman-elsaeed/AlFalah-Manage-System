@@ -21,6 +21,8 @@ public sealed record SubjectClassTarget(int ClassroomId, int Revision);
 public sealed record AllocateSubjectRequest(int SubjectId, IReadOnlyList<SubjectClassTarget> Classes,
     SubjectRulesRequest Rules, bool OverwriteExisting = false);
 public sealed record UpdateSubjectRequirementsRequest(int Revision, SubjectRulesRequest Rules);
+public sealed record PinSubjectSlotRequest(int SubjectId, IReadOnlyList<int> ClassroomIds, int Day, int Period);
+public sealed record UnpinSubjectSlotRequest(int RequirementId, int Day, int Period, int Revision);
 public sealed record SubjectAllocationResult(int ClassroomId, string ClassroomName, string Status, string? Message);
 public sealed record SubjectBulkResult(IReadOnlyList<SubjectAllocationResult> Results);
 public sealed record GetSubjectsQuery(int SetupId) : IRequest<ApiResponse<SubjectOverviewDto>>;
@@ -30,3 +32,5 @@ public sealed record CreateSubjectRoomCommand(int SetupId, CreateRoomRequest Req
 public sealed record AllocateSubjectToClassesCommand(int SetupId, AllocateSubjectRequest Request) : IRequest<ApiResponse<SubjectBulkResult>>;
 public sealed record UpdateSubjectRequirementsCommand(int SetupId, int RequirementId, UpdateSubjectRequirementsRequest Request) : IRequest<ApiResponse<SubjectBulkResult>>;
 public sealed record RemoveSubjectRequirementCommand(int SetupId, int RequirementId, int Revision) : IRequest<ApiResponse<int>>;
+public sealed record PinSubjectSlotCommand(int SetupId, PinSubjectSlotRequest Request) : IRequest<ApiResponse<SubjectBulkResult>>;
+public sealed record UnpinSubjectSlotCommand(int SetupId, UnpinSubjectSlotRequest Request) : IRequest<ApiResponse<int>>;

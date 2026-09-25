@@ -11,4 +11,6 @@ export interface SubjectRules {
 export interface SubjectRequirement { id: number; subjectId: number; classroomId: number; classroomName: string; revision: number; totalWeeklyPeriods: number; rules: SubjectRules; }
 export interface SubjectOverview { subjects: Subject[]; classrooms: SubjectClassroom[]; rooms: SubjectRoom[]; requirements: SubjectRequirement[]; schedule: BellSchedule | null; }
 export interface AllocateSubject { subjectId: number; classes: { classroomId: number; revision: number }[]; rules: SubjectRules; overwriteExisting: boolean; }
+export interface PinSubjectSlot { subjectId: number; classroomIds: number[]; day: number; period: number; }
+export interface UnpinSubjectSlot { requirementId: number; day: number; period: number; revision: number; }
 export interface SubjectBulkResult { results: { classroomId: number; classroomName: string; status: 'Created' | 'Updated' | 'Skipped'; message: string | null }[]; }

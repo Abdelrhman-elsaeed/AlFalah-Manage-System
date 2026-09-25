@@ -630,7 +630,9 @@ public sealed class IntermediateSchoolTimetableDataSeeder
             if (plan.Subject.Name == "المهارات الحياتية" || plan.Subject.Name == "النشاط المدرسي" && plan.ClassroomIndex % 2 == 0)
             {
                 var slot = plan.Occurrences[0];
-                context.Add(new ClassSubjectFixedSlot { ClassSubjectRequirementId = plan.Requirement.Id, Day = slot.Day, Period = slot.Period });
+                context.Add(new ClassSubjectFixedSlot { SchoolId = school.Id, TimetableSetupProfileId = setup.Id,
+                    ClassSubjectRequirementId = plan.Requirement.Id, ClassroomId = plan.Requirement.ClassroomId,
+                    SubjectId = plan.Requirement.SubjectId, Day = slot.Day, Period = slot.Period });
             }
         }
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

@@ -107,6 +107,73 @@ public sealed class SubjectService(ISubjectRepository repository, IBellScheduleR
         var current = (await repository.GetRequirementsAsync(school, setupId, ct)).SingleOrDefault(x => x.Id == id) ?? throw new KeyNotFoundException();
         return await AllocateAsync(school, setupId, new(current.SubjectId, [new(current.ClassroomId, request.Revision)], request.Rules, true), actor, ct);
     }
+    public async Task<SubjectBulkResult> PinAsync(int school, int setupId, PinSubjectSlotRequest request, string actor, CancellationToken ct)
+    {
+        var setup = await Setup(school, setupId, ct);
+        if (!(await repository.GetSubjectsAsync(school, ct)).Any(x => x.Id == request.SubjectId))
+            throw new ArgumentException("المادة غير متاحة لهذه المدرسة.");
+        var classes = await repository.GetClassroomsAsync(school, setup.AcademicYearId, ct);
+        if (request.ClassroomIds.Any(id => classes.All(c => c.Id != id)))
+            throw new ArgumentException("أحد الفصول غير متاح في المدرسة أو العام الدراسي.");
+        var schedule = await bells.GetSelectedAsync(school, setup.AcademicYearId, setup.Semester, setupId, ct)
+            ?? throw new ArgumentException("اختر توقيتات الجدول أولاً.");
+        if (!schedule.Days.Any(x => x.IsStudyDay && x.Day == request.Day) ||
+            !BellScheduleResolver.EffectivePeriods(schedule, (TimetableDay)request.Day).Any(x => x.Sequence == request.Period))
+            throw new ArgumentException("الحصة المحددة غير موجودة في يوم دراسي.");
+
+        var requirements = await repository.GetRequirementsAsync(school, setupId, ct);
+        var selected = request.ClassroomIds.Select(classroomId => requirements.SingleOrDefault(x =>
+            x.ClassroomId == classroomId && x.SubjectId == request.SubjectId) ??
+            throw new ArgumentException($"خصص المادة للفصل {classes.Single(x => x.Id == classroomId).Name} قبل تثبيتها.")).ToArray();
+        if (request.ClassroomIds.Any(classroomId => requirements.Any(x => x.ClassroomId == classroomId &&
+            x.SubjectId != request.SubjectId && x.FixedSlots.Any(f => f.Day == request.Day && f.Period == request.Period))))
+            throw new ArgumentException("أحد الفصول لديه مادة مختلفة مثبتة في اليوم والحصة نفسيهما.");
+
+        foreach (var requirement in selected.Where(x => x.FixedSlots.All(f => f.Day != request.Day || f.Period != request.Period)))
+            SubjectSchedulingPolicy.Validate(Rules(requirement) with
+            {
+                FixedSlots = [.. Rules(requirement).FixedSlots, new(request.Day, request.Period)]
+            }, schedule);
+
+        var results = new List<SubjectAllocationResult>();
+        var changed = false;
+        foreach (var requirement in selected)
+        {
+            var name = classes.Single(x => x.Id == requirement.ClassroomId).Name;
+            if (requirement.FixedSlots.Any(x => x.Day == request.Day && x.Period == request.Period))
+            {
+                results.Add(new(requirement.ClassroomId, name, "Skipped", "الحصة مثبتة بالفعل."));
+                continue;
+            }
+            var rules = Rules(requirement);
+            repository.SetRules(requirement, rules with { FixedSlots = [.. rules.FixedSlots, new(request.Day, request.Period)] });
+            requirement.Revision++; requirement.UpdatedAt = DateTimeOffset.UtcNow; requirement.UpdatedByUserId = actor;
+            results.Add(new(requirement.ClassroomId, name, "Updated", null)); changed = true;
+        }
+        if (changed)
+        {
+            await InvalidateAsync(setup, actor, ct);
+            await repository.SaveAsync(school, setupId, actor, "Timetable.Subject.FixedSlotPinned", request, ct);
+        }
+        return new(results);
+    }
+    public async Task<int> UnpinAsync(int school, int setupId, UnpinSubjectSlotRequest request, string actor, CancellationToken ct)
+    {
+        var setup = await Setup(school, setupId, ct);
+        var requirement = (await repository.GetRequirementsAsync(school, setupId, ct))
+            .SingleOrDefault(x => x.Id == request.RequirementId) ?? throw new KeyNotFoundException();
+        if (requirement.Revision != request.Revision) throw new BellScheduleConflictException("Requirement changed");
+        if (requirement.FixedSlots.All(x => x.Day != request.Day || x.Period != request.Period)) throw new KeyNotFoundException();
+        var rules = Rules(requirement);
+        repository.SetRules(requirement, rules with
+        {
+            FixedSlots = rules.FixedSlots.Where(x => x.Day != request.Day || x.Period != request.Period).ToArray()
+        });
+        requirement.Revision++; requirement.UpdatedAt = DateTimeOffset.UtcNow; requirement.UpdatedByUserId = actor;
+        await InvalidateAsync(setup, actor, ct);
+        await repository.SaveAsync(school, setupId, actor, "Timetable.Subject.FixedSlotUnpinned", request, ct);
+        return requirement.Id;
+    }
     public async Task<int> RemoveAsync(int school, int setupId, int id, int revision, string actor, CancellationToken ct)
     {
         var setup = await Setup(school, setupId, ct);

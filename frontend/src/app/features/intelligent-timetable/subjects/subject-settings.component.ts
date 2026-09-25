@@ -9,6 +9,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { ColorPickerModule } from 'primeng/colorpicker';
+import { CheckboxModule } from 'primeng/checkbox';
 import { TableModule } from 'primeng/table';
 import { finalize } from 'rxjs';
 import { SubjectService } from '../../../core/services/subject.service';
@@ -19,7 +20,7 @@ import { effectivePeriods } from '../../../core/models/bell-schedule.models';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 
 @Component({ selector: 'app-subject-settings', standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, DropdownModule, MultiSelectModule, InputNumberModule, InputTextModule, ColorPickerModule, TableModule],
+  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, DropdownModule, MultiSelectModule, InputNumberModule, InputTextModule, ColorPickerModule, CheckboxModule, TableModule],
   templateUrl: './subject-settings.component.html', styleUrl: './subject-settings.component.css' })
 export class SubjectSettingsComponent implements OnInit {
   private readonly api = inject(SubjectService); private readonly settings = inject(TimetableSettingsService); private readonly route = inject(ActivatedRoute);
@@ -27,7 +28,8 @@ export class SubjectSettingsComponent implements OnInit {
   setupId = 0; yearId = 0; semester = 1; loading = false; saving = false; error = ''; message = '';
   search = ''; filter = ''; stage: number | null = null; grade: number | null = null;
   subjectId = 0; selectedClasses: number[] = []; selectedSubjects: Subject[] = []; rules = this.emptyRules();
-  editorOpen = false; catalogOpen = false; roomsOpen = false; overwriteOpen = false; roomName = '';
+  editorOpen = false; catalogOpen = false; roomsOpen = false; overwriteOpen = false; pinOpen = false; roomName = '';
+  pinSubjectId = 0; pinClassroomIds: number[] = []; pinDay = 0; pinPeriod = 0;
   subjectDraft: Subject = { id: 0, name: '', color: '#2563eb', revision: 0 };
   results: SubjectBulkResult | null = null; editingId: number | null = null; private baseline = ''; private version = 0;
   readonly preferences = [{ label: 'بدون تفضيل', value: 'None' }, { label: 'تفضيل مبكر', value: 'Early' }, { label: 'تفضيل متأخر', value: 'Late' }];
@@ -45,6 +47,12 @@ export class SubjectSettingsComponent implements OnInit {
   get earlyCount() { return this.data?.requirements.filter(r => r.rules.timePreference === 'Early').length ?? 0; }
   get singleCount() { return this.data?.requirements.filter(r => r.rules.individualPeriodCount > 0).length ?? 0; }
   get pairedCount() { return this.data?.requirements.filter(r => r.rules.pairedBlockCount > 0).length ?? 0; }
+  get pinClasses() { const allocated = new Set(this.requirements(this.pinSubjectId).map(r => r.classroomId));
+    return (this.data?.classrooms ?? []).filter(c => allocated.has(c.id)); }
+  get pinPeriods() { return this.periods(this.pinDay); }
+  get pinAllSelected() { return this.pinClasses.length > 0 && this.pinClasses.every(c => this.pinClassroomIds.includes(c.id)); }
+  set pinAllSelected(value: boolean) { this.pinClassroomIds = value ? this.pinClasses.map(c => c.id) : []; }
+  get pinValid() { return this.pinSubjectId > 0 && this.pinClassroomIds.length > 0 && this.pinDay > 0 && this.pinPeriod > 0; }
   get valid() { return this.subjectId > 0 && this.selectedClasses.length > 0 && this.total > 0 &&
     Number.isInteger(this.rules.individualPeriodCount) && this.rules.individualPeriodCount >= 0 && this.rules.individualPeriodCount <= 100 &&
     Number.isInteger(this.rules.pairedBlockCount) && this.rules.pairedBlockCount >= 0 && this.rules.pairedBlockCount <= 50 &&
@@ -55,7 +63,8 @@ export class SubjectSettingsComponent implements OnInit {
   private emptyRules(): SubjectRules { return { individualPeriodCount: 1, pairedBlockCount: 0, timePreference: 'None', earliestPeriodSequence: 1,
     latestPreferredPeriodSequence: 1, allowedDays: [], fixedSlots: [], roomIds: [], preferredRoomId: null }; }
   private state() { return JSON.stringify({ subjectId: this.subjectId, classes: this.selectedClasses, rules: this.rules }); }
-  hasUnsavedChanges() { return this.saving || this.editorOpen && this.state() !== this.baseline || this.catalogOpen && !!this.subjectDraft.name.trim() || this.roomsOpen && !!this.roomName.trim(); }
+  hasUnsavedChanges() { return this.saving || this.editorOpen && this.state() !== this.baseline || this.catalogOpen && !!this.subjectDraft.name.trim() ||
+    this.roomsOpen && !!this.roomName.trim() || this.pinOpen && (this.pinSubjectId > 0 || this.pinClassroomIds.length > 0); }
   @HostListener('window:beforeunload', ['$event']) beforeUnload(e: BeforeUnloadEvent) { if (this.hasUnsavedChanges()) { e.preventDefault(); e.returnValue = ''; } }
   loadContext() { const version = ++this.version; this.loading = true; this.data = null; this.error = '';
     this.settings.getOverview(this.yearId || undefined, this.semester, this.setupId || undefined).subscribe({ next: r => {
@@ -78,6 +87,26 @@ export class SubjectSettingsComponent implements OnInit {
   periods(day: number) { return this.data?.schedule ? effectivePeriods(this.data.schedule, day).map(p => ({ label: `الحصة ${p.sequence}`, value: p.sequence })) : []; }
   addFixed() { const day = this.rules.allowedDays[0] ?? this.days[0]?.value; const period = this.periods(day)[0]?.value;
     if (day && period) this.rules.fixedSlots.push({ day, period }); }
+  openPin() { this.pinSubjectId = 0; this.pinClassroomIds = []; this.pinDay = this.days[0]?.value ?? 0;
+    this.pinPeriod = this.periods(this.pinDay)[0]?.value ?? 0; this.error = ''; this.pinOpen = true; }
+  pinSubjectChanged() { this.pinClassroomIds = []; }
+  pinDayChanged() { this.pinPeriod = this.periods(this.pinDay)[0]?.value ?? 0; }
+  savePin() { if (!this.pinValid || this.saving) return; this.saving = true; this.error = '';
+    this.api.pin(this.setupId, { subjectId: this.pinSubjectId, classroomIds: this.pinClassroomIds, day: this.pinDay, period: this.pinPeriod })
+      .pipe(finalize(() => this.saving = false)).subscribe({ next: response => {
+        if (response.isSuccess && response.data) { const changed = response.data.results.filter(x => x.status === 'Updated').length;
+          const skipped = response.data.results.length - changed; this.message = `تم تثبيت المادة في ${changed} فصل، وتخطي ${skipped}.`;
+          this.pinOpen = false; this.load(); }
+        else this.error = response.errors?.join('، ') || response.message || 'تعذر تثبيت المادة.';
+      }, error: e => this.fail(e) }); }
+  unpin(r: SubjectRequirement, slot: { day: number; period: number }) {
+    if (this.saving || !window.confirm(`إلغاء تثبيت ${this.dayNames[slot.day - 1]} — الحصة ${slot.period} من ${r.classroomName}؟`)) return;
+    this.saving = true; this.error = '';
+    this.api.unpin(this.setupId, { requirementId: r.id, day: slot.day, period: slot.period, revision: r.revision })
+      .pipe(finalize(() => this.saving = false)).subscribe({ next: response => {
+        if (response.isSuccess) { this.message = 'تم إلغاء تثبيت الحصة.'; this.load(); }
+        else this.error = response.errors?.join('، ') || response.message || 'تعذر إلغاء التثبيت.';
+      }, error: e => this.fail(e) }); }
   prepareSave() { if (!this.valid || this.saving) return;
     if (!this.editingId && this.overlapping.length) this.overwriteOpen = true; else this.save(!!this.editingId); }
   save(overwrite: boolean) { if (!this.valid || this.saving) return; this.saving = true; this.error = ''; this.overwriteOpen = false;

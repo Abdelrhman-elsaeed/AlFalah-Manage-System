@@ -124,6 +124,60 @@ public sealed class SubjectPhase5Tests
         (await Handler(other).Handle(new AllocateSubjectToClassesCommand(1, replace), default)).IsSuccess.Should().BeTrue();
         (await stale.Handle(new AllocateSubjectToClassesCommand(1, replace with { Rules = Rules(3) }), default)).Errors.Should().Contain(TimetableSettingsHandlerSupport.ConcurrencyConflict);
     }
+    [Fact]
+    public async Task Fixed_subject_slots_are_bulk_idempotent_reject_conflicts_and_can_be_unpinned()
+    {
+        await using var db = await Seed(); var handler = Handler(db);
+        await handler.Handle(new AllocateSubjectToClassesCommand(1, Request(2, 1, 2)), default);
+        var pin = new PinSubjectSlotRequest(1, [1, 2], 1, 1);
+        var created = await handler.Handle(new PinSubjectSlotCommand(1, pin), default);
+        created.IsSuccess.Should().BeTrue();
+        created.Data!.Results.Should().OnlyContain(x => x.Status == "Updated");
+        db.ChangeTracker.Clear();
+        var requirements = (await handler.Handle(new GetSubjectsQuery(1), default)).Data!.Requirements;
+        requirements.Should().OnlyContain(x => x.Rules.FixedSlots.Contains(new FixedSubjectSlot(1, 1)));
+        db.Set<ClassSubjectFixedSlot>().Should().OnlyContain(x => x.SchoolId == 1 && x.TimetableSetupProfileId == 1 &&
+            x.SubjectId == 1 && (x.ClassroomId == 1 || x.ClassroomId == 2));
+
+        var repeated = await handler.Handle(new PinSubjectSlotCommand(1, pin), default);
+        repeated.Data!.Results.Should().OnlyContain(x => x.Status == "Skipped");
+        db.Set<ClassSubjectFixedSlot>().Should().HaveCount(2);
+
+        db.Add(new SubjectDefinition { Id = 2, SchoolId = 1, Name = "نشاط" }); await db.SaveChangesAsync();
+        await handler.Handle(new AllocateSubjectToClassesCommand(1,
+            new(2, [new SubjectClassTarget(1, 0)], Rules(1))), default);
+        var conflict = await handler.Handle(new PinSubjectSlotCommand(1, new(2, [1], 1, 1)), default);
+        conflict.IsSuccess.Should().BeFalse();
+        db.Set<ClassSubjectFixedSlot>().Should().NotContain(x => x.SubjectId == 2);
+
+        db.ChangeTracker.Clear();
+        var first = (await handler.Handle(new GetSubjectsQuery(1), default)).Data!.Requirements.Single(x => x.SubjectId == 1 && x.ClassroomId == 1);
+        (await handler.Handle(new UnpinSubjectSlotCommand(1, new(first.Id, 1, 1, first.Revision)), default)).IsSuccess.Should().BeTrue();
+        db.ChangeTracker.Clear();
+        var latest = (await handler.Handle(new GetSubjectsQuery(1), default)).Data!.Requirements;
+        latest.Single(x => x.SubjectId == 1 && x.ClassroomId == 1).Rules.FixedSlots.Should().BeEmpty();
+        latest.Single(x => x.SubjectId == 1 && x.ClassroomId == 2).Rules.FixedSlots.Should().ContainSingle();
+    }
+    [Fact]
+    public async Task Manual_assignment_cannot_place_another_subject_in_a_fixed_slot()
+    {
+        await using var db = await Seed(); var handler = Handler(db);
+        await handler.Handle(new AllocateSubjectToClassesCommand(1, Request(1, 1)), default);
+        await handler.Handle(new PinSubjectSlotCommand(1, new(1, [1], 1, 1)), default);
+        db.Add(new SubjectDefinition { Id = 2, SchoolId = 1, Name = "نشاط" }); await db.SaveChangesAsync();
+        await handler.Handle(new AllocateSubjectToClassesCommand(1,
+            new(2, [new SubjectClassTarget(1, 0)], Rules(1))), default);
+        db.ChangeTracker.Clear();
+        var overview = (await handler.Handle(new GetSubjectsQuery(1), default)).Data!;
+        var activity = overview.Requirements.Single(x => x.SubjectId == 2 && x.ClassroomId == 1);
+        var entry = new TimetableEntryDto(1, TimetableDay.Saturday, 1, TimetableEntryType.Lesson, "1/A", "نشاط",
+            ClassroomId: 1, SubjectId: 2, ClassSubjectRequirementId: activity.Id);
+        var service = new SubjectAssignmentService(new SubjectRepository(db));
+        var timetable = new SchoolTimetable { SchoolId = 1, TimetableSetupProfileId = 1 };
+
+        await service.Invoking(x => x.ValidateAsync(timetable, [entry], overview.Schedule!, false, default))
+            .Should().ThrowAsync<ArgumentException>().WithMessage("*الحصة المثبتة*");
+    }
     private static SubjectRulesRequest Rules(int individual) => new(individual, 0, "None", null, null, [], [], [], null);
     private static AllocateSubjectRequest Request(int individual, params int[] classes) => new(1, classes.Select(c => new SubjectClassTarget(c, 0)).ToArray(), Rules(individual));
     private static SubjectHandlers Handler(AlFalahDbContext db, ICurrentUserService? user = null) => new(new SubjectService(new SubjectRepository(db), new BellScheduleRepository(db)), user ?? new User(1));

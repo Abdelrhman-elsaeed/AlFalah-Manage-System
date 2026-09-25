@@ -15,7 +15,9 @@ public sealed class SubjectHandlers(SubjectService service, ICurrentUserService 
     IRequestHandler<CreateSubjectRoomCommand, ApiResponse<RoomDto>>,
     IRequestHandler<AllocateSubjectToClassesCommand, ApiResponse<SubjectBulkResult>>,
     IRequestHandler<UpdateSubjectRequirementsCommand, ApiResponse<SubjectBulkResult>>,
-    IRequestHandler<RemoveSubjectRequirementCommand, ApiResponse<int>>
+    IRequestHandler<RemoveSubjectRequirementCommand, ApiResponse<int>>,
+    IRequestHandler<PinSubjectSlotCommand, ApiResponse<SubjectBulkResult>>,
+    IRequestHandler<UnpinSubjectSlotCommand, ApiResponse<int>>
 {
     public Task<ApiResponse<SubjectOverviewDto>> Handle(GetSubjectsQuery q, CancellationToken ct) =>
         Respond(() => service.GetAsync(user.ActiveSchoolId!.Value, q.SetupId, ct));
@@ -37,6 +39,12 @@ public sealed class SubjectHandlers(SubjectService service, ICurrentUserService 
             return await service.UpdateAsync(user.ActiveSchoolId!.Value, c.SetupId, c.RequirementId, c.Request, user.UserId!, ct); });
     public Task<ApiResponse<int>> Handle(RemoveSubjectRequirementCommand c, CancellationToken ct) =>
         Respond(() => service.RemoveAsync(user.ActiveSchoolId!.Value, c.SetupId, c.RequirementId, c.Revision, user.UserId!, ct));
+    public Task<ApiResponse<SubjectBulkResult>> Handle(PinSubjectSlotCommand c, CancellationToken ct) =>
+        Respond(async () => { await new PinSubjectSlotValidator().ValidateAndThrowAsync(c.Request, ct);
+            return await service.PinAsync(user.ActiveSchoolId!.Value, c.SetupId, c.Request, user.UserId!, ct); });
+    public Task<ApiResponse<int>> Handle(UnpinSubjectSlotCommand c, CancellationToken ct) =>
+        Respond(async () => { await new UnpinSubjectSlotValidator().ValidateAndThrowAsync(c.Request, ct);
+            return await service.UnpinAsync(user.ActiveSchoolId!.Value, c.SetupId, c.Request, user.UserId!, ct); });
     private async Task<ApiResponse<T>> Respond<T>(Func<Task<T>> action)
     {
         if (!user.IsAuthenticated || string.IsNullOrWhiteSpace(user.UserId) || !user.ActiveSchoolId.HasValue ||

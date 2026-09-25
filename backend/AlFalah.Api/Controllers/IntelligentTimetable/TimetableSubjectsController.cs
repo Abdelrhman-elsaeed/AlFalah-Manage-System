@@ -18,6 +18,8 @@ public sealed class TimetableSubjectsController(IMediator mediator) : Controller
     [HttpPost("allocations")] public async Task<IActionResult> Allocate(int setupId, AllocateSubjectRequest request, CancellationToken ct) => Respond(await mediator.Send(new AllocateSubjectToClassesCommand(setupId, request), ct));
     [HttpPut("requirements/{id:int}")] public async Task<IActionResult> UpdateRequirement(int setupId, int id, UpdateSubjectRequirementsRequest request, CancellationToken ct) => Respond(await mediator.Send(new UpdateSubjectRequirementsCommand(setupId, id, request), ct));
     [HttpDelete("requirements/{id:int}")] public async Task<IActionResult> Remove(int setupId, int id, [FromQuery] int revision, CancellationToken ct) => Respond(await mediator.Send(new RemoveSubjectRequirementCommand(setupId, id, revision), ct));
+    [HttpPost("fixed-slots")] public async Task<IActionResult> Pin(int setupId, PinSubjectSlotRequest request, CancellationToken ct) => Respond(await mediator.Send(new PinSubjectSlotCommand(setupId, request), ct));
+    [HttpDelete("fixed-slots")] public async Task<IActionResult> Unpin(int setupId, [FromBody] UnpinSubjectSlotRequest request, CancellationToken ct) => Respond(await mediator.Send(new UnpinSubjectSlotCommand(setupId, request), ct));
     private IActionResult Respond<T>(ApiResponse<T> response) => response.IsSuccess ? Ok(response) : StatusCode(
         (response.Errors.FirstOrDefault() ?? response.Message) switch {
             TimetableSettingsHandlerSupport.PermissionDenied => 403,

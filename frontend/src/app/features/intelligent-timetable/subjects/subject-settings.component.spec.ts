@@ -16,9 +16,11 @@ describe('Subject configuration', () => {
       rules: { individualPeriodCount: 4, pairedBlockCount: 1, timePreference: 'Early', earliestPeriodSequence: 1,
         latestPreferredPeriodSequence: 2, allowedDays: [], fixedSlots: [], roomIds: [], preferredRoomId: null } }], schedule: null });
   beforeEach(() => {
-    api = jasmine.createSpyObj('SubjectService', ['get', 'allocate', 'update', 'remove', 'saveSubject']);
+    api = jasmine.createSpyObj('SubjectService', ['get', 'allocate', 'update', 'remove', 'saveSubject', 'createRoom', 'pin', 'unpin']);
     api.get.and.returnValue(of({ isSuccess: true, data: overview(), errors: [], message: '' }));
     api.allocate.and.returnValue(of({ isSuccess: true, data: { results: [{ classroomId: 20, classroomName: '2/A', status: 'Created', message: null }] }, errors: [], message: '' }));
+    api.pin.and.returnValue(of({ isSuccess: true, data: { results: [{ classroomId: 10, classroomName: '1/A', status: 'Updated', message: null }] }, errors: [], message: '' }));
+    api.unpin.and.returnValue(of({ isSuccess: true, data: 100, errors: [], message: '' }));
     TestBed.configureTestingModule({ imports: [SubjectSettingsComponent, NoopAnimationsModule], providers: [
       { provide: SubjectService, useValue: api }, { provide: TimetableSettingsService, useValue: {} },
       { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: () => null } } } }
@@ -60,5 +62,11 @@ describe('Subject configuration', () => {
     component.rules.individualPeriodCount = 0; expect(component.valid).toBeFalse();
     component.rules.pairedBlockCount = 1.5; expect(component.valid).toBeFalse();
     component.rules.pairedBlockCount = 1; expect(component.valid).toBeTrue();
+  });
+  it('pins one subject for all allocated visible classes through the dedicated flow', () => {
+    component.openPin(); component.pinSubjectId = 1; component.pinSubjectChanged(); component.pinAllSelected = true;
+    component.pinDay = 1; component.pinPeriod = 2; component.savePin();
+    expect(api.pin).toHaveBeenCalledWith(1, { subjectId: 1, classroomIds: [10], day: 1, period: 2 });
+    expect(component.pinOpen).toBeFalse();
   });
 });

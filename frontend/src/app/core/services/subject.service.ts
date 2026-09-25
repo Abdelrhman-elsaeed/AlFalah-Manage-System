@@ -2,7 +2,7 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response.model';
-import { AllocateSubject, Subject, SubjectBulkResult, SubjectOverview, SubjectRoom, SubjectRules } from '../models/subject.models';
+import { AllocateSubject, PinSubjectSlot, Subject, SubjectBulkResult, SubjectOverview, SubjectRoom, SubjectRules, UnpinSubjectSlot } from '../models/subject.models';
 import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 
 @Injectable({ providedIn: 'root' })
@@ -19,4 +19,6 @@ export class SubjectService {
   allocate(setup: number, request: AllocateSubject) { return this.http.post<ApiResponse<SubjectBulkResult>>(`${this.url(setup)}/allocations`, request, this.options); }
   update(setup: number, id: number, revision: number, rules: SubjectRules) { return this.http.put<ApiResponse<SubjectBulkResult>>(`${this.url(setup)}/requirements/${id}`, { revision, rules }, this.options); }
   remove(setup: number, id: number, revision: number) { return this.http.delete<ApiResponse<number>>(`${this.url(setup)}/requirements/${id}?revision=${revision}`, this.options); }
+  pin(setup: number, request: PinSubjectSlot) { return this.http.post<ApiResponse<SubjectBulkResult>>(`${this.url(setup)}/fixed-slots`, request, this.options); }
+  unpin(setup: number, request: UnpinSubjectSlot) { return this.http.delete<ApiResponse<number>>(`${this.url(setup)}/fixed-slots`, { ...this.options, body: request }); }
 }

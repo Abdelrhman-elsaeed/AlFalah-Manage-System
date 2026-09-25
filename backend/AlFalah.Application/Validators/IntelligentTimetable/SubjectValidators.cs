@@ -40,3 +40,25 @@ public sealed class AllocateSubjectValidator : AbstractValidator<AllocateSubject
         RuleFor(x => x.Rules).NotNull().SetValidator(new SubjectRulesValidator());
     }
 }
+public sealed class PinSubjectSlotValidator : AbstractValidator<PinSubjectSlotRequest>
+{
+    public PinSubjectSlotValidator()
+    {
+        RuleFor(x => x.SubjectId).GreaterThan(0);
+        RuleFor(x => x.ClassroomIds).NotEmpty().Must(x => x is not null && x.Count <= 500 &&
+            x.All(id => id > 0) && x.Distinct().Count() == x.Count)
+            .WithMessage("اختر فصلاً واحداً على الأقل دون تكرار.");
+        RuleFor(x => x.Day).InclusiveBetween(1, 7);
+        RuleFor(x => x.Period).GreaterThan(0);
+    }
+}
+public sealed class UnpinSubjectSlotValidator : AbstractValidator<UnpinSubjectSlotRequest>
+{
+    public UnpinSubjectSlotValidator()
+    {
+        RuleFor(x => x.RequirementId).GreaterThan(0);
+        RuleFor(x => x.Day).InclusiveBetween(1, 7);
+        RuleFor(x => x.Period).GreaterThan(0);
+        RuleFor(x => x.Revision).GreaterThan(0);
+    }
+}

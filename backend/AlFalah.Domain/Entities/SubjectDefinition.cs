@@ -63,7 +63,11 @@ public sealed class ClassSubjectAllowedDay
 public sealed class ClassSubjectFixedSlot
 {
     public int Id { get; set; }
+    public int SchoolId { get; set; }
+    public int TimetableSetupProfileId { get; set; }
     public int ClassSubjectRequirementId { get; set; }
+    public int ClassroomId { get; set; }
+    public int SubjectId { get; set; }
     public int Day { get; set; }
     public int Period { get; set; }
 }

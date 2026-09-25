@@ -38,7 +38,9 @@ public sealed class SubjectRepository(AlFalahDbContext db) : ISubjectRepository
         foreach (var old in r.AllowedDays.Where(x => !rules.AllowedDays.Contains(x.Day)).ToArray()) { db.Remove(old); r.AllowedDays.Remove(old); }
         foreach (var day in rules.AllowedDays.Where(d => r.AllowedDays.All(x => x.Day != d))) r.AllowedDays.Add(new() { Day = day });
         foreach (var old in r.FixedSlots.Where(x => !rules.FixedSlots.Contains(new(x.Day, x.Period))).ToArray()) { db.Remove(old); r.FixedSlots.Remove(old); }
-        foreach (var slot in rules.FixedSlots.Where(s => r.FixedSlots.All(x => x.Day != s.Day || x.Period != s.Period))) r.FixedSlots.Add(new() { Day = slot.Day, Period = slot.Period });
+        foreach (var slot in rules.FixedSlots.Where(s => r.FixedSlots.All(x => x.Day != s.Day || x.Period != s.Period)))
+            r.FixedSlots.Add(new() { SchoolId = r.SchoolId, TimetableSetupProfileId = r.TimetableSetupProfileId,
+                ClassroomId = r.ClassroomId, SubjectId = r.SubjectId, Day = slot.Day, Period = slot.Period });
         foreach (var old in r.Rooms.Where(x => !rules.RoomIds.Contains(x.RoomId)).ToArray()) { db.Remove(old); r.Rooms.Remove(old); }
         foreach (var id in rules.RoomIds.Where(id => r.Rooms.All(x => x.RoomId != id))) r.Rooms.Add(new() { SchoolId = r.SchoolId, RoomId = id });
         foreach (var room in r.Rooms) room.IsPreferred = room.RoomId == rules.PreferredRoomId;

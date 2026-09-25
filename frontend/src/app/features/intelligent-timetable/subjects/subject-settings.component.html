@@ -7,7 +7,7 @@
     <label>الفصل الدراسي<select [ngModel]="semester" (ngModelChange)="changeContext(yearId, $event)" [disabled]="loading || saving"><option [ngValue]="1">الأول</option><option [ngValue]="2">الثاني</option></select></label>
     <label>ملف الإعداد<select [ngModel]="setupId" (ngModelChange)="chooseSetup($event)" [disabled]="loading || saving"><option *ngFor="let profile of ctx.profiles" [ngValue]="profile.id">{{profile.name}}</option></select></label>
   </section>
-  <div class="error" role="alert" *ngIf="error && !editorOpen && !catalogOpen && !roomsOpen">{{error}} <button type="button" (click)="loadContext()" [disabled]="loading || saving">إعادة التحميل</button></div>
+  <div class="error" role="alert" *ngIf="error && !editorOpen && !catalogOpen && !roomsOpen && !pinOpen">{{error}} <button type="button" (click)="loadContext()" [disabled]="loading || saving">إعادة التحميل</button></div>
   <p class="success" role="status" *ngIf="message">{{message}}</p>
   <p *ngIf="loading" role="status">جارٍ تحميل المواد...</p>
   <div class="panel empty" *ngIf="!loading && !setupId">أنشئ ملف إعداد من <a routerLink="/intelligent-timetable/settings">إعدادات الجدول</a> أولاً.</div>
@@ -19,6 +19,7 @@
     <p class="notice" *ngIf="!d.schedule">اختر <a routerLink="/intelligent-timetable/timings" [queryParams]="{profileId: setupId, academicYearId: yearId, semester: semester}">توقيتات الجدول</a> لتخصيص أنصبة المواد.</p>
     <section class="panel"><div class="toolbar"><input pInputText aria-label="البحث عن مادة" placeholder="ابحث عن مادة..." [(ngModel)]="search" />
       <select aria-label="تصفية المواد" [(ngModel)]="filter"><option value="">كل المواد</option><option value="configured">مخصصة</option><option value="empty">غير مخصصة</option><option value="early">تفضيل مبكر</option><option value="paired">حصص زوجية</option></select>
+      <button pButton label="🔒 تثبيت مادة في الجدول" (click)="openPin()" [disabled]="!d.requirements.length || !d.schedule || saving || loading"></button>
       <button pButton label="إضافة / تخصيص مادة" icon="pi pi-sliders-h" (click)="openRules()" [disabled]="!d.subjects.length || !d.schedule || saving || loading"></button></div>
       <p-table [value]="subjects" [(selection)]="selectedSubjects" dataKey="id" [paginator]="subjects.length > 10" [rows]="10" [tableStyle]="{'min-width':'38rem'}">
         <ng-template pTemplate="header"><tr><th style="width:3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th><th>المادة</th><th>الحالة</th><th>الفصول المرتبطة</th><th>إجراءات</th></tr></ng-template>
@@ -32,7 +33,9 @@
       <div class="table-scroll"><table class="requirements"><thead><tr><th>المادة</th><th>الفصل</th><th>فردية</th><th>كتل زوجية</th><th>الإجمالي</th><th>التفضيل / التثبيت</th><th>إجراءات</th></tr></thead><tbody>
         <ng-container *ngFor="let subject of subjects"><ng-container *ngIf="!selectedSubjects.length || selectedSubjects.includes(subject)"><tr *ngFor="let r of requirements(subject.id)">
           <td>{{subject.name}}</td><td>{{r.classroomName}}</td><td>{{r.rules.individualPeriodCount}}</td><td>{{r.rules.pairedBlockCount}}</td><td><strong>{{r.totalWeeklyPeriods}}</strong></td>
-          <td>{{r.rules.timePreference === 'Early' ? 'مبكر (مرن)' : r.rules.timePreference === 'Late' ? 'متأخر (مرن)' : 'بدون تفضيل'}}<span *ngIf="r.rules.fixedSlots.length" class="badge">{{r.rules.fixedSlots.length}} مثبتة</span></td>
+          <td>{{r.rules.timePreference === 'Early' ? 'مبكر (مرن)' : r.rules.timePreference === 'Late' ? 'متأخر (مرن)' : 'بدون تفضيل'}}
+            <span *ngFor="let slot of r.rules.fixedSlots" class="badge pinned-badge"><i class="pi pi-lock" aria-hidden="true"></i> مثبتة: {{dayNames[slot.day - 1]}} · الحصة {{slot.period}}
+              <button type="button" class="unpin" (click)="unpin(r, slot)" [disabled]="saving || loading" [attr.aria-label]="'إلغاء تثبيت الحصة ' + slot.period + ' من ' + r.classroomName">×</button></span></td>
           <td><div class="actions"><button pButton class="p-button-text" label="تعديل" (click)="openRules(subject.id, r)" [disabled]="saving || loading"></button><button pButton class="p-button-text p-button-danger" label="إزالة من الفصل" (click)="remove(r)" [disabled]="saving || loading"></button></div></td>
         </tr></ng-container></ng-container>
       </tbody></table></div><p class="empty" *ngIf="!d.requirements.length">لم تُخصّص مواد للفصول بعد.</p>
@@ -66,6 +69,21 @@
     </fieldset>
     <p class="notice" *ngIf="!editingId && overlapping.length">{{overlapping.length}} من الفصول المحددة لها إعدادات سابقة. ستختار الاستبدال أو الاحتفاظ بها قبل الحفظ.</p>
     <div class="dialog-actions"><button pButton label="حفظ المتطلبات" (click)="prepareSave()" [disabled]="!valid || saving || loading" [loading]="saving"></button><button pButton class="p-button-text" label="إلغاء" (click)="closeEditor()" [disabled]="saving"></button></div>
+  </div>
+</p-dialog>
+<p-dialog header="تثبيت مادة في الجدول" [(visible)]="pinOpen" [modal]="true" [closable]="!saving" [closeOnEscape]="!saving" [draggable]="false" [style]="{width:'48rem', maxWidth:'96vw'}">
+  <div dir="rtl" class="editor pin-editor"><div role="alert" class="error" *ngIf="error">{{error}}</div>
+    <div class="pin-warning" role="alert"><i class="pi pi-lock" aria-hidden="true"></i><div><strong>تنبيه: التثبيت قيد إلزامي</strong><span>تثبيت المادة يعني أن الحصص المثبتة لن تتغير أثناء الإنشاء التلقائي للجدول</span></div></div>
+    <fieldset [disabled]="saving"><div class="form-grid">
+      <label class="wide">المادة<p-dropdown [options]="data?.subjects || []" optionLabel="name" optionValue="id" [(ngModel)]="pinSubjectId" (ngModelChange)="pinSubjectChanged()" [filter]="true" placeholder="اختر المادة" appendTo="body"></p-dropdown></label>
+      <label class="wide">الفصول ({{pinClassroomIds.length}} محدد)<p-multiSelect [options]="pinClasses" optionLabel="name" optionValue="id" [(ngModel)]="pinClassroomIds" [filter]="true" [showToggleAll]="false" placeholder="اختر الفصول المخصصة لها المادة" appendTo="body"></p-multiSelect></label>
+      <label class="select-all wide" for="pin-select-all"><p-checkbox inputId="pin-select-all" [(ngModel)]="pinAllSelected" [binary]="true"></p-checkbox><span>تحديد كل الفصول</span></label>
+      <p class="hint wide" *ngIf="pinSubjectId && !pinClasses.length">خصص المادة لفصل واحد على الأقل قبل تثبيتها.</p>
+      <label>اليوم<p-dropdown [options]="days" [(ngModel)]="pinDay" (ngModelChange)="pinDayChanged()" placeholder="اختر اليوم" appendTo="body"></p-dropdown></label>
+      <label>الحصة<p-dropdown [options]="pinPeriods" [(ngModel)]="pinPeriod" placeholder="اختر الحصة" appendTo="body"></p-dropdown></label>
+      <div class="slot-summary wide" *ngIf="pinDay && pinPeriod">يوم: <strong>{{dayNames[pinDay - 1]}}</strong> — الحصة: <strong>{{pinPeriod}}</strong></div>
+    </div></fieldset>
+    <div class="dialog-actions"><button pButton label="تثبيت مادة في الجدول" icon="pi pi-lock" (click)="savePin()" [disabled]="!pinValid || saving" [loading]="saving"></button><button pButton class="p-button-text" label="إلغاء" (click)="pinOpen = false" [disabled]="saving"></button></div>
   </div>
 </p-dialog>
 <p-dialog header="الفصول لها إعدادات سابقة" [(visible)]="overwriteOpen" [modal]="true" [style]="{width:'34rem', maxWidth:'95vw'}" [draggable]="false">

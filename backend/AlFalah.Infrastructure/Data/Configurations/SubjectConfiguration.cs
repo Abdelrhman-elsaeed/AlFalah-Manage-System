@@ -1,4 +1,5 @@
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -77,6 +78,15 @@ public sealed class ClassSubjectFixedSlotConfiguration : IEntityTypeConfiguratio
     {
         b.HasKey(x => x.Id);
         b.HasIndex(x => new { x.ClassSubjectRequirementId, x.Day, x.Period }).IsUnique();
+        // A classroom can have exactly one pinned subject at a given setup/day/period.
+        // The denormalized keys make that hard invariant enforceable during concurrent requests.
+        b.HasIndex(x => new { x.SchoolId, x.TimetableSetupProfileId, x.ClassroomId, x.Day, x.Period }).IsUnique();
+        b.HasOne<TimetableSetupProfile>().WithMany().HasForeignKey(x => new { x.SchoolId, x.TimetableSetupProfileId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<Classroom>().WithMany().HasForeignKey(x => new { x.SchoolId, x.ClassroomId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<SubjectDefinition>().WithMany().HasForeignKey(x => new { x.SchoolId, x.SubjectId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         b.ToTable("ClassSubjectFixedSlots", t => t.HasCheckConstraint("CK_SubjectFixedSlot", "[Day] BETWEEN 1 AND 7 AND [Period] > 0"));
     }
 }
