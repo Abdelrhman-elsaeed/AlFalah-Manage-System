@@ -49,10 +49,16 @@ export class SubjectSettingsComponent implements OnInit {
   get pairedCount() { return this.data?.requirements.filter(r => r.rules.pairedBlockCount > 0).length ?? 0; }
   get pinClasses() { const allocated = new Set(this.requirements(this.pinSubjectId).map(r => r.classroomId));
     return (this.data?.classrooms ?? []).filter(c => allocated.has(c.id)); }
-  get pinPeriods() { return this.periods(this.pinDay); }
+  get pinDays() { const studyDays = this.days;
+    if (!this.pinSubjectId || !this.pinClassroomIds.length) return studyDays;
+    const selected = this.requirements(this.pinSubjectId).filter(r => this.pinClassroomIds.includes(r.classroomId));
+    if (selected.length !== this.pinClassroomIds.length) return [];
+    return studyDays.filter(day => selected.every(r => !r.rules.allowedDays.length || r.rules.allowedDays.includes(day.value))); }
+  get pinPeriods() { return this.pinDays.some(day => day.value === this.pinDay) ? this.periods(this.pinDay) : []; }
   get pinAllSelected() { return this.pinClasses.length > 0 && this.pinClasses.every(c => this.pinClassroomIds.includes(c.id)); }
-  set pinAllSelected(value: boolean) { this.pinClassroomIds = value ? this.pinClasses.map(c => c.id) : []; }
-  get pinValid() { return this.pinSubjectId > 0 && this.pinClassroomIds.length > 0 && this.pinDay > 0 && this.pinPeriod > 0; }
+  set pinAllSelected(value: boolean) { this.pinClassroomIds = value ? this.pinClasses.map(c => c.id) : []; this.syncPinSlot(); }
+  get pinValid() { return this.pinSubjectId > 0 && this.pinClassroomIds.length > 0 && this.pinDays.some(day => day.value === this.pinDay) &&
+    this.pinPeriods.some(period => period.value === this.pinPeriod); }
   get valid() { return this.subjectId > 0 && this.selectedClasses.length > 0 && this.total > 0 &&
     Number.isInteger(this.rules.individualPeriodCount) && this.rules.individualPeriodCount >= 0 && this.rules.individualPeriodCount <= 100 &&
     Number.isInteger(this.rules.pairedBlockCount) && this.rules.pairedBlockCount >= 0 && this.rules.pairedBlockCount <= 50 &&
@@ -89,7 +95,8 @@ export class SubjectSettingsComponent implements OnInit {
     if (day && period) this.rules.fixedSlots.push({ day, period }); }
   openPin() { this.pinSubjectId = 0; this.pinClassroomIds = []; this.pinDay = this.days[0]?.value ?? 0;
     this.pinPeriod = this.periods(this.pinDay)[0]?.value ?? 0; this.error = ''; this.pinOpen = true; }
-  pinSubjectChanged() { this.pinClassroomIds = []; }
+  pinSubjectChanged() { this.pinClassroomIds = []; this.syncPinSlot(); }
+  pinClassroomsChanged(classroomIds: number[]) { this.pinClassroomIds = classroomIds ?? []; this.syncPinSlot(); }
   pinDayChanged() { this.pinPeriod = this.periods(this.pinDay)[0]?.value ?? 0; }
   savePin() { if (!this.pinValid || this.saving) return; this.saving = true; this.error = '';
     this.api.pin(this.setupId, { subjectId: this.pinSubjectId, classroomIds: this.pinClassroomIds, day: this.pinDay, period: this.pinPeriod })
@@ -140,4 +147,6 @@ export class SubjectSettingsComponent implements OnInit {
       else this.error = response.errors?.join('، ') || response.message || 'تعذر الإزالة.';
     }, error: e => this.fail(e) }); }
   private fail(e: unknown) { this.error = extractHttpErrorMessage(e) ?? 'تعذر إتمام الطلب. احتفظنا بالتغييرات؛ أعد المحاولة.'; }
+  private syncPinSlot() { if (!this.pinDays.some(day => day.value === this.pinDay)) this.pinDay = this.pinDays[0]?.value ?? 0;
+    if (!this.pinPeriods.some(period => period.value === this.pinPeriod)) this.pinPeriod = this.pinPeriods[0]?.value ?? 0; }
 }

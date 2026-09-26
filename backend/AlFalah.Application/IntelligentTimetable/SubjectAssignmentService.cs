@@ -5,9 +5,21 @@ using AlFalah.Domain.Enums;
 
 namespace AlFalah.Application.IntelligentTimetable;
 
+public sealed record GeneratedTimetableValidationResult(IReadOnlyList<TimetableEntryDto> Entries, int SetupRevision);
+
 /// <summary>Applies configured subject rules to manual, imported and published entries.</summary>
 public sealed class SubjectAssignmentService(ISubjectRepository repository)
 {
+    public async Task<GeneratedTimetableValidationResult> ValidateGeneratedAsync(SchoolTimetable timetable,
+        IReadOnlyList<TimetableEntryDto> entries, BellScheduleDto schedule, CancellationToken ct)
+    {
+        var normalized = await ValidateAsync(timetable, entries, schedule, true, ct);
+        var setup = await repository.GetSetupAsync(timetable.SchoolId, timetable.TimetableSetupProfileId!.Value, ct)
+            ?? throw new KeyNotFoundException();
+        setup.Status = TimetableSetupStatus.Generated;
+        return new(normalized, setup.Revision);
+    }
+
     public async Task<List<TimetableEntryDto>> ValidateAsync(SchoolTimetable timetable, IReadOnlyList<TimetableEntryDto> entries,
         BellScheduleDto schedule, bool publishing, CancellationToken ct)
     {

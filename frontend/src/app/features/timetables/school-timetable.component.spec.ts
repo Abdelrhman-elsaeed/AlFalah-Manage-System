@@ -7,21 +7,23 @@ import { SchoolTimetable } from '../../core/models/timetable.models';
 import { TimetableSubstitutionService } from '../../core/services/timetable-substitution.service';
 import { SchoolTimetableComponent } from './school-timetable.component';
 import { InlineSwapSessionStore } from './inline-swap/inline-swap-session.store';
-import { NEVER, of } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 
 describe('School timetable empty grid', () => {
   let component: SchoolTimetableComponent;
   let timetableApi: jasmine.SpyObj<TimetableService>;
   let substitutionApi: jasmine.SpyObj<TimetableSubstitutionService>;
+  let toast: { success: jasmine.Spy; error: jasmine.Spy; warn: jasmine.Spy };
 
   beforeEach(() => {
-    timetableApi = jasmine.createSpyObj<TimetableService>('TimetableService', ['getCurrent']);
+    timetableApi = jasmine.createSpyObj<TimetableService>('TimetableService', ['getCurrent', 'regenerate']);
     substitutionApi = jasmine.createSpyObj<TimetableSubstitutionService>('TimetableSubstitutionService', ['inlineCandidates', 'executeInline']);
+    toast = { success: jasmine.createSpy('success'), error: jasmine.createSpy('error'), warn: jasmine.createSpy('warn') };
     substitutionApi.inlineCandidates.and.returnValue(NEVER);
     TestBed.configureTestingModule({ providers: [
       { provide: TimetableService, useValue: timetableApi },
       { provide: TimetableSettingsService, useValue: {} },
-      { provide: ToastService, useValue: {} },
+      { provide: ToastService, useValue: toast },
       { provide: TimetableSubstitutionService, useValue: substitutionApi },
       InlineSwapSessionStore
     ] });
@@ -175,6 +177,74 @@ describe('School timetable empty grid', () => {
     expect(component.gridFullscreen()).toBeTrue();
   });
 
+  it('requires explicit confirmation before regenerating and replaces the view with the returned draft', () => {
+    const current = generatedTimetable();
+    const regenerated = { ...current, revision: 4, isPublished: false, publishedAt: null, timingsRequireRevalidation: false };
+    (component as any).applyTimetable(current);
+    timetableApi.regenerate.and.returnValue(of({ isSuccess: true, message: '', errors: [], data: regenerated }));
+
+    component.openRegenerate();
+
+    expect(component.regenerateDialogVisible()).toBeTrue();
+    expect(timetableApi.regenerate).not.toHaveBeenCalled();
+
+    component.regenerate();
+
+    expect(timetableApi.regenerate).toHaveBeenCalledOnceWith(10, 3);
+    expect(component.timetable()?.revision).toBe(4);
+    expect(component.timetable()?.isPublished).toBeFalse();
+    expect(component.regenerateDialogVisible()).toBeFalse();
+    expect(toast.success).toHaveBeenCalled();
+  });
+
+  it('blocks regeneration while there are unsaved manual changes', () => {
+    (component as any).applyTimetable(generatedTimetable());
+    component.dirty.set(true);
+
+    component.openRegenerate();
+    component.regenerate();
+
+    expect(component.regenerateDialogVisible()).toBeFalse();
+    expect(timetableApi.regenerate).not.toHaveBeenCalled();
+    expect(toast.warn).toHaveBeenCalledWith('احفظ التعديلات أولًا', jasmine.any(String));
+  });
+
+  it('does not offer regeneration for a legacy timetable without a setup profile', () => {
+    (component as any).applyTimetable({ ...generatedTimetable(), timetableSetupProfileId: null });
+
+    component.openRegenerate();
+
+    expect(component.regenerateDialogVisible()).toBeFalse();
+    expect(timetableApi.regenerate).not.toHaveBeenCalled();
+    expect(toast.warn).toHaveBeenCalledWith('إعادة التوليد غير متاحة', jasmine.any(String));
+  });
+
+  it('keeps the confirmation dialog open and clears busy state when regeneration fails', () => {
+    const current = generatedTimetable();
+    (component as any).applyTimetable(current);
+    timetableApi.regenerate.and.returnValue(throwError(() => ({ error: { message: 'قيود متعارضة' } })));
+    component.openRegenerate();
+
+    component.regenerate();
+
+    expect(component.regenerating()).toBeFalse();
+    expect(component.regenerateDialogVisible()).toBeTrue();
+    expect(component.timetable()?.revision).toBe(current.revision);
+    expect(toast.error).toHaveBeenCalled();
+  });
+
+  it('ignores a duplicate regenerate action while the first request is running', () => {
+    (component as any).applyTimetable(generatedTimetable());
+    timetableApi.regenerate.and.returnValue(NEVER);
+    component.openRegenerate();
+
+    component.regenerate();
+    component.regenerate();
+
+    expect(component.regenerating()).toBeTrue();
+    expect(timetableApi.regenerate).toHaveBeenCalledTimes(1);
+  });
+
   it('executes an accepted green alternative automatically', async () => {
     const timetable = generatedTimetable();
     (component as any).applyTimetable(timetable);
@@ -260,6 +330,7 @@ describe('School timetable empty grid', () => {
   function generatedTimetable(): SchoolTimetable {
     return {
       id: 10,
+      timetableSetupProfileId: 15,
       schoolId: 1,
       academicYearId: 1,
       academicYearName: '2026-2027',

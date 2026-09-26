@@ -76,6 +76,7 @@ export interface TimetableTeacherSummary {
 
 export interface SchoolTimetable {
   id: number;
+  timetableSetupProfileId?: number | null;
   schoolId: number;
   academicYearId: number;
   academicYearName: string;

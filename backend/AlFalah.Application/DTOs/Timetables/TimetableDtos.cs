@@ -64,7 +64,8 @@ public sealed record SchoolTimetableDto(
     IReadOnlyList<TimetableEntryDto> Entries,
     IReadOnlyList<TimetableTeacherSummaryDto> TeacherSummaries,
     TimetableCapabilitiesDto Capabilities,
-    BellScheduleDto? BellSchedule = null, bool TimingsRequireRevalidation = false);
+    BellScheduleDto? BellSchedule = null, bool TimingsRequireRevalidation = false,
+    int? TimetableSetupProfileId = null);
 
 public sealed record CreateSchoolTimetableRequest(
     int AcademicYearId,

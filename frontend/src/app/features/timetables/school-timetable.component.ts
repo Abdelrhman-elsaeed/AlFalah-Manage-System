@@ -84,6 +84,8 @@ export class SchoolTimetableComponent implements OnInit {
   readonly createDialogVisible = signal(false);
   readonly versionsDialogVisible = signal(false);
   readonly grantsDialogVisible = signal(false);
+  readonly regenerateDialogVisible = signal(false);
+  readonly regenerating = signal(false);
   readonly versions = signal<TimetableVersion[]>([]);
   readonly versionsLoading = signal(false);
   readonly contextBellSchedule = signal<BellSchedule | null>(null);
@@ -403,6 +405,36 @@ export class SchoolTimetableComponent implements OnInit {
       error: error => {
         this.loading.set(false);
         this.toast.error('تعذر تحديث الجدول', extractHttpErrorMessage(error) ?? '');
+      }
+    });
+  }
+
+  openRegenerate(): void {
+    if (!this.timetable()?.timetableSetupProfileId) {
+      this.toast.warn('إعادة التوليد غير متاحة', 'اربط الجدول بملف إعداد أولًا.');
+      return;
+    }
+    if (this.dirty()) {
+      this.toast.warn('احفظ التعديلات أولًا', 'إعادة التوليد تعتمد آخر نسخة محفوظة.');
+      return;
+    }
+    this.regenerateDialogVisible.set(true);
+  }
+
+  regenerate(): void {
+    const timetable = this.timetable();
+    if (!timetable?.timetableSetupProfileId || this.dirty() || this.regenerating()) return;
+    this.regenerating.set(true);
+    this.api.regenerate(timetable.id, timetable.revision).subscribe({
+      next: response => {
+        this.regenerating.set(false);
+        if (response.data) this.applyTimetable(response.data);
+        this.regenerateDialogVisible.set(false);
+        this.toast.success('تمت إعادة توليد الجدول', 'تم حفظه كمسودة جديدة؛ راجعه ثم انشره للمعلمين.');
+      },
+      error: error => {
+        this.regenerating.set(false);
+        this.toast.error('تعذرت إعادة توليد الجدول', extractHttpErrorMessage(error) ?? 'راجع قيود المواد وإتاحة المعلمين والغرف.');
       }
     });
   }

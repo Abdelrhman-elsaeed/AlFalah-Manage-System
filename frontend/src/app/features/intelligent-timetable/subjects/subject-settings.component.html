@@ -76,11 +76,13 @@
     <div class="pin-warning" role="alert"><i class="pi pi-lock" aria-hidden="true"></i><div><strong>تنبيه: التثبيت قيد إلزامي</strong><span>تثبيت المادة يعني أن الحصص المثبتة لن تتغير أثناء الإنشاء التلقائي للجدول</span></div></div>
     <fieldset [disabled]="saving"><div class="form-grid">
       <label class="wide">المادة<p-dropdown [options]="data?.subjects || []" optionLabel="name" optionValue="id" [(ngModel)]="pinSubjectId" (ngModelChange)="pinSubjectChanged()" [filter]="true" placeholder="اختر المادة" appendTo="body"></p-dropdown></label>
-      <label class="wide">الفصول ({{pinClassroomIds.length}} محدد)<p-multiSelect [options]="pinClasses" optionLabel="name" optionValue="id" [(ngModel)]="pinClassroomIds" [filter]="true" [showToggleAll]="false" placeholder="اختر الفصول المخصصة لها المادة" appendTo="body"></p-multiSelect></label>
+      <label class="wide">الفصول ({{pinClassroomIds.length}} محدد)<p-multiSelect [options]="pinClasses" optionLabel="name" optionValue="id" [(ngModel)]="pinClassroomIds" (ngModelChange)="pinClassroomsChanged($event)" [filter]="true" [showToggleAll]="false" placeholder="اختر الفصول المخصصة لها المادة" appendTo="body"></p-multiSelect></label>
       <label class="select-all wide" for="pin-select-all"><p-checkbox inputId="pin-select-all" [(ngModel)]="pinAllSelected" [binary]="true"></p-checkbox><span>تحديد كل الفصول</span></label>
       <p class="hint wide" *ngIf="pinSubjectId && !pinClasses.length">خصص المادة لفصل واحد على الأقل قبل تثبيتها.</p>
-      <label>اليوم<p-dropdown [options]="days" [(ngModel)]="pinDay" (ngModelChange)="pinDayChanged()" placeholder="اختر اليوم" appendTo="body"></p-dropdown></label>
-      <label>الحصة<p-dropdown [options]="pinPeriods" [(ngModel)]="pinPeriod" placeholder="اختر الحصة" appendTo="body"></p-dropdown></label>
+      <p class="error wide" *ngIf="pinClassroomIds.length && !pinDays.length">لا يوجد يوم دراسي مسموح مشترك بين كل الفصول المحددة. راجع الأيام المسموحة للمادة.</p>
+      <p class="hint wide" *ngIf="pinClassroomIds.length && pinDays.length">تعرض القائمة الأيام المسموحة المشتركة بين كل الفصول المحددة فقط.</p>
+      <label>اليوم<p-dropdown [options]="pinDays" [(ngModel)]="pinDay" (ngModelChange)="pinDayChanged()" [disabled]="!pinClassroomIds.length || !pinDays.length" placeholder="اختر اليوم" appendTo="body"></p-dropdown></label>
+      <label>الحصة<p-dropdown [options]="pinPeriods" [(ngModel)]="pinPeriod" [disabled]="!pinClassroomIds.length || !pinPeriods.length" placeholder="اختر الحصة" appendTo="body"></p-dropdown></label>
       <div class="slot-summary wide" *ngIf="pinDay && pinPeriod">يوم: <strong>{{dayNames[pinDay - 1]}}</strong> — الحصة: <strong>{{pinPeriod}}</strong></div>
     </div></fieldset>
     <div class="dialog-actions"><button pButton label="تثبيت مادة في الجدول" icon="pi pi-lock" (click)="savePin()" [disabled]="!pinValid || saving" [loading]="saving"></button><button pButton class="p-button-text" label="إلغاء" (click)="pinOpen = false" [disabled]="saving"></button></div>

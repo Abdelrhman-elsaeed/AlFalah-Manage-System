@@ -9,6 +9,9 @@
       <button pButton type="button" class="p-button-outlined" icon="pi pi-palette" label="PDF A4 ملون" (click)="downloadPdf('color')"></button>
       <button pButton type="button" class="p-button-outlined monochrome-pdf-button" icon="pi pi-file-pdf" label="PDF A4 أبيض وأسود" (click)="downloadPdf('monochrome')"></button>
       <ng-container *ngIf="canManage()">
+        <button *ngIf="current.timetableSetupProfileId" pButton type="button" class="regenerate-button p-button-outlined"
+          icon="pi pi-sparkles" [label]="current.timingsRequireRevalidation ? 'إعادة توليد الجدول' : 'توليد الجدول من جديد'"
+          [disabled]="dirty() || saving() || regenerating()" [loading]="regenerating()" (click)="openRegenerate()"></button>
         <button pButton type="button" class="p-button-outlined" icon="pi pi-history" label="النسخ" (click)="openVersions()"></button>
         <button *ngIf="canDelegate()" pButton type="button" class="p-button-outlined" icon="pi pi-users" label="تفويض مشرف" (click)="openGrants()"></button>
         <button pButton type="button" icon="pi pi-save" label="حفظ" [disabled]="!dirty() || saving()" [loading]="saving()" (click)="save()"></button>
@@ -274,6 +277,23 @@
   <ng-template pTemplate="footer">
     <button pButton type="button" class="p-button-text" label="إلغاء" (click)="createDialogVisible.set(false)"></button>
     <button pButton type="button" label="إنشاء" icon="pi pi-plus" [disabled]="!newProfileId || profilesLoading || !newTitle.trim()" [loading]="saving()" (click)="create()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="إعادة توليد الجدول" [visible]="regenerateDialogVisible()" (visibleChange)="regenerateDialogVisible.set($event)"
+  [modal]="true" [closable]="!regenerating()" [closeOnEscape]="!regenerating()" [style]="{ width: '560px', maxWidth: '94vw' }" dir="rtl">
+  <div class="regenerate-warning">
+    <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+    <div>
+      <strong>سيُستبدل توزيع الحصص الحالي</strong>
+      <p>سيُنشئ النظام جدولًا جديدًا من ملف الإعداد الحالي ويلتزم بالحصص المثبتة وإتاحة المعلمين والغرف. ستبقى النسخة السابقة محفوظة في «النسخ».</p>
+    </div>
+  </div>
+  <p class="dialog-note">سيعود الجدول إلى حالة مسودة، ولن يراه المعلمون بالتوزيع الجديد إلا بعد المراجعة والنشر.</p>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" class="p-button-text" label="إلغاء" [disabled]="regenerating()" (click)="regenerateDialogVisible.set(false)"></button>
+    <button pButton type="button" class="regenerate-confirm" icon="pi pi-sparkles" label="ابدأ إعادة التوليد"
+      [loading]="regenerating()" [disabled]="regenerating()" (click)="regenerate()"></button>
   </ng-template>
 </p-dialog>
 

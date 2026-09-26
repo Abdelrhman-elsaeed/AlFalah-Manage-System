@@ -9,6 +9,7 @@ public interface ISchoolTimetableService
     Task<SchoolTimetableDto?> GetCurrentAsync(int academicYearId, TimetableSemester semester, int? schoolId, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> GetByIdAsync(int timetableId, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> CreateAsync(CreateSchoolTimetableRequest request, int? schoolId, CancellationToken cancellationToken = default);
+    Task<SchoolTimetableDto> RegenerateAsync(int timetableId, TimetableRevisionRequest request, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> SaveAsync(int timetableId, SaveSchoolTimetableRequest request, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> PublishAsync(int timetableId, TimetableRevisionRequest request, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<TimetableVersionDto>> GetVersionsAsync(int timetableId, CancellationToken cancellationToken = default);

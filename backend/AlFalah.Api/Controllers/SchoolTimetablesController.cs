@@ -52,6 +52,15 @@ public sealed class SchoolTimetablesController : ControllerBase
         CancellationToken cancellationToken) =>
         Ok(ApiResponse<SchoolTimetableDto>.Success(await _service.SaveAsync(id, request, cancellationToken), "تم حفظ الجدول وإنشاء نسخة جديدة."));
 
+    [HttpPost("{id:int}/regenerate")]
+    public async Task<IActionResult> Regenerate(
+        int id,
+        [FromBody] TimetableRevisionRequest request,
+        CancellationToken cancellationToken) =>
+        Ok(ApiResponse<SchoolTimetableDto>.Success(
+            await _service.RegenerateAsync(id, request, cancellationToken),
+            "تمت إعادة توليد الجدول كمسودة جديدة. راجعه ثم انشره للمعلمين."));
+
     [HttpPost("{id:int}/publish")]
     public async Task<IActionResult> Publish(
         int id,

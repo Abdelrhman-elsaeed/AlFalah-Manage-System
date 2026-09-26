@@ -161,6 +161,116 @@ public sealed class SchoolTimetableServiceTests
         current.Entries[0].RoomName.Should().Be("معمل الرياضيات");
     }
 
+    [Fact]
+    public async Task Regenerate_builds_a_complete_draft_and_records_a_version_without_user_side_effects_before_the_call()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
+        timetable.Entries.Should().BeEmpty();
+
+        var regenerated = await service.RegenerateAsync(timetable.Id, new(timetable.Revision));
+
+        regenerated.IsPublished.Should().BeFalse();
+        regenerated.TimetableSetupProfileId.Should().NotBeNull();
+        regenerated.Entries.Should().HaveCount(2);
+        regenerated.Entries.Should().OnlyContain(x => x.ClassSubjectRequirementId.HasValue && x.SubjectId.HasValue && x.ClassroomId.HasValue);
+        (await service.GetVersionsAsync(timetable.Id)).First().ChangeKind.Should().Be(TimetableChangeKind.Regenerated);
+    }
+
+    [Fact]
+    public async Task Regenerate_places_configured_fixed_slots_and_returns_the_setup_identity_to_the_UI()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        await harness.PinRequirementAsync(requirementId: 1, day: 3, period: 2);
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
+
+        var regenerated = await service.RegenerateAsync(timetable.Id, new(timetable.Revision));
+
+        regenerated.TimetableSetupProfileId.Should().BeGreaterThan(0);
+        regenerated.Entries.Should().ContainSingle(x => x.ClassSubjectRequirementId == 1 &&
+            x.Day == TimetableDay.Monday && x.Period == 2);
+    }
+
+    [Fact]
+    public async Task Regenerate_turns_a_published_schedule_into_a_reviewable_draft_and_keeps_version_history()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
+        timetable = await service.RegenerateAsync(timetable.Id, new(timetable.Revision));
+        timetable = await service.PublishAsync(timetable.Id, new(timetable.Revision));
+        timetable.IsPublished.Should().BeTrue();
+        var versionsBefore = await service.GetVersionsAsync(timetable.Id);
+
+        var regenerated = await service.RegenerateAsync(timetable.Id, new(timetable.Revision));
+
+        regenerated.IsPublished.Should().BeFalse();
+        regenerated.PublishedAt.Should().BeNull();
+        regenerated.Revision.Should().Be(timetable.Revision + 1);
+        (await service.GetVersionsAsync(timetable.Id)).Should().HaveCount(versionsBefore.Count + 1);
+        (await service.GetVersionsAsync(timetable.Id)).First().ChangeKind.Should().Be(TimetableChangeKind.Regenerated);
+    }
+
+    [Fact]
+    public async Task Regenerate_rejects_a_stale_revision_without_changing_entries_or_versions()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
+        var versionsBefore = await service.GetVersionsAsync(timetable.Id);
+
+        await service.Invoking(x => x.RegenerateAsync(timetable.Id, new(timetable.Revision - 1)))
+            .Should().ThrowAsync<InvalidOperationException>().WithMessage("*قديمة*");
+
+        var unchanged = await service.GetByIdAsync(timetable.Id);
+        unchanged.Revision.Should().Be(timetable.Revision);
+        unchanged.Entries.Should().BeEmpty();
+        (await service.GetVersionsAsync(timetable.Id)).Should().HaveCount(versionsBefore.Count);
+    }
+
+    [Fact]
+    public async Task Regenerate_rejects_unauthorized_users_before_modifying_the_schedule()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var manager = harness.Service(harness.Manager());
+        var timetable = await manager.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
+
+        await harness.Service(harness.Moderator()).Invoking(x => x.RegenerateAsync(timetable.Id, new(timetable.Revision)))
+            .Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+        await harness.Service(harness.Instructor()).Invoking(x => x.RegenerateAsync(timetable.Id, new(timetable.Revision)))
+            .Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+
+        (await manager.GetByIdAsync(timetable.Id)).Entries.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Failed_regeneration_keeps_the_existing_timetable_and_version_history_unchanged()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
+        timetable = await service.RegenerateAsync(timetable.Id, new(timetable.Revision));
+        var originalEntries = timetable.Entries.ToArray();
+        var versionsBefore = await service.GetVersionsAsync(timetable.Id);
+        await harness.MakeFixedTeacherConflictAsync();
+
+        await service.Invoking(x => x.RegenerateAsync(timetable.Id, new(timetable.Revision)))
+            .Should().ThrowAsync<ArgumentException>();
+
+        var unchanged = await service.GetByIdAsync(timetable.Id);
+        unchanged.Revision.Should().Be(timetable.Revision);
+        unchanged.Entries.Should().BeEquivalentTo(originalEntries);
+        (await service.GetVersionsAsync(timetable.Id)).Should().HaveCount(versionsBefore.Count);
+    }
+
     private static SaveTimetableEntryRequest Lesson(int teacherId, string classLabel, string subject) =>
         new(teacherId, TimetableDay.Saturday, 1, TimetableEntryType.Lesson, classLabel, subject);
 
@@ -205,13 +315,16 @@ public sealed class SchoolTimetableServiceTests
         public ISchoolTimetableService Service(ICurrentUserService currentUser)
         {
             var repository = new SchoolTimetableRepository(_context);
+            var reviewRepository = new TimetableReviewRepository(_context);
+            var validation = new AlFalah.Application.IntelligentTimetable.TimetableValidationEngine();
             var guard = new SchoolScopeGuard(_context, currentUser, NullLogger<SchoolScopeGuard>.Instance);
             return new SchoolTimetableService(repository, new StubDocuments(), currentUser, guard, new BellScheduleRepository(_context),
                 new AlFalah.Application.IntelligentTimetable.TeacherAvailabilityService(new TeacherAvailabilityRepository(_context)),
                 new AlFalah.Application.IntelligentTimetable.SubjectAssignmentService(new SubjectRepository(_context)),
-                new AlFalah.Application.IntelligentTimetable.TimetableReviewService(new TimetableReviewRepository(_context),
-                    new AlFalah.Application.IntelligentTimetable.TimetableValidationEngine(),
-                    new AlFalah.Application.IntelligentTimetable.TimetableRepairEngine(new AlFalah.Application.IntelligentTimetable.TimetableValidationEngine()), currentUser));
+                new AlFalah.Application.IntelligentTimetable.TimetableReviewService(reviewRepository, validation,
+                    new AlFalah.Application.IntelligentTimetable.TimetableRepairEngine(validation), currentUser),
+                new AlFalah.Application.IntelligentTimetable.TimetableGenerationService(reviewRepository,
+                    new AlFalah.Application.IntelligentTimetable.TimetableGenerationEngine(), currentUser));
         }
 
         public async Task ConfigureReviewAsync()
@@ -229,6 +342,32 @@ public sealed class SchoolTimetableServiceTests
                 _context.Add(new TeachingAssignment { Id = i, SchoolId = 1, TimetableSetupProfileId = setup.Id, ClassSubjectRequirementId = i,
                     Members = [new() { SchoolId = 1, TimetableSetupProfileId = setup.Id, TeacherTimetableProfileId = i, AllocatedPeriodCount = 1 }] });
             }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task PinRequirementAsync(int requirementId, int day, int period)
+        {
+            var requirement = await _context.Set<ClassSubjectRequirement>().SingleAsync(x => x.Id == requirementId);
+            requirement.FixedSlots.Add(new ClassSubjectFixedSlot
+            {
+                SchoolId = requirement.SchoolId,
+                TimetableSetupProfileId = requirement.TimetableSetupProfileId,
+                ClassSubjectRequirementId = requirement.Id,
+                ClassroomId = requirement.ClassroomId,
+                SubjectId = requirement.SubjectId,
+                Day = day,
+                Period = period
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task MakeFixedTeacherConflictAsync()
+        {
+            await PinRequirementAsync(1, 3, 2);
+            await PinRequirementAsync(2, 3, 2);
+            var secondMember = await _context.Set<TeachingAssignmentMember>()
+                .SingleAsync(x => x.TeachingAssignmentId == 2);
+            secondMember.TeacherTimetableProfileId = 1;
             await _context.SaveChangesAsync();
         }
 

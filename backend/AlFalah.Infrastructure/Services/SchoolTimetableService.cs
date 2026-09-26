@@ -16,6 +16,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     private readonly IBellScheduleRepository _timings;
     private readonly TeacherAvailabilityService _availability;
     private readonly SubjectAssignmentService _subjects;
+    private readonly TimetableGenerationService _generation;
     private readonly ISchoolTimetableRepository _repository;
     private readonly ISchoolTimetableDocumentService _documents;
     private readonly ICurrentUserService _currentUser;
@@ -25,7 +26,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         ISchoolTimetableRepository repository,
         ISchoolTimetableDocumentService documents,
         ICurrentUserService currentUser,
-        SchoolScopeGuard scopeGuard, IBellScheduleRepository timings, TeacherAvailabilityService availability, SubjectAssignmentService subjects, TimetableReviewService review)
+        SchoolScopeGuard scopeGuard, IBellScheduleRepository timings, TeacherAvailabilityService availability, SubjectAssignmentService subjects,
+        TimetableReviewService review, TimetableGenerationService generation)
     {
         _repository = repository;
         _documents = documents;
@@ -35,6 +37,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         _availability = availability;
         _subjects = subjects;
         _review = review;
+        _generation = generation;
     }
 
     public async Task<TimetableCatalogDto> GetCatalogAsync(
@@ -206,6 +209,27 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         return await GetByIdAsync(timetable.Id, cancellationToken);
     }
 
+    public async Task<SchoolTimetableDto> RegenerateAsync(
+        int timetableId,
+        TimetableRevisionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var timetable = await RequireTrackedAsync(timetableId, cancellationToken);
+        await EnsureManageAsync(timetable.SchoolId, cancellationToken);
+        EnsureRevision(timetable, request.Revision);
+        if (timetable.TimetableSetupProfileId is null || timetable.BellScheduleRevisionId is null)
+            throw new ArgumentException("اربط الجدول بملف إعداد وتوقيت صالح قبل إعادة التوليد.");
+
+        var generated = await _generation.GenerateAsync(timetableId, request.Revision, cancellationToken);
+        await _availability.ValidateAssignmentsAsync(timetable, generated, cancellationToken);
+        var timing = await _timings.GetRevisionAsync(timetable.SchoolId, timetable.BellScheduleRevisionId.Value, cancellationToken)
+            ?? throw new ArgumentException("توقيت الجدول الحالي غير صالح.");
+        var validated = await _subjects.ValidateGeneratedAsync(timetable, generated, timing, cancellationToken);
+        await ReplaceAsync(timetable, timetable.Title, validated.Entries, TimetableChangeKind.Regenerated, null,
+            cancellationToken, allowPublished: true, setupRevision: validated.SetupRevision);
+        return await GetByIdAsync(timetableId, cancellationToken);
+    }
+
     public async Task<SchoolTimetableDto> SaveAsync(
         int timetableId,
         SaveSchoolTimetableRequest request,
@@ -362,9 +386,11 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         IReadOnlyList<TimetableEntryDto> entries,
         TimetableChangeKind changeKind,
         int? restoredFromVersion,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool allowPublished = false,
+        int? setupRevision = null)
     {
-        EnsureDraft(timetable);
+        if (!allowPublished) EnsureDraft(timetable);
         var userId = RequireUserId();
         var now = DateTimeOffset.UtcNow;
         await _repository.ExecuteInTransactionAsync(async ct =>
@@ -397,6 +423,11 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             timetable.PublishedByUserId = null;
             timetable.UpdatedAt = now;
             timetable.UpdatedByUserId = userId;
+            if (setupRevision.HasValue)
+            {
+                timetable.SetupRevision = setupRevision;
+                timetable.TimingsRequireRevalidation = false;
+            }
             timetable.Revision++;
             await SaveWithConcurrencyMessageAsync(ct);
             await AddVersionAsync(timetable, entries, changeKind, restoredFromVersion, ct);
@@ -515,7 +546,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 x.Count(e => e.EntryType == TimetableEntryType.Standby)))
             .ToList();
         var header = await _repository.GetAll().Where(x => x.Id == timetableId)
-            .Select(x => new { x.BellScheduleRevisionId, x.TimingsRequireRevalidation }).SingleAsync(cancellationToken);
+            .Select(x => new { x.BellScheduleRevisionId, x.TimingsRequireRevalidation, x.TimetableSetupProfileId }).SingleAsync(cancellationToken);
         var timing = header.BellScheduleRevisionId.HasValue ? await _timings.GetRevisionAsync(data.SchoolId, header.BellScheduleRevisionId.Value, cancellationToken) : null;
         return new SchoolTimetableDto(
             data.Id,
@@ -531,7 +562,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             data.UpdatedAt,
             data.Entries,
             summaries,
-            capabilities, timing, header.TimingsRequireRevalidation);
+            capabilities, timing, header.TimingsRequireRevalidation, header.TimetableSetupProfileId);
     }
 
     private bool ShouldLimitToCurrentInstructor(TimetableCapabilitiesDto capabilities) =>
@@ -671,6 +702,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         TimetableChangeKind.Published => "نشر",
         TimetableChangeKind.Imported => "استيراد Excel",
         TimetableChangeKind.Restored => "استرجاع نسخة",
+        TimetableChangeKind.Regenerated => "إعادة توليد",
         _ => kind.ToString()
     };
 

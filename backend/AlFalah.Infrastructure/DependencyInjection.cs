@@ -126,6 +126,8 @@ public static class DependencyInjection
         services.AddScoped<TeachingAssignmentService>();
         services.AddScoped<ITimetableReviewRepository, TimetableReviewRepository>();
         services.AddScoped<TimetableValidationEngine>();
+        services.AddScoped<TimetableGenerationEngine>();
+        services.AddScoped<TimetableGenerationService>();
         services.AddScoped<TimetableRepairEngine>();
         services.AddScoped<TimetableReviewService>();
         services.AddScoped<ITimetableSubstitutionRepository, TimetableSubstitutionRepository>();

@@ -42,6 +42,10 @@ export class TimetableService {
     return this.http.post<ApiResponse<SchoolTimetable>>(this.base, request).pipe(map(normalizeRequiredTimetableResponse));
   }
 
+  regenerate(id: number, revision: number): Observable<ApiResponse<SchoolTimetable>> {
+    return this.http.post<ApiResponse<SchoolTimetable>>(`${this.base}/${id}/regenerate`, { revision }).pipe(map(normalizeRequiredTimetableResponse));
+  }
+
   save(id: number, request: SaveTimetableRequest): Observable<ApiResponse<SchoolTimetable>> {
     return this.http.put<ApiResponse<SchoolTimetable>>(`${this.base}/${id}`, request).pipe(map(normalizeRequiredTimetableResponse));
   }

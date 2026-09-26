@@ -40,5 +40,6 @@ public enum TimetableChangeKind
     Restored = 5,
     DirectSwap = 6,
     ThreeWaySwap = 7,
-    Substitution = 8
+    Substitution = 8,
+    Regenerated = 9
 }

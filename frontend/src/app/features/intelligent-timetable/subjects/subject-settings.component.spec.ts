@@ -14,7 +14,12 @@ describe('Subject configuration', () => {
     classrooms: [{ id: 10, name: '1/A', stage: 1, gradeLevel: 1 }, { id: 20, name: '2/A', stage: 1, gradeLevel: 2 }],
     rooms: [], requirements: [{ id: 100, subjectId: 1, classroomId: 10, classroomName: '1/A', revision: 3, totalWeeklyPeriods: 6,
       rules: { individualPeriodCount: 4, pairedBlockCount: 1, timePreference: 'Early', earliestPeriodSequence: 1,
-        latestPreferredPeriodSequence: 2, allowedDays: [], fixedSlots: [], roomIds: [], preferredRoomId: null } }], schedule: null });
+        latestPreferredPeriodSequence: 2, allowedDays: [], fixedSlots: [], roomIds: [], preferredRoomId: null } }],
+    schedule: { id: 1, revisionId: 1, schoolId: 1, academicYearId: 1, semester: 1, name: 'جدول', revision: 1,
+      schoolTimeZoneId: 'Asia/Riyadh', selectedByProfileIds: [1], defaultPeriods: [
+        { sequence: 1, displayLabel: 'الأولى', startLocalTime: '07:00:00', endLocalTime: '07:45:00' },
+        { sequence: 2, displayLabel: 'الثانية', startLocalTime: '07:45:00', endLocalTime: '08:30:00' }
+      ], days: [1, 2, 3, 4].map(day => ({ day, isStudyDay: true, usesDefaultSchedule: true, periods: [] })) } });
   beforeEach(() => {
     api = jasmine.createSpyObj('SubjectService', ['get', 'allocate', 'update', 'remove', 'saveSubject', 'createRoom', 'pin', 'unpin']);
     api.get.and.returnValue(of({ isSuccess: true, data: overview(), errors: [], message: '' }));
@@ -68,5 +73,24 @@ describe('Subject configuration', () => {
     component.pinDay = 1; component.pinPeriod = 2; component.savePin();
     expect(api.pin).toHaveBeenCalledWith(1, { subjectId: 1, classroomIds: [10], day: 1, period: 2 });
     expect(component.pinOpen).toBeFalse();
+  });
+  it('offers only days allowed for every selected classroom in the pin dialog', () => {
+    const data = overview();
+    data.requirements[0].rules.allowedDays = [2, 3];
+    data.requirements.push({ ...data.requirements[0], id: 200, classroomId: 20, classroomName: '2/A',
+      rules: { ...data.requirements[0].rules, allowedDays: [3, 4] } });
+    component.data = data; component.pinSubjectId = 1; component.pinDay = 2; component.pinPeriod = 1;
+    component.pinClassroomsChanged([10, 20]);
+    expect(component.pinDays.map(day => day.value)).toEqual([3]);
+    expect(component.pinDay).toBe(3);
+  });
+  it('blocks pinning when selected classrooms have no common allowed day', () => {
+    const data = overview();
+    data.requirements[0].rules.allowedDays = [2];
+    data.requirements.push({ ...data.requirements[0], id: 200, classroomId: 20, classroomName: '2/A',
+      rules: { ...data.requirements[0].rules, allowedDays: [3] } });
+    component.data = data; component.pinSubjectId = 1; component.pinClassroomsChanged([10, 20]);
+    expect(component.pinDays).toEqual([]); expect(component.pinValid).toBeFalse();
+    component.savePin(); expect(api.pin).not.toHaveBeenCalled();
   });
 });
