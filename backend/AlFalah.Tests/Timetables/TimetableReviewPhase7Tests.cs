@@ -126,6 +126,33 @@ public sealed class TimetableReviewPhase7Tests
         c.Timetable.Entries.Single().Period.Should().Be(1);
         foreach (var proposal in proposals) Engine.Evaluate(TimetableRepairEngine.Simulate(c, proposal.Movements)).Should().NotContain(x => x.Severity == ViolationSeverity.Error);
     }
+    [Fact] public void Fixed_slot_repair_search_is_bounded_on_a_realistic_timetable()
+    {
+        var c = Context();
+        var requirement = c.Requirements[0];
+        requirement.IndividualPeriodCount = 4;
+        requirement.FixedSlots.Add(new() { Day = 2, Period = 8 });
+        c.Assignments[0].Members.Single().AllocatedPeriodCount = 4;
+        c.Timetable.Entries.Add(Entry(2, day: 3, period: 1));
+        c.Timetable.Entries.Add(Entry(3, day: 4, period: 1));
+        c.Timetable.Entries.Add(Entry(4, day: 5, period: 1));
+        for (var id = 5; id <= 282; id++)
+            c.Timetable.Entries.Add(new() { Id = id, SchoolId = 1, SchoolTimetableId = 1,
+                InstructorProfileId = 0, Day = (TimetableDay)(2 + id % 5), Period = 1 + id % 8,
+                EntryType = TimetableEntryType.Standby });
+
+        var target = Engine.Evaluate(c).Single(x => x.RuleCode == ViolationRuleCode.ViolatedFixedSlot);
+        var finding = new TimetableAnalysisFinding { Id = 1, Severity = target.Severity, EvidenceJson = JsonSerializer.Serialize(target) };
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var proposals = new TimetableRepairEngine(Engine).Propose(c, new() { Id = 1 }, finding, default);
+        stopwatch.Stop();
+
+        proposals.Should().NotBeEmpty();
+        stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5));
+        foreach (var proposal in proposals)
+            Engine.Evaluate(TimetableRepairEngine.Simulate(c, proposal.Movements))
+                .Should().NotContain(x => x.Key == target.Key);
+    }
     [Fact] public async Task Repair_is_persisted_audited_versioned_and_reanalyzed_and_replay_rejected()
     {
         await using var db = await Seed(close: true); var service = Service(db);

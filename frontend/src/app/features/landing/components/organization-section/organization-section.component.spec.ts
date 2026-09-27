@@ -18,6 +18,20 @@ describe('OrganizationSectionComponent', () => {
     expect(employeeCount).toBe(31);
   });
 
+  it('renders an optimized portrait for every employee instead of initials', () => {
+    spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
+    const fixture = TestBed.createComponent(OrganizationSectionComponent);
+    fixture.detectChanges();
+
+    const portraits = Array.from(
+      fixture.nativeElement.querySelectorAll('.avatar img, .member-avatar img') as NodeListOf<HTMLImageElement>
+    );
+
+    expect(portraits.length).toBe(31);
+    expect(portraits.every((portrait) => portrait.src.endsWith('.webp'))).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.avatar')?.textContent?.trim()).toBe('');
+  });
+
   it('expands the chart and individual departments independently', () => {
     spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
     const fixture = TestBed.createComponent(OrganizationSectionComponent);

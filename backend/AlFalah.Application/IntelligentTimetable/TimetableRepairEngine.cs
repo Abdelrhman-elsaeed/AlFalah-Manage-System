@@ -15,19 +15,21 @@ public sealed class TimetableRepairEngine(TimetableValidationEngine validator)
     {
         var target = JsonSerializer.Deserialize<ValidationViolation>(finding.EvidenceJson ?? "null");
         if (target is null || finding.Severity != ViolationSeverity.Error) return [];
-        var before = validator.Evaluate(c); var hard = before.Where(x => x.Severity == ViolationSeverity.Error).Select(x => x.Key).ToHashSet();
+        var before = validator.Evaluate(c, includeSoft: false); var hard = before.Select(x => x.Key).ToHashSet();
         var entries = c.Timetable.Entries.Where(x => !x.IsDeleted).OrderBy(x => x.Id).ToArray();
         var proposals = new Dictionary<string, RepairProposalDto>(); var attempts = 0;
         void Try(RepairProposalKind kind, string description, IReadOnlyList<RepairMovementDto> moves)
         {
-            ct.ThrowIfCancellationRequested(); if (++attempts > 3000) return;
+            ct.ThrowIfCancellationRequested();
+            if (!CouldResolveTarget(target, moves) || ++attempts > 3000) return;
             var id = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(moves))));
             if (proposals.ContainsKey(id)) return;
-            var after = validator.Evaluate(Simulate(c, moves));
-            var errors = after.Where(x => x.Severity == ViolationSeverity.Error).ToArray();
-            if (errors.Length >= hard.Count || errors.Any(x => !hard.Contains(x.Key)) || errors.Any(x => x.Key == target.Key)) return;
+            var simulated = Simulate(c, moves);
+            var errors = validator.Evaluate(simulated, includeSoft: false);
+            if (errors.Count >= hard.Count || errors.Any(x => !hard.Contains(x.Key)) || errors.Any(x => x.Key == target.Key)) return;
+            var after = validator.Evaluate(simulated);
             proposals[id] = new(id, run.Id, finding.Id, c.Timetable.Revision, kind, 0, description,
-                "تم التحقق من القيود الصارمة", errors.Length, after.Count(x => x.Severity == ViolationSeverity.Warning), moves);
+                "تم التحقق من القيود الصارمة", errors.Count, after.Count(x => x.Severity == ViolationSeverity.Warning), moves);
         }
         foreach (var e in entries.Where(x => target.EntryIds.Contains(x.Id)))
         {
@@ -62,6 +64,14 @@ public sealed class TimetableRepairEngine(TimetableValidationEngine validator)
         selected.AddRange(ordered.Where(x => selected.All(s => s.Id != x.Id)).Take(Math.Max(0, 3 - selected.Count)).ToArray());
         return selected.OrderBy(x => x.PredictedErrors).ThenBy(x => x.PredictedWarnings).ThenBy(x => x.Movements.Count)
             .ThenBy(x => x.Id, StringComparer.Ordinal).Take(3).Select((x, i) => x with { Rank = i + 1 }).ToList();
+    }
+    private static bool CouldResolveTarget(ValidationViolation target, IReadOnlyList<RepairMovementDto> moves)
+    {
+        if (target.RuleCode != ViolationRuleCode.ViolatedFixedSlot) return true;
+        var parts = target.Detail.Split(':');
+        if (parts.Length != 3 || parts[0] != "fixed" || !int.TryParse(parts[1], out var day) ||
+            !int.TryParse(parts[2], out var period)) return true;
+        return moves.Any(x => target.EntryIds.Contains(x.EntryId) && (int)x.ToDay == day && x.ToPeriod == period);
     }
     private static SchoolTimetableEntry[] Block(TimetableValidationContext c, SchoolTimetableEntry e, SchoolTimetableEntry[] entries)
     {

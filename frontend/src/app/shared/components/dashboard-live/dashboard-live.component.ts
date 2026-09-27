@@ -36,6 +36,7 @@ import { PublishedScorePipe } from '../../score-scale';
 type DashboardRoleName = 'main-manager' | 'school-manager' | 'moderator' | 'instructor';
 type DashboardData = MainManagerDashboard | SchoolManagerDashboard | ModeratorDashboard | InstructorDashboard;
 type MetricTone = 'brand' | 'gold' | 'success' | 'danger';
+const DASHBOARD_CHART_COLORS = ['#0F7132', '#D4AF37', '#4F8D68', '#86A873', '#B94A48', '#7A8F63', '#C48B3A', '#64748B'];
 
 interface DashboardMetric {
   labelKey: string;
@@ -77,6 +78,22 @@ interface DashboardHighlight {
   icon: string;
 }
 
+interface ManagerAchievement {
+  labelKey: string;
+  value: number;
+  icon: string;
+}
+
+interface ManagerSummary {
+  schoolName: string;
+  instructors: number;
+  monthVisits: number;
+  totalVisits: number;
+  approvedVisits: number;
+  approvalRate: number;
+  attentionCount: number;
+}
+
 @Component({
   selector: 'app-dashboard-live',
   standalone: true,
@@ -98,6 +115,15 @@ export class DashboardLiveComponent implements OnInit {
   readonly data = signal<DashboardData | null>(null);
   readonly loading = signal(false);
   readonly exporting = signal<'excel' | 'pdf' | null>(null);
+
+  get currentDateLabel(): string {
+    const locale = this.translate.currentLang === 'en' ? 'en-SA' : 'ar-SA';
+    return new Intl.DateTimeFormat(locale, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    }).format(new Date());
+  }
 
   readonly titleKey = computed(() => `DASHBOARD.${this.role.replace('-', '_').toUpperCase()}`);
   readonly rankingTitleKey = computed(() => {
@@ -179,12 +205,14 @@ export class DashboardLiveComponent implements OnInit {
       }));
     }
     if (this.role === 'school-manager') {
-      return (data as SchoolManagerDashboard).moderatorPerformance.map(row => ({
-        name: row.moderatorFullName,
-        visits: row.visitsCount,
-        approved: row.approvedVisitsCount,
-        average: row.averageOverallScore
-      }));
+      return (data as SchoolManagerDashboard).moderatorPerformance
+        .map(row => ({
+          name: row.moderatorFullName,
+          visits: row.visitsCount,
+          approved: row.approvedVisitsCount,
+          average: row.averageOverallScore
+        }))
+        .sort((a, b) => (b.average ?? -1) - (a.average ?? -1) || b.approved - a.approved);
     }
     if (this.role === 'moderator') {
       return (data as ModeratorDashboard).topInstructors.map(row => ({
@@ -275,6 +303,53 @@ export class DashboardLiveComponent implements OnInit {
   readonly instructorData = computed(() => this.role === 'instructor'
     ? this.data() as InstructorDashboard | null
     : null);
+
+  readonly managerSummary = computed<ManagerSummary | null>(() => {
+    if (this.role !== 'school-manager') return null;
+    const d = this.data() as SchoolManagerDashboard | null;
+    if (!d) return null;
+
+    const totalVisits = d.visitsByStatus.reduce((sum, row) => sum + row.count, 0);
+    const approvedVisits = d.visitsByStatus.find(row => row.status === 4)?.count ?? 0;
+    const approvalRate = totalVisits === 0 ? 0 : Math.round((approvedVisits / totalVisits) * 100);
+
+    return {
+      schoolName: d.schoolName,
+      instructors: d.instructorsCount,
+      monthVisits: d.visitsThisMonthCount,
+      totalVisits,
+      approvedVisits,
+      approvalRate,
+      attentionCount: d.evaluationsPendingApprovalCount
+        + d.openComplaintsCount
+        + d.instructorsNeedingImprovementCount
+    };
+  });
+
+  readonly managerAchievements = computed<ManagerAchievement[]>(() => {
+    if (this.role !== 'school-manager') return [];
+    const d = this.data() as SchoolManagerDashboard | null;
+    if (!d) return [];
+    const approvedVisits = d.visitsByStatus.find(row => row.status === 4)?.count ?? 0;
+
+    return [
+      {
+        labelKey: 'DASHBOARD.MANAGER.ACHIEVEMENT_APPROVED',
+        value: approvedVisits,
+        icon: 'pi-verified'
+      },
+      {
+        labelKey: 'DASHBOARD.MANAGER.ACHIEVEMENT_PLANS',
+        value: d.improvementPlans.totalCompleted,
+        icon: 'pi-check-circle'
+      },
+      {
+        labelKey: 'DASHBOARD.MANAGER.ACHIEVEMENT_FOLLOWUPS',
+        value: d.improvementPlans.totalFollowUps,
+        icon: 'pi-chart-line'
+      }
+    ];
+  });
 
   /* ────── School Manager: Urgent Actions ────── */
   readonly urgentActions = computed<UrgentAction[]>(() => {
@@ -439,7 +514,7 @@ export class DashboardLiveComponent implements OnInit {
       labels: rows.map(row => row.statusLabelAr),
       datasets: [{
         data: rows.map(row => row.count),
-        backgroundColor: ['#0F7132', '#D4AF37', '#2563EB', '#22C55E', '#DC2626', '#7C3AED', '#EA580C', '#64748B'],
+        backgroundColor: DASHBOARD_CHART_COLORS,
         borderColor: '#FFFFFF',
         borderWidth: 2
       }]
@@ -498,7 +573,8 @@ export class DashboardLiveComponent implements OnInit {
 
   readonly doughnutOptions = {
     maintainAspectRatio: false,
-    cutout: '62%',
+    cutout: '70%',
+    radius: '88%',
     plugins: {
       // The template renders a p-tag per status below the chart, so chart.js's
       // own legend was a second copy of the same list — and with
@@ -591,6 +667,10 @@ export class DashboardLiveComponent implements OnInit {
     if (status === 5 || status === 8) return 'danger';
     if (status === 1) return 'secondary';
     return 'info';
+  }
+
+  statusChartColor(index: number): string {
+    return DASHBOARD_CHART_COLORS[index % DASHBOARD_CHART_COLORS.length];
   }
 
   private requestForRole(): Observable<ApiResponse<DashboardData>> {

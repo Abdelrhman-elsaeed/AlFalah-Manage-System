@@ -15,6 +15,40 @@ interface StaffDepartment {
   readonly members: readonly StaffMember[];
 }
 
+const STAFF_PHOTOS: Readonly<Record<number, string>> = {
+  1: '01-director.webp',
+  2: '02-mohsen-alhasani.webp',
+  3: '03-abdulilah-alsharif.webp',
+  4: '04-hamza-althubiani.webp',
+  5: '05-mousa-althubiani.webp',
+  6: '06-ahmed-alkuhaili.webp',
+  7: '07-waseem-halawani.webp',
+  8: '08-mishari-allahyani.webp',
+  9: '09-abdulrahman-alamoudi.webp',
+  10: '10-ali-mubarki.webp',
+  11: '11-hussam-khayat.webp',
+  12: '12-mohammed-zaini.webp',
+  13: '13-hussam-alzahrani.webp',
+  14: '14-moayad-alluqmani.webp',
+  15: '15-mohammed-asiri.webp',
+  16: '16-akram-almutrafi.webp',
+  17: '17-khairy-mustafa.webp',
+  18: '18-abdullah-alsulami.webp',
+  19: '19-yazan-althahiri.webp',
+  20: '20-abdullah-almalki.webp',
+  21: '21-majed-baaremah.webp',
+  22: '22-ahmed-alluqmani.webp',
+  23: '23-mansour-alkuhaili.webp',
+  24: '24-ahmed-aldosouqi.webp',
+  25: '25-hussein-khard.webp',
+  26: '26-jamal-alhoushabi.webp',
+  27: '27-mahmoud-alsaeed.webp',
+  28: '28-abdullah-alhasani.webp',
+  29: '29-moayad-khayat.webp',
+  30: '30-fouad-filmban.webp',
+  31: '31-mishaal-almalki.webp'
+};
+
 @Component({
   selector: 'app-organization-section',
   standalone: true,
@@ -189,12 +223,7 @@ export class OrganizationSectionComponent implements AfterViewInit {
     return this.openDepartments().has(id);
   }
 
-  initials(name: string): string {
-    return name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('');
+  photoFor(staffId: number): string {
+    return `assets/media/staff/${STAFF_PHOTOS[staffId]}`;
   }
 }

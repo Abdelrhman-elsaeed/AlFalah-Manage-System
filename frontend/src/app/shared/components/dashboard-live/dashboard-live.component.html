@@ -1,11 +1,22 @@
 <div class="dashboard-page" dir="rtl">
-  <header class="page-header dashboard-header">
+  <header class="page-header dashboard-header" [class.dashboard-header--manager]="role === 'school-manager'">
     <div class="page-header__titles">
+      <span *ngIf="role === 'school-manager'" class="manager-live-label">
+        <span class="manager-live-label__dot"></span>
+        {{ 'DASHBOARD.MANAGER.LIVE_NOW' | translate }}
+      </span>
       <h1 class="page-header__title">{{ titleKey() | translate }}</h1>
-      <p class="page-header__subtitle">{{ 'DASHBOARD.LIVE_SUBTITLE' | translate }}</p>
+      <p class="page-header__subtitle">
+        {{ role === 'school-manager' ? ('DASHBOARD.MANAGER.SUBTITLE' | translate) : ('DASHBOARD.LIVE_SUBTITLE' | translate) }}
+      </p>
     </div>
 
-    <div class="dashboard-actions" [attr.aria-label]="'DASHBOARD.EXPORT_CENTER' | translate">
+    <div class="dashboard-header__side">
+      <span *ngIf="role === 'school-manager'" class="dashboard-date">
+        <i class="pi pi-calendar"></i>
+        {{ currentDateLabel }}
+      </span>
+      <div class="dashboard-actions" [attr.aria-label]="'DASHBOARD.EXPORT_CENTER' | translate">
       <button
         pButton
         type="button"
@@ -33,6 +44,7 @@
         [loading]="exporting() === 'pdf'"
         (click)="export('pdf')">
       </button>
+      </div>
     </div>
   </header>
 
@@ -46,58 +58,121 @@
     <!-- SCHOOL MANAGER: New Executive Dashboard Layout            -->
     <!-- ═══════════════════════════════════════════════════════════ -->
     <ng-container *ngIf="role === 'school-manager'">
-
-      <!-- ── Urgent Actions Banner ── -->
-      <section *ngIf="urgentActions().length" class="urgent-banner" aria-live="polite">
-        <div class="urgent-banner__header">
-          <span class="urgent-banner__pulse"></span>
-          <i class="pi pi-bell urgent-banner__icon"></i>
-          <span class="urgent-banner__title">إجراءات تنتظر قرارك</span>
-        </div>
-        <div class="urgent-banner__items">
-          <button
-            *ngFor="let action of urgentActions(); let i = index"
-            class="urgent-item"
-            [class.urgent-item--danger]="action.tone === 'danger'"
-            [class.urgent-item--gold]="action.tone === 'gold'"
-            [style.animation-delay.ms]="i * 100"
-            (click)="navigateTo(action.route)">
-            <span class="urgent-item__badge">{{ action.count }}</span>
-            <span class="urgent-item__body">
-              <i class="pi" [ngClass]="action.icon"></i>
-              <span>{{ action.label }}</span>
+      <ng-container *ngIf="managerSummary() as summary">
+        <!-- ── Executive command hero ── -->
+        <section class="manager-hero" aria-live="polite">
+          <div class="manager-hero__content">
+            <span class="manager-hero__eyebrow">
+              <i class="pi pi-sparkles"></i>
+              {{ 'DASHBOARD.MANAGER.COMMAND_CENTER' | translate }}
             </span>
-            <i class="pi pi-arrow-left urgent-item__arrow"></i>
-          </button>
-        </div>
-      </section>
+            <h2>{{ summary.schoolName }}</h2>
+            <p>{{ 'DASHBOARD.MANAGER.HERO_DESC' | translate }}</p>
 
-      <!-- ── Executive Brief ── -->
-      <section class="dashboard-brief" aria-live="polite">
-        <div class="dashboard-brief__intro">
-          <span class="dashboard-brief__eyebrow"><i class="pi pi-sparkles"></i>{{ 'DASHBOARD.EXECUTIVE_BRIEF' | translate }}</span>
-          <h2>{{ 'DASHBOARD.EXECUTIVE_TITLE' | translate }}</h2>
-          <p>{{ 'DASHBOARD.EXECUTIVE_DESC' | translate }}</p>
-        </div>
-        <div class="dashboard-brief__highlights">
-          <article *ngFor="let item of highlights(); let i = index" class="brief-highlight" [style.animation-delay.ms]="i * 80">
-            <span class="brief-highlight__icon"><i class="pi" [ngClass]="item.icon"></i></span>
-            <span class="brief-highlight__content">
-              <small>{{ item.labelKey | translate }}</small>
-              <strong>{{ item.value }}</strong>
-            </span>
+            <div class="manager-hero__stats">
+              <div>
+                <span>{{ 'DASHBOARD.METRIC.MONTH_VISITS' | translate }}</span>
+                <strong>{{ summary.monthVisits }}</strong>
+              </div>
+              <div>
+                <span>{{ 'DASHBOARD.MANAGER.APPROVED_VISITS' | translate }}</span>
+                <strong>{{ summary.approvedVisits }}</strong>
+              </div>
+              <div>
+                <span>{{ 'DASHBOARD.METRIC.INSTRUCTORS' | translate }}</span>
+                <strong>{{ summary.instructors }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="manager-hero__score">
+            <div class="approval-ring" [style.--progress]="summary.approvalRate + '%'">
+              <div class="approval-ring__inner">
+                <strong>{{ summary.approvalRate }}<small>%</small></strong>
+                <span>{{ 'DASHBOARD.HIGHLIGHT.APPROVAL_RATE' | translate }}</span>
+              </div>
+            </div>
+            <div class="manager-hero__score-note">
+              <i class="pi pi-verified"></i>
+              <span>
+                <small>{{ 'DASHBOARD.MANAGER.TOTAL_VISITS' | translate }}</small>
+                <strong>{{ summary.totalVisits }}</strong>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Decision priorities and achievements ── -->
+        <section class="manager-focus-grid">
+          <article class="manager-panel priorities-panel">
+            <header class="manager-panel__header">
+              <div>
+                <span class="manager-panel__kicker">{{ 'DASHBOARD.MANAGER.TODAY_FOCUS' | translate }}</span>
+                <h2>{{ 'DASHBOARD.MANAGER.DECISIONS_TITLE' | translate }}</h2>
+              </div>
+              <span class="manager-panel__count" [class.manager-panel__count--clear]="!urgentActions().length">
+                {{ urgentActions().length ? summary.attentionCount : 0 }}
+              </span>
+            </header>
+
+            <div *ngIf="urgentActions().length; else allClear" class="priority-list">
+              <button
+                *ngFor="let action of urgentActions(); let i = index"
+                class="priority-item"
+                [class.priority-item--danger]="action.tone === 'danger'"
+                [style.animation-delay.ms]="i * 70"
+                (click)="navigateTo(action.route)">
+                <span class="priority-item__icon"><i class="pi" [ngClass]="action.icon"></i></span>
+                <span class="priority-item__content">
+                  <strong>{{ action.label }}</strong>
+                  <small>{{ 'DASHBOARD.MANAGER.REQUIRES_ACTION' | translate }}</small>
+                </span>
+                <span class="priority-item__count">{{ action.count }}</span>
+                <i class="pi pi-arrow-left priority-item__arrow"></i>
+              </button>
+            </div>
+            <ng-template #allClear>
+              <div class="all-clear">
+                <span><i class="pi pi-check"></i></span>
+                <div>
+                  <strong>{{ 'DASHBOARD.MANAGER.ALL_CLEAR_TITLE' | translate }}</strong>
+                  <p>{{ 'DASHBOARD.MANAGER.ALL_CLEAR_DESC' | translate }}</p>
+                </div>
+              </div>
+            </ng-template>
           </article>
-        </div>
-      </section>
+
+          <article class="manager-panel achievements-panel">
+            <header class="manager-panel__header">
+              <div>
+                <span class="manager-panel__kicker">{{ 'DASHBOARD.MANAGER.ACHIEVEMENTS_KICKER' | translate }}</span>
+                <h2>{{ 'DASHBOARD.MANAGER.ACHIEVEMENTS_TITLE' | translate }}</h2>
+              </div>
+              <span class="achievement-crown"><i class="pi pi-trophy"></i></span>
+            </header>
+            <div class="achievement-list">
+              <div *ngFor="let achievement of managerAchievements(); let i = index" class="achievement-item">
+                <span class="achievement-item__rank">0{{ i + 1 }}</span>
+                <span class="achievement-item__icon"><i class="pi" [ngClass]="achievement.icon"></i></span>
+                <span class="achievement-item__content">
+                  <strong>{{ achievement.value }}</strong>
+                  <small>{{ achievement.labelKey | translate }}</small>
+                </span>
+              </div>
+            </div>
+          </article>
+        </section>
+      </ng-container>
 
       <!-- ── Interactive Tools Hub ── -->
       <section class="tools-hub">
         <div class="tools-hub__header">
-          <span class="tools-hub__icon-circle"><i class="pi pi-th-large"></i></span>
           <div class="tools-hub__header-text">
-            <h2>مركز أدوات المنظومة</h2>
-            <p>الوصول السريع لكافة خدمات وأدوات إدارة المدرسة</p>
+            <span class="section-kicker">{{ 'DASHBOARD.MANAGER.QUICK_ACCESS' | translate }}</span>
+            <h2>{{ 'DASHBOARD.MANAGER.TOOLS_TITLE' | translate }}</h2>
+            <p>{{ 'DASHBOARD.MANAGER.TOOLS_DESC' | translate }}</p>
           </div>
+          <span class="tools-hub__icon-circle"><i class="pi pi-th-large"></i></span>
         </div>
         <div class="tools-grid">
           <button
@@ -107,7 +182,6 @@
             [style.animation-delay.ms]="i * 60"
             (click)="navigateTo(tool.route)"
             [attr.aria-label]="tool.label">
-            <!-- Action Bell Badge -->
             <span *ngIf="tool.badge > 0" class="tool-card__bell"
               [pTooltip]="tool.badge + ' ' + tool.badgeLabel"
               tooltipPosition="top"
@@ -115,18 +189,14 @@
               <i class="pi pi-bell"></i>
               <span class="tool-card__bell-count">{{ tool.badge }}</span>
             </span>
-            <!-- Tool Icon -->
             <span class="tool-card__icon-wrap">
               <i class="pi" [ngClass]="tool.icon"></i>
             </span>
-            <!-- Tool Label -->
             <span class="tool-card__label">{{ tool.label }}</span>
-            <!-- Stat -->
             <span class="tool-card__stat">
               <strong>{{ tool.stat }}</strong>
               <small>{{ tool.statLabel }}</small>
             </span>
-            <!-- Decorative Arrow -->
             <span class="tool-card__go">
               <i class="pi pi-arrow-left"></i>
             </span>
@@ -138,31 +208,33 @@
       <section class="sm-analytics-grid">
         <!-- Visits by Status Doughnut -->
         <article *ngIf="statusChartData() as statusChart" class="surface-card chart-card">
-          <div class="section-heading">
+          <div class="section-heading section-heading--manager">
             <span class="section-heading__icon"><i class="pi pi-chart-pie"></i></span>
-            <h2>{{ 'DASHBOARD.VISITS_BY_STATUS' | translate }}</h2>
+            <span><small>{{ 'DASHBOARD.MANAGER.ANALYTICS' | translate }}</small><h2>{{ 'DASHBOARD.VISITS_BY_STATUS' | translate }}</h2></span>
           </div>
-          <div class="chart-wrap chart-wrap--doughnut">
-            <p-chart type="doughnut" [data]="statusChart" [options]="doughnutOptions"></p-chart>
-            <div class="chart-center-label">
-              <strong>{{ statusRows().length }}</strong>
-              <span>{{ 'DASHBOARD.STATUS_TYPES' | translate }}</span>
+          <div class="status-chart-layout">
+            <div class="chart-wrap chart-wrap--doughnut">
+              <p-chart type="doughnut" [data]="statusChart" [options]="doughnutOptions"></p-chart>
+              <div class="chart-center-label">
+                <strong>{{ managerSummary()?.totalVisits ?? 0 }}</strong>
+                <span>{{ 'DASHBOARD.MANAGER.TOTAL_VISITS_SHORT' | translate }}</span>
+              </div>
             </div>
-          </div>
-          <div class="status-tags">
-            <p-tag
-              *ngFor="let row of statusRows()"
-              [value]="row.statusLabelAr + ': ' + row.count"
-              [severity]="statusSeverity(row.status)">
-            </p-tag>
+            <div class="status-breakdown" [attr.aria-label]="'DASHBOARD.VISITS_BY_STATUS' | translate">
+              <div *ngFor="let row of statusRows(); let i = index" class="status-breakdown__item">
+                <span class="status-breakdown__dot" [style.background]="statusChartColor(i)"></span>
+                <span class="status-breakdown__label">{{ row.statusLabelAr }}</span>
+                <strong>{{ row.count }}</strong>
+              </div>
+            </div>
           </div>
         </article>
 
         <!-- Subject Performance Chart -->
         <article *ngIf="performanceChartData() as performanceChart" class="surface-card chart-card">
-          <div class="section-heading">
+          <div class="section-heading section-heading--manager">
             <span class="section-heading__icon"><i class="pi pi-chart-line"></i></span>
-            <h2>{{ performanceChartTitleKey() | translate }}</h2>
+            <span><small>{{ 'DASHBOARD.MANAGER.PERFORMANCE' | translate }}</small><h2>{{ performanceChartTitleKey() | translate }}</h2></span>
           </div>
           <div class="chart-wrap">
             <p-chart [type]="performanceChartType()" [data]="performanceChart" [options]="cartesianOptions"></p-chart>
@@ -171,10 +243,10 @@
       </section>
 
       <!-- ── Plan Analytics ── -->
-      <section *ngIf="planAnalytics() as plans" class="surface-card analytics-card">
-        <div class="section-heading">
+      <section *ngIf="planAnalytics() as plans" class="surface-card analytics-card manager-analytics-card">
+        <div class="section-heading section-heading--manager">
           <span class="section-heading__icon"><i class="pi pi-list-check"></i></span>
-          <h2>{{ 'DASHBOARD.PLAN_ANALYTICS' | translate }}</h2>
+          <span><small>{{ 'DASHBOARD.MANAGER.PROGRESS' | translate }}</small><h2>{{ 'DASHBOARD.PLAN_ANALYTICS' | translate }}</h2></span>
         </div>
         <div class="analytics-grid">
           <div><span>{{ 'DASHBOARD.PLAN.ACTIVE' | translate }}</span><strong>{{ plans.totalActive }}</strong></div>
@@ -185,22 +257,24 @@
       </section>
 
       <!-- ── Moderator Performance Table ── -->
-      <section *ngIf="rankingRows().length" class="surface-card ranking-card">
-        <div class="section-heading">
+      <section *ngIf="rankingRows().length" class="surface-card ranking-card manager-ranking-card">
+        <div class="section-heading section-heading--manager">
           <span class="section-heading__icon"><i class="pi pi-chart-bar"></i></span>
-          <h2>{{ rankingTitleKey() | translate }}</h2>
+          <span><small>{{ 'DASHBOARD.MANAGER.TEAM_PULSE' | translate }}</small><h2>{{ rankingTitleKey() | translate }}</h2></span>
         </div>
         <p-table [value]="rankingRows()" [paginator]="rankingRows().length > 8" [rows]="8" responsiveLayout="scroll">
           <ng-template pTemplate="header">
             <tr>
+              <th class="rank-column">#</th>
               <th>{{ 'DASHBOARD.NAME' | translate }}</th>
               <th class="text-center">{{ 'DASHBOARD.VISITS' | translate }}</th>
               <th class="text-center">{{ 'DASHBOARD.APPROVED' | translate }}</th>
               <th class="text-center">{{ 'DASHBOARD.AVERAGE' | translate }}</th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-row>
+          <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
             <tr>
+              <td class="rank-column"><span class="table-rank">{{ rowIndex + 1 }}</span></td>
               <td><strong>{{ row.name }}</strong></td>
               <td class="text-center">{{ row.visits }}</td>
               <td class="text-center">{{ row.approved }}</td>
