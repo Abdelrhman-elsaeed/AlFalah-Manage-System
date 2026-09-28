@@ -11,7 +11,9 @@ public sealed record TeacherContextLookup(
     int FallbackPeriod,
     bool AllowOffHoursFallback,
     DateTimeOffset UtcNow,
-    int? BellScheduleRevisionId = null);
+    int? BellScheduleRevisionId = null,
+    int? SchoolTimetableId = null,
+    int? SchoolTimetableEntryId = null);
 
 public sealed record TeacherIdentitySnapshot(
     int InstructorProfileId,

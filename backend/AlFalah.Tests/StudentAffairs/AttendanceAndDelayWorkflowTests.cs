@@ -6,11 +6,13 @@ using AlFalah.Application.StudentAffairs.DTOs.Delays;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.MorningDelays;
 using AlFalah.Application.StudentAffairs.MorningDelays.Handlers;
+using AlFalah.Domain.Entities;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Domain.Events;
 using AlFalah.Infrastructure.Data;
+using AlFalah.Infrastructure.Repositories;
 using AlFalah.Shared.Models;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +48,64 @@ public sealed class AttendanceAndDelayWorkflowTests
         eventTypes.Should().Contain(type => type.EndsWith(nameof(StudentAbsentRecordedEvent)));
         eventTypes.Should().Contain(type => type.EndsWith(nameof(AcbXX3KgvqD7B8Y4WjCu6yNx1Prfu5cNHz)));
         eventTypes.Should().Contain(type => type.EndsWith(nameof(MUaCqczw28YRmuXBYNYtWgMhWwXe7qmYC3)));
+    }
+
+    [Fact]
+    public async Task AttendanceSheet_UsesOnlyActiveDatedRosterAndReturnsDeterministicRevision()
+    {
+        await using var context = CreateContext();
+        var date = new DateOnly(2026, 8, 30);
+        context.AcademicYears.Add(new AcademicYear
+        {
+            Id = 1, Code = "2026-2027", NameAr = "2026-2027",
+            StartsOn = new DateOnly(2026, 8, 1), EndsOn = new DateOnly(2027, 7, 31), IsActive = true
+        });
+        context.AcademicTerms.Add(new AcademicTerm
+        {
+            Id = 4, SchoolId = 42, AcademicYearId = 1, Semester = TimetableSemester.First,
+            StartsOn = new DateOnly(2026, 8, 1), EndsOn = new DateOnly(2026, 12, 31), IsActive = true
+        });
+        context.Classrooms.Add(new Classroom
+        {
+            Id = 12, SchoolId = 42, AcademicYearId = 1, ClassLabel = "1/A", Stage = SchoolStage.Primary,
+            GradeLevel = 1, Section = "A", IsActive = true
+        });
+        context.Students.AddRange(
+            new Student { Id = 17, SchoolId = 42, StudentNumber = "ST-17", FirstName = "Active", LastName = "Student", IsActive = true },
+            new Student { Id = 18, SchoolId = 42, StudentNumber = "ST-18", FirstName = "Future", LastName = "Student", IsActive = true },
+            new Student { Id = 19, SchoolId = 42, StudentNumber = "ST-19", FirstName = "Former", LastName = "Student", IsActive = true });
+        context.StudentEnrollments.AddRange(
+            Enrollment(1, 17, date, null),
+            Enrollment(2, 18, date.AddDays(1), null),
+            Enrollment(3, 19, date.AddDays(-20), date.AddDays(-1)));
+        await context.SaveChangesAsync();
+        var repository = new AttendanceWorkflowRepository(context);
+
+        var first = await repository.GetAttendanceSheetDtoAsync(42, 12, date, string.Empty, CancellationToken.None);
+        var second = await repository.GetAttendanceSheetDtoAsync(42, 12, date, string.Empty, CancellationToken.None);
+
+        first.Should().NotBeNull();
+        first!.Rows.Select(row => row.Student.Id).Should().Equal(17);
+        first.RosterRevision.Should().Be(second!.RosterRevision);
+
+        context.StudentEnrollments.Add(Enrollment(4, 18, date, null));
+        await context.SaveChangesAsync();
+        var changed = await repository.GetAttendanceSheetDtoAsync(42, 12, date, string.Empty, CancellationToken.None);
+
+        changed!.Rows.Select(row => row.Student.Id).Should().BeEquivalentTo(new[] { 17, 18 });
+        changed.RosterRevision.Should().NotBe(first.RosterRevision);
+
+        static StudentEnrollment Enrollment(int id, int studentId, DateOnly startsOn, DateOnly? endsOn) => new()
+        {
+            Id = id,
+            SchoolId = 42,
+            StudentId = studentId,
+            ClassroomId = 12,
+            AcademicTermId = 4,
+            EnrolledOn = startsOn,
+            WithdrawnOn = endsOn,
+            Status = StudentEnrollmentStatus.Active
+        };
     }
 
     [Fact]
@@ -122,7 +182,7 @@ public sealed class AttendanceAndDelayWorkflowTests
     }
 
     [Fact]
-    public async Task AcceptExcuse_UpdatesExcuseSnapshotButPreservesOfficialAbsentStatus()
+    public async Task AcceptExcuse_ChangesOfficialAttendanceToAbsentExcused()
     {
         var attendance = NewAttendance(StudentAttendanceStatus.Absent);
         attendance.Id = 5;
@@ -143,11 +203,146 @@ public sealed class AttendanceAndDelayWorkflowTests
 
         response.IsSuccess.Should().BeTrue();
         excuse.Status.Should().Be(AbsenceExcuseStatus.Accepted);
-        attendance.Status.Should().Be(StudentAttendanceStatus.Absent);
+        attendance.Status.Should().Be(StudentAttendanceStatus.AbsentExcused);
         attendance.ExcuseStatus.Should().Be(AbsenceExcuseStatus.Accepted);
         excuse.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<AbsenceExcuseAcceptedEvent>();
         repository.ExpectedRowVersion.Should().Equal(1, 2, 3);
+    }
+
+    [Fact]
+    public async Task RejectExcuse_LeavesOfficialAttendanceAbsent()
+    {
+        var attendance = NewAttendance(StudentAttendanceStatus.Absent);
+        var excuse = NewExcuse(attendance);
+        excuse.Id = 6;
+        excuse.RowVersion = new byte[] { 1, 2, 3 };
+        var repository = new FakeAttendanceRepository { TrackedExcuse = excuse };
+        var handler = new ReviewAbsenceExcuseCommandHandler(
+            repository,
+            CurrentUser(RoleNames.StudentAffairsOfficer, PermissionNames.AttendanceReviewExcuse),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new RejectAbsenceExcuseCommand(
+                excuse.Id,
+                new RejectAbsenceExcuseRequestDto("Insufficient evidence", Convert.ToBase64String(excuse.RowVersion))),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        attendance.Status.Should().Be(StudentAttendanceStatus.Absent);
+        attendance.ExcuseStatus.Should().Be(AbsenceExcuseStatus.Rejected);
+        excuse.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ReviewExcuse_WhenSecretaryHasInjectedReviewPermission_IsStillDenied()
+    {
+        var attendance = NewAttendance(StudentAttendanceStatus.Absent);
+        var excuse = NewExcuse(attendance);
+        excuse.Id = 6;
+        excuse.RowVersion = new byte[] { 1, 2, 3 };
+        var repository = new FakeAttendanceRepository { TrackedExcuse = excuse };
+        var handler = new ReviewAbsenceExcuseCommandHandler(
+            repository,
+            CurrentUser(RoleNames.Secretary, PermissionNames.AttendanceReviewExcuse),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new AcceptAbsenceExcuseCommand(
+                excuse.Id,
+                new ReviewAbsenceExcuseRequestDto("Should be denied", Convert.ToBase64String(excuse.RowVersion))),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        excuse.Status.Should().Be(AbsenceExcuseStatus.Pending);
+        attendance.Status.Should().Be(StudentAttendanceStatus.Absent);
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SaveSheet_WithStaleRevision_DoesNotMutateOrSave()
+    {
+        var repository = new FakeAttendanceRepository
+        {
+            CurrentRevision = "revision-2",
+            Roster = new[] { new AttendanceRosterStudentSnapshot(17, 4) }
+        };
+        var handler = new SaveStudentAttendanceSheetCommandHandler(
+            repository,
+            CurrentUser(RoleNames.Secretary, PermissionNames.AttendanceManageStudents),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new SubmitAbsentRosterCommand(
+                new SubmitAbsentRosterRequestDto(new DateOnly(2026, 8, 30), 12, new[] { 17 }, "revision-1"),
+                "sheet-stale"),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().ContainSingle(error => error.Contains("stale", StringComparison.OrdinalIgnoreCase));
+        repository.AddedAttendances.Should().BeEmpty();
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SaveSheet_WithSameContent_IsIdempotentNoOp()
+    {
+        var existing = NewAttendance(StudentAttendanceStatus.Absent);
+        var originalUpdatedAt = existing.UpdatedAt;
+        var repository = new FakeAttendanceRepository
+        {
+            Roster = new[] { new AttendanceRosterStudentSnapshot(17, 4) },
+            ExistingRows = new[] { existing }
+        };
+        var handler = new SaveStudentAttendanceSheetCommandHandler(
+            repository,
+            CurrentUser(RoleNames.Secretary, PermissionNames.AttendanceManageStudents),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new SubmitAbsentRosterCommand(
+                new SubmitAbsentRosterRequestDto(new DateOnly(2026, 8, 30), 12, new[] { 17 }, "revision-1"),
+                "sheet-repeat"),
+            CancellationToken.None);
+        var replay = await handler.Handle(
+            new SubmitAbsentRosterCommand(
+                new SubmitAbsentRosterRequestDto(new DateOnly(2026, 8, 30), 12, new[] { 17 }, "revision-1"),
+                "sheet-repeat"),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        replay.IsSuccess.Should().BeTrue();
+        repository.SaveCount.Should().Be(1, "only the idempotency receipt is persisted once");
+        existing.DomainEvents.Should().BeEmpty();
+        existing.UpdatedAt.Should().Be(originalUpdatedAt);
+    }
+
+    [Fact]
+    public async Task SaveSheet_PreservesAcceptedAbsentExcusedRow()
+    {
+        var existing = NewAttendance(StudentAttendanceStatus.AbsentExcused);
+        existing.ExcuseStatus = AbsenceExcuseStatus.Accepted;
+        var repository = new FakeAttendanceRepository
+        {
+            Roster = new[] { new AttendanceRosterStudentSnapshot(17, 4) },
+            ExistingRows = new[] { existing }
+        };
+        var handler = new SaveStudentAttendanceSheetCommandHandler(
+            repository,
+            CurrentUser(RoleNames.Secretary, PermissionNames.AttendanceManageStudents),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new SubmitAbsentRosterCommand(
+                new SubmitAbsentRosterRequestDto(new DateOnly(2026, 8, 30), 12, Array.Empty<int>(), "revision-1"),
+                "sheet-excused"),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        existing.Status.Should().Be(StudentAttendanceStatus.AbsentExcused);
+        existing.ExcuseStatus.Should().Be(AbsenceExcuseStatus.Accepted);
+        repository.SaveCount.Should().Be(1, "the attendance row stays untouched and only the receipt is persisted");
     }
 
     [Fact]
@@ -314,6 +509,22 @@ public sealed class AttendanceAndDelayWorkflowTests
         public List<int> SchoolIds { get; } = new();
         public byte[]? ExpectedRowVersion { get; private set; }
         public int SaveCount { get; private set; }
+        public string CurrentRevision { get; init; } = "revision-1";
+        private readonly Dictionary<string, string> _attendanceSubmissionFingerprints = new(StringComparer.Ordinal);
+
+        public Task<string?> GetAttendanceSubmissionFingerprintAsync(
+            int schoolId, string idempotencyKey, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(_attendanceSubmissionFingerprints.GetValueOrDefault(idempotencyKey));
+        }
+
+        public void AddAttendanceSubmissionReceipt(
+            int schoolId, string idempotencyKey, string requestFingerprint, DateTimeOffset processedAt)
+        {
+            SchoolIds.Add(schoolId);
+            _attendanceSubmissionFingerprints[idempotencyKey] = requestFingerprint;
+        }
 
         public Task<IReadOnlyList<AttendanceRosterStudentSnapshot>> GetActiveRosterAsync(
             int schoolId, int classroomId, DateOnly attendanceDate, CancellationToken cancellationToken)
@@ -389,7 +600,7 @@ public sealed class AttendanceAndDelayWorkflowTests
             return Task.FromResult<StudentAttendanceSheetDto?>(new StudentAttendanceSheetDto(
                 attendanceDate,
                 new ClassroomSummaryDto(classroomId, "1/A", "Primary", 1, "A"),
-                rosterRevision,
+                CurrentRevision,
                 true,
                 Array.Empty<StudentAttendanceSheetRowDto>()));
         }

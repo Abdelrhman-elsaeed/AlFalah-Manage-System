@@ -1,4 +1,5 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs;
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
 using AlFalah.Application.StudentAffairs.DTOs.Messaging;
@@ -29,6 +30,7 @@ public sealed class GatePassAndMessagingMediatRTests
         // Stub dependencies
         services.AddSingleton<IGatePassWorkflowRepository, StubGatePassWorkflowRepository>();
         services.AddSingleton<IMessagingWorkflowRepository, StubMessagingWorkflowRepository>();
+        services.AddSingleton<ICurrentLessonResolver, StubCurrentLessonResolver>();
         services.AddSingleton<ICurrentUserService>(new StubCurrentUser("user-1", 1, PermissionNames.GatePassView, PermissionNames.MessagingViewOwn));
         services.AddSingleton<TimeProvider>(TimeProvider.System);
 
@@ -88,6 +90,22 @@ public sealed class GatePassAndMessagingMediatRTests
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
         result.Data!.Items.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task SendConversationMessageCommandHandler_Denies_NonParticipant()
+    {
+        var repository = new StubMessagingWorkflowRepository { IsParticipant = false };
+        var currentUser = new StubCurrentUser("outsider", 1, PermissionNames.MessagingSend);
+        var handler = new SendConversationMessageCommandHandler(repository, currentUser);
+
+        var result = await handler.Handle(
+            new SendConversationMessageCommand(25, new SendMessageRequestDto("Unauthorized", null, "message-1")),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain("Conversation was not found");
+        repository.SendWasCalled.Should().BeFalse();
     }
 
     private sealed class StubGatePassWorkflowRepository : IGatePassWorkflowRepository
@@ -171,6 +189,15 @@ public sealed class GatePassAndMessagingMediatRTests
 
     private sealed class StubMessagingWorkflowRepository : IMessagingWorkflowRepository
     {
+        public bool IsParticipant { get; set; } = true;
+        public bool SendWasCalled { get; private set; }
+
+        public Task<bool> IsParticipantAsync(int schoolId, string userId, int conversationId, CancellationToken cancellationToken) =>
+            Task.FromResult(IsParticipant);
+
+        public Task<bool> IsConversationTargetAllowedAsync(int schoolId, string creatorUserId, CreateConversationRequestDto request, DateTimeOffset instant, CancellationToken cancellationToken) =>
+            Task.FromResult(true);
+
         public Task<PagedResult<ConversationDto>> GetConversationsAsync(int schoolId, string userId, ConversationListQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<ConversationDto>
             {
@@ -204,10 +231,13 @@ public sealed class GatePassAndMessagingMediatRTests
                 request.Subject, request.ThreadType, ConversationThreadStatus.Open,
                 Array.Empty<ConversationParticipantDto>(), 0, DateTimeOffset.UtcNow, "AQID"));
 
-        public Task<SendMessageResultDto> SendMessageAsync(int schoolId, string senderUserId, int conversationId, SendMessageRequestDto request, CancellationToken cancellationToken) =>
-            Task.FromResult(new SendMessageResultDto(
+        public Task<SendMessageResultDto> SendMessageAsync(int schoolId, string senderUserId, int conversationId, SendMessageRequestDto request, CancellationToken cancellationToken)
+        {
+            SendWasCalled = true;
+            return Task.FromResult(new SendMessageResultDto(
                 new ConversationMessageDto(1, conversationId, new ActorSummaryDto(senderUserId, "User", "Sender"), request.Body, request.ReplyToMessageId, DateTimeOffset.UtcNow, MessageDeliveryState.Delivered, Array.Empty<NotificationDeliveryDto>()),
                 OfficeHoursDisposition.SentImmediately, null));
+        }
 
         public Task<bool> MarkConversationReadAsync(int schoolId, string userId, int conversationId, long throughMessageId, CancellationToken cancellationToken) =>
             Task.FromResult(true);
@@ -229,6 +259,20 @@ public sealed class GatePassAndMessagingMediatRTests
 
         public Task<IReadOnlyList<OfficeHourSlotDto>> OverrideTeacherOfficeHoursAsync(int schoolId, string adminUserId, int instructorId, OverrideTeacherOfficeHoursRequestDto request, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<OfficeHourSlotDto>>(Array.Empty<OfficeHourSlotDto>());
+    }
+
+    private sealed class StubCurrentLessonResolver : ICurrentLessonResolver
+    {
+        public Task<CurrentLessonResolution> ResolveForClassroomAsync(int schoolId, DateTimeOffset instant, int classroomId, string? classroomLabel, CancellationToken cancellationToken) =>
+            Task.FromResult(NoSchedule());
+
+        public Task<CurrentLessonResolution> ResolveForInstructorAsync(int schoolId, DateTimeOffset instant, string instructorUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(NoSchedule());
+
+        private static CurrentLessonResolution NoSchedule() => new(
+            CurrentLessonResolutionKind.NoPublishedSchedule,
+            null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            "No published schedule");
     }
 
     private sealed class StubCurrentUser(

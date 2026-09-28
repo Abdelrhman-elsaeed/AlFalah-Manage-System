@@ -16,15 +16,30 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
     private readonly AlFalahDbContext _context;
 
     private readonly IBellScheduleRepository _timings;
-    public GatePassWorkflowRepository(AlFalahDbContext context) { _context = context; _timings = new BellScheduleRepository(context); }
+    public GatePassWorkflowRepository(AlFalahDbContext context, IBellScheduleRepository timings)
+    {
+        _context = context;
+        _timings = timings;
+    }
 
     public async Task<DateOnly?> GetPublishedStudyDateAsync(int schoolId, DateTimeOffset instant, CancellationToken ct)
     {
-        var schedule = await _timings.GetPublishedAsync(schoolId, instant, ct);
-        if (schedule is null) return null;
-        var local = BellScheduleResolver.LocalTime(schedule, instant);
-        return BellScheduleResolver.EffectivePeriods(schedule, BellScheduleResolver.ToDay(local.DayOfWeek)).Count > 0
-            ? DateOnly.FromDateTime(local.DateTime) : null;
+        try
+        {
+            var schedule = await _timings.GetPublishedAsync(schoolId, instant, ct);
+            if (schedule is null) return null;
+            var local = BellScheduleResolver.LocalTime(schedule, instant);
+            return BellScheduleResolver.EffectivePeriods(schedule, BellScheduleResolver.ToDay(local.DayOfWeek)).Count > 0
+                ? DateOnly.FromDateTime(local.DateTime) : null;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return null;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return null;
+        }
     }
 
     public Task<GuardianGatePassLinkSnapshot?> GetGuardianLinkAsync(

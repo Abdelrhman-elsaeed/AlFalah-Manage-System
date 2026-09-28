@@ -38,10 +38,7 @@ public sealed class UpdateClassroomCommandHandler
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
-            && !_currentUser.HasPermission(PermissionNames.ClassroomManage)
-            && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.IsInRole(RoleNames.MainManager)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            && !_currentUser.HasPermission(PermissionNames.ClassroomManage))
         {
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.PermissionDenied);
         }

@@ -14,8 +14,17 @@ public interface IBellScheduleRepository
     Task SelectAsync(TimetableSetupProfile profile, BellScheduleTemplate template, CancellationToken ct);
     Task<BellScheduleDto?> GetRevisionAsync(int schoolId, int revisionId, CancellationToken ct);
     Task<BellScheduleDto?> GetSelectedAsync(int schoolId, int yearId, TimetableSemester semester, int? profileId, CancellationToken ct);
+    Task<IReadOnlyList<PublishedBellScheduleCandidate>> GetPublishedCandidatesAsync(
+        int schoolId,
+        DateTimeOffset instant,
+        CancellationToken ct);
     Task<BellScheduleDto?> GetPublishedAsync(int schoolId, DateTimeOffset instant, CancellationToken ct);
 }
+
+public sealed record PublishedBellScheduleCandidate(
+    int SchoolTimetableId,
+    int TimetableRevision,
+    BellScheduleDto Schedule);
 
 public sealed record BellScheduleDependencies(IReadOnlyList<TimetableSetupProfile> Profiles, IReadOnlyList<SchoolTimetable> Timetables)
 {

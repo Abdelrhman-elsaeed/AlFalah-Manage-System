@@ -15,7 +15,7 @@ public sealed class ConversationsController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] ConversationListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MessagingViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetConversationsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetConversationsQuery(query), cancellationToken));
     }
 
     [HttpPost]
@@ -23,41 +23,41 @@ public sealed class ConversationsController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.MessagingStartGuardianTeacher, PermissionNames.MessagingStartGuardianAdministration)) return PermissionDenied();
         var response = await Mediator.Send(new CreateConversationCommand(request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MessagingViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetConversationByIdQuery(id), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetConversationByIdQuery(id), cancellationToken));
     }
 
     [HttpGet("{id:int}/messages")]
     public async Task<IActionResult> Messages(int id, [FromQuery] ConversationMessageQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MessagingViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetConversationMessagesQuery(id, query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetConversationMessagesQuery(id, query), cancellationToken));
     }
 
     [HttpPost("{id:int}/messages")]
     public async Task<IActionResult> SendMessage(int id, [FromBody] SendMessageRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MessagingSend)) return PermissionDenied();
-        return Ok(await Mediator.Send(new SendConversationMessageCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new SendConversationMessageCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/read")]
     public async Task<IActionResult> MarkRead(int id, [FromBody] MarkConversationReadRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MessagingViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new MarkConversationReadCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new MarkConversationReadCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/close")]
     public async Task<IActionResult> Close(int id, [FromBody] CloseConversationRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MessagingCloseThread)) return PermissionDenied();
-        return Ok(await Mediator.Send(new CloseConversationCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new CloseConversationCommand(id, request), cancellationToken));
     }
 }

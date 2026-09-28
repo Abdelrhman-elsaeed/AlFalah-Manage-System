@@ -32,6 +32,7 @@ export class BiometricImportComponent {
   readonly result = signal<BiometricImportResultDto | null>(null);
   readonly uploading = signal(false);
   readonly dragging = signal(false);
+  readonly errorMessage = signal('');
 
   selectFromInput(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -66,6 +67,7 @@ export class BiometricImportComponent {
     if (this.uploading()) return;
     this.selectedFile.set(null);
     this.result.set(null);
+    this.errorMessage.set('');
   }
 
   upload(): void {
@@ -73,14 +75,17 @@ export class BiometricImportComponent {
     if (!file || this.uploading()) return;
     this.uploading.set(true);
     this.result.set(null);
+    this.errorMessage.set('');
     this.api.importZajel(file).subscribe({
       next: response => {
         this.uploading.set(false);
         if (!response.isSuccess || !response.data) {
+          const detail = response.errors[0] ?? response.message ?? 'لم يعالج الخادم ملف زاجل.';
+          this.errorMessage.set(detail);
           this.messages.add({
             severity: 'error',
             summary: 'تعذر الاستيراد',
-            detail: response.errors[0] ?? response.message ?? 'لم يعالج الخادم ملف زاجل.'
+            detail
           });
           return;
         }
@@ -93,10 +98,12 @@ export class BiometricImportComponent {
       },
       error: (error: HttpErrorResponse) => {
         this.uploading.set(false);
+        const detail = extractHttpErrorMessage(error) ?? 'تحقق من رؤوس الأعمدة والتواريخ وإعدادات وقت الحضور.';
+        this.errorMessage.set(detail);
         this.messages.add({
           severity: 'error',
           summary: 'تعذر الاستيراد',
-          detail: extractHttpErrorMessage(error) ?? 'تحقق من رؤوس الأعمدة والتواريخ وإعدادات وقت الحضور.'
+            detail
         });
       }
     });
@@ -106,7 +113,9 @@ export class BiometricImportComponent {
     const labels: Record<string, string> = {
       MissingNationalId: 'رقم الهوية مفقود',
       StudentNotFound: 'لا يوجد طالب نشط مطابق',
-      EnrollmentNotFound: 'لا يوجد تسجيل نشط في تاريخ البصمة'
+      EnrollmentNotFound: 'لا يوجد تسجيل نشط في تاريخ البصمة',
+      AmbiguousEnrollment: 'يوجد أكثر من تسجيل نشط',
+      InvalidTime: 'وقت البصمة غير صحيح'
     };
     return labels[code] ?? code;
   }
@@ -157,9 +166,11 @@ export class BiometricImportComponent {
     }
     this.selectedFile.set(file);
     this.result.set(null);
+    this.errorMessage.set('');
   }
 
   private showValidation(detail: string): void {
+    this.errorMessage.set(detail);
     this.messages.add({ severity: 'warn', summary: 'ملف غير صالح', detail });
   }
 

@@ -6,6 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { SchoolLookup } from '../../../core/models/auth.models';
 import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
+import { roleLandingFor } from '../../../core/utils/role-landing';
 
 @Component({
   selector: 'app-school-login',
@@ -98,21 +99,7 @@ export class SchoolLoginComponent implements OnInit {
   }
 
   private redirectByRole(roles: string[]): void {
-    if (roles.includes('SuperAdmin') || roles.includes('MainManager')) {
-      this.router.navigate(['/main-manager/dashboard']);
-    } else if (roles.includes('SchoolManager')) {
-      this.router.navigate(['/school-manager/dashboard']);
-    } else if (roles.includes('Secretary')) {
-      this.router.navigate(['/student-affairs/attendance/sheet']);
-    } else if (roles.includes('Moderator')) {
-      this.router.navigate(['/moderator/dashboard']);
-    } else if (roles.includes('Instructor')) {
-      this.router.navigate(['/instructor/dashboard']);
-    } else if (roles.includes('StudentAffairsOfficer')) {
-      this.router.navigate(['/student-affairs/settings']);
-    } else {
-      this.router.navigate(['/dashboard']);
-    }
+    this.router.navigate([roleLandingFor(roles)]);
   }
 
   get schoolIdControl() { return this.loginForm.get('schoolId'); }

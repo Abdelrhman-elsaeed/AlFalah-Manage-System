@@ -39,6 +39,7 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
                 && candidate.IsPublished
                 && lookup.BellScheduleRevisionId != null
                 && candidate.BellScheduleRevisionId == lookup.BellScheduleRevisionId
+                && (lookup.SchoolTimetableId == null || candidate.Id == lookup.SchoolTimetableId)
                 && candidate.AcademicYear.StartsOn <= lookup.SchoolLocalDate
                 && candidate.AcademicYear.EndsOn >= lookup.SchoolLocalDate)
             .OrderByDescending(candidate => candidate.PublishedAt)
@@ -200,7 +201,8 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
         {
             var current = await ProjectPeriod(entries
                     .Where(entry => entry.Day == lookup.SchoolLocalDay
-                        && entry.Period == lookup.CurrentPeriod))
+                        && entry.Period == lookup.CurrentPeriod
+                        && (lookup.SchoolTimetableEntryId == null || entry.Id == lookup.SchoolTimetableEntryId)))
                 .SingleOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
             if (current is not null || !lookup.AllowOffHoursFallback)

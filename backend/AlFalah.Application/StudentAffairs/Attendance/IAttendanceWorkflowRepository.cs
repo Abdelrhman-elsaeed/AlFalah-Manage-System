@@ -18,6 +18,17 @@ public sealed record GuardianExcuseLinkSnapshot(
 
 public interface IAttendanceWorkflowRepository
 {
+    Task<string?> GetAttendanceSubmissionFingerprintAsync(
+        int schoolId,
+        string idempotencyKey,
+        CancellationToken cancellationToken);
+
+    void AddAttendanceSubmissionReceipt(
+        int schoolId,
+        string idempotencyKey,
+        string requestFingerprint,
+        DateTimeOffset processedAt);
+
     Task<IReadOnlyList<AttendanceRosterStudentSnapshot>> GetActiveRosterAsync(
         int schoolId,
         int classroomId,

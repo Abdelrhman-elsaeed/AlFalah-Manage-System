@@ -36,10 +36,7 @@ public sealed class DeleteStudentCommandHandler
             return ApiResponse<bool>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.StudentManage)
-            && !_currentUser.HasPermission(PermissionNames.StudentArchive)
-            && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.IsInRole(RoleNames.MainManager)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            && !_currentUser.HasPermission(PermissionNames.StudentArchive))
         {
             return ApiResponse<bool>.Fail(StudentHandlerSupport.PermissionDenied);
         }

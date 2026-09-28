@@ -52,12 +52,13 @@ td small { display: block; margin-top: .3rem; color: #64748b; }
 .absent-column { width: 7rem; text-align: center; }
 .lock { margin-inline-start: .5rem; color: #a16207; }
 .empty { padding: 2.5rem !important; text-align: center; color: #64748b; }
-.sticky-summary { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr) auto; align-items: center; gap: 1rem; padding: .9rem 1.25rem; border-top: 1px solid #e2e8f0; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); }
+.sticky-summary { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); align-items: center; gap: 1rem; padding: .9rem 1.25rem; border-top: 1px solid #e2e8f0; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); }
 .sticky-summary div { display: grid; gap: .15rem; }
 .sticky-summary span { color: #64748b; font-size: .82rem; }
 .sticky-summary strong { font-size: 1.35rem; }
 .sticky-summary .absent strong { color: #dc2626; }
 .sticky-summary .present strong { color: #059669; }
+.sticky-summary .excused strong { color: #a16207; }
 @media (max-width: 760px) {
   .page { padding: 1rem; }
   .selectors, .sticky-summary { grid-template-columns: 1fr; }

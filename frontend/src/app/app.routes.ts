@@ -602,9 +602,9 @@ export const routes: Routes = [
       // Student Affairs: Student Analytics & Records
       {
         path: 'student-affairs/records',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
-          roles: ['StudentAffairsOfficer', 'SocialWorker', 'SchoolManager', 'MainManager', 'SuperAdmin'],
+          roles: ['StudentAffairsOfficer', 'SuperAdmin'],
           permissions: ['Student.View']
         },
         loadComponent: () => import('./features/student-affairs/student-records/student-records.component')
@@ -613,9 +613,9 @@ export const routes: Routes = [
       },
       {
         path: 'student-affairs/records/:id',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
-          roles: ['StudentAffairsOfficer', 'SocialWorker', 'SchoolManager', 'MainManager', 'SuperAdmin'],
+          roles: ['StudentAffairsOfficer', 'SuperAdmin'],
           permissions: ['Student.View']
         },
         loadComponent: () => import('./features/student-affairs/student-profile-dashboard/student-profile-dashboard.component')
@@ -660,6 +660,14 @@ export const routes: Routes = [
 
       // Student Affairs Phase 5: case work, summons, notification approval,
       // office hours, and participant-scoped messaging.
+      {
+        path: 'student-affairs/social-worker',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SocialWorker'], permissions: ['Referral.View'], crmView: 'cases' },
+        loadComponent: () => import('./features/student-affairs/social-worker-crm/social-worker-crm.component')
+          .then(m => m.SocialWorkerCrmComponent),
+        title: 'مساحة الأخصائي الاجتماعي'
+      },
       {
         path: 'student-affairs/cases',
         canActivate: [roleGuard, permissionGuard],
@@ -710,7 +718,7 @@ export const routes: Routes = [
       // Student Affairs Phase 2: role-specific operational dashboards.
       {
         path: 'student-affairs/teacher',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['Instructor'],
           permissions: ['StudentAffairsDashboard.Teacher', 'TeacherQuickAction.View']
@@ -726,7 +734,7 @@ export const routes: Routes = [
       },
       {
         path: 'student-affairs/security',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['SecurityGuard'],
           permissions: ['StudentAffairsDashboard.Security']
@@ -737,7 +745,7 @@ export const routes: Routes = [
       },
       {
         path: 'student-affairs/guardian',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['Guardian'],
           permissions: ['StudentAffairsDashboard.Guardian', 'Guardian.ViewLinkedStudents']
@@ -748,7 +756,7 @@ export const routes: Routes = [
       },
       {
         path: 'student-affairs/officer',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['StudentAffairsOfficer'],
           permissions: ['StudentAffairsDashboard.Officer'],
@@ -760,7 +768,7 @@ export const routes: Routes = [
       },
       {
         path: 'student-affairs/oversight',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['SchoolManager'],
           permissions: ['StudentAffairsDashboard.SchoolOversight'],

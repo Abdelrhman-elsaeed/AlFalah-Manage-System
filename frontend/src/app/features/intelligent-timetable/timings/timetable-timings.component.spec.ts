@@ -99,4 +99,20 @@ describe('Timetable timing editor', () => {
     component.draft!.name = 'اختبار'; component.activeDay = 2; component.edit(0, 'endLocalTime', '06:00');
     component.activeDay = 0; expect(component.errors.size).toBe(0); expect(component.valid).toBeFalse();
   });
+  it('preserves timing edits and exposes a stale revision save failure', () => {
+    const pending = new Subject<any>();
+    const save = jasmine.createSpy('save').and.returnValue(pending);
+    TestBed.inject(BellScheduleService).save = save;
+    component.overview = { canManage: true } as any;
+    component.draft!.name = 'توقيت معدل';
+    const expected = structuredClone(component.draft!);
+
+    component.save();
+    pending.error({ error: { errors: ['Stale Bell schedule revision'] }, status: 409 });
+
+    expect(save).toHaveBeenCalled();
+    expect(component.draft).toEqual(expected);
+    expect(component.error).toContain('Stale');
+    expect(component.saving).toBeFalse();
+  });
 });

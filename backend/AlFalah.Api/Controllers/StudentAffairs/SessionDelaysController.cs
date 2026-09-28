@@ -23,20 +23,20 @@ public sealed class SessionDelaysController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] SessionDelayListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SessionDelayView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSessionDelaysQuery(query), cancellationToken));
+        return FeatureNotImplemented("W6 Delay Review");
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SessionDelayView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSessionDelayByIdQuery(id), cancellationToken));
+        return FeatureNotImplemented("W6 Delay Review");
     }
 
     [HttpPost("{id:int}/correct")]
     public async Task<IActionResult> Correct(int id, [FromBody] CorrectSessionDelayRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SessionDelayCorrect)) return PermissionDenied();
-        return Ok(await Mediator.Send(new CorrectSessionDelayCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Delay Review");
     }
 }

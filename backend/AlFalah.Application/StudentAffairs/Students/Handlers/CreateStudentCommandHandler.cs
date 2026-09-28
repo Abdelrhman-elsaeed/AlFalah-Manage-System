@@ -38,10 +38,7 @@ public sealed class CreateStudentCommandHandler
             return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.StudentManage)
-            && !_currentUser.HasPermission(PermissionNames.StudentCreate)
-            && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.IsInRole(RoleNames.MainManager)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            && !_currentUser.HasPermission(PermissionNames.StudentCreate))
         {
             return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.PermissionDenied);
         }
@@ -86,6 +83,7 @@ public sealed class CreateStudentCommandHandler
             enrollmentTarget = await _repository.GetStudentEnrollmentTargetAsync(
                 schoolId.Value,
                 req.ClassroomId.Value,
+                today,
                 cancellationToken).ConfigureAwait(false);
 
             if (enrollmentTarget is null)

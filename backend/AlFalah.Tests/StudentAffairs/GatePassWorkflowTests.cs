@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.GatePasses;
@@ -88,6 +89,7 @@ public sealed class GatePassWorkflowTests
         var handler = new ApproveGatePassCommandHandler(
             repository,
             CurrentUser(42, RoleNames.StudentAffairsOfficer, PermissionNames.GatePassApprove),
+            new FakeCurrentLessonResolver(ActiveLesson()),
             new FixedTimeProvider(Now));
         var request = new ApproveGatePassRequestDto(
             Now.AddMinutes(-15), Now.AddHours(1), "Approved",
@@ -101,8 +103,9 @@ public sealed class GatePassWorkflowTests
         gatePass.CurrentClassroomId.Should().Be(12);
         gatePass.SchoolTimetableEntryId.Should().Be(8);
         gatePass.CurrentInstructorProfileId.Should().Be(9);
-        gatePass.DomainEvents.Should().ContainSingle()
-            .Which.Should().BeOfType<GatePassApprovedEvent>();
+        var approved = gatePass.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<GatePassApprovedEvent>().Subject;
+        approved.InstructorProfileId.Should().Be(9, "the effective substitute owns the active lesson");
         repository.ExpectedRowVersion.Should().Equal(1, 2, 3);
     }
 
@@ -116,6 +119,7 @@ public sealed class GatePassWorkflowTests
         var handler = new ApproveGatePassCommandHandler(
             repository,
             CurrentUser(42, RoleNames.StudentAffairsOfficer, PermissionNames.GatePassApprove),
+            new FakeCurrentLessonResolver(ActiveLesson()),
             new FixedTimeProvider(Now));
 
         var response = await handler.Handle(new ApproveGatePassCommand(
@@ -128,6 +132,83 @@ public sealed class GatePassWorkflowTests
         response.Errors.Should().ContainSingle("Gate pass was modified by another user");
         gatePass.Status.Should().Be(GatePassStatus.Requested);
         repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Secretary_CannotApproveRejectOrExecuteGatePass_EvenWithInjectedPermissions()
+    {
+        var gatePass = NewGatePass();
+        gatePass.Id = 5;
+        gatePass.RowVersion = new byte[] { 1 };
+        var repository = new FakeRepository { Tracked = gatePass };
+
+        var approve = await new ApproveGatePassCommandHandler(
+                repository,
+                CurrentUser(42, RoleNames.Secretary, PermissionNames.GatePassApprove),
+                new FakeCurrentLessonResolver(ActiveLesson()),
+                new FixedTimeProvider(Now))
+            .Handle(new ApproveGatePassCommand(5, new ApproveGatePassRequestDto(
+                Now, Now.AddHours(1), "No", Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+        var reject = await new RejectGatePassCommandHandler(
+                repository,
+                CurrentUser(42, RoleNames.Secretary, PermissionNames.GatePassReject),
+                new FixedTimeProvider(Now))
+            .Handle(new RejectGatePassCommand(5, new RejectGatePassRequestDto(
+                "No", Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+        var execute = await new ExecuteGatePassCommandHandler(
+                repository,
+                CurrentUser(42, RoleNames.Secretary, PermissionNames.GatePassExecute),
+                new FixedTimeProvider(Now))
+            .Handle(new ExecuteGatePassCommand(5, new ExecuteGatePassRequestDto(
+                null, PickupVerificationMethod.Visual, "No", null,
+                Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+
+        approve.IsSuccess.Should().BeFalse();
+        reject.IsSuccess.Should().BeFalse();
+        execute.IsSuccess.Should().BeFalse();
+        gatePass.Status.Should().Be(GatePassStatus.Requested);
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Approve_DuringBreak_RequiresNoTeacherAndRecordsResolutionReason()
+    {
+        var gatePass = NewGatePass();
+        gatePass.Id = 5;
+        gatePass.RowVersion = new byte[] { 1, 2, 3 };
+        var repository = new FakeRepository
+        {
+            Tracked = gatePass,
+            Enrollment = new GatePassEnrollmentSnapshot(
+                gatePass.AcademicTermId, 3, TimetableSemester.First, 12, "1/A"),
+            GuardianLinkIsActive = true
+        };
+        var handler = new ApproveGatePassCommandHandler(
+            repository,
+            CurrentUser(42, RoleNames.StudentAffairsOfficer, PermissionNames.GatePassApprove),
+            new FakeCurrentLessonResolver(NoAcknowledgement(CurrentLessonResolutionKind.Break)),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new ApproveGatePassCommand(
+                gatePass.Id,
+                new ApproveGatePassRequestDto(
+                    Now.AddMinutes(-15),
+                    Now.AddHours(1),
+                    "Approved outside lesson",
+                    Convert.ToBase64String(gatePass.RowVersion))),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        gatePass.Status.Should().Be(GatePassStatus.Approved);
+        gatePass.SchoolTimetableId.Should().Be(7);
+        gatePass.SchoolTimetableEntryId.Should().BeNull();
+        gatePass.CurrentInstructorProfileId.Should().BeNull();
+        gatePass.CurrentPeriod.Should().BeNull();
+        gatePass.ApprovalNote.Should().Contain("TeacherAcknowledgementNotRequired:Break");
+        var approved = gatePass.DomainEvents.Should().ContainSingle().Which.Should().BeOfType<GatePassApprovedEvent>().Subject;
+        approved.InstructorProfileId.Should().BeNull();
+        approved.LessonResolution.Should().Be(nameof(CurrentLessonResolutionKind.Break));
     }
 
     [Fact]
@@ -205,6 +286,46 @@ public sealed class GatePassWorkflowTests
     private static TestCurrentUser CurrentUser(int schoolId, string role, string permission) =>
         new(schoolId, "actor", role, permission);
 
+    private static CurrentLessonResolution ActiveLesson() => new(
+        CurrentLessonResolutionKind.ActiveLesson,
+        new DateOnly(2026, 8, 30),
+        Now,
+        "UTC",
+        3,
+        TimetableSemester.First,
+        5,
+        7,
+        1,
+        8,
+        2,
+        Now.AddMinutes(-15),
+        Now.AddMinutes(30),
+        new CurrentLessonClassroom(12, "1/A", SchoolStage.Primary, 1, "A"),
+        new CurrentLessonInstructor(19, "original-teacher", "Original Teacher"),
+        new CurrentLessonInstructor(9, "substitute-teacher", "Substitute Teacher"),
+        77,
+        "Active lesson resolved with a date-specific instructor substitution");
+
+    private static CurrentLessonResolution NoAcknowledgement(CurrentLessonResolutionKind kind) => new(
+        kind,
+        new DateOnly(2026, 8, 30),
+        Now,
+        "UTC",
+        3,
+        TimetableSemester.First,
+        5,
+        7,
+        1,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Teacher acknowledgement is not required during a configured break");
+
     private static AlFalahDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AlFalahDbContext>()
@@ -216,6 +337,15 @@ public sealed class GatePassWorkflowTests
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    private sealed class FakeCurrentLessonResolver(CurrentLessonResolution result) : ICurrentLessonResolver
+    {
+        public Task<CurrentLessonResolution> ResolveForClassroomAsync(int schoolId, DateTimeOffset instant, int classroomId, string? classroomLabel, CancellationToken cancellationToken) =>
+            Task.FromResult(result);
+
+        public Task<CurrentLessonResolution> ResolveForInstructorAsync(int schoolId, DateTimeOffset instant, string instructorUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(result);
     }
 
     private sealed class TestCurrentUser(

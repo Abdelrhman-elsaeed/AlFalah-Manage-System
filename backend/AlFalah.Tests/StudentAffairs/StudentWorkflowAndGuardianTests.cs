@@ -13,6 +13,7 @@ using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 using AlFalah.Application.StudentAffairs.Classrooms.Handlers;
 using AlFalah.Application.StudentAffairs.Students;
 using AlFalah.Application.StudentAffairs.Students.Handlers;
+using AlFalah.Domain.Entities;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
@@ -165,6 +166,22 @@ public sealed class StudentWorkflowAndGuardianTests
     }
 
     [Fact]
+    public async Task GetStudentByIdQuery_WhenGuardianIsNotLinked_ReturnsNotFoundWithoutLoadingStudent()
+    {
+        var repository = new FakeStudentWorkflowRepository { GuardianLinked = false };
+        var handler = new GetStudentByIdQueryHandler(
+            repository,
+            CreateUser(RoleNames.Guardian, PermissionNames.GuardianViewLinkedStudents),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new GetStudentByIdQuery(99), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.NotFound);
+        repository.QueriedStudentId.Should().Be(0);
+    }
+
+    [Fact]
     public async Task CreateClassroomCommand_WhenSecretaryHasPermission_CreatesSchoolScopedClassroom()
     {
         var repository = new FakeStudentWorkflowRepository();
@@ -202,6 +219,27 @@ public sealed class StudentWorkflowAndGuardianTests
         result.IsSuccess.Should().BeTrue();
         repository.Classroom!.ClassLabel.Should().Be("1/ب");
         repository.Classroom.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task UpdateClassroomCommand_WithCrossSchoolId_ReturnsNotFoundWithoutMutation()
+    {
+        var crossSchool = ExistingClassroom();
+        crossSchool.SchoolId = 99;
+        var originalLabel = crossSchool.ClassLabel;
+        var repository = new FakeStudentWorkflowRepository { Classroom = crossSchool };
+        var handler = new UpdateClassroomCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new UpdateClassroomCommand(7, new UpdateClassroomRequestDto("Changed", "B", false, string.Empty)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.NotFound);
+        crossSchool.ClassLabel.Should().Be(originalLabel);
     }
 
     [Fact]
@@ -298,6 +336,135 @@ public sealed class StudentWorkflowAndGuardianTests
         repository.Student!.IsDeleted.Should().BeTrue();
         repository.Student.IsActive.Should().BeFalse();
         repository.UnassignedStudentEnrollmentCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task UpdateStudentCommand_WithCrossSchoolId_ReturnsNotFoundWithoutMutation()
+    {
+        var crossSchool = new Student
+        {
+            Id = 15, SchoolId = 99, StudentNumber = "ST-015", IdentityNumber = "1000000001",
+            FirstName = "Original", LastName = "Student", IsActive = true
+        };
+        var repository = new FakeStudentWorkflowRepository { Student = crossSchool };
+        var handler = new UpdateStudentCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.StudentManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new UpdateStudentCommand(15, new UpdateStudentRequestDto(
+                "ST-015", "1000000001", "Changed", null, "Student", null, null, null,
+                true, null, null, string.Empty)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.NotFound);
+        crossSchool.FirstName.Should().Be("Original");
+    }
+
+    [Fact]
+    public async Task CreateStudentEnrollment_WhenAcademicTermDoesNotMatchClassroom_RejectsWithoutWriting()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            Student = new Student { Id = 15, SchoolId = 42, StudentNumber = "ST-015", IsActive = true },
+            EnrollmentTarget = null
+        };
+        var handler = new CreateStudentEnrollmentCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.StudentEnrollmentManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new CreateStudentEnrollmentCommand(15, new CreateStudentEnrollmentRequestDto(
+                22, 7, new DateOnly(2026, 9, 1), null)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(error => error.Contains("same academic year", StringComparison.Ordinal));
+        repository.AddedEnrollment.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateStudentEnrollment_WhenPeriodOverlaps_RejectsWithoutWriting()
+    {
+        var repository = new FakeStudentWorkflowRepository
+        {
+            Student = new Student { Id = 15, SchoolId = 42, StudentNumber = "ST-015", IsActive = true },
+            HasOverlappingEnrollment = true
+        };
+        var handler = new CreateStudentEnrollmentCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.StudentEnrollmentManage),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new CreateStudentEnrollmentCommand(15, new CreateStudentEnrollmentRequestDto(
+                11, 7, new DateOnly(2026, 9, 1), null)),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(error => error.Contains("overlapping", StringComparison.Ordinal));
+        repository.AddedEnrollment.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateClassroom_WhenSecretaryLacksExplicitPermission_IsDenied()
+    {
+        var repository = new FakeStudentWorkflowRepository();
+        var handler = new CreateClassroomCommandHandler(
+            repository,
+            CreateUser(RoleNames.Secretary),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(
+            new CreateClassroomCommand(new CreateClassroomRequestDto(3, SchoolStage.Primary, 1, "A", "1/A")),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.PermissionDenied);
+        repository.Classroom.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task EnrollmentTarget_RequiresSchoolTermYearAndEffectiveDateToMatch()
+    {
+        var options = new DbContextOptionsBuilder<AlFalahDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var context = new AlFalahDbContext(options);
+        context.AcademicYears.Add(new AcademicYear
+        {
+            Id = 1, Code = "2026-2027", NameAr = "2026-2027",
+            StartsOn = new DateOnly(2026, 8, 1), EndsOn = new DateOnly(2027, 7, 31), IsActive = true
+        });
+        context.AcademicTerms.AddRange(
+            new AcademicTerm
+            {
+                Id = 11, SchoolId = 42, AcademicYearId = 1, Semester = TimetableSemester.First,
+                StartsOn = new DateOnly(2026, 9, 1), EndsOn = new DateOnly(2026, 12, 31), IsActive = true
+            },
+            new AcademicTerm
+            {
+                Id = 12, SchoolId = 99, AcademicYearId = 1, Semester = TimetableSemester.First,
+                StartsOn = new DateOnly(2026, 9, 1), EndsOn = new DateOnly(2026, 12, 31), IsActive = true
+            });
+        context.Classrooms.Add(new Classroom
+        {
+            Id = 7, SchoolId = 42, AcademicYearId = 1, ClassLabel = "1/A",
+            Stage = SchoolStage.Primary, GradeLevel = 1, Section = "A", IsActive = true
+        });
+        await context.SaveChangesAsync();
+
+        var repository = new StudentWorkflowRepository(context);
+
+        (await repository.GetStudentEnrollmentTargetAsync(42, 7, 11, new DateOnly(2026, 9, 1), CancellationToken.None))
+            .Should().NotBeNull();
+        (await repository.GetStudentEnrollmentTargetAsync(42, 7, 12, new DateOnly(2026, 9, 1), CancellationToken.None))
+            .Should().BeNull();
+        (await repository.GetStudentEnrollmentTargetAsync(42, 7, 11, new DateOnly(2027, 1, 1), CancellationToken.None))
+            .Should().BeNull();
     }
 
     [Fact]
@@ -584,6 +751,10 @@ public sealed class StudentWorkflowAndGuardianTests
 
     private sealed class FakeStudentWorkflowRepository : IStudentWorkflowRepository
     {
+        public Task<bool> IsGuardianLinkedToStudentAsync(int schoolId, string guardianUserId, int studentId, DateOnly onDate, CancellationToken cancellationToken) =>
+            Task.FromResult(GuardianLinked);
+
+        public bool GuardianLinked { get; set; } = true;
         public int QueriedSchoolId { get; private set; }
         public int QueriedStudentId { get; private set; }
         public IReadOnlyList<StudentGuardianLinkDto> Guardians { get; set; } = new List<StudentGuardianLinkDto>();
@@ -596,6 +767,9 @@ public sealed class StudentWorkflowAndGuardianTests
         public bool AcademicYearExists { get; set; } = true;
         public bool LabelExists { get; set; }
         public bool HasActiveEnrollments { get; set; }
+        public StudentEnrollmentTarget? EnrollmentTarget { get; set; } = new(7, 11);
+        public bool HasOverlappingEnrollment { get; set; }
+        public StudentEnrollment? AddedEnrollment { get; private set; }
         public int UnassignedClassroomEnrollmentCount { get; private set; }
         public int UnassignedStudentEnrollmentCount { get; private set; }
 
@@ -625,11 +799,19 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<Student?> GetStudentForUpdateAsync(int schoolId, int studentId, CancellationToken cancellationToken) =>
             Task.FromResult(Student?.Id == studentId && Student.SchoolId == schoolId ? Student : null);
 
-        public Task<StudentEnrollment?> GetActiveStudentEnrollmentForUpdateAsync(int schoolId, int studentId, CancellationToken cancellationToken) =>
+        public Task<StudentEnrollment?> GetActiveStudentEnrollmentForUpdateAsync(int schoolId, int studentId, DateOnly effectiveOn, CancellationToken cancellationToken) =>
             Task.FromResult<StudentEnrollment?>(null);
 
-        public Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(int schoolId, int classroomId, CancellationToken cancellationToken) =>
+        public Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(int schoolId, int classroomId, DateOnly effectiveOn, CancellationToken cancellationToken) =>
             Task.FromResult<StudentEnrollmentTarget?>(new StudentEnrollmentTarget(classroomId, 11));
+
+        public Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(int schoolId, int classroomId, int academicTermId, DateOnly effectiveOn, CancellationToken cancellationToken) =>
+            Task.FromResult(EnrollmentTarget is null
+                ? null
+                : new StudentEnrollmentTarget(classroomId, academicTermId));
+
+        public Task<bool> HasOverlappingStudentEnrollmentAsync(int schoolId, int studentId, DateOnly startsOn, DateOnly? endsOn, int? excludingEnrollmentId, CancellationToken cancellationToken) =>
+            Task.FromResult(HasOverlappingEnrollment);
 
         public Task<bool> StudentNumberExistsAsync(int schoolId, string studentNumber, int? excludingStudentId, CancellationToken cancellationToken) =>
             Task.FromResult(false);
@@ -667,7 +849,7 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<PagedResult<ClassroomDto>> GetClassroomsAsync(int schoolId, ClassroomListQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<ClassroomDto>());
 
-        public Task<IReadOnlyList<ClassroomAcademicYearDto>> GetClassroomAcademicYearsAsync(CancellationToken cancellationToken) =>
+        public Task<IReadOnlyList<ClassroomAcademicYearDto>> GetClassroomAcademicYearsAsync(int schoolId, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<ClassroomAcademicYearDto>>(new[]
             {
                 new ClassroomAcademicYearDto(3, "2026-2027", "1448 هـ", true)
@@ -689,7 +871,7 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<Classroom?> GetClassroomForUpdateAsync(int schoolId, int classroomId, CancellationToken cancellationToken) =>
             Task.FromResult(Classroom?.Id == classroomId && Classroom.SchoolId == schoolId ? Classroom : null);
 
-        public Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken) =>
+        public Task<bool> AcademicYearExistsAsync(int schoolId, int academicYearId, CancellationToken cancellationToken) =>
             Task.FromResult(AcademicYearExists);
 
         public Task<bool> ClassroomLabelExistsAsync(int schoolId, int academicYearId, string classLabel, int? excludingClassroomId, CancellationToken cancellationToken) =>
@@ -740,7 +922,11 @@ public sealed class StudentWorkflowAndGuardianTests
             student.Id = 102;
             Student = student;
         }
-        public void AddEnrollment(StudentEnrollment enrollment) { }
+        public void AddEnrollment(StudentEnrollment enrollment)
+        {
+            enrollment.Id = 103;
+            AddedEnrollment = enrollment;
+        }
         public void AddGuardianLink(StudentGuardian link) { }
         public void AddClassroom(Classroom classroom)
         {

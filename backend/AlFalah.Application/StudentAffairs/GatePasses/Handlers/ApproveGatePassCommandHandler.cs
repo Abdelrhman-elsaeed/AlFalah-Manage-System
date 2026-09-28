@@ -1,4 +1,5 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
@@ -13,15 +14,18 @@ public sealed class ApproveGatePassCommandHandler
 {
     private readonly IGatePassWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
+    private readonly ICurrentLessonResolver _currentLessonResolver;
     private readonly TimeProvider _timeProvider;
 
     public ApproveGatePassCommandHandler(
         IGatePassWorkflowRepository repository,
         ICurrentUserService currentUser,
+        ICurrentLessonResolver currentLessonResolver,
         TimeProvider timeProvider)
     {
         _repository = repository;
         _currentUser = currentUser;
+        _currentLessonResolver = currentLessonResolver;
         _timeProvider = timeProvider;
     }
 
@@ -83,31 +87,38 @@ public sealed class ApproveGatePassCommandHandler
         if (enrollment is null || enrollment.AcademicTermId != gatePass.AcademicTermId)
             return ApiResponse<GatePassDto>.Fail("Student does not have an active enrollment");
 
-        var timetable = await _repository.ResolvePublishedTimetableAsync(
+        var lesson = await _currentLessonResolver.ResolveForClassroomAsync(
             schoolId.Value,
-            enrollment.AcademicYearId,
-            enrollment.Semester,
+            gatePass.RequestedExitAt,
             enrollment.ClassroomId,
             enrollment.ClassroomLabel,
-            gatePass.RequestedExitAt,
             cancellationToken).ConfigureAwait(false);
-        if (timetable is null)
+        if (lesson.Kind is CurrentLessonResolutionKind.NoPublishedSchedule
+            or CurrentLessonResolutionKind.AmbiguousPublishedSchedule
+            or CurrentLessonResolutionKind.NonStudyDay)
             return ApiResponse<GatePassDto>.Fail(
-                "Current teacher could not be resolved safely from the published timetable");
+                $"Gate pass timing could not be resolved safely: {lesson.ResolutionReason}");
+        if (lesson.AcademicYearId != enrollment.AcademicYearId || lesson.Semester != enrollment.Semester)
+            return ApiResponse<GatePassDto>.Fail("The published schedule does not match the student's active enrollment");
+
+        var activeLesson = lesson.Kind == CurrentLessonResolutionKind.ActiveLesson;
+        var auditReason = activeLesson
+            ? request.ApprovalNote?.Trim()
+            : BuildNoAcknowledgementAuditReason(request.ApprovalNote, lesson);
 
         _repository.SetExpectedRowVersion(gatePass, expectedRowVersion);
         var correlationId = Guid.NewGuid();
         gatePass.Status = GatePassStatus.Approved;
         gatePass.ReviewedByUserId = userId;
         gatePass.ReviewedAt = now;
-        gatePass.ApprovalNote = request.ApprovalNote?.Trim();
+        gatePass.ApprovalNote = auditReason;
         gatePass.ApprovedWindowStartsAt = request.WindowStartsAt;
         gatePass.ApprovedWindowEndsAt = request.WindowEndsAt;
         gatePass.CurrentClassroomId = enrollment.ClassroomId;
-        gatePass.SchoolTimetableId = timetable.SchoolTimetableId;
-        gatePass.SchoolTimetableEntryId = timetable.SchoolTimetableEntryId;
-        gatePass.CurrentInstructorProfileId = timetable.InstructorProfileId;
-        gatePass.CurrentPeriod = timetable.Period;
+        gatePass.SchoolTimetableId = lesson.SchoolTimetableId;
+        gatePass.SchoolTimetableEntryId = lesson.SchoolTimetableEntryId;
+        gatePass.CurrentInstructorProfileId = lesson.EffectiveInstructor?.Id;
+        gatePass.CurrentPeriod = lesson.PeriodSequence;
         gatePass.UpdatedByUserId = userId;
         gatePass.Transitions.Add(GatePassHandlerSupport.Transition(
             gatePass,
@@ -117,7 +128,7 @@ public sealed class ApproveGatePassCommandHandler
             RoleNames.StudentAffairsOfficer,
             now,
             correlationId,
-            request.ApprovalNote?.Trim()));
+            auditReason));
         gatePass.AppendDomainEvent(new GatePassApprovedEvent(
             correlationId,
             gatePass.Id,
@@ -129,10 +140,11 @@ public sealed class ApproveGatePassCommandHandler
             request.WindowStartsAt,
             request.WindowEndsAt,
             enrollment.ClassroomId,
-            timetable.SchoolTimetableId,
-            timetable.SchoolTimetableEntryId,
-            timetable.InstructorProfileId,
-            timetable.Period,
+            lesson.SchoolTimetableId!.Value,
+            lesson.SchoolTimetableEntryId,
+            lesson.EffectiveInstructor?.Id,
+            lesson.PeriodSequence,
+            lesson.Kind.ToString(),
             now));
 
         try
@@ -148,5 +160,15 @@ public sealed class ApproveGatePassCommandHandler
             .ConfigureAwait(false)
             ?? throw new InvalidOperationException("The approved gate pass could not be loaded");
         return ApiResponse<GatePassDto>.Success(dto, "Gate pass approved successfully");
+    }
+
+    private static string BuildNoAcknowledgementAuditReason(
+        string? approvalNote,
+        CurrentLessonResolution lesson)
+    {
+        var resolution = $"TeacherAcknowledgementNotRequired:{lesson.Kind} - {lesson.ResolutionReason}";
+        return string.IsNullOrWhiteSpace(approvalNote)
+            ? resolution
+            : $"{approvalNote.Trim()} | {resolution}";
     }
 }

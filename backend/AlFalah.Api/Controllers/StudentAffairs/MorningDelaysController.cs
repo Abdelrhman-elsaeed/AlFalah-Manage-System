@@ -15,27 +15,27 @@ public sealed class MorningDelaysController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] MorningDelayListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MorningDelayView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetMorningDelaysQuery(query), cancellationToken));
+        return FeatureNotImplemented("W6 Delay Review");
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MorningDelayView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetMorningDelayByIdQuery(id), cancellationToken));
+        return FeatureNotImplemented("W6 Delay Review");
     }
 
     [HttpPost("{id:int}/reason")]
     public async Task<IActionResult> ProvideReason(int id, [FromBody] ProvideMorningDelayReasonRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MorningDelayManageReason, PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ProvideMorningDelayReasonCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Delay Review");
     }
 
     [HttpPost("{id:int}/correct")]
     public async Task<IActionResult> Correct(int id, [FromBody] CorrectMorningDelayRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceOverrideCorrection)) return PermissionDenied();
-        return Ok(await Mediator.Send(new CorrectMorningDelayCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Delay Review");
     }
 }

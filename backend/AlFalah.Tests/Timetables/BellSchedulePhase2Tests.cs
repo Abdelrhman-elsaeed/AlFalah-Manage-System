@@ -166,7 +166,7 @@ public sealed class BellSchedulePhase2Tests
             SchoolId = 1, SchoolTimetableId = timetable.Id, InstructorProfileId = 10, Day = TimetableDay.Tuesday,
             Period = sequence, EntryType = TimetableEntryType.Lesson, ClassroomId = 20, ClassLabel = "1/A", Subject = "Math" });
         await db.SaveChangesAsync();
-        var repository = new GatePassWorkflowRepository(db);
+        var repository = new GatePassWorkflowRepository(db, new BellScheduleRepository(db));
         async Task<AlFalah.Application.StudentAffairs.GatePasses.GatePassTimetableSnapshot?> Resolve(int hour, int minute) =>
             await repository.ResolvePublishedTimetableAsync(1, 1, TimetableSemester.First, 20, "1/A",
                 new DateTimeOffset(2026, 9, 1, hour, minute, 0, TimeSpan.Zero), default);

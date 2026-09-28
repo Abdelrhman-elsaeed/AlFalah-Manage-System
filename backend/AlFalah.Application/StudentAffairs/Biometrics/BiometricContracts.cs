@@ -25,7 +25,10 @@ public sealed record BiometricEnrollmentSnapshot(
     public string NationalId => IdentityNumber;
 }
 
-public sealed record BiometricImportSettingsSnapshot(TimeOnly ArrivalCutoffLocalTime, int ArrivalGraceMinutes);
+public sealed record BiometricImportSettingsSnapshot(
+    TimeOnly ArrivalCutoffLocalTime,
+    int ArrivalGraceMinutes,
+    string SchoolTimeZoneId = "Africa/Cairo");
 
 public sealed record BiometricImportIssueDto(int RowNumber, string Code, string Message);
 

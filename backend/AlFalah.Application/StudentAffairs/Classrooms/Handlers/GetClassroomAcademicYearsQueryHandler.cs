@@ -26,19 +26,17 @@ public sealed class GetClassroomAcademicYearsQueryHandler
         GetClassroomAcademicYearsQuery query,
         CancellationToken cancellationToken)
     {
-        if (_currentUser.ActiveSchoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
+        var schoolId = _currentUser.ActiveSchoolId;
+        if (schoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<IReadOnlyList<ClassroomAcademicYearDto>>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.ClassroomManage)
-            && !_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
-            && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.IsInRole(RoleNames.MainManager)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            && !_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage))
         {
             return ApiResponse<IReadOnlyList<ClassroomAcademicYearDto>>.Fail(StudentHandlerSupport.PermissionDenied);
         }
 
-        var years = await _repository.GetClassroomAcademicYearsAsync(cancellationToken).ConfigureAwait(false);
+        var years = await _repository.GetClassroomAcademicYearsAsync(schoolId.Value, cancellationToken).ConfigureAwait(false);
         return ApiResponse<IReadOnlyList<ClassroomAcademicYearDto>>.Success(years);
     }
 }

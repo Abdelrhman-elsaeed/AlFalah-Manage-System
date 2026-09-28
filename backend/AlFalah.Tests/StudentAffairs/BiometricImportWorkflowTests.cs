@@ -36,7 +36,7 @@ public sealed class BiometricImportWorkflowTests
         var handler = new ImportZajelBiometricCommandHandler(
             reader,
             repository,
-            CreateUser(RoleNames.StudentAffairsOfficer, PermissionNames.BiometricImport),
+            CreateUser(RoleNames.Secretary, PermissionNames.BiometricImport),
             new FixedTimeProvider(Now));
 
         using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
@@ -69,7 +69,7 @@ public sealed class BiometricImportWorkflowTests
         var handler = new ImportZajelBiometricCommandHandler(
             reader,
             repository,
-            CreateUser(RoleNames.StudentAffairsOfficer, PermissionNames.BiometricImport),
+            CreateUser(RoleNames.Secretary, PermissionNames.BiometricImport),
             new FixedTimeProvider(Now));
 
         // First upload
@@ -91,7 +91,7 @@ public sealed class BiometricImportWorkflowTests
         var handler2 = new ImportZajelBiometricCommandHandler(
             reader2,
             repository,
-            CreateUser(RoleNames.StudentAffairsOfficer, PermissionNames.BiometricImport),
+            CreateUser(RoleNames.Secretary, PermissionNames.BiometricImport),
             new FixedTimeProvider(Now));
 
         using var stream2 = new MemoryStream(new byte[] { 1, 2, 3 });
@@ -104,6 +104,104 @@ public sealed class BiometricImportWorkflowTests
         secondResult.Data.ImportedDelays.Should().Be(1);
         repository.Delays.Should().HaveCount(1); // No duplicate delay entity created
         repository.Delays[0].DelayMinutes.Should().Be(55); // Updated
+    }
+
+    [Fact]
+    public async Task ImportZajel_UsesCutoffPlusGraceBoundaryAndCairoOffset()
+    {
+        var repository = new FakeBiometricImportRepository();
+        var date = new DateOnly(2026, 9, 1);
+        var reader = new FakeBiometricReader(new[]
+        {
+            new ZajelBiometricPunchRow(2, "1020304050", Now, date, new TimeOnly(6, 44), "متأخر"),
+            new ZajelBiometricPunchRow(3, "1020304051", Now, date, new TimeOnly(6, 45), "متأخر"),
+            new ZajelBiometricPunchRow(4, "1020304052", Now, date, new TimeOnly(6, 46), "حاضر")
+        });
+        repository.Enrollments.Add(new BiometricEnrollmentSnapshot(
+            103, "1020304052", 1, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31)));
+        var handler = new ImportZajelBiometricCommandHandler(
+            reader,
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.BiometricImport),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new ImportZajelBiometricCommand(new MemoryStream(new byte[] { 1 }), "zajel.xlsx"),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        response.Data!.SkippedOnTimeRows.Should().Be(2);
+        repository.Delays.Should().ContainSingle();
+        repository.Delays[0].DelayMinutes.Should().Be(1);
+        repository.Delays[0].ArrivalAt.Offset.Should().Be(TimeSpan.FromHours(3));
+    }
+
+    [Fact]
+    public async Task ImportZajel_ExactDuplicateDoesNotPersistAnotherMutation()
+    {
+        var repository = new FakeBiometricImportRepository();
+        var row = new ZajelBiometricPunchRow(
+            2, "1020304050", Now, new DateOnly(2026, 9, 1), new TimeOnly(7, 30), "حاضر");
+        var handler = new ImportZajelBiometricCommandHandler(
+            new FakeBiometricReader(new[] { row }), repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.BiometricImport),
+            new FixedTimeProvider(Now));
+
+        await handler.Handle(
+            new ImportZajelBiometricCommand(new MemoryStream(new byte[] { 1 }), "zajel.xlsx"),
+            CancellationToken.None);
+        var savesAfterFirstImport = repository.SaveCount;
+        var second = await handler.Handle(
+            new ImportZajelBiometricCommand(new MemoryStream(new byte[] { 1 }), "zajel.xlsx"),
+            CancellationToken.None);
+
+        second.IsSuccess.Should().BeTrue();
+        second.Data!.DuplicateRows.Should().Be(1);
+        repository.Delays.Should().ContainSingle();
+        repository.SaveCount.Should().Be(savesAfterFirstImport);
+    }
+
+    [Fact]
+    public async Task ImportZajel_WhenRoleIsNotSecretary_IsDeniedBeforeReadingWorkbook()
+    {
+        var reader = new FakeBiometricReader(Array.Empty<ZajelBiometricPunchRow>());
+        var handler = new ImportZajelBiometricCommandHandler(
+            reader,
+            new FakeBiometricImportRepository(),
+            CreateUser(RoleNames.StudentAffairsOfficer, PermissionNames.BiometricImport),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new ImportZajelBiometricCommand(new MemoryStream(new byte[] { 1 }), "zajel.xlsx"),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().ContainSingle(error => error.Contains("permission", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task ImportZajel_UnmatchedOrCrossSchoolIdentity_IsReportedWithoutWriting()
+    {
+        var repository = new FakeBiometricImportRepository();
+        var handler = new ImportZajelBiometricCommandHandler(
+            new FakeBiometricReader(new[]
+            {
+                new ZajelBiometricPunchRow(
+                    2, "9999999999", Now, new DateOnly(2026, 9, 1), new TimeOnly(7, 30), "متأخر")
+            }),
+            repository,
+            CreateUser(RoleNames.Secretary, PermissionNames.BiometricImport),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new ImportZajelBiometricCommand(new MemoryStream(new byte[] { 1 }), "zajel.xlsx"),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        response.Data!.UnmatchedRows.Should().Be(1);
+        response.Data.Issues.Should().ContainSingle(issue => issue.Code == "StudentNotFound");
+        repository.Delays.Should().BeEmpty();
+        repository.SaveCount.Should().Be(0);
     }
 
     [Fact]
@@ -147,6 +245,8 @@ public sealed class BiometricImportWorkflowTests
     private sealed class FakeBiometricImportRepository : IBiometricImportRepository
     {
         public List<MorningArrivalDelay> Delays { get; } = new();
+        public List<BiometricEnrollmentSnapshot> Enrollments { get; } = new();
+        public int SaveCount { get; private set; }
 
         public Task<BiometricImportSettingsSnapshot?> GetSettingsAsync(int schoolId, CancellationToken cancellationToken) =>
             Task.FromResult<BiometricImportSettingsSnapshot?>(new BiometricImportSettingsSnapshot(new TimeOnly(6, 30), 15));
@@ -167,6 +267,7 @@ public sealed class BiometricImportWorkflowTests
             {
                 list.Add(new BiometricEnrollmentSnapshot(102, "1020304051", 1, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31)));
             }
+            list.AddRange(Enrollments.Where(item => identityNumbers.Contains(item.IdentityNumber)));
             return Task.FromResult<IReadOnlyList<BiometricEnrollmentSnapshot>>(list);
         }
 
@@ -186,7 +287,11 @@ public sealed class BiometricImportWorkflowTests
 
         public void AddRange(IEnumerable<MorningArrivalDelay> delays) => Delays.AddRange(delays);
 
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(1);
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            SaveCount++;
+            return Task.FromResult(1);
+        }
     }
 
     private static ICurrentUserService CreateUser(string roleName, params string[] permissions) =>

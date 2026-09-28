@@ -14,13 +14,16 @@ public sealed class GetStudentTimelineQueryHandler
 {
     private readonly IStudentWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
+    private readonly TimeProvider _timeProvider;
 
     public GetStudentTimelineQueryHandler(
         IStudentWorkflowRepository repository,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        TimeProvider timeProvider)
     {
         _repository = repository;
         _currentUser = currentUser;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ApiResponse<PagedResult<StudentTimelineItemDto>>> Handle(
@@ -43,6 +46,14 @@ public sealed class GetStudentTimelineQueryHandler
             && !_currentUser.IsInRole(RoleNames.SchoolManager))
         {
             return ApiResponse<PagedResult<StudentTimelineItemDto>>.Fail(StudentHandlerSupport.PermissionDenied);
+        }
+
+        if (_currentUser.IsInRole(RoleNames.Guardian))
+        {
+            var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
+            if (!await _repository.IsGuardianLinkedToStudentAsync(
+                    schoolId.Value, userId, query.StudentId, today, cancellationToken).ConfigureAwait(false))
+                return ApiResponse<PagedResult<StudentTimelineItemDto>>.Fail(StudentHandlerSupport.NotFound);
         }
 
         var result = await _repository.GetStudentTimelineAsync(

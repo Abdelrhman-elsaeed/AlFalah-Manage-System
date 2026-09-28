@@ -56,6 +56,11 @@ public sealed class GetStudentGuardiansQueryHandler
         }
 
         var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
+        if (_currentUser.IsInRole(RoleNames.Guardian)
+            && !await _repository.IsGuardianLinkedToStudentAsync(
+                schoolId.Value, userId, query.StudentId, today, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<IReadOnlyList<StudentGuardianLinkDto>>.Fail(StudentHandlerSupport.NotFound);
+
         var guardians = await _repository.GetStudentGuardiansAsync(
             schoolId.Value,
             query.StudentId,

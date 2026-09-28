@@ -5,6 +5,13 @@
     <p>ارفع مصنف البصمة ليعالج الخادم التأخر والمطابقة والتكرار وفق إعدادات المدرسة.</p>
   </header>
 
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
   <p-card>
     <div
       class="drop-zone"

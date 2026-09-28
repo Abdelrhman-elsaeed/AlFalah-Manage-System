@@ -88,6 +88,9 @@ public sealed class ReviewAbsenceExcuseCommandHandler
         excuse.UpdatedAt = now;
         excuse.UpdatedByUserId = userId;
         excuse.DailyStudentAttendance.ExcuseStatus = decision;
+        excuse.DailyStudentAttendance.Status = decision == AbsenceExcuseStatus.Accepted
+            ? StudentAttendanceStatus.AbsentExcused
+            : StudentAttendanceStatus.Absent;
         excuse.DailyStudentAttendance.UpdatedAt = now;
         excuse.DailyStudentAttendance.UpdatedByUserId = userId;
 

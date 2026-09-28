@@ -34,7 +34,7 @@ public sealed class RejectGatePassCommandHandler
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.HasPermission(PermissionNames.GatePassReject))
+            || !_currentUser.HasPermission(PermissionNames.GatePassReject))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
 
         var gatePass = await _repository.GetForUpdateAsync(

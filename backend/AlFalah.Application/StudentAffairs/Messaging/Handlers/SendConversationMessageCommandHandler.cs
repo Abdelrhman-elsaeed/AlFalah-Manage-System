@@ -35,6 +35,13 @@ public sealed class SendConversationMessageCommandHandler
         if (string.IsNullOrWhiteSpace(command.Request.Body))
             return ApiResponse<SendMessageResultDto>.Fail("Message body cannot be empty");
 
+        if (!await _repository.IsParticipantAsync(
+                schoolId.Value,
+                userId,
+                command.ConversationId,
+                cancellationToken).ConfigureAwait(false))
+            return ApiResponse<SendMessageResultDto>.Fail("Conversation was not found");
+
         var result = await _repository.SendMessageAsync(
             schoolId.Value,
             userId,

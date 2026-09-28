@@ -50,18 +50,43 @@ public sealed class BellScheduleRepository(AlFalahDbContext context) : IBellSche
 
     public async Task<BellScheduleDto?> GetPublishedAsync(int schoolId, DateTimeOffset instant, CancellationToken ct)
     {
-        var candidates = await context.SchoolTimetables.AsNoTracking().Where(x => x.SchoolId == schoolId && x.IsPublished &&
-            x.BellScheduleRevisionId != null).Select(x => new { x.BellScheduleRevisionId, x.AcademicYearId, x.Semester }).Distinct().ToListAsync(ct);
-        var ids = candidates.Select(x => x.BellScheduleRevisionId!.Value).ToArray();
+        var candidates = await GetPublishedCandidatesAsync(schoolId, instant, ct).ConfigureAwait(false);
+        return candidates.Count == 1 ? candidates[0].Schedule : null;
+    }
+
+    public async Task<IReadOnlyList<PublishedBellScheduleCandidate>> GetPublishedCandidatesAsync(
+        int schoolId,
+        DateTimeOffset instant,
+        CancellationToken ct)
+    {
+        var timetables = await context.SchoolTimetables.AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && x.IsPublished && !x.IsDeleted && x.BellScheduleRevisionId != null)
+            .Select(x => new { x.Id, x.Revision, x.BellScheduleRevisionId, x.AcademicYearId, x.Semester })
+            .ToListAsync(ct).ConfigureAwait(false);
+        var ids = timetables.Select(x => x.BellScheduleRevisionId!.Value).Distinct().ToArray();
         var revisions = await RevisionQuery(schoolId).Where(x => ids.Contains(x.Id)).ToListAsync(ct);
         var terms = await context.AcademicTerms.AsNoTracking().Where(x => x.SchoolId == schoolId && !x.IsDeleted && x.IsActive)
             .Select(x => new { x.AcademicYearId, x.Semester, x.StartsOn, x.EndsOn }).ToListAsync(ct);
-        var matches = revisions.Where(r => {
-            var date = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(instant, TimeZoneInfo.FindSystemTimeZoneById(r.SchoolTimeZoneId)).DateTime);
-            return candidates.Any(c => c.BellScheduleRevisionId == r.Id && terms.Any(t => t.AcademicYearId == c.AcademicYearId &&
-                t.Semester == c.Semester && t.StartsOn <= date && date <= t.EndsOn));
-        }).ToArray();
-        return matches.Length == 1 ? Map(matches[0], Array.Empty<int>()) : null;
+        var revisionById = revisions.ToDictionary(x => x.Id);
+
+        return timetables
+            .Where(timetable =>
+            {
+                if (!revisionById.TryGetValue(timetable.BellScheduleRevisionId!.Value, out var revision))
+                    return false;
+                var date = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(
+                    instant,
+                    TimeZoneInfo.FindSystemTimeZoneById(revision.SchoolTimeZoneId)).DateTime);
+                return terms.Any(term => term.AcademicYearId == timetable.AcademicYearId
+                    && term.Semester == timetable.Semester
+                    && term.StartsOn <= date
+                    && date <= term.EndsOn);
+            })
+            .Select(timetable => new PublishedBellScheduleCandidate(
+                timetable.Id,
+                timetable.Revision,
+                Map(revisionById[timetable.BellScheduleRevisionId!.Value], Array.Empty<int>())))
+            .ToArray();
     }
 
     public async Task<BellScheduleDependencies> GetDependenciesAsync(int schoolId, int? templateId, int? profileId, CancellationToken ct)

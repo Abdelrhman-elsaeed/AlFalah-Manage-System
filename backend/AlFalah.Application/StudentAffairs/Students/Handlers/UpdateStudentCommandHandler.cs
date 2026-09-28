@@ -38,10 +38,7 @@ public sealed class UpdateStudentCommandHandler
             return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.StudentManage)
-            && !_currentUser.HasPermission(PermissionNames.StudentEdit)
-            && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.IsInRole(RoleNames.MainManager)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            && !_currentUser.HasPermission(PermissionNames.StudentEdit))
         {
             return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.PermissionDenied);
         }
@@ -95,6 +92,7 @@ public sealed class UpdateStudentCommandHandler
             enrollmentTarget = await _repository.GetStudentEnrollmentTargetAsync(
                 schoolId.Value,
                 requestedClassroomId.Value,
+                today,
                 cancellationToken).ConfigureAwait(false);
 
             if (enrollmentTarget is null)
@@ -104,6 +102,7 @@ public sealed class UpdateStudentCommandHandler
         var activeEnrollment = await _repository.GetActiveStudentEnrollmentForUpdateAsync(
             schoolId.Value,
             student.Id,
+            today,
             cancellationToken).ConfigureAwait(false);
 
         student.StudentNumber = studentNumber;

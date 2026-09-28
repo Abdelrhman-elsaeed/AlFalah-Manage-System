@@ -7,14 +7,46 @@ using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Shared.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AlFalah.Infrastructure.Repositories;
 
 public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
 {
+    private const string AttendanceSubmissionMessageType = "AttendanceSheet:";
     private readonly AlFalahDbContext _context;
 
     public AttendanceWorkflowRepository(AlFalahDbContext context) => _context = context;
+
+    public Task<string?> GetAttendanceSubmissionFingerprintAsync(
+        int schoolId,
+        string idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        var messageId = BuildIdempotencyMessageId(idempotencyKey);
+        return _context.InboxMessages
+            .AsNoTracking()
+            .Where(message => message.SchoolId == schoolId
+                && message.MessageId == messageId
+                && message.MessageType.StartsWith(AttendanceSubmissionMessageType))
+            .Select(message => message.MessageType.Substring(AttendanceSubmissionMessageType.Length))
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public void AddAttendanceSubmissionReceipt(
+        int schoolId,
+        string idempotencyKey,
+        string requestFingerprint,
+        DateTimeOffset processedAt) =>
+        _context.InboxMessages.Add(new InboxMessage
+        {
+            SchoolId = schoolId,
+            MessageId = BuildIdempotencyMessageId(idempotencyKey),
+            MessageType = AttendanceSubmissionMessageType + requestFingerprint,
+            ReceivedAt = processedAt,
+            ProcessedAt = processedAt
+        });
 
     public async Task<IReadOnlyList<AttendanceRosterStudentSnapshot>> GetActiveRosterAsync(
         int schoolId,
@@ -26,16 +58,20 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             .Where(enrollment => enrollment.SchoolId == schoolId
                 && enrollment.ClassroomId == classroomId
                 && enrollment.Status == StudentEnrollmentStatus.Active
+                && !enrollment.IsDeleted
                 && enrollment.EnrolledOn <= attendanceDate
                 && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= attendanceDate)
                 && enrollment.Student.SchoolId == schoolId
                 && enrollment.Student.IsActive
+                && !enrollment.Student.IsDeleted
                 && enrollment.AcademicTerm.SchoolId == schoolId
                 && enrollment.AcademicTerm.IsActive
+                && !enrollment.AcademicTerm.IsDeleted
                 && enrollment.AcademicTerm.StartsOn <= attendanceDate
                 && enrollment.AcademicTerm.EndsOn >= attendanceDate
                 && enrollment.Classroom.SchoolId == schoolId
-                && enrollment.Classroom.IsActive)
+                && enrollment.Classroom.IsActive
+                && !enrollment.Classroom.IsDeleted)
             .OrderBy(enrollment => enrollment.RollNumber)
             .ThenBy(enrollment => enrollment.StudentId)
             .Select(enrollment => new AttendanceRosterStudentSnapshot(
@@ -149,12 +185,15 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
         int schoolId,
         int classroomId,
         DateOnly attendanceDate,
-        string rosterRevision,
+        string _,
         CancellationToken cancellationToken)
     {
         var classroom = await _context.Classrooms
             .AsNoTracking()
-            .Where(item => item.Id == classroomId && item.SchoolId == schoolId && item.IsActive)
+            .Where(item => item.Id == classroomId
+                && item.SchoolId == schoolId
+                && item.IsActive
+                && !item.IsDeleted)
             .Select(item => new ClassroomSummaryDto(
                 item.Id,
                 item.ClassLabel,
@@ -165,11 +204,16 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             .ConfigureAwait(false);
         if (classroom is null) return null;
 
+        var roster = await GetActiveRosterAsync(schoolId, classroomId, attendanceDate, cancellationToken)
+            .ConfigureAwait(false);
+        var rosterStudentIds = roster.Select(item => item.StudentId).ToArray();
+
         var rows = await _context.DailyStudentAttendances
             .AsNoTracking()
             .Where(attendance => attendance.SchoolId == schoolId
                 && attendance.ClassroomId == classroomId
-                && attendance.AttendanceDate == attendanceDate)
+                && attendance.AttendanceDate == attendanceDate
+                && rosterStudentIds.Contains(attendance.StudentId))
             .OrderBy(attendance => attendance.Student.StudentNumber)
             .Select(attendance => new
             {
@@ -192,60 +236,29 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        var rosterRevision = BuildRosterRevision(roster, rows.Select(row =>
+            $"{row.Id}:{row.StudentId}:{(int)row.Status}:{(int?)row.ExcuseStatus}:{Convert.ToHexString(row.RowVersion)}"));
+
         var now = DateTimeOffset.UtcNow;
 
-        if (rows.Count == 0)
-        {
-            var roster = await GetActiveRosterAsync(schoolId, classroomId, attendanceDate, cancellationToken)
-                .ConfigureAwait(false);
-            var rosterStudentIds = roster.Select(r => r.StudentId).ToArray();
-            var students = await _context.Students
-                .AsNoTracking()
-                .Where(s => s.SchoolId == schoolId && rosterStudentIds.Contains(s.Id))
-                .OrderBy(s => s.StudentNumber)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.StudentNumber,
-                    DisplayName = (s.FirstName + " " + (s.MiddleName ?? string.Empty) + " " + s.LastName).Trim(),
-                    s.IsActive
-                })
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+        var students = await _context.Students
+            .AsNoTracking()
+            .Where(student => student.SchoolId == schoolId
+                && rosterStudentIds.Contains(student.Id)
+                && student.IsActive
+                && !student.IsDeleted)
+            .OrderBy(student => student.StudentNumber)
+            .Select(student => new
+            {
+                student.Id,
+                student.StudentNumber,
+                DisplayName = (student.FirstName + " " + (student.MiddleName ?? string.Empty) + " " + student.LastName).Trim(),
+                student.IsActive
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-            var emptyRows = students.Select(s => new StudentAttendanceSheetRowDto(
-                null,
-                new StudentSummaryDto(
-                    s.Id,
-                    s.StudentNumber,
-                    s.DisplayName,
-                    classroomId,
-                    classroom.Label,
-                    s.IsActive,
-                    null),
-                StudentAttendanceStatus.Present,
-                null,
-                null,
-                null,
-                new MetricBadgeDto(
-                    StudentTermMetricCode.PenaltyAbsenceDay,
-                    0,
-                    0,
-                    null,
-                    "None",
-                    null,
-                    now),
-                null)).ToArray();
-
-            return new StudentAttendanceSheetDto(
-                attendanceDate,
-                classroom,
-                rosterRevision,
-                false,
-                emptyRows);
-        }
-
-        var studentIds = rows.Select(row => row.StudentId).ToArray();
+        var studentIds = students.Select(student => student.Id).ToArray();
         var metrics = await _context.StudentTermMetrics
             .AsNoTracking()
             .Where(metric => metric.SchoolId == schoolId
@@ -263,23 +276,27 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
         var metricByStudentAndTerm = metrics.ToDictionary(
             metric => (metric.StudentId, metric.AcademicTermId));
 
-        var dtoRows = rows.Select(row =>
+        var rowByStudent = rows.GroupBy(row => row.StudentId).ToDictionary(group => group.Key, group => group.First());
+        var termByStudent = roster.GroupBy(item => item.StudentId).ToDictionary(group => group.Key, group => group.First().AcademicTermId);
+        var dtoRows = students.Select(student =>
         {
-            metricByStudentAndTerm.TryGetValue((row.StudentId, row.AcademicTermId), out var metric);
+            rowByStudent.TryGetValue(student.Id, out var row);
+            var academicTermId = row?.AcademicTermId ?? termByStudent[student.Id];
+            metricByStudentAndTerm.TryGetValue((student.Id, academicTermId), out var metric);
             return new StudentAttendanceSheetRowDto(
-                row.Id,
+                row?.Id,
                 new StudentSummaryDto(
-                    row.StudentId,
-                    row.StudentNumber,
-                    row.StudentDisplayName,
+                    student.Id,
+                    student.StudentNumber,
+                    student.DisplayName,
                     classroomId,
                     classroom.Label,
-                    row.IsActive,
+                    student.IsActive,
                     null),
-                row.Status,
-                row.ExcuseStatus,
-                new ActorSummaryDto(row.RecordedByUserId, row.RecorderDisplayName, RoleNames.Secretary),
-                row.RecordedAt,
+                row?.Status ?? StudentAttendanceStatus.Present,
+                row?.ExcuseStatus,
+                row is null ? null : new ActorSummaryDto(row.RecordedByUserId, row.RecorderDisplayName, RoleNames.Secretary),
+                row?.RecordedAt,
                 new MetricBadgeDto(
                     StudentTermMetricCode.PenaltyAbsenceDay,
                     metric?.Count ?? 0,
@@ -288,7 +305,7 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
                     "None",
                     null,
                     metric?.RecalculatedAt ?? now),
-                Convert.ToBase64String(row.RowVersion));
+                row is null ? null : Convert.ToBase64String(row.RowVersion));
         }).ToArray();
 
         return new StudentAttendanceSheetDto(
@@ -297,6 +314,25 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             rosterRevision,
             true,
             dtoRows);
+    }
+
+    private static string BuildRosterRevision(
+        IReadOnlyList<AttendanceRosterStudentSnapshot> roster,
+        IEnumerable<string> attendanceRows)
+    {
+        var payload = string.Join('|', roster
+            .OrderBy(item => item.StudentId)
+            .ThenBy(item => item.AcademicTermId)
+            .Select(item => $"r:{item.StudentId}:{item.AcademicTermId}"))
+            + "||"
+            + string.Join('|', attendanceRows.OrderBy(value => value, StringComparer.Ordinal));
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
+    }
+
+    private static Guid BuildIdempotencyMessageId(string idempotencyKey)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(idempotencyKey.Trim()));
+        return new Guid(hash.AsSpan(0, 16));
     }
 
     public async Task<AbsenceExcuseDto?> GetExcuseDtoAsync(

@@ -23,41 +23,41 @@ public sealed class BehaviorsController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] BehaviorListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.BehaviorView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetBehaviorIncidentsQuery(query), cancellationToken));
+        return FeatureNotImplemented("W6 Conduct Review");
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.BehaviorView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetBehaviorIncidentByIdQuery(id), cancellationToken));
+        return FeatureNotImplemented("W6 Conduct Review");
     }
 
     [HttpPost("{id:int}/classify")]
     public async Task<IActionResult> Classify(int id, [FromBody] ClassifyBehaviorRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.BehaviorManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ClassifyBehaviorIncidentCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Conduct Review");
     }
 
     [HttpPost("{id:int}/dispatch-decision")]
     public async Task<IActionResult> DispatchDecision(int id, [FromBody] DispatchDecisionRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.BehaviorManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new DecideBehaviorDispatchCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Conduct Review");
     }
 
     [HttpPost("{id:int}/refer")]
     public async Task<IActionResult> Refer(int id, [FromBody] ReferBehaviorRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralCreate)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ReferBehaviorIncidentCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Conduct Review");
     }
 
     [HttpPost("{id:int}/correct")]
     public async Task<IActionResult> Correct(int id, [FromBody] CorrectBehaviorRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.BehaviorManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new CorrectBehaviorIncidentCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Conduct Review");
     }
 }

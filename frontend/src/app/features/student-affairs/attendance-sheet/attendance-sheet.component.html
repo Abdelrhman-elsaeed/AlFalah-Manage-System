@@ -59,7 +59,7 @@
     @if (hasExcusedRows()) {
       <div class="state state-warning" role="alert">
         <i class="pi pi-lock"></i>
-        <span>يتضمن الكشف غيابًا بعذر معتمدًا. حُجب الحفظ الكامل لحماية القرار؛ استخدم مسار تصحيح الموظف المختص.</span>
+        <span>يتضمن الكشف {{ excusedCount() }} حالة غياب بعذر معتمدة. ستظل محمية عند حفظ بقية الكشف.</span>
       </div>
     }
     @if (removedDuringConflict().length) {
@@ -141,13 +141,14 @@
         <div><span>إجمالي الطلاب</span><strong>{{ currentSheet.rows.length }}</strong></div>
         <div class="absent"><span>الغائبون المحددون</span><strong>{{ selectedAbsentCount() }}</strong></div>
         <div class="present"><span>سيُسجل الباقون حضورًا</span><strong>{{ presentCount() }}</strong></div>
+        @if (excusedCount()) { <div class="excused"><span>غياب بعذر محمي</span><strong>{{ excusedCount() }}</strong></div> }
         <button
           pButton
           type="button"
           label="حفظ كشف الحضور"
           icon="pi pi-save"
           [loading]="saving()"
-          [disabled]="hasExcusedRows() || (!dirty() && currentSheet.isSaved)"
+          [disabled]="!dirty() && currentSheet.isSaved"
           (click)="confirmSave()">
         </button>
       </footer>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
+import { roleLandingFor } from '../../../core/utils/role-landing';
 
 @Component({
   selector: 'app-unauthorized',
@@ -91,13 +92,7 @@ export class UnauthorizedComponent {
 
   readonly returnLink = computed(() => {
     if (!this.auth.isAuthenticated()) return '/auth/school-login';
-    if (this.auth.hasAnyRole(['MainManager', 'SuperAdmin'])) return '/main-manager/dashboard';
-    if (this.auth.hasRole('SchoolManager')) return '/school-manager/dashboard';
-    if (this.auth.hasRole('Moderator')) return '/moderator/dashboard';
-    if (this.auth.hasRole('Instructor')) return '/instructor/dashboard';
-    if (this.auth.hasRole('StudentAffairsOfficer')) return '/student-affairs/settings';
-    if (this.auth.hasRole('Secretary')) return '/student-affairs/attendance/sheet';
-    return '/dashboard';
+    return roleLandingFor(this.auth.roles());
   });
 
   readonly returnLabelKey = computed(() => this.auth.isAuthenticated()

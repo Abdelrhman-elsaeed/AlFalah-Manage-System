@@ -29,6 +29,25 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         _context = context;
     }
 
+    public Task<bool> IsGuardianLinkedToStudentAsync(
+        int schoolId,
+        string guardianUserId,
+        int studentId,
+        DateOnly onDate,
+        CancellationToken cancellationToken) =>
+        _context.StudentGuardians.AsNoTracking().AnyAsync(
+            link => link.SchoolId == schoolId
+                && link.StudentId == studentId
+                && link.GuardianProfile.ApplicationUserId == guardianUserId
+                && link.GuardianProfile.IsActive
+                && !link.GuardianProfile.IsDeleted
+                && link.Student.IsActive
+                && !link.Student.IsDeleted
+                && !link.IsDeleted
+                && link.ValidFrom <= onDate
+                && (link.ValidTo == null || link.ValidTo >= onDate),
+            cancellationToken);
+
     public async Task<IReadOnlyList<StudentGuardianLinkDto>> GetStudentGuardiansAsync(
         int schoolId,
         int studentId,
@@ -113,6 +132,17 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
                 e.SchoolId == schoolId
                 && !e.IsDeleted
                 && e.ClassroomId == query.ClassroomId.Value
+                && e.Status == StudentEnrollmentStatus.Active
+                && e.EnrolledOn <= onDate
+                && (e.WithdrawnOn == null || e.WithdrawnOn >= onDate)));
+        }
+
+        if (query.AcademicTermId.HasValue)
+        {
+            dbQuery = dbQuery.Where(s => s.Enrollments.Any(e =>
+                e.SchoolId == schoolId
+                && !e.IsDeleted
+                && e.AcademicTermId == query.AcademicTermId.Value
                 && e.Status == StudentEnrollmentStatus.Active
                 && e.EnrolledOn <= onDate
                 && (e.WithdrawnOn == null || e.WithdrawnOn >= onDate)));
@@ -264,6 +294,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
     public Task<StudentEnrollment?> GetActiveStudentEnrollmentForUpdateAsync(
         int schoolId,
         int studentId,
+        DateOnly effectiveOn,
         CancellationToken cancellationToken) =>
         _context.StudentEnrollments
             .AsTracking()
@@ -273,15 +304,21 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
                 && enrollment.Status == StudentEnrollmentStatus.Active
                 && enrollment.AcademicTerm.IsActive
                 && !enrollment.IsDeleted
-                && !enrollment.AcademicTerm.IsDeleted)
+                && !enrollment.AcademicTerm.IsDeleted
+                && enrollment.EnrolledOn <= effectiveOn
+                && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= effectiveOn)
+                && enrollment.AcademicTerm.StartsOn <= effectiveOn
+                && enrollment.AcademicTerm.EndsOn >= effectiveOn)
             .OrderByDescending(enrollment => enrollment.EnrolledOn)
             .FirstOrDefaultAsync(cancellationToken);
 
-    public Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(
+    public async Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(
         int schoolId,
         int classroomId,
-        CancellationToken cancellationToken) =>
-        _context.Classrooms
+        DateOnly effectiveOn,
+        CancellationToken cancellationToken)
+    {
+        var targets = await _context.Classrooms
             .AsNoTracking()
             .Where(classroom =>
                 classroom.SchoolId == schoolId
@@ -295,9 +332,58 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
                         term.SchoolId == schoolId
                         && term.AcademicYearId == classroom.AcademicYearId
                         && term.IsActive
-                        && !term.IsDeleted),
+                        && !term.IsDeleted
+                        && term.StartsOn <= effectiveOn
+                        && term.EndsOn >= effectiveOn),
                 (classroom, term) => new StudentEnrollmentTarget(classroom.Id, term.Id))
-            .FirstOrDefaultAsync(cancellationToken);
+            .Take(2)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return targets.Count == 1 ? targets[0] : null;
+    }
+
+    public Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(
+        int schoolId,
+        int classroomId,
+        int academicTermId,
+        DateOnly effectiveOn,
+        CancellationToken cancellationToken) =>
+        _context.Classrooms
+            .AsNoTracking()
+            .Where(classroom => classroom.SchoolId == schoolId
+                && classroom.Id == classroomId
+                && classroom.IsActive
+                && !classroom.IsDeleted)
+            .SelectMany(
+                classroom => _context.AcademicTerms.AsNoTracking().Where(term =>
+                    term.SchoolId == schoolId
+                    && term.Id == academicTermId
+                    && term.AcademicYearId == classroom.AcademicYearId
+                    && term.IsActive
+                    && !term.IsDeleted
+                    && term.StartsOn <= effectiveOn
+                    && term.EndsOn >= effectiveOn),
+                (classroom, term) => new StudentEnrollmentTarget(classroom.Id, term.Id))
+            .SingleOrDefaultAsync(cancellationToken);
+
+    public Task<bool> HasOverlappingStudentEnrollmentAsync(
+        int schoolId,
+        int studentId,
+        DateOnly startsOn,
+        DateOnly? endsOn,
+        int? excludingEnrollmentId,
+        CancellationToken cancellationToken)
+    {
+        var effectiveEnd = endsOn ?? DateOnly.MaxValue;
+        return _context.StudentEnrollments.AsNoTracking().AnyAsync(enrollment =>
+            enrollment.SchoolId == schoolId
+            && enrollment.StudentId == studentId
+            && !enrollment.IsDeleted
+            && (!excludingEnrollmentId.HasValue || enrollment.Id != excludingEnrollmentId.Value)
+            && enrollment.EnrolledOn <= effectiveEnd
+            && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= startsOn),
+            cancellationToken);
+    }
 
     public Task<bool> StudentNumberExistsAsync(
         int schoolId,
@@ -591,6 +677,12 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         if (query.AcademicYearId.HasValue)
             dbQuery = dbQuery.Where(c => c.AcademicYearId == query.AcademicYearId.Value);
 
+        if (query.AcademicTermId.HasValue)
+            dbQuery = dbQuery.Where(c => c.Enrollments.Any(e => e.SchoolId == schoolId
+                && !e.IsDeleted
+                && e.AcademicTermId == query.AcademicTermId.Value
+                && e.Status == StudentEnrollmentStatus.Active));
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.Trim();
@@ -634,11 +726,24 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
     }
 
     public async Task<IReadOnlyList<ClassroomAcademicYearDto>> GetClassroomAcademicYearsAsync(
+        int schoolId,
         CancellationToken cancellationToken) =>
-        await _context.AcademicYears
+        await _context.AcademicTerms
             .AsNoTracking()
-            .OrderByDescending(year => year.StartsOn)
-            .Select(year => new ClassroomAcademicYearDto(year.Id, year.Code, year.NameAr, year.IsActive))
+            .Where(term => term.SchoolId == schoolId && !term.IsDeleted)
+            .GroupBy(term => new
+            {
+                term.AcademicYear.Id,
+                term.AcademicYear.Code,
+                term.AcademicYear.NameAr,
+                term.AcademicYear.StartsOn
+            })
+            .OrderByDescending(group => group.Key.StartsOn)
+            .Select(group => new ClassroomAcademicYearDto(
+                group.Key.Id,
+                group.Key.Code,
+                group.Key.NameAr,
+                group.Any(term => term.IsActive)))
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -681,10 +786,13 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             .Where(c => c.SchoolId == schoolId && c.Id == classroomId && !c.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 
-    public Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken) =>
-        _context.AcademicYears
+    public Task<bool> AcademicYearExistsAsync(int schoolId, int academicYearId, CancellationToken cancellationToken) =>
+        _context.AcademicTerms
             .AsNoTracking()
-            .AnyAsync(year => year.Id == academicYearId, cancellationToken);
+            .AnyAsync(term => term.SchoolId == schoolId
+                && term.AcademicYearId == academicYearId
+                && !term.IsDeleted,
+                cancellationToken);
 
     public Task<bool> ClassroomLabelExistsAsync(
         int schoolId,
@@ -871,27 +979,30 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
     {
         var openCases = await _context.StudentReferrals
             .AsNoTracking()
-            .CountAsync(r => r.SchoolId == schoolId && !r.IsDeleted && (r.Status == StudentReferralStatus.Open || r.Status == StudentReferralStatus.Assigned || r.Status == StudentReferralStatus.InProgress), cancellationToken)
+            .CountAsync(r => r.SchoolId == schoolId
+                && r.AssignedSocialWorkerUserId == socialWorkerUserId
+                && !r.IsDeleted
+                && (r.Status == StudentReferralStatus.Assigned || r.Status == StudentReferralStatus.InProgress), cancellationToken)
             .ConfigureAwait(false);
 
         var pendingSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && !s.IsDeleted && s.Status == GuardianSummonStatus.Pending, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.Pending, cancellationToken)
             .ConfigureAwait(false);
 
         var attendedSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && !s.IsDeleted && s.Status == GuardianSummonStatus.Attended, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.Attended, cancellationToken)
             .ConfigureAwait(false);
 
         var underObservationSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && !s.IsDeleted && s.Status == GuardianSummonStatus.UnderObservation, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.UnderObservation, cancellationToken)
             .ConfigureAwait(false);
 
         var improvedSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && !s.IsDeleted && s.Status == GuardianSummonStatus.Improved, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.Improved, cancellationToken)
             .ConfigureAwait(false);
 
         var casesList = new List<DashboardCountDto>

@@ -39,17 +39,14 @@ public sealed class CreateClassroomCommandHandler
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
-            && !_currentUser.HasPermission(PermissionNames.ClassroomManage)
-            && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.IsInRole(RoleNames.MainManager)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            && !_currentUser.HasPermission(PermissionNames.ClassroomManage))
         {
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.PermissionDenied);
         }
 
         var req = command.Request;
         var classLabel = req.ClassLabel.Trim();
-        if (!await _repository.AcademicYearExistsAsync(req.AcademicYearId, cancellationToken).ConfigureAwait(false))
+        if (!await _repository.AcademicYearExistsAsync(schoolId.Value, req.AcademicYearId, cancellationToken).ConfigureAwait(false))
             return ApiResponse<ClassroomDto>.Fail("Academic year was not found");
 
         if (await _repository.ClassroomLabelExistsAsync(

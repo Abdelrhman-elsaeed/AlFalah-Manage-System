@@ -5,6 +5,19 @@ namespace AlFalah.Application.StudentAffairs.Messaging;
 
 public interface IMessagingWorkflowRepository
 {
+    Task<bool> IsParticipantAsync(
+        int schoolId,
+        string userId,
+        int conversationId,
+        CancellationToken cancellationToken);
+
+    Task<bool> IsConversationTargetAllowedAsync(
+        int schoolId,
+        string creatorUserId,
+        CreateConversationRequestDto request,
+        DateTimeOffset instant,
+        CancellationToken cancellationToken);
+
     Task<PagedResult<ConversationDto>> GetConversationsAsync(
         int schoolId,
         string userId,

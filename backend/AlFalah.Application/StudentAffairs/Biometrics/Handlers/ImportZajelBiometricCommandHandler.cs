@@ -1,5 +1,6 @@
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities.StudentAffairs;
+using AlFalah.Domain.Enums;
 using AlFalah.Domain.Events;
 using AlFalah.Shared.Models;
 using MediatR;
@@ -9,7 +10,6 @@ namespace AlFalah.Application.StudentAffairs.Biometrics.Handlers;
 public sealed class ImportZajelBiometricCommandHandler
     : IRequestHandler<ImportZajelBiometricCommand, ApiResponse<BiometricImportResultDto>>
 {
-    private const string LateStatus = "متأخر";
     private const string NotificationPolicy = "ImmediateGuardian";
     private readonly IZajelBiometricWorkbookReader _reader;
     private readonly IBiometricImportRepository _repository;
@@ -36,6 +36,9 @@ public sealed class ImportZajelBiometricCommandHandler
         var userId = _currentUser.UserId;
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<BiometricImportResultDto>.Fail("An authenticated actor and active school are required");
+        if (!_currentUser.IsInRole(RoleNames.Secretary)
+            || !_currentUser.HasPermission(PermissionNames.BiometricImport))
+            return ApiResponse<BiometricImportResultDto>.Fail("You do not have permission to import Zajel attendance data");
         if (!command.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
             return ApiResponse<BiometricImportResultDto>.Fail("The Zajel import must be an .xlsx workbook");
 
@@ -55,6 +58,16 @@ public sealed class ImportZajelBiometricCommandHandler
         var settings = await _repository.GetSettingsAsync(schoolId.Value, cancellationToken).ConfigureAwait(false);
         if (settings is null)
             return ApiResponse<BiometricImportResultDto>.Fail("Student Affairs arrival cutoff settings are not configured for this school");
+
+        TimeZoneInfo schoolTimeZone;
+        try
+        {
+            schoolTimeZone = TimeZoneInfo.FindSystemTimeZoneById(settings.SchoolTimeZoneId);
+        }
+        catch (Exception exception) when (exception is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            return ApiResponse<BiometricImportResultDto>.Fail("The school's published timetable timezone is invalid");
+        }
 
         var normalizedRows = rows.Select(row => (Row: row, IdentityNumber: NormalizeIdentityNumber(row.IdentityNumber))).ToArray();
         var ids = normalizedRows.Where(row => row.IdentityNumber.Length > 0)
@@ -95,17 +108,23 @@ public sealed class ImportZajelBiometricCommandHandler
                 continue;
             }
 
-            var enrollment = candidates.SingleOrDefault(candidate =>
-                candidate.StartsOn <= item.Row.SchoolLocalDate && candidate.EndsOn >= item.Row.SchoolLocalDate);
-            if (enrollment is null)
+            var enrollmentCandidates = candidates.Where(candidate =>
+                candidate.StartsOn <= item.Row.SchoolLocalDate && candidate.EndsOn >= item.Row.SchoolLocalDate).ToArray();
+            if (enrollmentCandidates.Length == 0)
             {
                 unmatchedRows++;
                 issues.Add(new(item.Row.RowNumber, "EnrollmentNotFound", "The student has no active enrollment on the punch date"));
                 continue;
             }
+            if (enrollmentCandidates.Length != 1)
+            {
+                unmatchedRows++;
+                issues.Add(new(item.Row.RowNumber, "AmbiguousEnrollment", "More than one active enrollment matches the punch date"));
+                continue;
+            }
+            var enrollment = enrollmentCandidates[0];
 
-            var isLate = string.Equals(item.Row.Status.Trim(), LateStatus, StringComparison.Ordinal)
-                || item.Row.SchoolLocalTime > effectiveCutoff;
+            var isLate = item.Row.SchoolLocalTime > effectiveCutoff;
             if (!isLate)
             {
                 skippedOnTime++;
@@ -115,17 +134,25 @@ public sealed class ImportZajelBiometricCommandHandler
             var key = (enrollment.StudentId, item.Row.SchoolLocalDate);
             var delayMinutes = Math.Max(0, (int)Math.Ceiling(
                 (item.Row.SchoolLocalTime.ToTimeSpan() - effectiveCutoff.ToTimeSpan()).TotalMinutes));
+            var localDateTime = DateTime.SpecifyKind(
+                item.Row.SchoolLocalDate.ToDateTime(item.Row.SchoolLocalTime),
+                DateTimeKind.Unspecified);
+            var arrivalAt = new DateTimeOffset(localDateTime, schoolTimeZone.GetUtcOffset(localDateTime));
 
             if (existingDelays.TryGetValue(key, out var existingDelay))
             {
-                // Idempotent Upsert: Update existing delay record
-                existingDelay.ArrivalAt = item.Row.PunchAt;
+                duplicateRows++;
+                if (existingDelay.ArrivalAt == arrivalAt
+                    && existingDelay.CutoffTimeSnapshot == effectiveCutoff
+                    && existingDelay.DelayMinutes == delayMinutes)
+                    continue;
+
+                existingDelay.ArrivalAt = arrivalAt;
                 existingDelay.CutoffTimeSnapshot = effectiveCutoff;
                 existingDelay.DelayMinutes = delayMinutes;
                 existingDelay.Reason = $"Zajel biometric import; status={item.Row.Status.Trim()}; row={item.Row.RowNumber}";
                 existingDelay.UpdatedAt = now;
                 existingDelay.UpdatedByUserId = userId;
-                duplicateRows++;
                 updatedDelays++;
                 continue;
             }
@@ -135,7 +162,7 @@ public sealed class ImportZajelBiometricCommandHandler
                 SchoolId = schoolId.Value,
                 StudentId = enrollment.StudentId,
                 AcademicTermId = enrollment.AcademicTermId,
-                ArrivalAt = item.Row.PunchAt,
+                ArrivalAt = arrivalAt,
                 SchoolLocalDate = item.Row.SchoolLocalDate,
                 CutoffTimeSnapshot = effectiveCutoff,
                 DelayMinutes = delayMinutes,

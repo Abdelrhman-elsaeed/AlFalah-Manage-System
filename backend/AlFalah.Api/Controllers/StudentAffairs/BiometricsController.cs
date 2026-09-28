@@ -26,6 +26,6 @@ public sealed class BiometricsController : StudentAffairsControllerBase
         var response = await Mediator.Send(
             new ImportZajelBiometricCommand(content, file.FileName),
             cancellationToken);
-        return response.IsSuccess ? Ok(response) : BadRequest(response);
+        return FromResponse(response);
     }
 }

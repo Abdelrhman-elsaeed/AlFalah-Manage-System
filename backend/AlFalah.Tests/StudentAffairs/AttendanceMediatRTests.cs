@@ -244,6 +244,11 @@ public sealed class AttendanceMediatRTests
     {
         public DailyStudentAttendance? TrackedAttendance { get; set; }
 
+        public Task<string?> GetAttendanceSubmissionFingerprintAsync(int schoolId, string idempotencyKey, CancellationToken cancellationToken) =>
+            Task.FromResult<string?>(null);
+
+        public void AddAttendanceSubmissionReceipt(int schoolId, string idempotencyKey, string requestFingerprint, DateTimeOffset processedAt) { }
+
         public Task<IReadOnlyList<AttendanceRosterStudentSnapshot>> GetActiveRosterAsync(int schoolId, int classroomId, DateOnly attendanceDate, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<AttendanceRosterStudentSnapshot>>(Array.Empty<AttendanceRosterStudentSnapshot>());
 

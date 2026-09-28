@@ -32,6 +32,13 @@ public sealed class CloseConversationCommandHandler
         if (!_currentUser.HasPermission(PermissionNames.MessagingCloseThread))
             return ApiResponse<ConversationDto>.Fail("You do not have permission to perform this action");
 
+        if (!await _repository.IsParticipantAsync(
+                schoolId.Value,
+                userId,
+                command.ConversationId,
+                cancellationToken).ConfigureAwait(false))
+            return ApiResponse<ConversationDto>.Fail("Conversation was not found");
+
         var conversation = await _repository.CloseConversationAsync(
             schoolId.Value,
             userId,

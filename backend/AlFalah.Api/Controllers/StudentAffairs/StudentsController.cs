@@ -14,13 +14,15 @@ public sealed class StudentsController : StudentAffairsControllerBase
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] StudentListQuery query, CancellationToken cancellationToken)
     {
+        if (HasAggregateOrAssignedOnlyRole()) return PermissionDenied();
         if (!HasAnyPermission(PermissionNames.StudentManage, PermissionNames.StudentView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetStudentsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetStudentsQuery(query), cancellationToken));
     }
 
     [HttpGet("stats")]
     public async Task<IActionResult> GetStats([FromQuery] StudentStatsQuery query, CancellationToken cancellationToken)
     {
+        if (HasAggregateOrAssignedOnlyRole()) return PermissionDenied();
         if (CurrentUser.IsInRole(RoleNames.Secretary)) return PermissionDenied();
         if (!HasAnyPermission(PermissionNames.StudentManage, PermissionNames.StudentView, PermissionNames.AttendanceViewStudents, PermissionNames.ReferralView)
             && !CurrentUser.IsInRole(RoleNames.StudentAffairsOfficer)
@@ -37,13 +39,15 @@ public sealed class StudentsController : StudentAffairsControllerBase
     [HttpGet("{studentId:int}")]
     public async Task<IActionResult> GetById(int studentId, CancellationToken cancellationToken)
     {
+        if (HasAggregateOrAssignedOnlyRole()) return PermissionDenied();
         if (!HasAnyPermission(PermissionNames.StudentManage, PermissionNames.StudentView, PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetStudentByIdQuery(studentId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetStudentByIdQuery(studentId), cancellationToken));
     }
 
     [HttpGet("{studentId:int}/analytics-profile")]
     public async Task<IActionResult> GetAnalyticsProfile(int studentId, CancellationToken cancellationToken)
     {
+        if (HasAggregateOrAssignedOnlyRole()) return PermissionDenied();
         if (CurrentUser.IsInRole(RoleNames.Secretary)) return PermissionDenied();
         if (!HasAnyPermission(PermissionNames.StudentManage, PermissionNames.StudentView, PermissionNames.AttendanceViewStudents, PermissionNames.ReferralView)
             && !CurrentUser.IsInRole(RoleNames.StudentAffairsOfficer)
@@ -63,28 +67,29 @@ public sealed class StudentsController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.StudentManage, PermissionNames.StudentCreate)) return PermissionDenied();
         var response = await Mediator.Send(new CreateStudentCommand(request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpPatch("{studentId:int}")]
     public async Task<IActionResult> Update(int studentId, [FromBody] UpdateStudentRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentManage, PermissionNames.StudentEdit)) return PermissionDenied();
-        return Ok(await Mediator.Send(new UpdateStudentCommand(studentId, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new UpdateStudentCommand(studentId, request), cancellationToken));
     }
 
     [HttpDelete("{studentId:int}")]
     public async Task<IActionResult> Delete(int studentId, [FromBody] DeleteStudentRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentManage, PermissionNames.StudentArchive)) return PermissionDenied();
-        return Ok(await Mediator.Send(new DeleteStudentCommand(studentId, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new DeleteStudentCommand(studentId, request), cancellationToken));
     }
 
     [HttpGet("{studentId:int}/timeline")]
     public async Task<IActionResult> Timeline(int studentId, [FromQuery] StudentTimelineQuery query, CancellationToken cancellationToken)
     {
+        if (HasAggregateOrAssignedOnlyRole()) return PermissionDenied();
         if (!HasAnyPermission(PermissionNames.StudentView, PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetStudentTimelineQuery(studentId, query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetStudentTimelineQuery(studentId, query), cancellationToken));
     }
 
     [HttpPost("{studentId:int}/enrollments")]
@@ -92,19 +97,20 @@ public sealed class StudentsController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.StudentEnrollmentManage)) return PermissionDenied();
         var response = await Mediator.Send(new CreateStudentEnrollmentCommand(studentId, request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpPatch("{studentId:int}/enrollments/{enrollmentId:int}")]
     public async Task<IActionResult> UpdateEnrollment(int studentId, int enrollmentId, [FromBody] UpdateStudentEnrollmentRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentEnrollmentManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new UpdateStudentEnrollmentCommand(studentId, enrollmentId, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new UpdateStudentEnrollmentCommand(studentId, enrollmentId, request), cancellationToken));
     }
 
     [HttpGet("{studentId:int}/guardians")]
     public async Task<IActionResult> Guardians(int studentId, CancellationToken cancellationToken)
     {
+        if (HasAggregateOrAssignedOnlyRole()) return PermissionDenied();
         if (!HasAnyPermission(
                 PermissionNames.GuardianView,
                 PermissionNames.StudentView,
@@ -113,7 +119,7 @@ public sealed class StudentsController : StudentAffairsControllerBase
                 PermissionNames.SummonMarkAttended,
                 PermissionNames.GuardianViewLinkedStudents))
             return PermissionDenied();
-        return Ok(await Mediator.Send(new GetStudentGuardiansQuery(studentId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetStudentGuardiansQuery(studentId), cancellationToken));
     }
 
     [HttpPost("{studentId:int}/guardians")]
@@ -130,4 +136,9 @@ public sealed class StudentsController : StudentAffairsControllerBase
         if (!HasAnyPermission(PermissionNames.GuardianLinkStudent)) return PermissionDenied();
         return Ok(await Mediator.Send(new RevokeStudentGuardianCommand(studentId, linkId, request), cancellationToken));
     }
+
+    private bool HasAggregateOrAssignedOnlyRole() =>
+        CurrentUser.IsInRole(RoleNames.SocialWorker)
+        || CurrentUser.IsInRole(RoleNames.SchoolManager)
+        || CurrentUser.IsInRole(RoleNames.MainManager);
 }

@@ -1,3 +1,5 @@
+using AlFalah.Application.IntelligentTimetable;
+using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
@@ -35,6 +37,9 @@ public sealed class StudentAffairsDataSeeder
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly TimeProvider _timeProvider;
+    private readonly ITimetableReviewRepository _timetableReviewRepository;
+    private readonly TimetableValidationEngine _timetableValidator;
+    private readonly TimetableRepairEngine _timetableRepair;
     private readonly ILogger<StudentAffairsDataSeeder> _logger;
 
     public StudentAffairsDataSeeder(
@@ -42,12 +47,18 @@ public sealed class StudentAffairsDataSeeder
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         TimeProvider timeProvider,
+        ITimetableReviewRepository timetableReviewRepository,
+        TimetableValidationEngine timetableValidator,
+        TimetableRepairEngine timetableRepair,
         ILogger<StudentAffairsDataSeeder> logger)
     {
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
         _timeProvider = timeProvider;
+        _timetableReviewRepository = timetableReviewRepository;
+        _timetableValidator = timetableValidator;
+        _timetableRepair = timetableRepair;
         _logger = logger;
     }
 
@@ -56,7 +67,8 @@ public sealed class StudentAffairsDataSeeder
         _logger.LogInformation("Ensuring development Student Affairs test data...");
 
         var now = _timeProvider.GetUtcNow();
-        var today = DateOnly.FromDateTime(now.UtcDateTime);
+        var schoolTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, schoolTimeZone).DateTime);
         var school = await EnsureSchoolAsync(cancellationToken).ConfigureAwait(false);
         var users = await EnsureAccountsAsync(school, cancellationToken).ConfigureAwait(false);
 
@@ -82,13 +94,28 @@ public sealed class StudentAffairsDataSeeder
             users[RoleNames.Instructor],
             school,
             cancellationToken).ConfigureAwait(false);
+        var substituteAccount = new TestAccount(
+            "substitute.teacher.test",
+            "substitute.teacher.test@alfalah.test",
+            "E2E",
+            "Substitute Teacher",
+            RoleNames.Instructor);
+        var substituteUser = await EnsureUserAsync(substituteAccount, cancellationToken).ConfigureAwait(false);
+        await EnsureSchoolAssignmentAsync(substituteUser, school, RoleNames.Instructor, cancellationToken).ConfigureAwait(false);
+        var substituteProfile = await EnsureInstructorProfileAsync(
+            substituteUser,
+            school,
+            cancellationToken,
+            "E2E-TEACHER-002").ConfigureAwait(false);
 
         await EnsurePublishedTimetableAsync(
             school,
             academicYear,
             classroom,
             instructorProfile,
+            substituteProfile,
             manager.Id,
+            today,
             cancellationToken).ConfigureAwait(false);
         await EnsureGuardianContextAsync(
             school,
@@ -403,7 +430,8 @@ public sealed class StudentAffairsDataSeeder
     private async Task<InstructorProfile> EnsureInstructorProfileAsync(
         ApplicationUser instructor,
         School school,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string employeeNumber = "E2E-TEACHER-001")
     {
         var profile = await _context.InstructorProfiles
             .IgnoreQueryFilters()
@@ -418,7 +446,7 @@ public sealed class StudentAffairsDataSeeder
                 SchoolId = school.Id,
                 SubjectSpecialization = "Mathematics",
                 Stage = school.Stage,
-                EmployeeNumber = "E2E-TEACHER-001",
+                EmployeeNumber = employeeNumber,
                 IsActive = true
             };
             _context.InstructorProfiles.Add(profile);
@@ -428,7 +456,7 @@ public sealed class StudentAffairsDataSeeder
             profile.SchoolId = school.Id;
             profile.SubjectSpecialization = "Mathematics";
             profile.Stage = school.Stage;
-            profile.EmployeeNumber = "E2E-TEACHER-001";
+            profile.EmployeeNumber = employeeNumber;
             profile.IsActive = true;
             profile.IsDeleted = false;
             profile.DeletedAt = null;
@@ -444,7 +472,9 @@ public sealed class StudentAffairsDataSeeder
         AcademicYear academicYear,
         Classroom classroom,
         InstructorProfile instructor,
+        InstructorProfile substituteInstructor,
         string actorUserId,
+        DateOnly today,
         CancellationToken cancellationToken)
     {
         var timetable = await _context.SchoolTimetables
@@ -482,7 +512,17 @@ public sealed class StudentAffairsDataSeeder
                     version.ChangeKind == TimetableChangeKind.Published, cancellationToken)
                 .ConfigureAwait(false);
             if (timetable.IsPublished && hasPublishedSnapshot)
+            {
+                await EnsureDatedSubstitutionAsync(
+                    school,
+                    timetable,
+                    instructor,
+                    substituteInstructor,
+                    actorUserId,
+                    today,
+                    cancellationToken).ConfigureAwait(false);
                 return;
+            }
 
             timetable.Title = "E2E Published Timetable";
             // Legacy development rows were marked live without a publication snapshot.
@@ -510,6 +550,17 @@ public sealed class StudentAffairsDataSeeder
                 var start = new TimeOnly(7, 0).AddMinutes((sequence - 1) * 50 + (sequence > 3 ? 20 : 0));
                 defaults.Periods.Add(new BellPeriod { Sequence = sequence, DisplayLabel = $"الحصة {sequence}", StartLocalTime = start, EndLocalTime = start.AddMinutes(45) });
             }
+            defaults.Breaks.Add(new ScheduleBreakDefinition
+            {
+                Name = "E2E Recess",
+                Category = "Recess",
+                CreatedByUserId = actorUserId,
+                Window = new ScheduleBreakWindow
+                {
+                    StartLocalTime = new TimeOnly(9, 25),
+                    EndLocalTime = new TimeOnly(9, 45)
+                }
+            });
             revision.Days.Add(defaults);
             foreach (var day in Enumerable.Range(1, 7)) revision.Days.Add(new() { Day = day, IsStudyDay = day is >= 2 and <= 6, UsesDefaultSchedule = true });
             _context.Add(revision);
@@ -520,6 +571,15 @@ public sealed class StudentAffairsDataSeeder
             timetable.BellScheduleRevision = revision;
             await _context.SaveChangesAsync(cancellationToken);
         }
+
+        var source = await EnsureFixtureTimetableSourcesAsync(
+            school,
+            timetable,
+            classroom,
+            instructor,
+            substituteInstructor,
+            actorUserId,
+            cancellationToken).ConfigureAwait(false);
 
         var existingEntries = await _context.SchoolTimetableEntries
             .IgnoreQueryFilters()
@@ -547,7 +607,9 @@ public sealed class StudentAffairsDataSeeder
                         Period = period,
                         EntryType = TimetableEntryType.Lesson,
                         ClassLabel = classroom.ClassLabel,
-                        Subject = instructor.SubjectSpecialization
+                        Subject = source.Subject.Name,
+                        SubjectId = source.Subject.Id,
+                        ClassSubjectRequirementId = source.Requirement.Id
                     });
                     continue;
                 }
@@ -555,12 +617,255 @@ public sealed class StudentAffairsDataSeeder
                 entry.ClassroomId = classroom.Id;
                 entry.EntryType = TimetableEntryType.Lesson;
                 entry.ClassLabel = classroom.ClassLabel;
-                entry.Subject = instructor.SubjectSpecialization;
+                entry.Subject = source.Subject.Name;
+                entry.SubjectId = source.Subject.Id;
+                entry.ClassSubjectRequirementId = source.Requirement.Id;
                 entry.IsDeleted = false;
                 entry.DeletedAt = null;
             }
         }
 
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var review = new TimetableReviewService(
+            _timetableReviewRepository,
+            _timetableValidator,
+            _timetableRepair,
+            new FixtureCurrentUser(actorUserId, school.Id));
+        await review.PublishAsync(timetable.Id, timetable.Revision, cancellationToken).ConfigureAwait(false);
+        await EnsureDatedSubstitutionAsync(
+            school,
+            timetable,
+            instructor,
+            substituteInstructor,
+            actorUserId,
+            today,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<FixtureTimetableSource> EnsureFixtureTimetableSourcesAsync(
+        School school,
+        SchoolTimetable timetable,
+        Classroom classroom,
+        InstructorProfile instructor,
+        InstructorProfile substituteInstructor,
+        string actorUserId,
+        CancellationToken cancellationToken)
+    {
+        var setupId = timetable.TimetableSetupProfileId
+            ?? throw new InvalidOperationException("The E2E timetable has no setup profile.");
+        var bellRevisionId = timetable.BellScheduleRevisionId
+            ?? throw new InvalidOperationException("The E2E timetable has no bell revision.");
+
+        var subject = await _context.Set<SubjectDefinition>()
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(
+                candidate => candidate.SchoolId == school.Id && candidate.Name == "E2E Mathematics",
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (subject is null)
+        {
+            subject = new SubjectDefinition
+            {
+                SchoolId = school.Id,
+                Name = "E2E Mathematics",
+                UpdatedByUserId = actorUserId
+            };
+            _context.Add(subject);
+        }
+        subject.IsActive = true;
+        subject.IsDeleted = false;
+        subject.UpdatedByUserId = actorUserId;
+
+        var profiles = await _context.TeacherTimetableProfiles
+            .Where(candidate => candidate.SchoolId == school.Id &&
+                candidate.TimetableSetupProfileId == setupId)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        TeacherTimetableProfile EnsureTeacherProfile(InstructorProfile candidate, string displayName)
+        {
+            var profile = profiles.FirstOrDefault(item => item.InstructorProfileId == candidate.Id);
+            if (profile is null)
+            {
+                profile = new TeacherTimetableProfile
+                {
+                    SchoolId = school.Id,
+                    TimetableSetupProfileId = setupId,
+                    InstructorProfileId = candidate.Id,
+                    CreatedAt = _timeProvider.GetUtcNow(),
+                    CreatedByUserId = actorUserId
+                };
+                profiles.Add(profile);
+                _context.Add(profile);
+            }
+            profile.BellScheduleRevisionId = bellRevisionId;
+            profile.ShortDisplayName = displayName;
+            profile.MaximumWeeklyPeriods = 24;
+            profile.UpdatedAt = _timeProvider.GetUtcNow();
+            profile.UpdatedByUserId = actorUserId;
+            return profile;
+        }
+
+        var primaryProfile = EnsureTeacherProfile(instructor, "E2E Teacher");
+        EnsureTeacherProfile(substituteInstructor, "E2E Substitute");
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var requirement = await _context.Set<ClassSubjectRequirement>()
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(
+                candidate => candidate.SchoolId == school.Id &&
+                    candidate.TimetableSetupProfileId == setupId &&
+                    candidate.ClassroomId == classroom.Id &&
+                    candidate.SubjectId == subject.Id,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (requirement is null)
+        {
+            requirement = new ClassSubjectRequirement
+            {
+                SchoolId = school.Id,
+                TimetableSetupProfileId = setupId,
+                ClassroomId = classroom.Id,
+                SubjectId = subject.Id
+            };
+            _context.Add(requirement);
+        }
+        requirement.IndividualPeriodCount = 10;
+        requirement.PairedBlockCount = 0;
+        requirement.TimePreference = "None";
+        requirement.IsDeleted = false;
+        requirement.UpdatedAt = _timeProvider.GetUtcNow();
+        requirement.UpdatedByUserId = actorUserId;
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var assignments = await _context.Set<TeachingAssignment>()
+            .IgnoreQueryFilters()
+            .Include(candidate => candidate.Members)
+            .Where(candidate => candidate.SchoolId == school.Id &&
+                candidate.TimetableSetupProfileId == setupId &&
+                candidate.ClassSubjectRequirementId == requirement.Id)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var assignment = assignments.FirstOrDefault();
+        if (assignment is null)
+        {
+            assignment = new TeachingAssignment
+            {
+                SchoolId = school.Id,
+                TimetableSetupProfileId = setupId,
+                ClassSubjectRequirementId = requirement.Id
+            };
+            _context.Add(assignment);
+        }
+        foreach (var duplicate in assignments.Skip(1)) duplicate.IsDeleted = true;
+        assignment.Mode = "SingleTeacher";
+        assignment.IsDeleted = false;
+        assignment.UpdatedAt = _timeProvider.GetUtcNow();
+        assignment.UpdatedByUserId = actorUserId;
+        var member = assignment.Members.FirstOrDefault(item => item.TeacherTimetableProfileId == primaryProfile.Id);
+        if (member is null)
+        {
+            member = new TeachingAssignmentMember
+            {
+                SchoolId = school.Id,
+                TimetableSetupProfileId = setupId,
+                TeacherTimetableProfileId = primaryProfile.Id
+            };
+            assignment.Members.Add(member);
+        }
+        member.AllocatedPeriodCount = 10;
+        member.AllocatedPairedBlockCount = 0;
+        foreach (var extra in assignment.Members.Where(item => item != member).ToArray())
+            _context.Remove(extra);
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        return new FixtureTimetableSource(subject, requirement);
+    }
+
+    private async Task EnsureDatedSubstitutionAsync(
+        School school,
+        SchoolTimetable timetable,
+        InstructorProfile instructor,
+        InstructorProfile substituteInstructor,
+        string actorUserId,
+        DateOnly today,
+        CancellationToken cancellationToken)
+    {
+        var substitutionDate = today.DayOfWeek switch
+        {
+            DayOfWeek.Friday => today.AddDays(2),
+            DayOfWeek.Saturday => today.AddDays(1),
+            _ => today
+        };
+        var timetableDay = substitutionDate.DayOfWeek switch
+        {
+            DayOfWeek.Sunday => TimetableDay.Sunday,
+            DayOfWeek.Monday => TimetableDay.Monday,
+            DayOfWeek.Tuesday => TimetableDay.Tuesday,
+            DayOfWeek.Wednesday => TimetableDay.Wednesday,
+            DayOfWeek.Thursday => TimetableDay.Thursday,
+            _ => throw new InvalidOperationException("The E2E substitution must be on a study day.")
+        };
+        var entry = await _context.SchoolTimetableEntries
+            .AsNoTracking()
+            .FirstAsync(candidate => candidate.SchoolTimetableId == timetable.Id &&
+                candidate.Day == timetableDay && candidate.Period == 1 && !candidate.IsDeleted,
+                cancellationToken)
+            .ConfigureAwait(false);
+        var alreadyExists = await _context.TimetableSubstitutions
+            .AsNoTracking()
+            .AnyAsync(candidate => candidate.SchoolId == school.Id &&
+                candidate.SchoolTimetableId == timetable.Id &&
+                candidate.LocalDate == substitutionDate &&
+                candidate.ProposalId == "E2E-SUBSTITUTION",
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (alreadyExists) return;
+
+        var publishedVersionId = await _context.SchoolTimetableVersions
+            .AsNoTracking()
+            .Where(candidate => candidate.SchoolTimetableId == timetable.Id &&
+                candidate.ChangeKind == TimetableChangeKind.Published)
+            .OrderByDescending(candidate => candidate.VersionNumber)
+            .Select(candidate => candidate.Id)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (publishedVersionId == 0)
+            throw new InvalidOperationException("The E2E timetable publication snapshot was not created.");
+
+        var requestBytes = new byte[16];
+        BitConverter.TryWriteBytes(requestBytes.AsSpan(0, 4), school.Id);
+        BitConverter.TryWriteBytes(requestBytes.AsSpan(4, 4), substitutionDate.DayNumber);
+        requestBytes[15] = 1;
+        _context.TimetableSubstitutions.Add(new TimetableSubstitution
+        {
+            SchoolId = school.Id,
+            SchoolTimetableId = timetable.Id,
+            RequestId = new Guid(requestBytes),
+            ProposalId = "E2E-SUBSTITUTION",
+            Kind = "Substitution",
+            LocalDate = substitutionDate,
+            BeforeRevision = timetable.Revision,
+            AfterRevision = timetable.Revision,
+            RequestedByUserId = actorUserId,
+            ApprovedByUserId = actorUserId,
+            ConfirmedAt = _timeProvider.GetUtcNow(),
+            SchoolTimetableVersionId = publishedVersionId,
+            Movements =
+            [
+                new TimetableSubstitutionMovement
+                {
+                    SchoolId = school.Id,
+                    SchoolTimetableEntryId = entry.Id,
+                    FromTeacherId = instructor.Id,
+                    ToTeacherId = substituteInstructor.Id,
+                    Day = (int)timetableDay,
+                    ToDay = (int)timetableDay,
+                    FromPeriod = entry.Period,
+                    ToPeriod = entry.Period
+                }
+            ]
+        });
         await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -906,4 +1211,23 @@ public sealed class StudentAffairsDataSeeder
         string FirstName,
         string LastName,
         string Role);
+
+    private sealed record FixtureTimetableSource(
+        SubjectDefinition Subject,
+        ClassSubjectRequirement Requirement);
+
+    private sealed class FixtureCurrentUser(string userId, int schoolId) : ICurrentUserService
+    {
+        public string? UserId => userId;
+        public string? Username => "student-affairs-fixture";
+        public int? ActiveSchoolId => schoolId;
+        public string? PreferredLanguage => "ar";
+        public bool IsAuthenticated => true;
+        public bool IsInRole(string roleName) => roleName == RoleNames.SchoolManager;
+        public bool HasPermission(string permissionName) => permissionName == PermissionNames.TimetableManage;
+        public IEnumerable<string> GetRoles() => [RoleNames.SchoolManager];
+        public IEnumerable<string> GetPermissions() => [PermissionNames.TimetableManage];
+        public bool IsGlobalAdmin() => false;
+        public bool IsSchoolScopedRole() => true;
+    }
 }

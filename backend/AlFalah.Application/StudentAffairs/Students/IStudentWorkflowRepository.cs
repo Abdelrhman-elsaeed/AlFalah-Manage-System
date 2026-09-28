@@ -16,6 +16,13 @@ public sealed record StudentEnrollmentTarget(int ClassroomId, int AcademicTermId
 
 public interface IStudentWorkflowRepository
 {
+    Task<bool> IsGuardianLinkedToStudentAsync(
+        int schoolId,
+        string guardianUserId,
+        int studentId,
+        DateOnly onDate,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<StudentGuardianLinkDto>> GetStudentGuardiansAsync(
         int schoolId,
         int studentId,
@@ -42,11 +49,28 @@ public interface IStudentWorkflowRepository
     Task<StudentEnrollment?> GetActiveStudentEnrollmentForUpdateAsync(
         int schoolId,
         int studentId,
+        DateOnly effectiveOn,
         CancellationToken cancellationToken);
 
     Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(
         int schoolId,
         int classroomId,
+        DateOnly effectiveOn,
+        CancellationToken cancellationToken);
+
+    Task<StudentEnrollmentTarget?> GetStudentEnrollmentTargetAsync(
+        int schoolId,
+        int classroomId,
+        int academicTermId,
+        DateOnly effectiveOn,
+        CancellationToken cancellationToken);
+
+    Task<bool> HasOverlappingStudentEnrollmentAsync(
+        int schoolId,
+        int studentId,
+        DateOnly startsOn,
+        DateOnly? endsOn,
+        int? excludingEnrollmentId,
         CancellationToken cancellationToken);
 
     Task<bool> StudentNumberExistsAsync(
@@ -122,6 +146,7 @@ public interface IStudentWorkflowRepository
         CancellationToken cancellationToken);
 
     Task<IReadOnlyList<ClassroomAcademicYearDto>> GetClassroomAcademicYearsAsync(
+        int schoolId,
         CancellationToken cancellationToken);
 
     Task<ClassroomDto?> GetClassroomDtoAsync(
@@ -134,7 +159,7 @@ public interface IStudentWorkflowRepository
         int classroomId,
         CancellationToken cancellationToken);
 
-    Task<bool> AcademicYearExistsAsync(int academicYearId, CancellationToken cancellationToken);
+    Task<bool> AcademicYearExistsAsync(int schoolId, int academicYearId, CancellationToken cancellationToken);
 
     Task<bool> ClassroomLabelExistsAsync(
         int schoolId,

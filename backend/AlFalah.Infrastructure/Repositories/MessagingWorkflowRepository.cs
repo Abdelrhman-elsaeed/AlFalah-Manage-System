@@ -1,3 +1,4 @@
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Messaging;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.Messaging;
@@ -13,10 +14,143 @@ namespace AlFalah.Infrastructure.Repositories;
 public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
 {
     private readonly AlFalahDbContext _context;
+    private readonly IBellScheduleRepository _schedules;
 
-    public MessagingWorkflowRepository(AlFalahDbContext context)
+    public MessagingWorkflowRepository(AlFalahDbContext context, IBellScheduleRepository schedules)
     {
         _context = context;
+        _schedules = schedules;
+    }
+
+    public Task<bool> IsParticipantAsync(
+        int schoolId,
+        string userId,
+        int conversationId,
+        CancellationToken cancellationToken) =>
+        _context.ConversationParticipants.AsNoTracking().AnyAsync(
+            participant => participant.SchoolId == schoolId
+                && participant.ConversationThreadId == conversationId
+                && participant.ApplicationUserId == userId
+                && !participant.IsDeleted,
+            cancellationToken);
+
+    public async Task<bool> IsConversationTargetAllowedAsync(
+        int schoolId,
+        string creatorUserId,
+        CreateConversationRequestDto request,
+        DateTimeOffset instant,
+        CancellationToken cancellationToken)
+    {
+        var localDate = DateOnly.FromDateTime(instant.UtcDateTime);
+        PublishedBellScheduleCandidate? schedule = null;
+        if (request.ThreadType == ConversationThreadType.GuardianTeacher)
+        {
+            try
+            {
+                var candidates = await _schedules.GetPublishedCandidatesAsync(schoolId, instant, cancellationToken)
+                    .ConfigureAwait(false);
+                if (candidates.Count != 1) return false;
+                schedule = candidates[0];
+                localDate = DateOnly.FromDateTime(
+                    TimeZoneInfo.ConvertTime(
+                        instant,
+                        TimeZoneInfo.FindSystemTimeZoneById(schedule.Schedule.SchoolTimeZoneId)).DateTime);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return false;
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return false;
+            }
+        }
+
+        var guardianProfileId = await _context.GuardianProfiles
+            .AsNoTracking()
+            .Where(profile => profile.SchoolId == schoolId
+                && profile.ApplicationUserId == creatorUserId
+                && profile.IsActive)
+            .Select(profile => (int?)profile.Id)
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (guardianProfileId is null || request.StudentId <= 0) return false;
+
+        var linked = await _context.StudentGuardians
+            .AsNoTracking()
+            .AnyAsync(link => link.SchoolId == schoolId
+                && link.GuardianProfileId == guardianProfileId.Value
+                && link.StudentId == request.StudentId
+                && !link.IsDeleted
+                && link.ValidFrom <= localDate
+                && (link.ValidTo == null || link.ValidTo >= localDate),
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (!linked) return false;
+
+        if (request.ThreadType == ConversationThreadType.GuardianTeacher)
+        {
+            if (request.TargetInstructorProfileId is null
+                || !string.IsNullOrWhiteSpace(request.TargetStaffUserId)) return false;
+            var publishedSchedule = schedule!;
+
+            var classroomIds = await _context.StudentEnrollments
+                .AsNoTracking()
+                .Where(enrollment => enrollment.SchoolId == schoolId
+                    && enrollment.StudentId == request.StudentId
+                    && enrollment.Status == StudentEnrollmentStatus.Active
+                    && enrollment.AcademicTerm.AcademicYearId == publishedSchedule.Schedule.AcademicYearId
+                    && enrollment.AcademicTerm.Semester == publishedSchedule.Schedule.Semester
+                    && enrollment.EnrolledOn <= localDate
+                    && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= localDate))
+                .Select(enrollment => enrollment.ClassroomId)
+                .Distinct()
+                .ToArrayAsync(cancellationToken)
+                .ConfigureAwait(false);
+            if (classroomIds.Length == 0) return false;
+
+            return await _context.SchoolTimetableEntries
+                .AsNoTracking()
+                .AnyAsync(entry => entry.SchoolId == schoolId
+                    && entry.SchoolTimetableId == publishedSchedule.SchoolTimetableId
+                    && entry.SchoolTimetable.IsPublished
+                    && !entry.SchoolTimetable.IsDeleted
+                    && !entry.IsDeleted
+                    && entry.EntryType == TimetableEntryType.Lesson
+                    && entry.InstructorProfileId == request.TargetInstructorProfileId.Value
+                    && entry.InstructorProfile.IsActive
+                    && classroomIds.Contains(entry.ClassroomId!.Value),
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        var requiredRole = request.ThreadType switch
+        {
+            ConversationThreadType.GuardianStudentAffairs => RoleNames.StudentAffairsOfficer,
+            ConversationThreadType.GuardianSocialWorker => RoleNames.SocialWorker,
+            _ => null
+        };
+        if (requiredRole is null
+            || string.IsNullOrWhiteSpace(request.TargetStaffUserId)
+            || request.TargetInstructorProfileId is not null)
+            return false;
+
+        if (request.ThreadType == ConversationThreadType.GuardianSocialWorker)
+        {
+            return await _context.StudentReferrals.AsNoTracking().AnyAsync(
+                referral => referral.SchoolId == schoolId
+                    && referral.StudentId == request.StudentId
+                    && referral.AssignedSocialWorkerUserId == request.TargetStaffUserId,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        return await _context.UserSchoolRoles.AsNoTracking().AnyAsync(
+            assignment => assignment.SchoolId == schoolId
+                && assignment.UserId == request.TargetStaffUserId
+                && assignment.IsActive
+                && !assignment.IsDeleted
+                && assignment.Role.Name == requiredRole,
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<PagedResult<ConversationDto>> GetConversationsAsync(
@@ -411,7 +545,9 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
     {
         var thread = await _context.ConversationThreads
             .Include(ct => ct.Participants.Where(p => !p.IsDeleted))
-            .FirstOrDefaultAsync(ct => ct.Id == conversationId && ct.SchoolId == schoolId, cancellationToken)
+            .FirstOrDefaultAsync(ct => ct.Id == conversationId
+                && ct.SchoolId == schoolId
+                && ct.Participants.Any(p => p.ApplicationUserId == senderUserId && !p.IsDeleted), cancellationToken)
             .ConfigureAwait(false)
             ?? throw new InvalidOperationException("Conversation was not found");
 
@@ -508,7 +644,9 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         CancellationToken cancellationToken)
     {
         var thread = await _context.ConversationThreads
-            .FirstOrDefaultAsync(ct => ct.Id == conversationId && ct.SchoolId == schoolId, cancellationToken)
+            .FirstOrDefaultAsync(ct => ct.Id == conversationId
+                && ct.SchoolId == schoolId
+                && ct.Participants.Any(p => p.ApplicationUserId == userId && !p.IsDeleted), cancellationToken)
             .ConfigureAwait(false);
 
         if (thread is null) return null;

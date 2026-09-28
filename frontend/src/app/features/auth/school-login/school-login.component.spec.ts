@@ -98,7 +98,10 @@ describe('SchoolLoginComponent landing separation regressions', () => {
   for (const [role, destination] of [
     ['SuperAdmin', '/main-manager/dashboard'], ['MainManager', '/main-manager/dashboard'],
     ['SchoolManager', '/school-manager/dashboard'], ['Moderator', '/moderator/dashboard'],
-    ['Instructor', '/instructor/dashboard'], ['StudentAffairsOfficer', '/student-affairs/settings'], ['Unknown', '/dashboard']
+    ['Instructor', '/instructor/dashboard'], ['StudentAffairsOfficer', '/student-affairs/officer'],
+    ['Secretary', '/student-affairs/attendance/sheet'], ['Guardian', '/student-affairs/guardian'],
+    ['SecurityGuard', '/student-affairs/security'], ['SocialWorker', '/student-affairs/social-worker'],
+    ['Unknown', '/dashboard']
   ]) {
     it(`preserves the ${role} redirect`, () => {
       const { component, auth, router } = setup();

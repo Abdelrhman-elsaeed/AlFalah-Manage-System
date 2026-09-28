@@ -11,13 +11,16 @@ public sealed class CreateConversationCommandHandler
 {
     private readonly IMessagingWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
+    private readonly TimeProvider _timeProvider;
 
     public CreateConversationCommandHandler(
         IMessagingWorkflowRepository repository,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        TimeProvider timeProvider)
     {
         _repository = repository;
         _currentUser = currentUser;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ApiResponse<ConversationDto>> Handle(
@@ -35,6 +38,15 @@ public sealed class CreateConversationCommandHandler
 
         if (string.IsNullOrWhiteSpace(command.Request.Subject))
             return ApiResponse<ConversationDto>.Fail("Subject is required");
+
+        if (!await _repository.IsConversationTargetAllowedAsync(
+                schoolId.Value,
+                userId,
+                command.Request,
+                _timeProvider.GetUtcNow(),
+                cancellationToken).ConfigureAwait(false))
+            return ApiResponse<ConversationDto>.Fail(
+                "The student or recipient is outside the caller's authorized messaging scope");
 
         var conversation = await _repository.CreateConversationAsync(
             schoolId.Value,

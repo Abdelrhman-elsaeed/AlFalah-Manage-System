@@ -6,6 +6,8 @@ using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Domain.Events;
 using AlFalah.Shared.Models;
 using MediatR;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AlFalah.Application.StudentAffairs.Attendance.Handlers;
 
@@ -41,10 +43,47 @@ public sealed class SaveStudentAttendanceSheetCommandHandler
         var request = command.Request;
         if (request.ClassroomId <= 0 || string.IsNullOrWhiteSpace(request.RosterRevision))
             return ApiResponse<StudentAttendanceSheetDto>.Fail("Classroom and roster revision are required");
+        if (string.IsNullOrWhiteSpace(command.IdempotencyKey) || command.IdempotencyKey.Length > 200)
+            return ApiResponse<StudentAttendanceSheetDto>.Fail("A valid Idempotency-Key header is required");
+        var idempotencyKey = command.IdempotencyKey.Trim();
 
         var absentIds = request.AbsentStudentIds ?? Array.Empty<int>();
         if (absentIds.Any(id => id <= 0) || absentIds.Count != absentIds.Distinct().Count())
             return ApiResponse<StudentAttendanceSheetDto>.Fail("Absent student IDs must be unique and valid");
+
+        var requestFingerprint = BuildRequestFingerprint(request, absentIds);
+        var priorFingerprint = await _repository.GetAttendanceSubmissionFingerprintAsync(
+            schoolId.Value,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+        if (priorFingerprint is not null)
+        {
+            if (!string.Equals(priorFingerprint, requestFingerprint, StringComparison.Ordinal))
+                return ApiResponse<StudentAttendanceSheetDto>.Fail(
+                    "The Idempotency-Key was already used for a different attendance request");
+
+            var replay = await _repository.GetAttendanceSheetDtoAsync(
+                schoolId.Value,
+                request.ClassroomId,
+                request.Date,
+                string.Empty,
+                cancellationToken).ConfigureAwait(false);
+            return replay is null
+                ? ApiResponse<StudentAttendanceSheetDto>.Fail("Classroom was not found")
+                : ApiResponse<StudentAttendanceSheetDto>.Success(replay, "Attendance sheet already saved");
+        }
+
+        var currentSheet = await _repository.GetAttendanceSheetDtoAsync(
+            schoolId.Value,
+            request.ClassroomId,
+            request.Date,
+            string.Empty,
+            cancellationToken).ConfigureAwait(false);
+        if (currentSheet is null)
+            return ApiResponse<StudentAttendanceSheetDto>.Fail("Classroom was not found");
+        if (!string.Equals(currentSheet.RosterRevision, request.RosterRevision, StringComparison.Ordinal))
+            return ApiResponse<StudentAttendanceSheetDto>.Fail(
+                "The attendance roster revision is stale. Reload the sheet and review your selection");
 
         var roster = await _repository.GetActiveRosterAsync(
             schoolId.Value,
@@ -71,6 +110,7 @@ public sealed class SaveStudentAttendanceSheetCommandHandler
         var existingByStudent = existingRows.ToDictionary(attendance => attendance.StudentId);
         var absentSet = absentIds.ToHashSet();
         var now = _timeProvider.GetUtcNow();
+        var hasChanges = false;
 
         foreach (var rosterStudent in roster)
         {
@@ -98,11 +138,18 @@ public sealed class SaveStudentAttendanceSheetCommandHandler
                     UpdatedByUserId = userId
                 };
                 _repository.AddAttendance(attendance);
+                hasChanges = true;
             }
             else
             {
+                if (attendance.Status == StudentAttendanceStatus.AbsentExcused)
+                    continue;
+
                 isNewAbsence = desiredStatus == StudentAttendanceStatus.Absent
                     && attendance.Status != StudentAttendanceStatus.Absent;
+                if (attendance.Status == desiredStatus)
+                    continue;
+
                 attendance.Status = desiredStatus;
                 attendance.ExcuseStatus = desiredStatus == StudentAttendanceStatus.Present
                     ? null
@@ -112,6 +159,7 @@ public sealed class SaveStudentAttendanceSheetCommandHandler
                 attendance.Source = StudentAttendanceSource.SecretaryRoster;
                 attendance.UpdatedAt = now;
                 attendance.UpdatedByUserId = userId;
+                hasChanges = true;
             }
 
             if (isNewAbsence)
@@ -130,13 +178,39 @@ public sealed class SaveStudentAttendanceSheetCommandHandler
             }
         }
 
+        _repository.AddAttendanceSubmissionReceipt(
+            schoolId.Value,
+            idempotencyKey,
+            requestFingerprint,
+            now);
+        hasChanges = true;
+
         try
         {
-            await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            if (hasChanges)
+                await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is AttendanceConcurrencyException
             or AttendancePersistenceConflictException)
         {
+            var winningFingerprint = await _repository.GetAttendanceSubmissionFingerprintAsync(
+                schoolId.Value,
+                idempotencyKey,
+                cancellationToken).ConfigureAwait(false);
+            if (string.Equals(winningFingerprint, requestFingerprint, StringComparison.Ordinal))
+            {
+                var replay = await _repository.GetAttendanceSheetDtoAsync(
+                    schoolId.Value,
+                    request.ClassroomId,
+                    request.Date,
+                    string.Empty,
+                    cancellationToken).ConfigureAwait(false);
+                if (replay is not null)
+                    return ApiResponse<StudentAttendanceSheetDto>.Success(replay, "Attendance sheet already saved");
+            }
+            if (winningFingerprint is not null)
+                return ApiResponse<StudentAttendanceSheetDto>.Fail(
+                    "The Idempotency-Key was already used for a different attendance request");
             return ApiResponse<StudentAttendanceSheetDto>.Fail(
                 "The attendance sheet was changed by another request");
         }
@@ -145,9 +219,18 @@ public sealed class SaveStudentAttendanceSheetCommandHandler
             schoolId.Value,
             request.ClassroomId,
             request.Date,
-            request.RosterRevision,
+            string.Empty,
             cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidOperationException("The saved attendance sheet could not be loaded");
         return ApiResponse<StudentAttendanceSheetDto>.Success(dto, "Attendance sheet saved successfully");
+    }
+
+    private static string BuildRequestFingerprint(
+        SubmitAbsentRosterRequestDto request,
+        IReadOnlyCollection<int> absentIds)
+    {
+        var payload = $"{request.Date:yyyy-MM-dd}|{request.ClassroomId}|{request.RosterRevision}|"
+            + string.Join(',', absentIds.OrderBy(id => id));
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
     }
 }

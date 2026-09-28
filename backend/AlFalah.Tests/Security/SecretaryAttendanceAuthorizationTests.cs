@@ -2,7 +2,11 @@ using System.Reflection;
 using AlFalah.Api.Controllers.StudentAffairs;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
+using AlFalah.Application.StudentAffairs.DTOs.Attendance;
+using AlFalah.Application.StudentAffairs.DTOs.Permits;
+using AlFalah.Application.StudentAffairs.DTOs.Referrals;
 using AlFalah.Application.StudentAffairs.DTOs.Students;
+using AlFalah.Application.StudentAffairs.DTOs.Summons;
 using AlFalah.Domain.Enums;
 using FluentAssertions;
 using MediatR;
@@ -22,7 +26,8 @@ public sealed class SecretaryAttendanceAuthorizationTests
 
         var result = await controller.List(new ClassroomListQuery(), CancellationToken.None);
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -34,7 +39,25 @@ public sealed class SecretaryAttendanceAuthorizationTests
 
         var result = await controller.Sheet(new DateOnly(2026, 9, 1), 1, CancellationToken.None);
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
+    }
+
+    [Theory]
+    [InlineData("The attendance roster revision is stale")]
+    [InlineData("The Idempotency-Key was already used for a different attendance request")]
+    public async Task Attendance_Submit_MapsRevisionAndIdempotencyConflictsTo409(string error)
+    {
+        var controller = new StudentAttendanceController(
+            CreateFailingMediator(error),
+            new SecretaryCurrentUser(PermissionNames.AttendanceManageStudents));
+
+        var result = await controller.SubmitSheet(
+            new SubmitAbsentRosterRequestDto(new DateOnly(2026, 9, 1), 1, Array.Empty<int>(), "revision"),
+            "key",
+            CancellationToken.None);
+
+        result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(409);
     }
 
     [Fact]
@@ -61,7 +84,8 @@ public sealed class SecretaryAttendanceAuthorizationTests
 
         var result = await controller.AcademicYears(CancellationToken.None);
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -76,7 +100,8 @@ public sealed class SecretaryAttendanceAuthorizationTests
             new UpdateClassroomRequestDto("1/أ", "أ", true, string.Empty),
             CancellationToken.None);
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -91,7 +116,8 @@ public sealed class SecretaryAttendanceAuthorizationTests
             new DeleteClassroomRequestDto("حذف من إدارة الفصول", string.Empty),
             CancellationToken.None);
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -102,7 +128,8 @@ public sealed class SecretaryAttendanceAuthorizationTests
             new SecretaryCurrentUser(PermissionNames.StudentManage));
 
         (await controller.List(new StudentListQuery(), CancellationToken.None))
-            .Should().BeOfType<OkObjectResult>();
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
         (await controller.Create(
                 new CreateStudentRequestDto("ST-001", "1000000001", "أحمد", null, "علي", null, null, null, 1, null),
                 CancellationToken.None))
@@ -112,16 +139,53 @@ public sealed class SecretaryAttendanceAuthorizationTests
                 1,
                 new UpdateStudentRequestDto("ST-001", "1000000001", "أحمد", null, "علي", null, null, null, true, 1, null, string.Empty),
                 CancellationToken.None))
-            .Should().BeOfType<OkObjectResult>();
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
         (await controller.Delete(
                 1,
                 new DeleteStudentRequestDto("حذف من إدارة الطلاب", string.Empty),
                 CancellationToken.None))
-            .Should().BeOfType<OkObjectResult>();
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
+    }
+
+    [Fact]
+    public async Task Secretary_CannotReadReferralCaseActionsOrManageSummons()
+    {
+        var user = new SecretaryCurrentUser();
+
+        var referrals = await new ReferralsController(CreateMediator(), user)
+            .List(new ReferralListQuery(), CancellationToken.None);
+        var summons = await new SummonsController(CreateMediator(), user)
+            .List(new SummonListQuery(), CancellationToken.None);
+
+        referrals.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
+        summons.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
+    public async Task Secretary_CannotExecuteDeferredClassroomEntryPermitContract()
+    {
+        var denied = await new ClassroomEntryPermitsController(CreateMediator(), new SecretaryCurrentUser())
+            .List(new ClassroomEntryPermitListQuery(), CancellationToken.None);
+        var explicitlyGrantedButDeferred = await new ClassroomEntryPermitsController(
+                CreateMediator(),
+                new SecretaryCurrentUser(PermissionNames.ClassroomEntryPermitView))
+            .List(new ClassroomEntryPermitListQuery(), CancellationToken.None);
+
+        denied.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
+        explicitlyGrantedButDeferred.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(501);
     }
 
     private static IMediator CreateMediator() =>
         DispatchProxy.Create<IMediator, SuccessfulMediatorProxy>();
+
+    private static IMediator CreateFailingMediator(string error)
+    {
+        var mediator = DispatchProxy.Create<IMediator, FailingMediatorProxy>();
+        ((FailingMediatorProxy)(object)mediator).Error = error;
+        return mediator;
+    }
 
     private class SuccessfulMediatorProxy : DispatchProxy
     {
@@ -134,7 +198,26 @@ public sealed class SecretaryAttendanceAuthorizationTests
                 throw new NotSupportedException($"Unexpected mediator return type: {returnType}.");
 
             var responseType = returnType.GetGenericArguments()[0];
-            var response = responseType.IsValueType ? Activator.CreateInstance(responseType) : null;
+            var response = Activator.CreateInstance(responseType);
+            responseType.GetProperty("IsSuccess")?.SetValue(response, true);
+            return typeof(Task)
+                .GetMethod(nameof(Task.FromResult))!
+                .MakeGenericMethod(responseType)
+                .Invoke(null, new[] { response });
+        }
+    }
+
+    private class FailingMediatorProxy : DispatchProxy
+    {
+        public string Error { get; set; } = string.Empty;
+
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            var returnType = targetMethod?.ReturnType
+                ?? throw new InvalidOperationException("The mediator method has no return type.");
+            var responseType = returnType.GetGenericArguments()[0];
+            var response = Activator.CreateInstance(responseType);
+            responseType.GetProperty("Errors")?.SetValue(response, new List<string> { Error });
             return typeof(Task)
                 .GetMethod(nameof(Task.FromResult))!
                 .MakeGenericMethod(responseType)

@@ -28,9 +28,10 @@ public sealed record GatePassApprovedEvent(
     DateTimeOffset WindowEndsAt,
     int ClassroomId,
     int SchoolTimetableId,
-    int SchoolTimetableEntryId,
-    int InstructorProfileId,
-    int Period,
+    int? SchoolTimetableEntryId,
+    int? InstructorProfileId,
+    int? Period,
+    string LessonResolution,
     DateTimeOffset OccurredAt) : IDomainEvent
 {
     public IDomainEvent WithAggregateId(int aggregateId) => this with { GatePassId = aggregateId };

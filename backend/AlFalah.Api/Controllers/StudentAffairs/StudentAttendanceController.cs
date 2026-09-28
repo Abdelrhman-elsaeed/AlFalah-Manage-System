@@ -16,7 +16,7 @@ public sealed class StudentAttendanceController : StudentAffairsControllerBase
     public async Task<IActionResult> Sheet([FromQuery] DateOnly date, [FromQuery] int classroomId, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceManageStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetStudentAttendanceSheetQuery(date, classroomId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetStudentAttendanceSheetQuery(date, classroomId), cancellationToken));
     }
 
     [HttpPut("sheet")]
@@ -26,28 +26,28 @@ public sealed class StudentAttendanceController : StudentAffairsControllerBase
         CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceManageStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new SubmitAbsentRosterCommand(request, idempotencyKey), cancellationToken));
+        return FromResponse(await Mediator.Send(new SubmitAbsentRosterCommand(request, idempotencyKey), cancellationToken));
     }
 
     [HttpPatch("{attendanceId:int}")]
     public async Task<IActionResult> Correct(int attendanceId, [FromBody] CorrectStudentAttendanceRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceOverrideCorrection)) return PermissionDenied();
-        return Ok(await Mediator.Send(new CorrectStudentAttendanceCommand(attendanceId, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new CorrectStudentAttendanceCommand(attendanceId, request), cancellationToken));
     }
 
     [HttpGet("records")]
     public async Task<IActionResult> Records([FromQuery] StudentAttendanceRecordsQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceViewStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetStudentAttendanceRecordsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetStudentAttendanceRecordsQuery(query), cancellationToken));
     }
 
     [HttpGet("students/{studentId:int}")]
     public async Task<IActionResult> StudentHistory(int studentId, [FromQuery] int? academicTermId, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceViewStudents, PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetStudentAttendanceHistoryQuery(studentId, academicTermId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetStudentAttendanceHistoryQuery(studentId, academicTermId), cancellationToken));
     }
 
     [HttpPost("{attendanceId:int}/excuses")]
@@ -70,14 +70,14 @@ public sealed class StudentAttendanceController : StudentAffairsControllerBase
             attachment.ContentType,
             attachment.Length);
         var response = await Mediator.Send(command, cancellationToken);
-        return StatusCode(StatusCodes.Status202Accepted, response);
+        return FromResponse(response, StatusCodes.Status202Accepted);
     }
 
     [HttpGet("{attendanceId:int}/excuses")]
     public async Task<IActionResult> Excuses(int attendanceId, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceSubmitExcuse)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetAbsenceExcusesQuery(attendanceId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetAbsenceExcusesQuery(attendanceId), cancellationToken));
     }
 
     [HttpGet("excuses/{excuseId:int}/attachments/{attachmentId:int}")]
@@ -92,14 +92,14 @@ public sealed class StudentAttendanceController : StudentAffairsControllerBase
     public async Task<IActionResult> AcceptExcuse(int excuseId, [FromBody] ReviewAbsenceExcuseRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceReviewExcuse)) return PermissionDenied();
-        return Ok(await Mediator.Send(new AcceptAbsenceExcuseCommand(excuseId, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new AcceptAbsenceExcuseCommand(excuseId, request), cancellationToken));
     }
 
     [HttpPost("excuses/{excuseId:int}/reject")]
     public async Task<IActionResult> RejectExcuse(int excuseId, [FromBody] RejectAbsenceExcuseRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AttendanceReviewExcuse)) return PermissionDenied();
-        return Ok(await Mediator.Send(new RejectAbsenceExcuseCommand(excuseId, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new RejectAbsenceExcuseCommand(excuseId, request), cancellationToken));
     }
 
     [HttpPost("noor/exports")]

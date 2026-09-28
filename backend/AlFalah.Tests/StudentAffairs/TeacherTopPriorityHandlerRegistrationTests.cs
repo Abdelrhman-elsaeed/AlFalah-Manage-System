@@ -3,6 +3,7 @@ using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 using AlFalah.Application.StudentAffairs.TeacherContext;
@@ -57,18 +58,12 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
             PermissionNames.TeacherQuickActionView,
             PermissionNames.BehaviorCreate,
             PermissionNames.AcademicConcernCreate);
-        await using var db = new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        await BellScheduleTestData.SeedAsync(db, 18, "teacher-user", true);
-        var schedule = new TeacherContextSchedule(new TeacherContextScheduleOptions
-        {
-            SchoolTimeZoneId = "Africa/Cairo"
-        }, new BellScheduleRepository(db));
         var timeProvider = new FixedTimeProvider(
             new DateTimeOffset(2026, 9, 1, 5, 10, 0, TimeSpan.Zero));
         var handler = new GetTeacherTopPriorityQueryHandler(
             repository,
             currentUser,
-            schedule,
+            new StubCurrentLessonResolver(),
             timeProvider);
 
         var response = await handler.Handle(new GetTeacherTopPriorityQuery(), CancellationToken.None);
@@ -136,5 +131,34 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
     private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => utcNow;
+    }
+
+    private sealed class StubCurrentLessonResolver : ICurrentLessonResolver
+    {
+        private static readonly CurrentLessonResolution Result = new(
+            CurrentLessonResolutionKind.ActiveLesson,
+            new DateOnly(2026, 9, 1),
+            new DateTimeOffset(2026, 9, 1, 8, 10, 0, TimeSpan.FromHours(3)),
+            "Africa/Cairo",
+            1,
+            TimetableSemester.First,
+            4,
+            1,
+            4,
+            42,
+            2,
+            new DateTimeOffset(2026, 9, 1, 8, 0, 0, TimeSpan.FromHours(3)),
+            new DateTimeOffset(2026, 9, 1, 8, 45, 0, TimeSpan.FromHours(3)),
+            new CurrentLessonClassroom(9, "E2E-1-A", SchoolStage.Primary, 1, "A"),
+            new CurrentLessonInstructor(19, "original-teacher", "Original Teacher"),
+            new CurrentLessonInstructor(7, "teacher-user", "E2E Substitute Teacher"),
+            77,
+            "Active lesson resolved with a date-specific instructor substitution");
+
+        public Task<CurrentLessonResolution> ResolveForClassroomAsync(int schoolId, DateTimeOffset instant, int classroomId, string? classroomLabel, CancellationToken cancellationToken) =>
+            Task.FromResult(Result);
+
+        public Task<CurrentLessonResolution> ResolveForInstructorAsync(int schoolId, DateTimeOffset instant, string instructorUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(Result);
     }
 }

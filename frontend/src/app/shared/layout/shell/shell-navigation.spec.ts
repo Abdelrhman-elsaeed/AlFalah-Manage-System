@@ -57,6 +57,18 @@ describe('shell Phase 5 navigation', () => {
   });
 });
 
+describe('shell Student Affairs least-privilege navigation', () => {
+  const reports = SHELL_NAV_CATEGORIES.find(category => category.id === 'reports');
+
+  it('does not expose the cross-student record browser to aggregate or assignment-scoped roles', () => {
+    const records = reports?.items.find(item => item.route === '/student-affairs/records');
+
+    expect(records?.roles).toEqual(['StudentAffairsOfficer', 'SuperAdmin']);
+    expect(records?.roles).not.toContain('SocialWorker');
+    expect(records?.roles).not.toContain('SchoolManager');
+  });
+});
+
 describe('shell classroom master data navigation', () => {
   const administration = SHELL_NAV_CATEGORIES.find(category => category.id === 'administration');
 

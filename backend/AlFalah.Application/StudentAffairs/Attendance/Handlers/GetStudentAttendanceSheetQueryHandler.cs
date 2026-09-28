@@ -40,7 +40,7 @@ public sealed class GetStudentAttendanceSheetQueryHandler
             schoolId.Value,
             request.ClassroomId,
             request.Date,
-            Guid.NewGuid().ToString("N"),
+            string.Empty,
             cancellationToken).ConfigureAwait(false);
 
         if (sheet is null)

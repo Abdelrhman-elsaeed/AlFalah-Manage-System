@@ -148,7 +148,7 @@ public sealed class ScheduleBreakPhase3Tests
         db.SchoolTimetableEntries.Add(new() { SchoolId = 1, SchoolTimetableId = timetable.Id, InstructorProfileId = 10,
             Day = TimetableDay.Tuesday, Period = 2, EntryType = TimetableEntryType.Lesson, ClassroomId = 20, ClassLabel = "1/A", Subject = "Math" });
         await db.SaveChangesAsync();
-        var gatePass = new GatePassWorkflowRepository(db);
+        var gatePass = new GatePassWorkflowRepository(db, new BellScheduleRepository(db));
         (await gatePass.ResolvePublishedTimetableAsync(1, 1, TimetableSemester.First, 20, "1/A", new(2026, 9, 1, 4, 45, 0, TimeSpan.Zero), default)).Should().BeNull();
         db.ScheduleBreakWindows.Single().EndLocalTime = new(9, 0);
         await db.Invoking(x => x.SaveChangesAsync()).Should().ThrowAsync<InvalidOperationException>().WithMessage("*immutable*");

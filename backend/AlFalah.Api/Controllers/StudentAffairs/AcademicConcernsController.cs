@@ -23,27 +23,27 @@ public sealed class AcademicConcernsController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] AcademicConcernListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AcademicConcernView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetAcademicConcernsQuery(query), cancellationToken));
+        return FeatureNotImplemented("W6 Academic Concern Review");
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AcademicConcernView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetAcademicConcernByIdQuery(id), cancellationToken));
+        return FeatureNotImplemented("W6 Academic Concern Review");
     }
 
     [HttpPost("{id:int}/dispatch-decision")]
     public async Task<IActionResult> DispatchDecision(int id, [FromBody] DispatchDecisionRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AcademicConcernManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new DecideAcademicConcernDispatchCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Academic Concern Review");
     }
 
     [HttpPost("{id:int}/correct")]
     public async Task<IActionResult> Correct(int id, [FromBody] CorrectAcademicConcernRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AcademicConcernManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new CorrectAcademicConcernCommand(id, request), cancellationToken));
+        return FeatureNotImplemented("W6 Academic Concern Review");
     }
 }

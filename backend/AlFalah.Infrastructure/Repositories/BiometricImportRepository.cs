@@ -17,10 +17,17 @@ public sealed class BiometricImportRepository : IBiometricImportRepository
         CancellationToken cancellationToken) =>
         _context.SchoolStudentAffairsSettings
             .AsNoTracking()
-            .Where(settings => settings.SchoolId == schoolId)
+            .Where(settings => settings.SchoolId == schoolId && !settings.IsDeleted)
             .Select(settings => new BiometricImportSettingsSnapshot(
                 settings.ArrivalCutoffLocalTime,
-                settings.ArrivalGraceMinutes))
+                settings.ArrivalGraceMinutes,
+                _context.SchoolTimetables
+                    .Where(timetable => timetable.SchoolId == schoolId
+                        && timetable.IsPublished
+                        && timetable.BellScheduleRevision != null)
+                    .OrderByDescending(timetable => timetable.PublishedAt)
+                    .Select(timetable => timetable.BellScheduleRevision!.SchoolTimeZoneId)
+                    .FirstOrDefault() ?? string.Empty))
             .SingleOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<BiometricEnrollmentSnapshot>> GetEnrollmentsAsync(
@@ -35,15 +42,23 @@ public sealed class BiometricImportRepository : IBiometricImportRepository
             .AsNoTracking()
             .Where(enrollment => enrollment.SchoolId == schoolId
                 && enrollment.Status == StudentEnrollmentStatus.Active
+                && !enrollment.IsDeleted
                 && enrollment.EnrolledOn <= toDate
                 && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= fromDate)
                 && enrollment.Student.SchoolId == schoolId
                 && enrollment.Student.IsActive
+                && !enrollment.Student.IsDeleted
                 && (!string.IsNullOrEmpty(enrollment.Student.IdentityNumber) && identityNumbers.Contains(enrollment.Student.IdentityNumber)
                     || (enrollment.Student.NationalId != null && identityNumbers.Contains(enrollment.Student.NationalId)))
                 && enrollment.AcademicTerm.SchoolId == schoolId
+                && enrollment.AcademicTerm.IsActive
+                && !enrollment.AcademicTerm.IsDeleted
                 && enrollment.AcademicTerm.StartsOn <= toDate
-                && enrollment.AcademicTerm.EndsOn >= fromDate)
+                && enrollment.AcademicTerm.EndsOn >= fromDate
+                && enrollment.Classroom.SchoolId == schoolId
+                && enrollment.Classroom.IsActive
+                && !enrollment.Classroom.IsDeleted
+                && enrollment.Classroom.AcademicYearId == enrollment.AcademicTerm.AcademicYearId)
             .Select(enrollment => new BiometricEnrollmentSnapshot(
                 enrollment.StudentId,
                 !string.IsNullOrEmpty(enrollment.Student.IdentityNumber) ? enrollment.Student.IdentityNumber : enrollment.Student.NationalId!,

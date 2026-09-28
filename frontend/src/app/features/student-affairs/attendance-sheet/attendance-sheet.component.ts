@@ -75,7 +75,11 @@ export class AttendanceSheetComponent {
       row.student.studentNumber.toLocaleLowerCase('ar').includes(term));
   });
   readonly selectedAbsentCount = computed(() => this.selectedAbsentIds().size);
-  readonly presentCount = computed(() => Math.max(0, (this.sheet()?.rows.length ?? 0) - this.selectedAbsentCount()));
+  readonly excusedCount = computed(() => this.sheet()?.rows.filter(row => row.status === 'AbsentExcused').length ?? 0);
+  readonly presentCount = computed(() => Math.max(
+    0,
+    (this.sheet()?.rows.length ?? 0) - this.selectedAbsentCount() - this.excusedCount()
+  ));
   readonly hasExcusedRows = computed(() => this.sheet()?.rows.some(row => row.status === 'AbsentExcused') ?? false);
 
   constructor() {
@@ -135,7 +139,7 @@ export class AttendanceSheetComponent {
 
   confirmSave(): void {
     const sheet = this.sheet();
-    if (!sheet || this.saving() || this.hasExcusedRows()) return;
+    if (!sheet || this.saving()) return;
     const count = this.selectedAbsentCount();
     const message = count === 0
       ? 'سيتم تسجيل جميع طلاب الفصل حاضرين.'
@@ -183,7 +187,7 @@ export class AttendanceSheetComponent {
 
   private save(): void {
     const sheet = this.sheet();
-    if (!sheet) return;
+    if (!sheet || this.saving()) return;
     this.saving.set(true);
     const idempotencyKey = this.saveIdempotencyKey ?? this.api.createIdempotencyKey();
     this.saveIdempotencyKey = idempotencyKey;
@@ -284,13 +288,7 @@ export class AttendanceSheetComponent {
   }
 
   private schoolLocalToday(): Date {
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Riyadh',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).formatToParts(new Date());
-    const value = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find(part => part.type === type)?.value);
-    return new Date(value('year'), value('month') - 1, value('day'));
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   }
 }

@@ -37,10 +37,7 @@ public sealed class CreateStudentEnrollmentCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<StudentEnrollmentDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
-            && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            && !_currentUser.IsInRole(RoleNames.MainManager)
-            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+        if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage))
         {
             return ApiResponse<StudentEnrollmentDto>.Fail(StudentHandlerSupport.PermissionDenied);
         }
@@ -52,16 +49,37 @@ public sealed class CreateStudentEnrollmentCommandHandler
 
         if (student is null)
             return ApiResponse<StudentEnrollmentDto>.Fail(StudentHandlerSupport.StudentNotFound);
+        if (!student.IsActive)
+            return ApiResponse<StudentEnrollmentDto>.Fail("Inactive students cannot be enrolled");
 
         var req = command.Request;
         var now = _timeProvider.GetUtcNow();
+
+        var target = await _repository.GetStudentEnrollmentTargetAsync(
+            schoolId.Value,
+            req.ClassroomId,
+            req.AcademicTermId,
+            req.EnrolledOn,
+            cancellationToken).ConfigureAwait(false);
+        if (target is null)
+            return ApiResponse<StudentEnrollmentDto>.Fail(
+                "The academic term and classroom must belong to the active school and the same academic year");
+
+        if (await _repository.HasOverlappingStudentEnrollmentAsync(
+                schoolId.Value,
+                command.StudentId,
+                req.EnrolledOn,
+                null,
+                null,
+                cancellationToken).ConfigureAwait(false))
+            return ApiResponse<StudentEnrollmentDto>.Fail("The student already has an overlapping enrollment");
 
         var enrollment = new StudentEnrollment
         {
             SchoolId = schoolId.Value,
             StudentId = command.StudentId,
-            AcademicTermId = req.AcademicTermId,
-            ClassroomId = req.ClassroomId,
+            AcademicTermId = target.AcademicTermId,
+            ClassroomId = target.ClassroomId,
             RollNumber = req.RollNumber,
             EnrolledOn = req.EnrolledOn,
             Status = StudentEnrollmentStatus.Active,

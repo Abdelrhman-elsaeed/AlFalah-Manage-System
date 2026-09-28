@@ -16,28 +16,27 @@ public sealed class StudentAffairsAutomationsController : StudentAffairsControll
     public async Task<IActionResult> Rules(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AutomationView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetAutomationRulesQuery(), cancellationToken));
+        return FeatureNotImplemented("W7 Automations and Notifications");
     }
 
     [HttpGet("triggers")]
     public async Task<IActionResult> Triggers([FromQuery] StudentAffairsPageQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AutomationView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetAutomationTriggersQuery(query), cancellationToken));
+        return FeatureNotImplemented("W7 Automations and Notifications");
     }
 
     [HttpGet("failures")]
     public async Task<IActionResult> Failures([FromQuery] StudentAffairsPageQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AutomationView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetAutomationFailuresQuery(query), cancellationToken));
+        return FeatureNotImplemented("W7 Automations and Notifications");
     }
 
     [HttpPost("failures/{id:long}/retry")]
     public async Task<IActionResult> Retry(long id, [FromBody] RetryAutomationFailureRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AutomationRetry)) return PermissionDenied();
-        var response = await Mediator.Send(new RetryAutomationFailureCommand(id, request), cancellationToken);
-        return StatusCode(StatusCodes.Status202Accepted, response);
+        return FeatureNotImplemented("W7 Automations and Notifications");
     }
 }

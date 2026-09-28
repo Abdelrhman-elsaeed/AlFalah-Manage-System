@@ -8,6 +8,7 @@ import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { StudentAnalyzerService } from '../../../core/services/student-analyzer.service';
 import { VisitsV2Service } from '../../../core/services/visits-v2.service';
+import { roleLandingFor } from '../../../core/utils/role-landing';
 import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 
 interface NavItem {
@@ -28,16 +29,6 @@ interface NavCategory {
   labelKey: string;
   icon: string;
   items: NavItem[];
-}
-
-function dashboardRouteForRoles(roles: readonly string[]): string | null {
-  if (roles.includes('SuperAdmin') || roles.includes('MainManager')) return '/main-manager/dashboard';
-  if (roles.includes('SchoolManager')) return '/school-manager/dashboard';
-  if (roles.includes('Moderator')) return '/moderator/dashboard';
-  if (roles.includes('Instructor')) return '/instructor/dashboard';
-  if (roles.includes('StudentAffairsOfficer')) return '/student-affairs/settings';
-  if (roles.includes('Secretary')) return '/student-affairs/attendance/sheet';
-  return null;
 }
 
 export const SHELL_NAV_CATEGORIES: NavCategory[] = [
@@ -250,7 +241,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         labelKey: 'سجل متابعة الطلاب',
         icon: 'pi pi-id-card',
         route: '/student-affairs/records',
-        roles: ['StudentAffairsOfficer', 'SocialWorker', 'SchoolManager', 'MainManager', 'SuperAdmin'],
+        roles: ['StudentAffairsOfficer', 'SuperAdmin'],
         permissions: ['Student.View']
       }
     ]
@@ -310,14 +301,17 @@ export class ShellComponent implements OnInit {
 
   /** Top-level links stay outside accordion categories by design. */
   readonly topItems = computed<NavItem[]>(() => {
-    const dashboardRoute = dashboardRouteForRoles(this.authService.roles());
+    const dashboardRoute = roleLandingFor(this.authService.roles());
     const items: NavItem[] = dashboardRoute
       ? [{ labelKey: 'NAV.DASHBOARD', icon: 'pi pi-home', route: dashboardRoute }]
       : [];
 
     const roles = this.authService.roles();
     if (roles.includes('SchoolManager'))
-      items.push({ labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/school-manager/evidence-matrix' });
+      items.push(
+        { labelKey: 'الإشراف على شؤون الطلاب', icon: 'pi pi-chart-line', route: '/student-affairs/oversight', permissions: ['StudentAffairsDashboard.SchoolOversight'] },
+        { labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/school-manager/evidence-matrix' }
+      );
     else if (roles.includes('Moderator'))
       items.push({ labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/moderator/evidence-matrix' });
     else if (roles.includes('MainManager') || roles.includes('SuperAdmin'))

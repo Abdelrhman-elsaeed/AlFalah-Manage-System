@@ -17,7 +17,7 @@ public sealed class ClassroomsController : StudentAffairsControllerBase
     public async Task<IActionResult> AcademicYears(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentEnrollmentManage, PermissionNames.ClassroomManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetClassroomAcademicYearsQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetClassroomAcademicYearsQuery(), cancellationToken));
     }
 
     [HttpGet]
@@ -31,7 +31,7 @@ public sealed class ClassroomsController : StudentAffairsControllerBase
             PermissionNames.TeacherQuickActionView,
             PermissionNames.AttendanceViewStudents,
             PermissionNames.AttendanceManageStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetClassroomsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetClassroomsQuery(query), cancellationToken));
     }
 
     [HttpPost]
@@ -44,7 +44,7 @@ public sealed class ClassroomsController : StudentAffairsControllerBase
             if (errors.Count > 0) return BadRequest(ApiResponse<ClassroomDto>.Fail(errors));
         }
         var response = await Mediator.Send(new CreateClassroomCommand(request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpPatch("{id:int}")]
@@ -56,20 +56,20 @@ public sealed class ClassroomsController : StudentAffairsControllerBase
             var errors = await ValidationHelper.ValidateAsync(HttpContext.RequestServices, request, cancellationToken);
             if (errors.Count > 0) return BadRequest(ApiResponse<ClassroomDto>.Fail(errors));
         }
-        return Ok(await Mediator.Send(new UpdateClassroomCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new UpdateClassroomCommand(id, request), cancellationToken));
     }
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, [FromBody] DeleteClassroomRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentEnrollmentManage, PermissionNames.ClassroomManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new DeleteClassroomCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new DeleteClassroomCommand(id, request), cancellationToken));
     }
 
     [HttpGet("{id:int}/students")]
     public async Task<IActionResult> Students(int id, [FromQuery] int? academicTermId, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentView, PermissionNames.TeacherQuickActionView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetClassroomStudentsQuery(id, academicTermId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetClassroomStudentsQuery(id, academicTermId), cancellationToken));
     }
 }

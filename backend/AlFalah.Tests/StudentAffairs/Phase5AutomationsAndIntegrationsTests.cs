@@ -10,6 +10,7 @@ using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Integrations.Biometrics;
 using AlFalah.Infrastructure.Integrations.Noor;
 using AlFalah.Infrastructure.Notifications;
+using AlFalah.Infrastructure.Repositories;
 using ClosedXML.Excel;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +71,45 @@ public sealed class Phase5AutomationsAndIntegrationsTests
         sheet.Cell(1, 3).GetString().Should().Be("Date");
         sheet.Cell(1, 4).GetString().Should().Be("Excuse Status");
         sheet.Cell(2, 2).GetString().Should().Be("0123456789");
+    }
+
+    [Fact]
+    public async Task NoorExport_SelectsOnlyAcceptedAbsentExcusedRowsWithinSchoolAndDateRange()
+    {
+        await using var context = CreateContext();
+        context.Students.AddRange(
+            new Student
+            {
+                Id = 10, SchoolId = 1, StudentNumber = "ST-10", FirstName = "Accepted",
+                LastName = "Excuse", NationalId = "0123456789", IsActive = true
+            },
+            new Student
+            {
+                Id = 11, SchoolId = 2, StudentNumber = "ST-11", FirstName = "Other",
+                LastName = "School", NationalId = "9988776655", IsActive = true
+            });
+        context.DailyStudentAttendances.AddRange(
+            NewAttendance(20, StudentAttendanceStatus.AbsentExcused),
+            new DailyStudentAttendance
+            {
+                Id = 21, SchoolId = 1, StudentId = 10, AcademicTermId = 20, ClassroomId = 30,
+                AttendanceDate = new DateOnly(2026, 8, 21), Status = StudentAttendanceStatus.Absent,
+                ExcuseStatus = AbsenceExcuseStatus.Rejected, RecordedByUserId = "officer"
+            },
+            new DailyStudentAttendance
+            {
+                Id = 22, SchoolId = 2, StudentId = 11, AcademicTermId = 20, ClassroomId = 30,
+                AttendanceDate = new DateOnly(2026, 8, 20), Status = StudentAttendanceStatus.AbsentExcused,
+                ExcuseStatus = AbsenceExcuseStatus.Accepted, RecordedByUserId = "officer"
+            });
+        await context.SaveChangesAsync();
+
+        var rows = await new NoorExportRepository(context).GetAcceptedExcusesAsync(
+            1, new DateOnly(2026, 8, 19), new DateOnly(2026, 8, 21), CancellationToken.None);
+
+        rows.Should().ContainSingle();
+        rows[0].StudentId.Should().Be(10);
+        rows[0].ExcuseStatus.Should().Be(AbsenceExcuseStatus.Accepted);
     }
 
     [Fact]
