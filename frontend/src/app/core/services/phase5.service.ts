@@ -16,7 +16,7 @@ import {
   ConversationMessageDto,
   MarkConversationReadRequestDto,
   MarkSummonImprovedRequestDto,
-  OfficeHourSlotDto,
+  OfficeHoursAggregateDto,
   PendingDispatchDto,
   ReferralDto,
   ReferralListQuery,
@@ -110,10 +110,10 @@ export class Phase5Service {
   getBehavior(id: number): Observable<ApiResponse<BehaviorIncidentDto>> { return this.get<BehaviorIncidentDto>(`behaviors/${id}`); }
   getAcademicConcern(id: number): Observable<ApiResponse<AcademicConcernDto>> { return this.get<AcademicConcernDto>(`academic-concerns/${id}`); }
 
-  getEligibleOfficeHours(): Observable<ApiResponse<readonly OfficeHourSlotDto[]>> { return this.get<readonly OfficeHourSlotDto[]>('office-hours/me/eligible'); }
-  getMyOfficeHours(): Observable<ApiResponse<readonly OfficeHourSlotDto[]>> { return this.get<readonly OfficeHourSlotDto[]>('office-hours/me'); }
-  updateMyOfficeHours(request: UpdateMyOfficeHoursRequestDto): Observable<ApiResponse<readonly OfficeHourSlotDto[]>> {
-    return this.http.put<ApiResponse<readonly OfficeHourSlotDto[]>>(`${this.api}/office-hours/me`, request, { context: this.callerHandlesErrors });
+  getEligibleOfficeHours(): Observable<ApiResponse<OfficeHoursAggregateDto>> { return this.get<OfficeHoursAggregateDto>('office-hours/me/eligible'); }
+  getMyOfficeHours(): Observable<ApiResponse<OfficeHoursAggregateDto>> { return this.get<OfficeHoursAggregateDto>('office-hours/me'); }
+  updateMyOfficeHours(request: UpdateMyOfficeHoursRequestDto): Observable<ApiResponse<OfficeHoursAggregateDto>> {
+    return this.http.put<ApiResponse<OfficeHoursAggregateDto>>(`${this.api}/office-hours/me`, request, { context: this.callerHandlesErrors });
   }
 
   listConversations(query: ConversationListQuery): Observable<ApiResponse<PagedResult<ConversationDto>>> {

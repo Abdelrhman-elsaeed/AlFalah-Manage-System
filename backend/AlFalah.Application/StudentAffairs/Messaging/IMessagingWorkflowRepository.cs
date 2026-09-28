@@ -5,6 +5,8 @@ namespace AlFalah.Application.StudentAffairs.Messaging;
 
 public interface IMessagingWorkflowRepository
 {
+    Task<MessageReleaseResult> ReleaseDueMessageAsync(int messageId, CancellationToken cancellationToken);
+    Task ReconcileOfficeHoursAsync(int schoolId, IReadOnlyCollection<string>? teacherUserIds, CancellationToken cancellationToken);
     Task<bool> IsParticipantAsync(
         int schoolId,
         string userId,
@@ -23,6 +25,9 @@ public interface IMessagingWorkflowRepository
         string userId,
         ConversationListQuery query,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<GuardianTeacherOptionDto>> GetGuardianTeacherOptionsAsync(
+        int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken);
 
     Task<ConversationDto?> GetConversationByIdAsync(
         int schoolId,
@@ -64,31 +69,34 @@ public interface IMessagingWorkflowRepository
         CloseConversationRequestDto request,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<OfficeHourSlotDto>> GetEligibleOfficeHoursAsync(
+    Task<OfficeHoursAggregateDto> GetEligibleOfficeHoursAsync(
         int schoolId,
         string userId,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<OfficeHourSlotDto>> GetMyOfficeHoursAsync(
+    Task<OfficeHoursAggregateDto> GetMyOfficeHoursAsync(
         int schoolId,
         string userId,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<OfficeHourSlotDto>> UpdateMyOfficeHoursAsync(
+    Task<OfficeHoursAggregateDto> UpdateMyOfficeHoursAsync(
         int schoolId,
         string userId,
         UpdateMyOfficeHoursRequestDto request,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<OfficeHourSlotDto>> GetTeacherOfficeHoursAsync(
+    Task<OfficeHoursAggregateDto> GetTeacherOfficeHoursAsync(
         int schoolId,
+        string requesterUserId,
         int instructorId,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<OfficeHourSlotDto>> OverrideTeacherOfficeHoursAsync(
+    Task<OfficeHoursAggregateDto> OverrideTeacherOfficeHoursAsync(
         int schoolId,
         string adminUserId,
         int instructorId,
         OverrideTeacherOfficeHoursRequestDto request,
         CancellationToken cancellationToken);
 }
+
+public sealed record MessageReleaseResult(bool Completed, DateTimeOffset? NextAttemptAt);

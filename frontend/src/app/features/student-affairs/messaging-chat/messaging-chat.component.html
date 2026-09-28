@@ -23,8 +23,8 @@
                 <div class="message-head"><strong>{{ message.sender.displayName }}</strong><time><bdi dir="ltr">{{ formatDateTime(message.createdAt) }}</bdi></time></div>
                 <p dir="auto">{{ message.body }}</p>
                 <footer><span [class.pending]="message.deliveryState === 'Pending'"><i [class]="message.deliveryState === 'Delivered' ? 'pi pi-check-circle' : message.deliveryState === 'Pending' ? 'pi pi-clock' : 'pi pi-exclamation-circle'"></i>{{ deliveryLabel(message.deliveryState) }}</span></footer>
-                @if (queuedResult(message.id); as result) {
-                  @if (result.disposition === 'QueuedUntilOfficeHours') { <div class="queued-warning" role="status"><p-tag value="مجدولة للساعات المكتبية" severity="warning"></p-tag><strong>سيتم التنبيه في أقرب ساعة مكتبية{{ result.nextEligibleSendAt ? ': ' + formatDateTime(result.nextEligibleSendAt) : '' }}</strong><span>الرسالة محفوظة وقيد الانتظار، وليست «تم التسليم».</span></div> }
+                @if (queuedResult(message); as result) {
+                  @if (result.disposition === 'QueuedUntilOfficeHours') { <div class="queued-warning" role="status"><p-tag value="مجدولة للساعات المكتبية" severity="warning"></p-tag><strong>{{ result.nextEligibleSendAt ? 'سيتم التنبيه في أقرب ساعة مكتبية: ' + formatDateTime(result.nextEligibleSendAt) : 'تنتظر الرسالة تهيئة ساعات مكتبية صالحة' }}</strong><span>الرسالة محفوظة وقيد الانتظار، وليست «تم التسليم».</span></div> }
                   @else if (result.disposition === 'BypassedForUrgency') { <div class="urgent-warning"><i class="pi pi-bolt"></i><span>أُرسلت كحالة عاجلة (مسجلة للتدقيق)</span></div> }
                 }
               </article>

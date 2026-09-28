@@ -180,18 +180,38 @@ export interface BehaviorIncidentDto extends AcademicConcernDto {
 export type DispatchFactDto = AcademicConcernDto | BehaviorIncidentDto;
 
 export interface OfficeHourSlotDto {
-  readonly id: number;
+  readonly stableKey: string;
   readonly dayOfWeek: DayOfWeek;
+  readonly periodSequence: number;
   readonly startsAt: string;
   readonly endsAt: string;
+  readonly isEligible: boolean;
+  readonly isSelected: boolean;
+  readonly isConflicted: boolean;
+  readonly conflictReason: string | null;
+  readonly source: TeacherOfficeHourSource;
+  readonly schoolTimetableId: number;
+  readonly timetableRevision: number;
+  readonly bellScheduleRevisionId: number;
+}
+export interface OfficeHoursAggregateDto {
+  readonly configurationId: number | null;
+  readonly instructorId: number;
+  readonly academicTermId: number;
+  readonly schoolTimetableId: number;
+  readonly timetableRevision: number;
+  readonly bellScheduleRevisionId: number;
   readonly effectiveFrom: string;
   readonly effectiveTo: string | null;
-  readonly source: TeacherOfficeHourSource;
-  readonly isEligible: boolean;
   readonly rowVersion: string;
+  readonly source: TeacherOfficeHourSource;
+  readonly updatedByUserId: string;
+  readonly updatedAt: string;
+  readonly statusReason: string | null;
+  readonly slots: readonly OfficeHourSlotDto[];
 }
 export interface UpdateMyOfficeHoursRequestDto {
-  readonly eligibleSlotIds: readonly number[];
+  readonly selectedSlotKeys: readonly string[];
   readonly effectiveFrom: string;
   readonly rowVersion: string;
 }
@@ -216,6 +236,8 @@ export interface ConversationMessageDto {
   readonly replyToMessageId: number | null;
   readonly createdAt: string;
   readonly deliveryState: MessageDeliveryState;
+  readonly disposition: OfficeHoursDisposition;
+  readonly nextEligibleSendAt: string | null;
   readonly receipts: readonly NotificationDeliveryDto[];
 }
 export interface SendMessageRequestDto {
@@ -233,12 +255,6 @@ export interface CloseConversationRequestDto { readonly reason: string; readonly
 
 export const REFERRAL_STATUSES: readonly StudentReferralStatus[] = ['Open', 'Assigned', 'InProgress', 'Resolved', 'Closed'];
 export const SUMMON_STATUSES: readonly GuardianSummonStatus[] = ['Pending', 'Attended', 'UnderObservation', 'Improved'];
-
-export function consistentOfficeHoursRowVersion(slots: readonly OfficeHourSlotDto[]): string | null {
-  if (slots.length === 0) return null;
-  const tokens = new Set(slots.map(slot => slot.rowVersion).filter(token => token.trim().length > 0));
-  return tokens.size === 1 ? [...tokens][0] : null;
-}
 
 export function isBehaviorFact(fact: DispatchFactDto): fact is BehaviorIncidentDto {
   return 'severity' in fact;

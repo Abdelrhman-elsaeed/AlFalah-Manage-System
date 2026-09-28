@@ -134,6 +134,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
     public DbSet<MessageReceipt> MessageReceipts => Set<MessageReceipt>();
     public DbSet<TeacherOfficeHour> TeacherOfficeHours => Set<TeacherOfficeHour>();
+    public DbSet<TeacherOfficeHourConfiguration> TeacherOfficeHourConfigurations => Set<TeacherOfficeHourConfiguration>();
+    public DbSet<TeacherOfficeHourAudit> TeacherOfficeHourAudits => Set<TeacherOfficeHourAudit>();
 
     // Student Affairs - automation and reliable events
     public DbSet<AutomationRuleDefinition> AutomationRuleDefinitions => Set<AutomationRuleDefinition>();

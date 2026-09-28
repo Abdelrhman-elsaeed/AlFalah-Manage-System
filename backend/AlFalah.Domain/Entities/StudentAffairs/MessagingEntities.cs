@@ -59,6 +59,11 @@ public sealed class ConversationMessage : IStudentAffairsMutableEntity
     public DateTimeOffset? SentAt { get; set; }
     public DateTimeOffset QueuedAt { get; set; } = DateTimeOffset.UtcNow;
     public OfficeHoursDisposition OfficeHoursDisposition { get; set; }
+    public string IdempotencyKey { get; set; } = string.Empty;
+    public string IdempotencyPayloadHash { get; set; } = string.Empty;
+    public DateTimeOffset? NextEligibleSendAt { get; set; }
+    public DateTimeOffset? ReleasedAt { get; set; }
+    public Guid? ReleaseOutboxEventId { get; set; }
     public int? ReplyToMessageId { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string CreatedByUserId { get; set; } = string.Empty;
@@ -100,6 +105,11 @@ public sealed class TeacherOfficeHour : IStudentAffairsMutableEntity
     public int SchoolId { get; set; }
     public int InstructorProfileId { get; set; }
     public int AcademicTermId { get; set; }
+    public int? TeacherOfficeHourConfigurationId { get; set; }
+    public string StableSlotKey { get; set; } = string.Empty;
+    public int SchoolTimetableId { get; set; }
+    public int TimetableRevision { get; set; }
+    public int BellScheduleRevisionId { get; set; }
     public TimetableDay Day { get; set; }
     public int? Period { get; set; }
     public TimeOnly? LocalStartTime { get; set; }
@@ -108,6 +118,8 @@ public sealed class TeacherOfficeHour : IStudentAffairsMutableEntity
     public DateOnly EffectiveFrom { get; set; }
     public DateOnly? EffectiveUntil { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsConflicted { get; set; }
+    public string? ConflictReason { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string CreatedByUserId { get; set; } = string.Empty;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -119,4 +131,52 @@ public sealed class TeacherOfficeHour : IStudentAffairsMutableEntity
     public School School { get; set; } = null!;
     public InstructorProfile InstructorProfile { get; set; } = null!;
     public AcademicTerm AcademicTerm { get; set; } = null!;
+    public TeacherOfficeHourConfiguration? Configuration { get; set; }
+}
+
+/// <summary>Versioned configuration aggregate. A new row closes the previous row and preserves history.</summary>
+public sealed class TeacherOfficeHourConfiguration : IStudentAffairsMutableEntity, IStudentAffairsConcurrentEntity
+{
+    public int Id { get; set; }
+    public int SchoolId { get; set; }
+    public int InstructorProfileId { get; set; }
+    public int AcademicTermId { get; set; }
+    public int SchoolTimetableId { get; set; }
+    public int TimetableRevision { get; set; }
+    public int BellScheduleRevisionId { get; set; }
+    public DateOnly EffectiveFrom { get; set; }
+    public DateOnly? EffectiveUntil { get; set; }
+    public TeacherOfficeHourSource Source { get; set; }
+    public string? OverrideReason { get; set; }
+    public bool IsCurrent { get; set; } = true;
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public string CreatedByUserId { get; set; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public string UpdatedByUserId { get; set; } = string.Empty;
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
+    public string? DeletedByUserId { get; set; }
+    [Timestamp] public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
+    public School School { get; set; } = null!;
+    public InstructorProfile InstructorProfile { get; set; } = null!;
+    public AcademicTerm AcademicTerm { get; set; } = null!;
+    public ICollection<TeacherOfficeHour> Slots { get; set; } = new List<TeacherOfficeHour>();
+}
+
+public sealed class TeacherOfficeHourAudit
+{
+    public long Id { get; set; }
+    public int SchoolId { get; set; }
+    public int TeacherOfficeHourConfigurationId { get; set; }
+    public int InstructorProfileId { get; set; }
+    public string ActorUserId { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+    public string BeforeSnapshotJson { get; set; } = "{}";
+    public string AfterSnapshotJson { get; set; } = "{}";
+    public DateTimeOffset OccurredAt { get; set; }
+    public Guid CorrelationId { get; set; }
+
+    public School School { get; set; } = null!;
+    public TeacherOfficeHourConfiguration Configuration { get; set; } = null!;
 }

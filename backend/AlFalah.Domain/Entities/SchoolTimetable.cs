@@ -1,9 +1,11 @@
 using AlFalah.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
+using AlFalah.Domain.Events;
 
 namespace AlFalah.Domain.Entities;
 
 /// <summary>The current editable timetable for one school, academic year and semester.</summary>
-public class SchoolTimetable
+public class SchoolTimetable : IHasDomainEvents
 {
     public int Id { get; set; }
     public int SchoolId { get; set; }
@@ -35,4 +37,9 @@ public class SchoolTimetable
     public ApplicationUser? PublishedByUser { get; set; }
     public ICollection<SchoolTimetableEntry> Entries { get; set; } = new List<SchoolTimetableEntry>();
     public ICollection<SchoolTimetableVersion> Versions { get; set; } = new List<SchoolTimetableVersion>();
+    private readonly List<IDomainEvent> events = [];
+    [NotMapped] public int DomainEventAggregateId => Id;
+    [NotMapped] public IReadOnlyCollection<IDomainEvent> DomainEvents => events;
+    public void AppendDomainEvent(IDomainEvent domainEvent) => events.Add(domainEvent);
+    public void ClearDomainEvents() => events.Clear();
 }

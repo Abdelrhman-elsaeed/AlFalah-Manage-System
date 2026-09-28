@@ -7,7 +7,7 @@ using MediatR;
 namespace AlFalah.Application.StudentAffairs.Messaging.Handlers;
 
 public sealed class GetEligibleOfficeHoursQueryHandler
-    : IRequestHandler<GetEligibleOfficeHoursQuery, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>
+    : IRequestHandler<GetEligibleOfficeHoursQuery, ApiResponse<OfficeHoursAggregateDto>>
 {
     private readonly IMessagingWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
@@ -20,25 +20,32 @@ public sealed class GetEligibleOfficeHoursQueryHandler
         _currentUser = currentUser;
     }
 
-    public async Task<ApiResponse<IReadOnlyList<OfficeHourSlotDto>>> Handle(
+    public async Task<ApiResponse<OfficeHoursAggregateDto>> Handle(
         GetEligibleOfficeHoursQuery request,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("An authenticated user and active school are required");
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("An authenticated user and active school are required");
 
-        if (!_currentUser.HasPermission(PermissionNames.OfficeHoursManageOwn))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("You do not have permission to perform this action");
+        if (!_currentUser.IsInRole(RoleNames.Instructor) || !_currentUser.HasPermission(PermissionNames.OfficeHoursManageOwn))
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("You do not have permission to perform this action");
 
-        var result = await _repository.GetEligibleOfficeHoursAsync(schoolId.Value, userId, cancellationToken).ConfigureAwait(false);
-        return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Success(result);
+        try
+        {
+            var result = await _repository.GetEligibleOfficeHoursAsync(schoolId.Value, userId, cancellationToken).ConfigureAwait(false);
+            return ApiResponse<OfficeHoursAggregateDto>.Success(result);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<OfficeHoursAggregateDto>.Fail(exception.Message);
+        }
     }
 }
 
 public sealed class GetMyOfficeHoursQueryHandler
-    : IRequestHandler<GetMyOfficeHoursQuery, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>
+    : IRequestHandler<GetMyOfficeHoursQuery, ApiResponse<OfficeHoursAggregateDto>>
 {
     private readonly IMessagingWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
@@ -51,25 +58,32 @@ public sealed class GetMyOfficeHoursQueryHandler
         _currentUser = currentUser;
     }
 
-    public async Task<ApiResponse<IReadOnlyList<OfficeHourSlotDto>>> Handle(
+    public async Task<ApiResponse<OfficeHoursAggregateDto>> Handle(
         GetMyOfficeHoursQuery request,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("An authenticated user and active school are required");
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("An authenticated user and active school are required");
 
-        if (!_currentUser.HasPermission(PermissionNames.OfficeHoursManageOwn))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("You do not have permission to perform this action");
+        if (!_currentUser.IsInRole(RoleNames.Instructor) || !_currentUser.HasPermission(PermissionNames.OfficeHoursManageOwn))
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("You do not have permission to perform this action");
 
-        var result = await _repository.GetMyOfficeHoursAsync(schoolId.Value, userId, cancellationToken).ConfigureAwait(false);
-        return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Success(result);
+        try
+        {
+            var result = await _repository.GetMyOfficeHoursAsync(schoolId.Value, userId, cancellationToken).ConfigureAwait(false);
+            return ApiResponse<OfficeHoursAggregateDto>.Success(result);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<OfficeHoursAggregateDto>.Fail(exception.Message);
+        }
     }
 }
 
 public sealed class UpdateMyOfficeHoursCommandHandler
-    : IRequestHandler<UpdateMyOfficeHoursCommand, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>
+    : IRequestHandler<UpdateMyOfficeHoursCommand, ApiResponse<OfficeHoursAggregateDto>>
 {
     private readonly IMessagingWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
@@ -82,25 +96,32 @@ public sealed class UpdateMyOfficeHoursCommandHandler
         _currentUser = currentUser;
     }
 
-    public async Task<ApiResponse<IReadOnlyList<OfficeHourSlotDto>>> Handle(
+    public async Task<ApiResponse<OfficeHoursAggregateDto>> Handle(
         UpdateMyOfficeHoursCommand command,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("An authenticated user and active school are required");
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("An authenticated user and active school are required");
 
-        if (!_currentUser.HasPermission(PermissionNames.OfficeHoursManageOwn))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("You do not have permission to perform this action");
+        if (!_currentUser.IsInRole(RoleNames.Instructor) || !_currentUser.HasPermission(PermissionNames.OfficeHoursManageOwn))
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("You do not have permission to perform this action");
 
-        var result = await _repository.UpdateMyOfficeHoursAsync(schoolId.Value, userId, command.Request, cancellationToken).ConfigureAwait(false);
-        return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Success(result, "Office hours updated successfully");
+        try
+        {
+            var result = await _repository.UpdateMyOfficeHoursAsync(schoolId.Value, userId, command.Request, cancellationToken).ConfigureAwait(false);
+            return ApiResponse<OfficeHoursAggregateDto>.Success(result, "Office hours updated successfully");
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<OfficeHoursAggregateDto>.Fail(exception.Message);
+        }
     }
 }
 
 public sealed class GetTeacherOfficeHoursQueryHandler
-    : IRequestHandler<GetTeacherOfficeHoursQuery, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>
+    : IRequestHandler<GetTeacherOfficeHoursQuery, ApiResponse<OfficeHoursAggregateDto>>
 {
     private readonly IMessagingWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
@@ -113,24 +134,31 @@ public sealed class GetTeacherOfficeHoursQueryHandler
         _currentUser = currentUser;
     }
 
-    public async Task<ApiResponse<IReadOnlyList<OfficeHourSlotDto>>> Handle(
+    public async Task<ApiResponse<OfficeHoursAggregateDto>> Handle(
         GetTeacherOfficeHoursQuery request,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
         if (schoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("An authenticated user and active school are required");
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("An authenticated user and active school are required");
 
         if (!_currentUser.HasPermission(PermissionNames.OfficeHoursView))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("You do not have permission to perform this action");
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("You do not have permission to perform this action");
 
-        var result = await _repository.GetTeacherOfficeHoursAsync(schoolId.Value, request.InstructorId, cancellationToken).ConfigureAwait(false);
-        return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Success(result);
+        try
+        {
+            var result = await _repository.GetTeacherOfficeHoursAsync(schoolId.Value, _currentUser.UserId!, request.InstructorId, cancellationToken).ConfigureAwait(false);
+            return ApiResponse<OfficeHoursAggregateDto>.Success(result);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<OfficeHoursAggregateDto>.Fail(exception.Message);
+        }
     }
 }
 
 public sealed class OverrideTeacherOfficeHoursCommandHandler
-    : IRequestHandler<OverrideTeacherOfficeHoursCommand, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>
+    : IRequestHandler<OverrideTeacherOfficeHoursCommand, ApiResponse<OfficeHoursAggregateDto>>
 {
     private readonly IMessagingWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
@@ -143,19 +171,26 @@ public sealed class OverrideTeacherOfficeHoursCommandHandler
         _currentUser = currentUser;
     }
 
-    public async Task<ApiResponse<IReadOnlyList<OfficeHourSlotDto>>> Handle(
+    public async Task<ApiResponse<OfficeHoursAggregateDto>> Handle(
         OverrideTeacherOfficeHoursCommand command,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("An authenticated user and active school are required");
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("An authenticated user and active school are required");
 
-        if (!_currentUser.HasPermission(PermissionNames.OfficeHoursManageSchool))
-            return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Fail("You do not have permission to perform this action");
+        if (!_currentUser.IsInRole(RoleNames.SchoolManager) || !_currentUser.HasPermission(PermissionNames.OfficeHoursManageSchool))
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("You do not have permission to perform this action");
 
-        var result = await _repository.OverrideTeacherOfficeHoursAsync(schoolId.Value, userId, command.InstructorId, command.Request, cancellationToken).ConfigureAwait(false);
-        return ApiResponse<IReadOnlyList<OfficeHourSlotDto>>.Success(result, "Teacher office hours overridden successfully");
+        try
+        {
+            var result = await _repository.OverrideTeacherOfficeHoursAsync(schoolId.Value, userId, command.InstructorId, command.Request, cancellationToken).ConfigureAwait(false);
+            return ApiResponse<OfficeHoursAggregateDto>.Success(result, "Teacher office hours overridden successfully");
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<OfficeHoursAggregateDto>.Fail(exception.Message);
+        }
     }
 }

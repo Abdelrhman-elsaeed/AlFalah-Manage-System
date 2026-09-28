@@ -7,6 +7,7 @@ using AlFalah.Application.IntelligentTimetable.Handlers;
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
+using AlFalah.Domain.Events;
 
 namespace AlFalah.Application.IntelligentTimetable;
 
@@ -85,6 +86,8 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
             }
             repository.AddAnalysis(publishedRun); run = publishedRun;
             Audit(c, "Timetable.Review.Published", new { c.Timetable.Revision, AnalyzedRevision = run.TimetableRevision });
+            c.Timetable.AppendDomainEvent(new TimetablePublishedEvent(
+                Guid.NewGuid(), c.Timetable.SchoolId, c.Timetable.Id, c.Timetable.Revision, DateTimeOffset.UtcNow));
             await repository.SaveAsync(token);
         }
         return Map(c, run);

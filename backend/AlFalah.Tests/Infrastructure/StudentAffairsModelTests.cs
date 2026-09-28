@@ -66,6 +66,31 @@ public sealed class StudentAffairsModelTests
         }
     }
 
+    [Fact]
+    public void MessagingW4_MapsDurableIdempotencyAndCurrentOfficeHoursConstraints()
+    {
+        using var context = CreateContext();
+
+        var message = context.Model.FindEntityType(typeof(ConversationMessage))!;
+        message.GetIndexes().Should().Contain(index => index.IsUnique
+            && index.Properties.Select(property => property.Name).SequenceEqual(new[]
+            {
+                nameof(ConversationMessage.SchoolId),
+                nameof(ConversationMessage.SenderUserId),
+                nameof(ConversationMessage.IdempotencyKey)
+            }));
+
+        var configuration = context.Model.FindEntityType(typeof(TeacherOfficeHourConfiguration))!;
+        configuration.GetIndexes().Should().Contain(index => index.IsUnique
+            && index.Properties.Select(property => property.Name).SequenceEqual(new[]
+            {
+                nameof(TeacherOfficeHourConfiguration.SchoolId),
+                nameof(TeacherOfficeHourConfiguration.InstructorProfileId),
+                nameof(TeacherOfficeHourConfiguration.IsCurrent)
+            }));
+        configuration.FindProperty(nameof(TeacherOfficeHourConfiguration.RowVersion))!.IsConcurrencyToken.Should().BeTrue();
+    }
+
     private static AlFalahDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AlFalahDbContext>()

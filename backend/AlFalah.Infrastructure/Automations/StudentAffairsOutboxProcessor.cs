@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Events;
+using AlFalah.Application.StudentAffairs.Messaging;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Notifications;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,8 @@ public sealed class StudentAffairsOutboxProcessor
     private static readonly string[] SupportedEventTypes =
     {
         typeof(TeacherTimetableChangedEvent).FullName!,
+        typeof(TimetablePublishedEvent).FullName!,
+        typeof(MessageReleaseDueEvent).FullName!,
         typeof(BehaviorIncidentLoggedEvent).FullName!,
         typeof(AcademicConcernLoggedEvent).FullName!,
         typeof(SessionDelayLoggedEvent).FullName!,
@@ -30,6 +33,7 @@ public sealed class StudentAffairsOutboxProcessor
     private readonly AlFalahDbContext _context;
     private readonly StudentAffairsAutomationRuleEngine _rules;
     private readonly StudentAffairsNotificationDispatcher _notifications;
+    private readonly IMessagingWorkflowRepository _messaging;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<StudentAffairsOutboxProcessor> _logger;
     private readonly int _batchSize;
@@ -40,6 +44,7 @@ public sealed class StudentAffairsOutboxProcessor
         AlFalahDbContext context,
         StudentAffairsAutomationRuleEngine rules,
         StudentAffairsNotificationDispatcher notifications,
+        IMessagingWorkflowRepository messaging,
         TimeProvider timeProvider,
         IConfiguration configuration,
         ILogger<StudentAffairsOutboxProcessor> logger)
@@ -47,6 +52,7 @@ public sealed class StudentAffairsOutboxProcessor
         _context = context;
         _rules = rules;
         _notifications = notifications;
+        _messaging = messaging;
         _timeProvider = timeProvider;
         _logger = logger;
         _batchSize = Math.Clamp(configuration.GetValue("StudentAffairsOutbox:BatchSize", 25), 1, 200);
@@ -104,6 +110,22 @@ public sealed class StudentAffairsOutboxProcessor
             if (message is null) return;
 
             var domainEvent = Deserialize(message);
+            if (domainEvent is TimetablePublishedEvent published)
+                await _messaging.ReconcileOfficeHoursAsync(published.SchoolId, null, cancellationToken).ConfigureAwait(false);
+            else if (domainEvent is TeacherTimetableChangedEvent timetableChanged)
+                await _messaging.ReconcileOfficeHoursAsync(timetableChanged.SchoolId, timetableChanged.TeacherUserIds, cancellationToken).ConfigureAwait(false);
+            if (domainEvent is MessageReleaseDueEvent release)
+            {
+                var releaseResult = await _messaging.ReleaseDueMessageAsync(release.ConversationMessageId, cancellationToken).ConfigureAwait(false);
+                if (!releaseResult.Completed)
+                {
+                    message.NextAttemptAt = releaseResult.NextAttemptAt;
+                    message.LeaseOwner = null;
+                    message.LeaseExpiresAt = null;
+                    await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    return;
+                }
+            }
             await _rules.ProcessAsync(domainEvent, cancellationToken).ConfigureAwait(false);
             await _notifications.ProcessAsync(domainEvent, cancellationToken).ConfigureAwait(false);
             message.ProcessedAt = _timeProvider.GetUtcNow();
@@ -153,6 +175,10 @@ public sealed class StudentAffairsOutboxProcessor
         {
             var type when type.EndsWith(nameof(TeacherTimetableChangedEvent), StringComparison.Ordinal) =>
                 JsonSerializer.Deserialize<TeacherTimetableChangedEvent>(message.PayloadJson, JsonOptions),
+            var type when type.EndsWith(nameof(TimetablePublishedEvent), StringComparison.Ordinal) =>
+                JsonSerializer.Deserialize<TimetablePublishedEvent>(message.PayloadJson, JsonOptions),
+            var type when type.EndsWith(nameof(MessageReleaseDueEvent), StringComparison.Ordinal) =>
+                JsonSerializer.Deserialize<MessageReleaseDueEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(BehaviorIncidentLoggedEvent), StringComparison.Ordinal) =>
                 JsonSerializer.Deserialize<BehaviorIncidentLoggedEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(AcademicConcernLoggedEvent), StringComparison.Ordinal) =>

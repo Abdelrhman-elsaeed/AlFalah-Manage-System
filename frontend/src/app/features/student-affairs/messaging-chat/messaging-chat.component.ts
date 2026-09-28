@@ -166,7 +166,11 @@ export class MessagingChatComponent implements OnInit {
   }
 
   isMine(message: ConversationMessageDto): boolean { return message.sender.userId === this.currentUserId; }
-  queuedResult(messageId: number): SendMessageResultDto | null { return this.queuedResults().get(messageId) ?? null; }
+  queuedResult(message: ConversationMessageDto): SendMessageResultDto | null {
+    return this.queuedResults().get(message.id) ?? (message.disposition === 'QueuedUntilOfficeHours'
+      ? { message, disposition: message.disposition, nextEligibleSendAt: message.nextEligibleSendAt }
+      : null);
+  }
   threadTypeLabel(type: ConversationDto['threadType']): string { return ({ GuardianTeacher: 'ولي الأمر والمعلم', GuardianStudentAffairs: 'ولي الأمر وشؤون الطلاب', GuardianSocialWorker: 'ولي الأمر والموجه الطلابي' })[type]; }
   deliveryLabel(state: ConversationMessageDto['deliveryState']): string { return ({ Pending: 'قيد الانتظار', Delivered: 'تم التسليم', Failed: 'تعذر التسليم' })[state]; }
   formatDateTime(value: string | null): string {

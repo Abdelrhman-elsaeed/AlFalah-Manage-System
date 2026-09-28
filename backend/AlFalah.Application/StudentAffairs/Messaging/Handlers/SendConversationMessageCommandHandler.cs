@@ -29,11 +29,14 @@ public sealed class SendConversationMessageCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SendMessageResultDto>.Fail("An authenticated user and active school are required");
 
-        if (!_currentUser.HasPermission(PermissionNames.MessagingSend))
+        if (!IsMessagingRole(_currentUser) || !_currentUser.HasPermission(PermissionNames.MessagingSend))
             return ApiResponse<SendMessageResultDto>.Fail("You do not have permission to perform this action");
 
         if (string.IsNullOrWhiteSpace(command.Request.Body))
             return ApiResponse<SendMessageResultDto>.Fail("Message body cannot be empty");
+
+        if (string.IsNullOrWhiteSpace(command.Request.IdempotencyKey))
+            return ApiResponse<SendMessageResultDto>.Fail("An idempotency key is required");
 
         if (!await _repository.IsParticipantAsync(
                 schoolId.Value,
@@ -42,13 +45,21 @@ public sealed class SendConversationMessageCommandHandler
                 cancellationToken).ConfigureAwait(false))
             return ApiResponse<SendMessageResultDto>.Fail("Conversation was not found");
 
-        var result = await _repository.SendMessageAsync(
-            schoolId.Value,
-            userId,
-            command.ConversationId,
-            command.Request,
-            cancellationToken).ConfigureAwait(false);
-
-        return ApiResponse<SendMessageResultDto>.Success(result, "Message sent successfully");
+        try
+        {
+            var result = await _repository.SendMessageAsync(
+                schoolId.Value, userId, command.ConversationId, command.Request, cancellationToken).ConfigureAwait(false);
+            return ApiResponse<SendMessageResultDto>.Success(result, "Message sent successfully");
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<SendMessageResultDto>.Fail(exception.Message);
+        }
     }
+
+    private static bool IsMessagingRole(ICurrentUserService currentUser) =>
+        currentUser.IsInRole(RoleNames.Guardian)
+        || currentUser.IsInRole(RoleNames.Instructor)
+        || currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+        || currentUser.IsInRole(RoleNames.SocialWorker);
 }

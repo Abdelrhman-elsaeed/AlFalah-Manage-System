@@ -57,11 +57,11 @@ public sealed class GatePassAndMessagingMediatRTests
         provider.GetService<IRequestHandler<SendConversationMessageCommand, ApiResponse<SendMessageResultDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<MarkConversationReadCommand, ApiResponse<bool>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<CloseConversationCommand, ApiResponse<ConversationDto>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<GetEligibleOfficeHoursQuery, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<GetMyOfficeHoursQuery, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<UpdateMyOfficeHoursCommand, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<GetTeacherOfficeHoursQuery, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<OverrideTeacherOfficeHoursCommand, ApiResponse<IReadOnlyList<OfficeHourSlotDto>>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetEligibleOfficeHoursQuery, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetMyOfficeHoursQuery, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<UpdateMyOfficeHoursCommand, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetTeacherOfficeHoursQuery, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<OverrideTeacherOfficeHoursCommand, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
     }
 
     [Fact]
@@ -106,6 +106,36 @@ public sealed class GatePassAndMessagingMediatRTests
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().Contain("Conversation was not found");
         repository.SendWasCalled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task UpdateMyOfficeHoursCommandHandler_RequiresExactInstructorRole()
+    {
+        var repository = new StubMessagingWorkflowRepository();
+        var currentUser = new StubCurrentUser("manager", 1, PermissionNames.OfficeHoursManageOwn);
+        currentUser.Roles.Remove(RoleNames.Instructor);
+        var handler = new UpdateMyOfficeHoursCommandHandler(repository, currentUser);
+
+        var result = await handler.Handle(
+            new UpdateMyOfficeHoursCommand(new UpdateMyOfficeHoursRequestDto(Array.Empty<string>(), new DateOnly(2026, 9, 28), "new")),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Contains("permission"));
+    }
+
+    [Fact]
+    public async Task GetGuardianTeacherOptionsQueryHandler_RequiresGuardianRole()
+    {
+        var repository = new StubMessagingWorkflowRepository();
+        var currentUser = new StubCurrentUser("teacher", 1, PermissionNames.MessagingStartGuardianTeacher);
+        currentUser.Roles.Remove(RoleNames.Guardian);
+        var handler = new GetGuardianTeacherOptionsQueryHandler(repository, currentUser, TimeProvider.System);
+
+        var result = await handler.Handle(new GetGuardianTeacherOptionsQuery(10), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Contains("permission"));
     }
 
     private sealed class StubGatePassWorkflowRepository : IGatePassWorkflowRepository
@@ -195,6 +225,12 @@ public sealed class GatePassAndMessagingMediatRTests
         public bool IsParticipant { get; set; } = true;
         public bool SendWasCalled { get; private set; }
 
+        public Task<MessageReleaseResult> ReleaseDueMessageAsync(int messageId, CancellationToken cancellationToken) =>
+            Task.FromResult(new MessageReleaseResult(true, null));
+
+        public Task ReconcileOfficeHoursAsync(int schoolId, IReadOnlyCollection<string>? teacherUserIds, CancellationToken cancellationToken) =>
+            Task.CompletedTask;
+
         public Task<bool> IsParticipantAsync(int schoolId, string userId, int conversationId, CancellationToken cancellationToken) =>
             Task.FromResult(IsParticipant);
 
@@ -214,6 +250,9 @@ public sealed class GatePassAndMessagingMediatRTests
                 Page = 1,
                 PageSize = 20
             });
+
+        public Task<IReadOnlyList<GuardianTeacherOptionDto>> GetGuardianTeacherOptionsAsync(int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<GuardianTeacherOptionDto>>(Array.Empty<GuardianTeacherOptionDto>());
 
         public Task<ConversationDto?> GetConversationByIdAsync(int schoolId, string userId, int conversationId, CancellationToken cancellationToken) =>
             Task.FromResult<ConversationDto?>(new ConversationDto(conversationId, new StudentSummaryDto(1, "STU-1", "Test Student", null, null, true, null),
@@ -238,7 +277,7 @@ public sealed class GatePassAndMessagingMediatRTests
         {
             SendWasCalled = true;
             return Task.FromResult(new SendMessageResultDto(
-                new ConversationMessageDto(1, conversationId, new ActorSummaryDto(senderUserId, "User", "Sender"), request.Body, request.ReplyToMessageId, DateTimeOffset.UtcNow, MessageDeliveryState.Delivered, Array.Empty<NotificationDeliveryDto>()),
+                new ConversationMessageDto(1, conversationId, new ActorSummaryDto(senderUserId, "User", "Sender"), request.Body, request.ReplyToMessageId, DateTimeOffset.UtcNow, MessageDeliveryState.Delivered, OfficeHoursDisposition.SentImmediately, null, Array.Empty<NotificationDeliveryDto>()),
                 OfficeHoursDisposition.SentImmediately, null));
         }
 
@@ -248,20 +287,24 @@ public sealed class GatePassAndMessagingMediatRTests
         public Task<ConversationDto?> CloseConversationAsync(int schoolId, string userId, int conversationId, CloseConversationRequestDto request, CancellationToken cancellationToken) =>
             GetConversationByIdAsync(schoolId, userId, conversationId, cancellationToken);
 
-        public Task<IReadOnlyList<OfficeHourSlotDto>> GetEligibleOfficeHoursAsync(int schoolId, string userId, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<OfficeHourSlotDto>>(Array.Empty<OfficeHourSlotDto>());
+        public Task<OfficeHoursAggregateDto> GetEligibleOfficeHoursAsync(int schoolId, string userId, CancellationToken cancellationToken) =>
+            Task.FromResult(EmptyOfficeHours());
 
-        public Task<IReadOnlyList<OfficeHourSlotDto>> GetMyOfficeHoursAsync(int schoolId, string userId, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<OfficeHourSlotDto>>(Array.Empty<OfficeHourSlotDto>());
+        public Task<OfficeHoursAggregateDto> GetMyOfficeHoursAsync(int schoolId, string userId, CancellationToken cancellationToken) =>
+            Task.FromResult(EmptyOfficeHours());
 
-        public Task<IReadOnlyList<OfficeHourSlotDto>> UpdateMyOfficeHoursAsync(int schoolId, string userId, UpdateMyOfficeHoursRequestDto request, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<OfficeHourSlotDto>>(Array.Empty<OfficeHourSlotDto>());
+        public Task<OfficeHoursAggregateDto> UpdateMyOfficeHoursAsync(int schoolId, string userId, UpdateMyOfficeHoursRequestDto request, CancellationToken cancellationToken) =>
+            Task.FromResult(EmptyOfficeHours());
 
-        public Task<IReadOnlyList<OfficeHourSlotDto>> GetTeacherOfficeHoursAsync(int schoolId, int instructorId, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<OfficeHourSlotDto>>(Array.Empty<OfficeHourSlotDto>());
+        public Task<OfficeHoursAggregateDto> GetTeacherOfficeHoursAsync(int schoolId, string requesterUserId, int instructorId, CancellationToken cancellationToken) =>
+            Task.FromResult(EmptyOfficeHours());
 
-        public Task<IReadOnlyList<OfficeHourSlotDto>> OverrideTeacherOfficeHoursAsync(int schoolId, string adminUserId, int instructorId, OverrideTeacherOfficeHoursRequestDto request, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<OfficeHourSlotDto>>(Array.Empty<OfficeHourSlotDto>());
+        public Task<OfficeHoursAggregateDto> OverrideTeacherOfficeHoursAsync(int schoolId, string adminUserId, int instructorId, OverrideTeacherOfficeHoursRequestDto request, CancellationToken cancellationToken) =>
+            Task.FromResult(EmptyOfficeHours());
+
+        private static OfficeHoursAggregateDto EmptyOfficeHours() => new(
+            null, 1, 1, 1, 1, 1, DateOnly.FromDateTime(DateTime.UtcNow), null, "new", TeacherOfficeHourSource.DerivedFromPublishedTimetable,
+            string.Empty, DateTimeOffset.UtcNow, null, Array.Empty<OfficeHourSlotDto>());
     }
 
     private sealed class StubCurrentLessonResolver : ICurrentLessonResolver
@@ -283,14 +326,22 @@ public sealed class GatePassAndMessagingMediatRTests
         int schoolId,
         params string[] permissions) : ICurrentUserService
     {
+        public HashSet<string> Roles { get; } = new(StringComparer.Ordinal)
+        {
+            RoleNames.Guardian,
+            RoleNames.Instructor,
+            RoleNames.StudentAffairsOfficer,
+            RoleNames.SocialWorker,
+            RoleNames.SchoolManager
+        };
         public string? UserId => userId;
         public string? Username => "test.user";
         public int? ActiveSchoolId => schoolId;
         public string? PreferredLanguage => "en";
         public bool IsAuthenticated => true;
-        public bool IsInRole(string roleName) => true;
+        public bool IsInRole(string roleName) => Roles.Contains(roleName);
         public bool HasPermission(string permissionName) => permissions.Contains(permissionName);
-        public IEnumerable<string> GetRoles() => new[] { RoleNames.StudentAffairsOfficer };
+        public IEnumerable<string> GetRoles() => Roles;
         public IEnumerable<string> GetPermissions() => permissions;
         public bool IsGlobalAdmin() => false;
         public bool IsSchoolScopedRole() => true;

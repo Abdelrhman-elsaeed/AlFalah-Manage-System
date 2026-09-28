@@ -21,6 +21,7 @@ public sealed class StudentAffairsNotificationDispatcher
     public Task ProcessAsync(IDomainEvent domainEvent, CancellationToken cancellationToken) => domainEvent switch
     {
         TeacherTimetableChangedEvent changed => TimetableChangedAsync(changed, cancellationToken),
+        MessageReleaseDueEvent released => MessageReleasedAsync(released, cancellationToken),
         StudentAbsentRecordedEvent absence => CreateGuardianNotificationsAsync(
             absence, absence.StudentId, absence.AttendanceDate,
             nameof(DailyStudentAttendance), absence.DailyStudentAttendanceId,
@@ -45,6 +46,49 @@ public sealed class StudentAffairsNotificationDispatcher
         ClassroomEntryPermitIssuedEvent permit => ProcessClassroomEntryPermitAsync(permit, cancellationToken),
         _ => Task.CompletedTask
     };
+
+    private async Task MessageReleasedAsync(MessageReleaseDueEvent domainEvent, CancellationToken cancellationToken)
+    {
+        var message = await _context.ConversationMessages.AsNoTracking()
+            .Where(item => item.Id == domainEvent.ConversationMessageId && item.SchoolId == domainEvent.SchoolId)
+            .Select(item => new
+            {
+                item.ConversationThread.StudentId,
+                item.ConversationThread.Subject,
+                Recipients = item.Receipts.Where(receipt => receipt.DeliveryState == MessageDeliveryState.Delivered)
+                    .Select(receipt => receipt.RecipientUserId).ToList()
+            })
+            .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        if (message is null) return;
+        var now = _timeProvider.GetUtcNow();
+        foreach (var recipient in message.Recipients)
+        {
+            var deduplicationKey = $"student-affairs.message:{domainEvent.ConversationMessageId}:{recipient}";
+            if (await _context.Notifications.AsNoTracking().AnyAsync(item =>
+                    item.SchoolId == domainEvent.SchoolId && item.UserId == recipient
+                    && item.DeduplicationKey == deduplicationKey, cancellationToken).ConfigureAwait(false))
+                continue;
+            _context.Notifications.Add(new Notification
+            {
+                SchoolId = domainEvent.SchoolId,
+                UserId = recipient,
+                StudentId = message.StudentId,
+                Title = "رسالة جديدة",
+                Message = message.Subject,
+                Type = "ConversationMessage",
+                RelatedEntityType = nameof(ConversationMessage),
+                RelatedEntityId = domainEvent.ConversationMessageId.ToString(),
+                Priority = NotificationPriority.Normal,
+                TemplateKey = "student-affairs.messaging.delivered",
+                CorrelationId = domainEvent.EventId,
+                DeduplicationKey = deduplicationKey,
+                DeliveryStatus = NotificationDeliveryStatus.Delivered,
+                DeliveredAt = now,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+        }
+    }
 
     private async Task ProcessClassroomEntryPermitAsync(
         ClassroomEntryPermitIssuedEvent domainEvent,

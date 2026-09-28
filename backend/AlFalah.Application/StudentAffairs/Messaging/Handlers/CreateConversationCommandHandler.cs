@@ -32,12 +32,20 @@ public sealed class CreateConversationCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ConversationDto>.Fail("An authenticated user and active school are required");
 
-        if (!_currentUser.HasPermission(PermissionNames.MessagingStartGuardianTeacher)
+        if (!_currentUser.IsInRole(RoleNames.Guardian)
+            || (!_currentUser.HasPermission(PermissionNames.MessagingStartGuardianTeacher)
             && !_currentUser.HasPermission(PermissionNames.MessagingStartGuardianAdministration))
+           )
             return ApiResponse<ConversationDto>.Fail("You do not have permission to perform this action");
+
+        if (string.IsNullOrWhiteSpace(command.Request.IdempotencyKey))
+            return ApiResponse<ConversationDto>.Fail("An idempotency key is required for the initial message");
 
         if (string.IsNullOrWhiteSpace(command.Request.Subject))
             return ApiResponse<ConversationDto>.Fail("Subject is required");
+
+        if (string.IsNullOrWhiteSpace(command.Request.InitialBody))
+            return ApiResponse<ConversationDto>.Fail("Initial message body is required");
 
         if (!await _repository.IsConversationTargetAllowedAsync(
                 schoolId.Value,
@@ -48,12 +56,15 @@ public sealed class CreateConversationCommandHandler
             return ApiResponse<ConversationDto>.Fail(
                 "The student or recipient is outside the caller's authorized messaging scope");
 
-        var conversation = await _repository.CreateConversationAsync(
-            schoolId.Value,
-            userId,
-            command.Request,
-            cancellationToken).ConfigureAwait(false);
-
-        return ApiResponse<ConversationDto>.Success(conversation, "Conversation created successfully");
+        try
+        {
+            var conversation = await _repository.CreateConversationAsync(
+                schoolId.Value, userId, command.Request, cancellationToken).ConfigureAwait(false);
+            return ApiResponse<ConversationDto>.Success(conversation, "Conversation created successfully");
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<ConversationDto>.Fail(exception.Message);
+        }
     }
 }

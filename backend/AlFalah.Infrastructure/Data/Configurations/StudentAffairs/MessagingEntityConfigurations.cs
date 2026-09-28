@@ -49,7 +49,12 @@ internal sealed class ConversationMessageConfiguration
     {
         builder.Property(x => x.SenderUserId).HasMaxLength(450).IsRequired();
         builder.Property(x => x.Body).HasColumnType("nvarchar(max)").IsUnicode(true).UseCollation("Arabic_CI_AS").IsRequired();
+        builder.Property(x => x.IdempotencyKey).HasMaxLength(200).IsUnicode(false).IsRequired();
+        builder.Property(x => x.IdempotencyPayloadHash).HasMaxLength(64).IsUnicode(false).IsRequired();
         builder.HasIndex(x => new { x.SchoolId, x.ConversationThreadId, x.QueuedAt });
+        builder.HasIndex(x => new { x.SchoolId, x.SenderUserId, x.IdempotencyKey })
+            .HasFilter("[IdempotencyKey] <> ''").IsUnique();
+        builder.HasIndex(x => new { x.OfficeHoursDisposition, x.NextEligibleSendAt });
         builder.HasOne(x => x.ConversationThread).WithMany(x => x.Messages)
             .HasForeignKey(x => new { x.SchoolId, x.ConversationThreadId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
@@ -81,7 +86,7 @@ internal sealed class MessageReceiptConfiguration : IEntityTypeConfiguration<Mes
     }
 }
 
-internal sealed class TeacherOfficeHourConfiguration
+internal sealed class TeacherOfficeHourEntityConfiguration
     : StudentAffairsMutableEntityConfiguration<TeacherOfficeHour>
 {
     protected override string TableName => "TeacherOfficeHours";
@@ -98,11 +103,56 @@ internal sealed class TeacherOfficeHourConfiguration
                 "[EffectiveUntil] IS NULL OR [EffectiveUntil] >= [EffectiveFrom]");
         });
         builder.HasIndex(x => new { x.SchoolId, x.InstructorProfileId, x.AcademicTermId, x.Day });
+        builder.Property(x => x.StableSlotKey).HasMaxLength(200).IsUnicode(false).IsRequired();
+        builder.Property(x => x.ConflictReason).HasMaxLength(1000).IsUnicode(true).UseCollation("Arabic_CI_AS");
+        builder.HasIndex(x => new { x.TeacherOfficeHourConfigurationId, x.StableSlotKey })
+            .HasFilter("[TeacherOfficeHourConfigurationId] IS NOT NULL").IsUnique();
+        builder.HasOne(x => x.Configuration).WithMany(x => x.Slots)
+            .HasForeignKey(x => new { x.SchoolId, x.TeacherOfficeHourConfigurationId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.InstructorProfile).WithMany()
             .HasForeignKey(x => new { x.SchoolId, x.InstructorProfileId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.AcademicTerm).WithMany()
             .HasForeignKey(x => new { x.SchoolId, x.AcademicTermId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class TeacherOfficeHourConfigurationConfiguration
+    : StudentAffairsMutableEntityConfiguration<TeacherOfficeHourConfiguration>
+{
+    protected override string TableName => "TeacherOfficeHourConfigurations";
+
+    protected override void ConfigureEntity(EntityTypeBuilder<TeacherOfficeHourConfiguration> builder)
+    {
+        builder.Property(x => x.RowVersion).IsRowVersion();
+        builder.Property(x => x.OverrideReason).HasMaxLength(2000).IsUnicode(true).UseCollation("Arabic_CI_AS");
+        builder.HasIndex(x => new { x.SchoolId, x.InstructorProfileId, x.IsCurrent })
+            .HasFilter("[IsDeleted] = 0 AND [IsCurrent] = 1").IsUnique();
+        builder.HasOne(x => x.InstructorProfile).WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.InstructorProfileId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.AcademicTerm).WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.AcademicTermId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class TeacherOfficeHourAuditConfiguration : IEntityTypeConfiguration<TeacherOfficeHourAudit>
+{
+    public void Configure(EntityTypeBuilder<TeacherOfficeHourAudit> builder)
+    {
+        builder.ToTable("TeacherOfficeHourAudits");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.ActorUserId).HasMaxLength(450).IsRequired();
+        builder.Property(x => x.Reason).HasMaxLength(2000).IsUnicode(true).UseCollation("Arabic_CI_AS").IsRequired();
+        builder.Property(x => x.BeforeSnapshotJson).HasColumnType("nvarchar(max)").IsRequired();
+        builder.Property(x => x.AfterSnapshotJson).HasColumnType("nvarchar(max)").IsRequired();
+        builder.HasIndex(x => new { x.SchoolId, x.InstructorProfileId, x.OccurredAt });
+        builder.HasOne(x => x.School).WithMany().HasForeignKey(x => x.SchoolId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Configuration).WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.TeacherOfficeHourConfigurationId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
     }
 }
