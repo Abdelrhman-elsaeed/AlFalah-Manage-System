@@ -42,8 +42,56 @@ public sealed class StudentAffairsNotificationDispatcher
             nameof(AcademicConcern), concern.AcademicConcernId,
             "ملاحظة أكاديمية", "توجد ملاحظة أكاديمية بانتظار اعتماد مسؤول شؤون الطلاب.",
             "student-affairs.academic-concern.approval", NotificationPriority.High, true, cancellationToken),
+        ClassroomEntryPermitIssuedEvent permit => ProcessClassroomEntryPermitAsync(permit, cancellationToken),
         _ => Task.CompletedTask
     };
+
+    private async Task ProcessClassroomEntryPermitAsync(
+        ClassroomEntryPermitIssuedEvent domainEvent,
+        CancellationToken cancellationToken)
+    {
+        await CreateGuardianNotificationsAsync(
+            domainEvent,
+            domainEvent.StudentId,
+            DateOnly.FromDateTime(domainEvent.IssuedAt.Date),
+            nameof(ClassroomEntryPermit),
+            domainEvent.ClassroomEntryPermitId,
+            "تصريح دخول الفصل",
+            "تم إصدار تصريح دخول فصل للطالب وهو بانتظار إقرار المعلم.",
+            "student-affairs.classroom-entry-permit.guardian",
+            NotificationPriority.Normal,
+            false,
+            cancellationToken).ConfigureAwait(false);
+
+        var now = _timeProvider.GetUtcNow();
+        var deduplicationKey = $"student-affairs.classroom-entry-permit.teacher:{domainEvent.EventId:N}:{domainEvent.TargetInstructorUserId}";
+        if (!await _context.Notifications.AsNoTracking().AnyAsync(notification =>
+                notification.SchoolId == domainEvent.SchoolId
+                && notification.UserId == domainEvent.TargetInstructorUserId
+                && notification.DeduplicationKey == deduplicationKey,
+                cancellationToken).ConfigureAwait(false))
+        {
+            _context.Notifications.Add(new Notification
+            {
+                SchoolId = domainEvent.SchoolId,
+                UserId = domainEvent.TargetInstructorUserId,
+                StudentId = domainEvent.StudentId,
+                Title = "تصريح دخول فصل بانتظار الإقرار",
+                Message = $"يوجد تصريح دخول فصل صالح حتى {domainEvent.ValidUntil:O}.",
+                Type = "TeacherAcknowledgementRequired",
+                RelatedEntityType = nameof(ClassroomEntryPermit),
+                RelatedEntityId = domainEvent.ClassroomEntryPermitId.ToString(),
+                Priority = NotificationPriority.High,
+                TemplateKey = "student-affairs.classroom-entry-permit.teacher",
+                CorrelationId = domainEvent.EventId,
+                DeduplicationKey = deduplicationKey,
+                DeliveryStatus = NotificationDeliveryStatus.Delivered,
+                DeliveredAt = now,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+        }
+    }
 
     private async Task TimetableChangedAsync(TeacherTimetableChangedEvent change, CancellationToken ct)
     {

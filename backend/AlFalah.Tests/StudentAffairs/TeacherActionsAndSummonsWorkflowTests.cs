@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Behaviors;
 using AlFalah.Application.StudentAffairs.DTOs.Delays;
 using AlFalah.Application.StudentAffairs.DTOs.Recognitions;
@@ -37,31 +38,43 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         var behaviorResponse = await new CreateBehaviorIncidentCommandHandler(
             repository,
             CurrentUser(RoleNames.Instructor, PermissionNames.BehaviorCreate),
-            time).Handle(new CreateBehaviorIncidentCommand(new CreateBehaviorIncidentRequestDto(
+            time,
+            new StubCurrentLessonResolver()).Handle(new CreateBehaviorIncidentCommand(new CreateBehaviorIncidentRequestDto(
                 17, 21, "Conduct", BehaviorSeverity.Medium, "Incident", Now, "Class", "Warning")),
                 CancellationToken.None);
         var concernResponse = await new CreateAcademicConcernCommandHandler(
             repository,
             CurrentUser(RoleNames.Instructor, PermissionNames.AcademicConcernCreate),
-            time).Handle(new CreateAcademicConcernCommand(new CreateAcademicConcernRequestDto(
+            time,
+            new StubCurrentLessonResolver()).Handle(new CreateAcademicConcernCommand(new CreateAcademicConcernRequestDto(
                 17, 21, "Progress", "Concern", Now)), CancellationToken.None);
         var delayResponse = await new CreateSessionDelayCommandHandler(
             repository,
             CurrentUser(RoleNames.Instructor, PermissionNames.SessionDelayCreate),
-            time).Handle(new CreateSessionDelayCommand(new CreateSessionDelayRequestDto(
+            time,
+            new StubCurrentLessonResolver()).Handle(new CreateSessionDelayCommand(new CreateSessionDelayRequestDto(
                 17, 21, Now, 5, "Late")), CancellationToken.None);
+        var recognitionResponse = await new CreateRecognitionCommandHandler(
+            repository,
+            CurrentUser(RoleNames.Instructor, PermissionNames.RecognitionCreate),
+            time,
+            new StubCurrentLessonResolver()).Handle(new CreateRecognitionCommand(new CreateRecognitionRequestDto(
+                17, "AcademicExcellence", "Excellent work", "Strong current-lesson contribution", Now)),
+                CancellationToken.None);
 
         behaviorResponse.IsSuccess.Should().BeTrue();
         concernResponse.IsSuccess.Should().BeTrue();
         delayResponse.IsSuccess.Should().BeTrue();
+        recognitionResponse.IsSuccess.Should().BeTrue();
         repository.SchoolIds.Should().OnlyContain(id => id == 42);
-        repository.SaveCount.Should().Be(3);
+        repository.SaveCount.Should().Be(4);
         repository.Behavior!.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<BehaviorIncidentLoggedEvent>();
         repository.Concern!.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<AcademicConcernLoggedEvent>();
         repository.Delay!.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<SessionDelayLoggedEvent>();
+        repository.Recognition.Should().NotBeNull();
         repository.Behavior.GuardianDispatchDecision.Should()
             .Be(GuardianDispatchDecision.PendingOfficerDecision);
         repository.Delay.GuardianNotificationStatus.Should().Be(GuardianNotificationStatus.Pending);
@@ -74,19 +87,20 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         var handler = new CreateSessionDelayCommandHandler(
             repository,
             CurrentUser(RoleNames.Instructor, PermissionNames.SessionDelayCreate),
-            new FixedTimeProvider(Now));
+            new FixedTimeProvider(Now),
+            new StubCurrentLessonResolver());
 
         var response = await handler.Handle(new CreateSessionDelayCommand(
             new CreateSessionDelayRequestDto(17, 999, Now, 5, null)), CancellationToken.None);
 
         response.IsSuccess.Should().BeFalse();
-        response.Errors.Should().ContainSingle("Student is not in the current teacher timetable scope");
+        response.Errors.Should().ContainSingle("Student was not found in the current teacher timetable scope");
         repository.SaveCount.Should().Be(0);
         repository.Delay.Should().BeNull();
     }
 
     [Fact]
-    public async Task TeacherQuickAction_UsesExplicitOverridePermissionWhenResolvingScope()
+    public async Task TeacherQuickAction_OverridePermissionDoesNotBypassMissingCurrentLesson()
     {
         var repository = new FakeTeacherActionRepository
         {
@@ -98,15 +112,65 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
                 RoleNames.Instructor,
                 PermissionNames.BehaviorCreate,
                 PermissionNames.TeacherQuickActionOverride),
-            new FixedTimeProvider(Now));
+            new FixedTimeProvider(Now),
+            new StubCurrentLessonResolver(StubCurrentLessonResolver.Active with
+            {
+                Kind = CurrentLessonResolutionKind.Break,
+                ResolutionReason = "Configured break"
+            }));
 
         var response = await handler.Handle(new CreateBehaviorIncidentCommand(
             new CreateBehaviorIncidentRequestDto(
                 17, 21, "Conduct", BehaviorSeverity.High, "Incident", Now, null, null)),
             CancellationToken.None);
 
-        response.IsSuccess.Should().BeTrue();
-        repository.LastAllowOverride.Should().BeTrue();
+        response.IsSuccess.Should().BeFalse();
+        repository.SaveCount.Should().Be(0);
+        repository.SchoolIds.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("behavior", RoleNames.Instructor, PermissionNames.AcademicConcernCreate)]
+    [InlineData("behavior", RoleNames.Secretary, PermissionNames.BehaviorCreate)]
+    [InlineData("academic", RoleNames.Instructor, PermissionNames.BehaviorCreate)]
+    [InlineData("academic", RoleNames.Secretary, PermissionNames.AcademicConcernCreate)]
+    [InlineData("delay", RoleNames.Instructor, PermissionNames.BehaviorCreate)]
+    [InlineData("delay", RoleNames.Secretary, PermissionNames.SessionDelayCreate)]
+    [InlineData("recognition", RoleNames.Instructor, PermissionNames.BehaviorCreate)]
+    [InlineData("recognition", RoleNames.Secretary, PermissionNames.RecognitionCreate)]
+    public async Task EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(
+        string action,
+        string role,
+        string permission)
+    {
+        var repository = new FakeTeacherActionRepository
+        {
+            Scope = new TeacherActionScopeSnapshot(7, 4, 12, 20, 21, 2)
+        };
+        var user = CurrentUser(role, permission);
+        var time = new FixedTimeProvider(Now);
+        var resolver = new StubCurrentLessonResolver();
+
+        var succeeded = action switch
+        {
+            "behavior" => (await new CreateBehaviorIncidentCommandHandler(repository, user, time, resolver)
+                .Handle(new CreateBehaviorIncidentCommand(new CreateBehaviorIncidentRequestDto(
+                    17, 21, "Conduct", BehaviorSeverity.Medium, "Incident", Now, null, null)),
+                    CancellationToken.None)).IsSuccess,
+            "academic" => (await new CreateAcademicConcernCommandHandler(repository, user, time, resolver)
+                .Handle(new CreateAcademicConcernCommand(new CreateAcademicConcernRequestDto(
+                    17, 21, "Progress", "Concern", Now)), CancellationToken.None)).IsSuccess,
+            "delay" => (await new CreateSessionDelayCommandHandler(repository, user, time, resolver)
+                .Handle(new CreateSessionDelayCommand(new CreateSessionDelayRequestDto(
+                    17, 21, Now, 5, "Late")), CancellationToken.None)).IsSuccess,
+            "recognition" => (await new CreateRecognitionCommandHandler(repository, user, time, resolver)
+                .Handle(new CreateRecognitionCommand(new CreateRecognitionRequestDto(
+                    17, "AcademicExcellence", "Title", "Description", Now)), CancellationToken.None)).IsSuccess,
+            _ => throw new InvalidOperationException(action)
+        };
+
+        succeeded.Should().BeFalse();
+        repository.SaveCount.Should().Be(0);
     }
 
     [Fact]
@@ -321,6 +385,41 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         public override DateTimeOffset GetUtcNow() => now;
     }
 
+    private sealed class StubCurrentLessonResolver : ICurrentLessonResolver
+    {
+        public static readonly CurrentLessonResolution Active = new(
+            CurrentLessonResolutionKind.ActiveLesson,
+            new DateOnly(2026, 8, 30),
+            Now,
+            "UTC",
+            5,
+            TimetableSemester.First,
+            6,
+            20,
+            1,
+            21,
+            2,
+            Now.AddMinutes(-10),
+            Now.AddMinutes(35),
+            new CurrentLessonClassroom(12, "1-A", SchoolStage.Primary, 1, "A"),
+            new CurrentLessonInstructor(7, "teacher", "Teacher"),
+            new CurrentLessonInstructor(7, "teacher", "Teacher"),
+            null,
+            "Active lesson");
+
+        private readonly CurrentLessonResolution _lesson;
+
+        public StubCurrentLessonResolver(CurrentLessonResolution? lesson = null) => _lesson = lesson ?? Active;
+
+        public Task<CurrentLessonResolution> ResolveForClassroomAsync(
+            int schoolId, DateTimeOffset instant, int classroomId, string? classroomLabel,
+            CancellationToken cancellationToken) => Task.FromResult(_lesson);
+
+        public Task<CurrentLessonResolution> ResolveForInstructorAsync(
+            int schoolId, DateTimeOffset instant, string instructorUserId,
+            CancellationToken cancellationToken) => Task.FromResult(_lesson);
+    }
+
     private sealed class TestCurrentUser(
         int schoolId,
         string userId,
@@ -349,20 +448,10 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         public StudentRecognition? Recognition { get; private set; }
         public List<int> SchoolIds { get; } = new();
         public int SaveCount { get; private set; }
-        public bool LastAllowOverride { get; private set; }
-
-        public Task<TeacherActionScopeSnapshot?> ResolveScopeAsync(
-            int schoolId, string teacherUserId, int studentId, int timetableEntryId,
-            bool allowOverride, TimetableDay day, DateOnly occurrenceDate,
-            CancellationToken cancellationToken)
-        {
-            SchoolIds.Add(schoolId);
-            LastAllowOverride = allowOverride;
-            return Task.FromResult(Scope);
-        }
-
-        public Task<TeacherActionScopeSnapshot?> ResolveStudentEnrollmentScopeAsync(
-            int schoolId, string teacherUserId, int studentId, DateOnly occurrenceDate,
+        public Task<TeacherActionScopeSnapshot?> ResolveCurrentRosterScopeAsync(
+            int schoolId, string teacherUserId, int studentId, int instructorProfileId,
+            int academicYearId, TimetableSemester semester, int classroomId, int timetableId,
+            int timetableEntryId, int period, DateOnly schoolLocalDate,
             CancellationToken cancellationToken)
         {
             SchoolIds.Add(schoolId);

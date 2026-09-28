@@ -16,7 +16,7 @@ public sealed class RecognitionsController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.RecognitionCreate)) return PermissionDenied();
         var response = await Mediator.Send(new CreateRecognitionCommand(request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpGet]

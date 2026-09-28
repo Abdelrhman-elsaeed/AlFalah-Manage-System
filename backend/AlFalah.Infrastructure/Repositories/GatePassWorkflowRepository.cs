@@ -148,8 +148,22 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
         CancellationToken cancellationToken) =>
         _context.GatePasses
             .AsTracking()
+            .Include(gatePass => gatePass.Transitions)
             .Where(gatePass => gatePass.Id == gatePassId && gatePass.SchoolId == schoolId)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<int?> GetInstructorProfileIdAsync(
+        int schoolId,
+        string teacherUserId,
+        CancellationToken cancellationToken) =>
+        _context.InstructorProfiles
+            .AsNoTracking()
+            .Where(profile => profile.SchoolId == schoolId
+                && profile.UserId == teacherUserId
+                && profile.IsActive
+                && profile.User.IsActive)
+            .Select(profile => (int?)profile.Id)
+            .SingleOrDefaultAsync(cancellationToken);
 
     public async Task<GatePassTimetableSnapshot?> ResolvePublishedTimetableAsync(
         int schoolId,

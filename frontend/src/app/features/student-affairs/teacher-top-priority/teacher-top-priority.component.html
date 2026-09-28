@@ -7,23 +7,6 @@
     </div>
 
     <div class="header-controls">
-      <div class="classroom-selector-wrap">
-        <label for="classroomSelect" class="selector-label">
-          <i class="pi pi-building"></i>
-          <span>الفصل الدراسي:</span>
-        </label>
-        <p-dropdown
-          inputId="classroomSelect"
-          [options]="classroomOptions()"
-          [ngModel]="selectedClassroomId()"
-          (ngModelChange)="onClassroomChange($event)"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="اختر الفصل"
-          styleClass="classroom-dropdown">
-        </p-dropdown>
-      </div>
-
       <button
         pButton
         type="button"
@@ -52,6 +35,10 @@
 
   <!-- Main Workspace (keeps mounted during auto-refreshes to prevent flickering) -->
   <ng-container *ngIf="topPriority() as priority">
+    <section *ngIf="errorMessage()" class="refresh-error" role="alert">
+      <span>{{ errorMessage() }} الإجراءات السريعة متوقفة حتى ينجح التحديث.</span>
+      <button pButton type="button" class="p-button-sm p-button-outlined" label="إعادة المحاولة" (click)="load()"></button>
+    </section>
     <!-- Priority Strip -->
     <section class="priority-strip" aria-label="التنبيهات ذات الأولوية">
       <article>
@@ -78,7 +65,7 @@
       </div>
       <div>
         <span class="context-label">الحصة المكتشفة</span>
-        <strong>{{ priority.context.currentPeriod ? 'الحصة ' + priority.context.currentPeriod.period : 'خارج الجدول (تحديد يدوي)' }}</strong>
+        <strong>{{ priority.context.currentPeriod ? 'الحصة ' + priority.context.currentPeriod.period : priority.context.resolutionKind }}</strong>
       </div>
       <div>
         <span class="context-label">الوقت المدرسي</span>
@@ -89,6 +76,58 @@
         <span class="context-label">مراجعة الجدول</span>
         <strong>{{ priority.context.timetableRevision || '—' }}</strong>
       </div>
+      <div *ngIf="priority.context.currentPeriod as p">
+        <span class="context-label">المادة</span>
+        <strong>{{ p.subject }}</strong>
+      </div>
+      <div *ngIf="priority.context.currentPeriod?.substitutionId">
+        <span class="context-label">التغطية</span>
+        <strong>معلم بديل: {{ priority.context.currentPeriod?.effectiveInstructor?.displayName }}</strong>
+      </div>
+    </section>
+
+    <section *ngIf="!priority.context.currentPeriod" class="state-card" role="status">
+      <i class="pi pi-info-circle"></i>
+      <h2>لا توجد حصة نشطة</h2>
+      <p>{{ priority.context.resolutionReason }}</p>
+    </section>
+
+    <section class="acknowledgement-grid" aria-label="إقرارات الاستلام المعلقة">
+      <article class="table-card">
+        <h2>استئذانات الخروج المعلقة</h2>
+        <p *ngIf="priority.gatePassAcknowledgements.length === 0">لا توجد استئذانات بانتظار إقرارك.</p>
+        <div *ngFor="let item of priority.gatePassAcknowledgements" class="acknowledgement-item">
+          <div>
+            <strong>{{ item.student.displayName }}</strong>
+            <p>{{ item.classroom.label }} · {{ formatTime(item.windowStartsAt) }}–{{ formatTime(item.windowEndsAt) }}</p>
+            <small>{{ item.reason }}</small>
+            <p-tag [value]="item.status" severity="warning"></p-tag>
+            <small class="record-version">نسخة السجل: <bdi dir="ltr">{{ item.rowVersion }}</bdi></small>
+          </div>
+          <button pButton type="button" label="إقرار الاستلام"
+            [loading]="acknowledgingId() === 'gate-' + item.id"
+            [disabled]="acknowledgingId() !== null || errorMessage().length > 0"
+            (click)="acknowledgeGatePass(item.id, item.rowVersion)"></button>
+        </div>
+      </article>
+
+      <article class="table-card">
+        <h2>تصاريح دخول الفصل المعلقة</h2>
+        <p *ngIf="priority.entryPermitAcknowledgements.length === 0">لا توجد تصاريح بانتظار إقرارك.</p>
+        <div *ngFor="let item of priority.entryPermitAcknowledgements" class="acknowledgement-item">
+          <div>
+            <strong>{{ item.student.displayName }}</strong>
+            <p>{{ item.classroom.label }} · {{ formatTime(item.validFrom) }}–{{ formatTime(item.validUntil) }}</p>
+            <small>{{ item.reason }}</small>
+            <p-tag [value]="item.status" severity="warning"></p-tag>
+            <small class="record-version">نسخة السجل: <bdi dir="ltr">{{ item.rowVersion }}</bdi></small>
+          </div>
+          <button pButton type="button" label="إقرار الاستلام"
+            [loading]="acknowledgingId() === 'entry-' + item.id"
+            [disabled]="acknowledgingId() !== null || errorMessage().length > 0"
+            (click)="acknowledgeEntryPermit(item.id, item.rowVersion)"></button>
+        </div>
+      </article>
     </section>
 
     <!-- Full-Width Pure Table Container -->
@@ -108,6 +147,7 @@
             <input
               pInputText
               type="search"
+              aria-label="البحث في طلاب الحصة الحالية"
               placeholder="بحث برقم أو اسم الطالب..."
               [value]="rosterSearch()"
               (input)="setRosterSearch($event)" />
@@ -120,7 +160,6 @@
           [value]="filteredRoster()"
           dataKey="id"
           [rowTrackBy]="trackByStudentId"
-          [loading]="loadingClassroom()"
           [paginator]="filteredRoster().length > 12"
           [rows]="12"
           [showCurrentPageReport]="true"
@@ -154,18 +193,6 @@
               </td>
               <td class="student-actions-cell">
                 <div class="inline-action-buttons">
-                  <!-- 🔴 Referral -->
-                  <button
-                    pButton
-                    type="button"
-                    icon="pi pi-exclamation-triangle"
-                    class="p-button-rounded p-button-danger p-button-text"
-                    pTooltip="إحالة"
-                    tooltipPosition="top"
-                    [disabled]="!isActionAllowed('referral')"
-                    (click)="openAction('referral', student)">
-                  </button>
-
                   <!-- 🟠 Behavior -->
                   <button
                     pButton
@@ -173,9 +200,22 @@
                     icon="pi pi-comment"
                     class="p-button-rounded p-button-warning p-button-text"
                     pTooltip="ملاحظة سلوكية"
+                    aria-label="تسجيل ملاحظة سلوكية"
                     tooltipPosition="top"
                     [disabled]="!isActionAllowed('behavior')"
                     (click)="openAction('behavior', student)">
+                  </button>
+
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-book"
+                    class="p-button-rounded p-button-info p-button-text"
+                    pTooltip="ملاحظة أكاديمية"
+                    aria-label="تسجيل ملاحظة أكاديمية"
+                    tooltipPosition="top"
+                    [disabled]="!isActionAllowed('academic')"
+                    (click)="openAction('academic', student)">
                   </button>
 
                   <!-- 🟢 Point -->
@@ -185,6 +225,7 @@
                     icon="pi pi-star-fill"
                     class="p-button-rounded p-button-success p-button-text"
                     pTooltip="إشادة وتميز"
+                    aria-label="تسجيل إشادة وتميز"
                     tooltipPosition="top"
                     [disabled]="!isActionAllowed('recognition')"
                     (click)="openAction('recognition', student)">
@@ -197,6 +238,7 @@
                     icon="pi pi-clock"
                     class="p-button-rounded p-button-secondary p-button-text"
                     pTooltip="تأخر"
+                    aria-label="تسجيل تأخر عن الحصة"
                     tooltipPosition="top"
                     [disabled]="!isActionAllowed('delay')"
                     (click)="openAction('delay', student)">
@@ -211,7 +253,7 @@
                 <div class="empty-state-box">
                   <i class="pi pi-users empty-icon"></i>
                   <p *ngIf="rosterSearch().trim()">لا توجد نتائج مطابقة لبحثك: "{{ rosterSearch() }}"</p>
-                  <p *ngIf="!rosterSearch().trim()">لا يوجد طلاب مسجلون في هذا الفصل حاليًا. يمكنك اختيار فصل آخر من القائمة أعلاه.</p>
+                  <p *ngIf="!rosterSearch().trim()">لا يوجد طلاب نشطون مسجلون في الفصل الخاص بالحصة الحالية.</p>
                 </div>
               </td>
             </tr>
@@ -230,6 +272,7 @@
   [draggable]="false"
   [style]="{ width: 'min(640px, 96vw)' }"
   [header]="dialogTitle()"
+  [focusOnShow]="true"
   styleClass="teacher-action-dialog"
   (onHide)="closeDialog()">
   
@@ -261,34 +304,34 @@
     <!-- Behavior Incident Form -->
     <form *ngIf="activeAction() === 'behavior'" [formGroup]="behaviorForm" class="action-form" (ngSubmit)="submit()">
       <div class="form-field">
-        <label class="form-label">التصنيف *</label>
-        <p-dropdown [options]="behaviorCategories" formControlName="category" optionLabel="label" optionValue="value" placeholder="اختر التصنيف" styleClass="w-full"></p-dropdown>
+        <label class="form-label" for="behavior-category">التصنيف *</label>
+        <p-dropdown inputId="behavior-category" [options]="behaviorCategories" formControlName="category" optionLabel="label" optionValue="value" placeholder="اختر التصنيف" styleClass="w-full"></p-dropdown>
       </div>
 
       <div class="form-field">
-        <label class="form-label">الشدة *</label>
-        <p-dropdown [options]="severityOptions" formControlName="severity" optionLabel="label" optionValue="value" styleClass="w-full"></p-dropdown>
+        <label class="form-label" for="behavior-severity">الشدة *</label>
+        <p-dropdown inputId="behavior-severity" [options]="severityOptions" formControlName="severity" optionLabel="label" optionValue="value" styleClass="w-full"></p-dropdown>
       </div>
 
       <div class="form-field full">
-        <label class="form-label">الوصف *</label>
-        <textarea pInputTextarea rows="4" formControlName="description" placeholder="اذكر وقائع المخالفة بموضوعية ودقة..." class="w-full"></textarea>
+        <label class="form-label" for="behavior-description">الوصف *</label>
+        <textarea id="behavior-description" pInputTextarea rows="4" formControlName="description" placeholder="اذكر وقائع المخالفة بموضوعية ودقة..." class="w-full"></textarea>
         <small class="field-hint">يرجى عدم إدراج تفاصيل إرشاد سرية هنا.</small>
       </div>
 
       <div class="form-field">
-        <label class="form-label">وقت الواقعة (اختياري)</label>
-        <p-calendar formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
+        <label class="form-label" for="behavior-occurred-at">وقت الواقعة (اختياري)</label>
+        <p-calendar inputId="behavior-occurred-at" formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
       </div>
 
       <div class="form-field">
-        <label class="form-label">الموقع داخل المدرسة</label>
-        <input pInputText formControlName="location" placeholder="مثال: الفصل 1/أ، الممر، المعمل" class="w-full" />
+        <label class="form-label" for="behavior-location">الموقع داخل المدرسة</label>
+        <input id="behavior-location" pInputText formControlName="location" placeholder="مثال: الفصل 1/أ، الممر، المعمل" class="w-full" />
       </div>
 
       <div class="form-field full">
-        <label class="form-label">الإجراء الفوري المتخذ</label>
-        <textarea pInputTextarea rows="2" formControlName="immediateAction" placeholder="الإجراء الفوري الذي اتخذه المعلم (مثل: تنبيه، تغيير المقعد)" class="w-full"></textarea>
+        <label class="form-label" for="behavior-immediate-action">الإجراء الفوري المتخذ</label>
+        <textarea id="behavior-immediate-action" pInputTextarea rows="2" formControlName="immediateAction" placeholder="الإجراء الفوري الذي اتخذه المعلم (مثل: تنبيه، تغيير المقعد)" class="w-full"></textarea>
       </div>
 
       <ng-container *ngTemplateOutlet="formActions"></ng-container>
@@ -297,18 +340,18 @@
     <!-- Academic Concern Form -->
     <form *ngIf="activeAction() === 'academic'" [formGroup]="academicForm" class="action-form" (ngSubmit)="submit()">
       <div class="form-field">
-        <label class="form-label">التصنيف *</label>
-        <p-dropdown [options]="academicCategories" formControlName="category" optionLabel="label" optionValue="value" placeholder="اختر التصنيف" styleClass="w-full"></p-dropdown>
+        <label class="form-label" for="academic-category">التصنيف *</label>
+        <p-dropdown inputId="academic-category" [options]="academicCategories" formControlName="category" optionLabel="label" optionValue="value" placeholder="اختر التصنيف" styleClass="w-full"></p-dropdown>
       </div>
 
       <div class="form-field">
-        <label class="form-label">وقت الملاحظة (اختياري)</label>
-        <p-calendar formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
+        <label class="form-label" for="academic-occurred-at">وقت الملاحظة (اختياري)</label>
+        <p-calendar inputId="academic-occurred-at" formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
       </div>
 
       <div class="form-field full">
-        <label class="form-label">الوصف والتفاصيل *</label>
-        <textarea pInputTextarea rows="4" formControlName="description" placeholder="اذكر تفاصيل الملاحظة الأكاديمية ومستوى أداء الطالب..." class="w-full"></textarea>
+        <label class="form-label" for="academic-description">الوصف والتفاصيل *</label>
+        <textarea id="academic-description" pInputTextarea rows="4" formControlName="description" placeholder="اذكر تفاصيل الملاحظة الأكاديمية ومستوى أداء الطالب..." class="w-full"></textarea>
       </div>
 
       <ng-container *ngTemplateOutlet="formActions"></ng-container>
@@ -317,18 +360,18 @@
     <!-- Session Delay Form -->
     <form *ngIf="activeAction() === 'delay'" [formGroup]="delayForm" class="action-form" (ngSubmit)="submit()">
       <div class="form-field">
-        <label class="form-label">وقت التأخر (اختياري)</label>
-        <p-calendar formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
+        <label class="form-label" for="delay-occurred-at">وقت التأخر (اختياري)</label>
+        <p-calendar inputId="delay-occurred-at" formControlName="occurredAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
       </div>
 
       <div class="form-field">
-        <label class="form-label">دقائق التأخر عن الحصة</label>
-        <p-inputNumber formControlName="delayMinutes" [min]="0" [maxFractionDigits]="0" placeholder="عدد الدقائق" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
+        <label class="form-label" for="delay-minutes">دقائق التأخر عن الحصة</label>
+        <p-inputNumber inputId="delay-minutes" formControlName="delayMinutes" [min]="0" [maxFractionDigits]="0" placeholder="عدد الدقائق" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
       </div>
 
       <div class="form-field full">
-        <label class="form-label">السبب المذكور للتأخر</label>
-        <textarea pInputTextarea rows="3" formControlName="reason" placeholder="سبب التأخر إذا أبداه الطالب..." class="w-full"></textarea>
+        <label class="form-label" for="delay-reason">السبب المذكور للتأخر</label>
+        <textarea id="delay-reason" pInputTextarea rows="3" formControlName="reason" placeholder="سبب التأخر إذا أبداه الطالب..." class="w-full"></textarea>
       </div>
 
       <ng-container *ngTemplateOutlet="formActions"></ng-container>
@@ -337,39 +380,23 @@
     <!-- Recognition Form -->
     <form *ngIf="activeAction() === 'recognition'" [formGroup]="recognitionForm" class="action-form" (ngSubmit)="submit()">
       <div class="form-field">
-        <label class="form-label">نوع الإشادة *</label>
-        <p-dropdown [options]="recognitionTypes" formControlName="recognitionType" optionLabel="label" optionValue="value" placeholder="اختر النوع" styleClass="w-full"></p-dropdown>
+        <label class="form-label" for="recognition-type">نوع الإشادة *</label>
+        <p-dropdown inputId="recognition-type" [options]="recognitionTypes" formControlName="recognitionType" optionLabel="label" optionValue="value" placeholder="اختر النوع" styleClass="w-full"></p-dropdown>
       </div>
 
       <div class="form-field">
-        <label class="form-label">وقت الإشادة (اختياري)</label>
-        <p-calendar formControlName="recognizedAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
+        <label class="form-label" for="recognition-at">وقت الإشادة (اختياري)</label>
+        <p-calendar inputId="recognition-at" formControlName="recognizedAt" [showTime]="true" [showIcon]="true" hourFormat="24" [maxDate]="maxOccurredAt" appendTo="body" styleClass="w-full" inputStyleClass="w-full"></p-calendar>
       </div>
 
       <div class="form-field full">
-        <label class="form-label">عنوان التميّز أو الإشادة *</label>
-        <input pInputText formControlName="title" placeholder="مثال: تميز في حل المسائل الصعبة، مشاركة فعالة" class="w-full" />
+        <label class="form-label" for="recognition-title">عنوان التميّز أو الإشادة *</label>
+        <input id="recognition-title" pInputText formControlName="title" placeholder="مثال: تميز في حل المسائل الصعبة، مشاركة فعالة" class="w-full" />
       </div>
 
       <div class="form-field full">
-        <label class="form-label">الدليل أو الوصف *</label>
-        <textarea pInputTextarea rows="4" formControlName="description" placeholder="اكتب تفاصيل التميّز والتشجيع الموجه للطالب..." class="w-full"></textarea>
-      </div>
-
-      <ng-container *ngTemplateOutlet="formActions"></ng-container>
-    </form>
-
-    <!-- Student Referral Form -->
-    <form *ngIf="activeAction() === 'referral'" [formGroup]="referralForm" class="action-form" (ngSubmit)="submit()">
-      <div class="form-field full">
-        <label class="form-label">درجة الأولوية *</label>
-        <p-dropdown [options]="referralPriorities" formControlName="priority" optionLabel="label" optionValue="value" placeholder="اختر أولوية الإحالة" styleClass="w-full"></p-dropdown>
-      </div>
-
-      <div class="form-field full">
-        <label class="form-label">سبب الإحالة والتوصية للموجه الطلابي *</label>
-        <textarea pInputTextarea rows="5" formControlName="reason" placeholder="وضح أسباب إحالة الطالب للموجه الطلابي بالتفصيل مع التوصيات المطلوبة..." class="w-full"></textarea>
-        <small class="field-hint">سيتم إشعار الموجه الطلابي تلقائيًا لفتح ملف ومتابعة حالة الطالب.</small>
+        <label class="form-label" for="recognition-description">الدليل أو الوصف *</label>
+        <textarea id="recognition-description" pInputTextarea rows="4" formControlName="description" placeholder="اكتب تفاصيل التميّز والتشجيع الموجه للطالب..." class="w-full"></textarea>
       </div>
 
       <ng-container *ngTemplateOutlet="formActions"></ng-container>

@@ -64,6 +64,11 @@ public interface IGatePassWorkflowRepository
 
     Task<GatePass?> GetForUpdateAsync(int schoolId, int gatePassId, CancellationToken cancellationToken);
 
+    Task<int?> GetInstructorProfileIdAsync(
+        int schoolId,
+        string teacherUserId,
+        CancellationToken cancellationToken);
+
     Task<GatePassTimetableSnapshot?> ResolvePublishedTimetableAsync(
         int schoolId,
         int academicYearId,

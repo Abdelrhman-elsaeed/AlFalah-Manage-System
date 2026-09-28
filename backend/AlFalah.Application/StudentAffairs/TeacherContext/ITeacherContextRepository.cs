@@ -1,4 +1,5 @@
 using AlFalah.Domain.Enums;
+using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 
 namespace AlFalah.Application.StudentAffairs.TeacherContext;
 
@@ -62,5 +63,17 @@ public interface ITeacherContextRepository
         int timetableEntryId,
         DateOnly localDate,
         int? timingRevisionId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<TeacherGatePassAcknowledgementDto>> GetPendingGatePassAcknowledgementsAsync(
+        int schoolId,
+        string teacherUserId,
+        DateTimeOffset utcNow,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<TeacherEntryPermitAcknowledgementDto>> GetPendingEntryPermitAcknowledgementsAsync(
+        int schoolId,
+        string teacherUserId,
+        DateTimeOffset utcNow,
         CancellationToken cancellationToken);
 }

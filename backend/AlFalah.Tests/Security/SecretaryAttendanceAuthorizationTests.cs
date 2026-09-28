@@ -164,7 +164,7 @@ public sealed class SecretaryAttendanceAuthorizationTests
     }
 
     [Fact]
-    public async Task Secretary_CannotExecuteDeferredClassroomEntryPermitContract()
+    public async Task ClassroomEntryPermitController_NoLongerUsesDeferred501Containment()
     {
         var denied = await new ClassroomEntryPermitsController(CreateMediator(), new SecretaryCurrentUser())
             .List(new ClassroomEntryPermitListQuery(), CancellationToken.None);
@@ -174,7 +174,7 @@ public sealed class SecretaryAttendanceAuthorizationTests
             .List(new ClassroomEntryPermitListQuery(), CancellationToken.None);
 
         denied.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
-        explicitlyGrantedButDeferred.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(501);
+        explicitlyGrantedButDeferred.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(200);
     }
 
     private static IMediator CreateMediator() =>

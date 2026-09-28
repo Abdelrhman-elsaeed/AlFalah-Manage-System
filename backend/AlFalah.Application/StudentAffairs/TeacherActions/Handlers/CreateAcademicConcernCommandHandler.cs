@@ -1,4 +1,5 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Behaviors;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
@@ -15,15 +16,18 @@ public sealed class CreateAcademicConcernCommandHandler
     private readonly ITeacherActionWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
+    private readonly ICurrentLessonResolver _currentLessonResolver;
 
     public CreateAcademicConcernCommandHandler(
         ITeacherActionWorkflowRepository repository,
         ICurrentUserService currentUser,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ICurrentLessonResolver currentLessonResolver)
     {
         _repository = repository;
         _currentUser = currentUser;
         _timeProvider = timeProvider;
+        _currentLessonResolver = currentLessonResolver;
     }
 
     public async Task<ApiResponse<AcademicConcernDto>> Handle(
@@ -32,7 +36,7 @@ public sealed class CreateAcademicConcernCommandHandler
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
+        if (!_currentUser.IsAuthenticated || schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<AcademicConcernDto>.Fail(TeacherActionHandlerSupport.AuthenticationRequired);
         if (!_currentUser.IsInRole(RoleNames.Instructor)
             || !_currentUser.HasPermission(PermissionNames.AcademicConcernCreate))
@@ -49,18 +53,28 @@ public sealed class CreateAcademicConcernCommandHandler
         var occurredAt = request.OccurredAt ?? now;
         if (occurredAt > now.AddMinutes(5))
             return ApiResponse<AcademicConcernDto>.Fail("Occurrence time cannot be in the future");
-        var timetableDay = TeacherActionHandlerSupport.ToTimetableDay(occurredAt.DayOfWeek);
-        if (timetableDay is null)
+        var lesson = await _currentLessonResolver.ResolveForInstructorAsync(
+            schoolId.Value, now, userId, cancellationToken).ConfigureAwait(false);
+        if (lesson.Kind != CurrentLessonResolutionKind.ActiveLesson
+            || lesson.SchoolTimetableEntryId != request.SchoolTimetableEntryId
+            || lesson.PeriodStartsAt is null
+            || lesson.PeriodEndsAt is null
+            || occurredAt < lesson.PeriodStartsAt.Value
+            || occurredAt >= lesson.PeriodEndsAt.Value)
             return ApiResponse<AcademicConcernDto>.Fail(TeacherActionHandlerSupport.ScopeDenied);
 
-        var scope = await _repository.ResolveScopeAsync(
+        var scope = await _repository.ResolveCurrentRosterScopeAsync(
             schoolId.Value,
             userId,
             request.StudentId,
+            lesson.EffectiveInstructor!.Id,
+            lesson.AcademicYearId!.Value,
+            lesson.Semester!.Value,
+            lesson.Classroom!.Id,
+            lesson.SchoolTimetableId!.Value,
             request.SchoolTimetableEntryId,
-            _currentUser.HasPermission(PermissionNames.TeacherQuickActionOverride),
-            timetableDay.Value,
-            DateOnly.FromDateTime(occurredAt.DateTime),
+            lesson.PeriodSequence!.Value,
+            lesson.SchoolLocalDate!.Value,
             cancellationToken).ConfigureAwait(false);
         if (scope is null)
             return ApiResponse<AcademicConcernDto>.Fail(TeacherActionHandlerSupport.ScopeDenied);

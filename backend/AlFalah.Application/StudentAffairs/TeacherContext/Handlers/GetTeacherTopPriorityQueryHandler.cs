@@ -54,7 +54,8 @@ public sealed class GetTeacherTopPriorityQueryHandler
             return ApiResponse<TeacherTopPriorityDto>.Fail(AuthenticationRequired);
         }
 
-        if (!_currentUser.HasPermission(PermissionNames.TeacherQuickActionView))
+        if (!_currentUser.IsInRole(RoleNames.Instructor)
+            || !_currentUser.HasPermission(PermissionNames.TeacherQuickActionView))
         {
             return ApiResponse<TeacherTopPriorityDto>.Fail(PermissionDenied);
         }
@@ -96,6 +97,8 @@ public sealed class GetTeacherTopPriorityQueryHandler
                 snapshot.Teacher.UserId,
                 snapshot.Teacher.DisplayName,
                 RoleNames.Instructor),
+            lesson.Kind.ToString(),
+            lesson.ResolutionReason,
             schoolLocalTime,
             lesson.SchoolTimeZoneId ?? "UTC",
             snapshot.TimetableRevision,
@@ -114,11 +117,18 @@ public sealed class GetTeacherTopPriorityQueryHandler
                 .Where(_currentUser.HasPermission)
                 .ToArray());
 
+        var pendingGatePasses = await _repository.GetPendingGatePassAcknowledgementsAsync(
+            schoolId.Value, userId, utcNow, cancellationToken).ConfigureAwait(false);
+        var pendingEntryPermits = await _repository.GetPendingEntryPermitAcknowledgementsAsync(
+            schoolId.Value, userId, utcNow, cancellationToken).ConfigureAwait(false);
+
         var result = new TeacherTopPriorityDto(
             context,
-            snapshot.PendingGatePassAcknowledgements,
-            snapshot.PendingEntryPermitAcknowledgements,
-            BuildAlerts(snapshot));
+            pendingGatePasses.Count,
+            pendingEntryPermits.Count,
+            pendingGatePasses,
+            pendingEntryPermits,
+            BuildAlerts(snapshot.CurrentPeriod is not null, pendingGatePasses.Count, pendingEntryPermits.Count));
 
         return ApiResponse<TeacherTopPriorityDto>.Success(result);
     }
@@ -136,6 +146,8 @@ public sealed class GetTeacherTopPriorityQueryHandler
         }
 
         return new TeacherPeriodContextDto(
+            lesson.SchoolTimetableId!.Value,
+            lesson.BellScheduleRevisionId!.Value,
             period.TimetableEntryId,
             period.Period,
             lesson.PeriodStartsAt.Value,
@@ -146,25 +158,37 @@ public sealed class GetTeacherTopPriorityQueryHandler
                 period.Classroom.Label,
                 period.Classroom.Stage.ToString(),
                 period.Classroom.GradeLevel,
-                period.Classroom.Section));
+                period.Classroom.Section),
+            new ActorSummaryDto(
+                lesson.OriginalInstructor!.UserId,
+                lesson.OriginalInstructor.DisplayName,
+                RoleNames.Instructor),
+            new ActorSummaryDto(
+                lesson.EffectiveInstructor!.UserId,
+                lesson.EffectiveInstructor.DisplayName,
+                RoleNames.Instructor),
+            lesson.ActiveSubstitutionId);
     }
 
-    private static IReadOnlyList<string> BuildAlerts(TeacherContextSnapshot snapshot)
+    private static IReadOnlyList<string> BuildAlerts(
+        bool hasCurrentPeriod,
+        int pendingGatePassAcknowledgements,
+        int pendingEntryPermitAcknowledgements)
     {
         var alerts = new List<string>(3);
-        if (snapshot.CurrentPeriod is null)
+        if (!hasCurrentPeriod)
         {
             alerts.Add("No current lesson was found in the published timetable");
         }
 
-        if (snapshot.PendingGatePassAcknowledgements > 0)
+        if (pendingGatePassAcknowledgements > 0)
         {
-            alerts.Add($"{snapshot.PendingGatePassAcknowledgements} gate pass acknowledgement(s) pending");
+            alerts.Add($"{pendingGatePassAcknowledgements} gate pass acknowledgement(s) pending");
         }
 
-        if (snapshot.PendingEntryPermitAcknowledgements > 0)
+        if (pendingEntryPermitAcknowledgements > 0)
         {
-            alerts.Add($"{snapshot.PendingEntryPermitAcknowledgements} classroom entry permit acknowledgement(s) pending");
+            alerts.Add($"{pendingEntryPermitAcknowledgements} classroom entry permit acknowledgement(s) pending");
         }
 
         return alerts;

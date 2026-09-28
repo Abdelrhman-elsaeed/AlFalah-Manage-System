@@ -6,7 +6,7 @@ internal static class TeacherActionHandlerSupport
 {
     public const string AuthenticationRequired = "An authenticated teacher and active school are required";
     public const string PermissionDenied = "You do not have permission to perform this action";
-    public const string ScopeDenied = "Student is not in the current teacher timetable scope";
+    public const string ScopeDenied = "Student was not found in the current teacher timetable scope";
 
     public static TimetableDay? ToTimetableDay(DayOfWeek dayOfWeek) => dayOfWeek switch
     {

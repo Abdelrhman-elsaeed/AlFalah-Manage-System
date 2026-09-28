@@ -898,8 +898,21 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<TeacherStudentAffairsDashboardDto> GetTeacherDashboardAsync(int schoolId, string teacherUserId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(new TeacherStudentAffairsDashboardDto(
                 new TeacherTopPriorityDto(
-                    new TeacherCurrentContextDto(new ActorSummaryDto(teacherUserId, "T", RoleNames.Instructor), DateTimeOffset.UtcNow, "UTC", 1, null, Array.Empty<StudentSummaryDto>(), Array.Empty<string>()),
-                    0, 0, Array.Empty<string>()),
+                    new TeacherCurrentContextDto(
+                        new ActorSummaryDto(teacherUserId, "T", RoleNames.Instructor),
+                        "NoPublishedSchedule",
+                        "No live context",
+                        DateTimeOffset.UtcNow,
+                        "UTC",
+                        1,
+                        null,
+                        Array.Empty<StudentSummaryDto>(),
+                        Array.Empty<string>()),
+                    0,
+                    0,
+                    Array.Empty<TeacherGatePassAcknowledgementDto>(),
+                    Array.Empty<TeacherEntryPermitAcknowledgementDto>(),
+                    Array.Empty<string>()),
                 Array.Empty<DashboardCountDto>()));
 
         public Task<OfficerStudentAffairsDashboardDto> GetOfficerDashboardAsync(int schoolId, DateOnly onDate, CancellationToken cancellationToken) =>

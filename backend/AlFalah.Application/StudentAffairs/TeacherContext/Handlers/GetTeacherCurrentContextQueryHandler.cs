@@ -23,8 +23,7 @@ public sealed class GetTeacherCurrentContextQueryHandler
         PermissionNames.BehaviorCreate,
         PermissionNames.AcademicConcernCreate,
         PermissionNames.SessionDelayCreate,
-        PermissionNames.RecognitionCreate,
-        PermissionNames.ReferralCreate
+        PermissionNames.RecognitionCreate
     };
 
     private readonly ITeacherContextRepository _repository;
@@ -55,8 +54,8 @@ public sealed class GetTeacherCurrentContextQueryHandler
             return ApiResponse<TeacherCurrentContextDto>.Fail(AuthenticationRequired);
         }
 
-        if (!_currentUser.HasPermission(PermissionNames.TeacherQuickActionView)
-            && !_currentUser.IsInRole(RoleNames.Instructor))
+        if (!_currentUser.IsInRole(RoleNames.Instructor)
+            || !_currentUser.HasPermission(PermissionNames.TeacherQuickActionView))
         {
             return ApiResponse<TeacherCurrentContextDto>.Fail(PermissionDenied);
         }
@@ -98,6 +97,8 @@ public sealed class GetTeacherCurrentContextQueryHandler
                 snapshot.Teacher.UserId,
                 snapshot.Teacher.DisplayName,
                 RoleNames.Instructor),
+            lesson.Kind.ToString(),
+            lesson.ResolutionReason,
             schoolLocalTime,
             lesson.SchoolTimeZoneId ?? "UTC",
             snapshot.TimetableRevision,
@@ -113,7 +114,7 @@ public sealed class GetTeacherCurrentContextQueryHandler
                     student.PhotoUrl))
                 .ToArray(),
             QuickActionPermissions
-                .Where(p => _currentUser.HasPermission(p) || _currentUser.IsInRole(RoleNames.Instructor))
+                .Where(_currentUser.HasPermission)
                 .ToArray());
 
         return ApiResponse<TeacherCurrentContextDto>.Success(context);
@@ -132,6 +133,8 @@ public sealed class GetTeacherCurrentContextQueryHandler
         }
 
         return new TeacherPeriodContextDto(
+            lesson.SchoolTimetableId!.Value,
+            lesson.BellScheduleRevisionId!.Value,
             period.TimetableEntryId,
             period.Period,
             lesson.PeriodStartsAt.Value,
@@ -142,6 +145,15 @@ public sealed class GetTeacherCurrentContextQueryHandler
                 period.Classroom.Label,
                 period.Classroom.Stage.ToString(),
                 period.Classroom.GradeLevel,
-                period.Classroom.Section));
+                period.Classroom.Section),
+            new ActorSummaryDto(
+                lesson.OriginalInstructor!.UserId,
+                lesson.OriginalInstructor.DisplayName,
+                RoleNames.Instructor),
+            new ActorSummaryDto(
+                lesson.EffectiveInstructor!.UserId,
+                lesson.EffectiveInstructor.DisplayName,
+                RoleNames.Instructor),
+            lesson.ActiveSubstitutionId);
     }
 }

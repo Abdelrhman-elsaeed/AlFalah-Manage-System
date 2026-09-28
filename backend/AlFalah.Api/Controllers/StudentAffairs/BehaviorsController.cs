@@ -16,7 +16,7 @@ public sealed class BehaviorsController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.BehaviorCreate)) return PermissionDenied();
         var response = await Mediator.Send(new CreateBehaviorIncidentCommand(request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpGet]

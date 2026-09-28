@@ -61,6 +61,14 @@ export class StudentAffairsDashboardService {
     return this.http.get<ApiResponse<TeacherCurrentContextDto>>(`${this.api}/teacher/student-affairs/periods/${entryId}/roster`);
   }
 
+  acknowledgeGatePass(id: number, rowVersion: string): Observable<ApiResponse<unknown>> {
+    return this.http.post<ApiResponse<unknown>>(`${this.api}/gate-passes/${id}/teacher-acknowledgement`, { rowVersion });
+  }
+
+  acknowledgeEntryPermit(id: number, rowVersion: string): Observable<ApiResponse<unknown>> {
+    return this.http.post<ApiResponse<unknown>>(`${this.api}/classroom-entry-permits/${id}/acknowledge`, { rowVersion });
+  }
+
   getClassroomStudents(classroomId: number): Observable<ApiResponse<readonly StudentSummaryDto[]>> {
     return this.http.get<ApiResponse<readonly StudentSummaryDto[]>>(`${this.api}/classrooms/${classroomId}/students`);
   }

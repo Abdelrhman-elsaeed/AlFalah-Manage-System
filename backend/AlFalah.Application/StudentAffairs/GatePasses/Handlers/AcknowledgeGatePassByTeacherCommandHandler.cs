@@ -30,11 +30,16 @@ public sealed class AcknowledgeGatePassByTeacherCommandHandler
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
+        if (!_currentUser.IsAuthenticated || schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.IsInRole(RoleNames.Instructor)
-            && !_currentUser.HasPermission(PermissionNames.GatePassAcknowledgeTeacher))
+            || !_currentUser.HasPermission(PermissionNames.GatePassAcknowledgeTeacher))
+            return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
+
+        var instructorProfileId = await _repository.GetInstructorProfileIdAsync(
+            schoolId.Value, userId, cancellationToken).ConfigureAwait(false);
+        if (instructorProfileId is null)
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
 
         var gatePass = await _repository.GetForUpdateAsync(
@@ -45,6 +50,11 @@ public sealed class AcknowledgeGatePassByTeacherCommandHandler
         if (gatePass is null)
             return ApiResponse<GatePassDto>.Fail("Gate pass was not found");
 
+        if (gatePass.Status != GatePassStatus.Approved
+            || gatePass.CurrentInstructorProfileId is null
+            || gatePass.CurrentInstructorProfileId != instructorProfileId)
+            return ApiResponse<GatePassDto>.Fail("Gate pass was not found in the teacher acknowledgement scope");
+
         if (!GatePassHandlerSupport.TryDecodeExpectedRowVersion(
                 command.Request.RowVersion,
                 gatePass.RowVersion,
@@ -52,6 +62,23 @@ public sealed class AcknowledgeGatePassByTeacherCommandHandler
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.ConcurrencyConflict);
 
         var now = _timeProvider.GetUtcNow();
+        if (gatePass.ApprovedWindowStartsAt is null
+            || gatePass.ApprovedWindowEndsAt is null
+            || now < gatePass.ApprovedWindowStartsAt
+            || now >= gatePass.ApprovedWindowEndsAt)
+            return ApiResponse<GatePassDto>.Fail("Gate pass teacher acknowledgement window has expired");
+
+        if (gatePass.Transitions.Any(transition =>
+                transition.ActorUserId == userId
+                && transition.ActorRole == RoleNames.Instructor
+                && transition.Reason == "Acknowledged by teacher"))
+        {
+            var existing = await _repository.GetDtoAsync(
+                schoolId.Value, gatePass.Id, cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("The acknowledged gate pass could not be loaded");
+            return ApiResponse<GatePassDto>.Success(existing, "Gate pass was already acknowledged by teacher");
+        }
+
         _repository.SetExpectedRowVersion(gatePass, expectedRowVersion);
         var correlationId = Guid.NewGuid();
 

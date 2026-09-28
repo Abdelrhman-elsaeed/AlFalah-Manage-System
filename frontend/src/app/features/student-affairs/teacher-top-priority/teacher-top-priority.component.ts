@@ -16,7 +16,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Observable, Subscription, fromEvent } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiResponse } from '../../../core/models/api-response.model';
-import { ClassroomDto } from '../../../core/models/daily-operations.models';
 import {
   AcademicConcernDto,
   BehaviorIncidentDto,
@@ -26,20 +25,17 @@ import {
   CreateRecognitionRequestDto,
   CreateSessionDelayRequestDto,
   RecognitionDto,
-  ReferralDto,
-  ReferralPriority,
   SessionDelayDto,
   StudentSummaryDto,
   TeacherCurrentContextDto,
   TeacherTopPriorityDto
 } from '../../../core/models/student-affairs-dashboard.models';
 import { AuthService } from '../../../core/services/auth.service';
-import { DailyOperationsService } from '../../../core/services/daily-operations.service';
 import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
 
-export type QuickAction = 'behavior' | 'academic' | 'delay' | 'recognition' | 'referral';
-export type QuickActionReceipt = BehaviorIncidentDto | AcademicConcernDto | SessionDelayDto | RecognitionDto | ReferralDto;
+export type QuickAction = 'behavior' | 'academic' | 'delay' | 'recognition';
+export type QuickActionReceipt = BehaviorIncidentDto | AcademicConcernDto | SessionDelayDto | RecognitionDto;
 
 function notMoreThanFiveMinutesInFuture(control: AbstractControl): ValidationErrors | null {
   const value = control.value as Date | null;
@@ -70,7 +66,6 @@ function notMoreThanFiveMinutesInFuture(control: AbstractControl): ValidationErr
 })
 export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   private readonly api = inject(StudentAffairsDashboardService);
-  private readonly dailyOps = inject(DailyOperationsService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(NonNullableFormBuilder);
@@ -78,20 +73,18 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   private loadSubscription?: Subscription;
   private boundaryTimer?: ReturnType<typeof setTimeout>;
   private lastContext: TeacherCurrentContextDto | null = null;
+  private dialogEntryId: number | null = null;
 
   readonly loading = signal(true);
   readonly refreshing = signal(false);
-  readonly loadingClassroom = signal(false);
   readonly denied = signal(false);
   readonly errorMessage = signal('');
   readonly topPriority = signal<TeacherTopPriorityDto | null>(null);
-  readonly classrooms = signal<readonly ClassroomDto[]>([]);
-  readonly selectedClassroomId = signal<number | 'auto'>('auto');
-  readonly customRoster = signal<readonly StudentSummaryDto[] | null>(null);
   readonly selectedStudent = signal<StudentSummaryDto | null>(null);
   readonly rosterSearch = signal('');
   readonly activeAction = signal<QuickAction | null>(null);
   readonly submitting = signal(false);
+  readonly acknowledgingId = signal<string | null>(null);
   readonly submissionErrors = signal<readonly string[]>([]);
   maxOccurredAt = new Date(Date.now() + 5 * 60_000);
 
@@ -99,12 +92,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
 
   readonly context = computed(() => this.topPriority()?.context ?? null);
 
-  readonly effectiveRoster = computed(() => {
-    if (this.selectedClassroomId() !== 'auto' && this.customRoster() !== null) {
-      return this.customRoster()!;
-    }
-    return this.context()?.roster ?? [];
-  });
+  readonly effectiveRoster = computed(() => this.context()?.roster ?? []);
 
   readonly filteredRoster = computed(() => {
     const query = this.rosterSearch().trim().toLocaleLowerCase('ar');
@@ -114,31 +102,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       : roster;
   });
 
-  readonly classroomOptions = computed(() => {
-    const options: Array<{ label: string; value: number | 'auto' }> = [];
-    const currentPeriod = this.topPriority()?.context.currentPeriod;
-    if (currentPeriod) {
-      options.push({
-        label: `الحصة الحالية النشطة (${currentPeriod.classroom.label} - الحصة ${currentPeriod.period})`,
-        value: 'auto'
-      });
-    }
-    for (const c of this.classrooms()) {
-      options.push({
-        label: `فصل: ${c.label} (${c.stage})`,
-        value: c.id
-      });
-    }
-    return options;
-  });
-
-  readonly activeClassroomLabel = computed(() => {
-    if (this.selectedClassroomId() === 'auto') {
-      return this.context()?.currentPeriod?.classroom.label ?? 'الحصة الحالية';
-    }
-    const found = this.classrooms().find(c => c.id === this.selectedClassroomId());
-    return found ? found.label : 'الفصل المحدد';
-  });
+  readonly activeClassroomLabel = computed(() => this.context()?.currentPeriod?.classroom.label ?? 'لا يوجد فصل نشط');
 
   readonly behaviorForm = this.fb.group({
     category: ['', Validators.required],
@@ -168,21 +132,10 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     recognizedAt: new FormControl<Date | null>(null, notMoreThanFiveMinutesInFuture)
   });
 
-  readonly referralForm = this.fb.group({
-    priority: ['Normal' as ReferralPriority, Validators.required],
-    reason: ['', [Validators.required, Validators.maxLength(2000)]]
-  });
-
   readonly severityOptions: ReadonlyArray<{ label: string; value: BehaviorSeverity }> = [
     { label: 'منخفضة', value: 'Low' },
     { label: 'متوسطة', value: 'Medium' },
     { label: 'عالية', value: 'High' },
-    { label: 'حرجة', value: 'Critical' }
-  ];
-
-  readonly referralPriorities: ReadonlyArray<{ label: string; value: ReferralPriority }> = [
-    { label: 'عادية', value: 'Normal' },
-    { label: 'عاجلة', value: 'High' },
     { label: 'حرجة', value: 'Critical' }
   ];
 
@@ -209,9 +162,11 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.load();
-    this.loadClassrooms();
     if (typeof window !== 'undefined') {
       fromEvent(window, 'focus').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load(true));
+      fromEvent(document, 'visibilitychange').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        if (document.visibilityState === 'visible') this.load(true);
+      });
     }
   }
 
@@ -245,59 +200,19 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       error: (error: HttpErrorResponse) => {
         this.loading.set(false);
         this.refreshing.set(false);
-        this.denied.set(error.status === 403);
-        this.errorMessage.set(error.status === 403
-          ? 'لا تملك صلاحية عرض إجراءات المعلم السريعة في المدرسة النشطة.'
-          : 'تعذر تحميل الحصة الحالية. حاول مرة أخرى.');
+        this.denied.set(error.status === 401 || error.status === 403);
+        const message = error.status === 401
+          ? 'انتهت جلسة الدخول. سجّل الدخول مرة أخرى لعرض سياق الحصة.'
+          : error.status === 403
+            ? 'لا تملك صلاحية عرض إجراءات المعلم السريعة في المدرسة النشطة.'
+            : error.status === 404
+              ? 'تعذر العثور على ملف المعلم في المدرسة النشطة.'
+              : error.status === 409
+                ? 'تغيّر سياق الحصة أثناء التحميل. أعد المحاولة للحصول على السياق الحالي.'
+                : 'تعذر تحميل الحصة الحالية. حاول مرة أخرى.';
+        this.errorMessage.set(message);
       }
     });
-  }
-
-  loadClassrooms(): void {
-    this.dailyOps.getClassrooms().subscribe({
-      next: res => {
-        if (res.isSuccess && res.data) {
-          const list = res.data.items ?? [];
-          this.classrooms.set(list);
-          // If no current period active and still on auto, fallback to first classroom
-          if (!this.context()?.currentPeriod && this.selectedClassroomId() === 'auto' && list.length > 0) {
-            this.onClassroomChange(list[0].id);
-          }
-        }
-      },
-      error: () => {
-        // Silently fail, top-priority roster remains available
-      }
-    });
-  }
-
-  onClassroomChange(val: number | 'auto', silent = false): void {
-    this.selectedClassroomId.set(val);
-    this.selectedStudent.set(null);
-    if (val === 'auto') {
-      this.customRoster.set(null);
-    } else {
-      if (!silent && !this.customRoster()) {
-        this.loadingClassroom.set(true);
-      } else {
-        this.refreshing.set(true);
-      }
-      this.api.getClassroomStudents(val).subscribe({
-        next: res => {
-          this.loadingClassroom.set(false);
-          this.refreshing.set(false);
-          if (res.isSuccess && res.data) {
-            const prev = this.customRoster() ?? [];
-            this.customRoster.set(this.mergeRoster(prev, res.data));
-          }
-        },
-        error: () => {
-          this.loadingClassroom.set(false);
-          this.refreshing.set(false);
-          this.toast.error('خطأ', 'تعذر تحميل طلاب الفصل المحدد.');
-        }
-      });
-    }
   }
 
   selectStudent(student: StudentSummaryDto): void {
@@ -317,12 +232,14 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     this.submitting.set(false);
     this.maxOccurredAt = new Date(Date.now() + 5 * 60_000);
     this.resetForm(action);
+    this.dialogEntryId = this.context()?.currentPeriod?.timetableEntryId ?? null;
     this.activeAction.set(action);
   }
 
   closeDialog(): void {
     if (!this.submitting()) {
       this.activeAction.set(null);
+      this.dialogEntryId = null;
       this.submissionErrors.set([]);
     }
   }
@@ -333,10 +250,16 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     const period = this.context()?.currentPeriod;
     if (!action || !student || this.submitting()) return;
 
-    // For actions requiring active timetable entry
-    if ((action === 'behavior' || action === 'academic' || action === 'delay') && !period) {
+    if (this.refreshing() || this.errorMessage()) {
       this.submissionErrors.set([
-        'يتطلب رصد المخالفات السلوكية والتأخر والملاحظات الأكاديمية حصة جدولية نشطة. يمكنك رفع إشادة أو إحالة للطالب مباشرة.'
+        'تعذر تأكيد سياق الحصة الحالي. احتفظنا بالمدخلات؛ أعد تحميل السياق ثم حاول مرة أخرى.'
+      ]);
+      return;
+    }
+
+    if (!period || this.dialogEntryId !== period.timetableEntryId) {
+      this.submissionErrors.set([
+        'تغيّر سياق الحصة منذ فتح النموذج. احتفظنا بالمدخلات؛ أغلق النموذج واختر الطالب من الحصة الحالية.'
       ]);
       return;
     }
@@ -379,7 +302,7 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         reason: this.trimOrNull(value.reason)
       };
       request$ = this.api.createSessionDelay(request);
-    } else if (action === 'recognition') {
+    } else if (action === 'recognition' && period) {
       const value = this.recognitionForm.getRawValue();
       const request: CreateRecognitionRequestDto = {
         studentId: student.id,
@@ -389,15 +312,6 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         recognizedAt: this.toIso(value.recognizedAt)
       };
       request$ = this.api.createRecognition(request);
-    } else if (action === 'referral') {
-      const value = this.referralForm.getRawValue();
-      const request = {
-        studentId: student.id,
-        reason: value.reason.trim(),
-        priority: value.priority,
-        source: 'Manual'
-      };
-      request$ = this.api.createReferral(request);
     } else {
       return;
     }
@@ -414,16 +328,13 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
         const detail = this.receiptDetail(response.data);
         this.toast.success('تم حفظ الإجراء', detail);
         this.activeAction.set(null);
-        if (this.selectedClassroomId() === 'auto') {
-          this.load(true);
-        } else {
-          this.onClassroomChange(this.selectedClassroomId() as number, true);
-        }
+        this.dialogEntryId = null;
+        this.load(true);
       },
       error: (error: HttpErrorResponse) => {
         this.submitting.set(false);
         this.submissionErrors.set(this.httpErrors(error));
-        if (error.status === 403 && this.selectedClassroomId() === 'auto') this.load(true);
+        if (error.status === 403) this.load(true);
       }
     });
   }
@@ -432,8 +343,9 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     const permission = this.actionPermission(action);
     const allowlist = this.context()?.permittedQuickActions ?? [];
     const aliases = [permission, action, permission.split('.')[0] ?? ''].map(value => value.toLocaleLowerCase('en'));
-    return (this.auth.hasPermission(permission) || this.auth.hasRole('Instructor'))
-      && (allowlist.length === 0 || allowlist.some(value => aliases.includes(value.toLocaleLowerCase('en'))));
+    return !this.refreshing() && !this.errorMessage()
+      && this.auth.hasRole('Instructor') && this.auth.hasPermission(permission)
+      && allowlist.some(value => aliases.includes(value.toLocaleLowerCase('en')));
   }
 
   dialogTitle(): string {
@@ -442,7 +354,6 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       case 'academic': return 'تسجيل ملاحظة أكاديمية';
       case 'delay': return 'تسجيل تأخر عن الحصة';
       case 'recognition': return 'منح إشادة وتميّز';
-      case 'referral': return 'إحالة طالب إلى الموجه الطلابي';
       default: return '';
     }
   }
@@ -506,14 +417,11 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     this.topPriority.set(mergedValue);
     this.lastContext = mergedValue.context;
     const selected = this.selectedStudent();
-    if (this.selectedClassroomId() === 'auto') {
-      if (selected && !mergedValue.context.roster.some(student => student.id === selected.id)) {
-        this.selectedStudent.set(null);
-        if (this.activeAction()) this.toast.warn('تغيّر نطاق الحصة', 'أعد اختيار الطالب من قائمة الحصة الحالية. احتفظنا بمسودة النموذج.');
-      } else if (previousContext?.currentPeriod?.timetableEntryId !== mergedValue.context.currentPeriod?.timetableEntryId && this.activeAction()) {
-        this.selectedStudent.set(null);
-        this.toast.warn('تغيّرت الحصة الحالية', 'أعد اختيار الطالب قبل إرسال المسودة.');
-      }
+    if (selected && !mergedValue.context.roster.some(student => student.id === selected.id)) {
+      this.selectedStudent.set(null);
+      if (this.activeAction()) this.submissionErrors.set(['لم يعد الطالب ضمن قائمة الحصة الحالية. احتفظنا بمسودة النموذج.']);
+    } else if (previousContext?.currentPeriod?.timetableEntryId !== mergedValue.context.currentPeriod?.timetableEntryId && this.activeAction()) {
+      this.submissionErrors.set(['تغيّرت الحصة الحالية. احتفظنا بمسودة النموذج، ولن تُرسل إلى الحصة القديمة.']);
     }
     this.scheduleBoundaryRefresh(mergedValue.context);
   }
@@ -532,7 +440,6 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       case 'academic': return this.academicForm;
       case 'delay': return this.delayForm;
       case 'recognition': return this.recognitionForm;
-      case 'referral': return this.referralForm;
     }
   }
 
@@ -541,7 +448,6 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     if (action === 'academic') this.academicForm.reset({ category: '', description: '', occurredAt: null });
     if (action === 'delay') this.delayForm.reset({ occurredAt: null, delayMinutes: null, reason: '' });
     if (action === 'recognition') this.recognitionForm.reset({ recognitionType: '', title: '', description: '', recognizedAt: null });
-    if (action === 'referral') this.referralForm.reset({ priority: 'Normal', reason: '' });
   }
 
   private actionPermission(action: QuickAction): string {
@@ -550,14 +456,10 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       case 'academic': return 'AcademicConcern.Create';
       case 'delay': return 'SessionDelay.Create';
       case 'recognition': return 'Recognition.Create';
-      case 'referral': return 'Referral.Create';
     }
   }
 
   private receiptDetail(receipt: QuickActionReceipt): string {
-    if ('priority' in receipt && 'status' in receipt) {
-      return `تم إرسال الإحالة بنجاح — الحالة: ${receipt.status}`;
-    }
     if ('dispatchDecision' in receipt) {
       const referral = receipt.referralId ? `، الإحالة رقم ${receipt.referralId}` : '';
       return `السجل رقم ${receipt.id} — بانتظار الاعتماد، قيمة المؤشر ${receipt.metric.eligibleTermCount}${referral}`;
@@ -568,6 +470,39 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     }
     if ('metric' in receipt) return `السجل رقم ${receipt.id} — قيمة المؤشر ${receipt.metric.eligibleTermCount}.`;
     return `تم إنشاء السجل رقم ${receipt.id}.`;
+  }
+
+  acknowledgeGatePass(id: number, rowVersion: string): void {
+    this.acknowledge(`gate-${id}`, this.api.acknowledgeGatePass(id, rowVersion));
+  }
+
+  acknowledgeEntryPermit(id: number, rowVersion: string): void {
+    this.acknowledge(`entry-${id}`, this.api.acknowledgeEntryPermit(id, rowVersion));
+  }
+
+  private acknowledge(key: string, request$: Observable<ApiResponse<unknown>>): void {
+    if (this.acknowledgingId()) return;
+    this.acknowledgingId.set(key);
+    request$.subscribe({
+      next: response => {
+        this.acknowledgingId.set(null);
+        if (!response.isSuccess) {
+          this.toast.error('تعذر الإقرار', response.errors[0] ?? response.message);
+          return;
+        }
+        this.toast.success('تم الإقرار', 'تم تسجيل إقرار الاستلام بنجاح.');
+        this.load(true);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.acknowledgingId.set(null);
+        if (error.status === 409) {
+          this.toast.warn('تغيّرت الحالة', 'تم تحديث السجل بواسطة مستخدم آخر. أعدنا تحميل أحدث حالة.');
+          this.load(true);
+          return;
+        }
+        this.toast.error('تعذر الإقرار', this.httpErrors(error)[0]);
+      }
+    });
   }
 
   private httpErrors(error: HttpErrorResponse): readonly string[] {

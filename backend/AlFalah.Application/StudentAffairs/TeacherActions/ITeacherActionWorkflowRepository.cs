@@ -16,21 +16,18 @@ public sealed record TeacherActionScopeSnapshot(
 
 public interface ITeacherActionWorkflowRepository
 {
-    Task<TeacherActionScopeSnapshot?> ResolveScopeAsync(
+    Task<TeacherActionScopeSnapshot?> ResolveCurrentRosterScopeAsync(
         int schoolId,
         string teacherUserId,
         int studentId,
+        int instructorProfileId,
+        int academicYearId,
+        TimetableSemester semester,
+        int classroomId,
+        int timetableId,
         int timetableEntryId,
-        bool allowOverride,
-        TimetableDay day,
-        DateOnly occurrenceDate,
-        CancellationToken cancellationToken);
-
-    Task<TeacherActionScopeSnapshot?> ResolveStudentEnrollmentScopeAsync(
-        int schoolId,
-        string teacherUserId,
-        int studentId,
-        DateOnly occurrenceDate,
+        int period,
+        DateOnly schoolLocalDate,
         CancellationToken cancellationToken);
 
     void Add(BehaviorIncident incident);

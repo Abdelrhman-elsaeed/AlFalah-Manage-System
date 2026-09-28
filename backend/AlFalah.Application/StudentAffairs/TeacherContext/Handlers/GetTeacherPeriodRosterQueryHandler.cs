@@ -1,4 +1,5 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 using AlFalah.Domain.Enums;
@@ -20,24 +21,23 @@ public sealed class GetTeacherPeriodRosterQueryHandler
         PermissionNames.BehaviorCreate,
         PermissionNames.AcademicConcernCreate,
         PermissionNames.SessionDelayCreate,
-        PermissionNames.RecognitionCreate,
-        PermissionNames.ReferralCreate
+        PermissionNames.RecognitionCreate
     };
 
     private readonly ITeacherContextRepository _repository;
     private readonly ICurrentUserService _currentUser;
-    private readonly TeacherContextSchedule _schedule;
+    private readonly ICurrentLessonResolver _currentLessonResolver;
     private readonly TimeProvider _timeProvider;
 
     public GetTeacherPeriodRosterQueryHandler(
         ITeacherContextRepository repository,
         ICurrentUserService currentUser,
-        TeacherContextSchedule schedule,
+        ICurrentLessonResolver currentLessonResolver,
         TimeProvider timeProvider)
     {
         _repository = repository;
         _currentUser = currentUser;
-        _schedule = schedule;
+        _currentLessonResolver = currentLessonResolver;
         _timeProvider = timeProvider;
     }
 
@@ -52,52 +52,67 @@ public sealed class GetTeacherPeriodRosterQueryHandler
             return ApiResponse<TeacherCurrentContextDto>.Fail(AuthenticationRequired);
         }
 
-        if (!_currentUser.HasPermission(PermissionNames.TeacherQuickActionView)
-            && !_currentUser.IsInRole(RoleNames.Instructor))
+        if (!_currentUser.IsInRole(RoleNames.Instructor)
+            || !_currentUser.HasPermission(PermissionNames.TeacherQuickActionView))
         {
             return ApiResponse<TeacherCurrentContextDto>.Fail(PermissionDenied);
         }
 
         var utcNow = _timeProvider.GetUtcNow();
-        await _schedule.LoadAsync(schoolId.Value, utcNow, cancellationToken);
-        var schoolLocalTime = _schedule.ToSchoolLocalTime(utcNow);
-        var localDate = DateOnly.FromDateTime(schoolLocalTime.DateTime);
+        var lesson = await _currentLessonResolver.ResolveForInstructorAsync(
+            schoolId.Value, utcNow, userId, cancellationToken).ConfigureAwait(false);
+        if (lesson.Kind != CurrentLessonResolutionKind.ActiveLesson
+            || lesson.SchoolTimetableEntryId != query.TimetableEntryId)
+        {
+            return ApiResponse<TeacherCurrentContextDto>.Fail(
+                "Timetable entry was not found in the teacher's active current lesson");
+        }
 
-        var snapshot = await _repository.GetPeriodRosterAsync(
+        var schoolLocalTime = lesson.SchoolLocalTime!.Value;
+        var lookup = new TeacherContextLookup(
             schoolId.Value,
             userId,
-            query.TimetableEntryId,
-            localDate,
-            _schedule.RevisionId,
-            cancellationToken).ConfigureAwait(false);
-
-        if (snapshot is null)
+            lesson.SchoolLocalDate!.Value,
+            BellScheduleResolver.ToDay(schoolLocalTime.DayOfWeek),
+            lesson.PeriodSequence,
+            0,
+            false,
+            utcNow,
+            lesson.BellScheduleRevisionId,
+            lesson.SchoolTimetableId,
+            lesson.SchoolTimetableEntryId);
+        var snapshot = await _repository.GetTopPriorityAsync(lookup, cancellationToken).ConfigureAwait(false);
+        if (snapshot?.CurrentPeriod is null)
         {
-            return ApiResponse<TeacherCurrentContextDto>.Fail("Timetable entry was not found or is not published");
+            return ApiResponse<TeacherCurrentContextDto>.Fail(
+                "Timetable entry was not found in the teacher's active current lesson");
         }
 
-        TeacherPeriodContextDto? periodDto = null;
-        if (snapshot.CurrentPeriod is not null && _schedule.HasPeriod(localDate, snapshot.CurrentPeriod.Period))
-        {
-            var window = _schedule.GetWindow(localDate, snapshot.CurrentPeriod.Period);
-            periodDto = new TeacherPeriodContextDto(
-                snapshot.CurrentPeriod.TimetableEntryId,
-                snapshot.CurrentPeriod.Period,
-                window.StartsAt,
-                window.EndsAt,
-                snapshot.CurrentPeriod.Subject,
-                new ClassroomSummaryDto(
-                    snapshot.CurrentPeriod.Classroom.Id,
-                    snapshot.CurrentPeriod.Classroom.Label,
-                    snapshot.CurrentPeriod.Classroom.Stage.ToString(),
-                    snapshot.CurrentPeriod.Classroom.GradeLevel,
-                    snapshot.CurrentPeriod.Classroom.Section));
-        }
+        var period = snapshot.CurrentPeriod;
+        var periodDto = new TeacherPeriodContextDto(
+            lesson.SchoolTimetableId!.Value,
+            lesson.BellScheduleRevisionId!.Value,
+            period.TimetableEntryId,
+            period.Period,
+            lesson.PeriodStartsAt!.Value,
+            lesson.PeriodEndsAt!.Value,
+            period.Subject,
+            new ClassroomSummaryDto(
+                period.Classroom.Id,
+                period.Classroom.Label,
+                period.Classroom.Stage.ToString(),
+                period.Classroom.GradeLevel,
+                period.Classroom.Section),
+            new ActorSummaryDto(lesson.OriginalInstructor!.UserId, lesson.OriginalInstructor.DisplayName, RoleNames.Instructor),
+            new ActorSummaryDto(lesson.EffectiveInstructor!.UserId, lesson.EffectiveInstructor.DisplayName, RoleNames.Instructor),
+            lesson.ActiveSubstitutionId);
 
         var context = new TeacherCurrentContextDto(
             new ActorSummaryDto(snapshot.Teacher.UserId, snapshot.Teacher.DisplayName, RoleNames.Instructor),
+            lesson.Kind.ToString(),
+            lesson.ResolutionReason,
             schoolLocalTime,
-            _schedule.TimeZoneId,
+            lesson.SchoolTimeZoneId!,
             snapshot.TimetableRevision,
             periodDto,
             snapshot.Roster
@@ -111,7 +126,7 @@ public sealed class GetTeacherPeriodRosterQueryHandler
                     student.PhotoUrl))
                 .ToArray(),
             QuickActionPermissions
-                .Where(p => _currentUser.HasPermission(p) || _currentUser.IsInRole(RoleNames.Instructor))
+                .Where(_currentUser.HasPermission)
                 .ToArray());
 
         return ApiResponse<TeacherCurrentContextDto>.Success(context);

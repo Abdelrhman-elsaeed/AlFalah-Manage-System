@@ -68,16 +68,23 @@ export interface StudentContextDto {
 }
 
 export interface TeacherPeriodContextDto {
+  readonly timetableId: number;
+  readonly bellScheduleRevisionId: number;
   readonly timetableEntryId: number;
   readonly period: number;
   readonly startsAt: string;
   readonly endsAt: string;
   readonly subject: string;
   readonly classroom: ClassroomSummaryDto;
+  readonly originalInstructor: ActorSummaryDto;
+  readonly effectiveInstructor: ActorSummaryDto;
+  readonly substitutionId: number | null;
 }
 
 export interface TeacherCurrentContextDto {
   readonly teacher: ActorSummaryDto;
+  readonly resolutionKind: string;
+  readonly resolutionReason: string;
   readonly schoolLocalTime: string;
   readonly schoolTimeZone: string;
   readonly timetableRevision: number;
@@ -86,10 +93,34 @@ export interface TeacherCurrentContextDto {
   readonly permittedQuickActions: readonly string[];
 }
 
+export interface TeacherGatePassAcknowledgementDto {
+  readonly id: number;
+  readonly student: StudentSummaryDto;
+  readonly classroom: ClassroomSummaryDto;
+  readonly windowStartsAt: string;
+  readonly windowEndsAt: string;
+  readonly reason: string;
+  readonly status: string;
+  readonly rowVersion: string;
+}
+
+export interface TeacherEntryPermitAcknowledgementDto {
+  readonly id: number;
+  readonly student: StudentSummaryDto;
+  readonly classroom: ClassroomSummaryDto;
+  readonly validFrom: string;
+  readonly validUntil: string;
+  readonly reason: string;
+  readonly status: string;
+  readonly rowVersion: string;
+}
+
 export interface TeacherTopPriorityDto {
   readonly context: TeacherCurrentContextDto;
   readonly pendingGatePassAcknowledgements: number;
   readonly pendingEntryPermitAcknowledgements: number;
+  readonly gatePassAcknowledgements: readonly TeacherGatePassAcknowledgementDto[];
+  readonly entryPermitAcknowledgements: readonly TeacherEntryPermitAcknowledgementDto[];
   readonly alerts: readonly string[];
 }
 

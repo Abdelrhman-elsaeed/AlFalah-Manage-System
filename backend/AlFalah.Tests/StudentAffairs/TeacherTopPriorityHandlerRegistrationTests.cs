@@ -6,6 +6,7 @@ using AlFalah.Application.Interfaces;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
+using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.TeacherContext;
 using AlFalah.Application.StudentAffairs.TeacherContext.Handlers;
 using AlFalah.Domain.Enums;
@@ -108,6 +109,36 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
         {
             return Task.FromResult(Snapshot);
         }
+
+        public Task<IReadOnlyList<TeacherGatePassAcknowledgementDto>> GetPendingGatePassAcknowledgementsAsync(
+            int schoolId, string teacherUserId, DateTimeOffset utcNow, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<TeacherGatePassAcknowledgementDto>>(
+                Enumerable.Range(1, Snapshot?.PendingGatePassAcknowledgements ?? 0)
+                    .Select(id => new TeacherGatePassAcknowledgementDto(
+                        id,
+                        new StudentSummaryDto(id, $"S-{id}", "Student", 9, "E2E-1-A", true, null),
+                        new ClassroomSummaryDto(9, "E2E-1-A", "Primary", 1, "A"),
+                        utcNow,
+                        utcNow.AddMinutes(30),
+                        "Reason",
+                        "Approved",
+                        Convert.ToBase64String(new byte[] { 1 })))
+                    .ToArray());
+
+        public Task<IReadOnlyList<TeacherEntryPermitAcknowledgementDto>> GetPendingEntryPermitAcknowledgementsAsync(
+            int schoolId, string teacherUserId, DateTimeOffset utcNow, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<TeacherEntryPermitAcknowledgementDto>>(
+                Enumerable.Range(1, Snapshot?.PendingEntryPermitAcknowledgements ?? 0)
+                    .Select(id => new TeacherEntryPermitAcknowledgementDto(
+                        id,
+                        new StudentSummaryDto(id, $"S-{id}", "Student", 9, "E2E-1-A", true, null),
+                        new ClassroomSummaryDto(9, "E2E-1-A", "Primary", 1, "A"),
+                        utcNow,
+                        utcNow.AddMinutes(30),
+                        "Reason",
+                        "Issued",
+                        Convert.ToBase64String(new byte[] { 1 })))
+                    .ToArray());
     }
 
     private sealed class StubCurrentUser(

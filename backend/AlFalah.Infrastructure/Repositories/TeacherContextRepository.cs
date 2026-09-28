@@ -1,4 +1,6 @@
 using AlFalah.Application.StudentAffairs.TeacherContext;
+using AlFalah.Application.StudentAffairs.DTOs.Shared;
+using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
@@ -77,7 +79,8 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
             .CountAsync(gatePass => gatePass.SchoolId == lookup.SchoolId
                 && gatePass.CurrentInstructorProfileId == teacher.InstructorProfileId
                 && gatePass.Status == GatePassStatus.Approved
-                && gatePass.ApprovedWindowEndsAt >= lookup.UtcNow,
+                && gatePass.ApprovedWindowStartsAt <= lookup.UtcNow
+                && gatePass.ApprovedWindowEndsAt > lookup.UtcNow,
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -86,7 +89,8 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
             .CountAsync(permit => permit.SchoolId == lookup.SchoolId
                 && permit.TargetInstructorProfileId == teacher.InstructorProfileId
                 && permit.Status == ClassroomEntryPermitStatus.Issued
-                && permit.ValidUntil >= lookup.UtcNow,
+                && permit.ValidFrom <= lookup.UtcNow
+                && permit.ValidUntil > lookup.UtcNow,
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -180,6 +184,110 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
             roster,
             0,
             0);
+    }
+
+    public async Task<IReadOnlyList<TeacherGatePassAcknowledgementDto>> GetPendingGatePassAcknowledgementsAsync(
+        int schoolId,
+        string teacherUserId,
+        DateTimeOffset utcNow,
+        CancellationToken cancellationToken)
+    {
+        var rows = await _context.GatePasses
+            .AsNoTracking()
+            .Where(gatePass => gatePass.SchoolId == schoolId
+                && gatePass.Status == GatePassStatus.Approved
+                && gatePass.ApprovedWindowStartsAt <= utcNow
+                && gatePass.ApprovedWindowEndsAt > utcNow
+                && gatePass.CurrentInstructorProfile != null
+                && gatePass.CurrentInstructorProfile.UserId == teacherUserId
+                && !gatePass.Transitions.Any(transition =>
+                    transition.ActorUserId == teacherUserId
+                    && transition.ActorRole == RoleNames.Instructor
+                    && transition.Reason == "Acknowledged by teacher"))
+            .OrderBy(gatePass => gatePass.ApprovedWindowEndsAt)
+            .Take(50)
+            .Select(gatePass => new
+            {
+                gatePass.Id,
+                gatePass.StudentId,
+                gatePass.Student.StudentNumber,
+                StudentName = (gatePass.Student.FirstName + " " + (gatePass.Student.MiddleName ?? string.Empty) + " " + gatePass.Student.LastName).Trim(),
+                gatePass.Student.IsActive,
+                gatePass.Student.ProfilePhotoStorageKey,
+                ClassroomId = gatePass.CurrentClassroom!.Id,
+                ClassroomLabel = gatePass.CurrentClassroom.ClassLabel,
+                gatePass.CurrentClassroom.Stage,
+                gatePass.CurrentClassroom.GradeLevel,
+                gatePass.CurrentClassroom.Section,
+                WindowStartsAt = gatePass.ApprovedWindowStartsAt!.Value,
+                WindowEndsAt = gatePass.ApprovedWindowEndsAt!.Value,
+                gatePass.Reason,
+                gatePass.Status,
+                gatePass.RowVersion
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return rows.Select(row => new TeacherGatePassAcknowledgementDto(
+            row.Id,
+            new StudentSummaryDto(row.StudentId, row.StudentNumber, row.StudentName, row.ClassroomId, row.ClassroomLabel,
+                row.IsActive, row.ProfilePhotoStorageKey),
+            new ClassroomSummaryDto(row.ClassroomId, row.ClassroomLabel, row.Stage.ToString(), row.GradeLevel, row.Section),
+            row.WindowStartsAt,
+            row.WindowEndsAt,
+            row.Reason,
+            row.Status.ToString(),
+            Convert.ToBase64String(row.RowVersion))).ToArray();
+    }
+
+    public async Task<IReadOnlyList<TeacherEntryPermitAcknowledgementDto>> GetPendingEntryPermitAcknowledgementsAsync(
+        int schoolId,
+        string teacherUserId,
+        DateTimeOffset utcNow,
+        CancellationToken cancellationToken)
+    {
+        var rows = await _context.ClassroomEntryPermits
+            .AsNoTracking()
+            .Where(permit => permit.SchoolId == schoolId
+                && permit.Status == ClassroomEntryPermitStatus.Issued
+                && permit.ValidFrom <= utcNow
+                && permit.ValidUntil > utcNow
+                && permit.TargetInstructorProfile != null
+                && permit.TargetInstructorProfile.UserId == teacherUserId)
+            .OrderBy(permit => permit.ValidUntil)
+            .Take(50)
+            .Select(permit => new
+            {
+                permit.Id,
+                permit.StudentId,
+                permit.Student.StudentNumber,
+                StudentName = (permit.Student.FirstName + " " + (permit.Student.MiddleName ?? string.Empty) + " " + permit.Student.LastName).Trim(),
+                permit.Student.IsActive,
+                permit.Student.ProfilePhotoStorageKey,
+                permit.ClassroomId,
+                ClassroomLabel = permit.Classroom.ClassLabel,
+                permit.Classroom.Stage,
+                permit.Classroom.GradeLevel,
+                permit.Classroom.Section,
+                permit.ValidFrom,
+                permit.ValidUntil,
+                permit.Reason,
+                permit.Status,
+                permit.RowVersion
+            })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return rows.Select(row => new TeacherEntryPermitAcknowledgementDto(
+            row.Id,
+            new StudentSummaryDto(row.StudentId, row.StudentNumber, row.StudentName, row.ClassroomId, row.ClassroomLabel,
+                row.IsActive, row.ProfilePhotoStorageKey),
+            new ClassroomSummaryDto(row.ClassroomId, row.ClassroomLabel, row.Stage.ToString(), row.GradeLevel, row.Section),
+            row.ValidFrom,
+            row.ValidUntil,
+            row.Reason,
+            row.Status.ToString(),
+            Convert.ToBase64String(row.RowVersion))).ToArray();
     }
 
     private async Task<TeacherTimetablePeriodSnapshot?> ResolvePeriodAsync(

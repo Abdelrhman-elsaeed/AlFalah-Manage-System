@@ -11,6 +11,7 @@ using AlFalah.Application.StudentAffairs.Notifications;
 using AlFalah.Application.StudentAffairs.Settings;
 using AlFalah.Application.StudentAffairs.Messaging;
 using AlFalah.Application.StudentAffairs.Students;
+using AlFalah.Application.StudentAffairs.Permits;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Domain.Entities;
 using AlFalah.Infrastructure.Data;
@@ -138,6 +139,7 @@ public static class DependencyInjection
         services.AddScoped<BellScheduleResolver>();
         services.AddScoped<ITimetableSettingsRepository, TimetableSettingsRepository>();
         services.AddScoped<IGatePassWorkflowRepository, GatePassWorkflowRepository>();
+        services.AddScoped<IClassroomEntryPermitWorkflowRepository, ClassroomEntryPermitWorkflowRepository>();
         services.AddScoped<IAttendanceWorkflowRepository, AttendanceWorkflowRepository>();
         services.AddScoped<IMorningDelayWorkflowRepository, MorningDelayWorkflowRepository>();
         services.AddScoped<ITeacherActionWorkflowRepository, TeacherActionWorkflowRepository>();

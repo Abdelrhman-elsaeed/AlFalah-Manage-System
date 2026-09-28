@@ -1,4 +1,5 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Recognitions;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
@@ -14,15 +15,18 @@ public sealed class CreateRecognitionCommandHandler
     private readonly ITeacherActionWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
+    private readonly ICurrentLessonResolver _currentLessonResolver;
 
     public CreateRecognitionCommandHandler(
         ITeacherActionWorkflowRepository repository,
         ICurrentUserService currentUser,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ICurrentLessonResolver currentLessonResolver)
     {
         _repository = repository;
         _currentUser = currentUser;
         _timeProvider = timeProvider;
+        _currentLessonResolver = currentLessonResolver;
     }
 
     public async Task<ApiResponse<RecognitionDto>> Handle(
@@ -31,11 +35,11 @@ public sealed class CreateRecognitionCommandHandler
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
+        if (!_currentUser.IsAuthenticated || schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<RecognitionDto>.Fail(TeacherActionHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.RecognitionCreate)
-            && !_currentUser.IsInRole(RoleNames.Instructor))
+        if (!_currentUser.IsInRole(RoleNames.Instructor)
+            || !_currentUser.HasPermission(PermissionNames.RecognitionCreate))
             return ApiResponse<RecognitionDto>.Fail(TeacherActionHandlerSupport.PermissionDenied);
 
         var request = command.Request;
@@ -53,16 +57,31 @@ public sealed class CreateRecognitionCommandHandler
         if (recognizedAt > now.AddMinutes(5))
             return ApiResponse<RecognitionDto>.Fail("Recognition time cannot be in the future");
 
-        var date = DateOnly.FromDateTime(recognizedAt.DateTime);
-        var scope = await _repository.ResolveStudentEnrollmentScopeAsync(
+        var lesson = await _currentLessonResolver.ResolveForInstructorAsync(
+            schoolId.Value, now, userId, cancellationToken).ConfigureAwait(false);
+        if (lesson.Kind != CurrentLessonResolutionKind.ActiveLesson
+            || lesson.PeriodStartsAt is null
+            || lesson.PeriodEndsAt is null
+            || recognizedAt < lesson.PeriodStartsAt.Value
+            || recognizedAt >= lesson.PeriodEndsAt.Value)
+            return ApiResponse<RecognitionDto>.Fail(TeacherActionHandlerSupport.ScopeDenied);
+
+        var scope = await _repository.ResolveCurrentRosterScopeAsync(
             schoolId.Value,
             userId,
             request.StudentId,
-            date,
+            lesson.EffectiveInstructor!.Id,
+            lesson.AcademicYearId!.Value,
+            lesson.Semester!.Value,
+            lesson.Classroom!.Id,
+            lesson.SchoolTimetableId!.Value,
+            lesson.SchoolTimetableEntryId!.Value,
+            lesson.PeriodSequence!.Value,
+            lesson.SchoolLocalDate!.Value,
             cancellationToken).ConfigureAwait(false);
 
         if (scope is null)
-            return ApiResponse<RecognitionDto>.Fail("Student is not active or instructor profile was not found");
+            return ApiResponse<RecognitionDto>.Fail(TeacherActionHandlerSupport.ScopeDenied);
 
         var recognition = new StudentRecognition
         {

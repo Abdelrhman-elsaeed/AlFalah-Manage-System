@@ -15,20 +15,20 @@ public sealed class TeacherStudentAffairsController : StudentAffairsControllerBa
     public async Task<IActionResult> CurrentContext(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.TeacherQuickActionView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetTeacherCurrentContextQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetTeacherCurrentContextQuery(), cancellationToken));
     }
 
     [HttpGet("periods/{entryId:int}/roster")]
     public async Task<IActionResult> PeriodRoster(int entryId, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.TeacherQuickActionView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetTeacherPeriodRosterQuery(entryId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetTeacherPeriodRosterQuery(entryId), cancellationToken));
     }
 
     [HttpGet("top-priority")]
     public async Task<IActionResult> TopPriority(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.TeacherQuickActionView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetTeacherTopPriorityQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetTeacherTopPriorityQuery(), cancellationToken));
     }
 }

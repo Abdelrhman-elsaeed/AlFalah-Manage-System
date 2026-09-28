@@ -16,7 +16,7 @@ public sealed class AcademicConcernsController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.AcademicConcernCreate)) return PermissionDenied();
         var response = await Mediator.Send(new CreateAcademicConcernCommand(request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpGet]

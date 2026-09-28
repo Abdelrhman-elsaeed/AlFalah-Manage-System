@@ -26,8 +26,31 @@ public sealed class StudentAffairsAutomationRuleEngine
         StudentAbsentRecordedEvent absence => ProcessAbsenceAsync(absence, cancellationToken),
         AbsenceExcuseAcceptedEvent accepted => ProcessAcceptedExcuseAsync(accepted, cancellationToken),
         MUaCqczw28YRmuXBYNYtWgMhWwXe7qmYC3 delay => ProcessMorningDelayAsync(delay, cancellationToken),
+        ClassroomEntryPermitIssuedEvent permit => ProcessClassroomEntryPermitAsync(permit, cancellationToken),
         _ => Task.CompletedTask
     };
+
+    private async Task ProcessClassroomEntryPermitAsync(
+        ClassroomEntryPermitIssuedEvent domainEvent,
+        CancellationToken cancellationToken)
+    {
+        var settings = await GetSettingsAsync(domainEvent.SchoolId, cancellationToken).ConfigureAwait(false);
+        var count = await _context.ClassroomEntryPermits.AsNoTracking()
+            .CountAsync(permit => permit.SchoolId == domainEvent.SchoolId
+                && permit.StudentId == domainEvent.StudentId
+                && permit.AcademicTermId == domainEvent.AcademicTermId
+                && permit.Status != ClassroomEntryPermitStatus.Revoked,
+                cancellationToken).ConfigureAwait(false);
+        var actor = await ResolveAutomationActorAsync(domainEvent.SchoolId, cancellationToken).ConfigureAwait(false);
+        var rule = await GetRuleAsync(settings, StudentTermMetricCode.ClassroomEntryPermit,
+            settings.ClassroomEntryPermitThresholdPerTerm, false, actor, cancellationToken).ConfigureAwait(false);
+        await RebuildMetricAsync(domainEvent, StudentTermMetricCode.ClassroomEntryPermit, count, actor, cancellationToken)
+            .ConfigureAwait(false);
+        if (count >= settings.ClassroomEntryPermitThresholdPerTerm)
+            await EnsureTriggerAsync(domainEvent, rule, settings.ClassroomEntryPermitThresholdPerTerm, 1, count,
+                ReferralSourceType.RepeatedEntryPermit, domainEvent.ClassroomEntryPermitId, ReferralPriority.High,
+                true, false, false, actor, cancellationToken).ConfigureAwait(false);
+    }
 
     private async Task ProcessBehaviorAsync(
         BehaviorIncidentLoggedEvent domainEvent,
@@ -209,6 +232,7 @@ public sealed class StudentAffairsAutomationRuleEngine
             {
                 settings.MorningDelayThresholdPerTerm,
                 settings.BehaviorIncidentMultiplePerTerm,
+                settings.ClassroomEntryPermitThresholdPerTerm,
                 settings.AbsenceVisualAlertThresholdPerTerm,
                 settings.AbsenceReferralThresholdPerTerm,
                 settings.AbsenceChildRightsThresholdPerTerm
@@ -460,6 +484,7 @@ public sealed class StudentAffairsAutomationRuleEngine
         StudentAbsentRecordedEvent absence => (absence.StudentId, absence.AcademicTermId),
         AbsenceExcuseAcceptedEvent accepted => (accepted.StudentId, accepted.AcademicTermId),
         MUaCqczw28YRmuXBYNYtWgMhWwXe7qmYC3 delay => (delay.StudentId, delay.AcademicTermId),
+        ClassroomEntryPermitIssuedEvent permit => (permit.StudentId, permit.AcademicTermId),
         _ => throw new ArgumentOutOfRangeException(nameof(domainEvent))
     };
 }

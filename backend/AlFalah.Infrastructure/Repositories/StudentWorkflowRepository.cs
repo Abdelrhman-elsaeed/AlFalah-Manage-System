@@ -939,6 +939,8 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
     {
         var currentContext = new TeacherCurrentContextDto(
             new ActorSummaryDto(teacherUserId, teacherUserId, RoleNames.Instructor),
+            "NoPublishedSchedule",
+            "Teacher dashboard projection does not resolve the live lesson context",
             DateTimeOffset.UtcNow,
             "Asia/Riyadh",
             1,
@@ -951,6 +953,8 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             currentContext,
             0,
             0,
+            Array.Empty<TeacherGatePassAcknowledgementDto>(),
+            Array.Empty<TeacherEntryPermitAcknowledgementDto>(),
             Array.Empty<string>()
         );
 

@@ -16,7 +16,7 @@ public sealed class SessionDelaysController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.SessionDelayCreate)) return PermissionDenied();
         var response = await Mediator.Send(new CreateSessionDelayCommand(request), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpGet]

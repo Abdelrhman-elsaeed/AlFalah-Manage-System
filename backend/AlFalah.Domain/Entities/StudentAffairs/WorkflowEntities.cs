@@ -5,8 +5,9 @@ using AlFalah.Domain.Events;
 
 namespace AlFalah.Domain.Entities.StudentAffairs;
 
-public sealed class ClassroomEntryPermit : IStudentAffairsMutableEntity, IStudentAffairsConcurrentEntity
+public sealed class ClassroomEntryPermit : IStudentAffairsMutableEntity, IStudentAffairsConcurrentEntity, IHasDomainEvents
 {
+    private readonly List<IDomainEvent> _domainEvents = new();
     public int Id { get; set; }
     public int SchoolId { get; set; }
     public int StudentId { get; set; }
@@ -43,6 +44,12 @@ public sealed class ClassroomEntryPermit : IStudentAffairsMutableEntity, IStuden
     public SchoolTimetable? SchoolTimetable { get; set; }
     public SchoolTimetableEntry? SchoolTimetableEntry { get; set; }
     public InstructorProfile? TargetInstructorProfile { get; set; }
+
+    [NotMapped] public int DomainEventAggregateId => Id;
+    [NotMapped] public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
+
+    public void AppendDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
 }
 
 public sealed class GatePass : IStudentAffairsMutableEntity, IStudentAffairsConcurrentEntity, IHasDomainEvents

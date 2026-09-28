@@ -211,6 +211,83 @@ public sealed class GatePassWorkflowTests
         approved.LessonResolution.Should().Be(nameof(CurrentLessonResolutionKind.Break));
     }
 
+    [Theory]
+    [InlineData(RoleNames.Instructor, PermissionNames.GatePassView)]
+    [InlineData(RoleNames.Secretary, PermissionNames.GatePassAcknowledgeTeacher)]
+    public async Task TeacherAcknowledge_RequiresExactInstructorRoleAndPermission(string role, string permission)
+    {
+        var gatePass = ApprovedGatePass();
+        var repository = new FakeRepository { Tracked = gatePass };
+        var handler = new AcknowledgeGatePassByTeacherCommandHandler(
+            repository,
+            CurrentUser(42, role, permission),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(
+            new AcknowledgeGatePassByTeacherCommand(
+                gatePass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion))),
+            CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        repository.SaveCount.Should().Be(0);
+        gatePass.Transitions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task TargetTeacherAcknowledge_AddsOneReceiptWithoutChangingGatePassStatus()
+    {
+        var gatePass = ApprovedGatePass();
+        var repository = new FakeRepository { Tracked = gatePass };
+        var handler = new AcknowledgeGatePassByTeacherCommandHandler(
+            repository,
+            CurrentUser(42, RoleNames.Instructor, PermissionNames.GatePassAcknowledgeTeacher),
+            new FixedTimeProvider(Now));
+        var command = new AcknowledgeGatePassByTeacherCommand(
+            gatePass.Id,
+            new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion)));
+
+        var first = await handler.Handle(command, CancellationToken.None);
+        var second = await handler.Handle(command, CancellationToken.None);
+
+        first.IsSuccess.Should().BeTrue();
+        second.IsSuccess.Should().BeTrue();
+        gatePass.Status.Should().Be(GatePassStatus.Approved);
+        gatePass.Transitions.Should().ContainSingle(transition =>
+            transition.ActorUserId == "actor" && transition.Reason == "Acknowledged by teacher");
+        repository.SaveCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task NonTargetOrOutOfWindowTeacher_CannotAcknowledge()
+    {
+        var gatePass = ApprovedGatePass();
+        var repository = new FakeRepository { Tracked = gatePass, InstructorProfileId = 88 };
+        var handler = new AcknowledgeGatePassByTeacherCommandHandler(
+            repository,
+            CurrentUser(42, RoleNames.Instructor, PermissionNames.GatePassAcknowledgeTeacher),
+            new FixedTimeProvider(Now));
+
+        var unrelated = await handler.Handle(
+            new AcknowledgeGatePassByTeacherCommand(
+                gatePass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion))),
+            CancellationToken.None);
+
+        repository.InstructorProfileId = gatePass.CurrentInstructorProfileId;
+        gatePass.ApprovedWindowEndsAt = Now;
+        var expired = await handler.Handle(
+            new AcknowledgeGatePassByTeacherCommand(
+                gatePass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion))),
+            CancellationToken.None);
+
+        unrelated.IsSuccess.Should().BeFalse();
+        expired.IsSuccess.Should().BeFalse();
+        gatePass.Transitions.Should().BeEmpty();
+        repository.SaveCount.Should().Be(0);
+    }
+
     [Fact]
     public async Task SecurityAcknowledge_OutsideExecutionWindow_DoesNotMutateOrSave()
     {
@@ -282,6 +359,18 @@ public sealed class GatePassWorkflowTests
         CreatedByUserId = "guardian",
         UpdatedByUserId = "guardian"
     };
+
+    private static GatePass ApprovedGatePass()
+    {
+        var gatePass = NewGatePass();
+        gatePass.Id = 5;
+        gatePass.Status = GatePassStatus.Approved;
+        gatePass.CurrentInstructorProfileId = 9;
+        gatePass.ApprovedWindowStartsAt = Now.AddMinutes(-10);
+        gatePass.ApprovedWindowEndsAt = Now.AddMinutes(30);
+        gatePass.RowVersion = [1, 2, 3];
+        return gatePass;
+    }
 
     private static TestCurrentUser CurrentUser(int schoolId, string role, string permission) =>
         new(schoolId, "actor", role, permission);
@@ -375,6 +464,7 @@ public sealed class GatePassWorkflowTests
         public GatePassTimetableSnapshot? Timetable { get; init; }
         public GatePass? Tracked { get; init; }
         public GatePass? Added { get; private set; }
+        public int? InstructorProfileId { get; set; } = 9;
         public List<int> SchoolIds { get; } = new();
         public byte[]? ExpectedRowVersion { get; private set; }
         public int SaveCount { get; private set; }
@@ -423,6 +513,10 @@ public sealed class GatePassWorkflowTests
             SchoolIds.Add(schoolId);
             return Task.FromResult(Tracked);
         }
+
+        public Task<int?> GetInstructorProfileIdAsync(
+            int schoolId, string teacherUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(InstructorProfileId);
 
         public Task<DateOnly?> GetPublishedStudyDateAsync(int schoolId, DateTimeOffset instant, CancellationToken ct) => Task.FromResult<DateOnly?>(DateOnly.FromDateTime(instant.DateTime));
 

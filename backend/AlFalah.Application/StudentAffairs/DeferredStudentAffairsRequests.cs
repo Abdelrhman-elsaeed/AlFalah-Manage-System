@@ -1,7 +1,6 @@
 using AlFalah.Application.StudentAffairs.DTOs.Automations;
 using AlFalah.Application.StudentAffairs.DTOs.Behaviors;
 using AlFalah.Application.StudentAffairs.DTOs.Delays;
-using AlFalah.Application.StudentAffairs.DTOs.Permits;
 using AlFalah.Application.StudentAffairs.DTOs.Recognitions;
 
 namespace AlFalah.Application.StudentAffairs;
@@ -14,12 +13,6 @@ public static class DeferredStudentAffairsRequests
 {
     public static IReadOnlyDictionary<Type, string> Workstreams { get; } = new Dictionary<Type, string>
     {
-        [typeof(CreateClassroomEntryPermitCommand)] = "W3 Classroom Entry Permit",
-        [typeof(GetClassroomEntryPermitsQuery)] = "W3 Classroom Entry Permit",
-        [typeof(GetClassroomEntryPermitByIdQuery)] = "W3 Classroom Entry Permit",
-        [typeof(AcknowledgeClassroomEntryPermitCommand)] = "W3 Classroom Entry Permit",
-        [typeof(RevokeClassroomEntryPermitCommand)] = "W3 Classroom Entry Permit",
-
         [typeof(GetAcademicConcernsQuery)] = "W6 Academic Concern Review",
         [typeof(GetAcademicConcernByIdQuery)] = "W6 Academic Concern Review",
         [typeof(DecideAcademicConcernDispatchCommand)] = "W6 Academic Concern Review",

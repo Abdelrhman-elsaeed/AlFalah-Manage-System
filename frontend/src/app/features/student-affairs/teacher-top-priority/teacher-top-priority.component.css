@@ -16,6 +16,7 @@
 .state-card i { color: var(--text-muted); font-size: 2rem; }
 .state-card h2, .state-card p { margin: 0; }
 .state-card.error { color: var(--danger); background: var(--danger-bg); border-color: var(--danger-border); }
+.refresh-error { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); }
 
 /* Priority Strip */
 .priority-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin-bottom: var(--space-4); }
@@ -210,6 +211,28 @@
 .form-errors-header { display: flex; align-items: center; gap: 6px; font-weight: 700; }
 .form-errors ul { margin: 0; padding-inline-start: var(--space-4); }
 
+.acknowledgement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.acknowledgement-grid h2 { margin-top: 0; }
+
+.acknowledgement-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.acknowledgement-item p,
+.acknowledgement-item small { margin: 4px 0 0; color: var(--text-muted); }
+.acknowledgement-item .record-version { display: block; overflow-wrap: anywhere; font-size: .72rem; }
+.acknowledgement-item p-tag { display: inline-block; margin-top: var(--space-2); }
+
 .action-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-4); }
 .form-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .form-field.full { grid-column: 1 / -1; }
@@ -238,8 +261,11 @@
   .header-controls { width: 100%; justify-content: space-between; }
   .classroom-selector-wrap { width: 100%; }
   .classroom-dropdown { width: 100%; }
-  .priority-strip, .context-card, .action-form { grid-template-columns: 1fr; }
+  .priority-strip, .context-card, .action-form, .acknowledgement-grid { grid-template-columns: 1fr; }
   .priority-alert, .form-field.full { grid-column: auto; }
   .dialog-actions { flex-direction: column-reverse; align-items: stretch; }
   .dialog-actions button { width: 100%; }
+  .acknowledgement-item { align-items: stretch; flex-direction: column; }
+  .acknowledgement-item button { width: 100%; }
+  .refresh-error { align-items: stretch; flex-direction: column; }
 }

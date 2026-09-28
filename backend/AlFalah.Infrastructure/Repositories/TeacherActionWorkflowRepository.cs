@@ -17,72 +17,24 @@ public sealed class TeacherActionWorkflowRepository : ITeacherActionWorkflowRepo
 
     public TeacherActionWorkflowRepository(AlFalahDbContext context) => _context = context;
 
-    public Task<TeacherActionScopeSnapshot?> ResolveScopeAsync(
+    public Task<TeacherActionScopeSnapshot?> ResolveCurrentRosterScopeAsync(
         int schoolId,
         string teacherUserId,
         int studentId,
+        int instructorProfileId,
+        int academicYearId,
+        TimetableSemester semester,
+        int classroomId,
+        int timetableId,
         int timetableEntryId,
-        bool allowOverride,
-        TimetableDay day,
-        DateOnly occurrenceDate,
+        int period,
+        DateOnly schoolLocalDate,
         CancellationToken cancellationToken) =>
         _context.InstructorProfiles
             .AsNoTracking()
             .Where(reporter => reporter.SchoolId == schoolId
                 && reporter.UserId == teacherUserId
-                && reporter.IsActive)
-            .SelectMany(reporter => _context.SchoolTimetableEntries
-                .AsNoTracking()
-                .Where(entry => entry.Id == timetableEntryId
-                    && entry.SchoolId == schoolId
-                    && entry.Day == day
-                    && entry.EntryType == TimetableEntryType.Lesson
-                    && entry.ClassroomId != null
-                    && entry.InstructorProfile.SchoolId == schoolId
-                    && entry.InstructorProfile.IsActive
-                    && (allowOverride || (_context.Set<AlFalah.Domain.Entities.TimetableSubstitutionMovement>()
-                        .Where(m => m.SchoolId == schoolId && m.SchoolTimetableEntryId == entry.Id &&
-                            m.Substitution.LocalDate == occurrenceDate && m.Substitution.Kind == "Substitution")
-                        .OrderByDescending(m => m.TimetableSubstitutionId).Select(m => (int?)m.ToTeacherId).FirstOrDefault() ?? entry.InstructorProfileId) == reporter.Id)
-                    && entry.SchoolTimetable.SchoolId == schoolId
-                    && entry.SchoolTimetable.IsPublished)
-                .SelectMany(entry => _context.StudentEnrollments
-                    .AsNoTracking()
-                    .Where(enrollment => enrollment.SchoolId == schoolId
-                        && enrollment.StudentId == studentId
-                        && enrollment.Student.SchoolId == schoolId
-                        && enrollment.Student.IsActive
-                        && enrollment.ClassroomId == entry.ClassroomId
-                        && enrollment.Classroom.SchoolId == schoolId
-                        && enrollment.Classroom.IsActive
-                        && enrollment.Status == StudentEnrollmentStatus.Active
-                        && enrollment.EnrolledOn <= occurrenceDate
-                        && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= occurrenceDate)
-                        && enrollment.AcademicTerm.SchoolId == schoolId
-                        && enrollment.AcademicTerm.IsActive
-                        && enrollment.AcademicTerm.StartsOn <= occurrenceDate
-                        && enrollment.AcademicTerm.EndsOn >= occurrenceDate
-                        && enrollment.AcademicTerm.AcademicYearId == entry.SchoolTimetable.AcademicYearId
-                        && enrollment.AcademicTerm.Semester == entry.SchoolTimetable.Semester)
-                    .Select(enrollment => new TeacherActionScopeSnapshot(
-                        reporter.Id,
-                        enrollment.AcademicTermId,
-                        enrollment.ClassroomId,
-                        entry.SchoolTimetableId,
-                        entry.Id,
-                        entry.Period))))
-            .SingleOrDefaultAsync(cancellationToken);
-
-    public Task<TeacherActionScopeSnapshot?> ResolveStudentEnrollmentScopeAsync(
-        int schoolId,
-        string teacherUserId,
-        int studentId,
-        DateOnly occurrenceDate,
-        CancellationToken cancellationToken) =>
-        _context.InstructorProfiles
-            .AsNoTracking()
-            .Where(reporter => reporter.SchoolId == schoolId
-                && reporter.UserId == teacherUserId
+                && reporter.Id == instructorProfileId
                 && reporter.IsActive)
             .SelectMany(reporter => _context.StudentEnrollments
                 .AsNoTracking()
@@ -90,21 +42,26 @@ public sealed class TeacherActionWorkflowRepository : ITeacherActionWorkflowRepo
                     && enrollment.StudentId == studentId
                     && enrollment.Student.SchoolId == schoolId
                     && enrollment.Student.IsActive
+                    && enrollment.ClassroomId == classroomId
+                    && enrollment.Classroom.SchoolId == schoolId
+                    && enrollment.Classroom.IsActive
                     && enrollment.Status == StudentEnrollmentStatus.Active
-                    && enrollment.EnrolledOn <= occurrenceDate
-                    && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= occurrenceDate)
+                    && enrollment.EnrolledOn <= schoolLocalDate
+                    && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= schoolLocalDate)
                     && enrollment.AcademicTerm.SchoolId == schoolId
                     && enrollment.AcademicTerm.IsActive
-                    && enrollment.AcademicTerm.StartsOn <= occurrenceDate
-                    && enrollment.AcademicTerm.EndsOn >= occurrenceDate)
+                    && enrollment.AcademicTerm.StartsOn <= schoolLocalDate
+                    && enrollment.AcademicTerm.EndsOn >= schoolLocalDate
+                    && enrollment.AcademicTerm.AcademicYearId == academicYearId
+                    && enrollment.AcademicTerm.Semester == semester)
                 .Select(enrollment => new TeacherActionScopeSnapshot(
                     reporter.Id,
                     enrollment.AcademicTermId,
                     enrollment.ClassroomId,
-                    0,
-                    0,
-                    0)))
-            .FirstOrDefaultAsync(cancellationToken);
+                    timetableId,
+                    timetableEntryId,
+                    period)))
+            .SingleOrDefaultAsync(cancellationToken);
 
     public void Add(BehaviorIncident incident) => _context.BehaviorIncidents.Add(incident);
     public void Add(AcademicConcern concern) => _context.AcademicConcerns.Add(concern);
