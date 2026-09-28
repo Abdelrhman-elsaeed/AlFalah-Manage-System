@@ -23,14 +23,14 @@ public sealed class BehaviorsController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] BehaviorListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.BehaviorView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Conduct Review");
+        return FromResponse(await Mediator.Send(new GetBehaviorIncidentsQuery(query), cancellationToken));
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.BehaviorView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Conduct Review");
+        return FromResponse(await Mediator.Send(new GetBehaviorIncidentByIdQuery(id), cancellationToken));
     }
 
     [HttpPost("{id:int}/classify")]

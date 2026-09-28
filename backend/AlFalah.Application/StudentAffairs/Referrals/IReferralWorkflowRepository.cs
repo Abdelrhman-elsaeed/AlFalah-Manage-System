@@ -5,6 +5,7 @@ using AlFalah.Shared.Models;
 namespace AlFalah.Application.StudentAffairs.Referrals;
 
 public sealed record ReferralEnrollmentSnapshot(int AcademicTermId, int? ClassroomId, string? ClassLabel);
+public sealed record ReferralIdempotencySnapshot(int ReferralId, string PayloadHash);
 
 public interface IReferralWorkflowRepository
 {
@@ -16,6 +17,12 @@ public interface IReferralWorkflowRepository
     Task<ReferralDto?> GetDtoAsync(
         int schoolId,
         int referralId,
+        CancellationToken cancellationToken);
+
+    Task<ReferralIdempotencySnapshot?> GetByIdempotencyKeyAsync(
+        int schoolId,
+        string createdByUserId,
+        string idempotencyKey,
         CancellationToken cancellationToken);
 
     Task<StudentReferral?> GetForUpdateAsync(
@@ -32,6 +39,11 @@ public interface IReferralWorkflowRepository
     Task<bool> IsSocialWorkerAsync(
         int schoolId,
         string socialWorkerUserId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<AssignableSocialWorkerDto>> GetAssignableSocialWorkersAsync(
+        int schoolId,
+        string? search,
         CancellationToken cancellationToken);
 
     Task<bool> IsAssignedToAsync(

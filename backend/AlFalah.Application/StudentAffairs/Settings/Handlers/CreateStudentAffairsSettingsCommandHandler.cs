@@ -35,7 +35,8 @@ public sealed class CreateStudentAffairsSettingsCommandHandler
             return ApiResponse<SchoolStudentAffairsSettingsDto>.Fail(SettingsHandlerSupport.AuthenticationRequired);
         }
 
-        if (!_currentUser.HasPermission(PermissionNames.StudentAffairsSettingsManage))
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || !_currentUser.HasPermission(PermissionNames.StudentAffairsSettingsManage))
         {
             return ApiResponse<SchoolStudentAffairsSettingsDto>.Fail(SettingsHandlerSupport.PermissionDenied);
         }

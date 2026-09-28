@@ -150,12 +150,16 @@ internal sealed class StudentReferralConfiguration : StudentAffairsMutableEntity
         builder.ToTable(TableName, table => table.HasCheckConstraint(
             "CK_StudentReferrals_Snapshots", "[CountSnapshot] IS NULL OR [CountSnapshot] >= 0"));
         builder.Property(x => x.AssignedSocialWorkerUserId).HasMaxLength(450);
+        builder.Property(x => x.IdempotencyKey).HasMaxLength(200).IsUnicode(false);
+        builder.Property(x => x.IdempotencyPayloadHash).HasMaxLength(64).IsUnicode(false);
         builder.Property(x => x.RecommendedActions).IsOptionalArabicText(3000);
         builder.Property(x => x.ResolutionNotes).IsOptionalArabicText(3000);
         builder.Property(x => x.RowVersion).IsRowVersion();
         builder.HasIndex(x => new { x.SchoolId, x.AssignedSocialWorkerUserId, x.Status, x.Priority });
         builder.HasIndex(x => new { x.SchoolId, x.RuleTriggerId })
             .HasFilter("[RuleTriggerId] IS NOT NULL AND [IsDeleted] = 0").IsUnique();
+        builder.HasIndex(x => new { x.SchoolId, x.CreatedByUserId, x.IdempotencyKey })
+            .HasFilter("[IdempotencyKey] IS NOT NULL AND [IsDeleted] = 0").IsUnique();
         builder.HasOne(x => x.Student).WithMany()
             .HasForeignKey(x => new { x.SchoolId, x.StudentId }).HasPrincipalKey(x => new { x.SchoolId, x.Id })
             .OnDelete(DeleteBehavior.Restrict);

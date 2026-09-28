@@ -915,7 +915,7 @@ public sealed class StudentWorkflowAndGuardianTests
                     Array.Empty<string>()),
                 Array.Empty<DashboardCountDto>()));
 
-        public Task<OfficerStudentAffairsDashboardDto> GetOfficerDashboardAsync(int schoolId, DateOnly onDate, CancellationToken cancellationToken) =>
+        public Task<OfficerStudentAffairsDashboardDto> GetOfficerDashboardAsync(int schoolId, string officerUserId, DateTimeOffset now, CancellationToken cancellationToken) =>
             Task.FromResult(new OfficerStudentAffairsDashboardDto(Array.Empty<DashboardCountDto>(), Array.Empty<DashboardCountDto>()));
 
         public Task<SocialWorkerStudentAffairsDashboardDto> GetSocialWorkerDashboardAsync(int schoolId, string socialWorkerUserId, DateOnly onDate, CancellationToken cancellationToken) =>

@@ -60,9 +60,10 @@ public sealed class ApproveGatePassCommandHandler
         var now = _timeProvider.GetUtcNow();
         var request = command.Request;
         if (request.WindowStartsAt >= request.WindowEndsAt
-            || now > request.WindowEndsAt
+            || now >= request.WindowEndsAt
+            || gatePass.RequestedExitAt <= now
             || gatePass.RequestedExitAt < request.WindowStartsAt
-            || gatePass.RequestedExitAt > request.WindowEndsAt)
+            || gatePass.RequestedExitAt >= request.WindowEndsAt)
             return ApiResponse<GatePassDto>.Fail("Approved execution window is invalid");
         if (string.IsNullOrWhiteSpace(gatePass.PickupPersonName))
             return ApiResponse<GatePassDto>.Fail("Pickup person details are required before approval");
@@ -93,18 +94,17 @@ public sealed class ApproveGatePassCommandHandler
             enrollment.ClassroomId,
             enrollment.ClassroomLabel,
             cancellationToken).ConfigureAwait(false);
-        if (lesson.Kind is CurrentLessonResolutionKind.NoPublishedSchedule
-            or CurrentLessonResolutionKind.AmbiguousPublishedSchedule
-            or CurrentLessonResolutionKind.NonStudyDay)
+        if (lesson.Kind != CurrentLessonResolutionKind.ActiveLesson
+            || lesson.SchoolTimetableId is null
+            || lesson.SchoolTimetableEntryId is null
+            || lesson.PeriodSequence is null
+            || lesson.EffectiveInstructor is null)
             return ApiResponse<GatePassDto>.Fail(
-                $"Gate pass timing could not be resolved safely: {lesson.ResolutionReason}");
+                $"Gate pass approval requires one active published lesson: {lesson.ResolutionReason}");
         if (lesson.AcademicYearId != enrollment.AcademicYearId || lesson.Semester != enrollment.Semester)
             return ApiResponse<GatePassDto>.Fail("The published schedule does not match the student's active enrollment");
 
-        var activeLesson = lesson.Kind == CurrentLessonResolutionKind.ActiveLesson;
-        var auditReason = activeLesson
-            ? request.ApprovalNote?.Trim()
-            : BuildNoAcknowledgementAuditReason(request.ApprovalNote, lesson);
+        var auditReason = request.ApprovalNote?.Trim();
 
         _repository.SetExpectedRowVersion(gatePass, expectedRowVersion);
         var correlationId = Guid.NewGuid();
@@ -117,7 +117,7 @@ public sealed class ApproveGatePassCommandHandler
         gatePass.CurrentClassroomId = enrollment.ClassroomId;
         gatePass.SchoolTimetableId = lesson.SchoolTimetableId;
         gatePass.SchoolTimetableEntryId = lesson.SchoolTimetableEntryId;
-        gatePass.CurrentInstructorProfileId = lesson.EffectiveInstructor?.Id;
+        gatePass.CurrentInstructorProfileId = lesson.EffectiveInstructor.Id;
         gatePass.CurrentPeriod = lesson.PeriodSequence;
         gatePass.UpdatedByUserId = userId;
         gatePass.Transitions.Add(GatePassHandlerSupport.Transition(
@@ -142,7 +142,7 @@ public sealed class ApproveGatePassCommandHandler
             enrollment.ClassroomId,
             lesson.SchoolTimetableId!.Value,
             lesson.SchoolTimetableEntryId,
-            lesson.EffectiveInstructor?.Id,
+            lesson.EffectiveInstructor.Id,
             lesson.PeriodSequence,
             lesson.Kind.ToString(),
             now));
@@ -162,13 +162,4 @@ public sealed class ApproveGatePassCommandHandler
         return ApiResponse<GatePassDto>.Success(dto, "Gate pass approved successfully");
     }
 
-    private static string BuildNoAcknowledgementAuditReason(
-        string? approvalNote,
-        CurrentLessonResolution lesson)
-    {
-        var resolution = $"TeacherAcknowledgementNotRequired:{lesson.Kind} - {lesson.ResolutionReason}";
-        return string.IsNullOrWhiteSpace(approvalNote)
-            ? resolution
-            : $"{approvalNote.Trim()} | {resolution}";
-    }
 }

@@ -31,6 +31,18 @@ public sealed class GetReferralByIdQueryHandler
         if (!_currentUser.HasPermission(PermissionNames.ReferralView))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
 
+        var isOfficer = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer);
+        var isSocialWorker = _currentUser.IsInRole(RoleNames.SocialWorker);
+        if (!isOfficer && !isSocialWorker)
+            return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
+
+        if (isSocialWorker && !await _repository.IsAssignedToAsync(
+                schoolId.Value,
+                request.ReferralId,
+                _currentUser.UserId!,
+                cancellationToken).ConfigureAwait(false))
+            return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.NotFound);
+
         var dto = await _repository.GetDtoAsync(
             schoolId.Value,
             request.ReferralId,
@@ -38,6 +50,9 @@ public sealed class GetReferralByIdQueryHandler
 
         if (dto is null)
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.NotFound);
+
+        if (isOfficer)
+            dto = dto with { Actions = Array.Empty<StudentCaseActionDto>(), ResolutionNotes = null };
 
         return ApiResponse<ReferralDto>.Success(dto);
     }

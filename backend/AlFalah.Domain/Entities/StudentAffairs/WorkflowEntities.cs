@@ -150,6 +150,8 @@ public sealed class StudentReferral : IStudentAffairsMutableEntity, IStudentAffa
     public long? RuleTriggerId { get; set; }
     public int? CountSnapshot { get; set; }
     public int? ThresholdSnapshot { get; set; }
+    public string? IdempotencyKey { get; set; }
+    public string? IdempotencyPayloadHash { get; set; }
     public ReferralPriority Priority { get; set; } = ReferralPriority.Normal;
     public string? AssignedSocialWorkerUserId { get; set; }
     public StudentReferralStatus Status { get; set; } = StudentReferralStatus.Open;

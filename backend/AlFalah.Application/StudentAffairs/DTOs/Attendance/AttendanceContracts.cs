@@ -16,6 +16,13 @@ public sealed class StudentAttendanceRecordsQuery : StudentAffairsPageQuery
     public string? Severity { get; set; }
 }
 
+public sealed class OfficerAbsenceExcuseQueueQuery : StudentAffairsPageQuery
+{
+    public DateOnly? FromDate { get; set; }
+    public DateOnly? ToDate { get; set; }
+    public int? ClassroomId { get; set; }
+}
+
 public sealed record SubmitAbsentRosterRequestDto(
     DateOnly Date,
     int ClassroomId,
@@ -74,7 +81,12 @@ public sealed record AbsenceExcuseDto(
     DateTimeOffset? ReviewedAt,
     string? ReviewReason,
     IReadOnlyList<AttachmentDto> Attachments,
-    string RowVersion);
+    string RowVersion,
+    string? GuardianNotes = null);
+
+public sealed record OfficerAbsenceExcuseQueueItemDto(
+    StudentAttendanceRecordDto Attendance,
+    AbsenceExcuseDto Excuse);
 
 public sealed record GetStudentAttendanceSheetQuery(DateOnly Date, int ClassroomId) : IRequest<ApiResponse<StudentAttendanceSheetDto>>;
 public sealed record SubmitAbsentRosterCommand(SubmitAbsentRosterRequestDto Request, string IdempotencyKey) : IRequest<ApiResponse<StudentAttendanceSheetDto>>;
@@ -90,6 +102,8 @@ public sealed record SubmitAbsenceExcuseCommand(
     string ContentType,
     long SizeBytes) : IRequest<ApiResponse<AbsenceExcuseDto>>;
 public sealed record GetAbsenceExcusesQuery(int AttendanceId) : IRequest<ApiResponse<IReadOnlyList<AbsenceExcuseDto>>>;
+public sealed record GetPendingAbsenceExcusesQuery(OfficerAbsenceExcuseQueueQuery Query)
+    : IRequest<ApiResponse<PagedResult<OfficerAbsenceExcuseQueueItemDto>>>;
 public sealed record DownloadAbsenceExcuseAttachmentQuery(int ExcuseId, int AttachmentId) : IRequest<AuthorizedFileDto>;
 public sealed record AcceptAbsenceExcuseCommand(int ExcuseId, ReviewAbsenceExcuseRequestDto Request) : IRequest<ApiResponse<AbsenceExcuseDto>>;
 public sealed record RejectAbsenceExcuseCommand(int ExcuseId, RejectAbsenceExcuseRequestDto Request) : IRequest<ApiResponse<AbsenceExcuseDto>>;

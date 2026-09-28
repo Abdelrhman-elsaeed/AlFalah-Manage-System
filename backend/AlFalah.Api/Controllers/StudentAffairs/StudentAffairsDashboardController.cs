@@ -22,7 +22,7 @@ public sealed class StudentAffairsDashboardController : StudentAffairsController
     public async Task<IActionResult> Officer(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentAffairsDashboardOfficer)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetOfficerStudentAffairsDashboardQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetOfficerStudentAffairsDashboardQuery(), cancellationToken));
     }
 
     [HttpGet("social-worker")]

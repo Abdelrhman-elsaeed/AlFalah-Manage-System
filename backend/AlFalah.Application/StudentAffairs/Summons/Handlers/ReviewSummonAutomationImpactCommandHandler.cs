@@ -33,7 +33,8 @@ public sealed class ReviewSummonAutomationImpactCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.SummonReviewAutomationImpact))
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || !_currentUser.HasPermission(PermissionNames.SummonReviewAutomationImpact))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.PermissionDenied);
 
         var summon = await _repository.GetForUpdateAsync(
@@ -43,6 +44,8 @@ public sealed class ReviewSummonAutomationImpactCommandHandler
 
         if (summon is null)
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
+        if (!summon.RequiresOfficerReview)
+            return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.ConcurrencyConflict);
 
         if (!SummonHandlerSupport.TryDecodeExpectedRowVersion(
                 command.Request.RowVersion,

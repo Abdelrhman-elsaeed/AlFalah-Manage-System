@@ -161,6 +161,14 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         requireAllPermissions: true
       },
       {
+        labelKey: 'تصاريح دخول الفصل',
+        icon: 'pi pi-ticket',
+        route: '/student-affairs/officer/entry-permits',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['ClassroomEntryPermit.View', 'ClassroomEntryPermit.Issue'],
+        requireAllPermissions: true
+      },
+      {
         labelKey: 'طلب استئذان خروج',
         icon: 'pi pi-send',
         route: '/student-affairs/gate-passes/mine/new',
@@ -190,6 +198,29 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         route: '/student-affairs/cases',
         roles: ['SocialWorker'],
         permissions: ['Referral.View']
+      },
+      {
+        labelKey: 'إنشاء وإسناد الإحالات',
+        icon: 'pi pi-share-alt',
+        route: '/student-affairs/officer/referrals',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['Referral.View', 'Referral.Create', 'Referral.Assign'],
+        requireAllPermissions: true
+      },
+      {
+        labelKey: 'مراجعة أثر الأتمتة',
+        icon: 'pi pi-history',
+        route: '/student-affairs/officer/automation-reviews',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['Summon.ReviewAutomationImpact']
+      },
+      {
+        labelKey: 'السجلات التشغيلية',
+        icon: 'pi pi-list',
+        route: '/student-affairs/officer/operations',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['MorningDelay.View', 'SessionDelay.View', 'Behavior.View', 'AcademicConcern.View', 'Recognition.View'],
+        requireAllPermissions: true
       },
       {
         labelKey: 'استدعاءات أولياء الأمور',

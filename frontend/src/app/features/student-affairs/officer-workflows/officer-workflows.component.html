@@ -1,0 +1,84 @@
+<main class="page" dir="rtl">
+  <header>
+    <div>
+      <span class="eyebrow">مسؤول شؤون الطلاب</span>
+      <h1>{{ mode === 'permits' ? 'تصاريح دخول الفصل' : mode === 'referrals' ? 'إنشاء وإسناد الإحالات' : mode === 'automation' ? 'مراجعة أثر الأتمتة' : 'السجلات التشغيلية' }}</h1>
+      <p>بيانات المدرسة النشطة فقط، مع ترقيم صفحات من الخادم وتحديث آمن عند التعارض.</p>
+    </div>
+    <button pButton type="button" icon="pi pi-refresh" label="تحديث" class="p-button-outlined" [loading]="loading()" (click)="load()"></button>
+  </header>
+
+  @if (mode === 'permits' || mode === 'referrals') {
+    <p-card styleClass="form-card">
+      <div class="lookup">
+        <label for="student-search">بحث الطالب بالاسم أو الرقم</label>
+        <div class="search-row"><input id="student-search" pInputText [formControl]="studentSearch" (keyup.enter)="searchForStudents()" /><button pButton type="button" label="بحث" icon="pi pi-search" [loading]="studentLookupLoading()" (click)="searchForStudents()"></button></div>
+        @if (studentOptions().length) { <div class="lookup-results" role="listbox">@for (student of studentOptions(); track student.studentId) { <button type="button" (click)="chooseStudent(student)"><strong>{{ student.name }}</strong><span>{{ student.studentNumber }} — {{ student.classroomName || 'دون فصل' }}</span></button> }</div> }
+        @if (selectedStudent(); as student) { <p class="selected"><i class="pi pi-user"></i> الطالب المختار: <strong>{{ student.name }}</strong> — {{ student.classroomName }}</p> }
+      </div>
+
+      @if (mode === 'permits') {
+        <form class="workflow-form" [formGroup]="permitForm" (ngSubmit)="issuePermit()">
+          <label><span>سبب التصريح</span><textarea pInputTextarea formControlName="reason" rows="3"></textarea></label>
+          <label><span>بداية الصلاحية</span><input pInputText type="datetime-local" formControlName="validFrom" /></label>
+          <label><span>نهاية الصلاحية</span><input pInputText type="datetime-local" formControlName="validUntil" /></label>
+          <button pButton type="submit" label="إصدار التصريح" icon="pi pi-plus" [loading]="saving()" [disabled]="permitForm.invalid"></button>
+        </form>
+      } @else {
+        <form class="workflow-form" [formGroup]="referralForm" (ngSubmit)="createReferral()">
+          <label><span>سبب الإحالة</span><textarea pInputTextarea formControlName="reason" rows="3"></textarea></label>
+          <label><span>الأولوية</span><p-dropdown formControlName="priority" [options]="priorities" optionLabel="label" optionValue="value"></p-dropdown></label>
+          <button pButton type="submit" label="إنشاء إحالة" icon="pi pi-plus" [loading]="saving()" [disabled]="referralForm.invalid"></button>
+        </form>
+      }
+    </p-card>
+  }
+
+  @if (mode === 'records') {
+    <p-card>
+      <div class="record-filters">
+        <label class="type-picker"><span>نوع السجل</span><p-dropdown [formControl]="recordType" [options]="recordTypes" optionLabel="label" optionValue="value"></p-dropdown></label>
+        <label><span>بحث بالطالب أو الوصف</span><div class="search-row"><input pInputText [formControl]="recordSearch" (keyup.enter)="load()" /><button pButton type="button" label="بحث" icon="pi pi-search" (click)="load()"></button></div></label>
+      </div>
+    </p-card>
+  }
+
+  @if (error()) { <section class="state error" role="alert"><i class="pi pi-exclamation-triangle"></i>{{ error() }}</section> }
+
+  <section class="table-card">
+    @if (mode === 'permits') {
+      <p-table [value]="permits()" [lazy]="true" (onLazyLoad)="load($event)" [paginator]="true" [rows]="pageSize()" [totalRecords]="total()" [loading]="loading()" responsiveLayout="scroll">
+        <ng-template pTemplate="header"><tr><th>الطالب</th><th>الفصل</th><th>السبب</th><th>الصلاحية</th><th>المعلم المستهدف</th><th>الحالة</th><th>إجراء</th></tr></ng-template>
+        <ng-template pTemplate="body" let-item><tr><td><strong>{{ item.student.displayName }}</strong><small>{{ item.student.studentNumber }}</small></td><td>{{ item.classroom.label }}</td><td>{{ item.reason }}</td><td>{{ formatDate(item.validFrom) }}<br />{{ formatDate(item.validUntil) }}</td><td>{{ item.targetTeacher?.displayName || '—' }}</td><td><p-tag [value]="item.status"></p-tag></td><td><button pButton type="button" label="إلغاء" class="p-button-danger p-button-outlined" size="small" [disabled]="item.status === 'Revoked' || item.status === 'Expired'" (click)="openRevoke(item)"></button></td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="7" class="empty">لا توجد تصاريح مطابقة.</td></tr></ng-template>
+      </p-table>
+      @if (selectedPermit(); as permit) {
+        <form class="action-panel" (ngSubmit)="revokePermit()">
+          <h2>إلغاء تصريح {{ permit.student.displayName }}</h2>
+          <label><span>سبب الإلغاء</span><textarea pInputTextarea [formControl]="revokeReason" rows="3"></textarea></label>
+          <div><button pButton type="button" label="تراجع" class="p-button-text" (click)="selectedPermit.set(null)"></button><button pButton type="submit" label="تأكيد الإلغاء" class="p-button-danger" [loading]="saving()" [disabled]="revokeReason.invalid"></button></div>
+        </form>
+      }
+    } @else if (mode === 'referrals') {
+      <p-table [value]="referrals()" [lazy]="true" (onLazyLoad)="load($event)" [paginator]="true" [rows]="pageSize()" [totalRecords]="total()" [loading]="loading()" responsiveLayout="scroll">
+        <ng-template pTemplate="header"><tr><th>الطالب</th><th>السبب</th><th>المصدر</th><th>الأولوية</th><th>الحالة</th><th>إجراء</th></tr></ng-template>
+        <ng-template pTemplate="body" let-item><tr><td><strong>{{ item.student.displayName }}</strong><small>{{ item.student.studentNumber }}</small></td><td>{{ item.referralReason || '—' }}</td><td>{{ item.sourceSnapshot.sourceType }}</td><td>{{ item.priority }}</td><td>{{ item.status }}</td><td><button pButton type="button" label="إسناد" size="small" (click)="openAssignment(item)"></button></td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty">لا توجد إحالات غير مسندة.</td></tr></ng-template>
+      </p-table>
+      @if (selectedReferral(); as referral) { <form class="action-panel" [formGroup]="assignmentForm" (ngSubmit)="assignReferral()"><h2>إسناد إحالة {{ referral.student.displayName }}</h2><label><span>الأخصائي الاجتماعي</span><p-dropdown formControlName="workerId" [options]="workers()" optionLabel="displayName" optionValue="userId" placeholder="اختر أخصائيًا"></p-dropdown></label><label><span>سبب/ملاحظة الإسناد</span><textarea pInputTextarea formControlName="reason" rows="2"></textarea></label><div><button pButton type="button" label="إلغاء" class="p-button-text" (click)="selectedReferral.set(null)"></button><button pButton type="submit" label="تأكيد الإسناد" [loading]="saving()" [disabled]="assignmentForm.invalid"></button></div></form> }
+    } @else if (mode === 'automation') {
+      <p-table [value]="reviews()" [lazy]="true" (onLazyLoad)="load($event)" [paginator]="true" [rows]="pageSize()" [totalRecords]="total()" [loading]="loading()" responsiveLayout="scroll">
+        <ng-template pTemplate="header"><tr><th>الطالب</th><th>سبب الإنشاء</th><th>العدد عند الإنشاء</th><th>العدد الحالي</th><th>سبب المراجعة</th><th>إجراء</th></tr></ng-template>
+        <ng-template pTemplate="body" let-item><tr><td><strong>{{ item.student.displayName }}</strong></td><td>{{ item.createdReason }}</td><td>{{ item.sourceCountSnapshot ?? '—' }} / {{ item.thresholdSnapshot ?? '—' }}</td><td>{{ item.currentMetricCount ?? '—' }}</td><td>{{ item.officerReviewReason || '—' }}</td><td><button pButton type="button" label="مراجعة" size="small" (click)="openReview(item)"></button></td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty">لا توجد عناصر تحتاج مراجعة.</td></tr></ng-template>
+      </p-table>
+      @if (selectedReview(); as review) { <form class="action-panel" [formGroup]="reviewForm" (ngSubmit)="submitReview()"><h2>مراجعة أثر الأتمتة — {{ review.student.displayName }}</h2><p>لن تُحذف الإحالة أو الاستدعاء؛ يُسجل قرار المراجعة فقط.</p><label><span>القرار</span><p-dropdown formControlName="decision" [options]="decisions" optionLabel="label" optionValue="value"></p-dropdown></label><label><span>مبررات القرار</span><textarea pInputTextarea formControlName="rationale" rows="3"></textarea></label><div><button pButton type="button" label="إلغاء" class="p-button-text" (click)="selectedReview.set(null)"></button><button pButton type="submit" label="حفظ المراجعة" [loading]="saving()" [disabled]="reviewForm.invalid"></button></div></form> }
+    } @else {
+      <p-table [value]="records()" [lazy]="true" (onLazyLoad)="load($event)" [paginator]="true" [rows]="pageSize()" [totalRecords]="total()" [loading]="loading()" responsiveLayout="scroll">
+        <ng-template pTemplate="header"><tr><th>الطالب</th><th>التاريخ</th><th>التصنيف/النوع</th><th>الوصف/العنوان</th><th>الدقائق</th><th>الشدة</th></tr></ng-template>
+        <ng-template pTemplate="body" let-item><tr><td><strong>{{ item.student.displayName }}</strong><small>{{ item.student.studentNumber }} — {{ item.student.classLabel || 'دون فصل' }}</small></td><td>{{ formatDate(recordDate(item)) }}</td><td>{{ item.category || item.recognitionType || '—' }}</td><td>{{ item.description || item.title || '—' }}</td><td>{{ item.delayMinutes ?? '—' }}</td><td>{{ item.severity || '—' }}</td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty">لا توجد سجلات مطابقة.</td></tr></ng-template>
+      </p-table>
+    }
+  </section>
+</main>

@@ -508,7 +508,7 @@ export const routes: Routes = [
       // Student Affairs Phase 1: effective school settings and audit history.
       {
         path: 'student-affairs/settings',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['StudentAffairsOfficer', 'SchoolManager'],
           permissions: ['StudentAffairsSettings.View']
@@ -694,6 +694,54 @@ export const routes: Routes = [
         loadComponent: () => import('./features/student-affairs/notification-approval-queue/notification-approval-queue.component')
           .then(m => m.NotificationApprovalQueueComponent),
         title: 'اعتماد إشعارات أولياء الأمور'
+      },
+      {
+        path: 'student-affairs/officer/entry-permits',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['ClassroomEntryPermit.View', 'ClassroomEntryPermit.Issue'],
+          workflowMode: 'permits'
+        },
+        loadComponent: () => import('./features/student-affairs/officer-workflows/officer-workflows.component')
+          .then(m => m.OfficerWorkflowsComponent),
+        title: 'تصاريح دخول الفصل'
+      },
+      {
+        path: 'student-affairs/officer/referrals',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['Referral.View', 'Referral.Create', 'Referral.Assign'],
+          workflowMode: 'referrals'
+        },
+        loadComponent: () => import('./features/student-affairs/officer-workflows/officer-workflows.component')
+          .then(m => m.OfficerWorkflowsComponent),
+        title: 'إنشاء وإسناد الإحالات'
+      },
+      {
+        path: 'student-affairs/officer/automation-reviews',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['Summon.ReviewAutomationImpact'],
+          workflowMode: 'automation'
+        },
+        loadComponent: () => import('./features/student-affairs/officer-workflows/officer-workflows.component')
+          .then(m => m.OfficerWorkflowsComponent),
+        title: 'مراجعة أثر الأتمتة'
+      },
+      {
+        path: 'student-affairs/officer/operations',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['MorningDelay.View', 'SessionDelay.View', 'Behavior.View', 'AcademicConcern.View', 'Recognition.View'],
+          workflowMode: 'records'
+        },
+        loadComponent: () => import('./features/student-affairs/officer-workflows/officer-workflows.component')
+          .then(m => m.OfficerWorkflowsComponent),
+        title: 'السجلات التشغيلية'
       },
       {
         path: 'student-affairs/office-hours',

@@ -73,6 +73,7 @@ export interface ReferralDto {
   readonly resolutionNotes: string | null;
   readonly createdAt: string;
   readonly rowVersion: string;
+  readonly referralReason?: string | null;
 }
 
 export interface AcceptReferralRequestDto { readonly rowVersion: string; }
@@ -116,6 +117,7 @@ export interface SummonDto {
   readonly officerReviewReason: string | null;
   readonly guardianNotifiedAt: string | null;
   readonly rowVersion: string;
+  readonly currentMetricCount?: number | null;
 }
 
 export interface TransitionDto {

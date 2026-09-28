@@ -15,14 +15,14 @@ public sealed class MorningDelaysController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] MorningDelayListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MorningDelayView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Delay Review");
+        return FromResponse(await Mediator.Send(new GetMorningDelaysQuery(query), cancellationToken));
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MorningDelayView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Delay Review");
+        return FromResponse(await Mediator.Send(new GetMorningDelayByIdQuery(id), cancellationToken));
     }
 
     [HttpPost("{id:int}/reason")]

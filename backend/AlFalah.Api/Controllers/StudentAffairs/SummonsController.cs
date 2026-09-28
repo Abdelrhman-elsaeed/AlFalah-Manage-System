@@ -40,6 +40,15 @@ public sealed class SummonsController : StudentAffairsControllerBase
         return Ok(await Mediator.Send(new GetSummonByIdQuery(id), cancellationToken));
     }
 
+    [HttpGet("automation-impact-reviews")]
+    public async Task<IActionResult> AutomationImpactReviews(
+        [FromQuery] SummonListQuery query,
+        CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.SummonReviewAutomationImpact)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetAutomationImpactReviewsQuery(query), cancellationToken));
+    }
+
     [HttpPost("{id:int}/schedule")]
     public async Task<IActionResult> Schedule(int id, [FromBody] ScheduleSummonRequestDto request, CancellationToken cancellationToken)
     {
@@ -72,7 +81,7 @@ public sealed class SummonsController : StudentAffairsControllerBase
     public async Task<IActionResult> ReviewAutomationImpact(int id, [FromBody] ReviewSummonAutomationImpactRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SummonReviewAutomationImpact)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ReviewSummonAutomationImpactCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new ReviewSummonAutomationImpactCommand(id, request), cancellationToken));
     }
 
     [HttpGet("{id:int}/history")]

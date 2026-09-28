@@ -44,20 +44,20 @@ public sealed class NotificationsController : StudentAffairsControllerBase
     public async Task<IActionResult> PendingDispatch([FromQuery] StudentAffairsPageQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationApproveDispatch, PermissionNames.NotificationSuppressDispatch)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetPendingDispatchNotificationsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetPendingDispatchNotificationsQuery(query), cancellationToken));
     }
 
     [HttpPost("{id:int}/approve")]
     public async Task<IActionResult> Approve(int id, [FromBody] ApproveNotificationRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationApproveDispatch)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ApproveNotificationDispatchCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new ApproveNotificationDispatchCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/suppress")]
     public async Task<IActionResult> Suppress(int id, [FromBody] SuppressNotificationRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationSuppressDispatch)) return PermissionDenied();
-        return Ok(await Mediator.Send(new SuppressNotificationDispatchCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new SuppressNotificationDispatchCommand(id, request), cancellationToken));
     }
 }

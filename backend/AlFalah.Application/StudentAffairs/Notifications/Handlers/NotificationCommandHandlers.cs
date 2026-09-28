@@ -1,5 +1,6 @@
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.StudentAffairs.DTOs.Notifications;
+using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Shared.Models;
 using MediatR;
@@ -95,6 +96,10 @@ public sealed class GetPendingDispatchNotificationsQueryHandler
     {
         if (_currentUser.ActiveSchoolId is not { } schoolId)
             return ApiResponse<PagedResult<PendingDispatchDto>>.Fail("An active school is required");
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || (!_currentUser.HasPermission(PermissionNames.NotificationApproveDispatch)
+                && !_currentUser.HasPermission(PermissionNames.NotificationSuppressDispatch)))
+            return ApiResponse<PagedResult<PendingDispatchDto>>.Fail("You do not have permission to review notification dispatch");
         return ApiResponse<PagedResult<PendingDispatchDto>>.Success(
             await _repository.GetPendingAsync(schoolId, request.Query, cancellationToken).ConfigureAwait(false));
     }
@@ -113,6 +118,9 @@ public sealed class ApproveNotificationDispatchCommandHandler
     {
         if (_currentUser.ActiveSchoolId is not { } schoolId || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<PendingDispatchDto>.Fail("An active school is required");
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || !_currentUser.HasPermission(PermissionNames.NotificationApproveDispatch))
+            return ApiResponse<PendingDispatchDto>.Fail("You do not have permission to approve notification dispatch");
         var notification = await _repository.GetPendingForUpdateAsync(schoolId, request.NotificationId, cancellationToken).ConfigureAwait(false);
         if (notification is null) return ApiResponse<PendingDispatchDto>.Fail("Pending notification was not found");
         if (!TryDecode(request.Request.RowVersion, out var rowVersion))
@@ -128,7 +136,14 @@ public sealed class ApproveNotificationDispatchCommandHandler
         notification.UpdatedByUserId = _currentUser.UserId;
         await _repository.SetSourceDecisionAsync(schoolId, notification, GuardianDispatchDecision.Approved, cancellationToken)
             .ConfigureAwait(false);
-        await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException)
+        {
+            return ApiResponse<PendingDispatchDto>.Fail("Notification concurrency conflict: another officer already changed it");
+        }
         return ApiResponse<PendingDispatchDto>.Success(ToDto(notification));
     }
 
@@ -161,6 +176,9 @@ public sealed class SuppressNotificationDispatchCommandHandler
     {
         if (_currentUser.ActiveSchoolId is not { } schoolId || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<PendingDispatchDto>.Fail("An active school is required");
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || !_currentUser.HasPermission(PermissionNames.NotificationSuppressDispatch))
+            return ApiResponse<PendingDispatchDto>.Fail("You do not have permission to suppress notification dispatch");
         if (string.IsNullOrWhiteSpace(request.Request.Reason))
             return ApiResponse<PendingDispatchDto>.Fail("A suppression reason is required");
         var notification = await _repository.GetPendingForUpdateAsync(schoolId, request.NotificationId, cancellationToken).ConfigureAwait(false);
@@ -179,7 +197,14 @@ public sealed class SuppressNotificationDispatchCommandHandler
         notification.UpdatedByUserId = _currentUser.UserId;
         await _repository.SetSourceDecisionAsync(schoolId, notification, GuardianDispatchDecision.Suppressed, cancellationToken)
             .ConfigureAwait(false);
-        await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException)
+        {
+            return ApiResponse<PendingDispatchDto>.Fail("Notification concurrency conflict: another officer already changed it");
+        }
         return ApiResponse<PendingDispatchDto>.Success(ApproveNotificationDispatchCommandHandler.ToDto(notification));
     }
 }

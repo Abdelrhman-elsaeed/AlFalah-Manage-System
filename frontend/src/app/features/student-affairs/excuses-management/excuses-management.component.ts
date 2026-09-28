@@ -12,9 +12,8 @@ import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { catchError, from, map, mergeMap, of, switchMap, toArray } from 'rxjs';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import {
   AbsenceExcuseDto,
@@ -87,6 +86,8 @@ export class ExcusesManagementComponent implements OnDestroy {
   private rawPreviewUrl: string | null = null;
 
   readonly queue = signal<readonly OfficerExcuseQueueItem[]>([]);
+  readonly queueTotal = signal(0);
+  readonly queuePageSize = signal(20);
   readonly queueLoading = signal(false);
   readonly queueError = signal('');
   readonly reviewDialogVisible = signal(false);
@@ -208,32 +209,21 @@ export class ExcusesManagementComponent implements OnDestroy {
     });
   }
 
-  loadOfficerQueue(): void {
+  loadOfficerQueue(event?: TableLazyLoadEvent): void {
+    const pageSize = event?.rows ?? this.queuePageSize();
+    const pageNumber = Math.floor((event?.first ?? 0) / pageSize) + 1;
+    this.queuePageSize.set(pageSize);
     this.queueLoading.set(true);
     this.queueError.set('');
-    this.api.getAttendanceRecords({ pageNumber: 1, pageSize: 25, excuseStatus: 'Pending' }).pipe(
-      switchMap(response => {
-        if (!response.isSuccess || !response.data) {
-          throw new Error(response.errors[0] ?? response.message ?? 'تعذر تحميل قائمة الأعذار.');
-        }
-        return from(response.data.items).pipe(
-          mergeMap(attendance => this.api.getExcuses(attendance.id).pipe(
-            map(excuseResponse => ({
-              attendance,
-              excuses: excuseResponse.isSuccess && excuseResponse.data ? excuseResponse.data : []
-            })),
-            catchError(() => of({ attendance, excuses: [] as readonly AbsenceExcuseDto[] }))
-          ), 4),
-          mergeMap(group => from(group.excuses
-            .filter(excuse => excuse.status === 'Pending')
-            .map(excuse => ({ attendance: group.attendance, excuse })))),
-          toArray()
-        );
-      })
-    ).subscribe({
-      next: items => {
+    this.api.getPendingExcuses(pageNumber, pageSize).subscribe({
+      next: response => {
         this.queueLoading.set(false);
-        this.queue.set(items);
+        if (!response.isSuccess || !response.data) {
+          this.queueError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل قائمة الأعذار.');
+          return;
+        }
+        this.queue.set(response.data.items);
+        this.queueTotal.set(response.data.totalCount);
       },
       error: error => {
         this.queueLoading.set(false);
@@ -368,6 +358,7 @@ export class ExcusesManagementComponent implements OnDestroy {
     const updated = response.data;
     this.selectedQueueItem.set({ ...original, excuse: updated });
     this.queue.update(items => items.filter(item => item.excuse.id !== updated.id));
+    this.queueTotal.update(total => Math.max(0, total - 1));
     this.refreshAttendanceAfterReview(original, updated.status);
   }
 
@@ -388,6 +379,7 @@ export class ExcusesManagementComponent implements OnDestroy {
         this.selectedQueueItem.set({ ...original, excuse: latest });
         if (latest.status !== 'Pending') {
           this.queue.update(items => items.filter(item => item.excuse.id !== latest.id));
+          this.queueTotal.update(total => Math.max(0, total - 1));
           this.messages.add({ severity: 'info', summary: 'سبق حسم العذر', detail: `القرار الأحدث: ${this.statusLabel(latest.status)}.` });
         }
       },

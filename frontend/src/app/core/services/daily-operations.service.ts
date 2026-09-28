@@ -14,6 +14,7 @@ import {
   AbsenceExcuseDto,
   AbsenceExcuseType,
   AttendanceRecordsPage,
+  OfficerExcuseQueuePage,
   BiometricImportResultDto,
   AcademicYearLookupDto,
   DeleteClassroomRequestDto,
@@ -225,6 +226,18 @@ export class DailyOperationsService {
     return this.http.get<ApiResponse<readonly AbsenceExcuseDto[]>>(
       `${this.api}/student-attendance/${attendanceId}/excuses`,
       { context: this.callerHandlesErrors }
+    );
+  }
+
+  getPendingExcuses(pageNumber: number, pageSize: number): Observable<ApiResponse<OfficerExcuseQueuePage>> {
+    return this.http.get<ApiResponse<OfficerExcuseQueuePage>>(
+      `${this.api}/student-attendance/excuses/pending`,
+      {
+        context: this.callerHandlesErrors,
+        params: new HttpParams()
+          .set('pageNumber', pageNumber)
+          .set('pageSize', pageSize)
+      }
     );
   }
 

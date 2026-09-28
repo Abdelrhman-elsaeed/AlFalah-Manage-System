@@ -6113,6 +6113,16 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(200)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("IdempotencyPayloadHash")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -6183,6 +6193,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasFilter("[RuleTriggerId] IS NOT NULL AND [IsDeleted] = 0");
 
                     b.HasIndex("SchoolId", "StudentId");
+
+                    b.HasIndex("SchoolId", "CreatedByUserId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("[IdempotencyKey] IS NOT NULL AND [IsDeleted] = 0");
 
                     b.HasIndex("SchoolId", "AssignedSocialWorkerUserId", "Status", "Priority");
 

@@ -171,7 +171,7 @@ public sealed class GatePassWorkflowTests
     }
 
     [Fact]
-    public async Task Approve_DuringBreak_RequiresNoTeacherAndRecordsResolutionReason()
+    public async Task Approve_DuringBreak_IsRejectedWithoutMutation()
     {
         var gatePass = NewGatePass();
         gatePass.Id = 5;
@@ -199,16 +199,15 @@ public sealed class GatePassWorkflowTests
                     Convert.ToBase64String(gatePass.RowVersion))),
             CancellationToken.None);
 
-        response.IsSuccess.Should().BeTrue();
-        gatePass.Status.Should().Be(GatePassStatus.Approved);
-        gatePass.SchoolTimetableId.Should().Be(7);
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().ContainSingle().Which.Should().Contain("active published lesson");
+        gatePass.Status.Should().Be(GatePassStatus.Requested);
+        gatePass.SchoolTimetableId.Should().BeNull();
         gatePass.SchoolTimetableEntryId.Should().BeNull();
         gatePass.CurrentInstructorProfileId.Should().BeNull();
         gatePass.CurrentPeriod.Should().BeNull();
-        gatePass.ApprovalNote.Should().Contain("TeacherAcknowledgementNotRequired:Break");
-        var approved = gatePass.DomainEvents.Should().ContainSingle().Which.Should().BeOfType<GatePassApprovedEvent>().Subject;
-        approved.InstructorProfileId.Should().BeNull();
-        approved.LessonResolution.Should().Be(nameof(CurrentLessonResolutionKind.Break));
+        gatePass.DomainEvents.Should().BeEmpty();
+        repository.SaveCount.Should().Be(0);
     }
 
     [Theory]

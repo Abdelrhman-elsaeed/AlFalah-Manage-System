@@ -368,6 +368,7 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
                     : (excuse.ReviewedByUser.FirstName + " " + excuse.ReviewedByUser.LastName).Trim(),
                 excuse.ReviewedAt,
                 excuse.ReviewReason,
+                excuse.GuardianNotes,
                 excuse.RowVersion,
                 Attachments = excuse.Attachments
                     .OrderBy(attachment => attachment.Id)
@@ -424,7 +425,8 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             projection.ReviewedAt,
             projection.ReviewReason,
             attachments,
-            Convert.ToBase64String(projection.RowVersion));
+            Convert.ToBase64String(projection.RowVersion),
+            projection.GuardianNotes);
     }
 
     public async Task<IReadOnlyList<AbsenceExcuseDto>> GetExcusesByAttendanceIdAsync(
@@ -461,6 +463,7 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
                     : (excuse.ReviewedByUser.FirstName + " " + excuse.ReviewedByUser.LastName).Trim(),
                 excuse.ReviewedAt,
                 excuse.ReviewReason,
+                excuse.GuardianNotes,
                 excuse.RowVersion,
                 Attachments = excuse.Attachments
                     .OrderBy(attachment => attachment.Id)
@@ -518,8 +521,135 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
                 projection.ReviewedAt,
                 projection.ReviewReason,
                 attachments,
-                Convert.ToBase64String(projection.RowVersion));
+                Convert.ToBase64String(projection.RowVersion),
+                projection.GuardianNotes);
         }).ToList();
+    }
+
+    public async Task<PagedResult<OfficerAbsenceExcuseQueueItemDto>> GetPendingExcusesAsync(
+        int schoolId,
+        OfficerAbsenceExcuseQueueQuery query,
+        CancellationToken cancellationToken)
+    {
+        var page = Math.Max(1, query.PageNumber);
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
+        var dbQuery = _context.AbsenceExcuses.AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.Status == AbsenceExcuseStatus.Pending
+                && !x.DailyStudentAttendance.IsDeleted);
+
+        if (query.FromDate.HasValue)
+            dbQuery = dbQuery.Where(x => x.DailyStudentAttendance.AttendanceDate >= query.FromDate.Value);
+        if (query.ToDate.HasValue)
+            dbQuery = dbQuery.Where(x => x.DailyStudentAttendance.AttendanceDate <= query.ToDate.Value);
+        if (query.ClassroomId.HasValue)
+            dbQuery = dbQuery.Where(x => x.DailyStudentAttendance.ClassroomId == query.ClassroomId.Value);
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim();
+            dbQuery = dbQuery.Where(x =>
+                x.DailyStudentAttendance.Student.StudentNumber.Contains(search)
+                || x.DailyStudentAttendance.Student.FirstName.Contains(search)
+                || (x.DailyStudentAttendance.Student.MiddleName != null
+                    && x.DailyStudentAttendance.Student.MiddleName.Contains(search))
+                || x.DailyStudentAttendance.Student.LastName.Contains(search));
+        }
+
+        var total = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await dbQuery
+            .OrderBy(x => x.SubmittedAt)
+            .ThenBy(x => x.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new
+            {
+                Excuse = x,
+                Attendance = x.DailyStudentAttendance,
+                Student = x.DailyStudentAttendance.Student,
+                ClassroomLabel = x.DailyStudentAttendance.Classroom.ClassLabel,
+                RecorderName = (x.DailyStudentAttendance.RecordedByUser.FirstName + " "
+                    + x.DailyStudentAttendance.RecordedByUser.LastName).Trim(),
+                GuardianName = (x.GuardianProfile.ApplicationUser.FirstName + " "
+                    + x.GuardianProfile.ApplicationUser.LastName).Trim(),
+                GuardianLink = x.GuardianProfile.Students
+                    .Where(link => link.SchoolId == schoolId
+                        && link.StudentId == x.DailyStudentAttendance.StudentId)
+                    .Select(link => new { link.RelationshipType, link.IsPrimary, link.ReceivesNotifications })
+                    .FirstOrDefault(),
+                Attachments = x.Attachments
+                    .Where(a => !a.IsDeleted)
+                    .OrderBy(a => a.Id)
+                    .Select(a => new
+                    {
+                        a.Id,
+                        a.OriginalFileName,
+                        a.ContentType,
+                        a.SizeBytes,
+                        a.UploadedAt,
+                        a.UploadedByUserId,
+                        UploaderName = (a.UploadedByUser.FirstName + " " + a.UploadedByUser.LastName).Trim()
+                    }).ToList()
+            })
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        var items = rows.Select(row =>
+        {
+            var studentName = $"{row.Student.FirstName} {row.Student.MiddleName} {row.Student.LastName}".Trim();
+            var attendance = new StudentAttendanceRecordDto(
+                row.Attendance.Id,
+                new StudentSummaryDto(
+                    row.Student.Id,
+                    row.Student.StudentNumber,
+                    row.Student.IdentityNumber,
+                    studentName,
+                    row.Attendance.ClassroomId,
+                    row.ClassroomLabel,
+                    row.Student.IsActive,
+                    row.Student.ProfilePhotoStorageKey),
+                row.Attendance.AttendanceDate,
+                row.Attendance.Status,
+                row.Attendance.ExcuseStatus,
+                new ActorSummaryDto(row.Attendance.RecordedByUserId, row.RecorderName, RoleNames.Secretary),
+                row.Attendance.RecordedAt,
+                Convert.ToBase64String(row.Attendance.RowVersion));
+
+            var guardian = new GuardianSummaryDto(
+                row.Excuse.GuardianProfileId,
+                row.GuardianName,
+                row.GuardianLink?.RelationshipType ?? 0,
+                row.GuardianLink?.IsPrimary ?? false,
+                row.GuardianLink?.ReceivesNotifications ?? false);
+            var attachments = row.Attachments.Select(a => new AttachmentDto(
+                a.Id,
+                a.OriginalFileName,
+                a.ContentType,
+                a.SizeBytes,
+                a.UploadedAt,
+                new ActorSummaryDto(a.UploadedByUserId, a.UploaderName, RoleNames.Guardian),
+                $"/api/v1/student-attendance/excuses/{row.Excuse.Id}/attachments/{a.Id}"))
+                .ToArray();
+            var excuse = new AbsenceExcuseDto(
+                row.Excuse.Id,
+                row.Excuse.ExcuseType,
+                row.Excuse.Status,
+                guardian,
+                row.Excuse.SubmittedAt,
+                null,
+                null,
+                row.Excuse.ReviewReason,
+                attachments,
+                Convert.ToBase64String(row.Excuse.RowVersion),
+                row.Excuse.GuardianNotes);
+            return new OfficerAbsenceExcuseQueueItemDto(attendance, excuse);
+        }).ToList();
+
+        return new PagedResult<OfficerAbsenceExcuseQueueItemDto>
+        {
+            Items = items,
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
     public async Task<PagedResult<StudentAttendanceRecordDto>> GetAttendanceRecordsAsync(

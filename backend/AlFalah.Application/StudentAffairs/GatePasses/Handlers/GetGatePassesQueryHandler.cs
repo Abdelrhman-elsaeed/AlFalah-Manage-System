@@ -28,7 +28,8 @@ public sealed class GetGatePassesQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<PagedResult<GatePassDto>>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.GatePassView))
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || !_currentUser.HasPermission(PermissionNames.GatePassView))
             return ApiResponse<PagedResult<GatePassDto>>.Fail(GatePassHandlerSupport.PermissionDenied);
 
         var result = await _repository.GetGatePassesAsync(

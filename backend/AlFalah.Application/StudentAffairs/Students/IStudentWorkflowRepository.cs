@@ -204,7 +204,8 @@ public interface IStudentWorkflowRepository
 
     Task<OfficerStudentAffairsDashboardDto> GetOfficerDashboardAsync(
         int schoolId,
-        DateOnly onDate,
+        string officerUserId,
+        DateTimeOffset now,
         CancellationToken cancellationToken);
 
     Task<SocialWorkerStudentAffairsDashboardDto> GetSocialWorkerDashboardAsync(

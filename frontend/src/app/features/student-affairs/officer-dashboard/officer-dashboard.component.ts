@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -21,7 +21,7 @@ type DashboardKind = 'officer' | 'oversight';
 @Component({
   selector: 'app-officer-dashboard',
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, ProgressSpinnerModule, TableModule, TagModule],
+  imports: [CommonModule, RouterLink, ButtonModule, CardModule, ProgressSpinnerModule, TableModule, TagModule],
   templateUrl: './officer-dashboard.component.html',
   styleUrl: './officer-dashboard.component.css'
 })
@@ -82,6 +82,20 @@ export class OfficerDashboardComponent {
     if (value.includes('warn') || value.includes('medium')) return 'warning';
     if (value.includes('success') || value.includes('low')) return 'success';
     return 'info';
+  }
+
+  queueRoute(code: string): string {
+    return ({
+      PendingExcuses: '/student-affairs/officer/excuses',
+      RequestedGatePasses: '/student-affairs/gate-passes',
+      ActiveEntryPermits: '/student-affairs/officer/entry-permits',
+      PendingBehaviorNotices: '/student-affairs/notification-approvals',
+      PendingAcademicNotices: '/student-affairs/notification-approvals',
+      OpenReferrals: '/student-affairs/officer/referrals',
+      UnassignedReferrals: '/student-affairs/officer/referrals',
+      AutomationReviews: '/student-affairs/officer/automation-reviews',
+      UnreadOfficerThreads: '/student-affairs/messages'
+    } as Record<string, string>)[code] ?? '/student-affairs/officer/operations';
   }
 
   formatGeneratedAt(value: string): string {

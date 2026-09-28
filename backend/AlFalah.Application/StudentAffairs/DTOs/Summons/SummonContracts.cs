@@ -12,6 +12,7 @@ public sealed class SummonListQuery : StudentAffairsPageQuery
     public DateOnly? AppointmentDate { get; set; }
     public string? AssignedWorkerUserId { get; set; }
     public int? StudentId { get; set; }
+    public bool? RequiresOfficerReview { get; set; }
 }
 
 public sealed record CreateSummonRequestDto(int StudentId, int? ReferralId, string Reason, ReferralPriority Priority, int GuardianProfileId);
@@ -38,7 +39,8 @@ public sealed record SummonDto(
     bool RequiresOfficerReview,
     string? OfficerReviewReason,
     DateTimeOffset? GuardianNotifiedAt,
-    string RowVersion);
+    string RowVersion,
+    int? CurrentMetricCount = null);
 
 public sealed record SummonHistoryDto(IReadOnlyList<TransitionDto> Transitions);
 
@@ -52,3 +54,5 @@ public sealed record StartSummonObservationCommand(int SummonId, StartSummonObse
 public sealed record MarkSummonImprovedCommand(int SummonId, MarkSummonImprovedRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
 public sealed record ReviewSummonAutomationImpactCommand(int SummonId, ReviewSummonAutomationImpactRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
 public sealed record GetSummonHistoryQuery(int SummonId) : IRequest<ApiResponse<SummonHistoryDto>>;
+public sealed record GetAutomationImpactReviewsQuery(SummonListQuery Query)
+    : IRequest<ApiResponse<PagedResult<SummonDto>>>;

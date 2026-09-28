@@ -80,6 +80,15 @@ public sealed class StudentAttendanceController : StudentAffairsControllerBase
         return FromResponse(await Mediator.Send(new GetAbsenceExcusesQuery(attendanceId), cancellationToken));
     }
 
+    [HttpGet("excuses/pending")]
+    public async Task<IActionResult> PendingExcuses(
+        [FromQuery] OfficerAbsenceExcuseQueueQuery query,
+        CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.AttendanceReviewExcuse)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetPendingAbsenceExcusesQuery(query), cancellationToken));
+    }
+
     [HttpGet("excuses/{excuseId:int}/attachments/{attachmentId:int}")]
     public async Task<IActionResult> DownloadAttachment(int excuseId, int attachmentId, CancellationToken cancellationToken)
     {

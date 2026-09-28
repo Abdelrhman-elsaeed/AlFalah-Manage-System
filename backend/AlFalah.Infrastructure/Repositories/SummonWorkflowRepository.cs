@@ -48,6 +48,11 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             dbQuery = dbQuery.Where(summon => summon.StudentId == query.StudentId.Value);
         }
 
+        if (query.RequiresOfficerReview.HasValue)
+        {
+            dbQuery = dbQuery.Where(summon => summon.RequiresOfficerReview == query.RequiresOfficerReview.Value);
+        }
+
         if (query.AppointmentDate.HasValue)
         {
             var date = query.AppointmentDate.Value;
@@ -136,6 +141,16 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                 summon.RequiresOfficerReview,
                 summon.OfficerReviewReason,
                 summon.GuardianNotifiedAt,
+                CurrentMetricCount = summon.StudentReferral != null && summon.StudentReferral.RuleTrigger != null
+                    ? _context.StudentTermMetrics
+                        .Where(metric => metric.SchoolId == schoolId
+                            && !metric.IsDeleted
+                            && metric.StudentId == summon.StudentId
+                            && metric.AcademicTermId == summon.AcademicTermId
+                            && metric.MetricCode == summon.StudentReferral.RuleTrigger.RuleVersion.MetricCode)
+                        .Select(metric => (int?)metric.Count)
+                        .FirstOrDefault()
+                    : null,
                 summon.RowVersion
             })
             .ToListAsync(cancellationToken)
@@ -183,7 +198,8 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                 row.RequiresOfficerReview,
                 row.OfficerReviewReason,
                 row.GuardianNotifiedAt,
-                Convert.ToBase64String(row.RowVersion));
+                Convert.ToBase64String(row.RowVersion),
+                row.CurrentMetricCount);
         }).ToList();
 
         return new PagedResult<SummonDto>
@@ -307,6 +323,16 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                 summon.RequiresOfficerReview,
                 summon.OfficerReviewReason,
                 summon.GuardianNotifiedAt,
+                CurrentMetricCount = summon.StudentReferral != null && summon.StudentReferral.RuleTrigger != null
+                    ? _context.StudentTermMetrics
+                        .Where(metric => metric.SchoolId == schoolId
+                            && !metric.IsDeleted
+                            && metric.StudentId == summon.StudentId
+                            && metric.AcademicTermId == summon.AcademicTermId
+                            && metric.MetricCode == summon.StudentReferral.RuleTrigger.RuleVersion.MetricCode)
+                        .Select(metric => (int?)metric.Count)
+                        .FirstOrDefault()
+                    : null,
                 summon.RowVersion
             })
             .ToListAsync(cancellationToken)
@@ -551,6 +577,16 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                 summon.RequiresOfficerReview,
                 summon.OfficerReviewReason,
                 summon.GuardianNotifiedAt,
+                CurrentMetricCount = summon.StudentReferral != null && summon.StudentReferral.RuleTrigger != null
+                    ? _context.StudentTermMetrics
+                        .Where(metric => metric.SchoolId == schoolId
+                            && !metric.IsDeleted
+                            && metric.StudentId == summon.StudentId
+                            && metric.AcademicTermId == summon.AcademicTermId
+                            && metric.MetricCode == summon.StudentReferral.RuleTrigger.RuleVersion.MetricCode)
+                        .Select(metric => (int?)metric.Count)
+                        .FirstOrDefault()
+                    : null,
                 summon.RowVersion
             })
             .FirstOrDefaultAsync(cancellationToken)
@@ -598,6 +634,7 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             row.RequiresOfficerReview,
             row.OfficerReviewReason,
             row.GuardianNotifiedAt,
-            Convert.ToBase64String(row.RowVersion));
+            Convert.ToBase64String(row.RowVersion),
+            row.CurrentMetricCount);
     }
 }

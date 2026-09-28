@@ -33,20 +33,13 @@ public sealed class AssignReferralCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralAssign))
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || !_currentUser.HasPermission(PermissionNames.ReferralAssign))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
 
         var request = command.Request;
         if (string.IsNullOrWhiteSpace(request.SocialWorkerUserId))
             return ApiResponse<ReferralDto>.Fail("Target social worker is required");
-
-        var isSocialWorker = await _repository.IsSocialWorkerAsync(
-            schoolId.Value,
-            request.SocialWorkerUserId,
-            cancellationToken).ConfigureAwait(false);
-
-        if (!isSocialWorker)
-            return ApiResponse<ReferralDto>.Fail("Assigned user is not an active social worker");
 
         var referral = await _repository.GetForUpdateAsync(
             schoolId.Value,
@@ -61,6 +54,18 @@ public sealed class AssignReferralCommandHandler
                 referral.RowVersion,
                 out var expectedRowVersion))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.ConcurrencyConflict);
+
+        if (referral.Status != StudentReferralStatus.Open
+            || referral.AssignedSocialWorkerUserId is not null)
+            return ApiResponse<ReferralDto>.Fail("Referral is no longer available for assignment");
+
+        var isSocialWorker = await _repository.IsSocialWorkerAsync(
+            schoolId.Value,
+            request.SocialWorkerUserId,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!isSocialWorker)
+            return ApiResponse<ReferralDto>.Fail("Assigned user is not an active social worker");
 
         var now = _timeProvider.GetUtcNow();
         _repository.SetExpectedRowVersion(referral, expectedRowVersion);
@@ -99,6 +104,8 @@ public sealed class AssignReferralCommandHandler
             .ConfigureAwait(false)
             ?? throw new InvalidOperationException("The updated referral could not be loaded");
 
-        return ApiResponse<ReferralDto>.Success(dto, "Referral assigned successfully");
+        return ApiResponse<ReferralDto>.Success(
+            dto with { Actions = Array.Empty<StudentCaseActionDto>(), ResolutionNotes = null },
+            "Referral assigned successfully");
     }
 }

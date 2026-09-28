@@ -88,7 +88,7 @@
       <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ جمع الأعذار المعلقة…</span></div>
     } @else {
       <div class="queue-card">
-        <p-table [value]="queue()" [paginator]="queue().length > 10" [rows]="10" styleClass="p-datatable-striped" responsiveLayout="scroll">
+        <p-table [value]="queue()" [lazy]="true" (onLazyLoad)="loadOfficerQueue($event)" [paginator]="true" [rows]="queuePageSize()" [rowsPerPageOptions]="[10, 20, 50]" [totalRecords]="queueTotal()" [loading]="queueLoading()" styleClass="p-datatable-striped" responsiveLayout="scroll">
           <ng-template pTemplate="header"><tr><th>الطالب</th><th>الفصل</th><th>تاريخ الغياب</th><th>قُدم في</th><th>نوع العذر</th><th>المرفقات</th><th>الحالة</th><th>الإجراء</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
@@ -125,6 +125,7 @@
               <div><dt>مقدم الطلب</dt><dd>{{ item.excuse.guardian.displayName }} — {{ item.excuse.guardian.relationship }}</dd></div>
               <div><dt>وقت التقديم</dt><dd>{{ formatDate(item.excuse.submittedAt) }}</dd></div>
             </dl>
+            @if (item.excuse.guardianNotes) { <div class="private-note"><strong>ملاحظة ولي الأمر</strong><p>{{ item.excuse.guardianNotes }}</p></div> }
             @if (item.excuse.reviewReason) { <div class="private-note"><strong>الملاحظة/السبب</strong><p>{{ item.excuse.reviewReason }}</p></div> }
             <div class="attachments">
               <h4>المرفقات</h4>

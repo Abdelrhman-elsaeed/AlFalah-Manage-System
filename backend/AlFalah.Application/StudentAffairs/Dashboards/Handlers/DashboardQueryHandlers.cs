@@ -74,10 +74,17 @@ public sealed class GetOfficerStudentAffairsDashboardQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<OfficerStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
+        if (!_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || !_currentUser.HasPermission(PermissionNames.StudentAffairsDashboardOfficer))
+        {
+            return ApiResponse<OfficerStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.PermissionDenied);
+        }
+
+        var now = _timeProvider.GetUtcNow();
         var result = await _repository.GetOfficerDashboardAsync(
             schoolId.Value,
-            today,
+            userId,
+            now,
             cancellationToken).ConfigureAwait(false);
 
         return ApiResponse<OfficerStudentAffairsDashboardDto>.Success(result);

@@ -23,7 +23,7 @@ public sealed class RecognitionsController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] RecognitionListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.RecognitionView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Recognition Review");
+        return FromResponse(await Mediator.Send(new GetRecognitionsQuery(query), cancellationToken));
     }
 
     [HttpGet("statistics")]
@@ -37,7 +37,7 @@ public sealed class RecognitionsController : StudentAffairsControllerBase
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.RecognitionView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Recognition Review");
+        return FromResponse(await Mediator.Send(new GetRecognitionByIdQuery(id), cancellationToken));
     }
 
     [HttpPost("{id:int}/correct")]

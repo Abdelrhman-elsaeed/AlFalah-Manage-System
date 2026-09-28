@@ -964,15 +964,84 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         ));
     }
 
-    public Task<OfficerStudentAffairsDashboardDto> GetOfficerDashboardAsync(
+    public async Task<OfficerStudentAffairsDashboardDto> GetOfficerDashboardAsync(
         int schoolId,
-        DateOnly onDate,
+        string officerUserId,
+        DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(new OfficerStudentAffairsDashboardDto(
-            Array.Empty<DashboardCountDto>(),
-            Array.Empty<DashboardCountDto>()
-        ));
+        var pendingExcuses = await _context.AbsenceExcuses.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.Status == AbsenceExcuseStatus.Pending, cancellationToken)
+            .ConfigureAwait(false);
+
+        var requestedGatePasses = await _context.GatePasses.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.Status == GatePassStatus.Requested, cancellationToken)
+            .ConfigureAwait(false);
+
+        var activeEntryPermits = await _context.ClassroomEntryPermits.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.ValidFrom <= now && now < x.ValidUntil
+                && (x.Status == ClassroomEntryPermitStatus.Issued
+                    || x.Status == ClassroomEntryPermitStatus.AcknowledgedByTeacher), cancellationToken)
+            .ConfigureAwait(false);
+
+        var pendingBehaviorNotices = await _context.BehaviorIncidents.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.GuardianDispatchDecision == GuardianDispatchDecision.PendingOfficerDecision,
+                cancellationToken).ConfigureAwait(false);
+
+        var pendingAcademicNotices = await _context.AcademicConcerns.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.GuardianDispatchDecision == GuardianDispatchDecision.PendingOfficerDecision,
+                cancellationToken).ConfigureAwait(false);
+
+        var openReferrals = await _context.StudentReferrals.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.Status != StudentReferralStatus.Resolved
+                && x.Status != StudentReferralStatus.Closed, cancellationToken)
+            .ConfigureAwait(false);
+
+        var unassignedReferrals = await _context.StudentReferrals.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.Status == StudentReferralStatus.Open
+                && x.AssignedSocialWorkerUserId == null, cancellationToken)
+            .ConfigureAwait(false);
+
+        var automationReviews = await _context.GuardianSummons.AsNoTracking()
+            .CountAsync(x => x.SchoolId == schoolId && !x.IsDeleted && x.RequiresOfficerReview,
+                cancellationToken).ConfigureAwait(false);
+
+        var unreadOfficerThreads = await _context.MessageReceipts.AsNoTracking()
+            .Where(x => x.SchoolId == schoolId
+                && x.RecipientUserId == officerUserId
+                && x.ReadAt == null
+                && x.DeliveryState == MessageDeliveryState.Delivered
+                && x.ConversationMessage.ConversationThread.SchoolId == schoolId
+                && !x.ConversationMessage.ConversationThread.IsDeleted
+                && x.ConversationMessage.ConversationThread.ThreadType == ConversationThreadType.GuardianStudentAffairs)
+            .Select(x => x.ConversationMessage.ConversationThreadId)
+            .Distinct()
+            .CountAsync(cancellationToken).ConfigureAwait(false);
+
+        var queues = new List<DashboardCountDto>
+        {
+            Queue("PendingExcuses", "أعذار غياب قيد المراجعة", pendingExcuses),
+            Queue("RequestedGatePasses", "طلبات خروج قيد المراجعة", requestedGatePasses),
+            Queue("ActiveEntryPermits", "تصاريح دخول صفية نشطة", activeEntryPermits),
+            Queue("PendingBehaviorNotices", "إشعارات سلوكية قيد الاعتماد", pendingBehaviorNotices),
+            Queue("PendingAcademicNotices", "إشعارات أكاديمية قيد الاعتماد", pendingAcademicNotices),
+            Queue("OpenReferrals", "إحالات مفتوحة", openReferrals),
+            Queue("UnassignedReferrals", "إحالات غير مسندة", unassignedReferrals),
+            Queue("AutomationReviews", "مراجعات أثر الأتمتة", automationReviews),
+            Queue("UnreadOfficerThreads", "محادثات غير مقروءة", unreadOfficerThreads)
+        };
+
+        return new OfficerStudentAffairsDashboardDto(queues, Array.Empty<DashboardCountDto>());
+
+        static DashboardCountDto Queue(string code, string label, int count) =>
+            new(code, label, count, count > 0 ? "warning" : "info");
     }
 
     public async Task<SocialWorkerStudentAffairsDashboardDto> GetSocialWorkerDashboardAsync(

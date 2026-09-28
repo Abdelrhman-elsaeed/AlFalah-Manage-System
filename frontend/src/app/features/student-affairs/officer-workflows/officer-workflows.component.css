@@ -1,0 +1,25 @@
+:host { display: block; }
+.page { max-width: 1440px; margin: 0 auto; padding: 1.5rem; color: var(--text-color); }
+header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1rem; }
+h1 { margin: .25rem 0; font-size: clamp(1.6rem, 3vw, 2.35rem); }
+header p { margin: 0; color: var(--text-color-secondary); }
+.eyebrow { color: var(--primary-color); font-weight: 700; }
+.form-card, .table-card, .state { display: block; margin-bottom: 1rem; }
+.workflow-form { display: grid; grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(180px, 1fr)) auto; gap: 1rem; align-items: end; margin-top: 1rem; }
+label { display: grid; gap: .4rem; font-weight: 600; }
+input, textarea, :host ::ng-deep .p-dropdown { width: 100%; }
+.search-row { display: flex; gap: .5rem; }
+.search-row input { flex: 1; }
+.lookup-results { display: grid; max-height: 15rem; overflow: auto; margin-top: .5rem; border: 1px solid var(--surface-border); border-radius: .65rem; }
+.lookup-results button { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem; border: 0; border-bottom: 1px solid var(--surface-border); background: var(--surface-card); color: inherit; cursor: pointer; text-align: right; }
+.lookup-results button:hover { background: var(--surface-hover); }
+.selected { padding: .7rem; background: var(--primary-50); border-radius: .65rem; }
+.table-card, .action-panel, .state { background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: 1rem; padding: 1rem; }
+td small { display: block; color: var(--text-color-secondary); margin-top: .2rem; }
+.action-panel { margin-top: 1rem; display: grid; gap: 1rem; }
+.action-panel > div { display: flex; justify-content: flex-end; gap: .5rem; }
+.type-picker { max-width: 24rem; }
+.record-filters { display: grid; grid-template-columns: minmax(220px, .7fr) minmax(280px, 1.3fr); gap: 1rem; align-items: end; }
+.error { color: var(--red-700); background: var(--red-50); }
+.empty { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+@media (max-width: 900px) { .workflow-form, .record-filters { grid-template-columns: 1fr; } header { flex-direction: column; } .search-row { flex-direction: column; } }

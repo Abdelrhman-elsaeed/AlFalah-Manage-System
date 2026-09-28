@@ -71,7 +71,18 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
         int schoolId, StudentAffairsPageQuery query, CancellationToken cancellationToken)
     {
         var source = _context.Notifications.AsNoTracking().Where(notification =>
-            notification.SchoolId == schoolId && notification.RequiresApproval && !notification.IsSuppressed);
+            notification.SchoolId == schoolId
+            && notification.RequiresApproval
+            && !notification.IsSuppressed
+            && (notification.RelatedEntityType == nameof(BehaviorIncident)
+                || notification.RelatedEntityType == nameof(AcademicConcern)));
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim();
+            source = source.Where(notification => notification.Message.Contains(search)
+                || notification.Title.Contains(search)
+                || (notification.RelatedEntityId != null && notification.RelatedEntityId.Contains(search)));
+        }
         var page = Math.Max(1, query.Page);
         var pageSize = Math.Clamp(query.PageSize, 1, 100);
         var total = await source.CountAsync(cancellationToken).ConfigureAwait(false);
@@ -97,7 +108,9 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
         int schoolId, int notificationId, CancellationToken cancellationToken) =>
         _context.Notifications.SingleOrDefaultAsync(notification =>
             notification.Id == notificationId && notification.SchoolId == schoolId
-            && notification.RequiresApproval && !notification.IsSuppressed,
+            && notification.RequiresApproval && !notification.IsSuppressed
+            && (notification.RelatedEntityType == nameof(BehaviorIncident)
+                || notification.RelatedEntityType == nameof(AcademicConcern)),
             cancellationToken);
 
     public void SetExpectedRowVersion(Notification notification, byte[] rowVersion) =>

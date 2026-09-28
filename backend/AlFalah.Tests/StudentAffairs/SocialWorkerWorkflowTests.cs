@@ -111,6 +111,83 @@ public sealed class SocialWorkerWorkflowTests
     }
 
     [Fact]
+    public async Task AssignReferralCommand_WithPermissionButWrongRole_IsDenied()
+    {
+        var referral = NewReferral(StudentReferralStatus.Open);
+        var repository = new FakeReferralRepository { Referral = referral, IsSocialWorker = true };
+        var handler = new AssignReferralCommandHandler(
+            repository,
+            UserWithRole(RoleNames.Secretary, PermissionNames.ReferralAssign),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new AssignReferralCommand(
+            referral.Id,
+            new AssignReferralRequestDto("worker-1", null, Convert.ToBase64String(referral.RowVersion))),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        referral.AssignedSocialWorkerUserId.Should().BeNull();
+        repository.AddedActions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AssignReferralCommand_WhenCaseAlreadyStarted_DoesNotChangeOwnerOrState()
+    {
+        var referral = NewReferral(StudentReferralStatus.InProgress);
+        referral.AssignedSocialWorkerUserId = "worker-current";
+        var repository = new FakeReferralRepository { Referral = referral, IsSocialWorker = true };
+        var handler = new AssignReferralCommandHandler(
+            repository,
+            UserWithRole(RoleNames.StudentAffairsOfficer, PermissionNames.ReferralAssign),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new AssignReferralCommand(
+            referral.Id,
+            new AssignReferralRequestDto("worker-other", null, Convert.ToBase64String(referral.RowVersion))),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        referral.Status.Should().Be(StudentReferralStatus.InProgress);
+        referral.AssignedSocialWorkerUserId.Should().Be("worker-current");
+        repository.AddedActions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAssignableSocialWorkers_ReturnsOnlyRepositoryScopedOptionsForOfficer()
+    {
+        var repository = new FakeReferralRepository();
+        var handler = new GetAssignableSocialWorkersQueryHandler(
+            repository,
+            UserWithRole(RoleNames.StudentAffairsOfficer, PermissionNames.ReferralAssign));
+
+        var result = await handler.Handle(new GetAssignableSocialWorkersQuery("Social"), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().ContainSingle().Which.UserId.Should().Be("worker-1");
+        repository.SchoolIds.Should().OnlyContain(id => id == 42);
+    }
+
+    [Fact]
+    public async Task CreateReferralCommand_ReplayingSameIdempotencyKey_ReturnsExistingReferral()
+    {
+        var repository = new FakeReferralRepository { Enrollment = new ReferralEnrollmentSnapshot(4, 12, "1/A") };
+        var handler = new CreateReferralCommandHandler(
+            repository,
+            UserWithRole(RoleNames.StudentAffairsOfficer, PermissionNames.ReferralCreate),
+            new FixedTimeProvider(Now));
+        var command = new CreateReferralCommand(
+            new CreateReferralRequestDto(17, "Repeated absence", ReferralSourceType.Absence, ReferralPriority.High),
+            "same-key");
+
+        var first = await handler.Handle(command, CancellationToken.None);
+        var second = await handler.Handle(command, CancellationToken.None);
+
+        first.IsSuccess.Should().BeTrue();
+        second.IsSuccess.Should().BeTrue();
+        repository.AddCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task AcceptReferralCommand_MovesStatusToInProgress()
     {
         var referral = NewReferral(StudentReferralStatus.Assigned);
@@ -344,6 +421,7 @@ public sealed class SocialWorkerWorkflowTests
         public bool IsAssigned { get; init; } = true;
         public List<int> SchoolIds { get; } = new();
         public byte[]? ExpectedRowVersion { get; private set; }
+        public int AddCount { get; private set; }
 
         public Task<PagedResult<ReferralDto>> GetReferralsAsync(
             int schoolId,
@@ -382,6 +460,18 @@ public sealed class SocialWorkerWorkflowTests
                 Convert.ToBase64String(r.RowVersion)));
         }
 
+        public Task<ReferralIdempotencySnapshot?> GetByIdempotencyKeyAsync(
+            int schoolId,
+            string createdByUserId,
+            string idempotencyKey,
+            CancellationToken cancellationToken)
+        {
+            var referral = AddedReferral;
+            return Task.FromResult(referral?.IdempotencyKey == idempotencyKey
+                ? new ReferralIdempotencySnapshot(referral.Id, referral.IdempotencyPayloadHash!)
+                : null);
+        }
+
         public Task<StudentReferral?> GetForUpdateAsync(
             int schoolId,
             int referralId,
@@ -410,6 +500,16 @@ public sealed class SocialWorkerWorkflowTests
             return Task.FromResult(IsSocialWorker);
         }
 
+        public Task<IReadOnlyList<AssignableSocialWorkerDto>> GetAssignableSocialWorkersAsync(
+            int schoolId,
+            string? search,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<IReadOnlyList<AssignableSocialWorkerDto>>(
+                new[] { new AssignableSocialWorkerDto("worker-1", "Social Worker") });
+        }
+
         public Task<bool> IsAssignedToAsync(
             int schoolId,
             int referralId,
@@ -422,6 +522,7 @@ public sealed class SocialWorkerWorkflowTests
 
         public void Add(StudentReferral referral)
         {
+            AddCount++;
             referral.Id = 101;
             referral.RowVersion = new byte[] { 1, 2, 3 };
             AddedReferral = referral;

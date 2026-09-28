@@ -15,30 +15,40 @@ public sealed class ReferralsController : StudentAffairsControllerBase
     public async Task<IActionResult> Create([FromBody] CreateReferralRequestDto request, [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralCreate, PermissionNames.TeacherQuickActionView)) return PermissionDenied();
-        var key = string.IsNullOrWhiteSpace(idempotencyKey) ? Guid.NewGuid().ToString() : idempotencyKey;
-        var response = await Mediator.Send(new CreateReferralCommand(request, key), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        var response = await Mediator.Send(
+            new CreateReferralCommand(request, idempotencyKey ?? string.Empty),
+            cancellationToken);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] ReferralListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetReferralsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetReferralsQuery(query), cancellationToken));
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetReferralByIdQuery(id), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetReferralByIdQuery(id), cancellationToken));
+    }
+
+    [HttpGet("assignable-social-workers")]
+    public async Task<IActionResult> AssignableSocialWorkers(
+        [FromQuery] string? search,
+        CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.ReferralAssign)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetAssignableSocialWorkersQuery(search), cancellationToken));
     }
 
     [HttpPost("{id:int}/assign")]
     public async Task<IActionResult> Assign(int id, [FromBody] AssignReferralRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralAssign)) return PermissionDenied();
-        return Ok(await Mediator.Send(new AssignReferralCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new AssignReferralCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/accept")]

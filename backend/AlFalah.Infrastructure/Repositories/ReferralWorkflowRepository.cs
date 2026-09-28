@@ -122,6 +122,7 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
                     })
                     .ToList(),
                 r.ResolutionNotes,
+                r.RecommendedActions,
                 r.CreatedAt,
                 r.RowVersion
             })
@@ -174,7 +175,8 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
                 actions,
                 p.ResolutionNotes,
                 p.CreatedAt,
-                Convert.ToBase64String(p.RowVersion));
+                Convert.ToBase64String(p.RowVersion),
+                p.RecommendedActions);
         }).ToList();
 
         return new PagedResult<ReferralDto>
@@ -238,6 +240,7 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
                     })
                     .ToList(),
                 r.ResolutionNotes,
+                r.RecommendedActions,
                 r.CreatedAt,
                 r.RowVersion
             })
@@ -290,8 +293,21 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
             actions,
             row.ResolutionNotes,
             row.CreatedAt,
-            Convert.ToBase64String(row.RowVersion));
+            Convert.ToBase64String(row.RowVersion),
+            row.RecommendedActions);
     }
+
+    public Task<ReferralIdempotencySnapshot?> GetByIdempotencyKeyAsync(
+        int schoolId,
+        string createdByUserId,
+        string idempotencyKey,
+        CancellationToken cancellationToken) =>
+        _context.StudentReferrals.AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && !x.IsDeleted
+                && x.CreatedByUserId == createdByUserId
+                && x.IdempotencyKey == idempotencyKey)
+            .Select(x => new ReferralIdempotencySnapshot(x.Id, x.IdempotencyPayloadHash!))
+            .FirstOrDefaultAsync(cancellationToken);
 
     public Task<StudentReferral?> GetForUpdateAsync(
         int schoolId,
@@ -329,17 +345,44 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
         int schoolId,
         string socialWorkerUserId,
         CancellationToken cancellationToken) =>
-        _context.Users
-            .AsNoTracking()
-            .AnyAsync(u => u.Id == socialWorkerUserId
-                && u.IsActive
-                && (_context.UserSchoolRoles.Any(usr => usr.SchoolId == schoolId
-                    && usr.UserId == socialWorkerUserId
-                    && usr.IsActive
-                    && usr.Role.Name == RoleNames.SocialWorker)
-                    || _context.UserRoles.Any(ur => ur.UserId == socialWorkerUserId
-                        && _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == RoleNames.SocialWorker))),
-                cancellationToken);
+        _context.UserSchoolRoles.AsNoTracking().AnyAsync(assignment =>
+            assignment.SchoolId == schoolId
+            && assignment.UserId == socialWorkerUserId
+            && assignment.IsActive
+            && !assignment.IsDeleted
+            && assignment.User.IsActive
+            && assignment.Role.Name == RoleNames.SocialWorker,
+            cancellationToken);
+
+    public async Task<IReadOnlyList<AssignableSocialWorkerDto>> GetAssignableSocialWorkersAsync(
+        int schoolId,
+        string? search,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.UserSchoolRoles.AsNoTracking()
+            .Where(assignment => assignment.SchoolId == schoolId
+                && assignment.IsActive
+                && !assignment.IsDeleted
+                && assignment.User.IsActive
+                && assignment.Role.Name == RoleNames.SocialWorker);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(assignment => assignment.User.FirstName.Contains(term)
+                || assignment.User.LastName.Contains(term)
+                || assignment.User.UserName!.Contains(term));
+        }
+
+        return await query
+            .OrderBy(assignment => assignment.User.FirstName)
+            .ThenBy(assignment => assignment.User.LastName)
+            .Select(assignment => new AssignableSocialWorkerDto(
+                assignment.UserId,
+                (assignment.User.FirstName + " " + assignment.User.LastName).Trim()))
+            .Distinct()
+            .Take(25)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+    }
 
     public Task<bool> IsAssignedToAsync(
         int schoolId,
@@ -351,7 +394,7 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
             .AnyAsync(r => r.Id == referralId
                 && r.SchoolId == schoolId
                 && !r.IsDeleted
-                && (r.AssignedSocialWorkerUserId == null || r.AssignedSocialWorkerUserId == socialWorkerUserId),
+                && r.AssignedSocialWorkerUserId == socialWorkerUserId,
                 cancellationToken);
 
     public void Add(StudentReferral referral) => _context.StudentReferrals.Add(referral);
@@ -370,6 +413,10 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
         catch (DbUpdateConcurrencyException exception)
         {
             throw new ReferralConcurrencyException(exception);
+        }
+        catch (DbUpdateException exception)
+        {
+            throw new ReferralIdempotencyConflictException(exception);
         }
     }
 }

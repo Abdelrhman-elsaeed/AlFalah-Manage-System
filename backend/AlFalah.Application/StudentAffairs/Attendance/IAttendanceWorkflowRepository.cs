@@ -86,6 +86,11 @@ public interface IAttendanceWorkflowRepository
         int attendanceId,
         CancellationToken cancellationToken);
 
+    Task<PagedResult<OfficerAbsenceExcuseQueueItemDto>> GetPendingExcusesAsync(
+        int schoolId,
+        OfficerAbsenceExcuseQueueQuery query,
+        CancellationToken cancellationToken);
+
     Task<PagedResult<StudentAttendanceRecordDto>> GetAttendanceRecordsAsync(
         int schoolId,
         StudentAttendanceRecordsQuery query,

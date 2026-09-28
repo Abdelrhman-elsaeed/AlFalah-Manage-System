@@ -31,10 +31,32 @@ public sealed class GetReferralsQueryHandler
         if (!_currentUser.HasPermission(PermissionNames.ReferralView))
             return ApiResponse<PagedResult<ReferralDto>>.Fail(ReferralHandlerSupport.PermissionDenied);
 
+        var isOfficer = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer);
+        var isSocialWorker = _currentUser.IsInRole(RoleNames.SocialWorker);
+        if (!isOfficer && !isSocialWorker)
+            return ApiResponse<PagedResult<ReferralDto>>.Fail(ReferralHandlerSupport.PermissionDenied);
+
+        if (isSocialWorker)
+        {
+            request.Query.AssignedWorkerUserId = _currentUser.UserId;
+            request.Query.IsAssigned = true;
+        }
+
         var result = await _repository.GetReferralsAsync(
             schoolId.Value,
             request.Query,
             cancellationToken).ConfigureAwait(false);
+
+        if (isOfficer)
+        {
+            result.Items = result.Items
+                .Select(item => item with
+                {
+                    Actions = Array.Empty<StudentCaseActionDto>(),
+                    ResolutionNotes = null
+                })
+                .ToList();
+        }
 
         return ApiResponse<PagedResult<ReferralDto>>.Success(result);
     }

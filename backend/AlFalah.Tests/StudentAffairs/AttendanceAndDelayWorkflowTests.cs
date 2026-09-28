@@ -646,6 +646,16 @@ public sealed class AttendanceAndDelayWorkflowTests
             });
         }
 
+        public Task<PagedResult<OfficerAbsenceExcuseQueueItemDto>> GetPendingExcusesAsync(
+            int schoolId, OfficerAbsenceExcuseQueueQuery query, CancellationToken cancellationToken) =>
+            Task.FromResult(new PagedResult<OfficerAbsenceExcuseQueueItemDto>
+            {
+                Items = new List<OfficerAbsenceExcuseQueueItemDto>(),
+                TotalCount = 0,
+                Page = query.PageNumber,
+                PageSize = query.PageSize
+            });
+
         public Task<PagedResult<StudentAttendanceRecordDto>> GetAttendanceRecordsAsync(
             int schoolId, StudentAttendanceRecordsQuery query, CancellationToken cancellationToken)
         {

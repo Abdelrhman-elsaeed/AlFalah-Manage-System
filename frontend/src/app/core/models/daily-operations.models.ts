@@ -187,6 +187,7 @@ export interface AbsenceExcuseDto {
   readonly reviewReason: string | null;
   readonly attachments: readonly AttachmentDto[];
   readonly rowVersion: string;
+  readonly guardianNotes?: string | null;
 }
 
 export interface StudentAttendanceRecordsQuery {
@@ -213,6 +214,8 @@ export interface OfficerExcuseQueueItem {
   readonly attendance: StudentAttendanceRecordDto;
   readonly excuse: AbsenceExcuseDto;
 }
+
+export type OfficerExcuseQueuePage = PagedResult<OfficerExcuseQueueItem>;
 
 export type ClassroomPage = PagedResult<ClassroomDto>;
 export type StudentPage = PagedResult<StudentListItemDto>;

@@ -23,14 +23,14 @@ public sealed class AcademicConcernsController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] AcademicConcernListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AcademicConcernView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Academic Concern Review");
+        return FromResponse(await Mediator.Send(new GetAcademicConcernsQuery(query), cancellationToken));
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.AcademicConcernView)) return PermissionDenied();
-        return FeatureNotImplemented("W6 Academic Concern Review");
+        return FromResponse(await Mediator.Send(new GetAcademicConcernByIdQuery(id), cancellationToken));
     }
 
     [HttpPost("{id:int}/dispatch-decision")]

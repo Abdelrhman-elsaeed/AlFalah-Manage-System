@@ -36,7 +36,7 @@ public sealed class StudentAffairsRequestContractTests
 
         unsafeRequests.Should().BeEmpty(
             "a public request without a handler must be explicitly contained and assigned to a later workstream");
-        DeferredStudentAffairsRequests.Workstreams.Should().HaveCount(25,
-            "the five W3 Classroom Entry Permit contracts now have executable handlers");
+        DeferredStudentAffairsRequests.Workstreams.Should().HaveCount(15,
+            "W5 operational read contracts now have executable, officer-scoped handlers");
     }
 }

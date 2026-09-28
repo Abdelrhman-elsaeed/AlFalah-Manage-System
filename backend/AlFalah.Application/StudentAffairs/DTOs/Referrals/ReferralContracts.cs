@@ -23,6 +23,7 @@ public sealed record ReopenReferralRequestDto(string Reason, string RowVersion);
 
 public sealed record ReferralSourceSnapshotDto(ReferralSourceType SourceType, int? SourceEntityId, int? CountSnapshot, int? ThresholdSnapshot);
 public sealed record StudentCaseActionDto(int Id, StudentCaseActionType ActionType, string Description, ActorSummaryDto Actor, DateTimeOffset ActionAt, string? Result);
+public sealed record AssignableSocialWorkerDto(string UserId, string DisplayName);
 
 public sealed record ReferralDto(
     int Id,
@@ -35,7 +36,8 @@ public sealed record ReferralDto(
     IReadOnlyList<StudentCaseActionDto> Actions,
     string? ResolutionNotes,
     DateTimeOffset CreatedAt,
-    string RowVersion);
+    string RowVersion,
+    string? ReferralReason = null);
 
 public sealed record CreateReferralCommand(CreateReferralRequestDto Request, string IdempotencyKey) : IRequest<ApiResponse<ReferralDto>>;
 public sealed record GetReferralsQuery(ReferralListQuery Query) : IRequest<ApiResponse<PagedResult<ReferralDto>>>;
@@ -45,3 +47,5 @@ public sealed record AcceptReferralCommand(int ReferralId, AcceptReferralRequest
 public sealed record AddReferralActionCommand(int ReferralId, AddReferralActionRequestDto Request) : IRequest<ApiResponse<ReferralDto>>;
 public sealed record ResolveReferralCommand(int ReferralId, ResolveReferralRequestDto Request) : IRequest<ApiResponse<ReferralDto>>;
 public sealed record ReopenReferralCommand(int ReferralId, ReopenReferralRequestDto Request) : IRequest<ApiResponse<ReferralDto>>;
+public sealed record GetAssignableSocialWorkersQuery(string? Search)
+    : IRequest<ApiResponse<IReadOnlyList<AssignableSocialWorkerDto>>>;
