@@ -14,6 +14,9 @@ import {
   CloseConversationRequestDto,
   ConversationDto,
   ConversationMessageDto,
+  CreateConversationRequestDto,
+  GuardianStaffOptionDto,
+  GuardianTeacherOptionDto,
   MarkConversationReadRequestDto,
   MarkSummonImprovedRequestDto,
   OfficeHoursAggregateDto,
@@ -121,6 +124,15 @@ export class Phase5Service {
       context: this.callerHandlesErrors,
       params: this.params(query)
     });
+  }
+  getGuardianTeacherOptions(studentId: number): Observable<ApiResponse<readonly GuardianTeacherOptionDto[]>> {
+    return this.get<readonly GuardianTeacherOptionDto[]>(`conversations/recipient-options/teachers?studentId=${studentId}`);
+  }
+  getGuardianStaffOptions(studentId: number): Observable<ApiResponse<readonly GuardianStaffOptionDto[]>> {
+    return this.get<readonly GuardianStaffOptionDto[]>(`conversations/recipient-options/staff?studentId=${studentId}`);
+  }
+  createConversation(request: CreateConversationRequestDto): Observable<ApiResponse<ConversationDto>> {
+    return this.post<ConversationDto>('conversations', request);
   }
   getConversation(id: number): Observable<ApiResponse<ConversationDto>> { return this.get<ConversationDto>(`conversations/${id}`); }
   getMessages(id: number, pageSize: number, beforeMessageId?: number): Observable<ApiResponse<PagedResult<ConversationMessageDto>>> {

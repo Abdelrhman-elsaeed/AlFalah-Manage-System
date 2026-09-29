@@ -33,9 +33,17 @@ public sealed class CancelGatePassCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.GatePassCancelOwn)
-            && !_currentUser.HasPermission(PermissionNames.GatePassOverride))
+        var isGuardian = _currentUser.IsInRole(RoleNames.Guardian);
+        if (isGuardian
+            ? !_currentUser.HasPermission(PermissionNames.GatePassCancelOwn)
+            : !_currentUser.HasPermission(PermissionNames.GatePassOverride))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
+
+        if (isGuardian
+            && (!await _repository.IsActiveGuardianAsync(schoolId.Value, userId, cancellationToken).ConfigureAwait(false)
+                || !await _repository.IsOwnedByGuardianAsync(
+                    schoolId.Value, command.GatePassId, userId, cancellationToken).ConfigureAwait(false)))
+            return ApiResponse<GatePassDto>.Fail("Gate pass was not found");
 
         var gatePass = await _repository.GetForUpdateAsync(
             schoolId.Value,
@@ -48,7 +56,11 @@ public sealed class CancelGatePassCommandHandler
         if (gatePass.Status == GatePassStatus.Cancelled)
             return ApiResponse<GatePassDto>.Fail("Gate pass is already cancelled");
 
-        if (gatePass.Status != GatePassStatus.Requested
+        if (isGuardian && gatePass.Status != GatePassStatus.Requested)
+            return ApiResponse<GatePassDto>.Fail("A guardian can only cancel a requested gate pass");
+
+        if (!isGuardian
+            && gatePass.Status != GatePassStatus.Requested
             && gatePass.Status != GatePassStatus.Approved
             && gatePass.Status != GatePassStatus.SecurityAcknowledged)
             return ApiResponse<GatePassDto>.Fail("Gate pass cannot be cancelled from its current state");

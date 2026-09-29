@@ -566,21 +566,30 @@ public sealed class SocialWorkerWorkflowTests
             });
         }
 
-        public Task<PagedResult<SummonDto>> GetMySummonsAsync(
+        public Task<bool> IsActiveGuardianAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(true);
+
+        public Task<PagedResult<GuardianSummonDto>> GetMySummonsAsync(
             int schoolId,
             string guardianUserId,
+            DateOnly onDate,
             SummonListQuery query,
             CancellationToken cancellationToken)
         {
             SchoolIds.Add(schoolId);
-            return Task.FromResult(new PagedResult<SummonDto>
+            return Task.FromResult(new PagedResult<GuardianSummonDto>
             {
-                Items = new List<SummonDto>(),
+                Items = new List<GuardianSummonDto>(),
                 TotalCount = 0,
                 Page = 1,
                 PageSize = 10
             });
         }
+
+        public Task<GuardianSummonDto?> GetMySummonAsync(
+            int schoolId, string guardianUserId, int summonId, DateOnly onDate,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<GuardianSummonDto?>(null);
 
         public Task<SummonDto?> GetDtoAsync(
             int schoolId,

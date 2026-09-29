@@ -35,6 +35,11 @@ public sealed record ConversationDto(int Id, StudentSummaryDto Student, string S
 public sealed record ConversationMessageDto(long Id, int ConversationId, ActorSummaryDto Sender, string Body, long? ReplyToMessageId, DateTimeOffset CreatedAt, MessageDeliveryState DeliveryState, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt, IReadOnlyList<NotificationDeliveryDto> Receipts);
 public sealed record SendMessageResultDto(ConversationMessageDto Message, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt);
 public sealed record GuardianTeacherOptionDto(int InstructorProfileId, string DisplayName, string Subject);
+public sealed record GuardianStaffOptionDto(
+    string UserId,
+    string DisplayName,
+    string Role,
+    ConversationThreadType ThreadType);
 
 public sealed record OfficeHourSlotDto(
     string StableKey,
@@ -78,6 +83,7 @@ public sealed record SendConversationMessageCommand(int ConversationId, SendMess
 public sealed record MarkConversationReadCommand(int ConversationId, MarkConversationReadRequestDto Request) : IRequest<ApiResponse<bool>>;
 public sealed record CloseConversationCommand(int ConversationId, CloseConversationRequestDto Request) : IRequest<ApiResponse<ConversationDto>>;
 public sealed record GetGuardianTeacherOptionsQuery(int StudentId) : IRequest<ApiResponse<IReadOnlyList<GuardianTeacherOptionDto>>>;
+public sealed record GetGuardianStaffOptionsQuery(int StudentId) : IRequest<ApiResponse<IReadOnlyList<GuardianStaffOptionDto>>>;
 public sealed record GetEligibleOfficeHoursQuery : IRequest<ApiResponse<OfficeHoursAggregateDto>>;
 public sealed record GetMyOfficeHoursQuery : IRequest<ApiResponse<OfficeHoursAggregateDto>>;
 public sealed record UpdateMyOfficeHoursCommand(UpdateMyOfficeHoursRequestDto Request) : IRequest<ApiResponse<OfficeHoursAggregateDto>>;

@@ -1,0 +1,8 @@
+:host { display: block; }
+.guardian-activity { width: min(1180px, 100%); margin-inline: auto; padding: var(--space-6); }
+header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-5); }
+header h1, header p { margin: 0; } header p { color: var(--brand-700); font-weight: 700; }
+.panel, .state, .error { margin-bottom: var(--space-4); padding: var(--space-4); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.panel h2 { margin-top: 0; } .state { display: grid; place-items: center; gap: var(--space-2); min-height: 220px; }
+.error { color: var(--danger); background: var(--danger-bg); } dl { display: grid; gap: var(--space-3); } dl div { display: grid; grid-template-columns: 130px 1fr; } dt { color: var(--text-muted); } dd { margin: 0; }
+@media (max-width: 680px) { .guardian-activity { padding: var(--space-4); } header { align-items: flex-start; flex-direction: column; } dl div { grid-template-columns: 1fr; } }

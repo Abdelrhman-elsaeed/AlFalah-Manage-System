@@ -252,6 +252,27 @@ export interface SendMessageResultDto {
   readonly disposition: OfficeHoursDisposition;
   readonly nextEligibleSendAt: string | null;
 }
+export interface GuardianTeacherOptionDto {
+  readonly instructorProfileId: number;
+  readonly displayName: string;
+  readonly subject: string;
+}
+export interface GuardianStaffOptionDto {
+  readonly userId: string;
+  readonly displayName: string;
+  readonly role: string;
+  readonly threadType: ConversationThreadType;
+}
+export interface CreateConversationRequestDto {
+  readonly studentId: number;
+  readonly threadType: ConversationThreadType;
+  readonly targetInstructorProfileId: number | null;
+  readonly targetStaffRole: string | null;
+  readonly targetStaffUserId: string | null;
+  readonly subject: string;
+  readonly initialBody: string;
+  readonly idempotencyKey: string;
+}
 export interface MarkConversationReadRequestDto { readonly throughMessageId: number; }
 export interface CloseConversationRequestDto { readonly reason: string; readonly rowVersion: string; }
 

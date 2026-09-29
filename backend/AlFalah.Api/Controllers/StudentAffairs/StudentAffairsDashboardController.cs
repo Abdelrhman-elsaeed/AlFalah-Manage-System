@@ -43,7 +43,7 @@ public sealed class StudentAffairsDashboardController : StudentAffairsController
     public async Task<IActionResult> Guardian(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentAffairsDashboardGuardian)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetGuardianStudentAffairsDashboardQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetGuardianStudentAffairsDashboardQuery(), cancellationToken));
     }
 
     [HttpGet("school-oversight")]

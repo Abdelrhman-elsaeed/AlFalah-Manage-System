@@ -12,6 +12,8 @@
 .inbox h2 { margin: 0; color: var(--text-strong); font-size: 1.05rem; }
 .inbox header div span { display: grid; width: 1.7rem; height: 1.7rem; place-items: center; color: white; background: var(--brand-600); border-radius: 999px; font-size: .78rem; }
 .new-thread-note { display: flex; gap: var(--space-2); margin: var(--space-3); padding: var(--space-2); color: var(--info); background: var(--info-bg); border-radius: var(--radius-md); font-size: .75rem; }
+.new-thread-actions { display: grid; gap: var(--space-2); padding: var(--space-3); border-bottom: 1px solid var(--border); }
+.new-thread-actions .new-thread-note { margin: 0; }
 .thread-list { display: grid; max-height: 620px; overflow-y: auto; }
 .thread-item { display: grid; gap: var(--space-2); width: 100%; padding: var(--space-4); color: var(--text); background: transparent; border: 0; border-bottom: 1px solid var(--border); cursor: pointer; text-align: start; font: inherit; }
 .thread-item:hover, .thread-item.active { background: var(--brand-50); }
@@ -48,5 +50,10 @@
 .send-error { color: var(--danger); background: var(--danger-bg); }
 .conversation-empty.small { min-height: 160px; }
 .field { display: grid; gap: var(--space-2); color: var(--text-strong); font-weight: 700; }
+.new-thread-form { display: grid; gap: var(--space-4); }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.form-grid .wide { grid-column: 1 / -1; }
+.form-grid input, .form-grid textarea { width: 100%; }
+:host ::ng-deep .form-grid .p-dropdown { width: 100%; }
 .dialog-actions { justify-content: flex-end; margin-top: var(--space-4); }
-@media (max-width: 860px) { .messages-page { padding: var(--space-4); } .page-header { align-items: stretch; flex-direction: column; } .chat-shell { grid-template-columns: 1fr; } .inbox { border-inline-end: 0; border-bottom: 1px solid var(--border); } .thread-list { max-height: 300px; } .message { width: 90%; } }
+@media (max-width: 860px) { .messages-page { padding: var(--space-4); } .page-header { align-items: stretch; flex-direction: column; } .chat-shell { grid-template-columns: 1fr; } .inbox { border-inline-end: 0; border-bottom: 1px solid var(--border); } .thread-list { max-height: 300px; } .message { width: 90%; } .form-grid { grid-template-columns: 1fr; } }

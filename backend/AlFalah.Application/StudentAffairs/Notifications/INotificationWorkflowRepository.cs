@@ -8,6 +8,8 @@ namespace AlFalah.Application.StudentAffairs.Notifications;
 
 public interface INotificationWorkflowRepository
 {
+    Task<bool> IsActiveGuardianAsync(int schoolId, string userId, CancellationToken cancellationToken);
+
     Task<PagedResult<StudentAffairsNotificationDto>> GetOwnAsync(
         int schoolId,
         string userId,

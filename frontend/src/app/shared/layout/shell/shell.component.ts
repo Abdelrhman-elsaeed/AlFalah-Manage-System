@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { GuardianSelfServiceService } from '../../../core/services/guardian-self-service.service';
 import { StudentAnalyzerService } from '../../../core/services/student-analyzer.service';
 import { VisitsV2Service } from '../../../core/services/visits-v2.service';
 import { roleLandingFor } from '../../../core/utils/role-landing';
@@ -146,6 +147,15 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         permissions: ['Noor.Export']
       },
       {
+        labelKey: 'أبنائي',
+        icon: 'pi pi-users',
+        route: '/student-affairs/guardian',
+        roles: ['Guardian'],
+        permissions: ['StudentAffairsDashboard.Guardian', 'Guardian.ViewLinkedStudents'],
+        requireAllPermissions: true,
+        exact: true
+      },
+      {
         labelKey: 'رفع عذر غياب',
         icon: 'pi pi-paperclip',
         route: '/student-affairs/guardian/excuses',
@@ -174,6 +184,21 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         route: '/student-affairs/gate-passes/mine/new',
         roles: ['Guardian'],
         permissions: ['GatePass.Request']
+      },
+      {
+        labelKey: 'التصاريح والاستدعاءات',
+        icon: 'pi pi-calendar-clock',
+        route: '/student-affairs/guardian/activity',
+        roles: ['Guardian'],
+        permissions: ['Guardian.ViewLinkedStudents', 'ClassroomEntryPermit.View'],
+        requireAllPermissions: true
+      },
+      {
+        labelKey: 'الإشعارات',
+        icon: 'pi pi-bell',
+        route: '/student-affairs/guardian/notifications',
+        roles: ['Guardian'],
+        permissions: ['Notification.ViewOwn']
       },
       {
         labelKey: 'مراجعة استئذانات الخروج',
@@ -304,6 +329,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
 })
 export class ShellComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly guardianSelfService = inject(GuardianSelfServiceService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly studentAnalyzer = inject(StudentAnalyzerService);
@@ -320,6 +346,7 @@ export class ShellComponent implements OnInit {
   readonly hasStudentAnalyzerAccess = signal(false);
   readonly visitsV2Enabled = signal(false);
   readonly ksaTime = signal<string>('');
+  readonly guardianUnreadNotifications = this.guardianSelfService.unreadNotifications;
   private clockInterval: ReturnType<typeof setInterval> | null = null;
 
   private readonly categories = SHELL_NAV_CATEGORIES;
@@ -412,13 +439,21 @@ export class ShellComponent implements OnInit {
       next: response => this.hasStudentAnalyzerAccess.set(!!response.data?.canAccess),
       error: () => this.hasStudentAnalyzerAccess.set(false)
     });
+    this.refreshGuardianUnread();
     this.expandActiveCategory(this.router.url);
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(event => {
       this.expandActiveCategory(event.urlAfterRedirects);
+      this.refreshGuardianUnread();
     });
+  }
+
+  navBadge(item: NavItem): number | null {
+    return item.route === '/student-affairs/guardian/notifications'
+      ? this.guardianUnreadNotifications() || null
+      : null;
   }
 
   private updateKsaTime(): void {
@@ -434,6 +469,11 @@ export class ShellComponent implements OnInit {
     } catch {
       this.ksaTime.set(new Date().toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' }));
     }
+  }
+
+  private refreshGuardianUnread(): void {
+    if (!this.authService.hasRole('Guardian') || !this.authService.hasPermission('Notification.ViewOwn')) return;
+    this.guardianSelfService.unreadCount().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
   }
 
   toggleSidebar(): void {

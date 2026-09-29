@@ -13,10 +13,20 @@ public interface ISummonWorkflowRepository
         SummonListQuery query,
         CancellationToken cancellationToken);
 
-    Task<PagedResult<SummonDto>> GetMySummonsAsync(
+    Task<bool> IsActiveGuardianAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken);
+
+    Task<PagedResult<GuardianSummonDto>> GetMySummonsAsync(
         int schoolId,
         string guardianUserId,
+        DateOnly onDate,
         SummonListQuery query,
+        CancellationToken cancellationToken);
+
+    Task<GuardianSummonDto?> GetMySummonAsync(
+        int schoolId,
+        string guardianUserId,
+        int summonId,
+        DateOnly onDate,
         CancellationToken cancellationToken);
 
     Task<SummonDto?> GetDtoAsync(

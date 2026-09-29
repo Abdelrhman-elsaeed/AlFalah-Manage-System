@@ -29,7 +29,12 @@ public sealed class GetMyGatePassesQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<PagedResult<GatePassDto>>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.GatePassViewOwn))
+        if (!_currentUser.IsInRole(RoleNames.Guardian)
+            || !_currentUser.HasPermission(PermissionNames.GatePassViewOwn))
+            return ApiResponse<PagedResult<GatePassDto>>.Fail(GatePassHandlerSupport.PermissionDenied);
+
+        if (!await _repository.IsActiveGuardianAsync(schoolId.Value, userId, cancellationToken)
+                .ConfigureAwait(false))
             return ApiResponse<PagedResult<GatePassDto>>.Fail(GatePassHandlerSupport.PermissionDenied);
 
         var result = await _repository.GetMyGatePassesAsync(

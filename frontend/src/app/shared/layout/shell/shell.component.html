@@ -138,6 +138,7 @@
                 tooltipPosition="left">
                 <i [class]="item.icon" class="shell-sidebar__icon"></i>
                 <span class="shell-sidebar__label">{{ item.labelKey | translate }}</span>
+                <span *ngIf="navBadge(item) as badge" class="shell-sidebar__badge" [attr.aria-label]="badge + ' إشعارات غير مقروءة'">{{ badge }}</span>
               </a>
             </li>
           </ul>

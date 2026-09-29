@@ -73,6 +73,69 @@ public sealed class GatePassWorkflowTests
     }
 
     [Fact]
+    public async Task Create_ReusedIdempotencyKeyWithDifferentPayload_IsRejected()
+    {
+        var requestedAt = Now.AddHours(2);
+        var existing = new GatePassDto(
+            70,
+            new StudentSummaryDto(17, "S-17", "Student", 12, "1/A", true, null),
+            Now,
+            requestedAt,
+            "Original reason",
+            new PickupPersonDto("Ahmed", "Father", null),
+            GatePassStatus.Requested,
+            null, null, null, null, null, null,
+            Array.Empty<NotificationDeliveryDto>(),
+            string.Empty);
+        var repository = new FakeRepository
+        {
+            Link = new GuardianGatePassLinkSnapshot(9, true, true, true,
+                new DateOnly(2026, 1, 1), null),
+            ExistingIdempotentGatePass = existing
+        };
+        var handler = new CreateGatePassCommandHandler(
+            repository,
+            CurrentUser(42, RoleNames.Guardian, PermissionNames.GatePassRequest),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(new CreateGatePassCommand(
+            new CreateGatePassRequestDto(17, requestedAt, "Changed reason", "Ahmed", "Father", null),
+            "same-key"), CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().ContainSingle().Which.Should().Contain("Idempotency-Key");
+        repository.Added.Should().BeNull();
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Guardian_CannotReadOrCancelAnotherGuardiansGatePass()
+    {
+        var gatePass = NewGatePass();
+        gatePass.Id = 73;
+        gatePass.RowVersion = new byte[] { 1 };
+        var repository = new FakeRepository { Tracked = gatePass, GuardianOwnsGatePass = false };
+        var guardian = CurrentUser(42, RoleNames.Guardian, PermissionNames.GatePassViewOwn);
+
+        var detail = await new GetGatePassByIdQueryHandler(repository, guardian)
+            .Handle(new GetGatePassByIdQuery(gatePass.Id), CancellationToken.None);
+        var cancel = await new CancelGatePassCommandHandler(
+                repository,
+                CurrentUser(42, RoleNames.Guardian, PermissionNames.GatePassCancelOwn),
+                new FixedTimeProvider(Now))
+            .Handle(new CancelGatePassCommand(gatePass.Id,
+                new CancelGatePassRequestDto("Cancel", Convert.ToBase64String(gatePass.RowVersion))),
+                CancellationToken.None);
+
+        detail.IsSuccess.Should().BeFalse();
+        cancel.IsSuccess.Should().BeFalse();
+        detail.Errors.Should().ContainSingle("Gate pass was not found");
+        cancel.Errors.Should().ContainSingle("Gate pass was not found");
+        gatePass.Status.Should().Be(GatePassStatus.Requested);
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
     public async Task Approve_WithMatchingVersion_SnapshotsTimetableAndAppendsEvent()
     {
         var gatePass = NewGatePass();
@@ -460,7 +523,9 @@ public sealed class GatePassWorkflowTests
         public GuardianGatePassLinkSnapshot? Link { get; init; }
         public bool GuardianLinkIsActive { get; init; }
         public GatePassEnrollmentSnapshot? Enrollment { get; init; }
-        public GatePassTimetableSnapshot? Timetable { get; init; }
+        public GatePassTimetableSnapshot? Timetable { get; init; } = new(7, 8, 9, 2);
+        public GatePassDto? ExistingIdempotentGatePass { get; init; }
+        public bool GuardianOwnsGatePass { get; init; } = true;
         public GatePass? Tracked { get; init; }
         public GatePass? Added { get; private set; }
         public int? InstructorProfileId { get; set; } = 9;
@@ -473,6 +538,20 @@ public sealed class GatePassWorkflowTests
         {
             SchoolIds.Add(schoolId);
             return Task.FromResult(Link);
+        }
+
+        public Task<bool> IsActiveGuardianAsync(
+            int schoolId, string guardianUserId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> IsOwnedByGuardianAsync(
+            int schoolId, int gatePassId, string guardianUserId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(GuardianOwnsGatePass);
         }
 
         public Task<bool> IsGuardianLinkActiveAsync(
@@ -495,7 +574,7 @@ public sealed class GatePassWorkflowTests
             CancellationToken cancellationToken)
         {
             SchoolIds.Add(schoolId);
-            return Task.FromResult<GatePassDto?>(null);
+            return Task.FromResult(ExistingIdempotentGatePass);
         }
 
         public Task<bool> HasOverlappingActivePassAsync(

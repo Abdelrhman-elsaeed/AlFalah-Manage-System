@@ -161,7 +161,7 @@ public sealed class AttendanceAndDelayWorkflowTests
             file,
             CurrentUser(RoleNames.Guardian, PermissionNames.AttendanceSubmitExcuse),
             new FixedTimeProvider(Now));
-        await using var content = new MemoryStream(new byte[] { 1, 2, 3 });
+        await using var content = new MemoryStream("%PDF-"u8.ToArray());
 
         var response = await handler.Handle(new SubmitAbsenceExcuseCommand(
             attendance.Id,
@@ -170,7 +170,7 @@ public sealed class AttendanceAndDelayWorkflowTests
             content,
             "excuse.pdf",
             "application/pdf",
-            3), CancellationToken.None);
+            5), CancellationToken.None);
 
         response.IsSuccess.Should().BeTrue();
         repository.AddedExcuse.Should().NotBeNull();
@@ -179,6 +179,73 @@ public sealed class AttendanceAndDelayWorkflowTests
             .Which.Should().BeOfType<AcbXX3KgvqD7B8Y4WjCu6yNx1Prfu5cNHz>();
         attendance.ExcuseStatus.Should().Be(AbsenceExcuseStatus.Pending);
         file.StoredSchoolId.Should().Be(42);
+    }
+
+    [Fact]
+    public async Task SubmitExcuse_RejectsSpoofedPdfBeforeStorage()
+    {
+        var repository = new FakeAttendanceRepository();
+        var file = new FakeFileStorage();
+        var handler = new SubmitAbsenceExcuseCommandHandler(
+            repository,
+            file,
+            CurrentUser(RoleNames.Guardian, PermissionNames.AttendanceSubmitExcuse),
+            new FixedTimeProvider(Now));
+        await using var content = new MemoryStream("not-a-pdf"u8.ToArray());
+
+        var response = await handler.Handle(new SubmitAbsenceExcuseCommand(
+            5,
+            new SubmitAbsenceExcuseRequestDto(AbsenceExcuseType.Medical, null),
+            "excuse-spoofed",
+            content,
+            "excuse.pdf",
+            "application/pdf",
+            content.Length), CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().ContainSingle().Which.Should().Contain("not a valid PDF");
+        file.StoredSchoolId.Should().BeNull();
+        repository.AddedExcuse.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SubmitExcuse_ReusedIdempotencyKeyWithDifferentPayload_IsRejected()
+    {
+        var attendance = NewAttendance(StudentAttendanceStatus.Absent);
+        attendance.Id = 5;
+        var existingDto = new AbsenceExcuseDto(
+            91, AbsenceExcuseType.Medical, AbsenceExcuseStatus.Pending,
+            new GuardianSummaryDto(9, "Guardian", GuardianRelationshipType.Father, true, true),
+            Now, null, null, null, Array.Empty<AttachmentDto>(), string.Empty, "Original");
+        var repository = new FakeAttendanceRepository
+        {
+            TrackedAttendance = attendance,
+            GuardianLink = new GuardianExcuseLinkSnapshot(
+                9, true, true, true, new DateOnly(2026, 1, 1), null),
+            ExistingExcuseSnapshot = new GuardianExcuseIdempotencySnapshot(
+                existingDto, attendance.Id, AbsenceExcuseType.Medical, "Original", 5, new string('A', 64))
+        };
+        var file = new FakeFileStorage();
+        var handler = new SubmitAbsenceExcuseCommandHandler(
+            repository,
+            file,
+            CurrentUser(RoleNames.Guardian, PermissionNames.AttendanceSubmitExcuse),
+            new FixedTimeProvider(Now));
+        await using var content = new MemoryStream("%PDF-"u8.ToArray());
+
+        var response = await handler.Handle(new SubmitAbsenceExcuseCommand(
+            attendance.Id,
+            new SubmitAbsenceExcuseRequestDto(AbsenceExcuseType.Medical, "Changed"),
+            "same-key",
+            content,
+            "excuse.pdf",
+            "application/pdf",
+            content.Length), CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().ContainSingle().Which.Should().Contain("Idempotency-Key");
+        file.StoredSchoolId.Should().BeNull();
+        repository.AddedExcuse.Should().BeNull();
     }
 
     [Fact]
@@ -503,6 +570,7 @@ public sealed class AttendanceAndDelayWorkflowTests
             Array.Empty<DailyStudentAttendance>();
         public DailyStudentAttendance? TrackedAttendance { get; init; }
         public GuardianExcuseLinkSnapshot? GuardianLink { get; init; }
+        public GuardianExcuseIdempotencySnapshot? ExistingExcuseSnapshot { get; init; }
         public AbsenceExcuse? TrackedExcuse { get; init; }
         public List<DailyStudentAttendance> AddedAttendances { get; } = new();
         public AbsenceExcuse? AddedExcuse { get; private set; }
@@ -561,6 +629,14 @@ public sealed class AttendanceAndDelayWorkflowTests
         {
             SchoolIds.Add(schoolId);
             return Task.FromResult<AbsenceExcuseDto?>(null);
+        }
+
+        public Task<GuardianExcuseIdempotencySnapshot?> GetExcuseIdempotencySnapshotAsync(
+            int schoolId, int guardianProfileId, string idempotencyKey,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(ExistingExcuseSnapshot);
         }
 
         public Task<AbsenceExcuse?> GetExcuseForUpdateAsync(

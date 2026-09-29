@@ -29,8 +29,7 @@ public sealed class GetSummonByIdQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.SummonView)
-            && !_currentUser.HasPermission(PermissionNames.GuardianViewLinkedStudents))
+        if (!_currentUser.HasPermission(PermissionNames.SummonView))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.PermissionDenied);
 
         var dto = await _repository.GetDtoAsync(
@@ -40,21 +39,6 @@ public sealed class GetSummonByIdQueryHandler
 
         if (dto is null)
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
-
-        // If accessed by guardian, verify the guardian profile matches
-        if (!_currentUser.HasPermission(PermissionNames.SummonView)
-            && _currentUser.HasPermission(PermissionNames.GuardianViewLinkedStudents))
-        {
-            var isLinked = await _repository.IsGuardianLinkActiveAsync(
-                schoolId.Value,
-                dto.Guardian.Id,
-                dto.Student.Id,
-                DateOnly.FromDateTime(DateTime.UtcNow),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!isLinked)
-                return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.PermissionDenied);
-        }
 
         return ApiResponse<SummonDto>.Success(dto);
     }

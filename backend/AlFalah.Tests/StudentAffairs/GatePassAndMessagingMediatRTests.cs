@@ -51,6 +51,7 @@ public sealed class GatePassAndMessagingMediatRTests
 
         // Messaging handlers
         provider.GetService<IRequestHandler<GetConversationsQuery, ApiResponse<PagedResult<ConversationDto>>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetGuardianStaffOptionsQuery, ApiResponse<IReadOnlyList<GuardianStaffOptionDto>>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<CreateConversationCommand, ApiResponse<ConversationDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetConversationByIdQuery, ApiResponse<ConversationDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetConversationMessagesQuery, ApiResponse<PagedResult<ConversationMessageDto>>>>().Should().NotBeNull();
@@ -138,8 +139,38 @@ public sealed class GatePassAndMessagingMediatRTests
         result.Errors.Should().ContainSingle(error => error.Contains("permission"));
     }
 
+    [Fact]
+    public async Task CreateConversation_RequiresPermissionForSelectedThreadType()
+    {
+        var repository = new StubMessagingWorkflowRepository();
+        var currentUser = new StubCurrentUser(
+            "guardian", 1, PermissionNames.MessagingStartGuardianTeacher);
+        var handler = new CreateConversationCommandHandler(repository, currentUser, TimeProvider.System);
+        var request = new CreateConversationRequestDto(
+            10,
+            ConversationThreadType.GuardianStudentAffairs,
+            null,
+            RoleNames.StudentAffairsOfficer,
+            "officer-1",
+            "Question",
+            "Please contact me",
+            "conversation-1");
+
+        var result = await handler.Handle(
+            new CreateConversationCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Contains("permission"));
+    }
+
     private sealed class StubGatePassWorkflowRepository : IGatePassWorkflowRepository
     {
+        public Task<bool> IsActiveGuardianAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(true);
+
+        public Task<bool> IsOwnedByGuardianAsync(int schoolId, int gatePassId, string guardianUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(true);
+
         public Task<GuardianGatePassLinkSnapshot?> GetGuardianLinkAsync(int schoolId, string guardianUserId, int studentId, CancellationToken cancellationToken) =>
             Task.FromResult<GuardianGatePassLinkSnapshot?>(null);
 
@@ -253,6 +284,9 @@ public sealed class GatePassAndMessagingMediatRTests
 
         public Task<IReadOnlyList<GuardianTeacherOptionDto>> GetGuardianTeacherOptionsAsync(int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<GuardianTeacherOptionDto>>(Array.Empty<GuardianTeacherOptionDto>());
+
+        public Task<IReadOnlyList<GuardianStaffOptionDto>> GetGuardianStaffOptionsAsync(int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<GuardianStaffOptionDto>>(Array.Empty<GuardianStaffOptionDto>());
 
         public Task<ConversationDto?> GetConversationByIdAsync(int schoolId, string userId, int conversationId, CancellationToken cancellationToken) =>
             Task.FromResult<ConversationDto?>(new ConversationDto(conversationId, new StudentSummaryDto(1, "STU-1", "Test Student", null, null, true, null),

@@ -249,9 +249,34 @@ export interface SecurityStudentAffairsDashboardDto {
   readonly counts: readonly DashboardCountDto[];
 }
 
+export interface GuardianAbsenceSummaryDto {
+  readonly officialAbsences: number;
+  readonly excusedAbsences: number;
+  readonly pendingExcuses: number;
+  readonly acceptedExcuses: number;
+  readonly rejectedExcuses: number;
+}
+
+export interface GuardianDashboardStudentDto {
+  readonly context: StudentContextDto;
+  readonly canSubmitExcuses: boolean;
+  readonly canRequestGatePass: boolean;
+  readonly receivesNotifications: boolean;
+  readonly attendance: GuardianAbsenceSummaryDto;
+  readonly activeGatePasses: number;
+  readonly activeEntryPermits: number;
+  readonly pendingOrUpcomingSummons: number;
+  readonly recentRecognitions: number;
+  readonly unreadNotifications: number;
+  readonly unreadThreads: number;
+}
+
 export interface GuardianStudentAffairsDashboardDto {
-  readonly students: readonly StudentContextDto[];
+  readonly students: readonly GuardianDashboardStudentDto[];
   readonly actions: readonly DashboardCountDto[];
+  readonly unreadNotifications: number;
+  readonly unreadThreads: number;
+  readonly generatedAt: string;
 }
 
 export interface GuardianStudentDto {

@@ -29,6 +29,18 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         _context = context;
     }
 
+    public Task<bool> IsActiveGuardianProfileAsync(
+        int schoolId,
+        string guardianUserId,
+        CancellationToken cancellationToken) =>
+        _context.GuardianProfiles.AsNoTracking().AnyAsync(
+            profile => profile.SchoolId == schoolId
+                && profile.ApplicationUserId == guardianUserId
+                && profile.IsActive
+                && !profile.IsDeleted
+                && profile.ApplicationUser.IsActive,
+            cancellationToken);
+
     public Task<bool> IsGuardianLinkedToStudentAsync(
         int schoolId,
         string guardianUserId,
@@ -553,31 +565,57 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
                 && !g.IsDeleted
                 && g.GuardianProfile.ApplicationUserId == guardianUserId
                 && !g.GuardianProfile.IsDeleted
-                && g.GuardianProfile.IsActive)
-            .Include(g => g.Student)
-                .ThenInclude(s => s.Enrollments)
-                    .ThenInclude(e => e.Classroom)
+                && g.GuardianProfile.IsActive
+                && g.GuardianProfile.ApplicationUser.IsActive
+                && g.Student.IsActive
+                && !g.Student.IsDeleted
+                && g.ValidFrom <= onDate
+                && (g.ValidTo == null || g.ValidTo >= onDate))
+            .OrderBy(g => g.Student.FirstName)
+            .ThenBy(g => g.Student.LastName)
+            .ThenBy(g => g.Student.StudentNumber)
+            .Select(g => new
+            {
+                g.StudentId,
+                g.Student.StudentNumber,
+                FullName = (g.Student.FirstName + " "
+                    + (g.Student.MiddleName ?? string.Empty) + " "
+                    + g.Student.LastName).Trim(),
+                g.Student.IsActive,
+                Enrollment = g.Student.Enrollments
+                    .Where(e => e.SchoolId == schoolId
+                        && !e.IsDeleted
+                        && e.Status == StudentEnrollmentStatus.Active
+                        && e.EnrolledOn <= onDate
+                        && (e.WithdrawnOn == null || e.WithdrawnOn >= onDate)
+                        && e.AcademicTerm.IsActive
+                        && !e.AcademicTerm.IsDeleted
+                        && e.AcademicTerm.StartsOn <= onDate
+                        && e.AcademicTerm.EndsOn >= onDate
+                        && e.Classroom.IsActive
+                        && !e.Classroom.IsDeleted)
+                    .OrderByDescending(e => e.EnrolledOn)
+                    .Select(e => new { e.ClassroomId, e.Classroom.ClassLabel })
+                    .FirstOrDefault(),
+                g.CanSubmitExcuses,
+                g.CanRequestGatePass,
+                g.ReceivesNotifications
+            })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return links.Select(g =>
-        {
-            var enrollment = g.Student.Enrollments
-                .FirstOrDefault(e => e.SchoolId == schoolId && !e.IsDeleted && e.Status == StudentEnrollmentStatus.Active);
-            var fullName = $"{g.Student.FirstName} {g.Student.MiddleName} {g.Student.LastName}".Trim();
-            var summary = new StudentSummaryDto(
-                g.Student.Id,
-                g.Student.StudentNumber,
-                g.Student.IdentityNumber,
-                fullName,
-                enrollment?.ClassroomId,
-                enrollment?.Classroom?.ClassLabel,
-                g.Student.IsActive,
-                g.Student.ProfilePhotoStorageKey
-            );
-
-            return new GuardianStudentDto(summary, g.CanSubmitExcuses, g.CanRequestGatePass, g.ReceivesNotifications);
-        }).ToList();
+        return links.Select(g => new GuardianStudentDto(
+            new StudentSummaryDto(
+                g.StudentId,
+                g.StudentNumber,
+                g.FullName,
+                g.Enrollment?.ClassroomId,
+                g.Enrollment?.ClassLabel,
+                g.IsActive,
+                null),
+            g.CanSubmitExcuses,
+            g.CanRequestGatePass,
+            g.ReceivesNotifications)).ToList();
     }
 
     public async Task<GuardianStudentSummaryDto?> GetGuardianStudentSummaryAsync(
@@ -593,73 +631,155 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
                 && g.StudentId == studentId
                 && !g.IsDeleted
                 && g.GuardianProfile.ApplicationUserId == guardianUserId
-                && !g.GuardianProfile.IsDeleted)
-            .Include(g => g.Student)
-                .ThenInclude(s => s.Enrollments)
-                    .ThenInclude(e => e.Classroom)
-            .Include(g => g.Student)
-                .ThenInclude(s => s.Enrollments)
-                    .ThenInclude(e => e.AcademicTerm)
+                && !g.GuardianProfile.IsDeleted
+                && g.GuardianProfile.IsActive
+                && g.GuardianProfile.ApplicationUser.IsActive
+                && g.Student.IsActive
+                && !g.Student.IsDeleted
+                && g.ValidFrom <= onDate
+                && (g.ValidTo == null || g.ValidTo >= onDate))
+            .Select(g => new
+            {
+                g.GuardianProfileId,
+                g.StudentId,
+                g.Student.StudentNumber,
+                StudentName = (g.Student.FirstName + " "
+                    + (g.Student.MiddleName ?? string.Empty) + " "
+                    + g.Student.LastName).Trim(),
+                g.Student.IsActive,
+                Enrollment = g.Student.Enrollments
+                    .Where(e => e.SchoolId == schoolId
+                        && !e.IsDeleted
+                        && e.Status == StudentEnrollmentStatus.Active
+                        && e.EnrolledOn <= onDate
+                        && (e.WithdrawnOn == null || e.WithdrawnOn >= onDate)
+                        && e.AcademicTerm.IsActive
+                        && !e.AcademicTerm.IsDeleted
+                        && e.AcademicTerm.StartsOn <= onDate
+                        && e.AcademicTerm.EndsOn >= onDate
+                        && e.Classroom.IsActive
+                        && !e.Classroom.IsDeleted)
+                    .OrderByDescending(e => e.EnrolledOn)
+                    .Select(e => new
+                    {
+                        e.ClassroomId,
+                        e.Classroom.ClassLabel,
+                        Stage = e.Classroom.Stage.ToString(),
+                        e.Classroom.GradeLevel,
+                        e.Classroom.Section,
+                        e.AcademicTermId,
+                        Semester = e.AcademicTerm.Semester.ToString(),
+                        e.AcademicTerm.StartsOn,
+                        e.AcademicTerm.EndsOn,
+                        e.AcademicTerm.IsActive
+                    })
+                    .FirstOrDefault(),
+                PendingSummons = _context.GuardianSummons.Count(s => s.SchoolId == schoolId
+                    && s.StudentId == studentId
+                    && s.GuardianProfileId == g.GuardianProfileId
+                    && !s.IsDeleted
+                    && s.Status == GuardianSummonStatus.Pending),
+                ActiveGatePasses = _context.GatePasses.Count(gp => gp.SchoolId == schoolId
+                    && gp.StudentId == studentId
+                    && gp.RequestedByGuardianProfileId == g.GuardianProfileId
+                    && !gp.IsDeleted
+                    && (gp.Status == GatePassStatus.Requested
+                        || gp.Status == GatePassStatus.Approved
+                        || gp.Status == GatePassStatus.SecurityAcknowledged)),
+                RecentRecognitions = _context.StudentRecognitions.Count(r => r.SchoolId == schoolId
+                    && r.StudentId == studentId
+                    && !r.IsDeleted)
+            })
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
         if (link is null) return null;
-
-        var enrollment = link.Student.Enrollments
-            .FirstOrDefault(e => e.SchoolId == schoolId && !e.IsDeleted && e.Status == StudentEnrollmentStatus.Active);
-
-        var fullName = $"{link.Student.FirstName} {link.Student.MiddleName} {link.Student.LastName}".Trim();
         var studentSummary = new StudentSummaryDto(
-            link.Student.Id,
-            link.Student.StudentNumber,
-            link.Student.IdentityNumber,
-            fullName,
-            enrollment?.ClassroomId,
-            enrollment?.Classroom?.ClassLabel,
-            link.Student.IsActive,
-            link.Student.ProfilePhotoStorageKey
-        );
+            link.StudentId,
+            link.StudentNumber,
+            link.StudentName,
+            link.Enrollment?.ClassroomId,
+            link.Enrollment?.ClassLabel,
+            link.IsActive,
+            null);
 
         var contextDto = new StudentContextDto(
             studentSummary,
-            enrollment?.AcademicTerm == null ? null : new AcademicTermSummaryDto(enrollment.AcademicTerm.Id, $"{enrollment.AcademicTerm.Semester}", enrollment.AcademicTerm.StartsOn, enrollment.AcademicTerm.EndsOn, enrollment.AcademicTerm.IsActive),
-            enrollment?.Classroom == null ? null : new ClassroomSummaryDto(enrollment.Classroom.Id, enrollment.Classroom.ClassLabel, enrollment.Classroom.Stage.ToString(), enrollment.Classroom.GradeLevel, enrollment.Classroom.Section),
+            link.Enrollment == null ? null : new AcademicTermSummaryDto(
+                link.Enrollment.AcademicTermId,
+                link.Enrollment.Semester,
+                link.Enrollment.StartsOn,
+                link.Enrollment.EndsOn,
+                link.Enrollment.IsActive),
+            link.Enrollment == null ? null : new ClassroomSummaryDto(
+                link.Enrollment.ClassroomId,
+                link.Enrollment.ClassLabel,
+                link.Enrollment.Stage,
+                link.Enrollment.GradeLevel,
+                link.Enrollment.Section),
             null,
-            Array.Empty<MetricBadgeDto>()
-        );
+            Array.Empty<MetricBadgeDto>());
 
-        var pendingSummons = await _context.GuardianSummons
-            .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && s.StudentId == studentId && !s.IsDeleted && s.Status == GuardianSummonStatus.Pending, cancellationToken)
-            .ConfigureAwait(false);
-
-        var activeGatePasses = await _context.GatePasses
-            .AsNoTracking()
-            .CountAsync(gp => gp.SchoolId == schoolId && gp.StudentId == studentId && !gp.IsDeleted && (gp.Status == GatePassStatus.Requested || gp.Status == GatePassStatus.Approved), cancellationToken)
-            .ConfigureAwait(false);
-
-        var recentRecognitions = await _context.StudentRecognitions
-            .AsNoTracking()
-            .CountAsync(r => r.SchoolId == schoolId && r.StudentId == studentId && !r.IsDeleted, cancellationToken)
-            .ConfigureAwait(false);
-
-        return new GuardianStudentSummaryDto(contextDto, pendingSummons, activeGatePasses, recentRecognitions);
+        return new GuardianStudentSummaryDto(
+            contextDto,
+            link.PendingSummons,
+            link.ActiveGatePasses,
+            link.RecentRecognitions);
     }
 
-    public Task<PagedResult<GuardianNotificationDto>> GetGuardianStudentNotificationsAsync(
+    public async Task<PagedResult<GuardianNotificationDto>> GetGuardianStudentNotificationsAsync(
         int schoolId,
         string guardianUserId,
         int studentId,
+        DateOnly onDate,
         StudentAffairsPageQuery query,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(new PagedResult<GuardianNotificationDto>
+        var page = Math.Max(1, query.PageNumber);
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
+        var source = _context.Notifications.AsNoTracking().Where(notification =>
+            notification.SchoolId == schoolId
+            && notification.UserId == guardianUserId
+            && notification.StudentId == studentId
+            && !notification.IsDeleted
+            && !notification.RequiresApproval
+            && !notification.IsSuppressed
+            && notification.DeliveryStatus == NotificationDeliveryStatus.Delivered
+            && _context.StudentGuardians.Any(link => link.SchoolId == schoolId
+                && link.StudentId == studentId
+                && !link.IsDeleted
+                && link.GuardianProfile.ApplicationUserId == guardianUserId
+                && link.GuardianProfile.IsActive
+                && !link.GuardianProfile.IsDeleted
+                && link.GuardianProfile.ApplicationUser.IsActive
+                && link.Student.IsActive
+                && !link.Student.IsDeleted
+                && link.ValidFrom <= onDate
+                && (link.ValidTo == null || link.ValidTo >= onDate)));
+
+        var total = await source.CountAsync(cancellationToken).ConfigureAwait(false);
+        var items = await source
+            .OrderByDescending(notification => notification.CreatedAt)
+            .ThenByDescending(notification => notification.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(notification => new GuardianNotificationDto(
+                notification.Id,
+                studentId,
+                notification.Type ?? string.Empty,
+                notification.Title,
+                notification.Message,
+                notification.CreatedAt,
+                notification.ReadAt))
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        return new PagedResult<GuardianNotificationDto>
         {
-            Items = new List<GuardianNotificationDto>(),
-            TotalCount = 0,
-            Page = query.PageNumber <= 0 ? 1 : query.PageNumber,
-            PageSize = query.PageSize <= 0 ? 20 : query.PageSize
-        });
+            Items = items,
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
     public async Task<PagedResult<ClassroomDto>> GetClassroomsAsync(
@@ -1105,16 +1225,204 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         ));
     }
 
-    public Task<GuardianStudentAffairsDashboardDto> GetGuardianDashboardAsync(
+    public async Task<GuardianStudentAffairsDashboardDto> GetGuardianDashboardAsync(
         int schoolId,
         string guardianUserId,
         DateOnly onDate,
+        DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(new GuardianStudentAffairsDashboardDto(
-            Array.Empty<StudentContextDto>(),
-            Array.Empty<DashboardCountDto>()
-        ));
+        var recognitionSince = now.AddDays(-30);
+        var rows = await _context.StudentGuardians.AsNoTracking()
+            .Where(link => link.SchoolId == schoolId
+                && !link.IsDeleted
+                && link.GuardianProfile.ApplicationUserId == guardianUserId
+                && link.GuardianProfile.IsActive
+                && !link.GuardianProfile.IsDeleted
+                && link.GuardianProfile.ApplicationUser.IsActive
+                && link.Student.IsActive
+                && !link.Student.IsDeleted
+                && link.ValidFrom <= onDate
+                && (link.ValidTo == null || link.ValidTo >= onDate))
+            .OrderBy(link => link.Student.FirstName)
+            .ThenBy(link => link.Student.LastName)
+            .ThenBy(link => link.Student.StudentNumber)
+            .Select(link => new
+            {
+                link.GuardianProfileId,
+                link.StudentId,
+                link.Student.StudentNumber,
+                StudentName = (link.Student.FirstName + " "
+                    + (link.Student.MiddleName ?? string.Empty) + " "
+                    + link.Student.LastName).Trim(),
+                link.Student.IsActive,
+                link.CanSubmitExcuses,
+                link.CanRequestGatePass,
+                link.ReceivesNotifications,
+                Enrollment = link.Student.Enrollments
+                    .Where(enrollment => enrollment.SchoolId == schoolId
+                        && !enrollment.IsDeleted
+                        && enrollment.Status == StudentEnrollmentStatus.Active
+                        && enrollment.EnrolledOn <= onDate
+                        && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= onDate)
+                        && enrollment.AcademicTerm.IsActive
+                        && !enrollment.AcademicTerm.IsDeleted
+                        && enrollment.AcademicTerm.StartsOn <= onDate
+                        && enrollment.AcademicTerm.EndsOn >= onDate
+                        && enrollment.Classroom.IsActive
+                        && !enrollment.Classroom.IsDeleted)
+                    .OrderByDescending(enrollment => enrollment.EnrolledOn)
+                    .Select(enrollment => new
+                    {
+                        enrollment.ClassroomId,
+                        enrollment.Classroom.ClassLabel,
+                        Stage = enrollment.Classroom.Stage.ToString(),
+                        enrollment.Classroom.GradeLevel,
+                        enrollment.Classroom.Section,
+                        enrollment.AcademicTermId,
+                        Semester = enrollment.AcademicTerm.Semester.ToString(),
+                        enrollment.AcademicTerm.StartsOn,
+                        enrollment.AcademicTerm.EndsOn,
+                        enrollment.AcademicTerm.IsActive
+                    })
+                    .FirstOrDefault(),
+                OfficialAbsences = _context.DailyStudentAttendances.Count(attendance =>
+                    attendance.SchoolId == schoolId
+                    && attendance.StudentId == link.StudentId
+                    && !attendance.IsDeleted
+                    && (attendance.Status == StudentAttendanceStatus.Absent
+                        || attendance.Status == StudentAttendanceStatus.AbsentExcused)),
+                ExcusedAbsences = _context.DailyStudentAttendances.Count(attendance =>
+                    attendance.SchoolId == schoolId
+                    && attendance.StudentId == link.StudentId
+                    && !attendance.IsDeleted
+                    && attendance.Status == StudentAttendanceStatus.AbsentExcused),
+                PendingExcuses = _context.AbsenceExcuses.Count(excuse =>
+                    excuse.SchoolId == schoolId
+                    && excuse.DailyStudentAttendance.StudentId == link.StudentId
+                    && excuse.GuardianProfileId == link.GuardianProfileId
+                    && !excuse.IsDeleted
+                    && excuse.Status == AbsenceExcuseStatus.Pending),
+                AcceptedExcuses = _context.AbsenceExcuses.Count(excuse =>
+                    excuse.SchoolId == schoolId
+                    && excuse.DailyStudentAttendance.StudentId == link.StudentId
+                    && excuse.GuardianProfileId == link.GuardianProfileId
+                    && !excuse.IsDeleted
+                    && excuse.Status == AbsenceExcuseStatus.Accepted),
+                RejectedExcuses = _context.AbsenceExcuses.Count(excuse =>
+                    excuse.SchoolId == schoolId
+                    && excuse.DailyStudentAttendance.StudentId == link.StudentId
+                    && excuse.GuardianProfileId == link.GuardianProfileId
+                    && !excuse.IsDeleted
+                    && excuse.Status == AbsenceExcuseStatus.Rejected),
+                ActiveGatePasses = _context.GatePasses.Count(gatePass =>
+                    gatePass.SchoolId == schoolId
+                    && gatePass.StudentId == link.StudentId
+                    && gatePass.RequestedByGuardianProfileId == link.GuardianProfileId
+                    && !gatePass.IsDeleted
+                    && (gatePass.Status == GatePassStatus.Requested
+                        || gatePass.Status == GatePassStatus.Approved
+                        || gatePass.Status == GatePassStatus.SecurityAcknowledged)),
+                ActiveEntryPermits = _context.ClassroomEntryPermits.Count(permit =>
+                    permit.SchoolId == schoolId
+                    && permit.StudentId == link.StudentId
+                    && !permit.IsDeleted
+                    && permit.ValidFrom <= now
+                    && now < permit.ValidUntil
+                    && (permit.Status == ClassroomEntryPermitStatus.Issued
+                        || permit.Status == ClassroomEntryPermitStatus.AcknowledgedByTeacher)),
+                PendingOrUpcomingSummons = _context.GuardianSummons.Count(summon =>
+                    summon.SchoolId == schoolId
+                    && summon.StudentId == link.StudentId
+                    && summon.GuardianProfileId == link.GuardianProfileId
+                    && !summon.IsDeleted
+                    && summon.Status == GuardianSummonStatus.Pending),
+                RecentRecognitions = _context.StudentRecognitions.Count(recognition =>
+                    recognition.SchoolId == schoolId
+                    && recognition.StudentId == link.StudentId
+                    && !recognition.IsDeleted
+                    && recognition.RecognizedAt >= recognitionSince),
+                UnreadNotifications = _context.Notifications.Count(notification =>
+                    notification.SchoolId == schoolId
+                    && notification.UserId == guardianUserId
+                    && notification.StudentId == link.StudentId
+                    && !notification.IsDeleted
+                    && !notification.RequiresApproval
+                    && !notification.IsSuppressed
+                    && notification.DeliveryStatus == NotificationDeliveryStatus.Delivered
+                    && !notification.IsRead),
+                UnreadThreads = _context.MessageReceipts
+                    .Where(receipt => receipt.SchoolId == schoolId
+                        && receipt.RecipientUserId == guardianUserId
+                        && receipt.DeliveryState == MessageDeliveryState.Delivered
+                        && receipt.ReadAt == null
+                        && receipt.ConversationMessage.ConversationThread.StudentId == link.StudentId
+                        && !receipt.ConversationMessage.ConversationThread.IsDeleted)
+                    .Select(receipt => receipt.ConversationMessage.ConversationThreadId)
+                    .Distinct()
+                    .Count()
+            })
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        var students = rows.Select(row =>
+        {
+            var student = new StudentSummaryDto(
+                row.StudentId,
+                row.StudentNumber,
+                row.StudentName,
+                row.Enrollment?.ClassroomId,
+                row.Enrollment?.ClassLabel,
+                row.IsActive,
+                null);
+            var term = row.Enrollment == null ? null : new AcademicTermSummaryDto(
+                row.Enrollment.AcademicTermId,
+                row.Enrollment.Semester,
+                row.Enrollment.StartsOn,
+                row.Enrollment.EndsOn,
+                row.Enrollment.IsActive);
+            var classroom = row.Enrollment == null ? null : new ClassroomSummaryDto(
+                row.Enrollment.ClassroomId,
+                row.Enrollment.ClassLabel,
+                row.Enrollment.Stage,
+                row.Enrollment.GradeLevel,
+                row.Enrollment.Section);
+            return new GuardianDashboardStudentDto(
+                new StudentContextDto(student, term, classroom, null, Array.Empty<MetricBadgeDto>()),
+                row.CanSubmitExcuses,
+                row.CanRequestGatePass,
+                row.ReceivesNotifications,
+                new GuardianAbsenceSummaryDto(
+                    row.OfficialAbsences,
+                    row.ExcusedAbsences,
+                    row.PendingExcuses,
+                    row.AcceptedExcuses,
+                    row.RejectedExcuses),
+                row.ActiveGatePasses,
+                row.ActiveEntryPermits,
+                row.PendingOrUpcomingSummons,
+                row.RecentRecognitions,
+                row.UnreadNotifications,
+                row.UnreadThreads);
+        }).ToList();
+
+        var unreadNotifications = students.Sum(student => student.UnreadNotifications);
+        var unreadThreads = students.Sum(student => student.UnreadThreads);
+        var actions = new List<DashboardCountDto>
+        {
+            new("PendingExcuses", "أعذار قيد المراجعة", students.Sum(student => student.Attendance.PendingExcuses), "warning"),
+            new("ActiveGatePasses", "طلبات خروج نشطة", students.Sum(student => student.ActiveGatePasses), "info"),
+            new("ActiveEntryPermits", "تصاريح دخول نشطة", students.Sum(student => student.ActiveEntryPermits), "info"),
+            new("UpcomingSummons", "استدعاءات قادمة", students.Sum(student => student.PendingOrUpcomingSummons), "warning"),
+            new("UnreadNotifications", "إشعارات غير مقروءة", unreadNotifications, "warning"),
+            new("UnreadThreads", "محادثات غير مقروءة", unreadThreads, "warning")
+        };
+
+        return new GuardianStudentAffairsDashboardDto(
+            students,
+            actions,
+            unreadNotifications,
+            unreadThreads,
+            now);
     }
 
     public Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(

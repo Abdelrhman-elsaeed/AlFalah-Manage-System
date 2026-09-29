@@ -4,7 +4,12 @@
   <section class="chat-shell">
     <aside class="inbox" aria-label="صندوق المحادثات">
       <header><div><h2>المحادثات</h2><span>{{ totalRecords() }}</span></div><button pButton type="button" [label]="unreadOnly() ? 'عرض الكل' : 'غير المقروءة'" [icon]="unreadOnly() ? 'pi pi-list' : 'pi pi-envelope'" class="p-button-text" size="small" (click)="unreadOnly.set(!unreadOnly()); loadInbox()"></button></header>
-      @if (isGuardian) { <div class="new-thread-note"><i class="pi pi-info-circle"></i><span>يبدأ الحوار الجديد من سياق الطالب/المعلم المصرح عند توفره؛ لا يمكن إدخال معرف معلم يدويًا.</span></div> }
+      @if (canStartConversation) {
+        <div class="new-thread-actions">
+          <button pButton type="button" label="محادثة جديدة" icon="pi pi-plus" size="small" (click)="openCreateDialog()"></button>
+          <div class="new-thread-note"><i class="pi pi-shield"></i><span>تظهر فقط الجهات المرتبطة حاليًا بالابن؛ لا يمكن إدخال مستلم يدويًا.</span></div>
+        </div>
+      }
       @if (loadingInbox()) { <div class="inbox-state"><p-progressSpinner strokeWidth="4"></p-progressSpinner></div> }
       @else if (inboxError()) { <div class="inbox-state error"><i class="pi pi-exclamation-triangle"></i><span>{{ inboxError() }}</span></div> }
       @else { <div class="thread-list">@for (thread of conversations(); track thread.id) { <button type="button" class="thread-item" [class.active]="selected()?.id === thread.id" (click)="selectConversation(thread)"><div class="thread-top"><strong>{{ thread.subject }}</strong>@if (thread.unreadCount) { <span class="unread">{{ thread.unreadCount }}</span> }</div><span>{{ thread.student.displayName }} · {{ threadTypeLabel(thread.threadType) }}</span><div class="thread-meta"><small>{{ formatDateTime(thread.updatedAt) }}</small><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : thread.status === 'Closed' ? 'مغلقة' : 'مؤرشفة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag></div></button> } @empty { <div class="inbox-state"><i class="pi pi-comments"></i><span>لا توجد محادثات في هذا العرض.</span></div> }</div> }
@@ -40,6 +45,20 @@
       } }
     </section>
   </section>
+
+  <p-dialog header="محادثة جديدة" [visible]="createDialogVisible()" (visibleChange)="createDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!creatingConversation()" [style]="{ width: 'min(680px, 96vw)' }">
+    <div class="new-thread-form">
+      @if (createError()) { <div class="send-error" role="alert"><i class="pi pi-exclamation-triangle"></i><span>{{ createError() }}</span></div> }
+      <div class="form-grid">
+        <label class="field"><span>الابن *</span><p-dropdown [formControl]="createStudentId" [options]="guardianStudents()" optionLabel="student.displayName" optionValue="student.id" placeholder="اختر الابن" appendTo="body" [loading]="loadingCreateScope()" (onChange)="onConversationScopeChanged()"></p-dropdown></label>
+        <label class="field"><span>جهة المحادثة *</span><p-dropdown [formControl]="createThreadType" [options]="threadTypeOptions" optionLabel="label" optionValue="value" placeholder="اختر الجهة" appendTo="body" (onChange)="onConversationScopeChanged()"></p-dropdown></label>
+        <label class="field wide"><span>المستلم المصرح *</span><p-dropdown [formControl]="createRecipientKey" [options]="recipientOptions()" optionLabel="label" optionValue="key" placeholder="اختر المستلم" appendTo="body" [filter]="true" [loading]="loadingCreateScope()" [emptyMessage]="'لا يوجد مستلم متاح لهذا الاختيار'"></p-dropdown></label>
+        <label class="field wide"><span>الموضوع *</span><input pInputText [formControl]="createSubject" maxlength="200" /></label>
+        <label class="field wide"><span>الرسالة الأولى *</span><textarea pInputTextarea [formControl]="createBody" rows="6" maxlength="4000"></textarea></label>
+      </div>
+      <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" [disabled]="creatingConversation()" (click)="createDialogVisible.set(false)"></button><button pButton type="button" label="إنشاء وفتح" icon="pi pi-send" [loading]="creatingConversation()" [disabled]="createStudentId.invalid || createThreadType.invalid || createRecipientKey.invalid || createSubject.invalid || createBody.invalid" (click)="createConversation()"></button></div>
+    </div>
+  </p-dialog>
 
   <p-dialog header="إغلاق المحادثة" [visible]="closeDialogVisible()" (visibleChange)="closeDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!closing()" [style]="{ width: 'min(560px, 96vw)' }"><p>سيصبح الرد غير متاح بعد الإغلاق. اكتب سببًا واضحًا ومسجلًا للتدقيق.</p><label class="field"><span>سبب الإغلاق *</span><textarea pInputTextarea [formControl]="closeReason" rows="5"></textarea></label><div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="closeDialogVisible.set(false)"></button><button pButton type="button" label="تأكيد الإغلاق" icon="pi pi-lock" [loading]="closing()" [disabled]="!closeReason.value.trim()" (click)="closeThread()"></button></div></p-dialog>
 </main>

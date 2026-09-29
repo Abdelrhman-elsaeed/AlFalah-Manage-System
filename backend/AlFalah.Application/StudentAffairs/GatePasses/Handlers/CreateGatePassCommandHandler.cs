@@ -72,7 +72,10 @@ public sealed class CreateGatePassCommandHandler
             idempotencyKey,
             cancellationToken).ConfigureAwait(false);
         if (existing is not null)
-            return ApiResponse<GatePassDto>.Success(existing, "Gate pass request already exists");
+            return SameRequest(existing, request)
+                ? ApiResponse<GatePassDto>.Success(existing, "Gate pass request already exists")
+                : ApiResponse<GatePassDto>.Fail(
+                    "Idempotency-Key was already used with a different gate pass payload");
 
         var enrollment = await _repository.GetActiveEnrollmentAsync(
             schoolId.Value,
@@ -81,6 +84,18 @@ public sealed class CreateGatePassCommandHandler
             cancellationToken).ConfigureAwait(false);
         if (enrollment is null)
             return ApiResponse<GatePassDto>.Fail("Student does not have an active enrollment");
+
+        var lesson = await _repository.ResolvePublishedTimetableAsync(
+            schoolId.Value,
+            enrollment.AcademicYearId,
+            enrollment.Semester,
+            enrollment.ClassroomId,
+            enrollment.ClassroomLabel,
+            request.DesiredExitTime,
+            cancellationToken).ConfigureAwait(false);
+        if (lesson is null)
+            return ApiResponse<GatePassDto>.Fail(
+                "Requested exit time must fall within a published lesson for the student's classroom");
 
         var hasOverlap = await _repository.HasOverlappingActivePassAsync(
             schoolId.Value,
@@ -145,7 +160,10 @@ public sealed class CreateGatePassCommandHandler
                 idempotencyKey,
                 cancellationToken).ConfigureAwait(false);
             if (duplicate is not null)
-                return ApiResponse<GatePassDto>.Success(duplicate, "Gate pass request already exists");
+                return SameRequest(duplicate, request)
+                    ? ApiResponse<GatePassDto>.Success(duplicate, "Gate pass request already exists")
+                    : ApiResponse<GatePassDto>.Fail(
+                        "Idempotency-Key was already used with a different gate pass payload");
             throw;
         }
         var dto = await _repository.GetDtoAsync(schoolId.Value, gatePass.Id, cancellationToken)
@@ -153,4 +171,15 @@ public sealed class CreateGatePassCommandHandler
             ?? throw new InvalidOperationException("The saved gate pass could not be loaded");
         return ApiResponse<GatePassDto>.Success(dto, "Gate pass requested successfully");
     }
+
+    private static bool SameRequest(GatePassDto existing, CreateGatePassRequestDto request) =>
+        existing.Student.Id == request.StudentId
+        && existing.RequestedExitAt == request.DesiredExitTime
+        && string.Equals(existing.Reason, request.Reason.Trim(), StringComparison.Ordinal)
+        && string.Equals(existing.PickupPerson.Name, request.PickupPersonName.Trim(), StringComparison.Ordinal)
+        && string.Equals(existing.PickupPerson.Relationship, Normalize(request.PickupRelationship), StringComparison.Ordinal)
+        && string.Equals(existing.PickupPerson.IdentityHint, Normalize(request.PickupIdentityHint), StringComparison.Ordinal);
+
+    private static string? Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

@@ -23,21 +23,21 @@ public sealed class GatePassesController : StudentAffairsControllerBase
     public async Task<IActionResult> Mine([FromQuery] GatePassListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.GatePassViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetMyGatePassesQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetMyGatePassesQuery(query), cancellationToken));
     }
 
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] GatePassListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.GatePassView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetGatePassesQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetGatePassesQuery(query), cancellationToken));
     }
 
     [HttpGet("security-queue")]
     public async Task<IActionResult> SecurityQueue([FromQuery] GatePassListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.GatePassAcknowledgeSecurity, PermissionNames.GatePassExecute)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSecurityGatePassQueueQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetSecurityGatePassQueueQuery(query), cancellationToken));
     }
 
     [HttpGet("{id:int}")]
@@ -92,7 +92,7 @@ public sealed class GatePassesController : StudentAffairsControllerBase
     [HttpGet("{id:int}/history")]
     public async Task<IActionResult> History(int id, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.GatePassViewAudit)) return PermissionDenied();
+        if (!HasAnyPermission(PermissionNames.GatePassViewAudit, PermissionNames.GatePassViewOwn)) return PermissionDenied();
         return FromResponse(await Mediator.Send(new GetGatePassHistoryQuery(id), cancellationToken));
     }
 }

@@ -11,7 +11,30 @@ public sealed record TeacherStudentAffairsDashboardDto(TeacherTopPriorityDto Top
 public sealed record OfficerStudentAffairsDashboardDto(IReadOnlyList<DashboardCountDto> Queues, IReadOnlyList<DashboardCountDto> ThresholdAlerts);
 public sealed record SocialWorkerStudentAffairsDashboardDto(IReadOnlyList<DashboardCountDto> Cases, IReadOnlyList<DashboardCountDto> Summons);
 public sealed record SecurityStudentAffairsDashboardDto(IReadOnlyList<SecurityGatePassQueueItemDto> ApprovedGatePasses, IReadOnlyList<DashboardCountDto> Counts);
-public sealed record GuardianStudentAffairsDashboardDto(IReadOnlyList<StudentContextDto> Students, IReadOnlyList<DashboardCountDto> Actions);
+public sealed record GuardianAbsenceSummaryDto(
+    int OfficialAbsences,
+    int ExcusedAbsences,
+    int PendingExcuses,
+    int AcceptedExcuses,
+    int RejectedExcuses);
+public sealed record GuardianDashboardStudentDto(
+    StudentContextDto Context,
+    bool CanSubmitExcuses,
+    bool CanRequestGatePass,
+    bool ReceivesNotifications,
+    GuardianAbsenceSummaryDto Attendance,
+    int ActiveGatePasses,
+    int ActiveEntryPermits,
+    int PendingOrUpcomingSummons,
+    int RecentRecognitions,
+    int UnreadNotifications,
+    int UnreadThreads);
+public sealed record GuardianStudentAffairsDashboardDto(
+    IReadOnlyList<GuardianDashboardStudentDto> Students,
+    IReadOnlyList<DashboardCountDto> Actions,
+    int UnreadNotifications,
+    int UnreadThreads,
+    DateTimeOffset GeneratedAt);
 public sealed record ClassroomAttendanceAggregateDto(int ClassroomId, string ClassLabel, int Present, int Absent, int AbsentExcused);
 public sealed record SchoolOversightDashboardDto(
     int Present,

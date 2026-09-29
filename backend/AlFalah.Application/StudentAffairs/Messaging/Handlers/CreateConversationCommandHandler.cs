@@ -32,10 +32,12 @@ public sealed class CreateConversationCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ConversationDto>.Fail("An authenticated user and active school are required");
 
-        if (!_currentUser.IsInRole(RoleNames.Guardian)
-            || (!_currentUser.HasPermission(PermissionNames.MessagingStartGuardianTeacher)
-            && !_currentUser.HasPermission(PermissionNames.MessagingStartGuardianAdministration))
-           )
+        var hasThreadPermission = command.Request.ThreadType == Domain.Enums.StudentAffairs.ConversationThreadType.GuardianTeacher
+            ? _currentUser.HasPermission(PermissionNames.MessagingStartGuardianTeacher)
+            : command.Request.ThreadType is Domain.Enums.StudentAffairs.ConversationThreadType.GuardianStudentAffairs
+                or Domain.Enums.StudentAffairs.ConversationThreadType.GuardianSocialWorker
+                && _currentUser.HasPermission(PermissionNames.MessagingStartGuardianAdministration);
+        if (!_currentUser.IsInRole(RoleNames.Guardian) || !hasThreadPermission)
             return ApiResponse<ConversationDto>.Fail("You do not have permission to perform this action");
 
         if (string.IsNullOrWhiteSpace(command.Request.IdempotencyKey))

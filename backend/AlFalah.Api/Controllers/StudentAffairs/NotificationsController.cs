@@ -16,28 +16,28 @@ public sealed class NotificationsController : StudentAffairsControllerBase
     public async Task<IActionResult> List([FromQuery] NotificationListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetNotificationsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetNotificationsQuery(query), cancellationToken));
     }
 
     [HttpGet("unread-count")]
     public async Task<IActionResult> UnreadCount(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetUnreadNotificationCountQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetUnreadNotificationCountQuery(), cancellationToken));
     }
 
     [HttpPost("{id:int}/read")]
     public async Task<IActionResult> Read(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new MarkNotificationReadCommand(id), cancellationToken));
+        return FromResponse(await Mediator.Send(new MarkNotificationReadCommand(id), cancellationToken));
     }
 
     [HttpPost("read-all")]
     public async Task<IActionResult> ReadAll(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new MarkAllNotificationsReadCommand(), cancellationToken));
+        return FromResponse(await Mediator.Send(new MarkAllNotificationsReadCommand(), cancellationToken));
     }
 
     [HttpGet("pending-dispatch")]

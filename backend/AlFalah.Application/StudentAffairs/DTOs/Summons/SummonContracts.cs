@@ -44,9 +44,21 @@ public sealed record SummonDto(
 
 public sealed record SummonHistoryDto(IReadOnlyList<TransitionDto> Transitions);
 
+public sealed record GuardianSummonDto(
+    int Id,
+    StudentSummaryDto Student,
+    string Reason,
+    ReferralPriority Priority,
+    GuardianSummonStatus Status,
+    DateTimeOffset? ScheduledAt,
+    string? Location,
+    string? Instructions,
+    DateTimeOffset? GuardianNotifiedAt);
+
 public sealed record CreateSummonCommand(CreateSummonRequestDto Request, string IdempotencyKey) : IRequest<ApiResponse<SummonDto>>;
 public sealed record GetSummonsQuery(SummonListQuery Query) : IRequest<ApiResponse<PagedResult<SummonDto>>>;
-public sealed record GetMySummonsQuery(SummonListQuery Query) : IRequest<ApiResponse<PagedResult<SummonDto>>>;
+public sealed record GetMySummonsQuery(SummonListQuery Query) : IRequest<ApiResponse<PagedResult<GuardianSummonDto>>>;
+public sealed record GetMySummonByIdQuery(int SummonId) : IRequest<ApiResponse<GuardianSummonDto>>;
 public sealed record GetSummonByIdQuery(int SummonId) : IRequest<ApiResponse<SummonDto>>;
 public sealed record ScheduleSummonCommand(int SummonId, ScheduleSummonRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
 public sealed record AttendSummonCommand(int SummonId, AttendSummonRequestDto Request) : IRequest<ApiResponse<SummonDto>>;

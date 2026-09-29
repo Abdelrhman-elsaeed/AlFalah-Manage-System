@@ -25,12 +25,22 @@ public sealed class GetGatePassHistoryQueryHandler
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
+        var userId = _currentUser.UserId;
+        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<GatePassHistoryDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.GatePassViewAudit)
-            && !_currentUser.HasPermission(PermissionNames.GatePassView))
+        var isGuardian = _currentUser.IsInRole(RoleNames.Guardian);
+        if (isGuardian
+            ? !_currentUser.HasPermission(PermissionNames.GatePassViewOwn)
+            : !_currentUser.HasPermission(PermissionNames.GatePassViewAudit)
+                && !_currentUser.HasPermission(PermissionNames.GatePassView))
             return ApiResponse<GatePassHistoryDto>.Fail(GatePassHandlerSupport.PermissionDenied);
+
+        if (isGuardian
+            && (!await _repository.IsActiveGuardianAsync(schoolId.Value, userId, cancellationToken).ConfigureAwait(false)
+                || !await _repository.IsOwnedByGuardianAsync(
+                    schoolId.Value, request.GatePassId, userId, cancellationToken).ConfigureAwait(false)))
+            return ApiResponse<GatePassHistoryDto>.Fail("Gate pass history was not found");
 
         var history = await _repository.GetHistoryAsync(
             schoolId.Value,

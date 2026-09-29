@@ -121,6 +121,7 @@ public static class DependencyInjection
         services.AddScoped<IBellScheduleRepository, BellScheduleRepository>();
         services.AddScoped<ICurrentLessonEntryRepository, CurrentLessonEntryRepository>();
         services.AddScoped<ICurrentLessonResolver, CurrentLessonResolver>();
+        services.AddScoped<ISchoolLocalDateResolver, SchoolLocalDateResolver>();
         services.AddScoped<ITeacherAvailabilityRepository, TeacherAvailabilityRepository>();
         services.AddScoped<TeacherAvailabilityService>();
         services.AddScoped<ISubjectRepository, SubjectRepository>();

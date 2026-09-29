@@ -25,6 +25,13 @@ public sealed class ConversationsController : StudentAffairsControllerBase
         return FromResponse(await Mediator.Send(new GetGuardianTeacherOptionsQuery(studentId), cancellationToken));
     }
 
+    [HttpGet("recipient-options/staff")]
+    public async Task<IActionResult> StaffOptions([FromQuery] int studentId, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.MessagingStartGuardianAdministration)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetGuardianStaffOptionsQuery(studentId), cancellationToken));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateConversationRequestDto request, CancellationToken cancellationToken)
     {

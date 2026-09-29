@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Dashboards;
 using AlFalah.Application.StudentAffairs.Students;
 using AlFalah.Application.StudentAffairs.Students.Handlers;
@@ -170,15 +171,18 @@ public sealed class GetGuardianStudentAffairsDashboardQueryHandler
     private readonly IStudentWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
+    private readonly ISchoolLocalDateResolver _schoolLocalDateResolver;
 
     public GetGuardianStudentAffairsDashboardQueryHandler(
         IStudentWorkflowRepository repository,
         ICurrentUserService currentUser,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ISchoolLocalDateResolver schoolLocalDateResolver)
     {
         _repository = repository;
         _currentUser = currentUser;
         _timeProvider = timeProvider;
+        _schoolLocalDateResolver = schoolLocalDateResolver;
     }
 
     public async Task<ApiResponse<GuardianStudentAffairsDashboardDto>> Handle(
@@ -190,11 +194,29 @@ public sealed class GetGuardianStudentAffairsDashboardQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<GuardianStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
+        if (!_currentUser.IsInRole(RoleNames.Guardian)
+            || !_currentUser.HasPermission(PermissionNames.StudentAffairsDashboardGuardian)
+            || !_currentUser.HasPermission(PermissionNames.GuardianViewLinkedStudents))
+            return ApiResponse<GuardianStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.PermissionDenied);
+
+        if (!await _repository.IsActiveGuardianProfileAsync(
+                schoolId.Value,
+                userId,
+                cancellationToken).ConfigureAwait(false))
+            return ApiResponse<GuardianStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.NotFound);
+
+        var now = _timeProvider.GetUtcNow();
+        var today = await _schoolLocalDateResolver.ResolveAsync(
+            schoolId.Value,
+            now,
+            cancellationToken).ConfigureAwait(false);
+        if (today is null)
+            return ApiResponse<GuardianStudentAffairsDashboardDto>.Fail("School local date could not be resolved");
         var result = await _repository.GetGuardianDashboardAsync(
             schoolId.Value,
             userId,
-            today,
+            today.Value,
+            now,
             cancellationToken).ConfigureAwait(false);
 
         return ApiResponse<GuardianStudentAffairsDashboardDto>.Success(result);

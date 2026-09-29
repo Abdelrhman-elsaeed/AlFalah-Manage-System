@@ -792,11 +792,35 @@ export const routes: Routes = [
         title: 'بوابة المدرسة'
       },
       {
+        path: 'student-affairs/guardian/activity',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Guardian'],
+          permissions: ['Guardian.ViewLinkedStudents', 'ClassroomEntryPermit.View'],
+          requireAllPermissions: true
+        },
+        loadComponent: () => import('./features/student-affairs/guardian-activity/guardian-activity.component')
+          .then(m => m.GuardianActivityComponent),
+        title: 'التصاريح والاستدعاءات'
+      },
+      {
+        path: 'student-affairs/guardian/notifications',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Guardian'],
+          permissions: ['Notification.ViewOwn']
+        },
+        loadComponent: () => import('./features/student-affairs/guardian-notifications/guardian-notifications.component')
+          .then(m => m.GuardianNotificationsComponent),
+        title: 'إشعارات ولي الأمر'
+      },
+      {
         path: 'student-affairs/guardian',
         canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['Guardian'],
-          permissions: ['StudentAffairsDashboard.Guardian', 'Guardian.ViewLinkedStudents']
+          permissions: ['StudentAffairsDashboard.Guardian', 'Guardian.ViewLinkedStudents'],
+          requireAllPermissions: true
         },
         loadComponent: () => import('./features/student-affairs/guardian-dashboard/guardian-dashboard.component')
           .then(m => m.GuardianDashboardComponent),

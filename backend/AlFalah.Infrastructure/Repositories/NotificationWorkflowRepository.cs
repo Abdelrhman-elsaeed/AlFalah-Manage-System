@@ -15,6 +15,18 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
     private readonly AlFalahDbContext _context;
     public NotificationWorkflowRepository(AlFalahDbContext context) => _context = context;
 
+    public Task<bool> IsActiveGuardianAsync(
+        int schoolId,
+        string userId,
+        CancellationToken cancellationToken) =>
+        _context.GuardianProfiles.AsNoTracking().AnyAsync(profile =>
+            profile.SchoolId == schoolId
+            && profile.ApplicationUserId == userId
+            && profile.IsActive
+            && !profile.IsDeleted
+            && profile.ApplicationUser.IsActive,
+            cancellationToken);
+
     public async Task<PagedResult<StudentAffairsNotificationDto>> GetOwnAsync(
         int schoolId, string userId, NotificationListQuery query, CancellationToken cancellationToken)
     {
@@ -56,7 +68,8 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
         int schoolId, string userId, int notificationId, CancellationToken cancellationToken) =>
         _context.Notifications.SingleOrDefaultAsync(notification =>
             notification.Id == notificationId && notification.SchoolId == schoolId
-            && notification.UserId == userId && !notification.RequiresApproval && !notification.IsSuppressed,
+            && notification.UserId == userId && !notification.RequiresApproval && !notification.IsSuppressed
+            && notification.DeliveryStatus == NotificationDeliveryStatus.Delivered,
             cancellationToken);
 
     public async Task<IReadOnlyList<Notification>> GetAllOwnUnreadForUpdateAsync(

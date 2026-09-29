@@ -1,5 +1,6 @@
 using AlFalah.Application.StudentAffairs.DTOs.Attendance;
 using AlFalah.Domain.Entities.StudentAffairs;
+using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Shared.Models;
 
 namespace AlFalah.Application.StudentAffairs.Attendance;
@@ -15,6 +16,14 @@ public sealed record GuardianExcuseLinkSnapshot(
     bool CanSubmitExcuses,
     DateOnly ValidFrom,
     DateOnly? ValidTo);
+
+public sealed record GuardianExcuseIdempotencySnapshot(
+    AbsenceExcuseDto Excuse,
+    int AttendanceId,
+    AbsenceExcuseType ExcuseType,
+    string? GuardianNotes,
+    long AttachmentSizeBytes,
+    string AttachmentSha256);
 
 public interface IAttendanceWorkflowRepository
 {
@@ -54,6 +63,12 @@ public interface IAttendanceWorkflowRepository
         CancellationToken cancellationToken);
 
     Task<AbsenceExcuseDto?> GetExcuseByIdempotencyKeyAsync(
+        int schoolId,
+        int guardianProfileId,
+        string idempotencyKey,
+        CancellationToken cancellationToken);
+
+    Task<GuardianExcuseIdempotencySnapshot?> GetExcuseIdempotencySnapshotAsync(
         int schoolId,
         int guardianProfileId,
         string idempotencyKey,

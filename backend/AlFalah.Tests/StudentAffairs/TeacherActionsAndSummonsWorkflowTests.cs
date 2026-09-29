@@ -590,12 +590,20 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
             return Task.FromResult(new PagedResult<SummonDto>());
         }
 
-        public Task<PagedResult<SummonDto>> GetMySummonsAsync(
-            int schoolId, string guardianUserId, SummonListQuery query, CancellationToken cancellationToken)
+        public Task<bool> IsActiveGuardianAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(true);
+
+        public Task<PagedResult<GuardianSummonDto>> GetMySummonsAsync(
+            int schoolId, string guardianUserId, DateOnly onDate, SummonListQuery query, CancellationToken cancellationToken)
         {
             SchoolIds.Add(schoolId);
-            return Task.FromResult(new PagedResult<SummonDto>());
+            return Task.FromResult(new PagedResult<GuardianSummonDto>());
         }
+
+        public Task<GuardianSummonDto?> GetMySummonAsync(
+            int schoolId, string guardianUserId, int summonId, DateOnly onDate,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<GuardianSummonDto?>(null);
 
         public Task<SummonHistoryDto?> GetHistoryAsync(
             int schoolId, int summonId, CancellationToken cancellationToken)

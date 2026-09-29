@@ -16,6 +16,11 @@ public sealed record StudentEnrollmentTarget(int ClassroomId, int AcademicTermId
 
 public interface IStudentWorkflowRepository
 {
+    Task<bool> IsActiveGuardianProfileAsync(
+        int schoolId,
+        string guardianUserId,
+        CancellationToken cancellationToken);
+
     Task<bool> IsGuardianLinkedToStudentAsync(
         int schoolId,
         string guardianUserId,
@@ -137,6 +142,7 @@ public interface IStudentWorkflowRepository
         int schoolId,
         string guardianUserId,
         int studentId,
+        DateOnly onDate,
         StudentAffairsPageQuery query,
         CancellationToken cancellationToken);
 
@@ -223,6 +229,7 @@ public interface IStudentWorkflowRepository
         int schoolId,
         string guardianUserId,
         DateOnly onDate,
+        DateTimeOffset now,
         CancellationToken cancellationToken);
 
     Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(

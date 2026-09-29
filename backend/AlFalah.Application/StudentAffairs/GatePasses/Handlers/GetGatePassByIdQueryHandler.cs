@@ -25,13 +25,22 @@ public sealed class GetGatePassByIdQueryHandler
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
+        var userId = _currentUser.UserId;
+        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.GatePassView)
-            && !_currentUser.HasPermission(PermissionNames.GatePassViewOwn)
-            && !_currentUser.HasPermission(PermissionNames.GatePassExecute))
+        var isGuardian = _currentUser.IsInRole(RoleNames.Guardian);
+        if (isGuardian
+            ? !_currentUser.HasPermission(PermissionNames.GatePassViewOwn)
+            : !_currentUser.HasPermission(PermissionNames.GatePassView)
+                && !_currentUser.HasPermission(PermissionNames.GatePassExecute))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
+
+        if (isGuardian
+            && (!await _repository.IsActiveGuardianAsync(schoolId.Value, userId, cancellationToken).ConfigureAwait(false)
+                || !await _repository.IsOwnedByGuardianAsync(
+                    schoolId.Value, request.GatePassId, userId, cancellationToken).ConfigureAwait(false)))
+            return ApiResponse<GatePassDto>.Fail("Gate pass was not found");
 
         var dto = await _repository.GetDtoAsync(
             schoolId.Value,

@@ -1,0 +1,12 @@
+<main class="notifications-page" dir="rtl">
+  <header><div><p>مساحة ولي الأمر</p><h1>الإشعارات</h1><span>{{ unreadCount() }} غير مقروء</span></div><div class="actions"><button pButton type="button" class="p-button-outlined" [label]="unreadOnly() ? 'عرض الكل' : 'غير المقروء فقط'" (click)="toggleUnread()"></button><button pButton type="button" icon="pi pi-check" label="تحديد الكل كمقروء" [loading]="busy()" [disabled]="unreadCount() === 0" (click)="markAllRead()"></button></div></header>
+  <section *ngIf="loading()" class="state" role="status"><p-progressSpinner></p-progressSpinner><span>جارٍ تحميل الإشعارات…</span></section>
+  <section *ngIf="error()" class="error" role="alert">{{ error() }}</section>
+  <section *ngIf="!loading() && !error()" class="notification-list" aria-live="polite">
+    <article *ngFor="let item of notifications()" [class.unread]="!item.readAt">
+      <div class="notification-icon"><i class="pi pi-bell"></i></div><div class="copy"><div class="title"><h2>{{ item.title }}</h2><p-tag [value]="item.priority"></p-tag></div><p>{{ item.body }}</p><time>{{ item.createdAt | date:'medium' }}</time></div><button *ngIf="!item.readAt" pButton type="button" class="p-button-text" label="تمت القراءة" (click)="markRead(item)"></button>
+    </article>
+    <div *ngIf="notifications().length === 0" class="state"><i class="pi pi-inbox"></i><span>لا توجد إشعارات في هذا العرض.</span></div>
+    <p-paginator *ngIf="total() > pageSize" [first]="(page() - 1) * pageSize" [rows]="pageSize" [totalRecords]="total()" [showCurrentPageReport]="true" currentPageReportTemplate="{first} - {last} من {totalRecords}" (onPageChange)="changePage($event)"></p-paginator>
+  </section>
+</main>

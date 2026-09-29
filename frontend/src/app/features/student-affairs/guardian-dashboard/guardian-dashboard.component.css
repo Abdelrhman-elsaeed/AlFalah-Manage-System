@@ -5,6 +5,7 @@
 .page-header h1 { margin: 0; color: var(--text-strong); font-size: clamp(1.55rem, 3vw, 2.15rem); }
 .page-header p { margin: var(--space-1) 0 0; color: var(--text-muted); }
 .page-header .eyebrow { color: var(--brand-700); font-size: .8rem; font-weight: 800; }
+.quick-links { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
 .state-card { display: grid; min-height: 280px; place-items: center; align-content: center; gap: var(--space-3); padding: var(--space-7); text-align: center; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 .state-card p-progressSpinner { width: 48px; height: 48px; }
 .state-card h2, .state-card p { margin: 0; }

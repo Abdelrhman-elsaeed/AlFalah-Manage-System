@@ -145,6 +145,46 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             : await GetExcuseDtoAsync(schoolId, excuseId.Value, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<GuardianExcuseIdempotencySnapshot?> GetExcuseIdempotencySnapshotAsync(
+        int schoolId,
+        int guardianProfileId,
+        string idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        var row = await _context.AbsenceExcuses
+            .AsNoTracking()
+            .Where(excuse => excuse.SchoolId == schoolId
+                && excuse.GuardianProfileId == guardianProfileId
+                && excuse.IdempotencyKey == idempotencyKey
+                && !excuse.IsDeleted)
+            .Select(excuse => new
+            {
+                excuse.Id,
+                excuse.DailyStudentAttendanceId,
+                excuse.ExcuseType,
+                excuse.GuardianNotes,
+                Attachment = excuse.Attachments
+                    .Where(attachment => !attachment.IsDeleted)
+                    .OrderBy(attachment => attachment.Id)
+                    .Select(attachment => new { attachment.SizeBytes, attachment.Sha256 })
+                    .FirstOrDefault()
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (row is null || row.Attachment is null) return null;
+
+        var dto = await GetExcuseDtoAsync(schoolId, row.Id, cancellationToken).ConfigureAwait(false);
+        return dto is null
+            ? null
+            : new GuardianExcuseIdempotencySnapshot(
+                dto,
+                row.DailyStudentAttendanceId,
+                row.ExcuseType,
+                row.GuardianNotes,
+                row.Attachment.SizeBytes,
+                row.Attachment.Sha256);
+    }
+
     public Task<AbsenceExcuse?> GetExcuseForUpdateAsync(
         int schoolId,
         int excuseId,

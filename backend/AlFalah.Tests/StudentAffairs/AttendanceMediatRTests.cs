@@ -1,4 +1,5 @@
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs;
 using AlFalah.Application.StudentAffairs.Attendance;
 using AlFalah.Application.StudentAffairs.Attendance.Handlers;
@@ -41,6 +42,7 @@ public sealed class AttendanceMediatRTests
         services.AddSingleton<INoorExportRepository, StubNoorExportRepository>();
         services.AddSingleton<INoorWorkbookWriter, StubNoorWorkbookWriter>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton<ISchoolLocalDateResolver>(new StubSchoolLocalDateResolver(new DateOnly(2026, 8, 30)));
 
         var provider = services.BuildServiceProvider();
 
@@ -65,7 +67,8 @@ public sealed class AttendanceMediatRTests
     {
         var stubRepo = new StubAttendanceWorkflowRepository();
         var currentUser = new StubCurrentUser("officer-1", 1, PermissionNames.AttendanceViewStudents);
-        var handler = new GetAbsenceExcusesQueryHandler(stubRepo, currentUser);
+        var handler = new GetAbsenceExcusesQueryHandler(
+            stubRepo, currentUser, new StubSchoolLocalDateResolver(new DateOnly(2026, 8, 30)), TimeProvider.System);
 
         var result = await handler.Handle(new GetAbsenceExcusesQuery(42), CancellationToken.None);
 
@@ -80,7 +83,8 @@ public sealed class AttendanceMediatRTests
     {
         var stubRepo = new StubAttendanceWorkflowRepository();
         var currentUser = new StubCurrentUser("stranger-1", 1); // No attendance permissions
-        var handler = new GetAbsenceExcusesQueryHandler(stubRepo, currentUser);
+        var handler = new GetAbsenceExcusesQueryHandler(
+            stubRepo, currentUser, new StubSchoolLocalDateResolver(new DateOnly(2026, 8, 30)), TimeProvider.System);
 
         var result = await handler.Handle(new GetAbsenceExcusesQuery(42), CancellationToken.None);
 
@@ -132,7 +136,8 @@ public sealed class AttendanceMediatRTests
     {
         var stubRepo = new StubAttendanceWorkflowRepository();
         var currentUser = new StubCurrentUser("officer-1", 1, PermissionNames.AttendanceViewStudents);
-        var handler = new GetStudentAttendanceHistoryQueryHandler(stubRepo, currentUser);
+        var handler = new GetStudentAttendanceHistoryQueryHandler(
+            stubRepo, currentUser, new StubSchoolLocalDateResolver(new DateOnly(2026, 8, 30)), TimeProvider.System);
 
         var result = await handler.Handle(
             new GetStudentAttendanceHistoryQuery(5, 1),
@@ -187,7 +192,8 @@ public sealed class AttendanceMediatRTests
         var stubRepo = new StubAttendanceWorkflowRepository();
         var stubStorage = new StubFileStorageService();
         var currentUser = new StubCurrentUser("officer-1", 1, PermissionNames.AttendanceViewStudents);
-        var handler = new DownloadAbsenceExcuseAttachmentQueryHandler(stubRepo, stubStorage, currentUser);
+        var handler = new DownloadAbsenceExcuseAttachmentQueryHandler(
+            stubRepo, stubStorage, currentUser, new StubSchoolLocalDateResolver(new DateOnly(2026, 8, 30)), TimeProvider.System);
 
         var file = await handler.Handle(
             new DownloadAbsenceExcuseAttachmentQuery(101, 201),
@@ -221,11 +227,17 @@ public sealed class AttendanceMediatRTests
         public bool HasPermission(string permission) => _permissions.Contains(permission);
         public bool HasAllPermissions(params string[] permissions) => permissions.All(_permissions.Contains);
         public bool HasAnyPermission(params string[] permissions) => permissions.Any(_permissions.Contains);
-        public bool IsInRole(string role) => true;
+        public bool IsInRole(string role) => string.Equals(role, RoleNames.StudentAffairsOfficer, StringComparison.OrdinalIgnoreCase);
         public IEnumerable<string> GetRoles() => new[] { RoleNames.StudentAffairsOfficer };
         public IEnumerable<string> GetPermissions() => _permissions;
         public bool IsGlobalAdmin() => false;
         public bool IsSchoolScopedRole() => true;
+    }
+
+    private sealed class StubSchoolLocalDateResolver(DateOnly localDate) : ISchoolLocalDateResolver
+    {
+        public Task<DateOnly?> ResolveAsync(int schoolId, DateTimeOffset instant, CancellationToken cancellationToken) =>
+            Task.FromResult<DateOnly?>(localDate);
     }
 
     private sealed class StubFileStorageService : IFileStorageService
@@ -263,6 +275,9 @@ public sealed class AttendanceMediatRTests
 
         public Task<AbsenceExcuseDto?> GetExcuseByIdempotencyKeyAsync(int schoolId, int guardianProfileId, string idempotencyKey, CancellationToken cancellationToken) =>
             Task.FromResult<AbsenceExcuseDto?>(null);
+
+        public Task<GuardianExcuseIdempotencySnapshot?> GetExcuseIdempotencySnapshotAsync(int schoolId, int guardianProfileId, string idempotencyKey, CancellationToken cancellationToken) =>
+            Task.FromResult<GuardianExcuseIdempotencySnapshot?>(null);
 
         public Task<AbsenceExcuse?> GetExcuseForUpdateAsync(int schoolId, int excuseId, CancellationToken cancellationToken) =>
             Task.FromResult<AbsenceExcuse?>(null);

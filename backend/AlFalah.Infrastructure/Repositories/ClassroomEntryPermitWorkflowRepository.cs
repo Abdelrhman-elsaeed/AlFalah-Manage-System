@@ -1,3 +1,4 @@
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Permits;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.Permits;
@@ -11,7 +12,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AlFalah.Infrastructure.Repositories;
 
-public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext context)
+public sealed class ClassroomEntryPermitWorkflowRepository(
+    AlFalahDbContext context,
+    IBellScheduleRepository schedules)
     : IClassroomEntryPermitWorkflowRepository
 {
     public Task<ClassroomEntryPermitEnrollmentSnapshot?> GetActiveEnrollmentAsync(
@@ -155,12 +158,15 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
         DateTimeOffset utcNow,
         CancellationToken cancellationToken)
     {
-        var row = await Project(ScopedQuery(schoolId, scope, userId, utcNow)
+        var localDate = await ResolveGuardianLocalDateAsync(
+            schoolId, scope, utcNow, cancellationToken).ConfigureAwait(false);
+        if (scope == ClassroomEntryPermitViewerScope.Guardian && localDate is null) return null;
+        var row = await Project(ScopedQuery(schoolId, scope, userId, localDate)
                 .Where(permit => permit.Id == permitId))
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return row is null ? null : Map(row, utcNow);
+        return row is null ? null : Map(row, utcNow, scope);
     }
 
     private IQueryable<PermitProjection> Project(IQueryable<ClassroomEntryPermit> permits) =>
@@ -245,7 +251,17 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
     {
         var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
         var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
-        var dbQuery = ScopedQuery(schoolId, scope, userId, utcNow);
+        var localDate = await ResolveGuardianLocalDateAsync(
+            schoolId, scope, utcNow, cancellationToken).ConfigureAwait(false);
+        if (scope == ClassroomEntryPermitViewerScope.Guardian && localDate is null)
+            return new PagedResult<ClassroomEntryPermitDto>
+            {
+                Items = new List<ClassroomEntryPermitDto>(),
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize
+            };
+        var dbQuery = ScopedQuery(schoolId, scope, userId, localDate);
 
         if (query.Status is ClassroomEntryPermitStatus.Expired)
             dbQuery = dbQuery.Where(permit => permit.Status == ClassroomEntryPermitStatus.Expired
@@ -280,7 +296,7 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
             .Take(pageSize))
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-        var items = rows.Select(row => Map(row, utcNow)).ToList();
+        var items = rows.Select(row => Map(row, utcNow, scope)).ToList();
 
         return new PagedResult<ClassroomEntryPermitDto>
         {
@@ -295,11 +311,11 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
         int schoolId,
         ClassroomEntryPermitViewerScope scope,
         string userId,
-        DateTimeOffset utcNow)
+        DateOnly? localDate)
     {
         var query = context.ClassroomEntryPermits
             .AsNoTracking()
-            .Where(permit => permit.SchoolId == schoolId);
+            .Where(permit => permit.SchoolId == schoolId && !permit.IsDeleted);
 
         return scope switch
         {
@@ -312,13 +328,20 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
                     link.SchoolId == schoolId
                     && link.GuardianProfile.ApplicationUserId == userId
                     && link.GuardianProfile.IsActive
-                    && link.ValidFrom <= DateOnly.FromDateTime(utcNow.UtcDateTime)
-                    && (link.ValidTo == null || link.ValidTo >= DateOnly.FromDateTime(utcNow.UtcDateTime)))),
+                    && !link.GuardianProfile.IsDeleted
+                    && link.GuardianProfile.ApplicationUser.IsActive
+                    && link.Student.IsActive
+                    && !link.Student.IsDeleted
+                    && link.ValidFrom <= localDate!.Value
+                    && (link.ValidTo == null || link.ValidTo >= localDate.Value))),
             _ => query.Where(_ => false)
         };
     }
 
-    private static ClassroomEntryPermitDto Map(PermitProjection row, DateTimeOffset utcNow)
+    private static ClassroomEntryPermitDto Map(
+        PermitProjection row,
+        DateTimeOffset utcNow,
+        ClassroomEntryPermitViewerScope scope)
     {
         var effectiveStatus = row.Status != ClassroomEntryPermitStatus.Revoked && row.ValidUntil <= utcNow
             ? ClassroomEntryPermitStatus.Expired
@@ -340,7 +363,8 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
         return new ClassroomEntryPermitDto(
             row.Id,
             new StudentSummaryDto(row.StudentId, row.StudentNumber, row.StudentName, row.ClassroomId,
-                row.ClassroomLabel, row.StudentIsActive, row.StudentPhotoUrl),
+                row.ClassroomLabel, row.StudentIsActive,
+                scope == ClassroomEntryPermitViewerScope.Guardian ? null : row.StudentPhotoUrl),
             row.Reason,
             row.IssuedAt,
             row.ValidFrom,
@@ -348,11 +372,11 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
             row.SchoolTimetableEntryId,
             new ClassroomSummaryDto(row.ClassroomId, row.ClassroomLabel, row.ClassroomStage.ToString(),
                 row.ClassroomGradeLevel, row.ClassroomSection),
-            teacher,
+            scope == ClassroomEntryPermitViewerScope.Guardian ? null : teacher,
             effectiveStatus,
             acknowledgedBy,
             row.AcknowledgedAt,
-            row.GuardianDeliveryStatus is { } guardianStatus
+            scope != ClassroomEntryPermitViewerScope.Guardian && row.GuardianDeliveryStatus is { } guardianStatus
                 ? new NotificationDeliveryDto(
                     "Guardian",
                     RoleNames.Guardian,
@@ -369,6 +393,31 @@ public sealed class ClassroomEntryPermitWorkflowRepository(AlFalahDbContext cont
                 row.IssuedAt,
                 row.MetricRecalculatedAt ?? row.IssuedAt),
             Convert.ToBase64String(row.RowVersion));
+    }
+
+    private async Task<DateOnly?> ResolveGuardianLocalDateAsync(
+        int schoolId,
+        ClassroomEntryPermitViewerScope scope,
+        DateTimeOffset instant,
+        CancellationToken cancellationToken)
+    {
+        if (scope != ClassroomEntryPermitViewerScope.Guardian) return null;
+        try
+        {
+            var candidates = await schedules.GetPublishedCandidatesAsync(
+                schoolId, instant, cancellationToken).ConfigureAwait(false);
+            if (candidates.Count != 1) return null;
+            return DateOnly.FromDateTime(
+                BellScheduleResolver.LocalTime(candidates[0].Schedule, instant).DateTime);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return null;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return null;
+        }
     }
 
     private sealed record PermitProjection(

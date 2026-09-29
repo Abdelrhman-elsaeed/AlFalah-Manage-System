@@ -21,6 +21,18 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
 
     public SummonWorkflowRepository(AlFalahDbContext context) => _context = context;
 
+    public Task<bool> IsActiveGuardianAsync(
+        int schoolId,
+        string guardianUserId,
+        CancellationToken cancellationToken) =>
+        _context.GuardianProfiles.AsNoTracking().AnyAsync(profile =>
+            profile.SchoolId == schoolId
+            && profile.ApplicationUserId == guardianUserId
+            && profile.IsActive
+            && !profile.IsDeleted
+            && profile.ApplicationUser.IsActive,
+            cancellationToken);
+
     public async Task<PagedResult<SummonDto>> GetSummonsAsync(
         int schoolId,
         SummonListQuery query,
@@ -211,9 +223,10 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
         };
     }
 
-    public async Task<PagedResult<SummonDto>> GetMySummonsAsync(
+    public async Task<PagedResult<GuardianSummonDto>> GetMySummonsAsync(
         int schoolId,
         string guardianUserId,
+        DateOnly onDate,
         SummonListQuery query,
         CancellationToken cancellationToken)
     {
@@ -225,7 +238,19 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             .Where(summon => summon.SchoolId == schoolId
                 && !summon.IsDeleted
                 && summon.GuardianProfile.SchoolId == schoolId
-                && summon.GuardianProfile.ApplicationUserId == guardianUserId);
+                && summon.GuardianProfile.ApplicationUserId == guardianUserId
+                && summon.GuardianProfile.IsActive
+                && !summon.GuardianProfile.IsDeleted
+                && summon.GuardianProfile.ApplicationUser.IsActive
+                && summon.Student.SchoolId == schoolId
+                && summon.Student.IsActive
+                && !summon.Student.IsDeleted
+                && summon.Student.Guardians.Any(link =>
+                    link.SchoolId == schoolId
+                    && !link.IsDeleted
+                    && link.GuardianProfileId == summon.GuardianProfileId
+                    && link.ValidFrom <= onDate
+                    && (link.ValidTo == null || link.ValidTo >= onDate)));
 
         if (query.Status.HasValue)
         {
@@ -363,27 +388,19 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                     $"{row.AssignedWorkerFirstName} {row.AssignedWorkerLastName}".Trim(),
                     RoleNames.SocialWorker);
 
-            return new SummonDto(
+            return new GuardianSummonDto(
                 row.Id,
                 student,
-                row.StudentReferralId,
                 row.CreatedReason,
                 row.Priority,
-                row.SourceCountSnapshot,
-                row.ThresholdSnapshot,
                 row.Status,
                 row.ScheduledAt,
                 row.Location,
                 row.Instructions,
-                guardian,
-                assignedWorker,
-                row.RequiresOfficerReview,
-                row.OfficerReviewReason,
-                row.GuardianNotifiedAt,
-                Convert.ToBase64String(row.RowVersion));
+                row.GuardianNotifiedAt);
         }).ToList();
 
-        return new PagedResult<SummonDto>
+        return new PagedResult<GuardianSummonDto>
         {
             Items = items,
             TotalCount = totalCount,
@@ -391,6 +408,66 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             PageSize = pageSize
         };
     }
+
+    public Task<GuardianSummonDto?> GetMySummonAsync(
+        int schoolId,
+        string guardianUserId,
+        int summonId,
+        DateOnly onDate,
+        CancellationToken cancellationToken) =>
+        _context.GuardianSummons
+            .AsNoTracking()
+            .Where(summon => summon.Id == summonId
+                && summon.SchoolId == schoolId
+                && !summon.IsDeleted
+                && summon.GuardianProfile.SchoolId == schoolId
+                && summon.GuardianProfile.ApplicationUserId == guardianUserId
+                && summon.GuardianProfile.IsActive
+                && !summon.GuardianProfile.IsDeleted
+                && summon.GuardianProfile.ApplicationUser.IsActive
+                && summon.Student.SchoolId == schoolId
+                && summon.Student.IsActive
+                && !summon.Student.IsDeleted
+                && summon.Student.Guardians.Any(link =>
+                    link.SchoolId == schoolId
+                    && !link.IsDeleted
+                    && link.GuardianProfileId == summon.GuardianProfileId
+                    && link.ValidFrom <= onDate
+                    && (link.ValidTo == null || link.ValidTo >= onDate)))
+            .Select(summon => new GuardianSummonDto(
+                summon.Id,
+                new StudentSummaryDto(
+                    summon.StudentId,
+                    summon.Student.StudentNumber,
+                    (summon.Student.FirstName + " "
+                        + (summon.Student.MiddleName ?? string.Empty) + " "
+                        + summon.Student.LastName).Trim(),
+                    summon.Student.Enrollments
+                        .Where(enrollment => enrollment.SchoolId == schoolId
+                            && !enrollment.IsDeleted
+                            && enrollment.Status == StudentEnrollmentStatus.Active
+                            && enrollment.EnrolledOn <= onDate
+                            && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= onDate))
+                        .Select(enrollment => (int?)enrollment.ClassroomId)
+                        .FirstOrDefault(),
+                    summon.Student.Enrollments
+                        .Where(enrollment => enrollment.SchoolId == schoolId
+                            && !enrollment.IsDeleted
+                            && enrollment.Status == StudentEnrollmentStatus.Active
+                            && enrollment.EnrolledOn <= onDate
+                            && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= onDate))
+                        .Select(enrollment => enrollment.Classroom.ClassLabel)
+                        .FirstOrDefault(),
+                    summon.Student.IsActive,
+                    null),
+                summon.CreatedReason,
+                summon.Priority,
+                summon.Status,
+                summon.ScheduledAt,
+                summon.Location,
+                summon.Instructions,
+                summon.GuardianNotifiedAt))
+            .SingleOrDefaultAsync(cancellationToken);
 
     public async Task<SummonHistoryDto?> GetHistoryAsync(
         int schoolId,

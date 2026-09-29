@@ -30,6 +30,14 @@ public interface IGatePassWorkflowRepository
 {
     Task<DateOnly?> GetPublishedStudyDateAsync(int schoolId, DateTimeOffset instant, CancellationToken ct);
 
+    Task<bool> IsActiveGuardianAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken);
+
+    Task<bool> IsOwnedByGuardianAsync(
+        int schoolId,
+        int gatePassId,
+        string guardianUserId,
+        CancellationToken cancellationToken);
+
     Task<GuardianGatePassLinkSnapshot?> GetGuardianLinkAsync(
         int schoolId,
         string guardianUserId,

@@ -16,20 +16,20 @@ public sealed class GuardianController : StudentAffairsControllerBase
     public async Task<IActionResult> Students(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetGuardianStudentsQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetGuardianStudentsQuery(), cancellationToken));
     }
 
     [HttpGet("students/{studentId:int}/summary")]
     public async Task<IActionResult> Summary(int studentId, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetGuardianStudentSummaryQuery(studentId), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetGuardianStudentSummaryQuery(studentId), cancellationToken));
     }
 
     [HttpGet("students/{studentId:int}/notifications")]
     public async Task<IActionResult> Notifications(int studentId, [FromQuery] StudentAffairsPageQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationViewOwn)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetGuardianStudentNotificationsQuery(studentId, query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetGuardianStudentNotificationsQuery(studentId, query), cancellationToken));
     }
 }

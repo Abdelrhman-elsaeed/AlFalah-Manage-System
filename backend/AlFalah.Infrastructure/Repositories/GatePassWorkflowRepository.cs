@@ -42,6 +42,34 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
         }
     }
 
+    public Task<bool> IsActiveGuardianAsync(
+        int schoolId,
+        string guardianUserId,
+        CancellationToken cancellationToken) =>
+        _context.GuardianProfiles.AsNoTracking().AnyAsync(profile =>
+            profile.SchoolId == schoolId
+            && profile.ApplicationUserId == guardianUserId
+            && profile.IsActive
+            && !profile.IsDeleted
+            && profile.ApplicationUser.IsActive,
+            cancellationToken);
+
+    public Task<bool> IsOwnedByGuardianAsync(
+        int schoolId,
+        int gatePassId,
+        string guardianUserId,
+        CancellationToken cancellationToken) =>
+        _context.GatePasses.AsNoTracking().AnyAsync(gatePass =>
+            gatePass.Id == gatePassId
+            && gatePass.SchoolId == schoolId
+            && !gatePass.IsDeleted
+            && gatePass.RequestedByGuardianProfile.SchoolId == schoolId
+            && gatePass.RequestedByGuardianProfile.ApplicationUserId == guardianUserId
+            && gatePass.RequestedByGuardianProfile.IsActive
+            && !gatePass.RequestedByGuardianProfile.IsDeleted
+            && gatePass.RequestedByGuardianProfile.ApplicationUser.IsActive,
+            cancellationToken);
+
     public Task<GuardianGatePassLinkSnapshot?> GetGuardianLinkAsync(
         int schoolId,
         string guardianUserId,
@@ -52,7 +80,12 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
             .Where(link => link.SchoolId == schoolId
                 && link.StudentId == studentId
                 && link.GuardianProfile.SchoolId == schoolId
-                && link.GuardianProfile.ApplicationUserId == guardianUserId)
+                && link.GuardianProfile.ApplicationUserId == guardianUserId
+                && link.GuardianProfile.IsActive
+                && !link.GuardianProfile.IsDeleted
+                && link.GuardianProfile.ApplicationUser.IsActive
+                && link.Student.IsActive
+                && !link.Student.IsDeleted)
             .Select(link => new GuardianGatePassLinkSnapshot(
                 link.GuardianProfileId,
                 link.GuardianProfile.IsActive,
@@ -467,7 +500,11 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
             .AsNoTracking()
             .Where(gp => gp.SchoolId == schoolId
                 && gp.RequestedByGuardianProfile.SchoolId == schoolId
-                && gp.RequestedByGuardianProfile.ApplicationUserId == guardianUserId);
+                && gp.RequestedByGuardianProfile.ApplicationUserId == guardianUserId
+                && gp.RequestedByGuardianProfile.IsActive
+                && !gp.RequestedByGuardianProfile.IsDeleted
+                && gp.RequestedByGuardianProfile.ApplicationUser.IsActive
+                && !gp.IsDeleted);
 
         if (query.Status.HasValue)
         {

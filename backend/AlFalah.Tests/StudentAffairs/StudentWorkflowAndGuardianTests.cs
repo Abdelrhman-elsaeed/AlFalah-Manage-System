@@ -751,6 +751,9 @@ public sealed class StudentWorkflowAndGuardianTests
 
     private sealed class FakeStudentWorkflowRepository : IStudentWorkflowRepository
     {
+        public Task<bool> IsActiveGuardianProfileAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(true);
+
         public Task<bool> IsGuardianLinkedToStudentAsync(int schoolId, string guardianUserId, int studentId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(GuardianLinked);
 
@@ -843,7 +846,7 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<GuardianStudentSummaryDto?> GetGuardianStudentSummaryAsync(int schoolId, string guardianUserId, int studentId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult<GuardianStudentSummaryDto?>(null);
 
-        public Task<PagedResult<GuardianNotificationDto>> GetGuardianStudentNotificationsAsync(int schoolId, string guardianUserId, int studentId, StudentAffairsPageQuery query, CancellationToken cancellationToken) =>
+        public Task<PagedResult<GuardianNotificationDto>> GetGuardianStudentNotificationsAsync(int schoolId, string guardianUserId, int studentId, DateOnly onDate, StudentAffairsPageQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<GuardianNotificationDto>());
 
         public Task<PagedResult<ClassroomDto>> GetClassroomsAsync(int schoolId, ClassroomListQuery query, CancellationToken cancellationToken) =>
@@ -924,8 +927,13 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(int schoolId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(new SecurityStudentAffairsDashboardDto(Array.Empty<SecurityGatePassQueueItemDto>(), Array.Empty<DashboardCountDto>()));
 
-        public Task<GuardianStudentAffairsDashboardDto> GetGuardianDashboardAsync(int schoolId, string guardianUserId, DateOnly onDate, CancellationToken cancellationToken) =>
-            Task.FromResult(new GuardianStudentAffairsDashboardDto(Array.Empty<StudentContextDto>(), Array.Empty<DashboardCountDto>()));
+        public Task<GuardianStudentAffairsDashboardDto> GetGuardianDashboardAsync(int schoolId, string guardianUserId, DateOnly onDate, DateTimeOffset now, CancellationToken cancellationToken) =>
+            Task.FromResult(new GuardianStudentAffairsDashboardDto(
+                Array.Empty<GuardianDashboardStudentDto>(),
+                Array.Empty<DashboardCountDto>(),
+                0,
+                0,
+                now));
 
         public Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(int schoolId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(new SchoolOversightDashboardDto(0, 0, 0, Array.Empty<ClassroomAttendanceAggregateDto>(), Array.Empty<DashboardCountDto>(), Array.Empty<DashboardCountDto>(), DateTimeOffset.UtcNow));

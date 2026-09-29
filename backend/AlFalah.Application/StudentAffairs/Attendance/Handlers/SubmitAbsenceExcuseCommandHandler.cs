@@ -6,6 +6,7 @@ using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Domain.Events;
 using AlFalah.Shared.Models;
 using MediatR;
+using System.Security.Cryptography;
 
 namespace AlFalah.Application.StudentAffairs.Attendance.Handlers;
 
@@ -51,6 +52,21 @@ public sealed class SubmitAbsenceExcuseCommandHandler
             || !string.Equals(Path.GetExtension(command.OriginalFileName), ".pdf", StringComparison.OrdinalIgnoreCase))
             return ApiResponse<AbsenceExcuseDto>.Fail("Excuse attachment must be a PDF");
 
+        await using var bufferedContent = new MemoryStream((int)command.SizeBytes);
+        await command.Content.CopyToAsync(bufferedContent, cancellationToken).ConfigureAwait(false);
+        if (bufferedContent.Length != command.SizeBytes)
+            return ApiResponse<AbsenceExcuseDto>.Fail("Excuse attachment size did not match the upload");
+        var bytes = bufferedContent.ToArray();
+        if (bytes.Length < 5
+            || bytes[0] != (byte)'%'
+            || bytes[1] != (byte)'P'
+            || bytes[2] != (byte)'D'
+            || bytes[3] != (byte)'F'
+            || bytes[4] != (byte)'-')
+            return ApiResponse<AbsenceExcuseDto>.Fail("Excuse attachment content is not a valid PDF");
+        var attachmentSha256 = Convert.ToHexString(SHA256.HashData(bytes));
+        bufferedContent.Position = 0;
+
         var attendance = await _repository.GetAttendanceForUpdateAsync(
             schoolId.Value,
             command.AttendanceId,
@@ -74,17 +90,28 @@ public sealed class SubmitAbsenceExcuseCommandHandler
             || (link.ValidTo is not null && link.ValidTo < attendance.AttendanceDate))
             return ApiResponse<AbsenceExcuseDto>.Fail("Student is not linked to this guardian for excuse submission");
 
-        var existing = await _repository.GetExcuseByIdempotencyKeyAsync(
+        var existing = await _repository.GetExcuseIdempotencySnapshotAsync(
             schoolId.Value,
             link.GuardianProfileId,
             idempotencyKey,
             cancellationToken).ConfigureAwait(false);
         if (existing is not null)
-            return ApiResponse<AbsenceExcuseDto>.Success(existing, "Absence excuse already exists");
+        {
+            var notes = command.Request.Notes?.Trim();
+            var samePayload = existing.AttendanceId == command.AttendanceId
+                && existing.ExcuseType == command.Request.ExcuseType
+                && string.Equals(existing.GuardianNotes, notes, StringComparison.Ordinal)
+                && existing.AttachmentSizeBytes == command.SizeBytes
+                && string.Equals(existing.AttachmentSha256, attachmentSha256, StringComparison.OrdinalIgnoreCase);
+            return samePayload
+                ? ApiResponse<AbsenceExcuseDto>.Success(existing.Excuse, "Absence excuse already exists")
+                : ApiResponse<AbsenceExcuseDto>.Fail(
+                    "Idempotency-Key was already used with a different absence excuse payload");
+        }
 
         var storedFile = await _fileStorage.StoreAsync(
             schoolId.Value,
-            command.Content,
+            bufferedContent,
             command.OriginalFileName,
             command.ContentType,
             cancellationToken).ConfigureAwait(false);
@@ -151,13 +178,23 @@ public sealed class SubmitAbsenceExcuseCommandHandler
         {
             await _fileStorage.DeleteIfExistsAsync(storedFile.StorageKey, cancellationToken)
                 .ConfigureAwait(false);
-            var duplicate = await _repository.GetExcuseByIdempotencyKeyAsync(
+            var duplicate = await _repository.GetExcuseIdempotencySnapshotAsync(
                 schoolId.Value,
                 link.GuardianProfileId,
                 idempotencyKey,
                 cancellationToken).ConfigureAwait(false);
             if (duplicate is not null)
-                return ApiResponse<AbsenceExcuseDto>.Success(duplicate, "Absence excuse already exists");
+            {
+                var samePayload = duplicate.AttendanceId == command.AttendanceId
+                    && duplicate.ExcuseType == command.Request.ExcuseType
+                    && string.Equals(duplicate.GuardianNotes, command.Request.Notes?.Trim(), StringComparison.Ordinal)
+                    && duplicate.AttachmentSizeBytes == command.SizeBytes
+                    && string.Equals(duplicate.AttachmentSha256, attachmentSha256, StringComparison.OrdinalIgnoreCase);
+                return samePayload
+                    ? ApiResponse<AbsenceExcuseDto>.Success(duplicate.Excuse, "Absence excuse already exists")
+                    : ApiResponse<AbsenceExcuseDto>.Fail(
+                        "Idempotency-Key was already used with a different absence excuse payload");
+            }
             throw;
         }
         catch (AttendanceConcurrencyException)

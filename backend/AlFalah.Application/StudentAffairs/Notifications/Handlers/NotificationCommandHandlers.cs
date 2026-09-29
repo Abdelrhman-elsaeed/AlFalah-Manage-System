@@ -20,6 +20,11 @@ public sealed class GetNotificationsQueryHandler
     {
         if (_currentUser.ActiveSchoolId is not { } schoolId || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<PagedResult<StudentAffairsNotificationDto>>.Fail("An active school is required");
+        if (!_currentUser.HasPermission(PermissionNames.NotificationViewOwn))
+            return ApiResponse<PagedResult<StudentAffairsNotificationDto>>.Fail("You do not have permission to view notifications");
+        if (_currentUser.IsInRole(RoleNames.Guardian)
+            && !await _repository.IsActiveGuardianAsync(schoolId, _currentUser.UserId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<PagedResult<StudentAffairsNotificationDto>>.Fail("You do not have permission to view notifications");
         return ApiResponse<PagedResult<StudentAffairsNotificationDto>>.Success(
             await _repository.GetOwnAsync(schoolId, _currentUser.UserId, request.Query, cancellationToken).ConfigureAwait(false));
     }
@@ -36,6 +41,11 @@ public sealed class GetUnreadNotificationCountQueryHandler
     {
         if (_currentUser.ActiveSchoolId is not { } schoolId || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<int>.Fail("An active school is required");
+        if (!_currentUser.HasPermission(PermissionNames.NotificationViewOwn))
+            return ApiResponse<int>.Fail("You do not have permission to view notifications");
+        if (_currentUser.IsInRole(RoleNames.Guardian)
+            && !await _repository.IsActiveGuardianAsync(schoolId, _currentUser.UserId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<int>.Fail("You do not have permission to view notifications");
         return ApiResponse<int>.Success(await _repository.GetUnreadCountAsync(
             schoolId, _currentUser.UserId, cancellationToken).ConfigureAwait(false));
     }
@@ -53,6 +63,11 @@ public sealed class MarkNotificationReadCommandHandler
     {
         if (_currentUser.ActiveSchoolId is not { } schoolId || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<bool>.Fail("An active school is required");
+        if (!_currentUser.HasPermission(PermissionNames.NotificationViewOwn))
+            return ApiResponse<bool>.Fail("You do not have permission to update notifications");
+        if (_currentUser.IsInRole(RoleNames.Guardian)
+            && !await _repository.IsActiveGuardianAsync(schoolId, _currentUser.UserId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<bool>.Fail("You do not have permission to update notifications");
         var notification = await _repository.GetOwnForUpdateAsync(
             schoolId, _currentUser.UserId, request.NotificationId, cancellationToken).ConfigureAwait(false);
         if (notification is null) return ApiResponse<bool>.Fail("Notification was not found");
@@ -75,6 +90,11 @@ public sealed class MarkAllNotificationsReadCommandHandler
     {
         if (_currentUser.ActiveSchoolId is not { } schoolId || string.IsNullOrWhiteSpace(_currentUser.UserId))
             return ApiResponse<bool>.Fail("An active school is required");
+        if (!_currentUser.HasPermission(PermissionNames.NotificationViewOwn))
+            return ApiResponse<bool>.Fail("You do not have permission to update notifications");
+        if (_currentUser.IsInRole(RoleNames.Guardian)
+            && !await _repository.IsActiveGuardianAsync(schoolId, _currentUser.UserId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<bool>.Fail("You do not have permission to update notifications");
         var notifications = await _repository.GetAllOwnUnreadForUpdateAsync(
             schoolId, _currentUser.UserId, cancellationToken).ConfigureAwait(false);
         var now = _timeProvider.GetUtcNow();

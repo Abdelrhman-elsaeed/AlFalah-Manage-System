@@ -30,14 +30,21 @@ public sealed class SummonsController : StudentAffairsControllerBase
     public async Task<IActionResult> Mine([FromQuery] SummonListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetMySummonsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetMySummonsQuery(query), cancellationToken));
+    }
+
+    [HttpGet("mine/{id:int}")]
+    public async Task<IActionResult> MineById(int id, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetMySummonByIdQuery(id), cancellationToken));
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.SummonView, PermissionNames.GuardianViewLinkedStudents)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSummonByIdQuery(id), cancellationToken));
+        if (!HasAnyPermission(PermissionNames.SummonView)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetSummonByIdQuery(id), cancellationToken));
     }
 
     [HttpGet("automation-impact-reviews")]

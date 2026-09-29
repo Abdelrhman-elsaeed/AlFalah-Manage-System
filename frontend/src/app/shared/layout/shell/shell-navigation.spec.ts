@@ -57,6 +57,36 @@ describe('shell Phase 5 navigation', () => {
   });
 });
 
+describe('shell Guardian self-service navigation', () => {
+  const administration = SHELL_NAV_CATEGORIES.find(category => category.id === 'administration');
+
+  it('exposes only Guardian-scoped W6 surfaces through the canonical routes', () => {
+    const guardianRoutes = administration?.items
+      .filter(item => item.roles?.includes('Guardian'))
+      .map(item => item.route);
+
+    expect(guardianRoutes).toEqual([
+      '/student-affairs/guardian',
+      '/student-affairs/guardian/excuses',
+      '/student-affairs/gate-passes/mine/new',
+      '/student-affairs/guardian/activity',
+      '/student-affairs/guardian/notifications',
+      '/student-affairs/messages'
+    ]);
+  });
+
+  it('requires both dashboard and linked-student permissions for My Children', () => {
+    const children = administration?.items.find(item => item.route === '/student-affairs/guardian');
+
+    expect(children?.permissions).toEqual([
+      'StudentAffairsDashboard.Guardian',
+      'Guardian.ViewLinkedStudents'
+    ]);
+    expect(children?.requireAllPermissions).toBe(true);
+    expect(children?.exact).toBe(true);
+  });
+});
+
 describe('shell Student Affairs least-privilege navigation', () => {
   const reports = SHELL_NAV_CATEGORIES.find(category => category.id === 'reports');
 
