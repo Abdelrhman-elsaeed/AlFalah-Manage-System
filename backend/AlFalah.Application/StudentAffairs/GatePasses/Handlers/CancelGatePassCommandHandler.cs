@@ -34,9 +34,10 @@ public sealed class CancelGatePassCommandHandler
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
         var isGuardian = _currentUser.IsInRole(RoleNames.Guardian);
-        if (isGuardian
-            ? !_currentUser.HasPermission(PermissionNames.GatePassCancelOwn)
-            : !_currentUser.HasPermission(PermissionNames.GatePassOverride))
+        var isAuthorizedStaff = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || _currentUser.IsInRole(RoleNames.SchoolManager);
+        if ((!isGuardian || !_currentUser.HasPermission(PermissionNames.GatePassCancelOwn))
+            && (!isAuthorizedStaff || !_currentUser.HasPermission(PermissionNames.GatePassOverride)))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
 
         if (isGuardian

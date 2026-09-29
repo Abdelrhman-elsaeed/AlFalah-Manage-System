@@ -2,6 +2,7 @@ using AlFalah.Application.Interfaces;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs;
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
+using AlFalah.Application.StudentAffairs.DTOs.Dashboards;
 using AlFalah.Application.StudentAffairs.DTOs.Messaging;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.GatePasses;
@@ -39,14 +40,15 @@ public sealed class GatePassAndMessagingMediatRTests
         // Gate pass handlers
         provider.GetService<IRequestHandler<GetGatePassesQuery, ApiResponse<PagedResult<GatePassDto>>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetMyGatePassesQuery, ApiResponse<PagedResult<GatePassDto>>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<GetSecurityGatePassQueueQuery, ApiResponse<PagedResult<SecurityGatePassQueueItemDto>>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetSecurityGatePassQueueQuery, ApiResponse<SecurityGatePassQueuePageDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetSecurityGatePassByIdQuery, ApiResponse<SecurityGatePassDetailDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetGatePassByIdQuery, ApiResponse<GatePassDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<ApproveGatePassCommand, ApiResponse<GatePassDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<RejectGatePassCommand, ApiResponse<GatePassDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<CancelGatePassCommand, ApiResponse<GatePassDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<AcknowledgeGatePassByTeacherCommand, ApiResponse<GatePassDto>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<AcknowledgeGatePassBySecurityCommand, ApiResponse<GatePassDto>>>().Should().NotBeNull();
-        provider.GetService<IRequestHandler<ExecuteGatePassCommand, ApiResponse<GatePassDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<AcknowledgeGatePassBySecurityCommand, ApiResponse<SecurityGatePassDetailDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<ExecuteGatePassCommand, ApiResponse<SecurityGatePassDetailDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetGatePassHistoryQuery, ApiResponse<GatePassHistoryDto>>>().Should().NotBeNull();
 
         // Messaging handlers
@@ -232,20 +234,26 @@ public sealed class GatePassAndMessagingMediatRTests
         public Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(int schoolId, string guardianUserId, GatePassListQuery query, CancellationToken cancellationToken) =>
             GetGatePassesAsync(schoolId, query, cancellationToken);
 
-        public Task<PagedResult<SecurityGatePassQueueItemDto>> GetSecurityGatePassQueueAsync(int schoolId, GatePassListQuery query, CancellationToken cancellationToken) =>
-            Task.FromResult(new PagedResult<SecurityGatePassQueueItemDto>
-            {
-                Items = new List<SecurityGatePassQueueItemDto>
+        public Task<SecurityGatePassQueuePageDto> GetSecurityGatePassQueueAsync(
+            int schoolId, GatePassListQuery query, DateTimeOffset now, CancellationToken cancellationToken) =>
+            Task.FromResult(new SecurityGatePassQueuePageDto(
+                new List<SecurityGatePassQueueItemDto>
                 {
                     new(1, new StudentSummaryDto(1, "STU-1", "Test Student", null, "Class 1", true, null),
                         "Class 1", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(2),
                         new PickupPersonDto("Father", "Parent", null), "Officer", DateTimeOffset.UtcNow,
-                        GatePassStatus.Approved, "AQID")
+                        null, GatePassStatus.Approved, "AQID")
                 },
-                TotalCount = 1,
-                Page = 1,
-                PageSize = 20
-            });
+                1, 1, 20, now));
+
+        public Task<SecurityGatePassDetailDto?> GetSecurityDetailAsync(
+            int schoolId, int gatePassId, CancellationToken cancellationToken) =>
+            Task.FromResult<SecurityGatePassDetailDto?>(null);
+
+        public Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(
+            int schoolId, DateTimeOffset now, CancellationToken cancellationToken) =>
+            Task.FromResult(new SecurityStudentAffairsDashboardDto(
+                Array.Empty<SecurityGatePassQueueItemDto>(), Array.Empty<DashboardCountDto>(), now));
 
         public Task<GatePassHistoryDto?> GetHistoryAsync(int schoolId, int gatePassId, CancellationToken cancellationToken) =>
             Task.FromResult<GatePassHistoryDto?>(new GatePassHistoryDto(Array.Empty<TransitionDto>(), Array.Empty<NotificationDeliveryDto>()));

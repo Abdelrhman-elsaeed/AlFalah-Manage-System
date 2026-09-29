@@ -36,7 +36,7 @@ public sealed class StudentAffairsDashboardController : StudentAffairsController
     public async Task<IActionResult> Security(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentAffairsDashboardSecurity)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSecurityStudentAffairsDashboardQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetSecurityStudentAffairsDashboardQuery(), cancellationToken));
     }
 
     [HttpGet("guardian")]

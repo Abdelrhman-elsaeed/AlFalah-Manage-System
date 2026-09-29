@@ -40,6 +40,7 @@ dd { margin: 0; color: var(--text-strong); font-weight: 700; overflow-wrap: anyw
 .card-actions { display: grid; gap: var(--space-3); padding: var(--space-4); background: var(--bg-surface-2); border-top: 1px solid var(--border); }
 .card-actions > button { width: 100%; min-height: 54px; font-size: 1rem; }
 .card-actions small { color: var(--danger); text-align: center; }
+.card-actions .permission-note { color: var(--text-muted); }
 .ack-confirmed { display: flex; align-items: center; gap: var(--space-3); color: var(--success); }
 .ack-confirmed > i { font-size: 1.5rem; }
 .ack-confirmed span { display: flex; flex-direction: column; gap: var(--space-1); }
@@ -48,7 +49,10 @@ dd { margin: 0; color: var(--text-strong); font-weight: 700; overflow-wrap: anyw
 .empty { grid-column: 1 / -1; display: grid; min-height: 300px; place-items: center; align-content: center; gap: var(--space-3); color: var(--text-muted); text-align: center; background: var(--bg-surface); border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); }
 .empty i { color: var(--success); font-size: 2.5rem; }
 .exit-form { display: grid; gap: var(--space-4); }
+.ack-dialog { display: grid; gap: var(--space-4); }
+.ack-dialog dl { padding: 0; }
 .physical-warning { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-lg); }
+.physical-warning.ack-warning { color: var(--brand-800); background: var(--brand-50); border-color: var(--brand-200); }
 .physical-warning > i { font-size: 1.5rem; }
 .physical-warning div { display: flex; flex-direction: column; gap: var(--space-1); }
 .exit-preview { display: grid; gap: var(--space-1); padding: var(--space-3); text-align: center; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); }

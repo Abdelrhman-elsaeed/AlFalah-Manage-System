@@ -924,9 +924,6 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<SocialWorkerStudentAffairsDashboardDto> GetSocialWorkerDashboardAsync(int schoolId, string socialWorkerUserId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(new SocialWorkerStudentAffairsDashboardDto(Array.Empty<DashboardCountDto>(), Array.Empty<DashboardCountDto>()));
 
-        public Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(int schoolId, DateOnly onDate, CancellationToken cancellationToken) =>
-            Task.FromResult(new SecurityStudentAffairsDashboardDto(Array.Empty<SecurityGatePassQueueItemDto>(), Array.Empty<DashboardCountDto>()));
-
         public Task<GuardianStudentAffairsDashboardDto> GetGuardianDashboardAsync(int schoolId, string guardianUserId, DateOnly onDate, DateTimeOffset now, CancellationToken cancellationToken) =>
             Task.FromResult(new GuardianStudentAffairsDashboardDto(
                 Array.Empty<GuardianDashboardStudentDto>(),

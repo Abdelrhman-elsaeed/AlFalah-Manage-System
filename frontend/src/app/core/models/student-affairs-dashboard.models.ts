@@ -240,6 +240,7 @@ export interface SecurityGatePassQueueItemDto {
   readonly pickupPerson: PickupPersonDto;
   readonly officerName: string;
   readonly approvedAt: string;
+  readonly securityAcknowledgedAt: string | null;
   readonly status: string;
   readonly rowVersion: string;
 }
@@ -247,6 +248,7 @@ export interface SecurityGatePassQueueItemDto {
 export interface SecurityStudentAffairsDashboardDto {
   readonly approvedGatePasses: readonly SecurityGatePassQueueItemDto[];
   readonly counts: readonly DashboardCountDto[];
+  readonly generatedAt: string;
 }
 
 export interface GuardianAbsenceSummaryDto {

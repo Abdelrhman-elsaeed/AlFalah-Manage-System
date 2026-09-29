@@ -46,7 +46,23 @@ export interface SecurityGatePassQueueItemDto {
   readonly pickupPerson: PickupPersonDto;
   readonly officerName: string;
   readonly approvedAt: string;
+  readonly securityAcknowledgedAt: string | null;
   readonly status: Extract<GatePassStatus, 'Approved' | 'SecurityAcknowledged'>;
+  readonly rowVersion: string;
+}
+
+export interface SecurityGatePassDetailDto {
+  readonly id: number;
+  readonly student: StudentSummaryDto;
+  readonly classLabel: string;
+  readonly approvedWindowStartsAt: string | null;
+  readonly approvedWindowEndsAt: string | null;
+  readonly pickupPerson: PickupPersonDto;
+  readonly officerName: string;
+  readonly approvedAt: string | null;
+  readonly securityAcknowledgedAt: string | null;
+  readonly exitedAt: string | null;
+  readonly status: GatePassStatus;
   readonly rowVersion: string;
 }
 
@@ -88,7 +104,6 @@ export interface AcknowledgeGatePassRequestDto {
 }
 
 export interface ExecuteGatePassRequestDto {
-  readonly exitedAt: null;
   readonly verificationMethod: PickupVerificationMethod;
   readonly verificationNote: string;
   readonly gateNote: string | null;
@@ -109,7 +124,9 @@ export interface GatePassHistoryDto {
 }
 
 export type GatePassPage = PagedResult<GatePassDto>;
-export type SecurityGatePassPage = PagedResult<SecurityGatePassQueueItemDto>;
+export interface SecurityGatePassPage extends PagedResult<SecurityGatePassQueueItemDto> {
+  readonly serverNow: string;
+}
 
 export const ACTIVE_GATE_PASS_STATUSES: readonly GatePassStatus[] = [
   'Requested',

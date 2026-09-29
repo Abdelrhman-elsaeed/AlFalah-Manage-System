@@ -637,14 +637,8 @@ export const routes: Routes = [
       },
       {
         path: 'student-affairs/gate-passes/security',
-        canActivate: [roleGuard, permissionGuard],
-        data: {
-          roles: ['SecurityGuard'],
-          permissions: ['GatePass.AcknowledgeSecurity', 'GatePass.Execute']
-        },
-        loadComponent: () => import('./features/student-affairs/security-gate-execution/security-gate-execution.component')
-          .then(m => m.SecurityGateExecutionComponent),
-        title: 'تنفيذ استئذانات الخروج'
+        redirectTo: 'student-affairs/security',
+        pathMatch: 'full'
       },
       {
         path: 'student-affairs/gate-passes',
@@ -787,8 +781,8 @@ export const routes: Routes = [
           roles: ['SecurityGuard'],
           permissions: ['StudentAffairsDashboard.Security']
         },
-        loadComponent: () => import('./features/student-affairs/security-gate-queue/security-gate-queue.component')
-          .then(m => m.SecurityGateQueueComponent),
+        loadComponent: () => import('./features/student-affairs/security-gate-execution/security-gate-execution.component')
+          .then(m => m.SecurityGateExecutionComponent),
         title: 'بوابة المدرسة'
       },
       {

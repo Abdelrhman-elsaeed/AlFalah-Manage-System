@@ -13,16 +13,17 @@ import { TagModule } from 'primeng/tag';
 import { Subject, catchError, filter, finalize, fromEvent, map, merge, of, switchMap, timer } from 'rxjs';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import {
-  GatePassDto,
   PickupVerificationMethod,
+  SecurityGatePassDetailDto,
   SecurityGatePassQueueItemDto,
   gatePassStatusLabel
 } from '../../../core/models/gate-pass.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { GatePassService } from '../../../core/services/gate-pass.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 type QueueLoadResult =
-  | { readonly ok: true; readonly items: readonly SecurityGatePassQueueItemDto[]; readonly total: number; readonly page: number; readonly pageSize: number }
+  | { readonly ok: true; readonly items: readonly SecurityGatePassQueueItemDto[]; readonly total: number; readonly page: number; readonly pageSize: number; readonly serverNow: string }
   | { readonly ok: false; readonly error: string };
 
 @Component({
@@ -44,6 +45,7 @@ type QueueLoadResult =
 })
 export class SecurityGateExecutionComponent implements OnInit {
   private readonly api = inject(GatePassService);
+  private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly manualRefresh = new Subject<void>();
@@ -56,11 +58,15 @@ export class SecurityGateExecutionComponent implements OnInit {
   readonly loading = signal(true);
   readonly errorMessage = signal('');
   readonly mutatingId = signal<number | null>(null);
+  readonly reconcilingId = signal<number | null>(null);
+  readonly acknowledgementTarget = signal<SecurityGatePassQueueItemDto | null>(null);
+  readonly acknowledgementDialogVisible = signal(false);
   readonly exitTarget = signal<SecurityGatePassQueueItemDto | null>(null);
   readonly exitDialogVisible = signal(false);
   readonly executing = signal(false);
-  readonly receipt = signal<GatePassDto | null>(null);
+  readonly receipt = signal<SecurityGatePassDetailDto | null>(null);
   readonly now = signal(Date.now());
+  private serverClockOffsetMs = 0;
 
   readonly verificationMethods: readonly { label: string; value: PickupVerificationMethod }[] = [
     { label: 'تحقق بصري', value: 'Visual' },
@@ -69,7 +75,7 @@ export class SecurityGateExecutionComponent implements OnInit {
   ];
   readonly exitForm = new FormGroup({
     verificationMethod: new FormControl<PickupVerificationMethod | null>(null, { validators: [Validators.required] }),
-    verificationNote: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(1000)] }),
+    verificationNote: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/\S/), Validators.maxLength(1000)] }),
     gateNote: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(1000)] })
   });
 
@@ -90,10 +96,11 @@ export class SecurityGateExecutionComponent implements OnInit {
         this.errorMessage.set(result.error);
         return;
       }
-      this.applyQueue(result.items, result.total, result.page, result.pageSize);
+      this.applyQueue(result.items, result.total, result.page, result.pageSize, result.serverNow);
     });
 
-    timer(0, 1_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.now.set(Date.now()));
+    timer(0, 1_000).pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.now.set(Date.now() + this.serverClockOffsetMs));
   }
 
   refresh(): void {
@@ -106,8 +113,25 @@ export class SecurityGateExecutionComponent implements OnInit {
     this.refresh();
   }
 
+  get canAcknowledge(): boolean {
+    return this.auth.hasRole('SecurityGuard') && this.auth.hasPermission('GatePass.AcknowledgeSecurity');
+  }
+
+  get canExecute(): boolean {
+    return this.auth.hasRole('SecurityGuard') && this.auth.hasPermission('GatePass.Execute');
+  }
+
   acknowledge(item: SecurityGatePassQueueItemDto): void {
-    if (item.status !== 'Approved' || !this.isWindowActive(item) || this.mutatingId() !== null) return;
+    if (!this.canAcknowledge || item.status !== 'Approved' || !this.isWindowActive(item)
+      || this.mutatingId() !== null || this.reconcilingId() !== null) return;
+    this.acknowledgementTarget.set(item);
+    this.acknowledgementDialogVisible.set(true);
+  }
+
+  confirmAcknowledgement(): void {
+    const item = this.acknowledgementTarget();
+    if (!item || !this.canAcknowledge || item.status !== 'Approved' || !this.isWindowActive(item)
+      || this.mutatingId() !== null || this.reconcilingId() !== null) return;
     this.mutatingId.set(item.id);
     this.api.acknowledgeSecurity(item.id, { rowVersion: item.rowVersion }).pipe(
       finalize(() => this.mutatingId.set(null))
@@ -115,15 +139,17 @@ export class SecurityGateExecutionComponent implements OnInit {
       next: response => {
         if (!response.isSuccess || !response.data) {
           const message = response.errors[0] ?? response.message;
-          if (this.isConcurrency(message)) this.resolveLatest(item.id, 'conflict');
+          if (this.isConcurrency(message)) this.resolveLatest(item.id, 'conflict', 'SecurityAcknowledged');
           else this.toast.warn('لم تُسجل المطابقة', message);
           return;
         }
         if (response.data.status !== 'SecurityAcknowledged') {
-          this.resolveLatest(item.id, 'state');
+          this.resolveLatest(item.id, 'state', 'SecurityAcknowledged');
           return;
         }
         this.updateOperationalItem(item.id, response.data);
+        this.acknowledgementDialogVisible.set(false);
+        this.acknowledgementTarget.set(null);
         this.toast.success('تمت مطابقة بيانات المستلم', 'الاستئذان الآن جاهز لتسجيل الخروج الفعلي.');
       },
       error: (error: HttpErrorResponse) => this.handleMutationError(item.id, error, false)
@@ -131,7 +157,8 @@ export class SecurityGateExecutionComponent implements OnInit {
   }
 
   openExit(item: SecurityGatePassQueueItemDto): void {
-    if (item.status !== 'SecurityAcknowledged' || !this.isWindowActive(item)) return;
+    if (!this.canExecute || item.status !== 'SecurityAcknowledged' || !this.isWindowActive(item)
+      || this.reconcilingId() !== null) return;
     this.exitTarget.set(item);
     this.exitForm.reset({ verificationMethod: null, verificationNote: '', gateNote: '' });
     this.exitDialogVisible.set(true);
@@ -141,7 +168,8 @@ export class SecurityGateExecutionComponent implements OnInit {
     const item = this.exitTarget();
     this.exitForm.markAllAsTouched();
     const values = this.exitForm.getRawValue();
-    if (!item || !values.verificationMethod || !values.verificationNote.trim() || this.executing()) return;
+    if (!item || !this.canExecute || !values.verificationMethod || !values.verificationNote.trim()
+      || this.executing() || this.reconcilingId() !== null) return;
     if (!this.isWindowActive(item)) {
       this.toast.warn('انتهت نافذة الخروج', 'حدّث القائمة ولا تسجل حدث خروج خارج النافذة المعتمدة.');
       this.refresh();
@@ -156,7 +184,6 @@ export class SecurityGateExecutionComponent implements OnInit {
 
     this.executing.set(true);
     this.api.execute(item.id, {
-      exitedAt: null,
       verificationMethod: values.verificationMethod,
       verificationNote: values.verificationNote.trim(),
       gateNote: values.gateNote.trim() || null,
@@ -165,7 +192,7 @@ export class SecurityGateExecutionComponent implements OnInit {
       next: response => {
         if (!response.isSuccess || !response.data) {
           const message = response.errors[0] ?? response.message;
-          if (this.isConcurrency(message)) this.resolveLatest(item.id, 'conflict');
+          if (this.isConcurrency(message)) this.resolveLatest(item.id, 'conflict', 'Exited');
           else this.toast.warn('لم يُسجل الخروج', message);
           return;
         }
@@ -178,7 +205,7 @@ export class SecurityGateExecutionComponent implements OnInit {
   isWindowActive(item: SecurityGatePassQueueItemDto): boolean {
     const current = this.now();
     return current >= new Date(item.approvedWindowStartsAt).getTime()
-      && current <= new Date(item.approvedWindowEndsAt).getTime();
+      && current < new Date(item.approvedWindowEndsAt).getTime();
   }
 
   windowState(item: SecurityGatePassQueueItemDto): string {
@@ -186,13 +213,13 @@ export class SecurityGateExecutionComponent implements OnInit {
     const start = new Date(item.approvedWindowStartsAt).getTime();
     const end = new Date(item.approvedWindowEndsAt).getTime();
     if (current < start) return 'لم تبدأ النافذة بعد';
-    if (current > end) return 'انتهت نافذة الخروج';
+    if (current >= end) return 'انتهت نافذة الخروج';
     return 'النافذة نشطة الآن';
   }
 
   windowSeverity(item: SecurityGatePassQueueItemDto): 'success' | 'warning' | 'danger' {
     const current = this.now();
-    if (current > new Date(item.approvedWindowEndsAt).getTime()) return 'danger';
+    if (current >= new Date(item.approvedWindowEndsAt).getTime()) return 'danger';
     return current < new Date(item.approvedWindowStartsAt).getTime() ? 'warning' : 'success';
   }
 
@@ -225,20 +252,37 @@ export class SecurityGateExecutionComponent implements OnInit {
 
   private loadQueueRequest() {
     return this.api.securityQueue({
-      date: this.todayValue(),
       pageNumber: this.pageNumber(),
       pageSize: this.pageSize(),
-      sortBy: 'approvedWindowStartsAt',
-      sortDirection: 'asc'
     }).pipe(
       map(response => response.isSuccess && response.data
-        ? ({ ok: true, items: response.data.items, total: response.data.totalCount, page: response.data.page, pageSize: response.data.pageSize } as const)
+        ? ({
+            ok: true,
+            items: response.data.items,
+            total: response.data.totalCount,
+            page: response.data.page,
+            pageSize: response.data.pageSize,
+            serverNow: response.data.serverNow
+          } as const)
         : ({ ok: false, error: response.errors[0] ?? response.message ?? 'تعذر تحميل قائمة البوابة.' } as const)),
-      catchError((error: HttpErrorResponse) => of({ ok: false, error: this.httpMessage(error, 'تعذر تحميل قائمة البوابة.') } as const))
+      catchError((error: HttpErrorResponse) => of({ ok: false, error: this.queueErrorMessage(error) } as const))
     );
   }
 
-  private applyQueue(items: readonly SecurityGatePassQueueItemDto[], total: number, page: number, pageSize: number): void {
+  private applyQueue(
+    items: readonly SecurityGatePassQueueItemDto[],
+    total: number,
+    page: number,
+    pageSize: number,
+    serverNow?: string
+  ): void {
+    if (serverNow) {
+      const parsed = new Date(serverNow).getTime();
+      if (!Number.isNaN(parsed)) {
+        this.serverClockOffsetMs = parsed - Date.now();
+        this.now.set(parsed);
+      }
+    }
     this.queue.set(items);
     this.totalRecords.set(total);
     this.pageNumber.set(page);
@@ -250,16 +294,34 @@ export class SecurityGateExecutionComponent implements OnInit {
       const refreshedTarget = items.find(item => item.id === openTarget.id);
       if (refreshedTarget) this.exitTarget.set(refreshedTarget);
     }
+    const acknowledgementTarget = this.acknowledgementTarget();
+    if (acknowledgementTarget) {
+      const refreshedTarget = items.find(item => item.id === acknowledgementTarget.id);
+      if (refreshedTarget) this.acknowledgementTarget.set(refreshedTarget);
+      else {
+        this.acknowledgementDialogVisible.set(false);
+        this.acknowledgementTarget.set(null);
+      }
+    }
   }
 
-  private updateOperationalItem(id: number, detail: GatePassDto): void {
+  private updateOperationalItem(id: number, detail: SecurityGatePassDetailDto): void {
     if (detail.status !== 'Approved' && detail.status !== 'SecurityAcknowledged') {
+      this.removeItem(id);
+      return;
+    }
+    if (!detail.approvedWindowStartsAt || !detail.approvedWindowEndsAt) {
       this.removeItem(id);
       return;
     }
     const operationalStatus: SecurityGatePassQueueItemDto['status'] = detail.status;
     this.queue.update(items => items.map(item => item.id === id
-      ? { ...item, status: operationalStatus, rowVersion: detail.rowVersion }
+      ? {
+          ...item,
+          status: operationalStatus,
+          rowVersion: detail.rowVersion,
+          securityAcknowledgedAt: detail.securityAcknowledgedAt
+        }
       : item));
     const updated = this.queue().find(item => item.id === id) ?? null;
     this.exitTarget.set(updated);
@@ -268,7 +330,7 @@ export class SecurityGateExecutionComponent implements OnInit {
 
   private refreshBeforeCommit(id: number): void {
     this.executing.set(true);
-    this.api.getById(id).pipe(finalize(() => this.executing.set(false))).subscribe({
+    this.api.securityDetail(id).pipe(finalize(() => this.executing.set(false))).subscribe({
       next: response => {
         if (!response.isSuccess || !response.data) {
           this.toast.error('تعذر التحقق قبل الخروج', response.errors[0] ?? response.message);
@@ -285,13 +347,14 @@ export class SecurityGateExecutionComponent implements OnInit {
           this.toast.warn('تغيرت حالة الاستئذان', `الحالة الحالية: ${gatePassStatusLabel(response.data.status)}.`);
         }
       },
-      error: (error: HttpErrorResponse) => this.toast.error('تعذر التحقق قبل الخروج', this.httpMessage(error, 'حدّث القائمة وحاول مرة أخرى.'))
+      error: (error: HttpErrorResponse) => this.handleSecurityDetailError(
+        id, error, 'تعذر التحقق قبل الخروج', 'حدّث القائمة وحاول مرة أخرى.')
     });
   }
 
   private handleMutationError(id: number, error: HttpErrorResponse, physicalExit: boolean): void {
     if (error.status === 409) {
-      this.resolveLatest(id, 'conflict');
+      this.resolveLatest(id, 'conflict', physicalExit ? 'Exited' : 'SecurityAcknowledged');
       return;
     }
     if (error.status === 404) {
@@ -302,29 +365,48 @@ export class SecurityGateExecutionComponent implements OnInit {
     }
     if (error.status === 0 && physicalExit) {
       this.toast.warn('تعذر تأكيد نتيجة تسجيل الخروج', 'سنتحقق من الخادم أولًا. لا تضغط تنفيذ مرة أخرى قبل ظهور الحالة.');
-      this.resolveLatest(id, 'timeout');
+      this.resolveLatest(id, 'timeout', 'Exited');
+      return;
+    }
+    if (error.status === 0) {
+      this.toast.warn('تعذر تأكيد نتيجة المطابقة', 'سنتحقق من الخادم أولًا. لا تكرر المطابقة قبل ظهور الحالة.');
+      this.resolveLatest(id, 'timeout', 'SecurityAcknowledged');
       return;
     }
     this.toast.error(physicalExit ? 'تعذر تسجيل الخروج' : 'تعذر تسجيل المطابقة', this.httpMessage(error, 'حاول تحديث القائمة.'));
   }
 
-  private resolveLatest(id: number, reason: 'conflict' | 'timeout' | 'state'): void {
+  private resolveLatest(
+    id: number,
+    reason: 'conflict' | 'timeout' | 'state',
+    desiredStatus: 'SecurityAcknowledged' | 'Exited'
+  ): void {
     if (reason === 'conflict') this.toast.warn('تم تعديل الاستئذان من جهاز آخر', 'جارٍ جلب الحالة الأحدث. لن نكرر الإجراء تلقائيًا.');
-    this.api.getById(id).subscribe({
+    this.reconcilingId.set(id);
+    this.api.securityDetail(id).pipe(
+      finalize(() => this.reconcilingId.set(null))
+    ).subscribe({
       next: response => {
         if (!response.isSuccess || !response.data) return;
-        if (response.data.status === 'Exited') {
+        if (desiredStatus === 'Exited' && response.data.status === 'Exited') {
           this.completeExit(response.data);
           return;
         }
         this.updateOperationalItem(id, response.data);
+        if (desiredStatus === 'SecurityAcknowledged' && response.data.status === 'SecurityAcknowledged') {
+          this.acknowledgementDialogVisible.set(false);
+          this.acknowledgementTarget.set(null);
+          this.toast.success('تم تأكيد المطابقة من الخادم', 'لم نكرر الإجراء؛ الحالة كانت محفوظة بالفعل.');
+          return;
+        }
         this.toast.info('تم تحديث حالة الاستئذان', `الحالة الحالية: ${gatePassStatusLabel(response.data.status)}.`);
       },
-      error: (error: HttpErrorResponse) => this.toast.error('تعذر جلب الحالة الأحدث', this.httpMessage(error, 'استخدم زر تحديث القائمة.'))
+      error: (error: HttpErrorResponse) => this.handleSecurityDetailError(
+        id, error, 'تعذر جلب الحالة الأحدث', 'استخدم زر تحديث القائمة.')
     });
   }
 
-  private completeExit(detail: GatePassDto): void {
+  private completeExit(detail: SecurityGatePassDetailDto): void {
     if (detail.status !== 'Exited') {
       this.toast.warn('لم يكتمل تسجيل الخروج', `الحالة الحالية: ${gatePassStatusLabel(detail.status)}.`);
       return;
@@ -338,15 +420,28 @@ export class SecurityGateExecutionComponent implements OnInit {
     });
   }
 
+  private handleSecurityDetailError(
+    id: number,
+    error: HttpErrorResponse,
+    title: string,
+    fallback: string
+  ): void {
+    if (error.status === 404) {
+      this.removeItem(id);
+      this.acknowledgementDialogVisible.set(false);
+      this.acknowledgementTarget.set(null);
+      this.exitDialogVisible.set(false);
+      this.exitTarget.set(null);
+      this.toast.warn('لم يعد الاستئذان متاحًا للأمن', 'أزيل السجل القديم بعد التحقق من الخادم.');
+      return;
+    }
+    this.toast.error(title, this.httpMessage(error, fallback));
+  }
+
   private removeItem(id: number): void {
     this.queue.update(items => items.filter(item => item.id !== id));
     this.totalRecords.update(total => Math.max(0, total - 1));
     this.syncedAt.delete(id);
-  }
-
-  private todayValue(): string {
-    const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   }
 
   private isConcurrency(message: string): boolean {
@@ -356,5 +451,11 @@ export class SecurityGateExecutionComponent implements OnInit {
 
   private httpMessage(error: unknown, fallback: string): string {
     return extractHttpErrorMessage(error) ?? fallback;
+  }
+
+  private queueErrorMessage(error: HttpErrorResponse): string {
+    if (error.status === 401) return 'انتهت جلسة الدخول. سجّل الدخول مرة أخرى.';
+    if (error.status === 403) return 'لا تملك دور الأمن والصلاحية المطلوبة لعرض قائمة البوابة.';
+    return this.httpMessage(error, 'تعذر تحميل قائمة البوابة.');
   }
 }

@@ -220,11 +220,6 @@ public interface IStudentWorkflowRepository
         DateOnly onDate,
         CancellationToken cancellationToken);
 
-    Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(
-        int schoolId,
-        DateOnly onDate,
-        CancellationToken cancellationToken);
-
     Task<GuardianStudentAffairsDashboardDto> GetGuardianDashboardAsync(
         int schoolId,
         string guardianUserId,

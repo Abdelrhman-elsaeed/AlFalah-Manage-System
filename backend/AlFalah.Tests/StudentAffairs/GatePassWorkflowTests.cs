@@ -2,6 +2,7 @@ using System.Text.Json;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
+using AlFalah.Application.StudentAffairs.DTOs.Dashboards;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.GatePasses;
 using AlFalah.Application.StudentAffairs.GatePasses.Handlers;
@@ -41,6 +42,69 @@ public sealed class GatePassWorkflowTests
         outbox.EventType.Should().EndWith(nameof(GatePassRequestedEvent));
         using var payload = JsonDocument.Parse(outbox.PayloadJson);
         payload.RootElement.GetProperty("gatePassId").GetInt32().Should().Be(gatePass.Id);
+        gatePass.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SecurityTransitions_WriteEachDomainEventToOutboxExactlyOnce()
+    {
+        await using var context = CreateContext();
+        var gatePass = NewGatePass();
+        gatePass.Status = GatePassStatus.Approved;
+        gatePass.ApprovedWindowStartsAt = Now;
+        gatePass.ApprovedWindowEndsAt = Now.AddMinutes(30);
+        context.GatePasses.Add(gatePass);
+        await context.SaveChangesAsync();
+
+        var acknowledgementCorrelation = Guid.NewGuid();
+        gatePass.Status = GatePassStatus.SecurityAcknowledged;
+        gatePass.SecurityAcknowledgedAt = Now;
+        gatePass.SecurityAcknowledgedByUserId = "guard-1";
+        gatePass.Transitions.Add(new GatePassTransition
+        {
+            SchoolId = gatePass.SchoolId,
+            GatePassId = gatePass.Id,
+            FromStatus = GatePassStatus.Approved,
+            ToStatus = GatePassStatus.SecurityAcknowledged,
+            ActorUserId = "guard-1",
+            ActorRole = RoleNames.SecurityGuard,
+            OccurredAt = Now,
+            CorrelationId = acknowledgementCorrelation
+        });
+        gatePass.AppendDomainEvent(new GatePassSecurityAcknowledgedEvent(
+            acknowledgementCorrelation, gatePass.Id, gatePass.StudentId, gatePass.SchoolId,
+            "guard-1", Now, gatePass.ApprovedWindowEndsAt.Value, Now));
+        await context.SaveChangesAsync();
+
+        var exitCorrelation = Guid.NewGuid();
+        gatePass.Status = GatePassStatus.Exited;
+        gatePass.ExitedAt = Now.AddMinutes(1);
+        gatePass.ExitRecordedByUserId = "guard-2";
+        gatePass.Transitions.Add(new GatePassTransition
+        {
+            SchoolId = gatePass.SchoolId,
+            GatePassId = gatePass.Id,
+            FromStatus = GatePassStatus.SecurityAcknowledged,
+            ToStatus = GatePassStatus.Exited,
+            ActorUserId = "guard-2",
+            ActorRole = RoleNames.SecurityGuard,
+            OccurredAt = Now.AddMinutes(1),
+            CorrelationId = exitCorrelation,
+            PickupVerificationMethod = PickupVerificationMethod.Visual,
+            PickupVerificationNote = "Verified"
+        });
+        gatePass.AppendDomainEvent(new StudentExitedSchoolEvent(
+            exitCorrelation, gatePass.Id, gatePass.StudentId, gatePass.SchoolId,
+            "guard-2", Now.AddMinutes(1), PickupVerificationMethod.Visual, Now.AddMinutes(1)));
+        await context.SaveChangesAsync();
+
+        (await context.OutboxMessages.CountAsync(message =>
+            message.EventId == acknowledgementCorrelation
+            && message.EventType.EndsWith(nameof(GatePassSecurityAcknowledgedEvent)))).Should().Be(1);
+        (await context.OutboxMessages.CountAsync(message =>
+            message.EventId == exitCorrelation
+            && message.EventType.EndsWith(nameof(StudentExitedSchoolEvent)))).Should().Be(1);
+        gatePass.Transitions.Should().HaveCount(2);
         gatePass.DomainEvents.Should().BeEmpty();
     }
 
@@ -223,7 +287,7 @@ public sealed class GatePassWorkflowTests
                 CurrentUser(42, RoleNames.Secretary, PermissionNames.GatePassExecute),
                 new FixedTimeProvider(Now))
             .Handle(new ExecuteGatePassCommand(5, new ExecuteGatePassRequestDto(
-                null, PickupVerificationMethod.Visual, "No", null,
+                PickupVerificationMethod.Visual, "No", null,
                 Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
 
         approve.IsSuccess.Should().BeFalse();
@@ -377,6 +441,161 @@ public sealed class GatePassWorkflowTests
         repository.SaveCount.Should().Be(0);
     }
 
+    [Theory]
+    [InlineData(RoleNames.SecurityGuard, PermissionNames.GatePassExecute, 42)]
+    [InlineData(RoleNames.Secretary, PermissionNames.GatePassAcknowledgeSecurity, 42)]
+    [InlineData(RoleNames.SecurityGuard, PermissionNames.GatePassAcknowledgeSecurity, null)]
+    public async Task SecurityAcknowledge_RequiresExactRolePermissionAndActiveSchool(
+        string role,
+        string permission,
+        int? schoolId)
+    {
+        var gatePass = ApprovedGatePass();
+        var repository = new FakeRepository { Tracked = gatePass };
+        var user = new TestCurrentUser(schoolId, "actor", role, permission);
+
+        var response = await new AcknowledgeGatePassBySecurityCommandHandler(
+                repository, user, new FixedTimeProvider(Now))
+            .Handle(new AcknowledgeGatePassBySecurityCommand(gatePass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        gatePass.Status.Should().Be(GatePassStatus.Approved);
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task SecurityAcknowledge_BeforeStartOrWithMissingWindow_IsRejected(int caseNumber)
+    {
+        var gatePass = ApprovedGatePass();
+        if (caseNumber == 1)
+            gatePass.ApprovedWindowStartsAt = Now.AddSeconds(1);
+        else
+            gatePass.ApprovedWindowEndsAt = null;
+        var repository = new FakeRepository { Tracked = gatePass };
+
+        var response = await new AcknowledgeGatePassBySecurityCommandHandler(
+                repository,
+                CurrentUser(42, RoleNames.SecurityGuard, PermissionNames.GatePassAcknowledgeSecurity),
+                new FixedTimeProvider(Now))
+            .Handle(new AcknowledgeGatePassBySecurityCommand(gatePass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        gatePass.Transitions.Should().BeEmpty();
+        gatePass.DomainEvents.Should().BeEmpty();
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SecurityQueue_RequiresExactRoleAndUsesActiveSchoolAndServerTime()
+    {
+        var repository = new FakeRepository();
+        var query = new GatePassListQuery { PageNumber = 2, PageSize = 12 };
+        var allowed = await new GetSecurityGatePassQueueQueryHandler(
+                repository,
+                CurrentUser(42, RoleNames.SecurityGuard, PermissionNames.StudentAffairsDashboardSecurity),
+                new FixedTimeProvider(Now))
+            .Handle(new GetSecurityGatePassQueueQuery(query), CancellationToken.None);
+        var denied = await new GetSecurityGatePassQueueQueryHandler(
+                repository,
+                CurrentUser(42, RoleNames.Secretary, PermissionNames.StudentAffairsDashboardSecurity),
+                new FixedTimeProvider(Now))
+            .Handle(new GetSecurityGatePassQueueQuery(query), CancellationToken.None);
+        var noSchool = await new GetSecurityGatePassQueueQueryHandler(
+                repository,
+                new TestCurrentUser(null, "actor", RoleNames.SecurityGuard, PermissionNames.StudentAffairsDashboardSecurity),
+                new FixedTimeProvider(Now))
+            .Handle(new GetSecurityGatePassQueueQuery(query), CancellationToken.None);
+
+        allowed.IsSuccess.Should().BeTrue();
+        repository.QueueSchoolId.Should().Be(42);
+        repository.QueueNow.Should().Be(Now);
+        repository.QueueQuery.Should().BeSameAs(query);
+        denied.IsSuccess.Should().BeFalse();
+        noSchool.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SecurityAcknowledge_AtExactStart_AddsOneTransitionAndEvent()
+    {
+        var gatePass = ApprovedGatePass();
+        gatePass.ApprovedWindowStartsAt = Now;
+        var repository = new FakeRepository { Tracked = gatePass };
+        var handler = new AcknowledgeGatePassBySecurityCommandHandler(
+            repository,
+            CurrentUser(42, RoleNames.SecurityGuard, PermissionNames.GatePassAcknowledgeSecurity),
+            new FixedTimeProvider(Now));
+        var command = new AcknowledgeGatePassBySecurityCommand(
+            gatePass.Id,
+            new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion)));
+
+        var first = await handler.Handle(command, CancellationToken.None);
+        var duplicate = await handler.Handle(command, CancellationToken.None);
+
+        first.IsSuccess.Should().BeTrue();
+        duplicate.IsSuccess.Should().BeFalse();
+        gatePass.Status.Should().Be(GatePassStatus.SecurityAcknowledged);
+        gatePass.SecurityAcknowledgedAt.Should().Be(Now);
+        gatePass.SecurityAcknowledgedByUserId.Should().Be("actor");
+        gatePass.Transitions.Should().ContainSingle(transition =>
+            transition.FromStatus == GatePassStatus.Approved
+            && transition.ToStatus == GatePassStatus.SecurityAcknowledged
+            && transition.ActorRole == RoleNames.SecurityGuard);
+        gatePass.DomainEvents.Should().ContainSingle().Which.Should().BeOfType<GatePassSecurityAcknowledgedEvent>();
+        repository.SaveCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SecurityAcknowledge_AtExactEnd_IsRejected()
+    {
+        var gatePass = ApprovedGatePass();
+        gatePass.ApprovedWindowEndsAt = Now;
+        var repository = new FakeRepository { Tracked = gatePass };
+
+        var response = await new AcknowledgeGatePassBySecurityCommandHandler(
+                repository,
+                CurrentUser(42, RoleNames.SecurityGuard, PermissionNames.GatePassAcknowledgeSecurity),
+                new FixedTimeProvider(Now))
+            .Handle(new AcknowledgeGatePassBySecurityCommand(
+                gatePass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        gatePass.Status.Should().Be(GatePassStatus.Approved);
+        gatePass.Transitions.Should().BeEmpty();
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SecurityAcknowledge_RejectsStaleVersionAndCrossSchoolRecord()
+    {
+        var stalePass = ApprovedGatePass();
+        var staleRepository = new FakeRepository { Tracked = stalePass };
+        var stale = await new AcknowledgeGatePassBySecurityCommandHandler(
+                staleRepository,
+                CurrentUser(42, RoleNames.SecurityGuard, PermissionNames.GatePassAcknowledgeSecurity),
+                new FixedTimeProvider(Now))
+            .Handle(new AcknowledgeGatePassBySecurityCommand(stalePass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(new byte[] { 99 }))), CancellationToken.None);
+
+        var otherSchoolPass = ApprovedGatePass();
+        var crossSchoolRepository = new FakeRepository { Tracked = otherSchoolPass };
+        var crossSchool = await new AcknowledgeGatePassBySecurityCommandHandler(
+                crossSchoolRepository,
+                CurrentUser(99, RoleNames.SecurityGuard, PermissionNames.GatePassAcknowledgeSecurity),
+                new FixedTimeProvider(Now))
+            .Handle(new AcknowledgeGatePassBySecurityCommand(otherSchoolPass.Id,
+                new AcknowledgeGatePassRequestDto(Convert.ToBase64String(otherSchoolPass.RowVersion))), CancellationToken.None);
+
+        stale.Errors.Should().ContainSingle("Gate pass was modified by another user");
+        crossSchool.Errors.Should().ContainSingle("Gate pass was not found");
+        staleRepository.SaveCount.Should().Be(0);
+        crossSchoolRepository.SaveCount.Should().Be(0);
+    }
+
     [Fact]
     public async Task Execute_UsesServerTimeAndAppendsStudentExitedEvent()
     {
@@ -394,17 +613,211 @@ public sealed class GatePassWorkflowTests
 
         var response = await handler.Handle(
             new ExecuteGatePassCommand(gatePass.Id, new ExecuteGatePassRequestDto(
-                Now.AddDays(-1), PickupVerificationMethod.Visual, "Verified at gate", "Gate 1",
+                PickupVerificationMethod.Visual, "Verified at gate", "Gate 1",
+                Convert.ToBase64String(gatePass.RowVersion))),
+            CancellationToken.None);
+        var duplicate = await handler.Handle(
+            new ExecuteGatePassCommand(gatePass.Id, new ExecuteGatePassRequestDto(
+                PickupVerificationMethod.Visual, "Verified at gate", "Gate 1",
                 Convert.ToBase64String(gatePass.RowVersion))),
             CancellationToken.None);
 
         response.IsSuccess.Should().BeTrue();
+        duplicate.IsSuccess.Should().BeFalse();
         gatePass.Status.Should().Be(GatePassStatus.Exited);
         gatePass.ExitedAt.Should().Be(Now);
         gatePass.PickupVerificationMethod.Should().Be(PickupVerificationMethod.Visual);
         gatePass.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<StudentExitedSchoolEvent>();
+        gatePass.Transitions.Should().ContainSingle(transition =>
+            transition.FromStatus == GatePassStatus.SecurityAcknowledged
+            && transition.ToStatus == GatePassStatus.Exited);
+        repository.SaveCount.Should().Be(1);
     }
+
+    [Fact]
+    public async Task Execute_AtExactStart_Succeeds_AndCrossSchoolIsHidden()
+    {
+        var atStart = ApprovedGatePass();
+        atStart.Status = GatePassStatus.SecurityAcknowledged;
+        atStart.ApprovedWindowStartsAt = Now;
+        var startRepository = new FakeRepository { Tracked = atStart };
+        var atStartResponse = await Execute(startRepository, atStart, Now,
+            PickupVerificationMethod.Manual, "Verified", null);
+
+        var otherSchool = ApprovedGatePass();
+        otherSchool.Status = GatePassStatus.SecurityAcknowledged;
+        var crossSchoolRepository = new FakeRepository { Tracked = otherSchool };
+        var crossSchoolResponse = await new ExecuteGatePassCommandHandler(
+                crossSchoolRepository,
+                CurrentUser(99, RoleNames.SecurityGuard, PermissionNames.GatePassExecute),
+                new FixedTimeProvider(Now))
+            .Handle(new ExecuteGatePassCommand(otherSchool.Id, new ExecuteGatePassRequestDto(
+                PickupVerificationMethod.Visual, "Verified", null,
+                Convert.ToBase64String(otherSchool.RowVersion))), CancellationToken.None);
+
+        atStartResponse.IsSuccess.Should().BeTrue();
+        crossSchoolResponse.Errors.Should().ContainSingle("Gate pass was not found");
+        crossSchoolRepository.SaveCount.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(RoleNames.SecurityGuard, PermissionNames.GatePassAcknowledgeSecurity, 42)]
+    [InlineData(RoleNames.Secretary, PermissionNames.GatePassExecute, 42)]
+    [InlineData(RoleNames.SecurityGuard, PermissionNames.GatePassExecute, null)]
+    public async Task Execute_RequiresExactRolePermissionAndActiveSchool(
+        string role,
+        string permission,
+        int? schoolId)
+    {
+        var gatePass = ApprovedGatePass();
+        gatePass.Status = GatePassStatus.SecurityAcknowledged;
+        var repository = new FakeRepository { Tracked = gatePass };
+
+        var response = await new ExecuteGatePassCommandHandler(
+                repository,
+                new TestCurrentUser(schoolId, "actor", role, permission),
+                new FixedTimeProvider(Now))
+            .Handle(new ExecuteGatePassCommand(gatePass.Id, new ExecuteGatePassRequestDto(
+                PickupVerificationMethod.Visual, "Verified", null,
+                Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+
+        response.IsSuccess.Should().BeFalse();
+        gatePass.Status.Should().Be(GatePassStatus.SecurityAcknowledged);
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Execute_AtExactEndOrDirectlyFromApproved_IsRejected()
+    {
+        var atEnd = ApprovedGatePass();
+        atEnd.Status = GatePassStatus.SecurityAcknowledged;
+        atEnd.ApprovedWindowEndsAt = Now;
+        var endRepository = new FakeRepository { Tracked = atEnd };
+        var atEndResponse = await Execute(endRepository, atEnd, Now,
+            PickupVerificationMethod.Visual, "Verified", null);
+
+        var approved = ApprovedGatePass();
+        var approvedRepository = new FakeRepository { Tracked = approved };
+        var directResponse = await Execute(approvedRepository, approved, Now,
+            PickupVerificationMethod.Visual, "Verified", null);
+
+        atEndResponse.IsSuccess.Should().BeFalse();
+        directResponse.IsSuccess.Should().BeFalse();
+        atEnd.Status.Should().Be(GatePassStatus.SecurityAcknowledged);
+        approved.Status.Should().Be(GatePassStatus.Approved);
+        endRepository.SaveCount.Should().Be(0);
+        approvedRepository.SaveCount.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData((PickupVerificationMethod)999, "Verified", null)]
+    [InlineData(PickupVerificationMethod.Visual, "   ", null)]
+    public async Task Execute_RejectsInvalidVerificationWithoutMutation(
+        PickupVerificationMethod method,
+        string verificationNote,
+        string? gateNote)
+    {
+        var gatePass = ApprovedGatePass();
+        gatePass.Status = GatePassStatus.SecurityAcknowledged;
+        var repository = new FakeRepository { Tracked = gatePass };
+
+        var response = await Execute(repository, gatePass, Now, method, verificationNote, gateNote);
+
+        response.IsSuccess.Should().BeFalse();
+        gatePass.Status.Should().Be(GatePassStatus.SecurityAcknowledged);
+        repository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Execute_RejectsOversizedNotesAndStaleVersion()
+    {
+        var longVerification = ApprovedGatePass();
+        longVerification.Status = GatePassStatus.SecurityAcknowledged;
+        var firstRepository = new FakeRepository { Tracked = longVerification };
+        var first = await Execute(firstRepository, longVerification, Now,
+            PickupVerificationMethod.Visual, new string('x', GatePassValidationRules.VerificationNoteMaxLength + 1), null);
+
+        var longGate = ApprovedGatePass();
+        longGate.Status = GatePassStatus.SecurityAcknowledged;
+        var secondRepository = new FakeRepository { Tracked = longGate };
+        var second = await Execute(secondRepository, longGate, Now,
+            PickupVerificationMethod.Visual, "Verified", new string('x', GatePassValidationRules.GateNoteMaxLength + 1));
+
+        var stalePass = ApprovedGatePass();
+        stalePass.Status = GatePassStatus.SecurityAcknowledged;
+        var staleRepository = new FakeRepository { Tracked = stalePass };
+        var stale = await new ExecuteGatePassCommandHandler(
+                staleRepository,
+                CurrentUser(42, RoleNames.SecurityGuard, PermissionNames.GatePassExecute),
+                new FixedTimeProvider(Now))
+            .Handle(new ExecuteGatePassCommand(stalePass.Id, new ExecuteGatePassRequestDto(
+                PickupVerificationMethod.Visual, "Verified", null, Convert.ToBase64String(new byte[] { 99 }))), CancellationToken.None);
+
+        first.IsSuccess.Should().BeFalse();
+        second.IsSuccess.Should().BeFalse();
+        stale.Errors.Should().ContainSingle("Gate pass was modified by another user");
+        firstRepository.SaveCount.Should().Be(0);
+        secondRepository.SaveCount.Should().Be(0);
+        staleRepository.SaveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void ExecuteContract_DoesNotAcceptClientExitTime()
+    {
+        typeof(ExecuteGatePassRequestDto).GetProperties()
+            .Select(property => property.Name)
+            .Should().NotContain("ExitedAt");
+    }
+
+    [Fact]
+    public async Task SecurityGuard_CannotUseBroadDetailHistoryOrCancelWithInjectedPermissions()
+    {
+        var gatePass = ApprovedGatePass();
+        var repository = new FakeRepository { Tracked = gatePass };
+        var user = CurrentUser(42, RoleNames.SecurityGuard,
+            PermissionNames.GatePassView,
+            PermissionNames.GatePassViewAudit,
+            PermissionNames.GatePassOverride,
+            PermissionNames.GatePassApprove,
+            PermissionNames.GatePassReject);
+
+        var detail = await new GetGatePassByIdQueryHandler(repository, user)
+            .Handle(new GetGatePassByIdQuery(gatePass.Id), CancellationToken.None);
+        var history = await new GetGatePassHistoryQueryHandler(repository, user)
+            .Handle(new GetGatePassHistoryQuery(gatePass.Id), CancellationToken.None);
+        var cancel = await new CancelGatePassCommandHandler(repository, user, new FixedTimeProvider(Now))
+            .Handle(new CancelGatePassCommand(gatePass.Id,
+                new CancelGatePassRequestDto("No", Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+        var approve = await new ApproveGatePassCommandHandler(
+                repository, user, new FakeCurrentLessonResolver(ActiveLesson()), new FixedTimeProvider(Now))
+            .Handle(new ApproveGatePassCommand(gatePass.Id, new ApproveGatePassRequestDto(
+                Now, Now.AddMinutes(10), null, Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+        var reject = await new RejectGatePassCommandHandler(repository, user, new FixedTimeProvider(Now))
+            .Handle(new RejectGatePassCommand(gatePass.Id, new RejectGatePassRequestDto(
+                "No", Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
+
+        detail.IsSuccess.Should().BeFalse();
+        history.IsSuccess.Should().BeFalse();
+        cancel.IsSuccess.Should().BeFalse();
+        approve.IsSuccess.Should().BeFalse();
+        reject.IsSuccess.Should().BeFalse();
+        repository.SaveCount.Should().Be(0);
+    }
+
+    private static Task<ApiResponse<SecurityGatePassDetailDto>> Execute(
+        FakeRepository repository,
+        GatePass gatePass,
+        DateTimeOffset now,
+        PickupVerificationMethod method,
+        string verificationNote,
+        string? gateNote) =>
+        new ExecuteGatePassCommandHandler(
+                repository,
+                CurrentUser(42, RoleNames.SecurityGuard, PermissionNames.GatePassExecute),
+                new FixedTimeProvider(now))
+            .Handle(new ExecuteGatePassCommand(gatePass.Id, new ExecuteGatePassRequestDto(
+                method, verificationNote, gateNote, Convert.ToBase64String(gatePass.RowVersion))), CancellationToken.None);
 
     private static GatePass NewGatePass() => new()
     {
@@ -434,8 +847,8 @@ public sealed class GatePassWorkflowTests
         return gatePass;
     }
 
-    private static TestCurrentUser CurrentUser(int schoolId, string role, string permission) =>
-        new(schoolId, "actor", role, permission);
+    private static TestCurrentUser CurrentUser(int schoolId, string role, params string[] permissions) =>
+        new(schoolId, "actor", role, permissions);
 
     private static CurrentLessonResolution ActiveLesson() => new(
         CurrentLessonResolutionKind.ActiveLesson,
@@ -500,10 +913,10 @@ public sealed class GatePassWorkflowTests
     }
 
     private sealed class TestCurrentUser(
-        int schoolId,
+        int? schoolId,
         string userId,
         string role,
-        string permission) : ICurrentUserService
+        params string[] permissions) : ICurrentUserService
     {
         public string? UserId => userId;
         public string? Username => userId;
@@ -511,9 +924,9 @@ public sealed class GatePassWorkflowTests
         public string? PreferredLanguage => "en";
         public bool IsAuthenticated => true;
         public bool IsInRole(string roleName) => roleName == role;
-        public bool HasPermission(string permissionName) => permissionName == permission;
+        public bool HasPermission(string permissionName) => permissions.Contains(permissionName, StringComparer.Ordinal);
         public IEnumerable<string> GetRoles() => new[] { role };
-        public IEnumerable<string> GetPermissions() => new[] { permission };
+        public IEnumerable<string> GetPermissions() => permissions;
         public bool IsGlobalAdmin() => false;
         public bool IsSchoolScopedRole() => true;
     }
@@ -532,6 +945,9 @@ public sealed class GatePassWorkflowTests
         public List<int> SchoolIds { get; } = new();
         public byte[]? ExpectedRowVersion { get; private set; }
         public int SaveCount { get; private set; }
+        public int? QueueSchoolId { get; private set; }
+        public DateTimeOffset? QueueNow { get; private set; }
+        public GatePassListQuery? QueueQuery { get; private set; }
 
         public Task<GuardianGatePassLinkSnapshot?> GetGuardianLinkAsync(
             int schoolId, string guardianUserId, int studentId, CancellationToken cancellationToken)
@@ -589,7 +1005,7 @@ public sealed class GatePassWorkflowTests
             int schoolId, int gatePassId, CancellationToken cancellationToken)
         {
             SchoolIds.Add(schoolId);
-            return Task.FromResult(Tracked);
+            return Task.FromResult(Tracked?.SchoolId == schoolId && Tracked.Id == gatePassId ? Tracked : null);
         }
 
         public Task<int?> GetInstructorProfileIdAsync(
@@ -653,8 +1069,41 @@ public sealed class GatePassWorkflowTests
         public Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(int schoolId, string guardianUserId, GatePassListQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<GatePassDto>());
 
-        public Task<PagedResult<SecurityGatePassQueueItemDto>> GetSecurityGatePassQueueAsync(int schoolId, GatePassListQuery query, CancellationToken cancellationToken) =>
-            Task.FromResult(new PagedResult<SecurityGatePassQueueItemDto>());
+        public Task<SecurityGatePassQueuePageDto> GetSecurityGatePassQueueAsync(
+            int schoolId, GatePassListQuery query, DateTimeOffset now, CancellationToken cancellationToken)
+        {
+            QueueSchoolId = schoolId;
+            QueueNow = now;
+            QueueQuery = query;
+            return Task.FromResult(new SecurityGatePassQueuePageDto(
+                Array.Empty<SecurityGatePassQueueItemDto>(), 0, query.PageNumber, query.PageSize, now));
+        }
+
+        public Task<SecurityGatePassDetailDto?> GetSecurityDetailAsync(
+            int schoolId, int gatePassId, CancellationToken cancellationToken)
+        {
+            var gatePass = Tracked;
+            if (gatePass is null || gatePass.SchoolId != schoolId || gatePass.Id != gatePassId)
+                return Task.FromResult<SecurityGatePassDetailDto?>(null);
+            return Task.FromResult<SecurityGatePassDetailDto?>(new SecurityGatePassDetailDto(
+                gatePass.Id,
+                new StudentSummaryDto(gatePass.StudentId, "S-1", "Student", null, "1/A", true, null),
+                "1/A",
+                gatePass.ApprovedWindowStartsAt,
+                gatePass.ApprovedWindowEndsAt,
+                new PickupPersonDto(gatePass.PickupPersonName, null, null),
+                "Officer",
+                gatePass.ReviewedAt,
+                gatePass.SecurityAcknowledgedAt,
+                gatePass.ExitedAt,
+                gatePass.Status,
+                Convert.ToBase64String(gatePass.RowVersion)));
+        }
+
+        public Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(
+            int schoolId, DateTimeOffset now, CancellationToken cancellationToken) =>
+            Task.FromResult(new SecurityStudentAffairsDashboardDto(
+                Array.Empty<SecurityGatePassQueueItemDto>(), Array.Empty<DashboardCountDto>(), now));
 
         public Task<GatePassHistoryDto?> GetHistoryAsync(int schoolId, int gatePassId, CancellationToken cancellationToken) =>
             Task.FromResult<GatePassHistoryDto?>(new GatePassHistoryDto(Array.Empty<TransitionDto>(), Array.Empty<NotificationDeliveryDto>()));

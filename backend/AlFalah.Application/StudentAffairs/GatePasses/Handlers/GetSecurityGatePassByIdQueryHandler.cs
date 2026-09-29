@@ -6,44 +6,41 @@ using MediatR;
 
 namespace AlFalah.Application.StudentAffairs.GatePasses.Handlers;
 
-public sealed class GetSecurityGatePassQueueQueryHandler
-    : IRequestHandler<GetSecurityGatePassQueueQuery, ApiResponse<SecurityGatePassQueuePageDto>>
+public sealed class GetSecurityGatePassByIdQueryHandler
+    : IRequestHandler<GetSecurityGatePassByIdQuery, ApiResponse<SecurityGatePassDetailDto>>
 {
     private readonly IGatePassWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
-    private readonly TimeProvider _timeProvider;
 
-    public GetSecurityGatePassQueueQueryHandler(
+    public GetSecurityGatePassByIdQueryHandler(
         IGatePassWorkflowRepository repository,
-        ICurrentUserService currentUser,
-        TimeProvider timeProvider)
+        ICurrentUserService currentUser)
     {
         _repository = repository;
         _currentUser = currentUser;
-        _timeProvider = timeProvider;
     }
 
-    public async Task<ApiResponse<SecurityGatePassQueuePageDto>> Handle(
-        GetSecurityGatePassQueueQuery request,
+    public async Task<ApiResponse<SecurityGatePassDetailDto>> Handle(
+        GetSecurityGatePassByIdQuery request,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
         if (schoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
-            return ApiResponse<SecurityGatePassQueuePageDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
+            return ApiResponse<SecurityGatePassDetailDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.IsInRole(RoleNames.SecurityGuard)
             || (!_currentUser.HasPermission(PermissionNames.StudentAffairsDashboardSecurity)
                 && !_currentUser.HasPermission(PermissionNames.GatePassAcknowledgeSecurity)
                 && !_currentUser.HasPermission(PermissionNames.GatePassExecute)))
-            return ApiResponse<SecurityGatePassQueuePageDto>.Fail(GatePassHandlerSupport.PermissionDenied);
+            return ApiResponse<SecurityGatePassDetailDto>.Fail(GatePassHandlerSupport.PermissionDenied);
 
-        var now = _timeProvider.GetUtcNow();
-        var result = await _repository.GetSecurityGatePassQueueAsync(
+        var detail = await _repository.GetSecurityDetailAsync(
             schoolId.Value,
-            request.Query,
-            now,
+            request.GatePassId,
             cancellationToken).ConfigureAwait(false);
 
-        return ApiResponse<SecurityGatePassQueuePageDto>.Success(result);
+        return detail is null
+            ? ApiResponse<SecurityGatePassDetailDto>.Fail("Gate pass was not found")
+            : ApiResponse<SecurityGatePassDetailDto>.Success(detail);
     }
 }

@@ -1,4 +1,5 @@
 using AlFalah.Application.IntelligentTimetable;
+using AlFalah.Application.StudentAffairs.DTOs.Dashboards;
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.GatePasses;
@@ -623,33 +624,25 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
         };
     }
 
-    public async Task<PagedResult<SecurityGatePassQueueItemDto>> GetSecurityGatePassQueueAsync(
+    public async Task<SecurityGatePassQueuePageDto> GetSecurityGatePassQueueAsync(
         int schoolId,
         GatePassListQuery query,
+        DateTimeOffset now,
         CancellationToken cancellationToken)
     {
         var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
-        var pageSize = query.PageSize <= 0 ? 20 : query.PageSize;
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
 
         var dbQuery = _context.GatePasses
             .AsNoTracking()
             .Where(gp => gp.SchoolId == schoolId
-                && (gp.Status == GatePassStatus.Approved || gp.Status == GatePassStatus.SecurityAcknowledged));
+                && (gp.Status == GatePassStatus.Approved || gp.Status == GatePassStatus.SecurityAcknowledged)
+                && gp.ApprovedWindowStartsAt.HasValue
+                && gp.ApprovedWindowEndsAt.HasValue
+                && gp.ReviewedAt.HasValue);
 
-        if (query.Status.HasValue)
-        {
-            dbQuery = dbQuery.Where(gp => gp.Status == query.Status.Value);
-        }
-
-        if (query.Date.HasValue)
-        {
-            var date = query.Date.Value;
-            var startUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-            var endUtc = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
-            dbQuery = dbQuery.Where(gp =>
-                (gp.ApprovedWindowStartsAt.HasValue && gp.ApprovedWindowStartsAt.Value >= startUtc && gp.ApprovedWindowStartsAt.Value <= endUtc)
-                || (gp.RequestedExitAt >= startUtc && gp.RequestedExitAt <= endUtc));
-        }
+        // Security may search the authorized queue, but client filters never widen it
+        // to other states, dates, or classrooms.
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
@@ -665,7 +658,10 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
         var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
 
         var projections = await dbQuery
-            .OrderBy(gp => gp.ApprovedWindowStartsAt ?? gp.RequestedExitAt)
+            .OrderByDescending(gp => gp.ApprovedWindowStartsAt <= now && now < gp.ApprovedWindowEndsAt)
+            .ThenBy(gp => gp.ApprovedWindowEndsAt)
+            .ThenBy(gp => gp.ReviewedAt)
+            .ThenBy(gp => gp.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(gatePass => new
@@ -675,6 +671,7 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
                 gatePass.ApprovedWindowStartsAt,
                 gatePass.ApprovedWindowEndsAt,
                 gatePass.ReviewedAt,
+                gatePass.SecurityAcknowledgedAt,
                 gatePass.PickupPersonName,
                 gatePass.PickupRelationship,
                 gatePass.PickupIdentityHint,
@@ -686,32 +683,15 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
                     + (gatePass.Student.MiddleName ?? string.Empty) + " "
                     + gatePass.Student.LastName).Trim(),
                 ClassLabel = gatePass.CurrentClassroom == null ? "N/A" : gatePass.CurrentClassroom.ClassLabel,
-                gatePass.ReviewedByUserId
+                OfficerName = _context.Users
+                    .Where(user => user.Id == gatePass.ReviewedByUserId)
+                    .Select(user => (user.FirstName + " " + user.LastName).Trim())
+                    .FirstOrDefault()
             })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var officerUserIds = projections
-            .Where(p => !string.IsNullOrWhiteSpace(p.ReviewedByUserId))
-            .Select(p => p.ReviewedByUserId!)
-            .Distinct()
-            .ToList();
-
-        var officerNames = officerUserIds.Count > 0
-            ? await _context.Users
-                .AsNoTracking()
-                .Where(u => officerUserIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => $"{u.FirstName} {u.LastName}".Trim(), cancellationToken)
-                .ConfigureAwait(false)
-            : new Dictionary<string, string>();
-
-        var items = projections.Select(p =>
-        {
-            var officerName = p.ReviewedByUserId != null && officerNames.TryGetValue(p.ReviewedByUserId, out var name)
-                ? name
-                : "Student Affairs Officer";
-
-            return new SecurityGatePassQueueItemDto(
+        var items = projections.Select(p => new SecurityGatePassQueueItemDto(
                 p.Id,
                 new StudentSummaryDto(
                     p.StudentId,
@@ -722,25 +702,133 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
                     p.IsActive,
                     null),
                 p.ClassLabel,
-                p.ApprovedWindowStartsAt ?? DateTimeOffset.UtcNow,
-                p.ApprovedWindowEndsAt ?? DateTimeOffset.UtcNow,
+                p.ApprovedWindowStartsAt!.Value,
+                p.ApprovedWindowEndsAt!.Value,
                 new PickupPersonDto(
                     p.PickupPersonName,
                     p.PickupRelationship,
                     p.PickupIdentityHint),
-                officerName,
-                p.ReviewedAt ?? DateTimeOffset.UtcNow,
+                string.IsNullOrWhiteSpace(p.OfficerName) ? "Student Affairs Officer" : p.OfficerName,
+                p.ReviewedAt!.Value,
+                p.SecurityAcknowledgedAt,
                 p.Status,
-                Convert.ToBase64String(p.RowVersion));
-        }).ToList();
+                Convert.ToBase64String(p.RowVersion)))
+            .ToList();
 
-        return new PagedResult<SecurityGatePassQueueItemDto>
-        {
-            Items = items,
-            TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize
-        };
+        return new SecurityGatePassQueuePageDto(items, totalCount, page, pageSize, now);
+    }
+
+    public async Task<SecurityGatePassDetailDto?> GetSecurityDetailAsync(
+        int schoolId,
+        int gatePassId,
+        CancellationToken cancellationToken)
+    {
+        var projection = await _context.GatePasses
+            .AsNoTracking()
+            .Where(gatePass => gatePass.Id == gatePassId
+                && gatePass.SchoolId == schoolId
+                && (gatePass.Status == GatePassStatus.Approved
+                    || gatePass.Status == GatePassStatus.SecurityAcknowledged
+                    || gatePass.Status == GatePassStatus.Exited))
+            .Select(gatePass => new
+            {
+                gatePass.Id,
+                gatePass.StudentId,
+                gatePass.Student.StudentNumber,
+                gatePass.Student.IsActive,
+                StudentDisplayName = (gatePass.Student.FirstName + " "
+                    + (gatePass.Student.MiddleName ?? string.Empty) + " "
+                    + gatePass.Student.LastName).Trim(),
+                ClassLabel = gatePass.CurrentClassroom == null ? "N/A" : gatePass.CurrentClassroom.ClassLabel,
+                gatePass.ApprovedWindowStartsAt,
+                gatePass.ApprovedWindowEndsAt,
+                gatePass.PickupPersonName,
+                gatePass.PickupRelationship,
+                gatePass.PickupIdentityHint,
+                OfficerName = _context.Users
+                    .Where(user => user.Id == gatePass.ReviewedByUserId)
+                    .Select(user => (user.FirstName + " " + user.LastName).Trim())
+                    .FirstOrDefault(),
+                gatePass.ReviewedAt,
+                gatePass.SecurityAcknowledgedAt,
+                gatePass.ExitedAt,
+                gatePass.Status,
+                gatePass.RowVersion
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return projection is null
+            ? null
+            : new SecurityGatePassDetailDto(
+                projection.Id,
+                new StudentSummaryDto(
+                    projection.StudentId,
+                    projection.StudentNumber,
+                    projection.StudentDisplayName,
+                    null,
+                    projection.ClassLabel,
+                    projection.IsActive,
+                    null),
+                projection.ClassLabel,
+                projection.ApprovedWindowStartsAt,
+                projection.ApprovedWindowEndsAt,
+                new PickupPersonDto(
+                    projection.PickupPersonName,
+                    projection.PickupRelationship,
+                    projection.PickupIdentityHint),
+                string.IsNullOrWhiteSpace(projection.OfficerName)
+                    ? "Student Affairs Officer"
+                    : projection.OfficerName,
+                projection.ReviewedAt,
+                projection.SecurityAcknowledgedAt,
+                projection.ExitedAt,
+                projection.Status,
+                Convert.ToBase64String(projection.RowVersion));
+    }
+
+    public async Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(
+        int schoolId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var queue = await GetSecurityGatePassQueueAsync(
+            schoolId,
+            new GatePassListQuery { PageNumber = 1, PageSize = 12 },
+            now,
+            cancellationToken).ConfigureAwait(false);
+
+        var counts = await _context.GatePasses
+            .AsNoTracking()
+            .Where(gatePass => gatePass.SchoolId == schoolId
+                && (gatePass.Status == GatePassStatus.Approved
+                    || gatePass.Status == GatePassStatus.SecurityAcknowledged)
+                && gatePass.ApprovedWindowStartsAt.HasValue
+                && gatePass.ApprovedWindowEndsAt.HasValue
+                && gatePass.ReviewedAt.HasValue)
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                Approved = group.Count(gatePass => gatePass.Status == GatePassStatus.Approved),
+                Acknowledged = group.Count(gatePass => gatePass.Status == GatePassStatus.SecurityAcknowledged),
+                ActiveWindow = group.Count(gatePass => gatePass.ApprovedWindowStartsAt <= now
+                    && now < gatePass.ApprovedWindowEndsAt),
+                OverdueAcknowledged = group.Count(gatePass => gatePass.Status == GatePassStatus.SecurityAcknowledged
+                    && gatePass.ApprovedWindowEndsAt <= now)
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new SecurityStudentAffairsDashboardDto(
+            queue.Items,
+            new[]
+            {
+                new DashboardCountDto("Approved", "بانتظار مطابقة المستلم", counts?.Approved ?? 0, "Info"),
+                new DashboardCountDto("SecurityAcknowledged", "بانتظار الخروج الفعلي", counts?.Acknowledged ?? 0, "Warning"),
+                new DashboardCountDto("ActiveWindow", "داخل نافذة التنفيذ الآن", counts?.ActiveWindow ?? 0, "Success"),
+                new DashboardCountDto("OverdueAcknowledged", "مطابقة دون خروج في المهلة", counts?.OverdueAcknowledged ?? 0, "Danger")
+            },
+            now);
     }
 
     public async Task<GatePassHistoryDto?> GetHistoryAsync(

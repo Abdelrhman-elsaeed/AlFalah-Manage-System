@@ -1,4 +1,5 @@
 using AlFalah.Application.StudentAffairs.DTOs.GatePasses;
+using AlFalah.Application.StudentAffairs.DTOs.Dashboards;
 using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Shared.Models;
@@ -102,9 +103,20 @@ public interface IGatePassWorkflowRepository
         GatePassListQuery query,
         CancellationToken cancellationToken);
 
-    Task<PagedResult<SecurityGatePassQueueItemDto>> GetSecurityGatePassQueueAsync(
+    Task<SecurityGatePassQueuePageDto> GetSecurityGatePassQueueAsync(
         int schoolId,
         GatePassListQuery query,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<SecurityGatePassDetailDto?> GetSecurityDetailAsync(
+        int schoolId,
+        int gatePassId,
+        CancellationToken cancellationToken);
+
+    Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(
+        int schoolId,
+        DateTimeOffset now,
         CancellationToken cancellationToken);
 
     Task<GatePassHistoryDto?> GetHistoryAsync(

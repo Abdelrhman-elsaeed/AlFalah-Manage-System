@@ -60,6 +60,20 @@ describe('Student Affairs role workspace routes', () => {
 
     expect(oversight?.data?.['roles']).toEqual(['SchoolManager']);
   });
+
+  it('uses the operational gate screen at the canonical Security landing', () => {
+    const route = allRoutes.find(item => item.path === 'student-affairs/security');
+
+    expect(route?.loadComponent?.toString()).toContain('security-gate-execution');
+    expect(route?.data?.['permissions']).toEqual(['StudentAffairsDashboard.Security']);
+  });
+
+  it('keeps the old security gate URL as a compatibility alias', () => {
+    const alias = allRoutes.find(item => item.path === 'student-affairs/gate-passes/security');
+
+    expect(alias?.redirectTo).toBe('student-affairs/security');
+    expect(alias?.pathMatch).toBe('full');
+  });
 });
 
 function flatten(items: Route[]): Route[] {

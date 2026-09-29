@@ -88,7 +88,17 @@ describe('shell Guardian self-service navigation', () => {
 });
 
 describe('shell Student Affairs least-privilege navigation', () => {
+  const administration = SHELL_NAV_CATEGORIES.find(category => category.id === 'administration');
   const reports = SHELL_NAV_CATEGORIES.find(category => category.id === 'reports');
+
+  it('exposes one canonical Security workspace link with only the dashboard permission', () => {
+    const securityItems = administration?.items.filter(item => item.roles?.includes('SecurityGuard')) ?? [];
+
+    expect(securityItems.length).toBe(1);
+    expect(securityItems[0].route).toBe('/student-affairs/security');
+    expect(securityItems[0].permissions).toEqual(['StudentAffairsDashboard.Security']);
+    expect(securityItems[0].exact).toBeTrue();
+  });
 
   it('does not expose the cross-student record browser to aggregate or assignment-scoped roles', () => {
     const records = reports?.items.find(item => item.route === '/student-affairs/records');

@@ -36,14 +36,27 @@ public sealed class GatePassesController : StudentAffairsControllerBase
     [HttpGet("security-queue")]
     public async Task<IActionResult> SecurityQueue([FromQuery] GatePassListQuery query, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.GatePassAcknowledgeSecurity, PermissionNames.GatePassExecute)) return PermissionDenied();
+        if (!HasAnyPermission(
+                PermissionNames.StudentAffairsDashboardSecurity,
+                PermissionNames.GatePassAcknowledgeSecurity,
+                PermissionNames.GatePassExecute)) return PermissionDenied();
         return FromResponse(await Mediator.Send(new GetSecurityGatePassQueueQuery(query), cancellationToken));
+    }
+
+    [HttpGet("security-queue/{id:int}")]
+    public async Task<IActionResult> SecurityDetail(int id, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(
+                PermissionNames.StudentAffairsDashboardSecurity,
+                PermissionNames.GatePassAcknowledgeSecurity,
+                PermissionNames.GatePassExecute)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetSecurityGatePassByIdQuery(id), cancellationToken));
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.GatePassView, PermissionNames.GatePassViewOwn, PermissionNames.GatePassExecute)) return PermissionDenied();
+        if (!HasAnyPermission(PermissionNames.GatePassView, PermissionNames.GatePassViewOwn)) return PermissionDenied();
         return FromResponse(await Mediator.Send(new GetGatePassByIdQuery(id), cancellationToken));
     }
 

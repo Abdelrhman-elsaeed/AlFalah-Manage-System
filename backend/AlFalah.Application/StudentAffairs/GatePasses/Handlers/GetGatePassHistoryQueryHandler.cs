@@ -30,10 +30,14 @@ public sealed class GetGatePassHistoryQueryHandler
             return ApiResponse<GatePassHistoryDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
         var isGuardian = _currentUser.IsInRole(RoleNames.Guardian);
-        if (isGuardian
-            ? !_currentUser.HasPermission(PermissionNames.GatePassViewOwn)
-            : !_currentUser.HasPermission(PermissionNames.GatePassViewAudit)
-                && !_currentUser.HasPermission(PermissionNames.GatePassView))
+        var isAuthorizedStaff = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            || _currentUser.IsInRole(RoleNames.SchoolManager)
+            || _currentUser.IsInRole(RoleNames.MainManager)
+            || _currentUser.IsInRole(RoleNames.SuperAdmin);
+        if ((!isGuardian || !_currentUser.HasPermission(PermissionNames.GatePassViewOwn))
+            && (!isAuthorizedStaff
+                || (!_currentUser.HasPermission(PermissionNames.GatePassViewAudit)
+                    && !_currentUser.HasPermission(PermissionNames.GatePassView))))
             return ApiResponse<GatePassHistoryDto>.Fail(GatePassHandlerSupport.PermissionDenied);
 
         if (isGuardian

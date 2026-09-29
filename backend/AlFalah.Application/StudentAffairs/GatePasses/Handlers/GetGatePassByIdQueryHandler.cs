@@ -30,10 +30,9 @@ public sealed class GetGatePassByIdQueryHandler
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
         var isGuardian = _currentUser.IsInRole(RoleNames.Guardian);
-        if (isGuardian
-            ? !_currentUser.HasPermission(PermissionNames.GatePassViewOwn)
-            : !_currentUser.HasPermission(PermissionNames.GatePassView)
-                && !_currentUser.HasPermission(PermissionNames.GatePassExecute))
+        var isOfficer = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer);
+        if ((!isGuardian || !_currentUser.HasPermission(PermissionNames.GatePassViewOwn))
+            && (!isOfficer || !_currentUser.HasPermission(PermissionNames.GatePassView)))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
 
         if (isGuardian

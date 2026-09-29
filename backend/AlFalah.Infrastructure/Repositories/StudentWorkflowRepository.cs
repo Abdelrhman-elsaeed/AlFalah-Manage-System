@@ -1214,17 +1214,6 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         return new SocialWorkerStudentAffairsDashboardDto(casesList, summonsList);
     }
 
-    public Task<SecurityStudentAffairsDashboardDto> GetSecurityDashboardAsync(
-        int schoolId,
-        DateOnly onDate,
-        CancellationToken cancellationToken)
-    {
-        return Task.FromResult(new SecurityStudentAffairsDashboardDto(
-            Array.Empty<SecurityGatePassQueueItemDto>(),
-            Array.Empty<DashboardCountDto>()
-        ));
-    }
-
     public async Task<GuardianStudentAffairsDashboardDto> GetGuardianDashboardAsync(
         int schoolId,
         string guardianUserId,

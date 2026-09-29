@@ -42,6 +42,12 @@ internal static class GatePassHandlerSupport
         _ => null
     };
 
+    public static bool IsWithinExecutionWindow(GatePass gatePass, DateTimeOffset now) =>
+        gatePass.ApprovedWindowStartsAt.HasValue
+        && gatePass.ApprovedWindowEndsAt.HasValue
+        && gatePass.ApprovedWindowStartsAt.Value <= now
+        && now < gatePass.ApprovedWindowEndsAt.Value;
+
     public static GatePassTransition Transition(
         GatePass gatePass,
         GatePassStatus? fromStatus,

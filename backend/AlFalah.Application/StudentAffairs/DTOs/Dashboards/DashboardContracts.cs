@@ -10,7 +10,10 @@ public sealed record DashboardCountDto(string Code, string Label, int Count, str
 public sealed record TeacherStudentAffairsDashboardDto(TeacherTopPriorityDto TopPriority, IReadOnlyList<DashboardCountDto> Counts);
 public sealed record OfficerStudentAffairsDashboardDto(IReadOnlyList<DashboardCountDto> Queues, IReadOnlyList<DashboardCountDto> ThresholdAlerts);
 public sealed record SocialWorkerStudentAffairsDashboardDto(IReadOnlyList<DashboardCountDto> Cases, IReadOnlyList<DashboardCountDto> Summons);
-public sealed record SecurityStudentAffairsDashboardDto(IReadOnlyList<SecurityGatePassQueueItemDto> ApprovedGatePasses, IReadOnlyList<DashboardCountDto> Counts);
+public sealed record SecurityStudentAffairsDashboardDto(
+    IReadOnlyList<SecurityGatePassQueueItemDto> ApprovedGatePasses,
+    IReadOnlyList<DashboardCountDto> Counts,
+    DateTimeOffset GeneratedAt = default);
 public sealed record GuardianAbsenceSummaryDto(
     int OfficialAbsences,
     int ExcusedAbsences,

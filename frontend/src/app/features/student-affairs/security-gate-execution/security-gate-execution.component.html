@@ -5,7 +5,7 @@
   </header>
 
   @if (receipt(); as done) {
-    <section class="receipt" role="status"><i class="pi pi-check-circle"></i><div><strong>تم تسجيل خروج {{ done.student.displayName }}</strong><span>وقت الخروج من الخادم: {{ formatDateTime(done.exitedAt) }}</span></div></section>
+    <section class="receipt" role="status" aria-live="polite"><i class="pi pi-check-circle"></i><div><strong>تم تسجيل خروج {{ done.student.displayName }}</strong><span>وقت الخروج من الخادم: {{ formatDateTime(done.exitedAt) }}</span></div></section>
   }
 
   @if (errorMessage()) { <section class="state-card error" role="alert"><i class="pi pi-exclamation-triangle"></i><h2>تعذر تحميل قائمة البوابة</h2><p>{{ errorMessage() }}</p><button pButton type="button" label="إعادة المحاولة" (click)="refresh()"></button></section> }
@@ -34,16 +34,25 @@
             <div><dt>صلة القرابة</dt><dd>{{ item.pickupPerson.relationship || 'لم تحدد' }}</dd></div>
             <div><dt>علامة تحقق الهوية</dt><dd>{{ item.pickupPerson.identityHint || 'لا توجد' }}</dd></div>
             <div><dt>اعتماد شؤون الطلاب</dt><dd>{{ item.officerName }} · {{ formatDateTime(item.approvedAt) }}</dd></div>
+            @if (item.securityAcknowledgedAt) { <div><dt>وقت مطابقة الأمن</dt><dd>{{ formatDateTime(item.securityAcknowledgedAt) }}</dd></div> }
           </dl>
 
           <div class="card-actions">
             @if (item.status === 'Approved') {
-              <button pButton type="button" label="تمت المطابقة — جاهز للخروج" icon="pi pi-shield" class="ack-button" [loading]="mutatingId() === item.id" [disabled]="!isWindowActive(item) || mutatingId() !== null" (click)="acknowledge(item)"></button>
-              @if (!isWindowActive(item)) { <small><i class="pi pi-lock"></i> {{ windowState(item) }}؛ لا يمكن تسجيل المطابقة الآن.</small> }
+              @if (canAcknowledge) {
+                <button pButton type="button" label="تمت المطابقة — جاهز للخروج" icon="pi pi-shield" class="ack-button" [loading]="mutatingId() === item.id || reconcilingId() === item.id" [disabled]="!isWindowActive(item) || mutatingId() !== null || reconcilingId() !== null" (click)="acknowledge(item)"></button>
+                @if (!isWindowActive(item)) { <small><i class="pi pi-lock"></i> {{ windowState(item) }}؛ لا يمكن تسجيل المطابقة الآن.</small> }
+              } @else {
+                <small class="permission-note"><i class="pi pi-eye"></i> العرض فقط؛ لا تملك صلاحية تسجيل المطابقة.</small>
+              }
             } @else {
               <div class="ack-confirmed"><i class="pi pi-verified"></i><span><strong>تمت مطابقة بيانات المستلم</strong><small>سجّل الخروج فقط عند عبور الطالب البوابة فعليًا.</small></span></div>
-              <button pButton type="button" label="تسجيل خروج الطالب ✅" icon="pi pi-sign-out" class="exit-button p-button-danger" [disabled]="!isWindowActive(item)" (click)="openExit(item)"></button>
-              @if (!isWindowActive(item)) { <small><i class="pi pi-lock"></i> {{ windowState(item) }}؛ لا يمكن تسجيل حدث الخروج.</small> }
+              @if (canExecute) {
+                <button pButton type="button" label="تسجيل خروج الطالب ✅" icon="pi pi-sign-out" class="exit-button p-button-danger" [loading]="reconcilingId() === item.id" [disabled]="!isWindowActive(item) || reconcilingId() !== null" (click)="openExit(item)"></button>
+                @if (!isWindowActive(item)) { <small><i class="pi pi-lock"></i> {{ windowState(item) }}؛ لا يمكن تسجيل حدث الخروج.</small> }
+              } @else {
+                <small class="permission-note"><i class="pi pi-eye"></i> العرض فقط؛ لا تملك صلاحية تسجيل الخروج.</small>
+              }
             }
           </div>
         </article>
@@ -54,15 +63,25 @@
     @if (totalRecords() > pageSize()) { <p-paginator [first]="(pageNumber() - 1) * pageSize()" [rows]="pageSize()" [totalRecords]="totalRecords()" [rowsPerPageOptions]="[12, 24, 48]" (onPageChange)="onPage($event)"></p-paginator> }
   }
 
-  <p-dialog header="التأكيد النهائي لخروج الطالب" [visible]="exitDialogVisible()" (visibleChange)="exitDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!executing()" [style]="{ width: 'min(620px, 96vw)' }">
+  <p-dialog header="تأكيد مطابقة بيانات المستلم" [visible]="acknowledgementDialogVisible()" (visibleChange)="acknowledgementDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="mutatingId() === null && reconcilingId() === null" [style]="{ width: 'min(560px, 96vw)' }">
+    @if (acknowledgementTarget(); as item) {
+      <div class="ack-dialog">
+        <div class="physical-warning ack-warning"><i class="pi pi-shield"></i><div><strong>هل طابقت بيانات مستلم {{ item.student.displayName }}؟</strong><span>هذه الخطوة لا تسجل خروج الطالب؛ إنها تؤهله للخطوة النهائية فقط.</span></div></div>
+        <dl><div><dt>المستلم</dt><dd>{{ item.pickupPerson.name }}</dd></div><div><dt>صلة القرابة</dt><dd>{{ item.pickupPerson.relationship || 'لم تحدد' }}</dd></div><div><dt>علامة الهوية</dt><dd>{{ item.pickupPerson.identityHint || 'لا توجد' }}</dd></div></dl>
+        <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" [disabled]="mutatingId() !== null || reconcilingId() !== null" (click)="acknowledgementDialogVisible.set(false)"></button><button pButton type="button" label="تأكيد المطابقة" icon="pi pi-shield" [loading]="mutatingId() === item.id || reconcilingId() === item.id" [disabled]="reconcilingId() !== null" (click)="confirmAcknowledgement()"></button></div>
+      </div>
+    }
+  </p-dialog>
+
+  <p-dialog header="التأكيد النهائي لخروج الطالب" [visible]="exitDialogVisible()" (visibleChange)="exitDialogVisible.set($event)" [modal]="true" [draggable]="false" [closable]="!executing() && reconcilingId() === null" [style]="{ width: 'min(620px, 96vw)' }">
     @if (exitTarget(); as item) {
       <form class="exit-form" [formGroup]="exitForm" (ngSubmit)="executeExit()">
         <div class="physical-warning"><i class="pi pi-exclamation-triangle"></i><div><strong>هل عبر {{ item.student.displayName }} البوابة فعليًا؟</strong><span>هذا الإجراء يسجل حدثًا فعليًا ولا يوجد له تراجع.</span></div></div>
-        <div class="exit-preview"><span>وقت الخروج المتوقع</span><strong>{{ formatDateTime(now()) }}</strong><small>سيتم إرسال قيمة فارغة للوقت، والخادم هو من يسجل الوقت الرسمي.</small></div>
+        <div class="exit-preview"><span>الوقت المرجعي للعرض</span><strong>{{ formatDateTime(now()) }}</strong><small>الخادم وحده يسجل وقت الخروج الرسمي عند نجاح العملية.</small></div>
         <label class="field"><span>طريقة التحقق <b>*</b></span><p-dropdown formControlName="verificationMethod" [options]="verificationMethods" optionLabel="label" optionValue="value" placeholder="اختر طريقة التحقق"></p-dropdown></label>
         <label class="field"><span>ملاحظة التحقق <b>*</b></span><textarea pInputTextarea formControlName="verificationNote" rows="3" maxlength="1000" placeholder="اكتب كيف تمت مطابقة المستلم"></textarea>@if (exitForm.controls.verificationNote.touched && !exitForm.controls.verificationNote.value.trim()) { <small class="validation">ملاحظة التحقق مطلوبة.</small> }</label>
         <label class="field"><span>ملاحظة البوابة (اختياري)</span><textarea pInputTextarea formControlName="gateNote" rows="2" maxlength="1000"></textarea></label>
-        <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" (click)="exitDialogVisible.set(false)"></button><button pButton type="submit" label="تم الخروج ✅" icon="pi pi-sign-out" class="p-button-danger final-exit" [loading]="executing()" [disabled]="exitForm.invalid"></button></div>
+        <div class="dialog-actions"><button pButton type="button" label="إلغاء" class="p-button-text" [disabled]="executing() || reconcilingId() !== null" (click)="exitDialogVisible.set(false)"></button><button pButton type="submit" label="تم الخروج ✅" icon="pi pi-sign-out" class="p-button-danger final-exit" [loading]="executing() || reconcilingId() === item.id" [disabled]="exitForm.invalid || reconcilingId() !== null"></button></div>
       </form>
     }
   </p-dialog>

@@ -15,6 +15,7 @@ import {
   GatePassListQuery,
   GatePassPage,
   RejectGatePassRequestDto,
+  SecurityGatePassDetailDto,
   SecurityGatePassPage
 } from '../models/gate-pass.models';
 import { GuardianStudentDto } from '../models/student-affairs-dashboard.models';
@@ -78,16 +79,16 @@ export class GatePassService {
     });
   }
 
-  acknowledgeSecurity(id: number, request: AcknowledgeGatePassRequestDto): Observable<ApiResponse<GatePassDto>> {
-    return this.http.post<ApiResponse<GatePassDto>>(
+  acknowledgeSecurity(id: number, request: AcknowledgeGatePassRequestDto): Observable<ApiResponse<SecurityGatePassDetailDto>> {
+    return this.http.post<ApiResponse<SecurityGatePassDetailDto>>(
       `${this.api}/gate-passes/${id}/security-acknowledgement`,
       request,
       { context: this.localErrors }
     );
   }
 
-  execute(id: number, request: ExecuteGatePassRequestDto): Observable<ApiResponse<GatePassDto>> {
-    return this.http.post<ApiResponse<GatePassDto>>(`${this.api}/gate-passes/${id}/exit`, request, {
+  execute(id: number, request: ExecuteGatePassRequestDto): Observable<ApiResponse<SecurityGatePassDetailDto>> {
+    return this.http.post<ApiResponse<SecurityGatePassDetailDto>>(`${this.api}/gate-passes/${id}/exit`, request, {
       context: this.localErrors
     });
   }
@@ -96,6 +97,12 @@ export class GatePassService {
     return this.http.get<ApiResponse<SecurityGatePassPage>>(`${this.api}/gate-passes/security-queue`, {
       context: this.localErrors,
       params: this.queryParams(query)
+    });
+  }
+
+  securityDetail(id: number): Observable<ApiResponse<SecurityGatePassDetailDto>> {
+    return this.http.get<ApiResponse<SecurityGatePassDetailDto>>(`${this.api}/gate-passes/security-queue/${id}`, {
+      context: this.localErrors
     });
   }
 

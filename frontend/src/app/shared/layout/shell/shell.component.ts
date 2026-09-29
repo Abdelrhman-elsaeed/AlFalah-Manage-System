@@ -210,12 +210,12 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         exact: true
       },
       {
-        labelKey: 'تنفيذ استئذانات الخروج',
+        labelKey: 'بوابة المدرسة',
         icon: 'pi pi-sign-out',
-        route: '/student-affairs/gate-passes/security',
+        route: '/student-affairs/security',
         roles: ['SecurityGuard'],
-        permissions: ['GatePass.AcknowledgeSecurity', 'GatePass.Execute'],
-        requireAllPermissions: true
+        permissions: ['StudentAffairsDashboard.Security'],
+        exact: true
       },
       {
         labelKey: 'إحالات الموجه الطلابي',

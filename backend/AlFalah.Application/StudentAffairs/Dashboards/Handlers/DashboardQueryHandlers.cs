@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs.DTOs.Dashboards;
+using AlFalah.Application.StudentAffairs.GatePasses;
 using AlFalah.Application.StudentAffairs.Students;
 using AlFalah.Application.StudentAffairs.Students.Handlers;
 using AlFalah.Domain.Enums;
@@ -132,12 +133,12 @@ public sealed class GetSocialWorkerStudentAffairsDashboardQueryHandler
 public sealed class GetSecurityStudentAffairsDashboardQueryHandler
     : IRequestHandler<GetSecurityStudentAffairsDashboardQuery, ApiResponse<SecurityStudentAffairsDashboardDto>>
 {
-    private readonly IStudentWorkflowRepository _repository;
+    private readonly IGatePassWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
 
     public GetSecurityStudentAffairsDashboardQueryHandler(
-        IStudentWorkflowRepository repository,
+        IGatePassWorkflowRepository repository,
         ICurrentUserService currentUser,
         TimeProvider timeProvider)
     {
@@ -155,10 +156,14 @@ public sealed class GetSecurityStudentAffairsDashboardQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SecurityStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
+        if (!_currentUser.IsInRole(RoleNames.SecurityGuard)
+            || !_currentUser.HasPermission(PermissionNames.StudentAffairsDashboardSecurity))
+            return ApiResponse<SecurityStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.PermissionDenied);
+
+        var now = _timeProvider.GetUtcNow();
         var result = await _repository.GetSecurityDashboardAsync(
             schoolId.Value,
-            today,
+            now,
             cancellationToken).ConfigureAwait(false);
 
         return ApiResponse<SecurityStudentAffairsDashboardDto>.Success(result);
