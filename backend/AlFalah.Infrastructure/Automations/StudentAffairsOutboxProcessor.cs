@@ -21,6 +21,9 @@ public sealed class StudentAffairsOutboxProcessor
         typeof(BehaviorIncidentLoggedEvent).FullName!,
         typeof(AcademicConcernLoggedEvent).FullName!,
         typeof(SessionDelayLoggedEvent).FullName!,
+        typeof(GuardianSummonCreatedEvent).FullName!,
+        typeof(GP9jdFE6bJJJBXm548MTsCQvpLk7RqkKB7).FullName!,
+        typeof(StudentReferralTransitionedEvent).FullName!,
         typeof(ClassroomEntryPermitIssuedEvent).FullName!,
         typeof(StudentAbsentRecordedEvent).FullName!,
         typeof(AbsenceExcuseAcceptedEvent).FullName!,
@@ -185,6 +188,12 @@ public sealed class StudentAffairsOutboxProcessor
                 JsonSerializer.Deserialize<AcademicConcernLoggedEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(SessionDelayLoggedEvent), StringComparison.Ordinal) =>
                 JsonSerializer.Deserialize<SessionDelayLoggedEvent>(message.PayloadJson, JsonOptions),
+            var type when type.EndsWith(nameof(GuardianSummonCreatedEvent), StringComparison.Ordinal) =>
+                JsonSerializer.Deserialize<GuardianSummonCreatedEvent>(message.PayloadJson, JsonOptions),
+            var type when type.EndsWith(nameof(GP9jdFE6bJJJBXm548MTsCQvpLk7RqkKB7), StringComparison.Ordinal) =>
+                JsonSerializer.Deserialize<GP9jdFE6bJJJBXm548MTsCQvpLk7RqkKB7>(message.PayloadJson, JsonOptions),
+            var type when type.EndsWith(nameof(StudentReferralTransitionedEvent), StringComparison.Ordinal) =>
+                JsonSerializer.Deserialize<StudentReferralTransitionedEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(ClassroomEntryPermitIssuedEvent), StringComparison.Ordinal) =>
                 JsonSerializer.Deserialize<ClassroomEntryPermitIssuedEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(StudentAbsentRecordedEvent), StringComparison.Ordinal) =>

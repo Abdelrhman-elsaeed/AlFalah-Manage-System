@@ -97,6 +97,15 @@ public sealed class CreateReferralCommandHandler
             UpdatedByUserId = userId
         };
 
+        ReferralHandlerSupport.AppendTransition(
+            referral,
+            StudentReferralStatus.Open,
+            StudentReferralStatus.Open,
+            userId,
+            officerMayCreate ? RoleNames.StudentAffairsOfficer : RoleNames.Instructor,
+            now,
+            request.Reason.Trim());
+
         _repository.Add(referral);
         try
         {

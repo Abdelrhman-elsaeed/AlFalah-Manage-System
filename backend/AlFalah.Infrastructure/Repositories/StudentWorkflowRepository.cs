@@ -1180,22 +1180,34 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
 
         var pendingSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.Pending, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId
+                && (s.ScheduledBySocialWorkerUserId == socialWorkerUserId
+                    || s.StudentReferral != null && s.StudentReferral.AssignedSocialWorkerUserId == socialWorkerUserId)
+                && !s.IsDeleted && s.Status == GuardianSummonStatus.Pending, cancellationToken)
             .ConfigureAwait(false);
 
         var attendedSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.Attended, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId
+                && (s.ScheduledBySocialWorkerUserId == socialWorkerUserId
+                    || s.StudentReferral != null && s.StudentReferral.AssignedSocialWorkerUserId == socialWorkerUserId)
+                && !s.IsDeleted && s.Status == GuardianSummonStatus.Attended, cancellationToken)
             .ConfigureAwait(false);
 
         var underObservationSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.UnderObservation, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId
+                && (s.ScheduledBySocialWorkerUserId == socialWorkerUserId
+                    || s.StudentReferral != null && s.StudentReferral.AssignedSocialWorkerUserId == socialWorkerUserId)
+                && !s.IsDeleted && s.Status == GuardianSummonStatus.UnderObservation, cancellationToken)
             .ConfigureAwait(false);
 
         var improvedSummons = await _context.GuardianSummons
             .AsNoTracking()
-            .CountAsync(s => s.SchoolId == schoolId && s.ScheduledBySocialWorkerUserId == socialWorkerUserId && !s.IsDeleted && s.Status == GuardianSummonStatus.Improved, cancellationToken)
+            .CountAsync(s => s.SchoolId == schoolId
+                && (s.ScheduledBySocialWorkerUserId == socialWorkerUserId
+                    || s.StudentReferral != null && s.StudentReferral.AssignedSocialWorkerUserId == socialWorkerUserId)
+                && !s.IsDeleted && s.Status == GuardianSummonStatus.Improved, cancellationToken)
             .ConfigureAwait(false);
 
         var casesList = new List<DashboardCountDto>

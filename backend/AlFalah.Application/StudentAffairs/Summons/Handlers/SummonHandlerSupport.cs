@@ -10,7 +10,7 @@ public static class SummonHandlerSupport
     public const string AuthenticationRequired = "An authenticated social worker and active school are required";
     public const string PermissionDenied = "You do not have permission to perform this action";
     public const string NotFound = "Guardian summons was not found";
-    public const string AssignmentDenied = "Guardian summons is not assigned to the current social worker";
+    public const string AssignmentDenied = NotFound;
     public const string ConcurrencyConflict = "Guardian summons was modified by another user";
 
     public static bool TryDecodeExpectedRowVersion(
@@ -48,6 +48,7 @@ public static class SummonHandlerSupport
             FromStatus = fromStatus,
             ToStatus = toStatus,
             ActorUserId = actorUserId,
+            ActorRole = RoleNames.SocialWorker,
             OccurredAt = occurredAt,
             Notes = notes,
             CorrelationId = correlationId

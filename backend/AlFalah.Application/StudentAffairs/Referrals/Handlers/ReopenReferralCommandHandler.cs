@@ -33,7 +33,7 @@ public sealed class ReopenReferralCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralManage))
+        if (!ReferralHandlerSupport.IsSocialWorkerWithPermission(_currentUser, PermissionNames.ReferralManage))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
 
         var request = command.Request;
@@ -48,14 +48,16 @@ public sealed class ReopenReferralCommandHandler
         if (referral is null)
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.NotFound);
 
+        if (referral.Status is not (StudentReferralStatus.Resolved or StudentReferralStatus.Closed))
+            return ApiResponse<ReferralDto>.Fail("Referral state conflict: only a Resolved or Closed referral can be reopened");
+
         if (!ReferralHandlerSupport.TryDecodeExpectedRowVersion(
                 request.RowVersion,
                 referral.RowVersion,
                 out var expectedRowVersion))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.ConcurrencyConflict);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralAssign)
-            && !await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
+        if (!await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
         {
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AssignmentDenied);
         }
@@ -63,9 +65,14 @@ public sealed class ReopenReferralCommandHandler
         var now = _timeProvider.GetUtcNow();
         _repository.SetExpectedRowVersion(referral, expectedRowVersion);
 
+        var previousStatus = referral.Status;
         referral.Status = StudentReferralStatus.InProgress;
         referral.UpdatedAt = now;
         referral.UpdatedByUserId = userId;
+
+        ReferralHandlerSupport.AppendTransition(
+            referral, previousStatus, StudentReferralStatus.InProgress,
+            userId, RoleNames.SocialWorker, now, request.Reason.Trim());
 
         var action = ReferralHandlerSupport.CreateAction(
             referral,

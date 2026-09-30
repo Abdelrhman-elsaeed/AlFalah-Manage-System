@@ -24,14 +24,16 @@ public sealed record CreateConversationRequestDto(
     string? TargetStaffUserId,
     string Subject,
     string InitialBody,
-    string IdempotencyKey = "");
+    string IdempotencyKey = "",
+    int? ReferralId = null,
+    int? TargetGuardianProfileId = null);
 
 public sealed record SendMessageRequestDto(string Body, long? ReplyToMessageId, string IdempotencyKey);
 public sealed record MarkConversationReadRequestDto(long ThroughMessageId);
 public sealed record CloseConversationRequestDto(string Reason, string RowVersion);
 
 public sealed record ConversationParticipantDto(string UserId, string DisplayName, string Role);
-public sealed record ConversationDto(int Id, StudentSummaryDto Student, string Subject, ConversationThreadType ThreadType, ConversationThreadStatus Status, IReadOnlyList<ConversationParticipantDto> Participants, int UnreadCount, DateTimeOffset UpdatedAt, string RowVersion);
+public sealed record ConversationDto(int Id, StudentSummaryDto Student, string Subject, ConversationThreadType ThreadType, ConversationThreadStatus Status, IReadOnlyList<ConversationParticipantDto> Participants, int UnreadCount, DateTimeOffset UpdatedAt, string RowVersion, int? ReferralId = null);
 public sealed record ConversationMessageDto(long Id, int ConversationId, ActorSummaryDto Sender, string Body, long? ReplyToMessageId, DateTimeOffset CreatedAt, MessageDeliveryState DeliveryState, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt, IReadOnlyList<NotificationDeliveryDto> Receipts);
 public sealed record SendMessageResultDto(ConversationMessageDto Message, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt);
 public sealed record GuardianTeacherOptionDto(int InstructorProfileId, string DisplayName, string Subject);

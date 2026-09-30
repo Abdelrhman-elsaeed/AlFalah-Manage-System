@@ -38,7 +38,7 @@ public sealed class SocialWorkerWorkflowTests
 
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Data.Items.Should().NotBeNull();
+        result.Data!.Items.Should().NotBeNull();
         repository.SchoolIds.Should().OnlyContain(id => id == 42);
     }
 
@@ -213,9 +213,9 @@ public sealed class SocialWorkerWorkflowTests
     }
 
     [Fact]
-    public async Task AddReferralActionCommand_AddsActionAndAdvancesStatus()
+    public async Task AddReferralActionCommand_AddsActionWithoutImplicitStateChange()
     {
-        var referral = NewReferral(StudentReferralStatus.Assigned);
+        var referral = NewReferral(StudentReferralStatus.InProgress);
         var repository = new FakeReferralRepository
         {
             Referral = referral,
@@ -306,7 +306,9 @@ public sealed class SocialWorkerWorkflowTests
         var repository = new FakeSummonRepository
         {
             GuardianLinkIsActive = true,
-            Enrollment = new SummonEnrollmentSnapshot(4)
+            Enrollment = new SummonEnrollmentSnapshot(4),
+            ReferralScope = new SummonReferralScope(
+                17, "worker-1", 4, 3, StudentReferralStatus.InProgress)
         };
         var handler = new CreateSummonCommandHandler(
             repository,
@@ -460,6 +462,15 @@ public sealed class SocialWorkerWorkflowTests
                 Convert.ToBase64String(r.RowVersion)));
         }
 
+        public Task<ReferralHistoryDto?> GetHistoryAsync(
+            int schoolId,
+            int referralId,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<ReferralHistoryDto?>(new ReferralHistoryDto([]));
+        }
+
         public Task<ReferralIdempotencySnapshot?> GetByIdempotencyKeyAsync(
             int schoolId,
             string createdByUserId,
@@ -546,6 +557,7 @@ public sealed class SocialWorkerWorkflowTests
         public GuardianSummon? Summon { get; init; }
         public GuardianSummon? AddedSummon { get; private set; }
         public SummonEnrollmentSnapshot? Enrollment { get; init; }
+        public SummonReferralScope? ReferralScope { get; init; }
         public bool GuardianLinkIsActive { get; init; } = true;
         public bool IsAssigned { get; init; } = true;
         public List<int> SchoolIds { get; } = new();
@@ -617,6 +629,38 @@ public sealed class SocialWorkerWorkflowTests
                 s.OfficerReviewReason,
                 s.GuardianNotifiedAt,
                 Convert.ToBase64String(s.RowVersion)));
+        }
+
+        public Task<SummonIdempotencySnapshot?> GetByIdempotencyKeyAsync(
+            int schoolId,
+            string createdByUserId,
+            string idempotencyKey,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            var summon = AddedSummon;
+            return Task.FromResult(summon?.IdempotencyKey == idempotencyKey
+                ? new SummonIdempotencySnapshot(summon.Id, summon.IdempotencyPayloadHash!)
+                : null);
+        }
+
+        public Task<SummonReferralScope?> GetReferralScopeAsync(
+            int schoolId,
+            int referralId,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(ReferralScope);
+        }
+
+        public Task<bool> HasActiveDuplicateAsync(
+            int schoolId,
+            int studentId,
+            int? referralId,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(false);
         }
 
         public Task<SummonHistoryDto?> GetHistoryAsync(

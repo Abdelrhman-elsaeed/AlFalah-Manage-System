@@ -41,7 +41,7 @@ public sealed class ScheduleGuardianSummonCommandHandler
             cancellationToken).ConfigureAwait(false);
         if (summon is null) return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
         if (summon.Status != GuardianSummonStatus.Pending)
-            return ApiResponse<SummonDto>.Fail("Guardian summons can only be scheduled while Pending");
+            return ApiResponse<SummonDto>.Fail("Guardian summons state conflict: scheduling requires Pending");
         if (!SummonHandlerSupport.TryDecodeExpectedRowVersion(
                 command.Request.RowVersion,
                 summon.RowVersion,
@@ -56,6 +56,8 @@ public sealed class ScheduleGuardianSummonCommandHandler
             || string.IsNullOrWhiteSpace(request.Location))
             return ApiResponse<SummonDto>.Fail(
                 "A linked guardian, future appointment time, and location are required");
+        if (request.Location.Trim().Length > 250 || request.Instructions?.Trim().Length > 2000)
+            return ApiResponse<SummonDto>.Fail("Location or instructions exceed the allowed length");
         var guardianIsLinked = await _repository.IsGuardianLinkActiveAsync(
             schoolId.Value,
             request.GuardianProfileId,
@@ -67,12 +69,29 @@ public sealed class ScheduleGuardianSummonCommandHandler
 
         _repository.SetExpectedRowVersion(summon, expectedRowVersion);
         var correlationId = Guid.NewGuid();
+        var action = summon.ScheduledAt.HasValue ? "Rescheduled" : "Scheduled";
         summon.ScheduledAt = request.AppointmentAt;
         summon.ScheduledBySocialWorkerUserId = userId;
         summon.Location = request.Location.Trim();
         summon.Instructions = request.Instructions?.Trim();
         summon.GuardianProfileId = request.GuardianProfileId;
+        summon.UpdatedAt = now;
         summon.UpdatedByUserId = userId;
+        summon.AppointmentHistory.Add(new Domain.Entities.StudentAffairs.GuardianSummonAppointmentHistory
+        {
+            SchoolId = summon.SchoolId,
+            GuardianSummonId = summon.Id,
+            GuardianSummon = summon,
+            GuardianProfileId = request.GuardianProfileId,
+            AppointmentAt = request.AppointmentAt,
+            Location = request.Location.Trim(),
+            Instructions = request.Instructions?.Trim(),
+            Action = action,
+            ActorUserId = userId,
+            ActorRole = RoleNames.SocialWorker,
+            OccurredAt = now,
+            CorrelationId = correlationId
+        });
         summon.StatusHistory.Add(SummonHandlerSupport.History(
             summon,
             GuardianSummonStatus.Pending,
@@ -80,12 +99,12 @@ public sealed class ScheduleGuardianSummonCommandHandler
             userId,
             now,
             correlationId,
-            $"Appointment scheduled at {request.AppointmentAt:O}"));
+            $"Appointment {action.ToLowerInvariant()} at {request.AppointmentAt:O}"));
         SummonHandlerSupport.AppendStateEvent(
             summon,
             GuardianSummonStatus.Pending,
             GuardianSummonStatus.Pending,
-            "Scheduled",
+            action,
             userId,
             now,
             correlationId);
@@ -107,9 +126,7 @@ public sealed class ScheduleGuardianSummonCommandHandler
         int summonId,
         string userId,
         CancellationToken cancellationToken) =>
-        _currentUser.HasPermission(PermissionNames.ReferralAssign)
-            ? Task.FromResult(true)
-            : _repository.IsAssignedToAsync(schoolId, summonId, userId, cancellationToken);
+        _repository.IsAssignedToAsync(schoolId, summonId, userId, cancellationToken);
 
     private async Task<ApiResponse<SummonDto>> LoadResultAsync(
         int schoolId,

@@ -29,7 +29,7 @@ public sealed class StudentAffairsDashboardController : StudentAffairsController
     public async Task<IActionResult> SocialWorker(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentAffairsDashboardSocialWorker)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSocialWorkerStudentAffairsDashboardQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetSocialWorkerStudentAffairsDashboardQuery(), cancellationToken));
     }
 
     [HttpGet("security")]

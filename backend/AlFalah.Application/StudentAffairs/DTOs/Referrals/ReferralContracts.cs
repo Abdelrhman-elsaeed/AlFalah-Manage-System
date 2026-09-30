@@ -23,6 +23,13 @@ public sealed record ReopenReferralRequestDto(string Reason, string RowVersion);
 
 public sealed record ReferralSourceSnapshotDto(ReferralSourceType SourceType, int? SourceEntityId, int? CountSnapshot, int? ThresholdSnapshot);
 public sealed record StudentCaseActionDto(int Id, StudentCaseActionType ActionType, string Description, ActorSummaryDto Actor, DateTimeOffset ActionAt, string? Result);
+public sealed record ReferralTransitionDto(
+    StudentReferralStatus FromStatus,
+    StudentReferralStatus ToStatus,
+    ActorSummaryDto Actor,
+    DateTimeOffset OccurredAt,
+    string? Reason);
+public sealed record ReferralHistoryDto(IReadOnlyList<ReferralTransitionDto> Transitions);
 public sealed record AssignableSocialWorkerDto(string UserId, string DisplayName);
 
 public sealed record ReferralDto(
@@ -37,11 +44,14 @@ public sealed record ReferralDto(
     string? ResolutionNotes,
     DateTimeOffset CreatedAt,
     string RowVersion,
-    string? ReferralReason = null);
+    string? ReferralReason = null,
+    DateTimeOffset? LastActivityAt = null,
+    bool RequiresOfficerReview = false);
 
 public sealed record CreateReferralCommand(CreateReferralRequestDto Request, string IdempotencyKey) : IRequest<ApiResponse<ReferralDto>>;
 public sealed record GetReferralsQuery(ReferralListQuery Query) : IRequest<ApiResponse<PagedResult<ReferralDto>>>;
 public sealed record GetReferralByIdQuery(int ReferralId) : IRequest<ApiResponse<ReferralDto>>;
+public sealed record GetReferralHistoryQuery(int ReferralId) : IRequest<ApiResponse<ReferralHistoryDto>>;
 public sealed record AssignReferralCommand(int ReferralId, AssignReferralRequestDto Request) : IRequest<ApiResponse<ReferralDto>>;
 public sealed record AcceptReferralCommand(int ReferralId, AcceptReferralRequestDto Request) : IRequest<ApiResponse<ReferralDto>>;
 public sealed record AddReferralActionCommand(int ReferralId, AddReferralActionRequestDto Request) : IRequest<ApiResponse<ReferralDto>>;

@@ -165,6 +165,34 @@ public sealed class GatePassAndMessagingMediatRTests
         result.Errors.Should().ContainSingle(error => error.Contains("permission"));
     }
 
+    [Fact]
+    public async Task CreateConversation_AssignedSocialWorkerCanStartReferralGuardianThread()
+    {
+        var repository = new StubMessagingWorkflowRepository();
+        var currentUser = new StubCurrentUser(
+            "worker-1", 1, PermissionNames.MessagingViewOwn, PermissionNames.MessagingSend);
+        currentUser.Roles.Clear();
+        currentUser.Roles.Add(RoleNames.SocialWorker);
+        var handler = new CreateConversationCommandHandler(repository, currentUser, TimeProvider.System);
+        var request = new CreateConversationRequestDto(
+            10,
+            ConversationThreadType.GuardianSocialWorker,
+            null,
+            null,
+            null,
+            "Case follow-up",
+            "Please arrange a confidential follow-up meeting.",
+            "conversation-case-1",
+            44,
+            9);
+
+        var result = await handler.Handle(
+            new CreateConversationCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.CreatedRequest.Should().BeSameAs(request);
+    }
+
     private sealed class StubGatePassWorkflowRepository : IGatePassWorkflowRepository
     {
         public Task<bool> IsActiveGuardianAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken) =>
@@ -263,6 +291,7 @@ public sealed class GatePassAndMessagingMediatRTests
     {
         public bool IsParticipant { get; set; } = true;
         public bool SendWasCalled { get; private set; }
+        public CreateConversationRequestDto? CreatedRequest { get; private set; }
 
         public Task<MessageReleaseResult> ReleaseDueMessageAsync(int messageId, CancellationToken cancellationToken) =>
             Task.FromResult(new MessageReleaseResult(true, null));
@@ -310,10 +339,13 @@ public sealed class GatePassAndMessagingMediatRTests
                 PageSize = 20
             });
 
-        public Task<ConversationDto> CreateConversationAsync(int schoolId, string creatorUserId, CreateConversationRequestDto request, CancellationToken cancellationToken) =>
-            Task.FromResult(new ConversationDto(1, new StudentSummaryDto(1, "STU-1", "Test Student", null, null, true, null),
+        public Task<ConversationDto> CreateConversationAsync(int schoolId, string creatorUserId, CreateConversationRequestDto request, CancellationToken cancellationToken)
+        {
+            CreatedRequest = request;
+            return Task.FromResult(new ConversationDto(1, new StudentSummaryDto(1, "STU-1", "Test Student", null, null, true, null),
                 request.Subject, request.ThreadType, ConversationThreadStatus.Open,
-                Array.Empty<ConversationParticipantDto>(), 0, DateTimeOffset.UtcNow, "AQID"));
+                Array.Empty<ConversationParticipantDto>(), 0, DateTimeOffset.UtcNow, "AQID", request.ReferralId));
+        }
 
         public Task<SendMessageResultDto> SendMessageAsync(int schoolId, string senderUserId, int conversationId, SendMessageRequestDto request, CancellationToken cancellationToken)
         {

@@ -32,6 +32,14 @@ public sealed class GetSummonByIdQueryHandler
         if (!_currentUser.HasPermission(PermissionNames.SummonView))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.PermissionDenied);
 
+        var isOfficer = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer);
+        var isSocialWorker = _currentUser.IsInRole(RoleNames.SocialWorker);
+        if (!isOfficer && !isSocialWorker)
+            return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.PermissionDenied);
+        if (isSocialWorker && !await _repository.IsAssignedToAsync(
+                schoolId.Value, request.SummonId, userId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
+
         var dto = await _repository.GetDtoAsync(
             schoolId.Value,
             request.SummonId,
@@ -39,6 +47,20 @@ public sealed class GetSummonByIdQueryHandler
 
         if (dto is null)
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
+
+        if (isOfficer)
+            dto = dto with
+            {
+                ObservationGoals = null,
+                ObservationStartDate = null,
+                ObservationReviewDate = null,
+                ObservationEndDate = null,
+                ObservationResponsibleStaffUserId = null,
+                ObservationIndicators = null,
+                ObservationNotes = null,
+                OutcomeEvidence = null,
+                OutcomeVerificationDetails = null
+            };
 
         return ApiResponse<SummonDto>.Success(dto);
     }

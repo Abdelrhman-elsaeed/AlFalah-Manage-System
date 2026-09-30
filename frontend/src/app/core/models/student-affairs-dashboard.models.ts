@@ -307,6 +307,11 @@ export interface OfficerStudentAffairsDashboardDto {
   readonly thresholdAlerts: readonly DashboardCountDto[];
 }
 
+export interface SocialWorkerStudentAffairsDashboardDto {
+  readonly cases: readonly DashboardCountDto[];
+  readonly summons: readonly DashboardCountDto[];
+}
+
 export interface ClassroomAttendanceAggregateDto {
   readonly classroomId: number;
   readonly classLabel: string;

@@ -35,7 +35,10 @@ public sealed class ConversationsController : StudentAffairsControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateConversationRequestDto request, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.MessagingStartGuardianTeacher, PermissionNames.MessagingStartGuardianAdministration)) return PermissionDenied();
+        if (!HasAnyPermission(
+                PermissionNames.MessagingStartGuardianTeacher,
+                PermissionNames.MessagingStartGuardianAdministration,
+                PermissionNames.MessagingSend)) return PermissionDenied();
         var response = await Mediator.Send(new CreateConversationCommand(request), cancellationToken);
         return FromResponse(response, StatusCodes.Status201Created);
     }

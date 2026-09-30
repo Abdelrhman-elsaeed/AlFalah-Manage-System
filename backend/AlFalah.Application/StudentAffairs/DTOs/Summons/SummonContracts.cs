@@ -18,8 +18,17 @@ public sealed class SummonListQuery : StudentAffairsPageQuery
 public sealed record CreateSummonRequestDto(int StudentId, int? ReferralId, string Reason, ReferralPriority Priority, int GuardianProfileId);
 public sealed record ScheduleSummonRequestDto(DateTimeOffset AppointmentAt, string Location, string? Instructions, int GuardianProfileId, string RowVersion);
 public sealed record AttendSummonRequestDto(string AttendanceNotes, string RowVersion);
-public sealed record StartSummonObservationRequestDto(string ObservationPlan, string RowVersion);
-public sealed record MarkSummonImprovedRequestDto(string OutcomeEvidence, string RowVersion);
+public sealed record MarkSummonNoShowRequestDto(string Notes, string RowVersion);
+public sealed record StartSummonObservationRequestDto(
+    string Goals,
+    DateOnly StartDate,
+    DateOnly ReviewDate,
+    DateOnly? EndDate,
+    string ResponsibleStaffUserId,
+    IReadOnlyList<string> MeasurableIndicators,
+    string Notes,
+    string RowVersion);
+public sealed record MarkSummonImprovedRequestDto(string OutcomeEvidence, string VerificationDetails, string RowVersion);
 public sealed record ReviewSummonAutomationImpactRequestDto(OfficerReviewDecision Decision, string Rationale, string RowVersion);
 
 public sealed record SummonDto(
@@ -40,9 +49,29 @@ public sealed record SummonDto(
     string? OfficerReviewReason,
     DateTimeOffset? GuardianNotifiedAt,
     string RowVersion,
-    int? CurrentMetricCount = null);
+    int? CurrentMetricCount = null,
+    string? ObservationGoals = null,
+    DateOnly? ObservationStartDate = null,
+    DateOnly? ObservationReviewDate = null,
+    DateOnly? ObservationEndDate = null,
+    string? ObservationResponsibleStaffUserId = null,
+    IReadOnlyList<string>? ObservationIndicators = null,
+    string? ObservationNotes = null,
+    string? OutcomeEvidence = null,
+    string? OutcomeVerificationDetails = null,
+    NotificationDeliveryDto? GuardianDelivery = null);
 
-public sealed record SummonHistoryDto(IReadOnlyList<TransitionDto> Transitions);
+public sealed record SummonAppointmentDto(
+    DateTimeOffset AppointmentAt,
+    string Location,
+    string? Instructions,
+    string Action,
+    ActorSummaryDto Actor,
+    DateTimeOffset OccurredAt,
+    string? Notes);
+public sealed record SummonHistoryDto(
+    IReadOnlyList<TransitionDto> Transitions,
+    IReadOnlyList<SummonAppointmentDto>? Appointments = null);
 
 public sealed record GuardianSummonDto(
     int Id,
@@ -62,6 +91,7 @@ public sealed record GetMySummonByIdQuery(int SummonId) : IRequest<ApiResponse<G
 public sealed record GetSummonByIdQuery(int SummonId) : IRequest<ApiResponse<SummonDto>>;
 public sealed record ScheduleSummonCommand(int SummonId, ScheduleSummonRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
 public sealed record AttendSummonCommand(int SummonId, AttendSummonRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
+public sealed record MarkSummonNoShowCommand(int SummonId, MarkSummonNoShowRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
 public sealed record StartSummonObservationCommand(int SummonId, StartSummonObservationRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
 public sealed record MarkSummonImprovedCommand(int SummonId, MarkSummonImprovedRequestDto Request) : IRequest<ApiResponse<SummonDto>>;
 public sealed record ReviewSummonAutomationImpactCommand(int SummonId, ReviewSummonAutomationImpactRequestDto Request) : IRequest<ApiResponse<SummonDto>>;

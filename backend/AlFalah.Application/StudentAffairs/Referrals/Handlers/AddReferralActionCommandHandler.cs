@@ -33,7 +33,7 @@ public sealed class AddReferralActionCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralManage))
+        if (!ReferralHandlerSupport.IsSocialWorkerWithPermission(_currentUser, PermissionNames.ReferralManage))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
 
         var request = command.Request;
@@ -48,25 +48,22 @@ public sealed class AddReferralActionCommandHandler
         if (referral is null)
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.NotFound);
 
+        if (referral.Status != StudentReferralStatus.InProgress)
+            return ApiResponse<ReferralDto>.Fail("Referral state conflict: actions require an InProgress referral");
+
         if (!ReferralHandlerSupport.TryDecodeExpectedRowVersion(
                 request.RowVersion,
                 referral.RowVersion,
                 out var expectedRowVersion))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.ConcurrencyConflict);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralAssign)
-            && !await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
+        if (!await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
         {
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AssignmentDenied);
         }
 
         var now = _timeProvider.GetUtcNow();
         _repository.SetExpectedRowVersion(referral, expectedRowVersion);
-
-        if (referral.Status == StudentReferralStatus.Open || referral.Status == StudentReferralStatus.Assigned)
-        {
-            referral.Status = StudentReferralStatus.InProgress;
-        }
 
         referral.UpdatedAt = now;
         referral.UpdatedByUserId = userId;

@@ -74,7 +74,18 @@ export interface ReferralDto {
   readonly createdAt: string;
   readonly rowVersion: string;
   readonly referralReason?: string | null;
+  readonly lastActivityAt?: string | null;
+  readonly requiresOfficerReview?: boolean;
 }
+
+export interface ReferralTransitionDto {
+  readonly fromStatus: StudentReferralStatus;
+  readonly toStatus: StudentReferralStatus;
+  readonly actor: ActorSummaryDto;
+  readonly occurredAt: string;
+  readonly reason: string | null;
+}
+export interface ReferralHistoryDto { readonly transitions: readonly ReferralTransitionDto[]; }
 
 export interface AcceptReferralRequestDto { readonly rowVersion: string; }
 export interface AddReferralActionRequestDto {
@@ -98,6 +109,13 @@ export interface SummonListQuery {
   readonly search?: string;
   readonly sortDirection?: 'asc' | 'desc';
 }
+export interface CreateSummonRequestDto {
+  readonly studentId: number;
+  readonly referralId: number | null;
+  readonly reason: string;
+  readonly priority: ReferralPriority;
+  readonly guardianProfileId: number;
+}
 
 export interface SummonDto {
   readonly id: number;
@@ -118,6 +136,16 @@ export interface SummonDto {
   readonly guardianNotifiedAt: string | null;
   readonly rowVersion: string;
   readonly currentMetricCount?: number | null;
+  readonly observationGoals?: string | null;
+  readonly observationStartDate?: string | null;
+  readonly observationReviewDate?: string | null;
+  readonly observationEndDate?: string | null;
+  readonly observationResponsibleStaffUserId?: string | null;
+  readonly observationIndicators?: readonly string[] | null;
+  readonly observationNotes?: string | null;
+  readonly outcomeEvidence?: string | null;
+  readonly outcomeVerificationDetails?: string | null;
+  readonly guardianDelivery?: NotificationDeliveryDto | null;
 }
 
 export interface TransitionDto {
@@ -127,7 +155,19 @@ export interface TransitionDto {
   readonly occurredAt: string;
   readonly reason: string | null;
 }
-export interface SummonHistoryDto { readonly transitions: readonly TransitionDto[]; }
+export interface SummonAppointmentDto {
+  readonly appointmentAt: string;
+  readonly location: string;
+  readonly instructions: string | null;
+  readonly action: 'Scheduled' | 'Rescheduled' | 'NoShow';
+  readonly actor: ActorSummaryDto;
+  readonly occurredAt: string;
+  readonly notes: string | null;
+}
+export interface SummonHistoryDto {
+  readonly transitions: readonly TransitionDto[];
+  readonly appointments?: readonly SummonAppointmentDto[] | null;
+}
 export interface StudentGuardianLinkDto {
   readonly id: number;
   readonly guardian: GuardianSummaryDto;
@@ -146,8 +186,22 @@ export interface ScheduleSummonRequestDto {
   readonly rowVersion: string;
 }
 export interface AttendSummonRequestDto { readonly attendanceNotes: string; readonly rowVersion: string; }
-export interface StartSummonObservationRequestDto { readonly observationPlan: string; readonly rowVersion: string; }
-export interface MarkSummonImprovedRequestDto { readonly outcomeEvidence: string; readonly rowVersion: string; }
+export interface MarkSummonNoShowRequestDto { readonly notes: string; readonly rowVersion: string; }
+export interface StartSummonObservationRequestDto {
+  readonly goals: string;
+  readonly startDate: string;
+  readonly reviewDate: string;
+  readonly endDate: string | null;
+  readonly responsibleStaffUserId: string;
+  readonly measurableIndicators: readonly string[];
+  readonly notes: string;
+  readonly rowVersion: string;
+}
+export interface MarkSummonImprovedRequestDto {
+  readonly outcomeEvidence: string;
+  readonly verificationDetails: string;
+  readonly rowVersion: string;
+}
 
 export interface PendingDispatchDto {
   readonly id: number;
@@ -272,6 +326,8 @@ export interface CreateConversationRequestDto {
   readonly subject: string;
   readonly initialBody: string;
   readonly idempotencyKey: string;
+  readonly referralId?: number | null;
+  readonly targetGuardianProfileId?: number | null;
 }
 export interface MarkConversationReadRequestDto { readonly throughMessageId: number; }
 export interface CloseConversationRequestDto { readonly reason: string; readonly rowVersion: string; }

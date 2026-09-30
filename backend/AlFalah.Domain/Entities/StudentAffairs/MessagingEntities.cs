@@ -9,6 +9,7 @@ public sealed class ConversationThread : IStudentAffairsMutableEntity, IStudentA
     public int Id { get; set; }
     public int SchoolId { get; set; }
     public int? StudentId { get; set; }
+    public int? StudentReferralId { get; set; }
     public ConversationThreadType ThreadType { get; set; }
     public string Subject { get; set; } = string.Empty;
     public ConversationThreadStatus Status { get; set; } = ConversationThreadStatus.Open;
@@ -23,6 +24,7 @@ public sealed class ConversationThread : IStudentAffairsMutableEntity, IStudentA
 
     public School School { get; set; } = null!;
     public Student? Student { get; set; }
+    public StudentReferral? StudentReferral { get; set; }
     public ICollection<ConversationParticipant> Participants { get; set; } = new List<ConversationParticipant>();
     public ICollection<ConversationMessage> Messages { get; set; } = new List<ConversationMessage>();
 }

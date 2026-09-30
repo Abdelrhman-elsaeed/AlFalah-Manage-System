@@ -12,6 +12,7 @@ using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Shared.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace AlFalah.Infrastructure.Repositories;
 
@@ -98,6 +99,7 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
 
         var projections = await dbQuery
             .OrderByDescending(summon => summon.ScheduledAt ?? summon.CreatedAt)
+            .ThenByDescending(summon => summon.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(summon => new
@@ -144,15 +146,40 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                 AssignedWorkerUserId = summon.StudentReferral == null
                     ? summon.ScheduledBySocialWorkerUserId
                     : summon.StudentReferral.AssignedSocialWorkerUserId,
-                AssignedWorkerFirstName = summon.StudentReferral == null || summon.StudentReferral.AssignedSocialWorkerUser == null
-                    ? null
-                    : summon.StudentReferral.AssignedSocialWorkerUser.FirstName,
-                AssignedWorkerLastName = summon.StudentReferral == null || summon.StudentReferral.AssignedSocialWorkerUser == null
-                    ? null
-                    : summon.StudentReferral.AssignedSocialWorkerUser.LastName,
+                AssignedWorkerFirstName = summon.StudentReferral != null && summon.StudentReferral.AssignedSocialWorkerUser != null
+                    ? summon.StudentReferral.AssignedSocialWorkerUser.FirstName
+                    : _context.Users.Where(user => user.Id == summon.ScheduledBySocialWorkerUserId)
+                        .Select(user => user.FirstName).FirstOrDefault(),
+                AssignedWorkerLastName = summon.StudentReferral != null && summon.StudentReferral.AssignedSocialWorkerUser != null
+                    ? summon.StudentReferral.AssignedSocialWorkerUser.LastName
+                    : _context.Users.Where(user => user.Id == summon.ScheduledBySocialWorkerUserId)
+                        .Select(user => user.LastName).FirstOrDefault(),
                 summon.RequiresOfficerReview,
                 summon.OfficerReviewReason,
                 summon.GuardianNotifiedAt,
+                summon.ObservationGoals,
+                summon.ObservationStartDate,
+                summon.ObservationReviewDate,
+                summon.ObservationEndDate,
+                summon.ObservationResponsibleStaffUserId,
+                summon.ObservationIndicatorsJson,
+                summon.ObservationNotes,
+                OutcomeEvidence = summon.ImprovementNotes,
+                OutcomeVerificationDetails = summon.ImprovementVerificationDetails,
+                GuardianDelivery = _context.Notifications
+                    .Where(notification => notification.SchoolId == schoolId
+                        && notification.RelatedEntityType == nameof(GuardianSummon)
+                        && notification.RelatedEntityId == summon.Id.ToString()
+                        && notification.UserId == summon.GuardianProfile.ApplicationUserId)
+                    .OrderByDescending(notification => notification.CreatedAt)
+                    .ThenByDescending(notification => notification.Id)
+                    .Select(notification => new
+                    {
+                        notification.DeliveryStatus,
+                        notification.DeliveredAt,
+                        notification.ReadAt
+                    })
+                    .FirstOrDefault(),
                 CurrentMetricCount = summon.StudentReferral != null && summon.StudentReferral.RuleTrigger != null
                     ? _context.StudentTermMetrics
                         .Where(metric => metric.SchoolId == schoolId
@@ -211,7 +238,22 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                 row.OfficerReviewReason,
                 row.GuardianNotifiedAt,
                 Convert.ToBase64String(row.RowVersion),
-                row.CurrentMetricCount);
+                row.CurrentMetricCount,
+                row.ObservationGoals,
+                row.ObservationStartDate,
+                row.ObservationReviewDate,
+                row.ObservationEndDate,
+                row.ObservationResponsibleStaffUserId,
+                DeserializeIndicators(row.ObservationIndicatorsJson),
+                row.ObservationNotes,
+                row.OutcomeEvidence,
+                row.OutcomeVerificationDetails,
+                row.GuardianDelivery == null ? null : new NotificationDeliveryDto(
+                    row.GuardianFirstName + " " + row.GuardianLastName,
+                    RoleNames.Guardian,
+                    row.GuardianDelivery.DeliveryStatus,
+                    row.GuardianDelivery.DeliveredAt,
+                    row.GuardianDelivery.ReadAt));
         }).ToList();
 
         return new PagedResult<SummonDto>
@@ -293,6 +335,7 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
 
         var projections = await dbQuery
             .OrderByDescending(summon => summon.ScheduledAt ?? summon.CreatedAt)
+            .ThenByDescending(summon => summon.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(summon => new
@@ -485,6 +528,7 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             .AsNoTracking()
             .Where(t => t.SchoolId == schoolId && t.GuardianSummonId == summonId)
             .OrderBy(t => t.OccurredAt)
+            .ThenBy(t => t.Id)
             .Select(t => new
             {
                 FromStatus = t.FromStatus.HasValue ? t.FromStatus.Value.ToString() : null,
@@ -508,7 +552,35 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             t.OccurredAt,
             t.Notes)).ToList();
 
-        return new SummonHistoryDto(transitionDtos);
+        var appointments = await _context.GuardianSummonAppointmentHistories
+            .AsNoTracking()
+            .Where(item => item.SchoolId == schoolId && item.GuardianSummonId == summonId)
+            .OrderBy(item => item.OccurredAt)
+            .ThenBy(item => item.Id)
+            .Select(item => new
+            {
+                item.AppointmentAt,
+                item.Location,
+                item.Instructions,
+                item.Action,
+                item.ActorUserId,
+                item.ActorRole,
+                ActorName = (item.ActorUser.FirstName + " " + item.ActorUser.LastName).Trim(),
+                item.OccurredAt,
+                item.Notes
+            })
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        return new SummonHistoryDto(
+            transitionDtos,
+            appointments.Select(item => new SummonAppointmentDto(
+                item.AppointmentAt,
+                item.Location,
+                item.Instructions,
+                item.Action,
+                new ActorSummaryDto(item.ActorUserId, item.ActorName, item.ActorRole),
+                item.OccurredAt,
+                item.Notes)).ToList());
     }
 
     public Task<GuardianSummon?> GetForUpdateAsync(
@@ -547,11 +619,50 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             summon.Id == summonId
             && summon.SchoolId == schoolId
             && !summon.IsDeleted
-            && (summon.StudentReferralId == null
-                || summon.ScheduledBySocialWorkerUserId == socialWorkerUserId
-                || (summon.StudentReferral!.SchoolId == schoolId
-                    && (summon.StudentReferral.AssignedSocialWorkerUserId == null
-                        || summon.StudentReferral.AssignedSocialWorkerUserId == socialWorkerUserId))),
+            && (summon.ScheduledBySocialWorkerUserId == socialWorkerUserId
+                || (summon.StudentReferralId != null
+                    && summon.StudentReferral!.SchoolId == schoolId
+                    && summon.StudentReferral.AssignedSocialWorkerUserId == socialWorkerUserId)),
+            cancellationToken);
+
+    public Task<SummonIdempotencySnapshot?> GetByIdempotencyKeyAsync(
+        int schoolId,
+        string createdByUserId,
+        string idempotencyKey,
+        CancellationToken cancellationToken) =>
+        _context.GuardianSummons.AsNoTracking()
+            .Where(summon => summon.SchoolId == schoolId
+                && !summon.IsDeleted
+                && summon.CreatedByUserId == createdByUserId
+                && summon.IdempotencyKey == idempotencyKey)
+            .Select(summon => new SummonIdempotencySnapshot(summon.Id, summon.IdempotencyPayloadHash!))
+            .SingleOrDefaultAsync(cancellationToken);
+
+    public Task<SummonReferralScope?> GetReferralScopeAsync(
+        int schoolId,
+        int referralId,
+        CancellationToken cancellationToken) =>
+        _context.StudentReferrals.AsNoTracking()
+            .Where(referral => referral.Id == referralId && referral.SchoolId == schoolId && !referral.IsDeleted)
+            .Select(referral => new SummonReferralScope(
+                referral.StudentId,
+                referral.AssignedSocialWorkerUserId,
+                referral.CountSnapshot,
+                referral.ThresholdSnapshot,
+                referral.Status))
+            .SingleOrDefaultAsync(cancellationToken);
+
+    public Task<bool> HasActiveDuplicateAsync(
+        int schoolId,
+        int studentId,
+        int? referralId,
+        CancellationToken cancellationToken) =>
+        _context.GuardianSummons.AsNoTracking().AnyAsync(summon =>
+            summon.SchoolId == schoolId
+            && !summon.IsDeleted
+            && summon.StudentId == studentId
+            && summon.StudentReferralId == referralId
+            && summon.Status != GuardianSummonStatus.Improved,
             cancellationToken);
 
     public Task<SummonEnrollmentSnapshot?> GetActiveEnrollmentAsync(
@@ -588,6 +699,10 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
         catch (DbUpdateConcurrencyException exception)
         {
             throw new SummonConcurrencyException(exception);
+        }
+        catch (DbUpdateException exception)
+        {
+            throw new SummonIdempotencyConflictException(exception);
         }
     }
 
@@ -654,6 +769,28 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
                 summon.RequiresOfficerReview,
                 summon.OfficerReviewReason,
                 summon.GuardianNotifiedAt,
+                summon.ObservationGoals,
+                summon.ObservationStartDate,
+                summon.ObservationReviewDate,
+                summon.ObservationEndDate,
+                summon.ObservationResponsibleStaffUserId,
+                summon.ObservationIndicatorsJson,
+                summon.ObservationNotes,
+                OutcomeEvidence = summon.ImprovementNotes,
+                OutcomeVerificationDetails = summon.ImprovementVerificationDetails,
+                GuardianDelivery = _context.Notifications
+                    .Where(notification => notification.SchoolId == schoolId
+                        && notification.RelatedEntityType == nameof(GuardianSummon)
+                        && notification.RelatedEntityId == summon.Id.ToString()
+                        && notification.UserId == summon.GuardianProfile.ApplicationUserId)
+                    .OrderByDescending(notification => notification.CreatedAt)
+                    .Select(notification => new
+                    {
+                        notification.DeliveryStatus,
+                        notification.DeliveredAt,
+                        notification.ReadAt
+                    })
+                    .FirstOrDefault(),
                 CurrentMetricCount = summon.StudentReferral != null && summon.StudentReferral.RuleTrigger != null
                     ? _context.StudentTermMetrics
                         .Where(metric => metric.SchoolId == schoolId
@@ -712,6 +849,34 @@ public sealed class SummonWorkflowRepository : ISummonWorkflowRepository
             row.OfficerReviewReason,
             row.GuardianNotifiedAt,
             Convert.ToBase64String(row.RowVersion),
-            row.CurrentMetricCount);
+            row.CurrentMetricCount,
+            row.ObservationGoals,
+            row.ObservationStartDate,
+            row.ObservationReviewDate,
+            row.ObservationEndDate,
+            row.ObservationResponsibleStaffUserId,
+            DeserializeIndicators(row.ObservationIndicatorsJson),
+            row.ObservationNotes,
+            row.OutcomeEvidence,
+            row.OutcomeVerificationDetails,
+            row.GuardianDelivery == null ? null : new NotificationDeliveryDto(
+                row.GuardianFirstName + " " + row.GuardianLastName,
+                RoleNames.Guardian,
+                row.GuardianDelivery.DeliveryStatus,
+                row.GuardianDelivery.DeliveredAt,
+                row.GuardianDelivery.ReadAt));
+    }
+
+    private static IReadOnlyList<string> DeserializeIndicators(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return Array.Empty<string>();
+        try
+        {
+            return JsonSerializer.Deserialize<string[]>(json) ?? Array.Empty<string>();
+        }
+        catch (JsonException)
+        {
+            return Array.Empty<string>();
+        }
     }
 }

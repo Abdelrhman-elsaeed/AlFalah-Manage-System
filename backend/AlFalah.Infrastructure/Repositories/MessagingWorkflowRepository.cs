@@ -188,23 +188,58 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         DateTimeOffset instant,
         CancellationToken cancellationToken)
     {
-        DateOnly localDate;
-        PublishedBellScheduleCandidate schedule;
-        try
+        var localDate = DateOnly.FromDateTime(instant.UtcDateTime);
+        PublishedBellScheduleCandidate? schedule = null;
+        if (request.ThreadType == ConversationThreadType.GuardianTeacher)
         {
-            var candidates = await _schedules.GetPublishedCandidatesAsync(schoolId, instant, cancellationToken)
-                .ConfigureAwait(false);
-            if (candidates.Count != 1) return false;
-            schedule = candidates[0];
-            localDate = DateOnly.FromDateTime(BellScheduleResolver.LocalTime(schedule.Schedule, instant).DateTime);
+            try
+            {
+                var candidates = await _schedules.GetPublishedCandidatesAsync(schoolId, instant, cancellationToken)
+                    .ConfigureAwait(false);
+                if (candidates.Count != 1) return false;
+                schedule = candidates[0];
+                localDate = DateOnly.FromDateTime(BellScheduleResolver.LocalTime(schedule.Schedule, instant).DateTime);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return false;
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return false;
+            }
         }
-        catch (TimeZoneNotFoundException)
+
+        var isSocialWorkerCaseStart = request.ThreadType == ConversationThreadType.GuardianSocialWorker
+            && request.ReferralId.HasValue
+            && request.TargetGuardianProfileId.HasValue
+            && string.IsNullOrWhiteSpace(request.TargetStaffUserId)
+            && request.TargetInstructorProfileId is null;
+        if (isSocialWorkerCaseStart)
         {
-            return false;
-        }
-        catch (InvalidTimeZoneException)
-        {
-            return false;
+            return await _context.StudentReferrals.AsNoTracking().AnyAsync(referral =>
+                referral.Id == request.ReferralId!.Value
+                && referral.SchoolId == schoolId
+                && referral.StudentId == request.StudentId
+                && referral.AssignedSocialWorkerUserId == creatorUserId
+                && !referral.IsDeleted
+                && referral.Status != StudentReferralStatus.Resolved
+                && referral.Status != StudentReferralStatus.Closed
+                && _context.UserSchoolRoles.Any(assignment => assignment.SchoolId == schoolId
+                    && assignment.UserId == creatorUserId
+                    && assignment.IsActive
+                    && !assignment.IsDeleted
+                    && assignment.Role.Name == RoleNames.SocialWorker)
+                && _context.GuardianProfiles.Any(guardian => guardian.Id == request.TargetGuardianProfileId.GetValueOrDefault()
+                    && guardian.SchoolId == schoolId
+                    && guardian.IsActive
+                    && !guardian.IsDeleted
+                    && guardian.ApplicationUser.IsActive
+                    && guardian.Students.Any(link => link.StudentId == request.StudentId
+                        && !link.IsDeleted
+                        && link.ValidFrom <= localDate
+                        && (link.ValidTo == null || link.ValidTo >= localDate))),
+                cancellationToken).ConfigureAwait(false);
         }
 
         var guardianProfileId = await _context.GuardianProfiles
@@ -237,7 +272,7 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         {
             if (request.TargetInstructorProfileId is null
                 || !string.IsNullOrWhiteSpace(request.TargetStaffUserId)) return false;
-            var publishedSchedule = schedule;
+            var publishedSchedule = schedule!;
 
             var classroomIds = await _context.StudentEnrollments
                 .AsNoTracking()
@@ -285,6 +320,7 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         {
             return await _context.StudentReferrals.AsNoTracking().AnyAsync(
                 referral => referral.SchoolId == schoolId
+                    && (!request.ReferralId.HasValue || referral.Id == request.ReferralId.Value)
                     && referral.StudentId == request.StudentId
                     && !referral.IsDeleted
                     && referral.Status != StudentReferralStatus.Resolved
@@ -354,12 +390,14 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
 
         var projections = await dbQuery
             .OrderByDescending(ct => ct.UpdatedAt)
+            .ThenByDescending(ct => ct.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(ct => new
             {
                 ct.Id,
                 ct.StudentId,
+                ct.StudentReferralId,
                 ct.Subject,
                 ct.ThreadType,
                 ct.Status,
@@ -414,7 +452,8 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
                 participants,
                 p.UnreadCount,
                 p.UpdatedAt,
-                Convert.ToBase64String(p.RowVersion));
+                Convert.ToBase64String(p.RowVersion),
+                p.StudentReferralId);
         }).ToList();
 
         return new PagedResult<ConversationDto>
@@ -563,6 +602,7 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             {
                 ct.Id,
                 ct.StudentId,
+                ct.StudentReferralId,
                 ct.Subject,
                 ct.ThreadType,
                 ct.Status,
@@ -617,7 +657,8 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             participants,
             projection.UnreadCount,
             projection.UpdatedAt,
-            Convert.ToBase64String(projection.RowVersion));
+            Convert.ToBase64String(projection.RowVersion),
+            projection.StudentReferralId);
     }
 
     public async Task<PagedResult<ConversationMessageDto>> GetConversationMessagesAsync(
@@ -741,7 +782,7 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         CancellationToken cancellationToken)
     {
         var normalizedKey = request.IdempotencyKey.Trim();
-        var creationScope = $"create|{request.StudentId}|{request.ThreadType}|{request.Subject.Trim()}|{request.TargetInstructorProfileId}|{request.TargetStaffUserId}|{request.TargetStaffRole}";
+        var creationScope = $"create|{request.StudentId}|{request.ThreadType}|{request.Subject.Trim()}|{request.TargetInstructorProfileId}|{request.TargetStaffUserId}|{request.TargetStaffRole}|{request.ReferralId}|{request.TargetGuardianProfileId}";
         var creationPayloadHash = Hash($"{creationScope}||{request.InitialBody.Trim()}");
         var existingMessage = await _context.ConversationMessages.AsNoTracking()
             .Where(message => message.SchoolId == schoolId && message.SenderUserId == creatorUserId
@@ -759,11 +800,84 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             return (await GetConversationByIdAsync(schoolId, creatorUserId, existingMessage.ConversationThreadId, cancellationToken).ConfigureAwait(false))!;
         }
 
+        string? targetUserId = request.TargetStaffUserId;
+        var referralId = request.ReferralId;
+        var socialWorkerInitiatedCase = request.ThreadType == ConversationThreadType.GuardianSocialWorker
+            && request.ReferralId.HasValue
+            && request.TargetGuardianProfileId.HasValue
+            && string.IsNullOrWhiteSpace(request.TargetStaffUserId);
+        if (socialWorkerInitiatedCase)
+        {
+            targetUserId = await _context.GuardianProfiles.AsNoTracking()
+                .Where(profile => profile.Id == request.TargetGuardianProfileId!.Value
+                    && profile.SchoolId == schoolId
+                    && profile.IsActive
+                    && !profile.IsDeleted)
+                .Select(profile => profile.ApplicationUserId)
+                .SingleAsync(cancellationToken).ConfigureAwait(false);
+        }
+        else if (string.IsNullOrWhiteSpace(targetUserId) && request.TargetInstructorProfileId.HasValue)
+        {
+            var instructor = await _context.InstructorProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == request.TargetInstructorProfileId.Value && i.SchoolId == schoolId, cancellationToken)
+                .ConfigureAwait(false);
+            targetUserId = instructor?.UserId;
+        }
+
+        if (request.ThreadType == ConversationThreadType.GuardianSocialWorker
+            && !referralId.HasValue
+            && !string.IsNullOrWhiteSpace(targetUserId))
+        {
+            referralId = await _context.StudentReferrals.AsNoTracking()
+                .Where(referral => referral.SchoolId == schoolId
+                    && referral.StudentId == request.StudentId
+                    && referral.AssignedSocialWorkerUserId == targetUserId
+                    && !referral.IsDeleted
+                    && referral.Status != StudentReferralStatus.Resolved
+                    && referral.Status != StudentReferralStatus.Closed)
+                .OrderByDescending(referral => referral.UpdatedAt)
+                .Select(referral => (int?)referral.Id)
+                .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        if (request.ThreadType == ConversationThreadType.GuardianSocialWorker && !referralId.HasValue)
+            throw new InvalidOperationException("An active assigned referral is required for social-worker messaging");
+        if (string.IsNullOrWhiteSpace(targetUserId) || targetUserId == creatorUserId)
+            throw new InvalidOperationException("The conversation recipient could not be resolved");
+
+        if (referralId.HasValue)
+        {
+            var existingThreadId = await _context.ConversationThreads.AsNoTracking()
+                .Where(thread => thread.SchoolId == schoolId
+                    && thread.StudentReferralId == referralId.Value
+                    && thread.ThreadType == ConversationThreadType.GuardianSocialWorker
+                    && thread.Status == ConversationThreadStatus.Open
+                    && !thread.IsDeleted
+                    && thread.Participants.Any(participant => participant.ApplicationUserId == creatorUserId && !participant.IsDeleted)
+                    && thread.Participants.Any(participant => participant.ApplicationUserId == targetUserId && !participant.IsDeleted))
+                .Select(thread => (int?)thread.Id)
+                .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            if (existingThreadId.HasValue)
+            {
+                await SendMessageCoreAsync(
+                    schoolId,
+                    creatorUserId,
+                    existingThreadId.Value,
+                    new SendMessageRequestDto(request.InitialBody, null, normalizedKey),
+                    creationScope,
+                    cancellationToken).ConfigureAwait(false);
+                return (await GetConversationByIdAsync(
+                    schoolId, creatorUserId, existingThreadId.Value, cancellationToken).ConfigureAwait(false))!;
+            }
+        }
+
         var now = _timeProvider.GetUtcNow();
         var thread = new ConversationThread
         {
             SchoolId = schoolId,
             StudentId = request.StudentId > 0 ? request.StudentId : null,
+            StudentReferralId = referralId,
             ThreadType = request.ThreadType,
             Subject = request.Subject.Trim(),
             Status = ConversationThreadStatus.Open,
@@ -773,12 +887,11 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             UpdatedAt = now
         };
 
-        // Add creator participant
         thread.Participants.Add(new ConversationParticipant
         {
             SchoolId = schoolId,
             ApplicationUserId = creatorUserId,
-            ParticipantRoleSnapshot = "Creator",
+            ParticipantRoleSnapshot = socialWorkerInitiatedCase ? RoleNames.SocialWorker : RoleNames.Guardian,
             JoinedAt = now,
             CreatedByUserId = creatorUserId,
             CreatedAt = now,
@@ -786,31 +899,19 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             UpdatedAt = now
         });
 
-        // Add target participant if specified
-        string? targetUserId = request.TargetStaffUserId;
-        if (string.IsNullOrWhiteSpace(targetUserId) && request.TargetInstructorProfileId.HasValue)
-        {
-            var instructor = await _context.InstructorProfiles
-                .AsNoTracking()
-                .FirstOrDefaultAsync(i => i.Id == request.TargetInstructorProfileId.Value && i.SchoolId == schoolId, cancellationToken)
-                .ConfigureAwait(false);
-            targetUserId = instructor?.UserId;
-        }
-
-        if (!string.IsNullOrWhiteSpace(targetUserId) && targetUserId != creatorUserId)
-        {
-            thread.Participants.Add(new ConversationParticipant
+        thread.Participants.Add(new ConversationParticipant
             {
                 SchoolId = schoolId,
                 ApplicationUserId = targetUserId,
-                ParticipantRoleSnapshot = request.TargetStaffRole ?? RoleNames.Instructor,
+                ParticipantRoleSnapshot = socialWorkerInitiatedCase
+                    ? RoleNames.Guardian
+                    : request.TargetStaffRole ?? RoleNames.Instructor,
                 JoinedAt = now,
                 CreatedByUserId = creatorUserId,
                 CreatedAt = now,
                 UpdatedByUserId = creatorUserId,
                 UpdatedAt = now
             });
-        }
 
         await using var createTransaction = _context.Database.IsRelational() && _context.Database.CurrentTransaction is null
             ? await _context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false)

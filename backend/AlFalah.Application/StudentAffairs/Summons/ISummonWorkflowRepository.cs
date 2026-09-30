@@ -1,10 +1,18 @@
 using AlFalah.Application.StudentAffairs.DTOs.Summons;
 using AlFalah.Domain.Entities.StudentAffairs;
+using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Shared.Models;
 
 namespace AlFalah.Application.StudentAffairs.Summons;
 
 public sealed record SummonEnrollmentSnapshot(int AcademicTermId);
+public sealed record SummonIdempotencySnapshot(int SummonId, string PayloadHash);
+public sealed record SummonReferralScope(
+    int StudentId,
+    string? AssignedSocialWorkerUserId,
+    int? CountSnapshot,
+    int? ThresholdSnapshot,
+    StudentReferralStatus Status);
 
 public interface ISummonWorkflowRepository
 {
@@ -32,6 +40,23 @@ public interface ISummonWorkflowRepository
     Task<SummonDto?> GetDtoAsync(
         int schoolId,
         int summonId,
+        CancellationToken cancellationToken);
+
+    Task<SummonIdempotencySnapshot?> GetByIdempotencyKeyAsync(
+        int schoolId,
+        string createdByUserId,
+        string idempotencyKey,
+        CancellationToken cancellationToken);
+
+    Task<SummonReferralScope?> GetReferralScopeAsync(
+        int schoolId,
+        int referralId,
+        CancellationToken cancellationToken);
+
+    Task<bool> HasActiveDuplicateAsync(
+        int schoolId,
+        int studentId,
+        int? referralId,
         CancellationToken cancellationToken);
 
     Task<SummonHistoryDto?> GetHistoryAsync(

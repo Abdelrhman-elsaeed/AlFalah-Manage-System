@@ -1,14 +1,20 @@
 :host { display: block; }
 .crm-page { width: min(1680px, 100%); margin-inline: auto; padding: var(--space-6); color: var(--text); }
-.page-header, .header-actions, .toolbar, .toolbar-actions, .card-heading, .card-actions, .dialog-actions, .dialog-context { display: flex; align-items: center; gap: var(--space-3); }
+.page-header, .header-actions, .toolbar, .toolbar-filters, .toolbar-actions, .card-heading, .card-actions, .dialog-actions, .dialog-context { display: flex; align-items: center; gap: var(--space-3); }
 .page-header, .toolbar { justify-content: space-between; }
 .page-header { align-items: flex-start; margin-bottom: var(--space-5); }
 .page-header h1 { margin: 0; color: var(--text-strong); font-size: clamp(1.55rem, 3vw, 2.2rem); }
 .page-header p { margin: var(--space-2) 0 0; color: var(--text-muted); }
 .eyebrow { color: var(--brand-700); font-size: .82rem; font-weight: 800; }
 .header-actions a { text-decoration: none; }
+.crm-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-4); }
+.crm-kpis article { display: grid; gap: var(--space-1); padding: var(--space-3); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.crm-kpis span { color: var(--text-muted); font-size: .8rem; }
+.crm-kpis strong { color: var(--brand-700); font-size: 1.5rem; }
 .toolbar { margin-bottom: var(--space-4); padding: var(--space-3); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.toolbar-filters { flex: 1; flex-wrap: wrap; }
 .search-box { width: min(420px, 100%); }
+:host ::ng-deep .toolbar-filters .p-dropdown { min-width: 170px; }
 .kanban, .summons-board { display: grid; grid-template-columns: repeat(5, minmax(270px, 1fr)); gap: var(--space-3); overflow-x: auto; padding-bottom: var(--space-2); }
 .summons-board { grid-template-columns: repeat(4, minmax(310px, 1fr)); }
 .kanban-column, .summon-stage { min-width: 0; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: var(--radius-lg); }
@@ -55,6 +61,8 @@
 .validation { color: var(--danger); }
 .confirm-copy { padding: var(--space-4); background: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--radius-md); }
 .dialog-actions { justify-content: flex-end; margin-top: var(--space-5); }
+.crm-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-top: var(--space-4); }
+.crm-pagination span { color: var(--text-muted); font-size: .85rem; }
 .state-stepper { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 0 var(--space-4); padding: 0; list-style: none; }
 .state-stepper li { position: relative; display: grid; justify-items: center; gap: var(--space-1); color: var(--text-dim); text-align: center; }
 .state-stepper li::after { position: absolute; top: .8rem; inset-inline-start: 50%; z-index: 0; width: 100%; height: 2px; content: ''; background: var(--border-strong); }
@@ -67,4 +75,4 @@
 .transition-history article div { display: grid; gap: .15rem; }
 .transition-history span, .transition-history p { margin: 0; color: var(--text-muted); font-size: .8rem; }
 :host ::ng-deep .field .p-calendar, :host ::ng-deep .field .p-dropdown { width: 100%; }
-@media (max-width: 780px) { .crm-page { padding: var(--space-4); } .page-header, .toolbar { align-items: stretch; flex-direction: column; } .header-actions, .toolbar-actions { flex-wrap: wrap; } .form-grid { grid-template-columns: 1fr; } .field { grid-column: 1 / -1; } .state-stepper small { font-size: .65rem; } }
+@media (max-width: 780px) { .crm-page { padding: var(--space-4); } .page-header, .toolbar { align-items: stretch; flex-direction: column; } .header-actions, .toolbar-actions, .crm-pagination { flex-wrap: wrap; } .toolbar-filters { align-items: stretch; flex-direction: column; } .search-box, :host ::ng-deep .toolbar-filters .p-dropdown { width: 100%; } .form-grid { grid-template-columns: 1fr; } .field { grid-column: 1 / -1; } .state-stepper small { font-size: .65rem; } }

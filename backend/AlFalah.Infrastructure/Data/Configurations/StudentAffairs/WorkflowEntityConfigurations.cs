@@ -174,6 +174,27 @@ internal sealed class StudentReferralConfiguration : StudentAffairsMutableEntity
     }
 }
 
+internal sealed class StudentReferralTransitionConfiguration
+    : IEntityTypeConfiguration<StudentReferralTransition>
+{
+    public void Configure(EntityTypeBuilder<StudentReferralTransition> builder)
+    {
+        builder.ToTable("StudentReferralTransitions");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.ActorUserId).HasMaxLength(450).IsRequired();
+        builder.Property(x => x.ActorRole).HasMaxLength(100).IsUnicode(false).IsRequired();
+        builder.Property(x => x.Reason).IsOptionalArabicText(3000);
+        builder.HasEnumCheckConstraints("StudentReferralTransitions");
+        builder.HasIndex(x => new { x.SchoolId, x.StudentReferralId, x.OccurredAt });
+        builder.HasIndex(x => x.CorrelationId);
+        builder.HasOne(x => x.School).WithMany().HasForeignKey(x => x.SchoolId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.StudentReferral).WithMany(x => x.Transitions)
+            .HasForeignKey(x => new { x.SchoolId, x.StudentReferralId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.ActorUser).WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 internal sealed class GuardianSummonConfiguration : StudentAffairsMutableEntityConfiguration<GuardianSummon>
 {
     protected override string TableName => "GuardianSummons";
@@ -186,11 +207,19 @@ internal sealed class GuardianSummonConfiguration : StudentAffairsMutableEntityC
         builder.Property(x => x.OfficerReviewReason).IsOptionalArabicText(1000);
         builder.Property(x => x.AttendanceNotes).IsOptionalArabicText(2000);
         builder.Property(x => x.ObservationNotes).IsOptionalArabicText(3000);
+        builder.Property(x => x.ObservationGoals).IsOptionalArabicText(3000);
+        builder.Property(x => x.ObservationResponsibleStaffUserId).HasMaxLength(450);
+        builder.Property(x => x.ObservationIndicatorsJson).HasColumnType("nvarchar(max)");
         builder.Property(x => x.ImprovementNotes).IsOptionalArabicText(3000);
+        builder.Property(x => x.ImprovementVerificationDetails).IsOptionalArabicText(3000);
+        builder.Property(x => x.IdempotencyKey).HasMaxLength(200).IsUnicode(false);
+        builder.Property(x => x.IdempotencyPayloadHash).HasMaxLength(64).IsUnicode(false);
         builder.Property(x => x.ScheduledBySocialWorkerUserId).HasMaxLength(450);
         builder.Property(x => x.RowVersion).IsRowVersion();
         builder.HasIndex(x => new { x.SchoolId, x.Status, x.Priority });
         builder.HasIndex(x => new { x.SchoolId, x.RequiresOfficerReview });
+        builder.HasIndex(x => new { x.SchoolId, x.CreatedByUserId, x.IdempotencyKey })
+            .HasFilter("[IdempotencyKey] IS NOT NULL AND [IsDeleted] = 0").IsUnique();
         builder.HasOne(x => x.Student).WithMany()
             .HasForeignKey(x => new { x.SchoolId, x.StudentId }).HasPrincipalKey(x => new { x.SchoolId, x.Id })
             .OnDelete(DeleteBehavior.Restrict);
@@ -205,6 +234,8 @@ internal sealed class GuardianSummonConfiguration : StudentAffairsMutableEntityC
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.ScheduledBySocialWorkerUserId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.ObservationResponsibleStaffUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -216,6 +247,7 @@ internal sealed class GuardianSummonStatusHistoryConfiguration
         builder.ToTable("GuardianSummonStatusHistory");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.ActorUserId).HasMaxLength(450).IsRequired();
+        builder.Property(x => x.ActorRole).HasMaxLength(100).IsUnicode(false).IsRequired();
         builder.Property(x => x.Notes).IsOptionalArabicText(2000);
         builder.HasEnumCheckConstraints("GuardianSummonStatusHistory");
         builder.HasIndex(x => new { x.SchoolId, x.GuardianSummonId, x.OccurredAt });
@@ -224,6 +256,32 @@ internal sealed class GuardianSummonStatusHistoryConfiguration
         builder.HasOne(x => x.GuardianSummon).WithMany(x => x.StatusHistory)
             .HasForeignKey(x => new { x.SchoolId, x.GuardianSummonId }).HasPrincipalKey(x => new { x.SchoolId, x.Id })
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.ActorUser).WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class GuardianSummonAppointmentHistoryConfiguration
+    : IEntityTypeConfiguration<GuardianSummonAppointmentHistory>
+{
+    public void Configure(EntityTypeBuilder<GuardianSummonAppointmentHistory> builder)
+    {
+        builder.ToTable("GuardianSummonAppointmentHistory");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Location).IsArabicText(250);
+        builder.Property(x => x.Instructions).IsOptionalArabicText(2000);
+        builder.Property(x => x.Action).HasMaxLength(50).IsUnicode(false).IsRequired();
+        builder.Property(x => x.ActorUserId).HasMaxLength(450).IsRequired();
+        builder.Property(x => x.ActorRole).HasMaxLength(100).IsUnicode(false).IsRequired();
+        builder.Property(x => x.Notes).IsOptionalArabicText(2000);
+        builder.HasIndex(x => new { x.SchoolId, x.GuardianSummonId, x.OccurredAt });
+        builder.HasIndex(x => x.CorrelationId);
+        builder.HasOne(x => x.School).WithMany().HasForeignKey(x => x.SchoolId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.GuardianSummon).WithMany(x => x.AppointmentHistory)
+            .HasForeignKey(x => new { x.SchoolId, x.GuardianSummonId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.GuardianProfile).WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.GuardianProfileId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.ActorUser).WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -139,8 +139,11 @@ public sealed class GatePassTransition
     public ApplicationUser ActorUser { get; set; } = null!;
 }
 
-public sealed class StudentReferral : IStudentAffairsMutableEntity, IStudentAffairsConcurrentEntity
+public sealed class StudentReferral
+    : IStudentAffairsMutableEntity, IStudentAffairsConcurrentEntity, IHasDomainEvents
 {
+    private readonly List<IDomainEvent> _domainEvents = new();
+
     public int Id { get; set; }
     public int SchoolId { get; set; }
     public int StudentId { get; set; }
@@ -173,6 +176,32 @@ public sealed class StudentReferral : IStudentAffairsMutableEntity, IStudentAffa
     public AutomationTriggerLedger? RuleTrigger { get; set; }
     public ICollection<GuardianSummon> GuardianSummons { get; set; } = new List<GuardianSummon>();
     public ICollection<StudentCaseAction> Actions { get; set; } = new List<StudentCaseAction>();
+    public ICollection<StudentReferralTransition> Transitions { get; set; } = new List<StudentReferralTransition>();
+
+    [NotMapped] public int DomainEventAggregateId => Id;
+    [NotMapped] public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
+
+    public void AppendDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
+}
+
+/// <summary>Immutable audit history for the referral state machine.</summary>
+public sealed class StudentReferralTransition
+{
+    public long Id { get; set; }
+    public int SchoolId { get; set; }
+    public int StudentReferralId { get; set; }
+    public StudentReferralStatus FromStatus { get; set; }
+    public StudentReferralStatus ToStatus { get; set; }
+    public string ActorUserId { get; set; } = string.Empty;
+    public string ActorRole { get; set; } = string.Empty;
+    public DateTimeOffset OccurredAt { get; set; }
+    public string? Reason { get; set; }
+    public Guid CorrelationId { get; set; }
+
+    public School School { get; set; } = null!;
+    public StudentReferral StudentReferral { get; set; } = null!;
+    public ApplicationUser ActorUser { get; set; } = null!;
 }
 
 public sealed class GuardianSummon
@@ -189,6 +218,8 @@ public sealed class GuardianSummon
     public ReferralPriority Priority { get; set; } = ReferralPriority.Normal;
     public int? SourceCountSnapshot { get; set; }
     public int? ThresholdSnapshot { get; set; }
+    public string? IdempotencyKey { get; set; }
+    public string? IdempotencyPayloadHash { get; set; }
     public GuardianSummonStatus Status { get; set; } = GuardianSummonStatus.Pending;
     public DateTimeOffset? ScheduledAt { get; set; }
     public string? ScheduledBySocialWorkerUserId { get; set; }
@@ -204,9 +235,16 @@ public sealed class GuardianSummon
     public DateTimeOffset? AttendedAt { get; set; }
     public string? AttendanceNotes { get; set; }
     public DateTimeOffset? ObservationStartedAt { get; set; }
+    public string? ObservationGoals { get; set; }
+    public DateOnly? ObservationStartDate { get; set; }
+    public DateOnly? ObservationReviewDate { get; set; }
+    public DateOnly? ObservationEndDate { get; set; }
+    public string? ObservationResponsibleStaffUserId { get; set; }
+    public string? ObservationIndicatorsJson { get; set; }
     public string? ObservationNotes { get; set; }
     public DateTimeOffset? ImprovedAt { get; set; }
     public string? ImprovementNotes { get; set; }
+    public string? ImprovementVerificationDetails { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string CreatedByUserId { get; set; } = string.Empty;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -222,6 +260,7 @@ public sealed class GuardianSummon
     public StudentReferral? StudentReferral { get; set; }
     public GuardianProfile GuardianProfile { get; set; } = null!;
     public ICollection<GuardianSummonStatusHistory> StatusHistory { get; set; } = new List<GuardianSummonStatusHistory>();
+    public ICollection<GuardianSummonAppointmentHistory> AppointmentHistory { get; set; } = new List<GuardianSummonAppointmentHistory>();
 
     [NotMapped] public int DomainEventAggregateId => Id;
     [NotMapped] public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
@@ -239,12 +278,36 @@ public sealed class GuardianSummonStatusHistory
     public GuardianSummonStatus? FromStatus { get; set; }
     public GuardianSummonStatus ToStatus { get; set; }
     public string ActorUserId { get; set; } = string.Empty;
+    public string ActorRole { get; set; } = string.Empty;
     public DateTimeOffset OccurredAt { get; set; } = DateTimeOffset.UtcNow;
     public string? Notes { get; set; }
     public Guid CorrelationId { get; set; }
 
     public School School { get; set; } = null!;
     public GuardianSummon GuardianSummon { get; set; } = null!;
+    public ApplicationUser ActorUser { get; set; } = null!;
+}
+
+/// <summary>Append-only appointment history. Scheduling, rescheduling, and no-show do not alter the four-state lifecycle.</summary>
+public sealed class GuardianSummonAppointmentHistory
+{
+    public long Id { get; set; }
+    public int SchoolId { get; set; }
+    public int GuardianSummonId { get; set; }
+    public int GuardianProfileId { get; set; }
+    public DateTimeOffset AppointmentAt { get; set; }
+    public string Location { get; set; } = string.Empty;
+    public string? Instructions { get; set; }
+    public string Action { get; set; } = string.Empty;
+    public string ActorUserId { get; set; } = string.Empty;
+    public string ActorRole { get; set; } = string.Empty;
+    public DateTimeOffset OccurredAt { get; set; }
+    public string? Notes { get; set; }
+    public Guid CorrelationId { get; set; }
+
+    public School School { get; set; } = null!;
+    public GuardianSummon GuardianSummon { get; set; } = null!;
+    public GuardianProfile GuardianProfile { get; set; } = null!;
     public ApplicationUser ActorUser { get; set; } = null!;
 }
 

@@ -126,7 +126,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<StudentReferral> StudentReferrals => Set<StudentReferral>();
     public DbSet<GuardianSummon> GuardianSummons => Set<GuardianSummon>();
     public DbSet<GuardianSummonStatusHistory> GuardianSummonStatusHistories => Set<GuardianSummonStatusHistory>();
+    public DbSet<GuardianSummonAppointmentHistory> GuardianSummonAppointmentHistories => Set<GuardianSummonAppointmentHistory>();
     public DbSet<StudentCaseAction> StudentCaseActions => Set<StudentCaseAction>();
+    public DbSet<StudentReferralTransition> StudentReferralTransitions => Set<StudentReferralTransition>();
 
     // Student Affairs - messaging and office hours
     public DbSet<ConversationThread> ConversationThreads => Set<ConversationThread>();

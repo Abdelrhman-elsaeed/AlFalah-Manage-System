@@ -5,6 +5,8 @@ using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Shared.Models;
 using MediatR;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AlFalah.Application.StudentAffairs.Summons.Handlers;
 
@@ -34,7 +36,9 @@ public sealed class CreateSummonCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.SummonCreate))
+        var isSocialWorker = _currentUser.IsInRole(RoleNames.SocialWorker);
+        var isOfficer = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer);
+        if ((!isSocialWorker && !isOfficer) || !_currentUser.HasPermission(PermissionNames.SummonCreate))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.PermissionDenied);
 
         var request = command.Request;
@@ -46,6 +50,26 @@ public sealed class CreateSummonCommandHandler
 
         if (string.IsNullOrWhiteSpace(request.Reason))
             return ApiResponse<SummonDto>.Fail("A reason for summons is required");
+
+        if (string.IsNullOrWhiteSpace(command.IdempotencyKey) || command.IdempotencyKey.Length > 200)
+            return ApiResponse<SummonDto>.Fail("A valid idempotency key is required");
+
+        var idempotencyKey = command.IdempotencyKey.Trim();
+        var priority = request.Priority == 0 ? ReferralPriority.Normal : request.Priority;
+        var payload = $"{request.StudentId}|{request.ReferralId}|{request.Reason.Trim()}|{(int)priority}|{request.GuardianProfileId}";
+        var payloadHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
+        var replay = await _repository.GetByIdempotencyKeyAsync(
+            schoolId.Value, userId, idempotencyKey, cancellationToken).ConfigureAwait(false);
+        if (replay is not null)
+        {
+            if (!string.Equals(replay.PayloadHash, payloadHash, StringComparison.Ordinal))
+                return ApiResponse<SummonDto>.Fail("Idempotency conflict: the key was already used with different summons data");
+            var replayDto = await _repository.GetDtoAsync(schoolId.Value, replay.SummonId, cancellationToken)
+                .ConfigureAwait(false);
+            return replayDto is null
+                ? ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound)
+                : ApiResponse<SummonDto>.Success(replayDto, "Guardian summons request already processed");
+        }
 
         var now = _timeProvider.GetUtcNow();
         var today = DateOnly.FromDateTime(now.DateTime);
@@ -69,6 +93,23 @@ public sealed class CreateSummonCommandHandler
         if (enrollment is null)
             return ApiResponse<SummonDto>.Fail("Student does not have an active enrollment in the current term");
 
+        SummonReferralScope? referralScope = null;
+        if (request.ReferralId.HasValue)
+        {
+            referralScope = await _repository.GetReferralScopeAsync(
+                schoolId.Value, request.ReferralId.Value, cancellationToken).ConfigureAwait(false);
+            if (referralScope is null || referralScope.StudentId != request.StudentId)
+                return ApiResponse<SummonDto>.Fail("Referral was not found");
+            if (referralScope.Status is StudentReferralStatus.Resolved or StudentReferralStatus.Closed)
+                return ApiResponse<SummonDto>.Fail("Referral state conflict: a summons requires an active referral");
+            if (isSocialWorker && referralScope.AssignedSocialWorkerUserId != userId)
+                return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.AssignmentDenied);
+        }
+
+        if (await _repository.HasActiveDuplicateAsync(
+                schoolId.Value, request.StudentId, request.ReferralId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<SummonDto>.Fail("Guardian summons state conflict: an active summons already exists for this case source");
+
         var summon = new GuardianSummon
         {
             SchoolId = schoolId.Value,
@@ -77,8 +118,13 @@ public sealed class CreateSummonCommandHandler
             StudentReferralId = request.ReferralId,
             CreatedReason = request.Reason.Trim(),
             Priority = request.Priority == 0 ? ReferralPriority.Normal : request.Priority,
+            SourceCountSnapshot = referralScope?.CountSnapshot,
+            ThresholdSnapshot = referralScope?.ThresholdSnapshot,
+            IdempotencyKey = idempotencyKey,
+            IdempotencyPayloadHash = payloadHash,
             Status = GuardianSummonStatus.Pending,
             GuardianProfileId = request.GuardianProfileId,
+            ScheduledBySocialWorkerUserId = isSocialWorker ? userId : referralScope?.AssignedSocialWorkerUserId,
             CreatedAt = now,
             CreatedByUserId = userId,
             UpdatedAt = now,
@@ -105,7 +151,22 @@ public sealed class CreateSummonCommandHandler
             correlationId);
 
         _repository.Add(summon);
-        await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (SummonIdempotencyConflictException)
+        {
+            var winner = await _repository.GetByIdempotencyKeyAsync(
+                schoolId.Value, userId, idempotencyKey, cancellationToken).ConfigureAwait(false);
+            if (winner is null || !string.Equals(winner.PayloadHash, payloadHash, StringComparison.Ordinal))
+                return ApiResponse<SummonDto>.Fail("Idempotency conflict: the key was already used with different summons data");
+            var winnerDto = await _repository.GetDtoAsync(schoolId.Value, winner.SummonId, cancellationToken)
+                .ConfigureAwait(false);
+            return winnerDto is null
+                ? ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound)
+                : ApiResponse<SummonDto>.Success(winnerDto, "Guardian summons request already processed");
+        }
 
         var dto = await _repository.GetDtoAsync(schoolId.Value, summon.Id, cancellationToken)
             .ConfigureAwait(false)

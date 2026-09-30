@@ -4,6 +4,7 @@ using AlFalah.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AlFalah.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AlFalahDbContext))]
-    partial class AlFalahDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929185322_AddW8SocialWorkerCaseWorkflow")]
+    partial class AddW8SocialWorkerCaseWorkflow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,7 +275,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("SchoolId", "UserId", "AttendanceDate")
                         .IsUnique();
 
-                    b.ToTable("AttendanceRecords", (string)null);
+                    b.ToTable("AttendanceRecords");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.AuditLog", b =>
@@ -343,7 +346,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.BellPeriod", b =>
@@ -778,7 +781,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "Status");
 
-                    b.ToTable("Complaints", (string)null);
+                    b.ToTable("Complaints");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.EvidenceTask", b =>
@@ -1280,7 +1283,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "Status");
 
-                    b.ToTable("ImprovementPlans", (string)null);
+                    b.ToTable("ImprovementPlans");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.InstructorClass", b =>
@@ -1329,7 +1332,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("[IsDeleted] = 0");
 
-                    b.ToTable("InstructorClasses", (string)null);
+                    b.ToTable("InstructorClasses");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.InstructorProfile", b =>
@@ -1400,7 +1403,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("InstructorProfiles", (string)null);
+                    b.ToTable("InstructorProfiles");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.Notification", b =>
@@ -1650,7 +1653,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "IsTemplate", "Status");
 
-                    b.ToTable("ParentSurveys", (string)null);
+                    b.ToTable("ParentSurveys");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveyAnswer", b =>
@@ -1698,7 +1701,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("ParentSurveySubmissionId", "ParentSurveyItemId")
                         .IsUnique();
 
-                    b.ToTable("ParentSurveyAnswers", (string)null);
+                    b.ToTable("ParentSurveyAnswers");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveyItem", b =>
@@ -1731,7 +1734,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("ParentSurveyId", "SortOrder");
 
-                    b.ToTable("ParentSurveyItems", (string)null);
+                    b.ToTable("ParentSurveyItems");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurveySubmission", b =>
@@ -1767,7 +1770,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("ParentSurveyId", "SubmittedAt");
 
-                    b.ToTable("ParentSurveySubmissions", (string)null);
+                    b.ToTable("ParentSurveySubmissions");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.Permission", b =>
@@ -1799,7 +1802,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions", (string)null);
+                    b.ToTable("Permissions");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.PlanFollowUp", b =>
@@ -1871,7 +1874,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("UpdatedByUserId");
 
-                    b.ToTable("PlanFollowUps", (string)null);
+                    b.ToTable("PlanFollowUps");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.RefreshToken", b =>
@@ -1922,7 +1925,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ReportViewLog", b =>
@@ -1970,7 +1973,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("VisitId", "ViewedAt");
 
-                    b.ToTable("ReportViewLogs", (string)null);
+                    b.ToTable("ReportViewLogs");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.RolePermission", b =>
@@ -1998,7 +2001,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("RoleId", "PermissionId")
                         .IsUnique();
 
-                    b.ToTable("RolePermissions", (string)null);
+                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricDomain", b =>
@@ -2046,7 +2049,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("RubricVersionId", "SortOrder");
 
-                    b.ToTable("RubricDomains", (string)null);
+                    b.ToTable("RubricDomains");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricIndicator", b =>
@@ -2100,7 +2103,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("RubricStandardId", "SortOrder");
 
-                    b.ToTable("RubricIndicators", (string)null);
+                    b.ToTable("RubricIndicators");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricStandard", b =>
@@ -2148,7 +2151,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("RubricDomainId", "SortOrder");
 
-                    b.ToTable("RubricStandards", (string)null);
+                    b.ToTable("RubricStandards");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.RubricVersion", b =>
@@ -2200,7 +2203,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("VersionNumber");
 
-                    b.ToTable("RubricVersions", (string)null);
+                    b.ToTable("RubricVersions");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ScheduleBreakDefinition", b =>
@@ -2350,7 +2353,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("Name", "City", "LocationDetails");
 
-                    b.ToTable("Schools", (string)null);
+                    b.ToTable("Schools");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.SchoolGoogleDrive", b =>
@@ -2493,7 +2496,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("NameAr", "RegionNameAr")
                         .IsUnique();
 
-                    b.ToTable("SchoolLocations", (string)null);
+                    b.ToTable("SchoolLocations");
 
                     b.HasData(
                         new
@@ -2797,7 +2800,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("SchoolId")
                         .IsUnique();
 
-                    b.ToTable("SchoolReportSettings", (string)null);
+                    b.ToTable("SchoolReportSettings");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.SchoolStudentAnalyzerSettings", b =>
@@ -7009,7 +7012,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("[IsDeleted] = 0");
 
-                    b.ToTable("SubjectDefinition", (string)null);
+                    b.ToTable("SubjectDefinition");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.SubjectRoomRequirement", b =>
@@ -7041,7 +7044,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "RoomId");
 
-                    b.ToTable("SubjectRoomRequirement", (string)null);
+                    b.ToTable("SubjectRoomRequirement");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.TeacherAvailabilitySlot", b =>
@@ -7675,7 +7678,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("[IsDeleted] = 0");
 
-                    b.ToTable("TimetableRoom", (string)null);
+                    b.ToTable("TimetableRoom");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.TimetableSetupProfile", b =>
@@ -7957,7 +7960,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("UserId", "SchoolId", "RoleId")
                         .IsUnique();
 
-                    b.ToTable("UserSchoolRoles", (string)null);
+                    b.ToTable("UserSchoolRoles");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.UserSignature", b =>
@@ -7991,7 +7994,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSignatures", (string)null);
+                    b.ToTable("UserSignatures");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.Visit", b =>
@@ -8155,7 +8158,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "VisitDate");
 
-                    b.ToTable("Visits", null, t =>
+                    b.ToTable("Visits", t =>
                         {
                             t.HasCheckConstraint("CK_Visits_ClassroomPeriod", "[ClassroomPeriod] IS NULL OR ([ClassroomPeriod] >= 1 AND [ClassroomPeriod] <= 7)");
                         });
@@ -8232,7 +8235,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_VisitAnalysis_Visit");
 
-                    b.ToTable("VisitAnalyses", (string)null);
+                    b.ToTable("VisitAnalyses");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitDomainAverage", b =>
@@ -8285,7 +8288,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("VisitAnalysisId");
 
-                    b.ToTable("VisitDomainAverages", (string)null);
+                    b.ToTable("VisitDomainAverages");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitObservedIndicator", b =>
@@ -8335,7 +8338,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasDatabaseName("UX_VisitObservedIndicator_Score_Indicator")
                         .HasFilter("[IsDeleted] = 0");
 
-                    b.ToTable("VisitObservedIndicators", (string)null);
+                    b.ToTable("VisitObservedIndicators");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitScore", b =>
@@ -8389,7 +8392,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_VisitScore_Visit_Standard");
 
-                    b.ToTable("VisitScores", (string)null);
+                    b.ToTable("VisitScores");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitTreatmentSnapshot", b =>
@@ -8466,7 +8469,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("VisitId", "SortOrder");
 
-                    b.ToTable("VisitTreatmentSnapshots", (string)null);
+                    b.ToTable("VisitTreatmentSnapshots");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

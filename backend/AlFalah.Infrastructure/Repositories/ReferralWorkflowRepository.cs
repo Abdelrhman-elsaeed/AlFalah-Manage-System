@@ -76,6 +76,7 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
 
         var projections = await dbQuery
             .OrderByDescending(r => r.CreatedAt)
+            .ThenByDescending(r => r.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(r => new
@@ -124,6 +125,23 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
                 r.ResolutionNotes,
                 r.RecommendedActions,
                 r.CreatedAt,
+                r.UpdatedAt,
+                CurrentMetric = r.RuleTrigger == null
+                    ? null
+                    : _context.StudentTermMetrics
+                        .Where(metric => metric.SchoolId == schoolId
+                            && !metric.IsDeleted
+                            && metric.StudentId == r.StudentId
+                            && metric.AcademicTermId == r.AcademicTermId
+                            && metric.MetricCode == r.RuleTrigger.RuleVersion.MetricCode)
+                        .Select(metric => new
+                        {
+                            metric.MetricCode,
+                            metric.Count,
+                            metric.RecalculatedAt
+                        })
+                        .FirstOrDefault(),
+                RequiresOfficerReview = r.GuardianSummons.Any(s => !s.IsDeleted && s.RequiresOfficerReview),
                 r.RowVersion
             })
             .ToListAsync(cancellationToken)
@@ -168,7 +186,14 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
                 p.Id,
                 student,
                 sourceSnapshot,
-                null,
+                p.CurrentMetric == null ? null : new MetricBadgeDto(
+                    p.CurrentMetric.MetricCode,
+                    p.CurrentMetric.Count,
+                    0,
+                    null,
+                    "info",
+                    null,
+                    p.CurrentMetric.RecalculatedAt),
                 p.Priority,
                 p.Status,
                 assignedWorker,
@@ -176,7 +201,9 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
                 p.ResolutionNotes,
                 p.CreatedAt,
                 Convert.ToBase64String(p.RowVersion),
-                p.RecommendedActions);
+                p.RecommendedActions,
+                p.UpdatedAt,
+                p.RequiresOfficerReview);
         }).ToList();
 
         return new PagedResult<ReferralDto>
@@ -242,6 +269,23 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
                 r.ResolutionNotes,
                 r.RecommendedActions,
                 r.CreatedAt,
+                r.UpdatedAt,
+                CurrentMetric = r.RuleTrigger == null
+                    ? null
+                    : _context.StudentTermMetrics
+                        .Where(metric => metric.SchoolId == schoolId
+                            && !metric.IsDeleted
+                            && metric.StudentId == r.StudentId
+                            && metric.AcademicTermId == r.AcademicTermId
+                            && metric.MetricCode == r.RuleTrigger.RuleVersion.MetricCode)
+                        .Select(metric => new
+                        {
+                            metric.MetricCode,
+                            metric.Count,
+                            metric.RecalculatedAt
+                        })
+                        .FirstOrDefault(),
+                RequiresOfficerReview = r.GuardianSummons.Any(s => !s.IsDeleted && s.RequiresOfficerReview),
                 r.RowVersion
             })
             .FirstOrDefaultAsync(cancellationToken)
@@ -286,7 +330,14 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
             row.Id,
             student,
             sourceSnapshot,
-            null,
+            row.CurrentMetric == null ? null : new MetricBadgeDto(
+                row.CurrentMetric.MetricCode,
+                row.CurrentMetric.Count,
+                0,
+                null,
+                "info",
+                null,
+                row.CurrentMetric.RecalculatedAt),
             row.Priority,
             row.Status,
             assignedWorker,
@@ -294,7 +345,43 @@ public sealed class ReferralWorkflowRepository : IReferralWorkflowRepository
             row.ResolutionNotes,
             row.CreatedAt,
             Convert.ToBase64String(row.RowVersion),
-            row.RecommendedActions);
+            row.RecommendedActions,
+            row.UpdatedAt,
+            row.RequiresOfficerReview);
+    }
+
+    public async Task<ReferralHistoryDto?> GetHistoryAsync(
+        int schoolId,
+        int referralId,
+        CancellationToken cancellationToken)
+    {
+        var exists = await _context.StudentReferrals.AsNoTracking()
+            .AnyAsync(r => r.Id == referralId && r.SchoolId == schoolId && !r.IsDeleted, cancellationToken)
+            .ConfigureAwait(false);
+        if (!exists) return null;
+
+        var rows = await _context.StudentReferralTransitions.AsNoTracking()
+            .Where(t => t.SchoolId == schoolId && t.StudentReferralId == referralId)
+            .OrderBy(t => t.OccurredAt)
+            .ThenBy(t => t.Id)
+            .Select(t => new
+            {
+                t.FromStatus,
+                t.ToStatus,
+                t.ActorUserId,
+                t.ActorRole,
+                ActorName = (t.ActorUser.FirstName + " " + t.ActorUser.LastName).Trim(),
+                t.OccurredAt,
+                t.Reason
+            })
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        return new ReferralHistoryDto(rows.Select(t => new ReferralTransitionDto(
+            t.FromStatus,
+            t.ToStatus,
+            new ActorSummaryDto(t.ActorUserId, t.ActorName, t.ActorRole),
+            t.OccurredAt,
+            t.Reason)).ToList());
     }
 
     public Task<ReferralIdempotencySnapshot?> GetByIdempotencyKeyAsync(

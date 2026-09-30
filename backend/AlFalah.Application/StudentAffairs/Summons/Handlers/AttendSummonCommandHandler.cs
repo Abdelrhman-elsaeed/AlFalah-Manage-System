@@ -46,7 +46,7 @@ public sealed class AttendSummonCommandHandler
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
 
         if (summon.Status != GuardianSummonStatus.Pending)
-            return ApiResponse<SummonDto>.Fail("Guardian summons must be Pending to record attendance");
+            return ApiResponse<SummonDto>.Fail("Guardian summons state conflict: attendance requires Pending");
 
         if (!SummonHandlerSupport.TryDecodeExpectedRowVersion(
                 command.Request.RowVersion,
@@ -57,8 +57,7 @@ public sealed class AttendSummonCommandHandler
         if (string.IsNullOrWhiteSpace(command.Request.AttendanceNotes))
             return ApiResponse<SummonDto>.Fail("Meeting summary is required");
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralAssign)
-            && !await _repository.IsAssignedToAsync(schoolId.Value, summon.Id, userId, cancellationToken).ConfigureAwait(false))
+        if (!await _repository.IsAssignedToAsync(schoolId.Value, summon.Id, userId, cancellationToken).ConfigureAwait(false))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.AssignmentDenied);
 
         var now = _timeProvider.GetUtcNow();
@@ -77,6 +76,7 @@ public sealed class AttendSummonCommandHandler
         summon.Status = GuardianSummonStatus.Attended;
         summon.AttendedAt = now;
         summon.AttendanceNotes = command.Request.AttendanceNotes.Trim();
+        summon.UpdatedAt = now;
         summon.UpdatedByUserId = userId;
         summon.StatusHistory.Add(SummonHandlerSupport.History(
             summon,

@@ -19,6 +19,11 @@ public interface IReferralWorkflowRepository
         int referralId,
         CancellationToken cancellationToken);
 
+    Task<ReferralHistoryDto?> GetHistoryAsync(
+        int schoolId,
+        int referralId,
+        CancellationToken cancellationToken);
+
     Task<ReferralIdempotencySnapshot?> GetByIdempotencyKeyAsync(
         int schoolId,
         string createdByUserId,

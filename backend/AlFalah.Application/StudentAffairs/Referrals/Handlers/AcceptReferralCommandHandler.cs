@@ -33,7 +33,7 @@ public sealed class AcceptReferralCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralManage))
+        if (!ReferralHandlerSupport.IsSocialWorkerWithPermission(_currentUser, PermissionNames.ReferralManage))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
 
         var referral = await _repository.GetForUpdateAsync(
@@ -44,14 +44,16 @@ public sealed class AcceptReferralCommandHandler
         if (referral is null)
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.NotFound);
 
+        if (referral.Status != StudentReferralStatus.Assigned)
+            return ApiResponse<ReferralDto>.Fail("Referral state conflict: only an Assigned referral can be accepted");
+
         if (!ReferralHandlerSupport.TryDecodeExpectedRowVersion(
                 command.Request.RowVersion,
                 referral.RowVersion,
                 out var expectedRowVersion))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.ConcurrencyConflict);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralAssign)
-            && !await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
+        if (!await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
         {
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AssignmentDenied);
         }
@@ -66,6 +68,10 @@ public sealed class AcceptReferralCommandHandler
         }
         referral.UpdatedAt = now;
         referral.UpdatedByUserId = userId;
+
+        ReferralHandlerSupport.AppendTransition(
+            referral, StudentReferralStatus.Assigned, StudentReferralStatus.InProgress,
+            userId, RoleNames.SocialWorker, now, "Referral accepted");
 
         var action = ReferralHandlerSupport.CreateAction(
             referral,

@@ -22,6 +22,8 @@ public sealed class StudentAffairsNotificationDispatcher
     {
         TeacherTimetableChangedEvent changed => TimetableChangedAsync(changed, cancellationToken),
         MessageReleaseDueEvent released => MessageReleasedAsync(released, cancellationToken),
+        GP9jdFE6bJJJBXm548MTsCQvpLk7RqkKB7 summon
+            when summon.Action is "Scheduled" or "Rescheduled" => GuardianSummonScheduledAsync(summon, cancellationToken),
         StudentAbsentRecordedEvent absence => CreateGuardianNotificationsAsync(
             absence, absence.StudentId, absence.AttendanceDate,
             nameof(DailyStudentAttendance), absence.DailyStudentAttendanceId,
@@ -46,6 +48,57 @@ public sealed class StudentAffairsNotificationDispatcher
         ClassroomEntryPermitIssuedEvent permit => ProcessClassroomEntryPermitAsync(permit, cancellationToken),
         _ => Task.CompletedTask
     };
+
+    private async Task GuardianSummonScheduledAsync(
+        GP9jdFE6bJJJBXm548MTsCQvpLk7RqkKB7 domainEvent,
+        CancellationToken cancellationToken)
+    {
+        var summon = await _context.GuardianSummons
+            .Include(item => item.GuardianProfile)
+            .SingleOrDefaultAsync(item => item.Id == domainEvent.GuardianSummonId
+                && item.SchoolId == domainEvent.SchoolId
+                && !item.IsDeleted,
+                cancellationToken).ConfigureAwait(false);
+        if (summon is null || !summon.ScheduledAt.HasValue || !summon.GuardianProfile.IsActive)
+            return;
+
+        var guardianUserId = summon.GuardianProfile.ApplicationUserId;
+        var deduplicationKey = $"student-affairs.summon.{domainEvent.Action.ToLowerInvariant()}:{domainEvent.EventId:N}:{guardianUserId}";
+        var exists = await _context.Notifications.AsNoTracking().AnyAsync(notification =>
+            notification.SchoolId == domainEvent.SchoolId
+            && notification.UserId == guardianUserId
+            && notification.DeduplicationKey == deduplicationKey,
+            cancellationToken).ConfigureAwait(false);
+        var now = _timeProvider.GetUtcNow();
+        if (!exists)
+        {
+            _context.Notifications.Add(new Notification
+            {
+                SchoolId = domainEvent.SchoolId,
+                UserId = guardianUserId,
+                StudentId = domainEvent.StudentId,
+                Title = domainEvent.Action == "Rescheduled" ? "تم تعديل موعد الاستدعاء" : "تم تحديد موعد استدعاء",
+                Message = $"موعد الحضور: {summon.ScheduledAt:yyyy-MM-dd HH:mm}. المكان: {summon.Location}.",
+                Type = "GuardianSummonAppointment",
+                RelatedEntityType = nameof(GuardianSummon),
+                RelatedEntityId = summon.Id.ToString(),
+                Priority = NotificationPriority.High,
+                TemplateKey = domainEvent.Action == "Rescheduled"
+                    ? "student-affairs.summon.rescheduled"
+                    : "student-affairs.summon.scheduled",
+                CorrelationId = domainEvent.EventId,
+                DeduplicationKey = deduplicationKey,
+                DeliveryStatus = NotificationDeliveryStatus.Delivered,
+                DeliveredAt = now,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+        }
+
+        summon.GuardianNotifiedAt = now;
+        summon.UpdatedAt = now;
+        summon.UpdatedByUserId = "system:student-affairs-outbox";
+    }
 
     private async Task MessageReleasedAsync(MessageReleaseDueEvent domainEvent, CancellationToken cancellationToken)
     {

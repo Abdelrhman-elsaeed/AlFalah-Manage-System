@@ -81,6 +81,23 @@ public sealed record GuardianSummonCreatedEvent(
         this with { GuardianSummonId = aggregateId };
 }
 
+public sealed record StudentReferralTransitionedEvent(
+    Guid EventId,
+    int StudentReferralId,
+    int StudentId,
+    int SchoolId,
+    int AcademicTermId,
+    StudentReferralStatus FromStatus,
+    StudentReferralStatus ToStatus,
+    string ActorUserId,
+    string ActorRole,
+    string? Reason,
+    DateTimeOffset OccurredAt) : IDomainEvent
+{
+    public IDomainEvent WithAggregateId(int aggregateId) =>
+        this with { StudentReferralId = aggregateId };
+}
+
 /// <summary>
 /// Primitive snapshot for a summons lifecycle action. Scheduling intentionally records
 /// Pending-to-Pending because appointment history is separate from the four business states.

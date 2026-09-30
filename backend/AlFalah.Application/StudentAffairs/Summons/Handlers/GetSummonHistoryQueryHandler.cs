@@ -25,11 +25,16 @@ public sealed class GetSummonHistoryQueryHandler
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(_currentUser.UserId))
+        var userId = _currentUser.UserId;
+        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SummonHistoryDto>.Fail(SummonHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.SummonViewHistory))
+        if (!_currentUser.IsInRole(RoleNames.SocialWorker)
+            || !_currentUser.HasPermission(PermissionNames.SummonViewHistory))
             return ApiResponse<SummonHistoryDto>.Fail(SummonHandlerSupport.PermissionDenied);
+        if (!await _repository.IsAssignedToAsync(
+                schoolId.Value, request.SummonId, userId, cancellationToken).ConfigureAwait(false))
+            return ApiResponse<SummonHistoryDto>.Fail(SummonHandlerSupport.NotFound);
 
         var history = await _repository.GetHistoryAsync(
             schoolId.Value,

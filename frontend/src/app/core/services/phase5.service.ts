@@ -15,13 +15,16 @@ import {
   ConversationDto,
   ConversationMessageDto,
   CreateConversationRequestDto,
+  CreateSummonRequestDto,
   GuardianStaffOptionDto,
   GuardianTeacherOptionDto,
   MarkConversationReadRequestDto,
+  MarkSummonNoShowRequestDto,
   MarkSummonImprovedRequestDto,
   OfficeHoursAggregateDto,
   PendingDispatchDto,
   ReferralDto,
+  ReferralHistoryDto,
   ReferralListQuery,
   ReopenReferralRequestDto,
   ResolveReferralRequestDto,
@@ -36,6 +39,7 @@ import {
   SuppressNotificationRequestDto,
   UpdateMyOfficeHoursRequestDto
 } from '../models/phase5.models';
+import { SocialWorkerStudentAffairsDashboardDto } from '../models/student-affairs-dashboard.models';
 
 interface ConversationListQuery {
   readonly studentId?: number;
@@ -59,6 +63,9 @@ export class Phase5Service {
   getReferral(id: number): Observable<ApiResponse<ReferralDto>> {
     return this.get<ReferralDto>(`referrals/${id}`);
   }
+  getReferralHistory(id: number): Observable<ApiResponse<ReferralHistoryDto>> {
+    return this.get<ReferralHistoryDto>(`referrals/${id}/history`);
+  }
   acceptReferral(id: number, request: AcceptReferralRequestDto): Observable<ApiResponse<ReferralDto>> {
     return this.post<ReferralDto>(`referrals/${id}/accept`, request);
   }
@@ -78,6 +85,12 @@ export class Phase5Service {
       params: this.params(query)
     });
   }
+  createSummon(request: CreateSummonRequestDto, idempotencyKey: string): Observable<ApiResponse<SummonDto>> {
+    return this.http.post<ApiResponse<SummonDto>>(`${this.api}/summons`, request, {
+      context: this.callerHandlesErrors,
+      headers: new HttpHeaders().set('Idempotency-Key', idempotencyKey)
+    });
+  }
   getSummon(id: number): Observable<ApiResponse<SummonDto>> { return this.get<SummonDto>(`summons/${id}`); }
   getSummonHistory(id: number): Observable<ApiResponse<SummonHistoryDto>> { return this.get<SummonHistoryDto>(`summons/${id}/history`); }
   getStudentGuardians(studentId: number): Observable<ApiResponse<readonly StudentGuardianLinkDto[]>> {
@@ -89,11 +102,17 @@ export class Phase5Service {
   attendSummon(id: number, request: AttendSummonRequestDto): Observable<ApiResponse<SummonDto>> {
     return this.post<SummonDto>(`summons/${id}/attend`, request);
   }
+  markSummonNoShow(id: number, request: MarkSummonNoShowRequestDto): Observable<ApiResponse<SummonDto>> {
+    return this.post<SummonDto>(`summons/${id}/no-show`, request);
+  }
   startObservation(id: number, request: StartSummonObservationRequestDto): Observable<ApiResponse<SummonDto>> {
     return this.post<SummonDto>(`summons/${id}/start-observation`, request);
   }
   markImproved(id: number, request: MarkSummonImprovedRequestDto): Observable<ApiResponse<SummonDto>> {
     return this.post<SummonDto>(`summons/${id}/mark-improved`, request);
+  }
+  getSocialWorkerDashboard(): Observable<ApiResponse<SocialWorkerStudentAffairsDashboardDto>> {
+    return this.get<SocialWorkerStudentAffairsDashboardDto>('student-affairs/dashboard/social-worker');
   }
 
   listPendingDispatch(pageNumber: number, pageSize: number, search = ''): Observable<ApiResponse<PagedResult<PendingDispatchDto>>> {

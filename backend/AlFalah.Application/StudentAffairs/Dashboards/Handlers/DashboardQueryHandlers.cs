@@ -119,6 +119,10 @@ public sealed class GetSocialWorkerStudentAffairsDashboardQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SocialWorkerStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
+        if (!_currentUser.IsInRole(RoleNames.SocialWorker)
+            || !_currentUser.HasPermission(PermissionNames.StudentAffairsDashboardSocialWorker))
+            return ApiResponse<SocialWorkerStudentAffairsDashboardDto>.Fail(StudentHandlerSupport.PermissionDenied);
+
         var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
         var result = await _repository.GetSocialWorkerDashboardAsync(
             schoolId.Value,

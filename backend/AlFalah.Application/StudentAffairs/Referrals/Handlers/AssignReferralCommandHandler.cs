@@ -78,6 +78,10 @@ public sealed class AssignReferralCommandHandler
         referral.UpdatedAt = now;
         referral.UpdatedByUserId = userId;
 
+        ReferralHandlerSupport.AppendTransition(
+            referral, StudentReferralStatus.Open, StudentReferralStatus.Assigned,
+            userId, RoleNames.StudentAffairsOfficer, now, request.Reason?.Trim());
+
         var reasonText = string.IsNullOrWhiteSpace(request.Reason)
             ? "Referral assigned to social worker"
             : $"Referral assigned to social worker: {request.Reason.Trim()}";

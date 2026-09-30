@@ -35,6 +35,13 @@ public sealed class ReferralsController : StudentAffairsControllerBase
         return FromResponse(await Mediator.Send(new GetReferralByIdQuery(id), cancellationToken));
     }
 
+    [HttpGet("{id:int}/history")]
+    public async Task<IActionResult> History(int id, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.ReferralView)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetReferralHistoryQuery(id), cancellationToken));
+    }
+
     [HttpGet("assignable-social-workers")]
     public async Task<IActionResult> AssignableSocialWorkers(
         [FromQuery] string? search,
@@ -55,27 +62,27 @@ public sealed class ReferralsController : StudentAffairsControllerBase
     public async Task<IActionResult> Accept(int id, [FromBody] AcceptReferralRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new AcceptReferralCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new AcceptReferralCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/actions")]
     public async Task<IActionResult> AddAction(int id, [FromBody] AddReferralActionRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new AddReferralActionCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new AddReferralActionCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/resolve")]
     public async Task<IActionResult> Resolve(int id, [FromBody] ResolveReferralRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ResolveReferralCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new ResolveReferralCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/reopen")]
     public async Task<IActionResult> Reopen(int id, [FromBody] ReopenReferralRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.ReferralManage)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ReopenReferralCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new ReopenReferralCommand(id, request), cancellationToken));
     }
 }

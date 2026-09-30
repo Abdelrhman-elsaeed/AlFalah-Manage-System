@@ -33,7 +33,7 @@ public sealed class ResolveReferralCommandHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AuthenticationRequired);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralManage))
+        if (!ReferralHandlerSupport.IsSocialWorkerWithPermission(_currentUser, PermissionNames.ReferralManage))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.PermissionDenied);
 
         var request = command.Request;
@@ -48,14 +48,16 @@ public sealed class ResolveReferralCommandHandler
         if (referral is null)
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.NotFound);
 
+        if (referral.Status != StudentReferralStatus.InProgress)
+            return ApiResponse<ReferralDto>.Fail("Referral state conflict: only an InProgress referral can be resolved");
+
         if (!ReferralHandlerSupport.TryDecodeExpectedRowVersion(
                 request.RowVersion,
                 referral.RowVersion,
                 out var expectedRowVersion))
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.ConcurrencyConflict);
 
-        if (!_currentUser.HasPermission(PermissionNames.ReferralAssign)
-            && !await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
+        if (!await _repository.IsAssignedToAsync(schoolId.Value, referral.Id, userId, cancellationToken).ConfigureAwait(false))
         {
             return ApiResponse<ReferralDto>.Fail(ReferralHandlerSupport.AssignmentDenied);
         }
@@ -67,6 +69,10 @@ public sealed class ResolveReferralCommandHandler
         referral.ResolutionNotes = request.ResolutionNote.Trim();
         referral.UpdatedAt = now;
         referral.UpdatedByUserId = userId;
+
+        ReferralHandlerSupport.AppendTransition(
+            referral, StudentReferralStatus.InProgress, StudentReferralStatus.Resolved,
+            userId, RoleNames.SocialWorker, now, request.ResolutionNote.Trim());
 
         var action = ReferralHandlerSupport.CreateAction(
             referral,

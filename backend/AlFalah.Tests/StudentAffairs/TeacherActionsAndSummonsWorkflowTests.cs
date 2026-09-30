@@ -271,7 +271,15 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
 
         var response = await handler.Handle(new StartSummonObservationCommand(
             summon.Id,
-            new StartSummonObservationRequestDto("Weekly indicator", Convert.ToBase64String(summon.RowVersion))),
+            new StartSummonObservationRequestDto(
+                "Weekly indicator",
+                DateOnly.FromDateTime(Now.UtcDateTime),
+                DateOnly.FromDateTime(Now.AddDays(7).UtcDateTime),
+                null,
+                "actor",
+                ["Attendance rate"],
+                "Review weekly",
+                Convert.ToBase64String(summon.RowVersion))),
             CancellationToken.None);
 
         response.IsSuccess.Should().BeFalse();
@@ -294,11 +302,18 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
             summon.Id,
             new StartSummonObservationRequestDto(
                 "Weekly attendance and conduct indicator",
+                DateOnly.FromDateTime(Now.UtcDateTime),
+                DateOnly.FromDateTime(Now.AddDays(7).UtcDateTime),
+                DateOnly.FromDateTime(Now.AddDays(30).UtcDateTime),
+                "actor",
+                ["Attendance rate", "Conduct incidents"],
+                "Review progress with guardian",
                 Convert.ToBase64String(summon.RowVersion))), CancellationToken.None);
 
         observationResponse.IsSuccess.Should().BeTrue();
         summon.Status.Should().Be(GuardianSummonStatus.UnderObservation);
-        summon.ObservationNotes.Should().Contain("indicator");
+        summon.ObservationGoals.Should().Contain("indicator");
+        summon.ObservationIndicatorsJson.Should().Contain("Attendance rate");
 
         var improved = new MarkSummonImprovedCommandHandler(
             repository,
@@ -308,6 +323,7 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
             summon.Id,
             new MarkSummonImprovedRequestDto(
                 "Verified improvement evidence",
+                "Verified against attendance and conduct records",
                 Convert.ToBase64String(summon.RowVersion))), CancellationToken.None);
 
         improvementResponse.IsSuccess.Should().BeTrue();
@@ -316,6 +332,30 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         summon.ImprovementNotes.Should().Be("Verified improvement evidence");
         summon.StatusHistory.Should().HaveCount(2);
         summon.DomainEvents.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task NoShow_KeepsPendingAndAppendsAppointmentHistory()
+    {
+        var summon = NewSummon(GuardianSummonStatus.Pending);
+        summon.ScheduledAt = Now.AddHours(-1);
+        summon.Location = "Social worker office";
+        var repository = new FakeSummonRepository { Summon = summon };
+        var handler = new MarkSummonNoShowCommandHandler(
+            repository,
+            CurrentUser(RoleNames.SocialWorker, PermissionNames.SummonSchedule),
+            new FixedTimeProvider(Now));
+
+        var response = await handler.Handle(new MarkSummonNoShowCommand(
+            summon.Id,
+            new MarkSummonNoShowRequestDto(
+                "Guardian did not attend the scheduled appointment",
+                Convert.ToBase64String(summon.RowVersion))), CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        summon.Status.Should().Be(GuardianSummonStatus.Pending);
+        summon.AppointmentHistory.Should().ContainSingle(history => history.Action == "NoShow");
+        summon.StatusHistory.Should().BeEmpty();
     }
 
     [Fact]
@@ -332,6 +372,7 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
             summon.Id,
             new MarkSummonImprovedRequestDto(
                 "Evidence",
+                "Verified by the assigned social worker",
                 Convert.ToBase64String(new byte[] { 9 }))), CancellationToken.None);
 
         response.IsSuccess.Should().BeFalse();
@@ -556,6 +597,29 @@ public sealed class TeacherActionsAndSummonsWorkflowTests
         {
             SchoolIds.Add(schoolId);
             return Task.FromResult(Summon);
+        }
+
+        public Task<SummonIdempotencySnapshot?> GetByIdempotencyKeyAsync(
+            int schoolId, string createdByUserId, string idempotencyKey,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<SummonIdempotencySnapshot?>(null);
+        }
+
+        public Task<SummonReferralScope?> GetReferralScopeAsync(
+            int schoolId, int referralId, CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult<SummonReferralScope?>(null);
+        }
+
+        public Task<bool> HasActiveDuplicateAsync(
+            int schoolId, int studentId, int? referralId,
+            CancellationToken cancellationToken)
+        {
+            SchoolIds.Add(schoolId);
+            return Task.FromResult(false);
         }
 
         public Task<bool> IsGuardianLinkActiveAsync(

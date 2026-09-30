@@ -16,14 +16,14 @@ public sealed class SummonsController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.SummonCreate)) return PermissionDenied();
         var response = await Mediator.Send(new CreateSummonCommand(request, idempotencyKey), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return FromResponse(response, StatusCodes.Status201Created);
     }
 
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] SummonListQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SummonView)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSummonsQuery(query), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetSummonsQuery(query), cancellationToken));
     }
 
     [HttpGet("mine")]
@@ -60,28 +60,35 @@ public sealed class SummonsController : StudentAffairsControllerBase
     public async Task<IActionResult> Schedule(int id, [FromBody] ScheduleSummonRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SummonSchedule)) return PermissionDenied();
-        return Ok(await Mediator.Send(new ScheduleSummonCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new ScheduleSummonCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/attend")]
     public async Task<IActionResult> Attend(int id, [FromBody] AttendSummonRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SummonMarkAttended)) return PermissionDenied();
-        return Ok(await Mediator.Send(new AttendSummonCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new AttendSummonCommand(id, request), cancellationToken));
+    }
+
+    [HttpPost("{id:int}/no-show")]
+    public async Task<IActionResult> MarkNoShow(int id, [FromBody] MarkSummonNoShowRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.SummonSchedule)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new MarkSummonNoShowCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/start-observation")]
     public async Task<IActionResult> StartObservation(int id, [FromBody] StartSummonObservationRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SummonStartObservation)) return PermissionDenied();
-        return Ok(await Mediator.Send(new StartSummonObservationCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new StartSummonObservationCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/mark-improved")]
     public async Task<IActionResult> MarkImproved(int id, [FromBody] MarkSummonImprovedRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SummonMarkImproved)) return PermissionDenied();
-        return Ok(await Mediator.Send(new MarkSummonImprovedCommand(id, request), cancellationToken));
+        return FromResponse(await Mediator.Send(new MarkSummonImprovedCommand(id, request), cancellationToken));
     }
 
     [HttpPost("{id:int}/automation-impact-review")]
@@ -95,6 +102,6 @@ public sealed class SummonsController : StudentAffairsControllerBase
     public async Task<IActionResult> History(int id, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.SummonViewHistory)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSummonHistoryQuery(id), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetSummonHistoryQuery(id), cancellationToken));
     }
 }

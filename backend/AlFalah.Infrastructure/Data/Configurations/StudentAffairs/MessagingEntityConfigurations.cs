@@ -15,8 +15,13 @@ internal sealed class ConversationThreadConfiguration
         builder.Property(x => x.Subject).IsArabicText(250);
         builder.Property(x => x.RowVersion).IsRowVersion();
         builder.HasIndex(x => new { x.SchoolId, x.StudentId, x.Status });
+        builder.HasIndex(x => new { x.SchoolId, x.StudentReferralId, x.Status });
         builder.HasOne(x => x.Student).WithMany()
             .HasForeignKey(x => new { x.SchoolId, x.StudentId }).HasPrincipalKey(x => new { x.SchoolId, x.Id })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.StudentReferral).WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.StudentReferralId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id })
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -8,14 +8,14 @@ using MediatR;
 
 namespace AlFalah.Application.StudentAffairs.Summons.Handlers;
 
-public sealed class MarkSummonImprovedCommandHandler
-    : IRequestHandler<MarkSummonImprovedCommand, ApiResponse<SummonDto>>
+public sealed class MarkSummonNoShowCommandHandler
+    : IRequestHandler<MarkSummonNoShowCommand, ApiResponse<SummonDto>>
 {
     private readonly ISummonWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
 
-    public MarkSummonImprovedCommandHandler(
+    public MarkSummonNoShowCommandHandler(
         ISummonWorkflowRepository repository,
         ICurrentUserService currentUser,
         TimeProvider timeProvider)
@@ -26,67 +26,54 @@ public sealed class MarkSummonImprovedCommandHandler
     }
 
     public async Task<ApiResponse<SummonDto>> Handle(
-        MarkSummonImprovedCommand command,
+        MarkSummonNoShowCommand command,
         CancellationToken cancellationToken)
     {
         var schoolId = _currentUser.ActiveSchoolId;
         var userId = _currentUser.UserId;
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.AuthenticationRequired);
-
-        if (!SummonHandlerSupport.IsSocialWorkerWithPermission(_currentUser, PermissionNames.SummonMarkImproved))
+        if (!SummonHandlerSupport.IsSocialWorkerWithPermission(_currentUser, PermissionNames.SummonSchedule))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.PermissionDenied);
 
         var summon = await _repository.GetForUpdateAsync(
-            schoolId.Value,
-            command.SummonId,
-            cancellationToken).ConfigureAwait(false);
-
-        if (summon is null)
-            return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
-
-        if (summon.Status != GuardianSummonStatus.UnderObservation)
-            return ApiResponse<SummonDto>.Fail("Guardian summons state conflict: improvement requires UnderObservation");
-
+            schoolId.Value, command.SummonId, cancellationToken).ConfigureAwait(false);
+        if (summon is null) return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.NotFound);
+        if (summon.Status != GuardianSummonStatus.Pending || !summon.ScheduledAt.HasValue)
+            return ApiResponse<SummonDto>.Fail("Guardian summons state conflict: no-show requires a scheduled Pending summons");
         if (!SummonHandlerSupport.TryDecodeExpectedRowVersion(
-                command.Request.RowVersion,
-                summon.RowVersion,
-                out var expectedRowVersion))
+                command.Request.RowVersion, summon.RowVersion, out var expectedRowVersion))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.ConcurrencyConflict);
-
-        if (string.IsNullOrWhiteSpace(command.Request.OutcomeEvidence)
-            || string.IsNullOrWhiteSpace(command.Request.VerificationDetails))
-            return ApiResponse<SummonDto>.Fail("Outcome evidence and verification details are required");
-
-        if (!await _repository.IsAssignedToAsync(schoolId.Value, summon.Id, userId, cancellationToken).ConfigureAwait(false))
+        if (string.IsNullOrWhiteSpace(command.Request.Notes))
+            return ApiResponse<SummonDto>.Fail("No-show notes are required");
+        if (!await _repository.IsAssignedToAsync(
+                schoolId.Value, summon.Id, userId, cancellationToken).ConfigureAwait(false))
             return ApiResponse<SummonDto>.Fail(SummonHandlerSupport.AssignmentDenied);
 
         var now = _timeProvider.GetUtcNow();
+        if (now < summon.ScheduledAt.Value)
+            return ApiResponse<SummonDto>.Fail("No-show cannot be recorded before the appointment");
+
         _repository.SetExpectedRowVersion(summon, expectedRowVersion);
         var correlationId = Guid.NewGuid();
-        summon.Status = GuardianSummonStatus.Improved;
-        summon.ImprovedAt = now;
-        summon.ImprovementNotes = command.Request.OutcomeEvidence.Trim();
-        summon.ImprovementVerificationDetails = command.Request.VerificationDetails.Trim();
+        summon.AppointmentHistory.Add(new GuardianSummonAppointmentHistory
+        {
+            SchoolId = summon.SchoolId,
+            GuardianSummonId = summon.Id,
+            GuardianSummon = summon,
+            GuardianProfileId = summon.GuardianProfileId,
+            AppointmentAt = summon.ScheduledAt.Value,
+            Location = summon.Location ?? string.Empty,
+            Instructions = summon.Instructions,
+            Action = "NoShow",
+            ActorUserId = userId,
+            ActorRole = RoleNames.SocialWorker,
+            OccurredAt = now,
+            Notes = command.Request.Notes.Trim(),
+            CorrelationId = correlationId
+        });
         summon.UpdatedAt = now;
         summon.UpdatedByUserId = userId;
-        summon.StatusHistory.Add(SummonHandlerSupport.History(
-            summon,
-            GuardianSummonStatus.UnderObservation,
-            GuardianSummonStatus.Improved,
-            userId,
-            now,
-            correlationId,
-            $"{summon.ImprovementNotes} | Verification: {summon.ImprovementVerificationDetails}"));
-
-        SummonHandlerSupport.AppendStateEvent(
-            summon,
-            GuardianSummonStatus.UnderObservation,
-            GuardianSummonStatus.Improved,
-            "ImprovementConfirmed",
-            userId,
-            now,
-            correlationId);
 
         try
         {
@@ -100,7 +87,6 @@ public sealed class MarkSummonImprovedCommandHandler
         var dto = await _repository.GetDtoAsync(schoolId.Value, summon.Id, cancellationToken)
             .ConfigureAwait(false)
             ?? throw new InvalidOperationException("The updated guardian summons could not be loaded");
-
-        return ApiResponse<SummonDto>.Success(dto, "Guardian summons marked improved successfully");
+        return ApiResponse<SummonDto>.Success(dto, "No-show recorded; the summons remains Pending");
     }
 }

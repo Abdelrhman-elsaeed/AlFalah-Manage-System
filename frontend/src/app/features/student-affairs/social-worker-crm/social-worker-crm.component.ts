@@ -13,7 +13,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
-import { Observable, finalize, forkJoin } from 'rxjs';
+import { Observable, finalize, forkJoin, merge } from 'rxjs';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import {
   GuardianSummonStatus,
@@ -30,9 +30,11 @@ import { ApiResponse } from '../../../core/models/api-response.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { Phase5Service } from '../../../core/services/phase5.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DashboardCountDto } from '../../../core/models/student-affairs-dashboard.models';
 
 type ReferralActionMode = 'accept' | 'addAction' | 'resolve' | 'reopen';
 type SummonActionMode = 'schedule' | 'attend' | 'observe' | 'improve';
+type EngagementMode = 'summon' | 'message';
 
 @Component({
   selector: 'app-social-worker-crm',
@@ -66,15 +68,36 @@ export class SocialWorkerCrmComponent implements OnInit {
   readonly summons = signal<readonly SummonDto[]>([]);
   readonly loading = signal(true);
   readonly errorMessage = signal('');
+  readonly dashboardCounts = signal<readonly DashboardCountDto[]>([]);
+  readonly page = signal(1);
+  readonly pageSize = 20;
+  readonly totalCount = signal(0);
   readonly search = new FormControl('', { nonNullable: true });
+  readonly statusFilter = new FormControl<StudentReferralStatus | GuardianSummonStatus | null>(null);
+  readonly priorityFilter = new FormControl<ReferralDto['priority'] | null>(null);
   readonly listMode = signal<'kanban' | 'list'>('kanban');
   readonly referralStatuses = REFERRAL_STATUSES;
   readonly summonStatuses = SUMMON_STATUSES;
+  readonly priorityFilterOptions = [
+    { label: 'كل الأولويات', value: null },
+    { label: 'عادية', value: 'Normal' },
+    { label: 'عالية', value: 'High' },
+    { label: 'حرجة', value: 'Critical' }
+  ];
+  readonly referralStatusFilterOptions = [
+    { label: 'كل الحالات', value: null },
+    ...REFERRAL_STATUSES.map(value => ({ label: this.referralStatusLabel(value), value }))
+  ];
+  readonly summonStatusFilterOptions = [
+    { label: 'كل الحالات', value: null },
+    ...SUMMON_STATUSES.map(value => ({ label: this.rawSummonStatusLabel(value), value }))
+  ];
 
   readonly referralDialogVisible = signal(false);
   readonly selectedReferral = signal<ReferralDto | null>(null);
   readonly referralActionMode = signal<ReferralActionMode>('accept');
   readonly referralSaving = signal(false);
+  readonly referralReconciling = signal(false);
   readonly referralConflict = signal(false);
   readonly referralActionForm = new FormGroup({
     actionType: new FormControl<StudentCaseActionType>('CounselingSession', { nonNullable: true, validators: [Validators.required] }),
@@ -91,6 +114,22 @@ export class SocialWorkerCrmComponent implements OnInit {
     { label: 'إحالة إلى لجنة حقوق الطفل', value: 'ChildRightsCommitteeReferral' },
     { label: 'إجراء آخر', value: 'Other' }
   ];
+  readonly priorityOptions = [
+    { label: 'عادية', value: 'Normal' },
+    { label: 'عالية', value: 'High' },
+    { label: 'حرجة', value: 'Critical' }
+  ] as const;
+  readonly engagementDialogVisible = signal(false);
+  readonly engagementMode = signal<EngagementMode>('summon');
+  readonly engagementSaving = signal(false);
+  readonly engagementIdempotencyKey = signal<string | null>(null);
+  readonly engagementForm = new FormGroup({
+    guardianProfileId: new FormControl<number | null>(null, { validators: [Validators.required] }),
+    priority: new FormControl<ReferralDto['priority']>('Normal', { nonNullable: true, validators: [Validators.required] }),
+    reason: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)] }),
+    subject: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(250)] }),
+    body: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] })
+  });
 
   readonly summonDialogVisible = signal(false);
   readonly selectedSummon = signal<SummonDto | null>(null);
@@ -98,7 +137,10 @@ export class SocialWorkerCrmComponent implements OnInit {
   readonly activeGuardians = signal<readonly StudentGuardianLinkDto[]>([]);
   readonly summonActionMode = signal<SummonActionMode>('schedule');
   readonly summonSaving = signal(false);
+  readonly summonReconciling = signal(false);
   readonly summonConflict = signal(false);
+  readonly noShowDialogVisible = signal(false);
+  readonly noShowNotes = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)] });
   readonly scheduleForm = new FormGroup({
     appointmentAt: new FormControl<Date | null>(null, { validators: [Validators.required] }),
     location: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(500)] }),
@@ -106,17 +148,33 @@ export class SocialWorkerCrmComponent implements OnInit {
     guardianProfileId: new FormControl<number | null>(null, { validators: [Validators.required] })
   });
   readonly transitionNarrative = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] });
+  readonly observationForm = new FormGroup({
+    goals: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)] }),
+    startDate: new FormControl<Date | null>(null, { validators: [Validators.required] }),
+    reviewDate: new FormControl<Date | null>(null, { validators: [Validators.required] }),
+    endDate: new FormControl<Date | null>(null),
+    indicators: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] }),
+    notes: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] })
+  });
+  readonly verificationDetails = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] });
 
   get canManageReferrals(): boolean { return this.auth.hasRole('SocialWorker') && this.auth.hasPermission('Referral.Manage'); }
   get canSchedule(): boolean { return this.auth.hasRole('SocialWorker') && this.auth.hasPermission('Summon.Schedule'); }
   get canAttend(): boolean { return this.auth.hasRole('SocialWorker') && this.auth.hasPermission('Summon.MarkAttended'); }
   get canObserve(): boolean { return this.auth.hasRole('SocialWorker') && this.auth.hasPermission('Summon.StartObservation'); }
   get canImprove(): boolean { return this.auth.hasRole('SocialWorker') && this.auth.hasPermission('Summon.MarkImproved'); }
+  get canCreateSummon(): boolean { return this.auth.hasRole('SocialWorker') && this.auth.hasPermission('Summon.Create'); }
+  get canMessageGuardian(): boolean { return this.auth.hasRole('SocialWorker') && this.auth.hasPermission('Messaging.Send'); }
+  referralBusy(): boolean { return this.referralSaving() || this.referralReconciling(); }
+  summonBusy(): boolean { return this.summonSaving() || this.summonReconciling(); }
 
   ngOnInit(): void {
     this.section.set(this.route.snapshot.data['crmView'] === 'summons' ? 'summons' : 'cases');
+    this.loadDashboard();
     this.load();
-    this.search.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load());
+    merge(this.search.valueChanges, this.statusFilter.valueChanges, this.priorityFilter.valueChanges)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => { this.page.set(1); this.load(); });
   }
 
   load(): void {
@@ -124,27 +182,45 @@ export class SocialWorkerCrmComponent implements OnInit {
     this.errorMessage.set('');
     const search = this.search.value.trim() || undefined;
     if (this.section() === 'cases') {
-      this.api.listReferrals({ pageNumber: 1, pageSize: 100, search, sortDirection: 'desc' })
+      this.api.listReferrals({
+        pageNumber: this.page(), pageSize: this.pageSize, search, sortDirection: 'desc',
+        status: (this.statusFilter.value as StudentReferralStatus | null) ?? undefined,
+        priority: this.priorityFilter.value ?? undefined
+      })
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: response => {
             if (!response.isSuccess || !response.data) { this.errorMessage.set(response.errors[0] ?? response.message ?? 'تعذر تحميل بيانات المتابعة.'); return; }
             this.referrals.set(response.data.items);
+            this.totalCount.set(response.data.totalCount);
           },
           error: error => this.errorMessage.set(this.httpMessage(error, 'تعذر تحميل بيانات المتابعة.'))
         });
       return;
     }
-    this.api.listSummons({ pageNumber: 1, pageSize: 100, search, sortDirection: 'desc' })
+    this.api.listSummons({
+      pageNumber: this.page(), pageSize: this.pageSize, search, sortDirection: 'desc',
+      status: (this.statusFilter.value as GuardianSummonStatus | null) ?? undefined,
+      priority: this.priorityFilter.value ?? undefined
+    })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: response => {
           if (!response.isSuccess || !response.data) { this.errorMessage.set(response.errors[0] ?? response.message ?? 'تعذر تحميل بيانات المتابعة.'); return; }
           this.summons.set(response.data.items);
+          this.totalCount.set(response.data.totalCount);
         },
         error: error => this.errorMessage.set(this.httpMessage(error, 'تعذر تحميل بيانات المتابعة.'))
       });
   }
+
+  changePage(delta: number): void {
+    const next = this.page() + delta;
+    if (next < 1 || (delta > 0 && next > Math.ceil(this.totalCount() / this.pageSize))) return;
+    this.page.set(next);
+    this.load();
+  }
+  totalPages(): number { return Math.max(1, Math.ceil(this.totalCount() / this.pageSize)); }
 
   referralsFor(status: StudentReferralStatus): readonly ReferralDto[] { return this.referrals().filter(item => item.status === status); }
   summonsFor(status: GuardianSummonStatus): readonly SummonDto[] { return this.summons().filter(item => item.status === status); }
@@ -159,10 +235,85 @@ export class SocialWorkerCrmComponent implements OnInit {
     this.api.getReferral(item.id).subscribe({ next: response => { if (response.isSuccess && response.data) this.selectedReferral.set(response.data); } });
   }
 
+  openEngagement(item: ReferralDto, mode: EngagementMode): void {
+    if ((mode === 'summon' && !this.canCreateSummon) || (mode === 'message' && !this.canMessageGuardian)) return;
+    this.selectedReferral.set(item);
+    this.engagementMode.set(mode);
+    this.engagementIdempotencyKey.set(this.api.createIdempotencyKey());
+    this.activeGuardians.set([]);
+    this.engagementForm.reset({
+      guardianProfileId: null,
+      priority: item.priority,
+      reason: `متابعة الإحالة #${item.id}`,
+      subject: `متابعة حالة الطالب ${item.student.displayName}`,
+      body: ''
+    });
+    this.engagementDialogVisible.set(true);
+    this.api.getStudentGuardians(item.student.id).subscribe({
+      next: response => {
+        if (response.isSuccess && response.data) {
+          const guardians = response.data.filter(link => link.isActive);
+          this.activeGuardians.set(guardians);
+          this.engagementForm.controls.guardianProfileId.setValue(guardians.find(link => link.guardian.isPrimary)?.guardian.id ?? guardians[0]?.guardian.id ?? null);
+        }
+      }
+    });
+  }
+
+  submitEngagement(): void {
+    const referral = this.selectedReferral();
+    const value = this.engagementForm.getRawValue();
+    if (!referral || this.engagementSaving() || value.guardianProfileId === null) return;
+    this.engagementForm.markAllAsTouched();
+    this.engagementSaving.set(true);
+    const idempotencyKey = this.engagementIdempotencyKey() ?? this.api.createIdempotencyKey();
+    this.engagementIdempotencyKey.set(idempotencyKey);
+    if (this.engagementMode() === 'summon') {
+      if (!value.reason.trim()) { this.engagementSaving.set(false); return; }
+      this.api.createSummon({
+        studentId: referral.student.id,
+        referralId: referral.id,
+        reason: value.reason.trim(),
+        priority: value.priority,
+        guardianProfileId: value.guardianProfileId
+      }, idempotencyKey).pipe(finalize(() => this.engagementSaving.set(false))).subscribe({
+        next: response => {
+          if (!response.isSuccess || !response.data) { this.toast.warn('لم يتم إنشاء الاستدعاء', response.errors[0] ?? response.message); return; }
+          this.engagementDialogVisible.set(false);
+          this.engagementIdempotencyKey.set(null);
+          this.toast.success('تم إنشاء الاستدعاء', 'يمكن جدولة الموعد من شاشة الاستدعاءات.');
+        },
+        error: error => this.toast.error('تعذر إنشاء الاستدعاء', this.httpMessage(error, 'حاول مرة أخرى.'))
+      });
+      return;
+    }
+    if (!value.subject.trim() || !value.body.trim()) { this.engagementSaving.set(false); return; }
+    this.api.createConversation({
+      studentId: referral.student.id,
+      threadType: 'GuardianSocialWorker',
+      targetInstructorProfileId: null,
+      targetStaffRole: null,
+      targetStaffUserId: null,
+      subject: value.subject.trim(),
+      initialBody: value.body.trim(),
+      idempotencyKey,
+      referralId: referral.id,
+      targetGuardianProfileId: value.guardianProfileId
+    }).pipe(finalize(() => this.engagementSaving.set(false))).subscribe({
+      next: response => {
+        if (!response.isSuccess || !response.data) { this.toast.warn('لم تُفتح المحادثة', response.errors[0] ?? response.message); return; }
+        this.engagementDialogVisible.set(false);
+        this.engagementIdempotencyKey.set(null);
+        this.toast.success('تم فتح محادثة الحالة', 'المحادثة مقصورة على ولي الأمر والأخصائي المكلف.');
+      },
+      error: error => this.toast.error('تعذر فتح المحادثة', this.httpMessage(error, 'حاول مرة أخرى.'))
+    });
+  }
+
   submitReferralAction(): void {
     const item = this.selectedReferral();
     const mode = this.referralActionMode();
-    if (!item || this.referralSaving()) return;
+    if (!item || this.referralBusy()) return;
     if (mode === 'addAction') {
       this.referralActionForm.controls.description.markAsTouched();
       if (!this.referralActionForm.controls.description.value.trim()) return;
@@ -196,6 +347,15 @@ export class SocialWorkerCrmComponent implements OnInit {
     this.summonHistory.set(null);
     this.summonConflict.set(false);
     this.transitionNarrative.reset('');
+    this.verificationDetails.reset('');
+    this.observationForm.reset({
+      goals: item.observationGoals ?? '',
+      startDate: item.observationStartDate ? new Date(`${item.observationStartDate}T00:00:00`) : new Date(),
+      reviewDate: item.observationReviewDate ? new Date(`${item.observationReviewDate}T00:00:00`) : null,
+      endDate: item.observationEndDate ? new Date(`${item.observationEndDate}T00:00:00`) : null,
+      indicators: item.observationIndicators?.join('\n') ?? '',
+      notes: item.observationNotes ?? ''
+    });
     this.scheduleForm.reset({ appointmentAt: item.scheduledAt ? new Date(item.scheduledAt) : null, location: item.location ?? '', instructions: item.instructions ?? '', guardianProfileId: item.guardian.id });
     this.summonDialogVisible.set(true);
     this.reloadSummonContext(item.id, item.student.id);
@@ -203,7 +363,7 @@ export class SocialWorkerCrmComponent implements OnInit {
 
   submitSummonAction(): void {
     const item = this.selectedSummon();
-    if (!item || this.summonSaving() || !this.isSummonActionAllowed(item, this.summonActionMode())) return;
+    if (!item || this.summonBusy() || !this.isSummonActionAllowed(item, this.summonActionMode())) return;
     let request$: Observable<ApiResponse<SummonDto>>;
     if (this.summonActionMode() === 'schedule') {
       this.scheduleForm.markAllAsTouched();
@@ -216,13 +376,35 @@ export class SocialWorkerCrmComponent implements OnInit {
         guardianProfileId: value.guardianProfileId,
         rowVersion: item.rowVersion
       });
+    } else if (this.summonActionMode() === 'observe') {
+      this.observationForm.markAllAsTouched();
+      const value = this.observationForm.getRawValue();
+      const indicators = value.indicators.split(/\r?\n|,/).map(indicator => indicator.trim()).filter(Boolean);
+      if (this.observationForm.invalid || !value.startDate || !value.reviewDate || indicators.length === 0) return;
+      request$ = this.api.startObservation(item.id, {
+        goals: value.goals.trim(),
+        startDate: this.dateOnly(value.startDate),
+        reviewDate: this.dateOnly(value.reviewDate),
+        endDate: value.endDate ? this.dateOnly(value.endDate) : null,
+        responsibleStaffUserId: this.auth.currentUser()?.userId ?? '',
+        measurableIndicators: indicators,
+        notes: value.notes.trim(),
+        rowVersion: item.rowVersion
+      });
     } else {
       this.transitionNarrative.markAsTouched();
       const narrative = this.transitionNarrative.value.trim();
       if (!narrative) return;
       if (this.summonActionMode() === 'attend') request$ = this.api.attendSummon(item.id, { attendanceNotes: narrative, rowVersion: item.rowVersion });
-      else if (this.summonActionMode() === 'observe') request$ = this.api.startObservation(item.id, { observationPlan: narrative, rowVersion: item.rowVersion });
-      else request$ = this.api.markImproved(item.id, { outcomeEvidence: narrative, rowVersion: item.rowVersion });
+      else {
+        this.verificationDetails.markAsTouched();
+        if (this.verificationDetails.invalid) return;
+        request$ = this.api.markImproved(item.id, {
+          outcomeEvidence: narrative,
+          verificationDetails: this.verificationDetails.value.trim(),
+          rowVersion: item.rowVersion
+        });
+      }
     }
     this.summonSaving.set(true);
     request$.pipe(finalize(() => this.summonSaving.set(false))).subscribe({
@@ -236,6 +418,32 @@ export class SocialWorkerCrmComponent implements OnInit {
     if (mode === 'attend') return this.canAttend && item.status === 'Pending' && item.scheduledAt !== null;
     if (mode === 'observe') return this.canObserve && item.status === 'Attended';
     return this.canImprove && item.status === 'UnderObservation';
+  }
+
+  canMarkNoShow(item: SummonDto): boolean {
+    return this.canSchedule && item.status === 'Pending' && item.scheduledAt !== null
+      && new Date(item.scheduledAt).getTime() <= Date.now();
+  }
+
+  markNoShow(item: SummonDto): void {
+    if (!this.canMarkNoShow(item) || this.summonBusy()) return;
+    this.selectedSummon.set(item);
+    this.noShowNotes.reset('');
+    this.noShowDialogVisible.set(true);
+  }
+
+  submitNoShow(): void {
+    const item = this.selectedSummon();
+    const notes = this.noShowNotes.value.trim();
+    this.noShowNotes.markAsTouched();
+    if (!item || !this.canMarkNoShow(item) || !notes || this.summonBusy()) return;
+    this.summonSaving.set(true);
+    this.api.markSummonNoShow(item.id, { notes, rowVersion: item.rowVersion })
+      .pipe(finalize(() => this.summonSaving.set(false)))
+      .subscribe({
+        next: response => { this.noShowDialogVisible.set(false); this.handleSummonResponse(response); },
+        error: (error: HttpErrorResponse) => this.handleSummonError(item, error)
+      });
   }
 
   referralStatusLabel(status: StudentReferralStatus): string {
@@ -282,13 +490,39 @@ export class SocialWorkerCrmComponent implements OnInit {
   }
   private handleReferralError(id: number, error: HttpErrorResponse): void {
     if (error.status === 409) { this.refreshReferralAfterConflict(id); return; }
+    if (error.status === 0 || error.status >= 500) { this.refreshReferralAfterConflict(id, true); return; }
     this.toast.error('تعذر حفظ الإجراء', this.httpMessage(error, 'حاول مرة أخرى.'));
   }
-  private refreshReferralAfterConflict(id = this.selectedReferral()?.id): void {
+  private refreshReferralAfterConflict(id = this.selectedReferral()?.id, uncertainWrite = false): void {
     if (!id) return;
-    this.referralConflict.set(true);
-    this.toast.warn('عدّل مستخدم آخر هذه الحالة', 'احتفظنا بمسودتك وجلبنا الحالة الأحدث. راجعها ثم أكد أن المسودة ما زالت مناسبة؛ لن نكرر الإجراء تلقائيًا.');
-    this.api.getReferral(id).subscribe({ next: response => { if (response.isSuccess && response.data) { this.selectedReferral.set(response.data); this.replaceReferral(response.data); } } });
+    this.referralReconciling.set(true);
+    this.api.getReferral(id).pipe(finalize(() => this.referralReconciling.set(false))).subscribe({
+      next: response => {
+        if (!response.isSuccess || !response.data) {
+          this.referralConflict.set(true);
+          this.toast.warn('تعذر تأكيد النتيجة', 'احتفظنا بمسودتك. حدّث الحالة يدويًا قبل إعادة المحاولة.');
+          return;
+        }
+        const original = this.selectedReferral();
+        const achieved = original ? this.referralOutcomeAchieved(original, response.data) : false;
+        this.selectedReferral.set(response.data);
+        this.replaceReferral(response.data);
+        if (achieved) {
+          this.referralConflict.set(false);
+          this.referralDialogVisible.set(false);
+          this.toast.success('تم تأكيد حفظ الإجراء', 'أكدت قراءة الخادم أن النتيجة المطلوبة تحققت؛ لم نكرر الطلب.');
+          return;
+        }
+        this.referralConflict.set(true);
+        this.toast.warn(
+          uncertainWrite ? 'تعذر تأكيد تنفيذ الإجراء' : 'عدّل مستخدم آخر هذه الحالة',
+          'احتفظنا بمسودتك وجلبنا الحالة الأحدث. راجعها ثم أعد المحاولة صراحةً؛ لن نكرر الإجراء تلقائيًا.');
+      },
+      error: error => {
+        this.referralConflict.set(true);
+        this.toast.error('تعذر تحديث الحالة', this.httpMessage(error, 'احتفظنا بمسودتك؛ حدّث الصفحة قبل إعادة المحاولة.'));
+      }
+    });
   }
   private handleSummonResponse(response: ApiResponse<SummonDto>): void {
     if (!response.isSuccess || !response.data) {
@@ -303,13 +537,73 @@ export class SocialWorkerCrmComponent implements OnInit {
   }
   private handleSummonError(item: SummonDto, error: HttpErrorResponse): void {
     if (error.status === 409) { this.refreshSummonAfterConflict(item.id, item.student.id); return; }
+    if (error.status === 0 || error.status >= 500) { this.refreshSummonAfterConflict(item.id, item.student.id, true); return; }
     this.toast.error('تعذر حفظ الانتقال', this.httpMessage(error, 'حاول مرة أخرى.'));
   }
-  private refreshSummonAfterConflict(id = this.selectedSummon()?.id, studentId = this.selectedSummon()?.student.id): void {
+  private refreshSummonAfterConflict(id = this.selectedSummon()?.id, studentId = this.selectedSummon()?.student.id, uncertainWrite = false): void {
     if (!id || !studentId) return;
-    this.summonConflict.set(true);
-    this.toast.warn('سبق تعديل الاستدعاء', 'احتفظنا بالنص وجلبنا الانتقال الفائز. لن نعيد حالة قديمة أو نرسل الانتقال تلقائيًا.');
-    this.reloadSummonContext(id, studentId);
+    this.summonReconciling.set(true);
+    forkJoin({ detail: this.api.getSummon(id), history: this.api.getSummonHistory(id), guardians: this.api.getStudentGuardians(studentId) })
+      .pipe(finalize(() => this.summonReconciling.set(false)))
+      .subscribe({
+        next: ({ detail, history, guardians }) => {
+          const original = this.selectedSummon();
+          if (history.isSuccess && history.data) this.summonHistory.set(history.data);
+          if (guardians.isSuccess && guardians.data) this.activeGuardians.set(guardians.data.filter(link => link.isActive));
+          if (!detail.isSuccess || !detail.data) {
+            this.summonConflict.set(true);
+            this.toast.warn('تعذر تأكيد النتيجة', 'احتفظنا بمدخلاتك. حدّث الاستدعاء يدويًا قبل إعادة المحاولة.');
+            return;
+          }
+          const achieved = original ? this.summonOutcomeAchieved(original, detail.data, history.data ?? null) : false;
+          this.selectedSummon.set(detail.data);
+          this.replaceSummon(detail.data);
+          if (achieved) {
+            this.summonConflict.set(false);
+            this.summonDialogVisible.set(false);
+            this.noShowDialogVisible.set(false);
+            this.toast.success('تم تأكيد حفظ الانتقال', 'أكدت قراءة الخادم أن النتيجة المطلوبة تحققت؛ لم نكرر الطلب.');
+            return;
+          }
+          this.summonConflict.set(true);
+          this.toast.warn(
+            uncertainWrite ? 'تعذر تأكيد تنفيذ الانتقال' : 'سبق تعديل الاستدعاء',
+            'احتفظنا بمدخلاتك وجلبنا الانتقال الفائز. راجع النسخة الأحدث ثم أعد المحاولة صراحةً.');
+        },
+        error: error => {
+          this.summonConflict.set(true);
+          this.toast.error('تعذر تحديث الاستدعاء', this.httpMessage(error, 'احتفظنا بمدخلاتك؛ حدّث الصفحة قبل إعادة المحاولة.'));
+        }
+      });
+  }
+
+  private referralOutcomeAchieved(original: ReferralDto, latest: ReferralDto): boolean {
+    const mode = this.referralActionMode();
+    if (mode === 'accept') return latest.status !== 'Assigned' && latest.status !== 'Open';
+    if (mode === 'resolve') return latest.status === 'Resolved' || latest.status === 'Closed';
+    if (mode === 'reopen') return latest.status === 'InProgress';
+    const draft = this.referralActionForm.getRawValue();
+    return latest.actions.length > original.actions.length && latest.actions.some(action =>
+      action.actionType === draft.actionType && action.description === draft.description.trim());
+  }
+
+  private summonOutcomeAchieved(original: SummonDto, latest: SummonDto, history: SummonHistoryDto | null): boolean {
+    if (this.noShowDialogVisible()) {
+      const notes = this.noShowNotes.value.trim();
+      return history?.appointments?.some(item => item.action === 'NoShow' && item.notes === notes) ?? false;
+    }
+    const mode = this.summonActionMode();
+    if (mode === 'attend') return latest.status !== 'Pending';
+    if (mode === 'observe') return latest.status === 'UnderObservation' || latest.status === 'Improved';
+    if (mode === 'improve') return latest.status === 'Improved';
+    const draft = this.scheduleForm.getRawValue();
+    return latest.status === 'Pending'
+      && !!latest.scheduledAt
+      && !!draft.appointmentAt
+      && new Date(latest.scheduledAt).getTime() === draft.appointmentAt.getTime()
+      && latest.location === draft.location.trim()
+      && latest.guardian.id === draft.guardianProfileId
+      && original.rowVersion !== latest.rowVersion;
   }
   private reloadSummonContext(id: number, studentId: number): void {
     forkJoin({ detail: this.api.getSummon(id), history: this.api.getSummonHistory(id), guardians: this.api.getStudentGuardians(studentId) }).subscribe({
@@ -323,6 +617,21 @@ export class SocialWorkerCrmComponent implements OnInit {
   }
   private replaceReferral(updated: ReferralDto): void { this.referrals.update(items => items.map(item => item.id === updated.id ? updated : item)); }
   private replaceSummon(updated: SummonDto): void { this.summons.update(items => items.map(item => item.id === updated.id ? updated : item)); }
+  private loadDashboard(): void {
+    this.api.getSocialWorkerDashboard().subscribe({
+      next: response => {
+        if (response.isSuccess && response.data) {
+          this.dashboardCounts.set([...response.data.cases, ...response.data.summons]);
+        }
+      }
+    });
+  }
+  private dateOnly(value: Date): string {
+    const year = value.getFullYear();
+    const month = `${value.getMonth() + 1}`.padStart(2, '0');
+    const day = `${value.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   private rawSummonStatusLabel(status: string): string { return ({ Pending: 'بانتظار الموعد/الحضور', Attended: 'تم الحضور', UnderObservation: 'تحت الملاحظة', Improved: 'تحسّن' } as Record<string, string>)[status] ?? status; }
   private isConflictMessage(message: string, errors: readonly string[]): boolean {
     const value = `${message} ${errors.join(' ')}`.toLowerCase();
