@@ -26,7 +26,8 @@ public class JwtService : IJwtService
         IEnumerable<string> roles,
         IEnumerable<string> permissions,
         int? activeSchoolId,
-        string preferredLanguage)
+        string preferredLanguage,
+        string securityStamp)
     {
         var key = GetSigningKey();
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -37,6 +38,7 @@ public class JwtService : IJwtService
             new(JwtRegisteredClaimNames.UniqueName, username),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new("preferred_language", preferredLanguage),
+            new("security_stamp", securityStamp),
         };
 
         if (activeSchoolId.HasValue)

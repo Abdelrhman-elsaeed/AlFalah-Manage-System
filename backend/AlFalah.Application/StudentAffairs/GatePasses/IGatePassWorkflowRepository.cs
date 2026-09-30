@@ -97,6 +97,12 @@ public interface IGatePassWorkflowRepository
         GatePassListQuery query,
         CancellationToken cancellationToken);
 
+    Task<PagedResult<ManagerGatePassAuditItemDto>> GetManagerAuditAsync(
+        int schoolId,
+        GatePassListQuery query,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
     Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(
         int schoolId,
         string guardianUserId,

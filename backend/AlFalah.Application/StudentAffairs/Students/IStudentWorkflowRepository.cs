@@ -230,6 +230,7 @@ public interface IStudentWorkflowRepository
     Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(
         int schoolId,
         DateOnly onDate,
+        DateTimeOffset generatedAt,
         CancellationToken cancellationToken);
 
     Task<StudentStatsPageResult> GetStudentsStatsAsync(

@@ -50,6 +50,6 @@ public sealed class StudentAffairsDashboardController : StudentAffairsController
     public async Task<IActionResult> SchoolOversight(CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.StudentAffairsDashboardSchoolOversight)) return PermissionDenied();
-        return Ok(await Mediator.Send(new GetSchoolOversightDashboardQuery(), cancellationToken));
+        return FromResponse(await Mediator.Send(new GetSchoolOversightDashboardQuery(), cancellationToken));
     }
 }

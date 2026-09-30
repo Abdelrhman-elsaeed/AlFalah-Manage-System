@@ -196,7 +196,7 @@ public class AuthService : IAuthService
 
         var accessToken = _jwtService.GenerateAccessToken(
             user.Id, user.UserName!, userRoles, permissions,
-            schoolId, user.PreferredLanguage);
+            schoolId, user.PreferredLanguage, user.SecurityStamp ?? string.Empty);
 
         return new AuthResponseDto
         {
@@ -292,7 +292,7 @@ public class AuthService : IAuthService
     {
         var accessToken = _jwtService.GenerateAccessToken(
             user.Id, user.UserName!, roles, permissions,
-            activeSchoolId, user.PreferredLanguage);
+            activeSchoolId, user.PreferredLanguage, user.SecurityStamp ?? string.Empty);
 
         var rawRefreshToken = _jwtService.GenerateRefreshToken();
         var refreshTokenExpiry = DateTimeOffset.UtcNow.AddDays(30);

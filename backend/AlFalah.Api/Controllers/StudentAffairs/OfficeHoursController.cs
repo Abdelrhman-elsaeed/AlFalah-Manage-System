@@ -39,6 +39,13 @@ public sealed class OfficeHoursController : StudentAffairsControllerBase
         return FromResponse(await Mediator.Send(new GetTeacherOfficeHoursQuery(instructorId), cancellationToken));
     }
 
+    [HttpGet("teachers")]
+    public async Task<IActionResult> Teachers([FromQuery] string? search, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.OfficeHoursManageSchool)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetSchoolInstructorOptionsQuery(search), cancellationToken));
+    }
+
     [HttpPut("teachers/{instructorId:int}")]
     public async Task<IActionResult> Override(int instructorId, [FromBody] OverrideTeacherOfficeHoursRequestDto request, CancellationToken cancellationToken)
     {

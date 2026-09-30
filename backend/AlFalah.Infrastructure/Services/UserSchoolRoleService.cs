@@ -45,10 +45,15 @@ public class UserSchoolRoleService : IUserSchoolRoleService
     {
         await _scopeGuard.EnsureCanMutateSchoolAsync(request.SchoolId, cancellationToken);
 
+        if (!_currentUser.IsGlobalAdmin() && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            throw new UnauthorizedSchoolAccessException("تعيين الأدوار متاح لمدير المدرسة أو الإدارة العامة فقط.");
+        if (!_currentUser.IsGlobalAdmin() && request.UserId == _currentUser.UserId)
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تغيير دوره بنفسه.");
+
         if (!_currentUser.IsGlobalAdmin()
             && _currentUser.IsInRole(RoleNames.SchoolManager)
-            && request.Role == RoleNames.SchoolManager)
-            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تعيين دور مدير مدرسة.");
+            && request.Role is RoleNames.SchoolManager or RoleNames.MainManager or RoleNames.SuperAdmin)
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تعيين دور إداري أعلى.");
 
         var user = await _userManager.FindByIdAsync(request.UserId)
             ?? throw new KeyNotFoundException("المستخدم غير موجود.");
@@ -62,12 +67,24 @@ public class UserSchoolRoleService : IUserSchoolRoleService
         var role = await _roleManager.FindByNameAsync(request.Role)
             ?? throw new InvalidOperationException($"الدور '{request.Role}' غير موجود.");
 
-        // Phase 2: only Phase-2 roles are allowed here.
-        if (request.Role != RoleNames.SchoolManager
-            && request.Role != RoleNames.Secretary
-            && request.Role != RoleNames.Moderator
-            && request.Role != RoleNames.Instructor)
-            throw new InvalidOperationException("الدور غير مسموح في المرحلة الثانية.");
+        var assignableRoles = new[]
+        {
+            RoleNames.SchoolManager, RoleNames.Secretary, RoleNames.Moderator, RoleNames.Instructor,
+            RoleNames.Guardian, RoleNames.StudentAffairsOfficer, RoleNames.SocialWorker, RoleNames.SecurityGuard
+        };
+        if (!assignableRoles.Contains(request.Role, StringComparer.Ordinal))
+            throw new InvalidOperationException("الدور غير مسموح.");
+
+        if (request.Role == RoleNames.Instructor
+            && !await _context.InstructorProfiles.AnyAsync(profile => profile.UserId == request.UserId
+                && profile.SchoolId == request.SchoolId && profile.IsActive && !profile.IsDeleted, cancellationToken))
+            throw new InvalidOperationException("يجب إنشاء ملف معلم فعال في المدرسة قبل تعيين الدور.");
+        if (request.Role == RoleNames.Guardian
+            && !await _context.GuardianProfiles.AnyAsync(profile => profile.ApplicationUserId == request.UserId
+                && profile.SchoolId == request.SchoolId && profile.IsActive && !profile.IsDeleted, cancellationToken))
+            throw new InvalidOperationException("يجب إنشاء ملف ولي أمر فعال في المدرسة قبل تعيين الدور.");
+
+        var affectedUserIds = new HashSet<string>(StringComparer.Ordinal) { request.UserId };
 
         // Reject duplicates (same User + School + Role triple), accounting for soft-deletes.
         var existing = await _context.UserSchoolRoles
@@ -92,6 +109,7 @@ public class UserSchoolRoleService : IUserSchoolRoleService
                     .ToListAsync(cancellationToken);
                 foreach (var usr in previousManagerRoles)
                 {
+                    affectedUserIds.Add(usr.UserId);
                     usr.IsActive = false;
                     usr.UpdatedAt = DateTimeOffset.UtcNow;
                     usr.UpdatedByUserId = _currentUser.UserId;
@@ -114,6 +132,7 @@ public class UserSchoolRoleService : IUserSchoolRoleService
 
             foreach (var assignment in activeSecretaryAssignments)
             {
+                affectedUserIds.Add(assignment.UserId);
                 assignment.IsActive = false;
                 assignment.UpdatedAt = DateTimeOffset.UtcNow;
                 assignment.UpdatedByUserId = _currentUser.UserId;
@@ -142,6 +161,8 @@ public class UserSchoolRoleService : IUserSchoolRoleService
             });
         }
 
+        var now = DateTimeOffset.UtcNow;
+        await UserSessionInvalidator.InvalidateAsync(_context, affectedUserIds, now, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("UserSchoolRole created/activated: user={UserId} school={SchoolId} role={Role}",
@@ -159,6 +180,15 @@ public class UserSchoolRoleService : IUserSchoolRoleService
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("تعيين المستخدم غير موجود.");
 
+        if (!_currentUser.IsGlobalAdmin() && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            throw new UnauthorizedSchoolAccessException("إلغاء تعيين الأدوار متاح لمدير المدرسة أو الإدارة العامة فقط.");
+        if (!_currentUser.IsGlobalAdmin() && usr.UserId == _currentUser.UserId)
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تغيير دوره بنفسه.");
+
+        var assignedRole = await _context.Roles.Where(role => role.Id == usr.RoleId).Select(role => role.Name).SingleAsync(cancellationToken);
+        if (!_currentUser.IsGlobalAdmin() && assignedRole == RoleNames.SchoolManager)
+            throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تعديل مدير مدرسة آخر.");
+
         usr.IsActive = false;
         usr.IsDeleted = true;
         usr.DeletedAt = DateTimeOffset.UtcNow;
@@ -174,6 +204,7 @@ public class UserSchoolRoleService : IUserSchoolRoleService
             school.IsActive = false; // Deactivate the school — no longer has a manager.
         }
 
+        await UserSessionInvalidator.InvalidateAsync(_context, new[] { usr.UserId }, DateTimeOffset.UtcNow, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("UserSchoolRole soft-deleted: id={Id} user={UserId} school={SchoolId}",

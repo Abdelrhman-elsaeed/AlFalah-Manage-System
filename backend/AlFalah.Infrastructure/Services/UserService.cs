@@ -532,7 +532,8 @@ public class UserService : IUserService
 
         var role = await _roleManager.FindByNameAsync(newRoleName)
             ?? throw new InvalidOperationException($"الدور '{newRoleName}' غير موجود.");
-        if (newRoleName is not (RoleNames.SchoolManager or RoleNames.Secretary or RoleNames.Moderator or RoleNames.Instructor))
+        if (newRoleName is not (RoleNames.SchoolManager or RoleNames.Secretary or RoleNames.Moderator or RoleNames.Instructor
+            or RoleNames.Guardian or RoleNames.StudentAffairsOfficer or RoleNames.SocialWorker or RoleNames.SecurityGuard))
             throw new InvalidOperationException("الدور غير مسموح.");
 
         var assignment = await _context.UserSchoolRoles
@@ -543,13 +544,28 @@ public class UserService : IUserService
         var oldRole = await _roleManager.FindByIdAsync(assignment.RoleId);
         if (oldRole?.Name == newRoleName) return;
 
+        var affectedUserIds = new HashSet<string>(StringComparer.Ordinal) { userId };
+
         if (!_currentUser.IsGlobalAdmin() && newRoleName == RoleNames.SchoolManager)
             throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تعيين دور مدير مدرسة.");
         if (!_currentUser.IsGlobalAdmin() && userId == _currentUser.UserId)
             throw new UnauthorizedSchoolAccessException("لا يمكن لمدير المدرسة تغيير دوره بنفسه.");
 
+        if (newRoleName == RoleNames.Instructor
+            && !await _context.InstructorProfiles.AnyAsync(profile => profile.UserId == userId
+                && profile.SchoolId == schoolId.Value && profile.IsActive && !profile.IsDeleted, cancellationToken))
+            throw new InvalidOperationException("يجب إنشاء ملف معلم فعال في المدرسة قبل تعيين الدور.");
+        if (newRoleName == RoleNames.Guardian
+            && !await _context.GuardianProfiles.AnyAsync(profile => profile.ApplicationUserId == userId
+                && profile.SchoolId == schoolId.Value && profile.IsActive && !profile.IsDeleted, cancellationToken))
+            throw new InvalidOperationException("يجب إنشاء ملف ولي أمر فعال في المدرسة قبل تعيين الدور.");
+
         var school = await _context.Schools.FirstOrDefaultAsync(x => x.Id == schoolId.Value, cancellationToken)
             ?? throw new KeyNotFoundException("المدرسة غير موجودة.");
+
+        await using var roleTransaction = _context.Database.IsRelational() && _context.Database.CurrentTransaction is null
+            ? await _context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false)
+            : null;
 
         if (newRoleName == RoleNames.SchoolManager)
         {
@@ -558,7 +574,11 @@ public class UserService : IUserService
                 var previous = await _context.UserSchoolRoles
                     .Where(x => x.SchoolId == school.Id && x.UserId == school.ManagerUserId && x.IsActive)
                     .ToListAsync(cancellationToken);
-                foreach (var row in previous) row.IsActive = false;
+                foreach (var row in previous)
+                {
+                    row.IsActive = false;
+                    affectedUserIds.Add(row.UserId);
+                }
             }
             school.ManagerUserId = userId;
         }
@@ -575,7 +595,11 @@ public class UserService : IUserService
                 var others = await _context.UserSchoolRoles
                     .Where(x => x.SchoolId == school.Id && x.RoleId == secretaryRole.Id && x.UserId != userId && x.IsActive)
                     .ToListAsync(cancellationToken);
-                foreach (var row in others) row.IsActive = false;
+                foreach (var row in others)
+                {
+                    row.IsActive = false;
+                    affectedUserIds.Add(row.UserId);
+                }
             }
         }
 
@@ -589,12 +613,16 @@ public class UserService : IUserService
             await _userManager.AddToRoleAsync(targetUser, newRoleName);
         if (oldRole?.Name != null
             && oldRole.Name != newRoleName
-            && !await _context.UserSchoolRoles.AnyAsync(x => x.UserId == userId && x.RoleId == oldRole.Id && x.IsActive && !x.IsDeleted, cancellationToken))
+            && !await _context.UserSchoolRoles.AnyAsync(x => x.Id != assignment.Id && x.UserId == userId
+                && x.RoleId == oldRole.Id && x.IsActive && !x.IsDeleted, cancellationToken))
         {
             await _userManager.RemoveFromRoleAsync(targetUser, oldRole.Name);
         }
 
+        await UserSessionInvalidator.InvalidateAsync(_context, affectedUserIds, DateTimeOffset.UtcNow, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+        if (roleTransaction is not null)
+            await roleTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task DeactivateAsync(string userId, CancellationToken cancellationToken = default)
@@ -634,6 +662,7 @@ public class UserService : IUserService
             }
         }
 
+        await UserSessionInvalidator.InvalidateAsync(_context, new[] { userId }, DateTimeOffset.UtcNow, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("User deactivated: {UserId} (by {ByUserId})", userId, _currentUser.UserId);

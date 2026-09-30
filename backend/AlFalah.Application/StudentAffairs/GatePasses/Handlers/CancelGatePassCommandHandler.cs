@@ -34,8 +34,7 @@ public sealed class CancelGatePassCommandHandler
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.AuthenticationRequired);
 
         var isGuardian = _currentUser.IsInRole(RoleNames.Guardian);
-        var isAuthorizedStaff = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
-            || _currentUser.IsInRole(RoleNames.SchoolManager);
+        var isAuthorizedStaff = _currentUser.IsInRole(RoleNames.SchoolManager);
         if ((!isGuardian || !_currentUser.HasPermission(PermissionNames.GatePassCancelOwn))
             && (!isAuthorizedStaff || !_currentUser.HasPermission(PermissionNames.GatePassOverride)))
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.PermissionDenied);
@@ -73,15 +72,15 @@ public sealed class CancelGatePassCommandHandler
             return ApiResponse<GatePassDto>.Fail(GatePassHandlerSupport.ConcurrencyConflict);
 
         var reason = command.Request.Reason?.Trim();
-        if (string.IsNullOrWhiteSpace(reason))
-            return ApiResponse<GatePassDto>.Fail("Cancellation reason is required");
+        if (string.IsNullOrWhiteSpace(reason) || reason.Length > 1000)
+            return ApiResponse<GatePassDto>.Fail("Cancellation reason is required and must not exceed 1000 characters");
 
         var now = _timeProvider.GetUtcNow();
         var fromStatus = gatePass.Status;
         _repository.SetExpectedRowVersion(gatePass, expectedRowVersion);
         var correlationId = Guid.NewGuid();
 
-        var actorRole = _currentUser.GetRoles().FirstOrDefault() ?? RoleNames.Guardian;
+        var actorRole = isAuthorizedStaff ? RoleNames.SchoolManager : RoleNames.Guardian;
 
         gatePass.Status = GatePassStatus.Cancelled;
         gatePass.CancellationReason = reason;

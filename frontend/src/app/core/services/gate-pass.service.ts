@@ -14,6 +14,8 @@ import {
   GatePassHistoryDto,
   GatePassListQuery,
   GatePassPage,
+  ManagerGatePassAuditPage,
+  RecordFalseExitIncidentRequestDto,
   RejectGatePassRequestDto,
   SecurityGatePassDetailDto,
   SecurityGatePassPage
@@ -112,6 +114,19 @@ export class GatePassService {
     });
   }
 
+  managerAudit(query: GatePassListQuery): Observable<ApiResponse<ManagerGatePassAuditPage>> {
+    return this.http.get<ApiResponse<ManagerGatePassAuditPage>>(`${this.api}/gate-passes/manager-audit`, {
+      context: this.localErrors,
+      params: this.queryParams(query)
+    });
+  }
+
+  recordFalseExitIncident(id: number, request: RecordFalseExitIncidentRequestDto): Observable<ApiResponse<GatePassDto>> {
+    return this.http.post<ApiResponse<GatePassDto>>(`${this.api}/gate-passes/${id}/false-exit-incident`, request, {
+      context: this.localErrors
+    });
+  }
+
   createIdempotencyKey(): string {
     return typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
@@ -127,6 +142,7 @@ export class GatePassService {
     if (query.classroomId !== undefined) params = params.set('classroomId', query.classroomId);
     if (query.sortBy) params = params.set('sortBy', query.sortBy);
     if (query.sortDirection) params = params.set('sortDirection', query.sortDirection);
+    if (query.search) params = params.set('search', query.search);
     return params;
   }
 }

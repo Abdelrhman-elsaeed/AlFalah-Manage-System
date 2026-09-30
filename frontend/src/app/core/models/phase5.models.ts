@@ -271,6 +271,28 @@ export interface UpdateMyOfficeHoursRequestDto {
   readonly effectiveFrom: string;
   readonly rowVersion: string;
 }
+export interface OverrideTeacherOfficeHoursRequestDto extends UpdateMyOfficeHoursRequestDto { readonly reason: string; }
+export interface SchoolInstructorOptionDto { readonly instructorProfileId: number; readonly displayName: string; readonly subject: string; }
+
+export interface MessagingAuditThreadDto {
+  readonly threadId: number;
+  readonly threadType: ConversationThreadType;
+  readonly status: ConversationThreadStatus;
+  readonly participantRoles: readonly string[];
+  readonly createdAt: string;
+  readonly lastActivityAt: string;
+  readonly messageCount: number;
+  readonly pendingDeliveryCount: number;
+  readonly deliveredCount: number;
+  readonly failedCount: number;
+}
+export interface MessagingAuditQuery {
+  readonly threadType?: ConversationThreadType;
+  readonly status?: ConversationThreadStatus;
+  readonly pageNumber: number;
+  readonly pageSize: number;
+  readonly sortDirection?: 'asc' | 'desc';
+}
 
 export interface ConversationParticipantDto { readonly userId: string; readonly displayName: string; readonly role: string; }
 export interface ConversationDto {

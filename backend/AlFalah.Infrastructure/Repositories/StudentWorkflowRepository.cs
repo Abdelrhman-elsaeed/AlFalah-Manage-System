@@ -1426,21 +1426,157 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             now);
     }
 
-    public Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(
+    public async Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(
         int schoolId,
         DateOnly onDate,
+        DateTimeOffset generatedAt,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(new SchoolOversightDashboardDto(
-            0,
-            0,
-            0,
-            Array.Empty<ClassroomAttendanceAggregateDto>(),
-            Array.Empty<DashboardCountDto>(),
-            Array.Empty<DashboardCountDto>(),
-            DateTimeOffset.UtcNow
-        ));
+        var attendance = await (
+                from enrollment in _context.StudentEnrollments.AsNoTracking()
+                join daily in _context.DailyStudentAttendances.AsNoTracking()
+                    on new { enrollment.SchoolId, enrollment.StudentId, enrollment.ClassroomId, enrollment.AcademicTermId }
+                    equals new { daily.SchoolId, daily.StudentId, daily.ClassroomId, daily.AcademicTermId }
+                where enrollment.SchoolId == schoolId
+                    && !enrollment.IsDeleted
+                    && enrollment.Status == StudentEnrollmentStatus.Active
+                    && enrollment.EnrolledOn <= onDate
+                    && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= onDate)
+                    && enrollment.Student.IsActive
+                    && !enrollment.Student.IsDeleted
+                    && enrollment.Classroom.IsActive
+                    && !enrollment.Classroom.IsDeleted
+                    && enrollment.AcademicTerm.StartsOn <= onDate
+                    && enrollment.AcademicTerm.EndsOn >= onDate
+                    && enrollment.AcademicTerm.IsActive
+                    && !enrollment.AcademicTerm.IsDeleted
+                    && !daily.IsDeleted
+                    && daily.AttendanceDate == onDate
+                group daily by new { enrollment.ClassroomId, enrollment.Classroom.ClassLabel } into rows
+                orderby rows.Key.ClassLabel, rows.Key.ClassroomId
+                select new ClassroomAttendanceAggregateDto(
+                    rows.Key.ClassroomId,
+                    rows.Key.ClassLabel,
+                    rows.Count(x => x.Status == StudentAttendanceStatus.Present),
+                    rows.Count(x => x.Status == StudentAttendanceStatus.Absent),
+                    rows.Count(x => x.Status == StudentAttendanceStatus.AbsentExcused)))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var breachedMetrics = await _context.AutomationTriggerLedgers
+            .AsNoTracking()
+            .Where(trigger => trigger.SchoolId == schoolId
+                && trigger.Validity == AutomationTriggerValidity.Satisfied
+                && trigger.AcademicTerm.StartsOn <= onDate
+                && trigger.AcademicTerm.EndsOn >= onDate
+                && trigger.AcademicTerm.IsActive
+                && !trigger.AcademicTerm.IsDeleted)
+            .GroupBy(trigger => trigger.RuleVersion.MetricCode)
+            .Select(group => new { Code = group.Key, Count = group.Select(x => x.StudentId).Distinct().Count() })
+            .OrderBy(x => x.Code)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var referralCounts = await _context.StudentReferrals
+            .AsNoTracking()
+            .Where(referral => referral.SchoolId == schoolId && !referral.IsDeleted)
+            .GroupBy(referral => referral.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .OrderBy(x => x.Status)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var summonCounts = await _context.GuardianSummons
+            .AsNoTracking()
+            .Where(summon => summon.SchoolId == schoolId && !summon.IsDeleted)
+            .GroupBy(summon => summon.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .OrderBy(x => x.Status)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var summonOperationalCounts = await _context.GuardianSummons
+            .AsNoTracking()
+            .Where(summon => summon.SchoolId == schoolId && !summon.IsDeleted)
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                RequiresOfficerReview = group.Count(x => x.RequiresOfficerReview),
+                PendingWithoutAppointment = group.Count(x => x.Status == GuardianSummonStatus.Pending && x.ScheduledAt == null),
+                OverdueObservation = group.Count(x => x.Status == GuardianSummonStatus.UnderObservation
+                    && x.ObservationReviewDate != null
+                    && x.ObservationReviewDate < onDate)
+            })
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var thresholdCounts = breachedMetrics
+            .Select(metric => new DashboardCountDto(
+                metric.Code.ToString(),
+                MetricLabel(metric.Code),
+                metric.Count,
+                "warning"))
+            .ToList();
+
+        var caseCounts = referralCounts
+            .Select(row => new DashboardCountDto(
+                $"Referral.{row.Status}",
+                $"الإحالات - {ReferralStatusLabel(row.Status)}",
+                row.Count,
+                row.Status is StudentReferralStatus.Open or StudentReferralStatus.Assigned ? "warning" : "info"))
+            .Concat(summonCounts.Select(row => new DashboardCountDto(
+                $"Summon.{row.Status}",
+                $"الاستدعاءات - {SummonStatusLabel(row.Status)}",
+                row.Count,
+                row.Status == GuardianSummonStatus.Pending ? "warning" : "info")))
+            .ToList();
+
+        if (summonOperationalCounts is not null)
+        {
+            caseCounts.Add(new DashboardCountDto("Summon.RequiresOfficerReview", "استدعاءات تحتاج مراجعة الوكيل", summonOperationalCounts.RequiresOfficerReview, "danger"));
+            caseCounts.Add(new DashboardCountDto("Summon.PendingWithoutAppointment", "استدعاءات معلقة دون موعد", summonOperationalCounts.PendingWithoutAppointment, "warning"));
+            caseCounts.Add(new DashboardCountDto("Summon.OverdueObservation", "متابعات تجاوزت موعد المراجعة", summonOperationalCounts.OverdueObservation, "danger"));
+        }
+
+        return new SchoolOversightDashboardDto(
+            attendance.Sum(x => x.Present),
+            attendance.Sum(x => x.Absent),
+            attendance.Sum(x => x.AbsentExcused),
+            attendance,
+            thresholdCounts,
+            caseCounts,
+            generatedAt);
     }
+
+    private static string MetricLabel(StudentTermMetricCode code) => code switch
+    {
+        StudentTermMetricCode.MorningArrivalDelay => "تجاوز حد التأخر الصباحي",
+        StudentTermMetricCode.PenaltyAbsenceDay => "تجاوز حد الغياب غير المعذور",
+        StudentTermMetricCode.SessionDelay => "تجاوز حد التأخر عن الحصة",
+        StudentTermMetricCode.AcademicConcern => "تجاوز حد الملاحظات الأكاديمية",
+        StudentTermMetricCode.CountableBehaviorIncident => "تجاوز حد المخالفات السلوكية",
+        StudentTermMetricCode.ClassroomEntryPermit => "تجاوز حد تصاريح دخول الفصل",
+        _ => code.ToString()
+    };
+
+    private static string ReferralStatusLabel(StudentReferralStatus status) => status switch
+    {
+        StudentReferralStatus.Open => "مفتوحة",
+        StudentReferralStatus.Assigned => "مسندة",
+        StudentReferralStatus.InProgress => "قيد المتابعة",
+        StudentReferralStatus.Resolved => "محلولة",
+        StudentReferralStatus.Closed => "مغلقة",
+        _ => status.ToString()
+    };
+
+    private static string SummonStatusLabel(GuardianSummonStatus status) => status switch
+    {
+        GuardianSummonStatus.Pending => "معلق",
+        GuardianSummonStatus.Attended => "تم الحضور",
+        GuardianSummonStatus.UnderObservation => "تحت الملاحظة",
+        GuardianSummonStatus.Improved => "تحسن",
+        _ => status.ToString()
+    };
 
     public async Task<StudentStatsPageResult> GetStudentsStatsAsync(
         int schoolId,

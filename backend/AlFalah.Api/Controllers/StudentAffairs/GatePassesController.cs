@@ -43,6 +43,13 @@ public sealed class GatePassesController : StudentAffairsControllerBase
         return FromResponse(await Mediator.Send(new GetSecurityGatePassQueueQuery(query), cancellationToken));
     }
 
+    [HttpGet("manager-audit")]
+    public async Task<IActionResult> ManagerAudit([FromQuery] GatePassListQuery query, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.GatePassViewAudit)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetManagerGatePassAuditQuery(query), cancellationToken));
+    }
+
     [HttpGet("security-queue/{id:int}")]
     public async Task<IActionResult> SecurityDetail(int id, CancellationToken cancellationToken)
     {
@@ -100,6 +107,13 @@ public sealed class GatePassesController : StudentAffairsControllerBase
     {
         if (!HasAnyPermission(PermissionNames.GatePassExecute)) return PermissionDenied();
         return FromResponse(await Mediator.Send(new ExecuteGatePassCommand(id, request), cancellationToken));
+    }
+
+    [HttpPost("{id:int}/false-exit-incident")]
+    public async Task<IActionResult> RecordFalseExitIncident(int id, [FromBody] RecordFalseExitIncidentRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.GatePassOverride)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new RecordFalseExitIncidentCommand(id, request), cancellationToken));
     }
 
     [HttpGet("{id:int}/history")]

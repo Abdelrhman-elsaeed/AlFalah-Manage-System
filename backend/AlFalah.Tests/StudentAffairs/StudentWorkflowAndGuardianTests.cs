@@ -11,6 +11,7 @@ using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.DTOs.Students;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 using AlFalah.Application.StudentAffairs.Classrooms.Handlers;
+using AlFalah.Application.StudentAffairs.Dashboards.Handlers;
 using AlFalah.Application.StudentAffairs.Students;
 using AlFalah.Application.StudentAffairs.Students.Handlers;
 using AlFalah.Domain.Entities;
@@ -20,6 +21,7 @@ using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Repositories;
 using AlFalah.Shared.Models;
+using AlFalah.Application.IntelligentTimetable;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -29,6 +31,39 @@ namespace AlFalah.Tests.StudentAffairs;
 public sealed class StudentWorkflowAndGuardianTests
 {
     private static readonly DateTimeOffset Now = new(2026, 9, 1, 8, 0, 0, TimeSpan.Zero);
+
+    [Fact]
+    public async Task SchoolOversight_Requires_Exact_Manager_Role_And_Permission()
+    {
+        var handler = new GetSchoolOversightDashboardQueryHandler(
+            new FakeStudentWorkflowRepository(),
+            CreateUser(RoleNames.StudentAffairsOfficer, PermissionNames.StudentAffairsDashboardSchoolOversight),
+            new FixedTimeProvider(Now),
+            new FakeSchoolLocalDateResolver(new DateOnly(2026, 9, 1)));
+
+        var result = await handler.Handle(new GetSchoolOversightDashboardQuery(), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.PermissionDenied);
+    }
+
+    [Fact]
+    public async Task SchoolOversight_Uses_Resolved_SchoolLocalDate_And_ServerInstant()
+    {
+        var repository = new FakeStudentWorkflowRepository();
+        var localDate = new DateOnly(2026, 9, 2);
+        var handler = new GetSchoolOversightDashboardQueryHandler(
+            repository,
+            CreateUser(RoleNames.SchoolManager, PermissionNames.StudentAffairsDashboardSchoolOversight),
+            new FixedTimeProvider(Now),
+            new FakeSchoolLocalDateResolver(localDate));
+
+        var result = await handler.Handle(new GetSchoolOversightDashboardQuery(), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.OversightDate.Should().Be(localDate);
+        repository.OversightGeneratedAt.Should().Be(Now);
+    }
 
     [Fact]
     public async Task GetStudentGuardiansQuery_WhenSocialWorker_ReturnsGuardians()
@@ -749,6 +784,12 @@ public sealed class StudentWorkflowAndGuardianTests
         public override DateTimeOffset GetUtcNow() => _utcNow;
     }
 
+    private sealed class FakeSchoolLocalDateResolver(DateOnly? date) : ISchoolLocalDateResolver
+    {
+        public Task<DateOnly?> ResolveAsync(int schoolId, DateTimeOffset instant, CancellationToken cancellationToken) =>
+            Task.FromResult(date);
+    }
+
     private sealed class FakeStudentWorkflowRepository : IStudentWorkflowRepository
     {
         public Task<bool> IsActiveGuardianProfileAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken) =>
@@ -775,6 +816,8 @@ public sealed class StudentWorkflowAndGuardianTests
         public StudentEnrollment? AddedEnrollment { get; private set; }
         public int UnassignedClassroomEnrollmentCount { get; private set; }
         public int UnassignedStudentEnrollmentCount { get; private set; }
+        public DateOnly? OversightDate { get; private set; }
+        public DateTimeOffset? OversightGeneratedAt { get; private set; }
 
         public Task<StudentStatsPageResult> GetStudentsStatsAsync(int schoolId, StudentStatsQuery query, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(StudentStats);
@@ -932,8 +975,12 @@ public sealed class StudentWorkflowAndGuardianTests
                 0,
                 now));
 
-        public Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(int schoolId, DateOnly onDate, CancellationToken cancellationToken) =>
-            Task.FromResult(new SchoolOversightDashboardDto(0, 0, 0, Array.Empty<ClassroomAttendanceAggregateDto>(), Array.Empty<DashboardCountDto>(), Array.Empty<DashboardCountDto>(), DateTimeOffset.UtcNow));
+        public Task<SchoolOversightDashboardDto> GetSchoolOversightDashboardAsync(int schoolId, DateOnly onDate, DateTimeOffset generatedAt, CancellationToken cancellationToken)
+        {
+            OversightDate = onDate;
+            OversightGeneratedAt = generatedAt;
+            return Task.FromResult(new SchoolOversightDashboardDto(0, 0, 0, Array.Empty<ClassroomAttendanceAggregateDto>(), Array.Empty<DashboardCountDto>(), Array.Empty<DashboardCountDto>(), generatedAt));
+        }
 
         public void AddStudent(Student student)
         {

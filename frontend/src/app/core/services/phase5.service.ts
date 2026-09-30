@@ -22,6 +22,10 @@ import {
   MarkSummonNoShowRequestDto,
   MarkSummonImprovedRequestDto,
   OfficeHoursAggregateDto,
+  OverrideTeacherOfficeHoursRequestDto,
+  SchoolInstructorOptionDto,
+  MessagingAuditQuery,
+  MessagingAuditThreadDto,
   PendingDispatchDto,
   ReferralDto,
   ReferralHistoryDto,
@@ -136,6 +140,22 @@ export class Phase5Service {
   getMyOfficeHours(): Observable<ApiResponse<OfficeHoursAggregateDto>> { return this.get<OfficeHoursAggregateDto>('office-hours/me'); }
   updateMyOfficeHours(request: UpdateMyOfficeHoursRequestDto): Observable<ApiResponse<OfficeHoursAggregateDto>> {
     return this.http.put<ApiResponse<OfficeHoursAggregateDto>>(`${this.api}/office-hours/me`, request, { context: this.callerHandlesErrors });
+  }
+  getSchoolInstructorOptions(search = ''): Observable<ApiResponse<readonly SchoolInstructorOptionDto[]>> {
+    return this.get<readonly SchoolInstructorOptionDto[]>(`office-hours/teachers?search=${encodeURIComponent(search)}`);
+  }
+  getTeacherOfficeHours(instructorId: number): Observable<ApiResponse<OfficeHoursAggregateDto>> {
+    return this.get<OfficeHoursAggregateDto>(`office-hours/teachers/${instructorId}`);
+  }
+  overrideTeacherOfficeHours(instructorId: number, request: OverrideTeacherOfficeHoursRequestDto): Observable<ApiResponse<OfficeHoursAggregateDto>> {
+    return this.http.put<ApiResponse<OfficeHoursAggregateDto>>(`${this.api}/office-hours/teachers/${instructorId}`, request, { context: this.callerHandlesErrors });
+  }
+
+  getMessagingAudit(query: MessagingAuditQuery): Observable<ApiResponse<PagedResult<MessagingAuditThreadDto>>> {
+    return this.http.get<ApiResponse<PagedResult<MessagingAuditThreadDto>>>(`${this.api}/conversations/audit`, {
+      context: this.callerHandlesErrors,
+      params: this.params(query)
+    });
   }
 
   listConversations(query: ConversationListQuery): Observable<ApiResponse<PagedResult<ConversationDto>>> {

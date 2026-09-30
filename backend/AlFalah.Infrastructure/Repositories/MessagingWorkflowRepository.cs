@@ -465,6 +465,60 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         };
     }
 
+    public async Task<PagedResult<MessagingAuditThreadDto>> GetMessagingAuditAsync(
+        int schoolId,
+        MessagingAuditQuery query,
+        CancellationToken cancellationToken)
+    {
+        var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
+        var dbQuery = _context.ConversationThreads.AsNoTracking()
+            .Where(thread => thread.SchoolId == schoolId && !thread.IsDeleted);
+
+        if (query.ThreadType.HasValue)
+            dbQuery = dbQuery.Where(thread => thread.ThreadType == query.ThreadType.Value);
+        if (query.Status.HasValue)
+            dbQuery = dbQuery.Where(thread => thread.Status == query.Status.Value);
+
+        var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await dbQuery
+            .OrderByDescending(thread => thread.UpdatedAt)
+            .ThenByDescending(thread => thread.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(thread => new MessagingAuditThreadDto(
+                thread.Id,
+                thread.ThreadType,
+                thread.Status,
+                thread.Participants.Where(participant => !participant.IsDeleted)
+                    .Select(participant => participant.ParticipantRoleSnapshot)
+                    .Distinct()
+                    .OrderBy(role => role)
+                    .ToList(),
+                thread.CreatedAt,
+                thread.UpdatedAt,
+                thread.Messages.Count(message => !message.IsDeleted),
+                thread.Messages.Where(message => !message.IsDeleted)
+                    .SelectMany(message => message.Receipts)
+                    .Count(receipt => receipt.DeliveryState == MessageDeliveryState.Pending),
+                thread.Messages.Where(message => !message.IsDeleted)
+                    .SelectMany(message => message.Receipts)
+                    .Count(receipt => receipt.DeliveryState == MessageDeliveryState.Delivered),
+                thread.Messages.Where(message => !message.IsDeleted)
+                    .SelectMany(message => message.Receipts)
+                    .Count(receipt => receipt.DeliveryState == MessageDeliveryState.Failed)))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResult<MessagingAuditThreadDto>
+        {
+            Items = rows,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
     public async Task<IReadOnlyList<GuardianTeacherOptionDto>> GetGuardianTeacherOptionsAsync(
         int schoolId,
         string guardianUserId,
@@ -1211,6 +1265,34 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         return await BuildOfficeHoursAggregateAsync(schoolId, instructorId, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<SchoolInstructorOptionDto>> GetSchoolInstructorOptionsAsync(
+        int schoolId,
+        string? search,
+        CancellationToken cancellationToken)
+    {
+        var normalized = search?.Trim();
+        var query = _context.InstructorProfiles.AsNoTracking()
+            .Where(profile => profile.SchoolId == schoolId && profile.IsActive && !profile.IsDeleted
+                && profile.User.IsActive && !profile.User.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(normalized))
+            query = query.Where(profile =>
+                (profile.User.FirstName + " " + profile.User.LastName).Contains(normalized)
+                || (profile.SubjectSpecialization != null && profile.SubjectSpecialization.Contains(normalized)));
+
+        return await query
+            .OrderBy(profile => profile.User.FirstName)
+            .ThenBy(profile => profile.User.LastName)
+            .ThenBy(profile => profile.Id)
+            .Take(100)
+            .Select(profile => new SchoolInstructorOptionDto(
+                profile.Id,
+                (profile.User.FirstName + " " + profile.User.LastName).Trim(),
+                profile.SubjectSpecialization ?? string.Empty))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<OfficeHoursAggregateDto> OverrideTeacherOfficeHoursAsync(
         int schoolId,
         string adminUserId,
@@ -1218,15 +1300,16 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         OverrideTeacherOfficeHoursRequestDto request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Reason))
-            throw new InvalidOperationException("A manager override reason is required");
+        var reason = request.Reason?.Trim();
+        if (string.IsNullOrWhiteSpace(reason) || reason.Length > 2000)
+            throw new InvalidOperationException("A manager override reason is required and must not exceed 2000 characters");
         if (!await _context.InstructorProfiles.AsNoTracking().AnyAsync(profile =>
                 profile.Id == instructorId && profile.SchoolId == schoolId && profile.IsActive,
                 cancellationToken).ConfigureAwait(false))
             throw new InvalidOperationException("Instructor was not found");
         return await SaveOfficeHoursAsync(
             schoolId, instructorId, adminUserId, request.SelectedSlotKeys, request.EffectiveFrom,
-            request.RowVersion, TeacherOfficeHourSource.ManagerOverride, request.Reason.Trim(), cancellationToken)
+            request.RowVersion, TeacherOfficeHourSource.ManagerOverride, reason, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -1453,7 +1536,24 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             ActorUserId = actorUserId,
             Reason = reason,
             BeforeSnapshotJson = JsonSerializer.Serialize(before),
-            AfterSnapshotJson = JsonSerializer.Serialize(normalized),
+            AfterSnapshotJson = JsonSerializer.Serialize(new
+            {
+                configuration.InstructorProfileId,
+                configuration.AcademicTermId,
+                configuration.SchoolTimetableId,
+                configuration.TimetableRevision,
+                configuration.BellScheduleRevisionId,
+                configuration.EffectiveFrom,
+                configuration.Source,
+                SelectedSlots = configuration.Slots.Select(slot => new
+                {
+                    slot.StableSlotKey,
+                    slot.Day,
+                    slot.Period,
+                    slot.LocalStartTime,
+                    slot.LocalEndTime
+                })
+            }),
             OccurredAt = now,
             CorrelationId = Guid.NewGuid()
         });

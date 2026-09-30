@@ -207,6 +207,7 @@ public class SchoolService : ISchoolService
         var school = await _context.Schools
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("المدرسة غير موجودة.");
+        var affectedRoleUsers = new HashSet<string>(StringComparer.Ordinal);
 
         var stage = Enum.Parse<SchoolStage>(request.Stage, false);
         var location = await GetRequiredLocationAsync(request.SchoolLocationId, cancellationToken);
@@ -230,6 +231,7 @@ public class SchoolService : ISchoolService
             // If a previous manager exists, deactivate their UserSchoolRole for this school.
             if (!string.IsNullOrWhiteSpace(school.ManagerUserId))
             {
+                affectedRoleUsers.Add(school.ManagerUserId);
                 var previousManagerRoles = await _context.UserSchoolRoles
                     .Where(usr => usr.SchoolId == id
                               && usr.UserId == school.ManagerUserId
@@ -246,6 +248,7 @@ public class SchoolService : ISchoolService
 
             // Activate (or create) the new manager's UserSchoolRole.
             await EnsureUserSchoolRoleActiveAsync(request.ManagerUserId, id, RoleNames.SchoolManager, cancellationToken);
+            affectedRoleUsers.Add(request.ManagerUserId);
 
             school.ManagerUserId = request.ManagerUserId;
         }
@@ -257,6 +260,7 @@ public class SchoolService : ISchoolService
         school.LocationDetails = request.LocationDetails?.Trim();
         school.LogoUrl = request.LogoUrl;
 
+        await UserSessionInvalidator.InvalidateAsync(_context, affectedRoleUsers, DateTimeOffset.UtcNow, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         return await GetByIdAsync(id, cancellationToken);
@@ -290,10 +294,12 @@ public class SchoolService : ISchoolService
             ?? throw new KeyNotFoundException("المدرسة غير موجودة.");
 
         await EnsureUserIsSchoolManagerAsync(request.UserId, cancellationToken);
+        var affectedRoleUsers = new HashSet<string>(StringComparer.Ordinal) { request.UserId };
 
         // Deactivate the current manager's UserSchoolRole for this school (if any).
         if (!string.IsNullOrWhiteSpace(school.ManagerUserId) && school.ManagerUserId != request.UserId)
         {
+            affectedRoleUsers.Add(school.ManagerUserId);
             var previousManagerRoles = await _context.UserSchoolRoles
                 .Where(usr => usr.SchoolId == schoolId
                           && usr.UserId == school.ManagerUserId
@@ -314,6 +320,7 @@ public class SchoolService : ISchoolService
         school.ManagerUserId = request.UserId;
         school.UpdatedAt = DateTimeOffset.UtcNow;
 
+        await UserSessionInvalidator.InvalidateAsync(_context, affectedRoleUsers, DateTimeOffset.UtcNow, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("School manager assigned: school={SchoolId} manager={UserId}", schoolId, request.UserId);

@@ -183,14 +183,48 @@ public sealed class OverrideTeacherOfficeHoursCommandHandler
         if (!_currentUser.IsInRole(RoleNames.SchoolManager) || !_currentUser.HasPermission(PermissionNames.OfficeHoursManageSchool))
             return ApiResponse<OfficeHoursAggregateDto>.Fail("You do not have permission to perform this action");
 
+        var reason = command.Request.Reason?.Trim();
+        if (string.IsNullOrWhiteSpace(reason) || reason.Length > 2000)
+            return ApiResponse<OfficeHoursAggregateDto>.Fail("A manager override reason is required and must not exceed 2000 characters");
+
         try
         {
-            var result = await _repository.OverrideTeacherOfficeHoursAsync(schoolId.Value, userId, command.InstructorId, command.Request, cancellationToken).ConfigureAwait(false);
+            var normalizedRequest = command.Request with { Reason = reason };
+            var result = await _repository.OverrideTeacherOfficeHoursAsync(schoolId.Value, userId, command.InstructorId, normalizedRequest, cancellationToken).ConfigureAwait(false);
             return ApiResponse<OfficeHoursAggregateDto>.Success(result, "Teacher office hours overridden successfully");
         }
         catch (InvalidOperationException exception)
         {
             return ApiResponse<OfficeHoursAggregateDto>.Fail(exception.Message);
         }
+    }
+}
+
+public sealed class GetSchoolInstructorOptionsQueryHandler
+    : IRequestHandler<GetSchoolInstructorOptionsQuery, ApiResponse<IReadOnlyList<SchoolInstructorOptionDto>>>
+{
+    private readonly IMessagingWorkflowRepository _repository;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetSchoolInstructorOptionsQueryHandler(IMessagingWorkflowRepository repository, ICurrentUserService currentUser)
+    {
+        _repository = repository;
+        _currentUser = currentUser;
+    }
+
+    public async Task<ApiResponse<IReadOnlyList<SchoolInstructorOptionDto>>> Handle(
+        GetSchoolInstructorOptionsQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (_currentUser.ActiveSchoolId is not int schoolId || string.IsNullOrWhiteSpace(_currentUser.UserId))
+            return ApiResponse<IReadOnlyList<SchoolInstructorOptionDto>>.Fail("An authenticated user and active school are required");
+
+        if (!_currentUser.IsInRole(RoleNames.SchoolManager)
+            || !_currentUser.HasPermission(PermissionNames.OfficeHoursManageSchool))
+            return ApiResponse<IReadOnlyList<SchoolInstructorOptionDto>>.Fail("You do not have permission to perform this action");
+
+        var result = await _repository.GetSchoolInstructorOptionsAsync(schoolId, request.Search, cancellationToken)
+            .ConfigureAwait(false);
+        return ApiResponse<IReadOnlyList<SchoolInstructorOptionDto>>.Success(result);
     }
 }

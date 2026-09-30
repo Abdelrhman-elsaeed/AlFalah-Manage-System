@@ -93,7 +93,8 @@ export interface SchoolListQuery extends PagedQuery {
 
 // ─── Users ──────────────────────────────────────────────────────────────────
 
-export type PhaseTwoRole = 'SchoolManager' | 'Secretary' | 'Moderator' | 'Instructor';
+export type PhaseTwoRole = 'SchoolManager' | 'Secretary' | 'Moderator' | 'Instructor'
+  | 'StudentAffairsOfficer' | 'SocialWorker' | 'SecurityGuard' | 'Guardian';
 
 export interface UserSchoolBrief {
   schoolId: number;

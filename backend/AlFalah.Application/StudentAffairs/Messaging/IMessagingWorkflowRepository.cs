@@ -26,6 +26,11 @@ public interface IMessagingWorkflowRepository
         ConversationListQuery query,
         CancellationToken cancellationToken);
 
+    Task<PagedResult<MessagingAuditThreadDto>> GetMessagingAuditAsync(
+        int schoolId,
+        MessagingAuditQuery query,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<GuardianTeacherOptionDto>> GetGuardianTeacherOptionsAsync(
         int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken);
 
@@ -92,6 +97,11 @@ public interface IMessagingWorkflowRepository
         int schoolId,
         string requesterUserId,
         int instructorId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<SchoolInstructorOptionDto>> GetSchoolInstructorOptionsAsync(
+        int schoolId,
+        string? search,
         CancellationToken cancellationToken);
 
     Task<OfficeHoursAggregateDto> OverrideTeacherOfficeHoursAsync(

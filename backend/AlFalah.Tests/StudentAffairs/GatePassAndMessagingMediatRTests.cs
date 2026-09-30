@@ -15,6 +15,7 @@ using AlFalah.Shared.Models;
 using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 using Xunit;
 
 namespace AlFalah.Tests.StudentAffairs;
@@ -50,6 +51,8 @@ public sealed class GatePassAndMessagingMediatRTests
         provider.GetService<IRequestHandler<AcknowledgeGatePassBySecurityCommand, ApiResponse<SecurityGatePassDetailDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<ExecuteGatePassCommand, ApiResponse<SecurityGatePassDetailDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetGatePassHistoryQuery, ApiResponse<GatePassHistoryDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetManagerGatePassAuditQuery, ApiResponse<PagedResult<ManagerGatePassAuditItemDto>>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<RecordFalseExitIncidentCommand, ApiResponse<GatePassDto>>>().Should().NotBeNull();
 
         // Messaging handlers
         provider.GetService<IRequestHandler<GetConversationsQuery, ApiResponse<PagedResult<ConversationDto>>>>().Should().NotBeNull();
@@ -65,6 +68,64 @@ public sealed class GatePassAndMessagingMediatRTests
         provider.GetService<IRequestHandler<UpdateMyOfficeHoursCommand, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetTeacherOfficeHoursQuery, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<OverrideTeacherOfficeHoursCommand, ApiResponse<OfficeHoursAggregateDto>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetSchoolInstructorOptionsQuery, ApiResponse<IReadOnlyList<SchoolInstructorOptionDto>>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetMessagingAuditQuery, ApiResponse<PagedResult<MessagingAuditThreadDto>>>>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task MessagingAudit_Denies_NonManager_With_InjectedPermission()
+    {
+        var currentUser = new StubCurrentUser("officer", 1, PermissionNames.MessagingViewAudit);
+        currentUser.Roles.Clear();
+        currentUser.Roles.Add(RoleNames.StudentAffairsOfficer);
+        var handler = new GetMessagingAuditQueryHandler(new StubMessagingWorkflowRepository(), currentUser);
+
+        var result = await handler.Handle(new GetMessagingAuditQuery(new MessagingAuditQuery()), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Contains("permission"));
+    }
+
+    [Fact]
+    public async Task ManagerGatePassAudit_Denies_Officer_With_InjectedPermission()
+    {
+        var currentUser = new StubCurrentUser("officer", 1, PermissionNames.GatePassViewAudit);
+        currentUser.Roles.Clear();
+        currentUser.Roles.Add(RoleNames.StudentAffairsOfficer);
+        var handler = new GetManagerGatePassAuditQueryHandler(new StubGatePassWorkflowRepository(), currentUser, TimeProvider.System);
+
+        var result = await handler.Handle(new GetManagerGatePassAuditQuery(new GatePassListQuery()), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Contains("permission"));
+    }
+
+    [Fact]
+    public void MessagingAuditDto_Serializes_Metadata_Without_Confidential_Fields()
+    {
+        var dto = new MessagingAuditThreadDto(7, ConversationThreadType.GuardianTeacher,
+            ConversationThreadStatus.Open, [RoleNames.Guardian, RoleNames.Instructor],
+            DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, 3, 1, 2, 0);
+
+        var json = JsonSerializer.Serialize(dto);
+
+        json.Should().NotContain("Body").And.NotContain("Subject").And.NotContain("StudentId")
+            .And.NotContain("GuardianId").And.NotContain("UserId").And.NotContain("ReferralId")
+            .And.NotContain("Evidence").And.NotContain("Attachment");
+    }
+
+    [Fact]
+    public async Task SchoolInstructorOptions_Requires_Exact_Manager_Role()
+    {
+        var currentUser = new StubCurrentUser("officer", 1, PermissionNames.OfficeHoursManageSchool);
+        currentUser.Roles.Clear();
+        currentUser.Roles.Add(RoleNames.StudentAffairsOfficer);
+        var handler = new GetSchoolInstructorOptionsQueryHandler(new StubMessagingWorkflowRepository(), currentUser);
+
+        var result = await handler.Handle(new GetSchoolInstructorOptionsQuery(null), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Contains("permission"));
     }
 
     [Fact]
@@ -262,6 +323,9 @@ public sealed class GatePassAndMessagingMediatRTests
         public Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(int schoolId, string guardianUserId, GatePassListQuery query, CancellationToken cancellationToken) =>
             GetGatePassesAsync(schoolId, query, cancellationToken);
 
+        public Task<PagedResult<ManagerGatePassAuditItemDto>> GetManagerAuditAsync(int schoolId, GatePassListQuery query, DateTimeOffset now, CancellationToken cancellationToken) =>
+            Task.FromResult(new PagedResult<ManagerGatePassAuditItemDto>());
+
         public Task<SecurityGatePassQueuePageDto> GetSecurityGatePassQueueAsync(
             int schoolId, GatePassListQuery query, DateTimeOffset now, CancellationToken cancellationToken) =>
             Task.FromResult(new SecurityGatePassQueuePageDto(
@@ -319,6 +383,15 @@ public sealed class GatePassAndMessagingMediatRTests
                 PageSize = 20
             });
 
+        public Task<PagedResult<MessagingAuditThreadDto>> GetMessagingAuditAsync(int schoolId, MessagingAuditQuery query, CancellationToken cancellationToken) =>
+            Task.FromResult(new PagedResult<MessagingAuditThreadDto>
+            {
+                Items = new List<MessagingAuditThreadDto>(),
+                TotalCount = 0,
+                Page = 1,
+                PageSize = 20
+            });
+
         public Task<IReadOnlyList<GuardianTeacherOptionDto>> GetGuardianTeacherOptionsAsync(int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<GuardianTeacherOptionDto>>(Array.Empty<GuardianTeacherOptionDto>());
 
@@ -372,6 +445,9 @@ public sealed class GatePassAndMessagingMediatRTests
 
         public Task<OfficeHoursAggregateDto> GetTeacherOfficeHoursAsync(int schoolId, string requesterUserId, int instructorId, CancellationToken cancellationToken) =>
             Task.FromResult(EmptyOfficeHours());
+
+        public Task<IReadOnlyList<SchoolInstructorOptionDto>> GetSchoolInstructorOptionsAsync(int schoolId, string? search, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<SchoolInstructorOptionDto>>(Array.Empty<SchoolInstructorOptionDto>());
 
         public Task<OfficeHoursAggregateDto> OverrideTeacherOfficeHoursAsync(int schoolId, string adminUserId, int instructorId, OverrideTeacherOfficeHoursRequestDto request, CancellationToken cancellationToken) =>
             Task.FromResult(EmptyOfficeHours());

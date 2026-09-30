@@ -238,15 +238,18 @@ public sealed class GetSchoolOversightDashboardQueryHandler
     private readonly IStudentWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
     private readonly TimeProvider _timeProvider;
+    private readonly ISchoolLocalDateResolver _schoolLocalDateResolver;
 
     public GetSchoolOversightDashboardQueryHandler(
         IStudentWorkflowRepository repository,
         ICurrentUserService currentUser,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ISchoolLocalDateResolver schoolLocalDateResolver)
     {
         _repository = repository;
         _currentUser = currentUser;
         _timeProvider = timeProvider;
+        _schoolLocalDateResolver = schoolLocalDateResolver;
     }
 
     public async Task<ApiResponse<SchoolOversightDashboardDto>> Handle(
@@ -258,10 +261,22 @@ public sealed class GetSchoolOversightDashboardQueryHandler
         if (schoolId is null || string.IsNullOrWhiteSpace(userId))
             return ApiResponse<SchoolOversightDashboardDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
+        if (!_currentUser.IsInRole(RoleNames.SchoolManager)
+            || !_currentUser.HasPermission(PermissionNames.StudentAffairsDashboardSchoolOversight))
+            return ApiResponse<SchoolOversightDashboardDto>.Fail(StudentHandlerSupport.PermissionDenied);
+
+        var now = _timeProvider.GetUtcNow();
+        var today = await _schoolLocalDateResolver.ResolveAsync(
+            schoolId.Value,
+            now,
+            cancellationToken).ConfigureAwait(false);
+        if (today is null)
+            return ApiResponse<SchoolOversightDashboardDto>.Fail("School local date could not be resolved");
+
         var result = await _repository.GetSchoolOversightDashboardAsync(
             schoolId.Value,
-            today,
+            today.Value,
+            now,
             cancellationToken).ConfigureAwait(false);
 
         return ApiResponse<SchoolOversightDashboardDto>.Success(result);

@@ -16,6 +16,24 @@ public sealed class ConversationMessageQuery : StudentAffairsPageQuery
     public long? BeforeMessageId { get; set; }
 }
 
+public sealed class MessagingAuditQuery : StudentAffairsPageQuery
+{
+    public ConversationThreadType? ThreadType { get; set; }
+    public ConversationThreadStatus? Status { get; set; }
+}
+
+public sealed record MessagingAuditThreadDto(
+    int ThreadId,
+    ConversationThreadType ThreadType,
+    ConversationThreadStatus Status,
+    IReadOnlyList<string> ParticipantRoles,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset LastActivityAt,
+    int MessageCount,
+    int PendingDeliveryCount,
+    int DeliveredCount,
+    int FailedCount);
+
 public sealed record CreateConversationRequestDto(
     int StudentId,
     ConversationThreadType ThreadType,
@@ -37,6 +55,7 @@ public sealed record ConversationDto(int Id, StudentSummaryDto Student, string S
 public sealed record ConversationMessageDto(long Id, int ConversationId, ActorSummaryDto Sender, string Body, long? ReplyToMessageId, DateTimeOffset CreatedAt, MessageDeliveryState DeliveryState, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt, IReadOnlyList<NotificationDeliveryDto> Receipts);
 public sealed record SendMessageResultDto(ConversationMessageDto Message, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt);
 public sealed record GuardianTeacherOptionDto(int InstructorProfileId, string DisplayName, string Subject);
+public sealed record SchoolInstructorOptionDto(int InstructorProfileId, string DisplayName, string Subject);
 public sealed record GuardianStaffOptionDto(
     string UserId,
     string DisplayName,
@@ -78,6 +97,7 @@ public sealed record UpdateMyOfficeHoursRequestDto(IReadOnlyList<string> Selecte
 public sealed record OverrideTeacherOfficeHoursRequestDto(IReadOnlyList<string> SelectedSlotKeys, DateOnly EffectiveFrom, string Reason, string RowVersion);
 
 public sealed record GetConversationsQuery(ConversationListQuery Query) : IRequest<ApiResponse<PagedResult<ConversationDto>>>;
+public sealed record GetMessagingAuditQuery(MessagingAuditQuery Query) : IRequest<ApiResponse<PagedResult<MessagingAuditThreadDto>>>;
 public sealed record CreateConversationCommand(CreateConversationRequestDto Request) : IRequest<ApiResponse<ConversationDto>>;
 public sealed record GetConversationByIdQuery(int ConversationId) : IRequest<ApiResponse<ConversationDto>>;
 public sealed record GetConversationMessagesQuery(int ConversationId, ConversationMessageQuery Query) : IRequest<ApiResponse<PagedResult<ConversationMessageDto>>>;
@@ -90,4 +110,5 @@ public sealed record GetEligibleOfficeHoursQuery : IRequest<ApiResponse<OfficeHo
 public sealed record GetMyOfficeHoursQuery : IRequest<ApiResponse<OfficeHoursAggregateDto>>;
 public sealed record UpdateMyOfficeHoursCommand(UpdateMyOfficeHoursRequestDto Request) : IRequest<ApiResponse<OfficeHoursAggregateDto>>;
 public sealed record GetTeacherOfficeHoursQuery(int InstructorId) : IRequest<ApiResponse<OfficeHoursAggregateDto>>;
+public sealed record GetSchoolInstructorOptionsQuery(string? Search) : IRequest<ApiResponse<IReadOnlyList<SchoolInstructorOptionDto>>>;
 public sealed record OverrideTeacherOfficeHoursCommand(int InstructorId, OverrideTeacherOfficeHoursRequestDto Request) : IRequest<ApiResponse<OfficeHoursAggregateDto>>;

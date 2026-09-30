@@ -25,6 +25,7 @@ public sealed record RejectGatePassRequestDto(string Reason, string RowVersion);
 public sealed record CancelGatePassRequestDto(string Reason, string RowVersion);
 public sealed record AcknowledgeGatePassRequestDto(string RowVersion);
 public sealed record ExecuteGatePassRequestDto(PickupVerificationMethod VerificationMethod, string VerificationNote, string? GateNote, string RowVersion);
+public sealed record RecordFalseExitIncidentRequestDto(string Reason, string RowVersion);
 
 public static class GatePassValidationRules
 {
@@ -86,6 +87,19 @@ public sealed record SecurityGatePassDetailDto(
     string RowVersion);
 
 public sealed record GatePassHistoryDto(IReadOnlyList<TransitionDto> Transitions, IReadOnlyList<NotificationDeliveryDto> Deliveries);
+public sealed record ManagerGatePassAuditItemDto(
+    int Id,
+    string StudentNumber,
+    string StudentDisplayName,
+    string ClassLabel,
+    DateTimeOffset RequestedAt,
+    DateTimeOffset RequestedExitAt,
+    DateTimeOffset? ApprovedWindowStartsAt,
+    DateTimeOffset? ApprovedWindowEndsAt,
+    GatePassStatus Status,
+    DateTimeOffset LastTransitionAt,
+    bool IsOverdue,
+    string RowVersion);
 
 public sealed record CreateGatePassCommand(CreateGatePassRequestDto Request, string IdempotencyKey) : IRequest<ApiResponse<GatePassDto>>;
 public sealed record GetMyGatePassesQuery(GatePassListQuery Query) : IRequest<ApiResponse<PagedResult<GatePassDto>>>;
@@ -100,3 +114,5 @@ public sealed record AcknowledgeGatePassByTeacherCommand(int GatePassId, Acknowl
 public sealed record AcknowledgeGatePassBySecurityCommand(int GatePassId, AcknowledgeGatePassRequestDto Request) : IRequest<ApiResponse<SecurityGatePassDetailDto>>;
 public sealed record ExecuteGatePassCommand(int GatePassId, ExecuteGatePassRequestDto Request) : IRequest<ApiResponse<SecurityGatePassDetailDto>>;
 public sealed record GetGatePassHistoryQuery(int GatePassId) : IRequest<ApiResponse<GatePassHistoryDto>>;
+public sealed record GetManagerGatePassAuditQuery(GatePassListQuery Query) : IRequest<ApiResponse<PagedResult<ManagerGatePassAuditItemDto>>>;
+public sealed record RecordFalseExitIncidentCommand(int GatePassId, RecordFalseExitIncidentRequestDto Request) : IRequest<ApiResponse<GatePassDto>>;

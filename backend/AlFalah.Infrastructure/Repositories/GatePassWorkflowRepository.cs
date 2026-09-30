@@ -488,6 +488,59 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
         };
     }
 
+    public async Task<PagedResult<ManagerGatePassAuditItemDto>> GetManagerAuditAsync(
+        int schoolId,
+        GatePassListQuery query,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var page = query.PageNumber <= 0 ? 1 : query.PageNumber;
+        var pageSize = Math.Clamp(query.PageSize <= 0 ? 20 : query.PageSize, 1, 100);
+        var dbQuery = _context.GatePasses.AsNoTracking()
+            .Where(gatePass => gatePass.SchoolId == schoolId && !gatePass.IsDeleted);
+        if (query.Status.HasValue) dbQuery = dbQuery.Where(gatePass => gatePass.Status == query.Status.Value);
+        if (query.ClassroomId.HasValue) dbQuery = dbQuery.Where(gatePass => gatePass.CurrentClassroomId == query.ClassroomId.Value);
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim();
+            dbQuery = dbQuery.Where(gatePass => gatePass.Student.StudentNumber.Contains(search)
+                || gatePass.Student.FirstName.Contains(search)
+                || gatePass.Student.LastName.Contains(search));
+        }
+
+        var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+        var items = await dbQuery
+            .OrderByDescending(gatePass => gatePass.RequestedExitAt)
+            .ThenByDescending(gatePass => gatePass.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(gatePass => new ManagerGatePassAuditItemDto(
+                gatePass.Id,
+                gatePass.Student.StudentNumber,
+                (gatePass.Student.FirstName + " " + (gatePass.Student.MiddleName ?? string.Empty) + " " + gatePass.Student.LastName).Trim(),
+                gatePass.CurrentClassroom == null ? string.Empty : gatePass.CurrentClassroom.ClassLabel,
+                gatePass.RequestedAt,
+                gatePass.RequestedExitAt,
+                gatePass.ApprovedWindowStartsAt,
+                gatePass.ApprovedWindowEndsAt,
+                gatePass.Status,
+                gatePass.Transitions.OrderByDescending(transition => transition.OccurredAt)
+                    .Select(transition => transition.OccurredAt).FirstOrDefault(),
+                (gatePass.Status == GatePassStatus.Approved || gatePass.Status == GatePassStatus.SecurityAcknowledged)
+                    && gatePass.ApprovedWindowEndsAt != null && gatePass.ApprovedWindowEndsAt <= now,
+                Convert.ToBase64String(gatePass.RowVersion)))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResult<ManagerGatePassAuditItemDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
     public async Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(
         int schoolId,
         string guardianUserId,

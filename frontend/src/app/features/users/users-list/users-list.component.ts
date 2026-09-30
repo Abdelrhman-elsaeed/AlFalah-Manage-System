@@ -115,7 +115,11 @@ export class UsersListComponent implements OnInit {
       : [{ label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' as PhaseTwoRole }]),
     { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' as PhaseTwoRole },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
-    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' },
+    { label: 'مسؤول شؤون الطلاب', value: 'StudentAffairsOfficer' },
+    { label: 'الأخصائي الاجتماعي', value: 'SocialWorker' },
+    { label: 'حارس الأمن', value: 'SecurityGuard' },
+    { label: 'ولي أمر', value: 'Guardian' }
   ]);
 
   /** The "everyone" tab filters across every staff role, Secretary included. */
@@ -123,7 +127,11 @@ export class UsersListComponent implements OnInit {
     { label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
     { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' },
-    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' },
+    { label: 'مسؤول شؤون الطلاب', value: 'StudentAffairsOfficer' },
+    { label: 'الأخصائي الاجتماعي', value: 'SocialWorker' },
+    { label: 'حارس الأمن', value: 'SecurityGuard' },
+    { label: 'ولي أمر', value: 'Guardian' }
   ];
 
   readonly isActiveOptions = [
@@ -231,7 +239,7 @@ export class UsersListComponent implements OnInit {
     }).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          this.toast.success(this.translate.instant('COMMON.SUCCESS'), response.message || this.translate.instant('USERS.ASSIGN_SUCCESS'));
+          this.toast.success(this.translate.instant('COMMON.SUCCESS'), `${response.message || this.translate.instant('USERS.ASSIGN_SUCCESS')} يجب على المستخدم المستهدف تسجيل الدخول من جديد.`);
           this.assignDialogVisible.set(false);
           this.loadUsers();
         }

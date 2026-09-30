@@ -368,6 +368,9 @@ export class ShellComponent implements OnInit {
     if (roles.includes('SchoolManager'))
       items.push(
         { labelKey: 'الإشراف على شؤون الطلاب', icon: 'pi pi-chart-line', route: '/student-affairs/oversight', permissions: ['StudentAffairsDashboard.SchoolOversight'] },
+        { labelKey: 'إدارة الساعات المكتبية', icon: 'pi pi-clock', route: '/student-affairs/office-hours/manage', permissions: ['OfficeHours.ManageSchool'] },
+        { labelKey: 'تدقيق استئذانات الخروج', icon: 'pi pi-sign-out', route: '/student-affairs/gate-passes/audit', permissions: ['GatePass.ViewAudit'] },
+        { labelKey: 'تدقيق المراسلات', icon: 'pi pi-envelope', route: '/student-affairs/messaging-audit', permissions: ['Messaging.ViewAudit'] },
         { labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/school-manager/evidence-matrix' }
       );
     else if (roles.includes('Moderator'))

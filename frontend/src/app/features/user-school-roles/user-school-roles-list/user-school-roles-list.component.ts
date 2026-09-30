@@ -58,7 +58,11 @@ export class UserSchoolRolesListComponent implements OnInit {
       : [{ label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' as PhaseTwoRole }]),
     { label: 'السكرتير', value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
-    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' },
+    { label: 'مسؤول شؤون الطلاب', value: 'StudentAffairsOfficer' },
+    { label: 'الأخصائي الاجتماعي', value: 'SocialWorker' },
+    { label: 'حارس الأمن', value: 'SecurityGuard' },
+    { label: 'ولي أمر', value: 'Guardian' }
   ];
 
   createVisible = signal(false);
@@ -147,7 +151,7 @@ export class UserSchoolRolesListComponent implements OnInit {
         if (response.isSuccess) {
           this.toast.success(
             this.translate.instant('COMMON.SUCCESS'),
-            response.message || this.translate.instant('USER_SCHOOL_ROLES.CREATE_SUCCESS'));
+            `${response.message || this.translate.instant('USER_SCHOOL_ROLES.CREATE_SUCCESS')} يجب على المستخدم المستهدف تسجيل الدخول من جديد.`);
           this.createVisible.set(false);
           this.load();
         }
@@ -173,7 +177,7 @@ export class UserSchoolRolesListComponent implements OnInit {
         if (response.isSuccess) {
           this.toast.success(
             this.translate.instant('COMMON.SUCCESS'),
-            response.message || this.translate.instant('USER_SCHOOL_ROLES.REMOVE_SUCCESS'));
+            `${response.message || this.translate.instant('USER_SCHOOL_ROLES.REMOVE_SUCCESS')} يجب على المستخدم المستهدف تسجيل الدخول من جديد.`);
           this.load();
         }
       }

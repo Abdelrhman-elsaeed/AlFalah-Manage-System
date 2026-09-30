@@ -40,7 +40,10 @@ describe('Student Affairs role workspace routes', () => {
     ['student-affairs/social-worker', 'SocialWorker', 'Referral.View'],
     ['student-affairs/teacher', 'Instructor', 'StudentAffairsDashboard.Teacher'],
     ['student-affairs/attendance/sheet', 'Secretary', 'Attendance.ViewStudents'],
-    ['student-affairs/oversight', 'SchoolManager', 'StudentAffairsDashboard.SchoolOversight']
+    ['student-affairs/oversight', 'SchoolManager', 'StudentAffairsDashboard.SchoolOversight'],
+    ['student-affairs/office-hours/manage', 'SchoolManager', 'OfficeHours.ManageSchool'],
+    ['student-affairs/gate-passes/audit', 'SchoolManager', 'GatePass.ViewAudit'],
+    ['student-affairs/messaging-audit', 'SchoolManager', 'Messaging.ViewAudit']
   ] as const;
 
   for (const [path, role, permission] of matrix) {

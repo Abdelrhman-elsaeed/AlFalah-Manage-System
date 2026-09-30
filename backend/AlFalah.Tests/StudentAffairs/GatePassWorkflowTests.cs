@@ -1066,6 +1066,9 @@ public sealed class GatePassWorkflowTests
         public Task<PagedResult<GatePassDto>> GetGatePassesAsync(int schoolId, GatePassListQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<GatePassDto>());
 
+        public Task<PagedResult<ManagerGatePassAuditItemDto>> GetManagerAuditAsync(int schoolId, GatePassListQuery query, DateTimeOffset now, CancellationToken cancellationToken) =>
+            Task.FromResult(new PagedResult<ManagerGatePassAuditItemDto>());
+
         public Task<PagedResult<GatePassDto>> GetMyGatePassesAsync(int schoolId, string guardianUserId, GatePassListQuery query, CancellationToken cancellationToken) =>
             Task.FromResult(new PagedResult<GatePassDto>());
 

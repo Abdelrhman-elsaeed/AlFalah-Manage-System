@@ -18,6 +18,13 @@ public sealed class ConversationsController : StudentAffairsControllerBase
         return FromResponse(await Mediator.Send(new GetConversationsQuery(query), cancellationToken));
     }
 
+    [HttpGet("audit")]
+    public async Task<IActionResult> Audit([FromQuery] MessagingAuditQuery query, CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.MessagingViewAudit)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetMessagingAuditQuery(query), cancellationToken));
+    }
+
     [HttpGet("recipient-options/teachers")]
     public async Task<IActionResult> TeacherOptions([FromQuery] int studentId, CancellationToken cancellationToken)
     {

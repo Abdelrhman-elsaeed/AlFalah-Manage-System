@@ -74,7 +74,25 @@ export interface GatePassListQuery {
   readonly pageSize: number;
   readonly sortBy?: string;
   readonly sortDirection?: 'asc' | 'desc';
+  readonly search?: string;
 }
+
+export interface ManagerGatePassAuditItemDto {
+  readonly id: number;
+  readonly studentNumber: string;
+  readonly studentDisplayName: string;
+  readonly classLabel: string;
+  readonly requestedAt: string;
+  readonly requestedExitAt: string;
+  readonly approvedWindowStartsAt: string | null;
+  readonly approvedWindowEndsAt: string | null;
+  readonly status: GatePassStatus;
+  readonly lastTransitionAt: string;
+  readonly isOverdue: boolean;
+  readonly rowVersion: string;
+}
+export interface RecordFalseExitIncidentRequestDto { readonly reason: string; readonly rowVersion: string; }
+export type ManagerGatePassAuditPage = PagedResult<ManagerGatePassAuditItemDto>;
 
 export interface CreateGatePassRequestDto {
   readonly studentId: number;

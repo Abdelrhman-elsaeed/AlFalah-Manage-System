@@ -844,6 +844,30 @@ export const routes: Routes = [
           .then(m => m.OfficerDashboardComponent),
         title: 'الإشراف المدرسي'
       },
+      {
+        path: 'student-affairs/office-hours/manage',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SchoolManager'], permissions: ['OfficeHours.ManageSchool'] },
+        loadComponent: () => import('./features/student-affairs/manager-office-hours/manager-office-hours.component')
+          .then(m => m.ManagerOfficeHoursComponent),
+        title: 'إدارة الساعات المكتبية'
+      },
+      {
+        path: 'student-affairs/gate-passes/audit',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SchoolManager'], permissions: ['GatePass.ViewAudit'] },
+        loadComponent: () => import('./features/student-affairs/manager-gate-pass-audit/manager-gate-pass-audit.component')
+          .then(m => m.ManagerGatePassAuditComponent),
+        title: 'تدقيق استئذانات الخروج'
+      },
+      {
+        path: 'student-affairs/messaging-audit',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SchoolManager'], permissions: ['Messaging.ViewAudit'] },
+        loadComponent: () => import('./features/student-affairs/manager-messaging-audit/manager-messaging-audit.component')
+          .then(m => m.ManagerMessagingAuditComponent),
+        title: 'تدقيق المراسلات'
+      },
 
       // Access is school-scoped and assigned dynamically by the school manager.
       {

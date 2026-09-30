@@ -42,6 +42,8 @@ public abstract class StudentAffairsControllerBase : ControllerBase
                 || normalized.Contains("concurrency", StringComparison.Ordinal)
                 || normalized.Contains("stale", StringComparison.Ordinal)
                 || normalized.Contains("state conflict", StringComparison.Ordinal)
+                || normalized.Contains("current state", StringComparison.Ordinal)
+                || normalized.Contains("already cancelled", StringComparison.Ordinal)
                 || normalized.Contains("idempotency", StringComparison.Ordinal)
                 ? StatusCodes.Status409Conflict
                 : normalized.Contains("authenticated", StringComparison.Ordinal)
