@@ -100,6 +100,7 @@
               tooltipPosition="left">
               <i [class]="item.icon" class="shell-sidebar__icon"></i>
               <span class="shell-sidebar__label">{{ item.labelKey | translate }}</span>
+              <span *ngIf="navBadge(item) as badge" class="shell-sidebar__badge shell-sidebar__badge--messages" [attr.aria-label]="badgeAriaLabel(item, badge)">{{ badge > 99 ? '99+' : badge }}</span>
             </a>
           </li>
         </ul>
@@ -121,6 +122,7 @@
               <i [class]="category.icon" class="shell-sidebar__category-icon"></i>
               <span class="shell-sidebar__category-label">{{ category.labelKey | translate }}</span>
             </span>
+            <span *ngIf="!isCategoryExpanded(category) && categoryMessageBadge(category) as badge" class="shell-sidebar__badge shell-sidebar__badge--messages" [attr.aria-label]="badge + ' رسائل غير مقروءة'">{{ badge > 99 ? '99+' : badge }}</span>
             <i class="pi pi-angle-down shell-sidebar__category-chevron" aria-hidden="true"></i>
           </button>
 
@@ -138,7 +140,7 @@
                 tooltipPosition="left">
                 <i [class]="item.icon" class="shell-sidebar__icon"></i>
                 <span class="shell-sidebar__label">{{ item.labelKey | translate }}</span>
-                <span *ngIf="navBadge(item) as badge" class="shell-sidebar__badge" [attr.aria-label]="badge + ' إشعارات غير مقروءة'">{{ badge }}</span>
+                <span *ngIf="navBadge(item) as badge" class="shell-sidebar__badge" [class.shell-sidebar__badge--messages]="item.route === '/student-affairs/messages'" [attr.aria-label]="badgeAriaLabel(item, badge)">{{ badge > 99 ? '99+' : badge }}</span>
               </a>
             </li>
           </ul>

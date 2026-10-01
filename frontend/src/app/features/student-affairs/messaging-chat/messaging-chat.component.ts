@@ -27,6 +27,7 @@ import { Phase5Service } from '../../../core/services/phase5.service';
 import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { MessagingUnreadService } from '../../../core/services/messaging-unread.service';
 
 interface ConversationRecipientOption {
   readonly key: string;
@@ -36,6 +37,13 @@ interface ConversationRecipientOption {
   readonly staffUserId: string | null;
   readonly staffRole: string | null;
   readonly guardianProfileId: number | null;
+}
+
+interface MessageReceiptView {
+  readonly label: string;
+  readonly time: string | null;
+  readonly icon: string;
+  readonly tone: 'pending' | 'delivered' | 'read' | 'failed';
 }
 
 @Component({
@@ -51,6 +59,7 @@ export class MessagingChatComponent implements OnInit {
   private readonly directoryApi = inject(DailyOperationsService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly messagingUnread = inject(MessagingUnreadService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly conversations = signal<readonly ConversationDto[]>([]);
@@ -58,6 +67,7 @@ export class MessagingChatComponent implements OnInit {
   readonly loadingInbox = signal(true);
   readonly inboxError = signal('');
   readonly unreadOnly = signal(false);
+  readonly compactViewport = signal(typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches);
   readonly conversationSearch = new FormControl('', { nonNullable: true });
   private readonly conversationSearchTerm = signal('');
   readonly filteredConversations = computed(() => {
@@ -105,6 +115,7 @@ export class MessagingChatComponent implements OnInit {
     'نرجو تأكيد استلام الرسالة، ويمكنكم الرد هنا مباشرة عند وجود أي استفسار.'
   ] as const;
   private pendingCreateAttempt: { readonly fingerprint: string; readonly key: string } | null = null;
+  private readonly markingRead = new Set<number>();
 
   get currentUserId(): string { return this.auth.currentUser()?.userId ?? ''; }
   get canClose(): boolean { return this.auth.hasPermission('Messaging.CloseThread'); }
@@ -127,6 +138,7 @@ export class MessagingChatComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.watchViewport();
     this.loadInbox();
     this.conversationSearch.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(value => this.conversationSearchTerm.set(value));
@@ -138,7 +150,10 @@ export class MessagingChatComponent implements OnInit {
       }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(response => {
-      if (response.isSuccess && response.data) this.mergeMessages(response.data.items);
+      if (response.isSuccess && response.data) {
+        this.mergeMessages(response.data.items);
+        this.markRenderedRead();
+      }
     });
     if (typeof window !== 'undefined') {
       fromEvent(window, 'focus').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.revalidateOpenThread());
@@ -158,7 +173,7 @@ export class MessagingChatComponent implements OnInit {
           const latest = response.data.items.find(item => item.id === selectedId);
           if (latest) this.selected.set(latest);
           else if (response.data.items.length) this.selectConversation(response.data.items[0]);
-        } else if (response.data.items.length) {
+        } else if (response.data.items.length && !this.compactViewport()) {
           this.selectConversation(response.data.items[0]);
         }
       },
@@ -337,6 +352,12 @@ export class MessagingChatComponent implements OnInit {
     });
   }
 
+  backToInbox(): void {
+    this.selected.set(null);
+    this.messages.set([]);
+    this.sendError.set('');
+  }
+
   loadOlder(): void {
     const thread = this.selected();
     const oldest = this.messages()[0];
@@ -412,7 +433,35 @@ export class MessagingChatComponent implements OnInit {
       : null);
   }
   threadTypeLabel(type: ConversationDto['threadType']): string { return ({ GuardianTeacher: 'ولي الأمر والمعلم', GuardianStudentAffairs: 'ولي الأمر وشؤون الطلاب', GuardianSocialWorker: 'ولي الأمر والموجه الطلابي' })[type]; }
-  deliveryLabel(state: ConversationMessageDto['deliveryState']): string { return ({ Pending: 'قيد الانتظار', Delivered: 'تم التسليم', Failed: 'تعذر التسليم' })[state]; }
+  receiptView(message: ConversationMessageDto): MessageReceiptView {
+    const receipts = message.receipts ?? [];
+    if (!receipts.length) {
+      return message.deliveryState === 'Delivered'
+        ? { label: 'تم الاستلام', time: null, icon: 'pi pi-check-circle', tone: 'delivered' }
+        : message.deliveryState === 'Failed'
+          ? { label: 'تعذر التسليم', time: null, icon: 'pi pi-exclamation-circle', tone: 'failed' }
+          : { label: 'قيد الانتظار', time: null, icon: 'pi pi-clock', tone: 'pending' };
+    }
+
+    const read = receipts.filter(receipt => !!receipt.readAt);
+    const delivered = receipts.filter(receipt => !!receipt.deliveredAt || !!receipt.readAt);
+    if (read.length === receipts.length) {
+      return { label: 'تمت القراءة', time: this.latestTimestamp(read.map(receipt => receipt.readAt)), icon: 'pi pi-check-circle', tone: 'read' };
+    }
+    if (read.length) {
+      return { label: `قرأها ${read.length} من ${receipts.length}`, time: this.latestTimestamp(read.map(receipt => receipt.readAt)), icon: 'pi pi-check-circle', tone: 'read' };
+    }
+    if (delivered.length === receipts.length) {
+      return { label: 'تم الاستلام', time: this.latestTimestamp(delivered.map(receipt => receipt.deliveredAt)), icon: 'pi pi-check', tone: 'delivered' };
+    }
+    if (delivered.length) {
+      return { label: `تم استلامها لدى ${delivered.length} من ${receipts.length}`, time: this.latestTimestamp(delivered.map(receipt => receipt.deliveredAt)), icon: 'pi pi-check', tone: 'delivered' };
+    }
+    if (receipts.every(receipt => receipt.status === 'Failed')) {
+      return { label: 'تعذر التسليم', time: null, icon: 'pi pi-exclamation-circle', tone: 'failed' };
+    }
+    return { label: 'قيد الانتظار', time: null, icon: 'pi pi-clock', tone: 'pending' };
+  }
   formatDateTime(value: string | null): string {
     if (!value) return '—';
     const date = new Date(value);
@@ -484,8 +533,31 @@ export class MessagingChatComponent implements OnInit {
   private markRenderedRead(): void {
     const thread = this.selected();
     const highest = this.messages().at(-1)?.id;
-    if (!thread || highest === undefined) return;
-    this.api.markConversationRead(thread.id, { throughMessageId: highest }).subscribe({ next: response => { if (response.isSuccess) this.acceptConversationUpdate({ ...thread, unreadCount: 0 }); } });
+    if (!thread || highest === undefined || this.markingRead.has(thread.id)) return;
+    this.markingRead.add(thread.id);
+    this.api.markConversationRead(thread.id, { throughMessageId: highest }).pipe(
+      finalize(() => this.markingRead.delete(thread.id))
+    ).subscribe({ next: response => {
+      if (!response.isSuccess) return;
+      this.messagingUnread.markThreadRead(thread.unreadCount);
+      this.acceptConversationUpdate({ ...thread, unreadCount: 0 });
+      this.messagingUnread.refresh();
+    } });
+  }
+  private watchViewport(): void {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 860px)');
+    const update = (event: MediaQueryListEvent): void => {
+      this.compactViewport.set(event.matches);
+      if (!event.matches && !this.selected() && this.conversations().length) this.selectConversation(this.conversations()[0]);
+    };
+    media.addEventListener('change', update);
+    this.destroyRef.onDestroy(() => media.removeEventListener('change', update));
+  }
+  private latestTimestamp(values: readonly (string | null)[]): string | null {
+    const valid = values.filter((value): value is string => !!value);
+    if (!valid.length) return null;
+    return valid.reduce((latest, value) => new Date(value).getTime() > new Date(latest).getTime() ? value : latest);
   }
   private httpMessage(error: unknown, fallback: string): string { return extractHttpErrorMessage(error) ?? fallback; }
 }

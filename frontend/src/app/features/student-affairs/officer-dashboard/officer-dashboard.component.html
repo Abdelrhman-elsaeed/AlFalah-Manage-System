@@ -12,8 +12,37 @@
   <section *ngIf="!loading() && errorMessage()" class="state-card state-card--error" role="alert"><div class="state-card__icon"><i class="pi pi-exclamation-triangle"></i></div><h2>تعذر تحميل اللوحة</h2><p>{{ errorMessage() }}</p><button type="button" class="danger-action" (click)="load()"><i class="pi pi-refresh"></i>إعادة المحاولة</button></section>
 
   <ng-container *ngIf="!loading() && !errorMessage() && officerDashboard() as officer">
-    <section class="overview-grid"><article class="metric-card metric-card--info"><span class="metric-card__icon"><i class="pi pi-inbox"></i></span><span class="metric-card__copy"><span>إجمالي طوابير العمل</span><strong>{{ totalCounts(officer.queues) }}</strong><small>عناصر تحتاج متابعة</small></span></article><article class="metric-card metric-card--warning"><span class="metric-card__icon"><i class="pi pi-bell"></i></span><span class="metric-card__copy"><span>تنبيهات الحدود</span><strong>{{ totalCounts(officer.thresholdAlerts) }}</strong><small>حسب السياسة الفعالة</small></span></article></section>
-    <section class="workspace-grid"><article class="surface-panel"><div class="section-heading"><div><span class="section-kicker">مسار العمل</span><h2>طوابير تتطلب الإجراء</h2><p>ابدأ بالأعلى أثرًا ثم انتقل إلى بقية الملفات.</p></div></div><div class="queue-grid"><a *ngFor="let count of officer.queues" [routerLink]="queueRoute(count.code)" class="queue-card"><span class="queue-card__icon"><i class="pi pi-arrow-up-left"></i></span><span><strong>{{ count.label || count.code }}</strong><small>فتح الطابور</small></span><b>{{ count.count }}</b></a><div *ngIf="officer.queues.length === 0" class="empty-note"><i class="pi pi-check-circle"></i><strong>لا توجد عناصر معلقة</strong><span>كل طوابير العمل تحت السيطرة.</span></div></div></article><aside class="surface-panel"><div class="section-heading"><div><span class="section-kicker">مراقبة مبكرة</span><h2>تنبيهات الحدود</h2></div></div><div class="compact-list"><article *ngFor="let count of officer.thresholdAlerts"><span><strong>{{ count.label || count.code }}</strong><small>{{ count.severity }}</small></span><b>{{ count.count }}</b></article><div *ngIf="officer.thresholdAlerts.length === 0" class="empty-note"><i class="pi pi-shield"></i><span>لا توجد تنبيهات حاليًا.</span></div></div></aside></section>
+    <section class="overview-grid officer-overview" aria-label="ملخص التشغيل">
+      <article class="metric-card metric-card--danger" [class.metric-card--quiet]="totalCounts(officer.queues) === 0"><span class="metric-card__icon"><i class="pi pi-inbox"></i></span><span class="metric-card__copy"><span>إجراءات مفتوحة</span><strong>{{ totalCounts(officer.queues) }}</strong><small>{{ totalCounts(officer.queues) ? 'عنصر يحتاج قرارًا أو متابعة' : 'لا توجد أعمال معلقة' }}</small></span></article>
+      <article class="metric-card metric-card--warning" [class.metric-card--quiet]="activeQueueCount(officer.queues) === 0"><span class="metric-card__icon"><i class="pi pi-bolt"></i></span><span class="metric-card__copy"><span>مسارات نشطة</span><strong>{{ activeQueueCount(officer.queues) }}</strong><small>من أصل {{ officer.queues.length }} مسارات تشغيلية</small></span></article>
+      <article class="metric-card metric-card--purple" [class.metric-card--quiet]="queueCount(officer.queues, 'UnreadOfficerThreads') === 0"><span class="metric-card__icon"><i class="pi pi-comments"></i></span><span class="metric-card__copy"><span>رسائل جديدة</span><strong>{{ queueCount(officer.queues, 'UnreadOfficerThreads') }}</strong><small>محادثات لم تُراجع بعد</small></span></article>
+      <article class="metric-card metric-card--success"><span class="metric-card__icon"><i class="pi pi-check-circle"></i></span><span class="metric-card__copy"><span>مسارات مكتملة</span><strong>{{ clearedQueueCount(officer.queues) }}</strong><small>لا تنتظر إجراءً حاليًا</small></span></article>
+    </section>
+
+    <section class="attention-banner" [class.attention-banner--clear]="activeQueueCount(officer.queues) === 0">
+      <span class="attention-banner__icon"><i class="pi" [ngClass]="activeQueueCount(officer.queues) ? 'pi-bell' : 'pi-check'"></i></span>
+      <div><strong>{{ activeQueueCount(officer.queues) ? 'لديك أعمال تحتاج الانتباه الآن' : 'كل المسارات التشغيلية تحت السيطرة' }}</strong><p>{{ activeQueueCount(officer.queues) ? 'العناصر الملوّنة مرتبة حسب الأولوية؛ الجديد وغير المسند يظهران أولًا.' : 'ستظهر هنا أي رسالة جديدة أو معاملة غير مكتملة فور وصولها.' }}</p></div>
+      <span class="attention-banner__count">{{ activeQueueCount(officer.queues) }}</span>
+    </section>
+
+    <section class="officer-workspace-grid">
+      <article class="surface-panel queue-panel">
+        <div class="section-heading"><div><span class="section-kicker">مركز الإجراء</span><h2>ما الذي يحتاج عملًا؟</h2><p>الألوان تعبّر عن الحالة الفعلية: جديد، غير مكتمل، ينتظر الإجراء، أو مكتمل.</p></div><span class="status-pill"><i class="pi pi-sync"></i>بيانات مباشرة</span></div>
+        <div class="queue-grid">
+          <a *ngFor="let count of prioritizedQueues(officer.queues)" [routerLink]="queueRoute(count.code)" class="queue-card" [ngClass]="'queue-card--' + queueState(count)" [attr.data-state]="queueState(count)">
+            <span class="queue-card__icon"><i class="pi" [ngClass]="queueIcon(count.code)"></i></span>
+            <span class="queue-card__copy"><span class="queue-card__state"><i class="pi" [ngClass]="queueState(count) === 'complete' ? 'pi-check-circle' : 'pi-circle-fill'"></i>{{ queueStateLabel(count) }}</span><strong>{{ count.label || count.code }}</strong><small>{{ count.count ? 'اضغط لفتح قائمة العمل ومتابعتها' : 'لا يوجد إجراء مطلوب الآن' }}</small></span>
+            <span class="queue-card__value"><b>{{ count.count }}</b><i class="pi pi-arrow-up-left"></i></span>
+          </a>
+          <div *ngIf="officer.queues.length === 0" class="empty-note"><i class="pi pi-check-circle"></i><strong>لا توجد عناصر معلقة</strong><span>كل طوابير العمل تحت السيطرة.</span></div>
+        </div>
+      </article>
+
+      <aside class="officer-side-stack">
+        <section class="surface-panel priority-legend"><div class="section-heading"><div><span class="section-kicker">دليل الحالة</span><h2>اقرأ اللوحة بسرعة</h2></div></div><div class="legend-list"><span class="legend-item legend-item--new"><i class="pi pi-comments"></i><b>جديد</b><small>رسالة لم تُقرأ</small></span><span class="legend-item legend-item--incomplete"><i class="pi pi-user-plus"></i><b>غير مكتمل</b><small>إحالة بلا مسؤول</small></span><span class="legend-item legend-item--attention"><i class="pi pi-clock"></i><b>ينتظر الإجراء</b><small>قرار أو اعتماد مطلوب</small></span><span class="legend-item legend-item--complete"><i class="pi pi-check-circle"></i><b>مكتمل</b><small>لا توجد عناصر معلقة</small></span></div></section>
+        <section class="surface-panel"><div class="section-heading"><div><span class="section-kicker">مراقبة مبكرة</span><h2>تنبيهات الحدود</h2></div></div><div class="compact-list"><article *ngFor="let count of officer.thresholdAlerts"><span><strong>{{ count.label || count.code }}</strong><small>{{ count.severity }}</small></span><b>{{ count.count }}</b></article><div *ngIf="officer.thresholdAlerts.length === 0" class="empty-note empty-note--compact"><i class="pi pi-shield"></i><strong>لا توجد تنبيهات حدود</strong><span>لا توجد أنماط تجاوزت السياسة الفعالة حاليًا.</span></div></div></section>
+      </aside>
+    </section>
   </ng-container>
 
   <ng-container *ngIf="!loading() && !errorMessage() && oversightDashboard() as oversight">

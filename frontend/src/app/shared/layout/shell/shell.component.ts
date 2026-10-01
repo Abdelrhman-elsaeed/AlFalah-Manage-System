@@ -9,6 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { GuardianSelfServiceService } from '../../../core/services/guardian-self-service.service';
 import { StudentAnalyzerService } from '../../../core/services/student-analyzer.service';
 import { VisitsV2Service } from '../../../core/services/visits-v2.service';
+import { MessagingUnreadService } from '../../../core/services/messaging-unread.service';
 import { roleLandingFor } from '../../../core/utils/role-landing';
 import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 
@@ -283,13 +284,6 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         requireAllPermissions: true
       },
       {
-        labelKey: 'دليل استخدام الميزات',
-        icon: 'pi pi-compass',
-        route: '/student-affairs/officer/guide',
-        roles: ['StudentAffairsOfficer'],
-        permissions: ['StudentAffairsDashboard.Officer']
-      },
-      {
         labelKey: 'استدعاءات أولياء الأمور',
         icon: 'pi pi-calendar-clock',
         route: '/student-affairs/summons',
@@ -310,6 +304,13 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         route: '/student-affairs/messages',
         roles: ['Guardian', 'StudentAffairsOfficer', 'SocialWorker'],
         permissions: ['Messaging.ViewOwn']
+      },
+      {
+        labelKey: 'دليل استخدام الميزات',
+        icon: 'pi pi-compass',
+        route: '/student-affairs/officer/guide',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['StudentAffairsDashboard.Officer']
       }
     ]
   },
@@ -376,6 +377,7 @@ export class ShellComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly studentAnalyzer = inject(StudentAnalyzerService);
   private readonly visitsV2 = inject(VisitsV2Service);
+  private readonly messagingUnreadService = inject(MessagingUnreadService);
   private readonly sidebarStorageKey = 'alfalah-shell-sidebar-collapsed';
 
   /** Stable references so `routerLinkActiveOptions` isn't a fresh object per CD pass. */
@@ -389,7 +391,9 @@ export class ShellComponent implements OnInit {
   readonly visitsV2Enabled = signal(false);
   readonly ksaTime = signal<string>('');
   readonly guardianUnreadNotifications = this.guardianSelfService.unreadNotifications;
+  readonly unreadMessages = this.messagingUnreadService.count;
   private clockInterval: ReturnType<typeof setInterval> | null = null;
+  private messageUnreadInterval: ReturnType<typeof setInterval> | null = null;
 
   private readonly categories = SHELL_NAV_CATEGORIES;
 
@@ -471,8 +475,12 @@ export class ShellComponent implements OnInit {
     this.updateKsaTime();
     if (typeof window !== 'undefined') {
       this.clockInterval = setInterval(() => this.updateKsaTime(), 1000);
+      this.messageUnreadInterval = setInterval(() => {
+        if (document.visibilityState === 'visible') this.refreshMessagingUnread();
+      }, 30_000);
       this.destroyRef.onDestroy(() => {
         if (this.clockInterval) clearInterval(this.clockInterval);
+        if (this.messageUnreadInterval) clearInterval(this.messageUnreadInterval);
       });
     }
 
@@ -481,6 +489,7 @@ export class ShellComponent implements OnInit {
       error: () => this.hasStudentAnalyzerAccess.set(false)
     });
     this.refreshGuardianUnread();
+    this.refreshMessagingUnread();
     this.expandActiveCategory(this.router.url);
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -488,12 +497,25 @@ export class ShellComponent implements OnInit {
     ).subscribe(event => {
       this.expandActiveCategory(event.urlAfterRedirects);
       this.refreshGuardianUnread();
+      this.refreshMessagingUnread();
     });
   }
 
   navBadge(item: NavItem): number | null {
-    return item.route === '/student-affairs/guardian/notifications'
-      ? this.guardianUnreadNotifications() || null
+    if (item.route === '/student-affairs/guardian/notifications') return this.guardianUnreadNotifications() || null;
+    if (item.route === '/student-affairs/messages') return this.unreadMessages() || null;
+    return null;
+  }
+
+  badgeAriaLabel(item: NavItem, badge: number): string {
+    return item.route === '/student-affairs/messages'
+      ? `${badge} رسائل غير مقروءة`
+      : `${badge} إشعارات غير مقروءة`;
+  }
+
+  categoryMessageBadge(category: NavCategory): number | null {
+    return category.items.some(item => item.route === '/student-affairs/messages')
+      ? this.unreadMessages() || null
       : null;
   }
 
@@ -515,6 +537,14 @@ export class ShellComponent implements OnInit {
   private refreshGuardianUnread(): void {
     if (!this.authService.hasRole('Guardian') || !this.authService.hasPermission('Notification.ViewOwn')) return;
     this.guardianSelfService.unreadCount().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
+  }
+
+  private refreshMessagingUnread(): void {
+    if (!this.authService.hasPermission('Messaging.ViewOwn')) {
+      this.messagingUnreadService.reset();
+      return;
+    }
+    this.messagingUnreadService.refresh();
   }
 
   toggleSidebar(): void {

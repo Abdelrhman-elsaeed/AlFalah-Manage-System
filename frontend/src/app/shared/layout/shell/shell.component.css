@@ -473,6 +473,22 @@
   background: #dc2626;
   border-radius: 999px;
 }
+.shell-sidebar__badge--messages {
+  color: #3b2600;
+  background: linear-gradient(145deg, #ffe993, #f3bd32);
+  border: 2px solid rgba(255, 255, 255, .3);
+  box-shadow: 0 0 0 3px rgba(243, 189, 50, .14), 0 5px 12px rgba(0, 0, 0, .18);
+  animation: unreadBadgePulse 2.4s ease-in-out infinite;
+}
+
+@keyframes unreadBadgePulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px rgba(243, 189, 50, .12), 0 5px 12px rgba(0, 0, 0, .18); }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 5px rgba(243, 189, 50, .05), 0 6px 14px rgba(0, 0, 0, .2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-sidebar__badge--messages { animation: none; }
+}
 
 /* Icon-only rail */
 .shell-sidebar.is-collapsed .shell-sidebar__label,

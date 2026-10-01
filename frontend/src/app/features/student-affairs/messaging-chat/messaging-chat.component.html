@@ -1,7 +1,7 @@
 <main class="messages-page" dir="rtl">
   <header class="page-header"><div><span class="eyebrow"><i class="pi pi-shield"></i> التواصل المدرسي الآمن</span><h1>مركز الرسائل</h1><p>كل محادثات الطلاب في مساحة هادئة، مع تحديث تلقائي وحالة تسليم واضحة.</p></div><div class="header-actions"><div class="message-metrics"><span><strong>{{ openCount() }}</strong> مفتوحة</span><span [class.has-unread]="unreadCount() > 0"><strong>{{ unreadCount() }}</strong> غير مقروءة</span></div><button pButton type="button" label="تحديث" icon="pi pi-refresh" class="p-button-outlined" [loading]="loadingInbox()" (click)="loadInbox()"></button></div></header>
 
-  <section class="chat-shell">
+  <section class="chat-shell" [class.has-selection]="!!selected()" [class.is-compact]="compactViewport()">
     <aside class="inbox" aria-label="صندوق المحادثات">
       <header><div><h2>صندوق المحادثات</h2><span>{{ totalRecords() }}</span></div><button pButton type="button" [label]="unreadOnly() ? 'عرض الكل' : 'غير المقروءة'" [icon]="unreadOnly() ? 'pi pi-list' : 'pi pi-envelope'" class="p-button-text" size="small" (click)="unreadOnly.set(!unreadOnly()); loadInbox()"></button></header>
       @if (canStartConversation) {
@@ -19,7 +19,7 @@
     <section class="conversation" aria-live="polite">
       @if (!selected()) { <div class="conversation-empty"><span class="empty-illustration"><i class="pi pi-comments"></i></span><h2>ابدأ من صندوق المحادثات</h2><p>اختر محادثة لمراجعة السياق والرد، أو أنشئ محادثة جديدة من القائمة الجانبية.</p><div class="privacy-note"><i class="pi pi-lock"></i> المحادثات لا تظهر إلا للمشاركين المصرح لهم</div></div> }
       @else { @if (selected(); as thread) {
-        <header class="conversation-header"><div><h2>{{ thread.subject }}</h2><span>{{ thread.student.displayName }} · {{ threadTypeLabel(thread.threadType) }}</span><small>{{ thread.participants.length }} مشاركين: @for (participant of thread.participants; track participant.userId) { {{ participant.displayName }}@if (!$last) {، } }</small></div><div><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : 'مغلقة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag>@if (canClose && thread.status === 'Open') { <button pButton type="button" label="إغلاق" icon="pi pi-lock" size="small" class="p-button-outlined" (click)="openCloseDialog()"></button> }</div></header>
+        <header class="conversation-header"><button *ngIf="compactViewport()" type="button" class="mobile-back" aria-label="العودة إلى صندوق المحادثات" (click)="backToInbox()"><i class="pi pi-arrow-right"></i></button><div><h2>{{ thread.subject }}</h2><span>{{ thread.student.displayName }} · {{ threadTypeLabel(thread.threadType) }}</span><small>{{ thread.participants.length }} مشاركين: @for (participant of thread.participants; track participant.userId) { {{ participant.displayName }}@if (!$last) {، } }</small></div><div><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : 'مغلقة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag>@if (canClose && thread.status === 'Open') { <button pButton type="button" label="إغلاق" icon="pi pi-lock" size="small" class="p-button-outlined" (click)="openCloseDialog()"></button> }</div></header>
         <div class="conversation-context" aria-label="سياق المحادثة">
           <span><i class="pi pi-user"></i><b>{{ thread.student.displayName }}</b></span>
           <span><i class="pi pi-id-card"></i><bdi dir="ltr">{{ thread.student.studentNumber }}</bdi></span>
@@ -34,7 +34,9 @@
               <article class="message" [class.mine]="isMine(message)">
                 <div class="message-head"><strong>{{ message.sender.displayName }}</strong><time><bdi dir="ltr">{{ formatDateTime(message.createdAt) }}</bdi></time></div>
                 <p dir="auto">{{ message.body }}</p>
-                <footer><span [class.pending]="message.deliveryState === 'Pending'"><i [class]="message.deliveryState === 'Delivered' ? 'pi pi-check-circle' : message.deliveryState === 'Pending' ? 'pi pi-clock' : 'pi pi-exclamation-circle'"></i>{{ deliveryLabel(message.deliveryState) }}</span></footer>
+                @if (isMine(message) && receiptView(message); as receipt) {
+                  <footer><span class="receipt-status" [class]="'receipt-status receipt-status--' + receipt.tone"><i [class]="receipt.icon"></i>{{ receipt.label }}@if (receipt.time) { <time><bdi dir="ltr">{{ formatDateTime(receipt.time) }}</bdi></time> }</span></footer>
+                }
                 @if (queuedResult(message); as result) {
                   @if (result.disposition === 'QueuedUntilOfficeHours') { <div class="queued-warning" role="status"><p-tag value="مجدولة للساعات المكتبية" severity="warning"></p-tag><strong>{{ result.nextEligibleSendAt ? 'سيتم التنبيه في أقرب ساعة مكتبية: ' + formatDateTime(result.nextEligibleSendAt) : 'تنتظر الرسالة تهيئة ساعات مكتبية صالحة' }}</strong><span>الرسالة محفوظة وقيد الانتظار، وليست «تم التسليم».</span></div> }
                   @else if (result.disposition === 'BypassedForUrgency') { <div class="urgent-warning"><i class="pi pi-bolt"></i><span>أُرسلت كحالة عاجلة (مسجلة للتدقيق)</span></div> }

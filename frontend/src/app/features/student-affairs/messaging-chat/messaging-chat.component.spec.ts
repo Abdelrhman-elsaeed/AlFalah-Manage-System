@@ -3,7 +3,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
 import { ClassroomPage, StudentStatsPage } from '../../../core/models/daily-operations.models';
-import { ConversationDto } from '../../../core/models/phase5.models';
+import { ConversationDto, ConversationMessageDto } from '../../../core/models/phase5.models';
 import { GuardianStudentDto } from '../../../core/models/student-affairs-dashboard.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
@@ -115,6 +115,29 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
       targetStaffRole: null,
       targetStaffUserId: null
     }));
+  });
+
+  it('derives delivered and read labels from receipt timestamps, not from a cosmetic message flag', () => {
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+    const base = {
+      id: 11,
+      conversationId: 2,
+      sender: { userId: 'guardian-1', displayName: 'ولي الأمر', roleSnapshot: 'Guardian' },
+      body: 'رسالة متابعة',
+      replyToMessageId: null,
+      createdAt: '2026-09-30T08:00:00Z',
+      deliveryState: 'Delivered',
+      disposition: 'SentImmediately',
+      nextEligibleSendAt: null
+    } as const;
+
+    const delivered = component.receiptView({ ...base, receipts: [{ recipientLabel: 'شؤون الطلاب', recipientRole: 'StudentAffairsOfficer', status: 'Delivered', deliveredAt: '2026-09-30T08:01:00Z', readAt: null }] } as ConversationMessageDto);
+    const read = component.receiptView({ ...base, receipts: [{ recipientLabel: 'شؤون الطلاب', recipientRole: 'StudentAffairsOfficer', status: 'Delivered', deliveredAt: '2026-09-30T08:01:00Z', readAt: '2026-09-30T08:03:00Z' }] } as ConversationMessageDto);
+
+    expect(delivered.label).toBe('تم الاستلام');
+    expect(delivered.time).toBe('2026-09-30T08:01:00Z');
+    expect(read.label).toBe('تمت القراءة');
+    expect(read.time).toBe('2026-09-30T08:03:00Z');
   });
 });
 

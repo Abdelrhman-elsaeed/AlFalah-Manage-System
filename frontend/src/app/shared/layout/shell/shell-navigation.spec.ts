@@ -76,6 +76,7 @@ describe('shell Phase 5 navigation', () => {
     expect(guide?.roles).toEqual(['StudentAffairsOfficer']);
     expect(guide?.permissions).toEqual(['StudentAffairsDashboard.Officer']);
     expect(guide?.icon).toBe('pi pi-compass');
+    expect(administration?.items.at(-1)?.route).toBe('/student-affairs/officer/guide');
   });
 });
 

@@ -65,10 +65,16 @@ test.describe('Messaging send regression', () => {
 
     const session = await openRoleSession(browser, 'officer');
     const page = session.page;
+    let guardianSession: Awaited<ReturnType<typeof openRoleSession>> | null = null;
     let loadEvents = 0;
     page.on('load', () => loadEvents += 1);
 
     try {
+      await page.goto('/student-affairs/officer');
+      const unreadSidebarBadge = page.locator('.shell-sidebar__badge--messages').first();
+      await expect(unreadSidebarBadge).toBeVisible();
+      expect(Number(await unreadSidebarBadge.textContent())).toBeGreaterThan(0);
+
       await page.goto('/student-affairs/messages');
       await expect(page.getByRole('heading', { name: 'مركز الرسائل' })).toBeVisible();
       await expect(page.getByText('متابعة انتظام الطالب', { exact: true }).first()).toBeVisible();
@@ -90,7 +96,22 @@ test.describe('Messaging send regression', () => {
       expect(loadEvents, 'the composer triggered a full document reload').toBe(baselineLoads);
       await expect(page.getByText(reply, { exact: true })).toBeVisible();
       await expect(draft).toHaveValue('');
+
+      guardianSession = await openRoleSession(browser, 'guardian');
+      const readPromise = guardianSession.page.waitForResponse(response =>
+        response.request().method() === 'POST'
+        && /\/api\/v1\/conversations\/\d+\/read(?:\?|$)/.test(response.url())
+      );
+      await guardianSession.page.goto('/student-affairs/messages');
+      await expect(guardianSession.page.getByText(reply, { exact: true })).toBeVisible();
+      await readPromise;
+
+      await page.reload();
+      const sentMessage = page.locator('article.message').filter({ hasText: reply });
+      await expect(sentMessage.locator('.receipt-status')).toContainText('تمت القراءة');
+      await expect(sentMessage.locator('.receipt-status time')).toBeVisible();
     } finally {
+      await guardianSession?.context.close();
       await session.context.close();
       await guardian.dispose();
     }

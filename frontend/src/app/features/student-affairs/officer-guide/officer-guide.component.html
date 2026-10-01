@@ -4,14 +4,18 @@
     <div class="journey-map" aria-label="دورة عمل شؤون الطلاب"><div><span>1</span><strong>التقاط الواقعة</strong><small>حضور · سلوك · طلب</small></div><i class="pi pi-arrow-left"></i><div><span>2</span><strong>المراجعة والقرار</strong><small>تحقق · اعتماد · إسناد</small></div><i class="pi pi-arrow-left"></i><div><span>3</span><strong>المتابعة والتواصل</strong><small>رسالة · تنفيذ · تدقيق</small></div></div>
   </header>
 
-  <section class="guide-intro"><div><span>11</span><p><strong>ميزة إدارية</strong><small>موثقة في هذا الدليل</small></p></div><div><i class="pi pi-lightbulb"></i><p><strong>ابدأ من لوحة المتابعة</strong><small>ثم اتبع الأولوية بدل التنقل العشوائي بين القوائم.</small></p></div></section>
+  <section class="guide-intro"><div><span>11</span><p><strong>ميزة إدارية</strong><small>موثقة من عقود العمل الفعلية</small></p></div><div><i class="pi pi-lightbulb"></i><p><strong>ابدأ من لوحة المتابعة</strong><small>ثم اتبع الأولوية بدل التنقل العشوائي بين القوائم.</small></p></div></section>
+
+  <section class="golden-rules" aria-label="قواعد الاستخدام الآمن"><article><i class="pi pi-search"></i><div><strong>راجع قبل القرار</strong><span>الاسم، الفصل، التاريخ، الحالة، والمرفق أو السبب.</span></div></article><article><i class="pi pi-pencil"></i><div><strong>اكتب سببًا مفهومًا</strong><span>السبب يصبح جزءًا من سجل التدقيق لمن يستكمل العمل.</span></div></article><article><i class="pi pi-check-circle"></i><div><strong>تحقق من النتيجة</strong><span>راقب تغير الحالة والعداد وحالة التسليم؛ لا تفترض النجاح.</span></div></article></section>
 
   <section class="feature-grid">
     @for (feature of features; track feature.number) {
       <article class="feature-card" [attr.data-tone]="feature.tone">
         <header><span class="feature-icon"><i class="pi" [ngClass]="feature.icon"></i></span><b>{{ feature.number }}</b></header>
         <h2>{{ feature.title }}</h2><p class="benefit">{{ feature.benefit }}</p>
-        <div class="steps"><span>طريقة الاستخدام</span><ol>@for (step of feature.steps; track step) { <li><i>{{ $index + 1 }}</i><span>{{ step }}</span></li> }</ol></div>
+        <div class="use-when"><i class="pi pi-clock"></i><p><strong>متى تستخدمها؟</strong><span>{{ feature.useWhen }}</span></p></div>
+        <div class="steps"><span>الترتيب الصحيح</span><ol>@for (step of feature.steps; track step) { <li><i>{{ $index + 1 }}</i><span>{{ step }}</span></li> }</ol></div>
+        <details class="feature-details"><summary><span><i class="pi pi-info-circle"></i> قبل البدء والنتيجة المتوقعة</span><i class="pi pi-chevron-down"></i></summary><div><section><strong>قبل البدء</strong><ul>@for (item of feature.before; track item) { <li>{{ item }}</li> }</ul></section><section class="expected-result"><strong>ما الذي يحدث بعد التنفيذ؟</strong><p>{{ feature.result }}</p></section><section class="watch-out"><strong><i class="pi pi-exclamation-triangle"></i> انتبه</strong><p>{{ feature.watch }}</p></section></div></details>
         <a [routerLink]="feature.route"><span>{{ feature.action }}</span><i class="pi pi-arrow-left"></i></a>
       </article>
     }

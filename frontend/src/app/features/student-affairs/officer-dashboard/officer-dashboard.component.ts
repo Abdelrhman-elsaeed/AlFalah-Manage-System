@@ -89,6 +89,53 @@ export class OfficerDashboardComponent {
     return counts.reduce((sum, item) => sum + item.count, 0);
   }
 
+  activeQueueCount(counts: readonly DashboardCountDto[]): number {
+    return counts.filter(item => item.count > 0).length;
+  }
+
+  clearedQueueCount(counts: readonly DashboardCountDto[]): number {
+    return counts.filter(item => item.count === 0).length;
+  }
+
+  queueCount(counts: readonly DashboardCountDto[], code: string): number {
+    return counts.find(item => item.code === code)?.count ?? 0;
+  }
+
+  prioritizedQueues(counts: readonly DashboardCountDto[]): readonly DashboardCountDto[] {
+    const rank = (item: DashboardCountDto): number => {
+      if (item.count === 0) return 4;
+      if (item.code === 'UnreadOfficerThreads') return 0;
+      if (item.code === 'UnassignedReferrals') return 1;
+      return 2;
+    };
+    return [...counts].sort((left, right) => rank(left) - rank(right) || right.count - left.count);
+  }
+
+  queueState(count: DashboardCountDto): 'new' | 'incomplete' | 'attention' | 'complete' {
+    if (count.count === 0) return 'complete';
+    if (count.code === 'UnreadOfficerThreads') return 'new';
+    if (count.code === 'UnassignedReferrals') return 'incomplete';
+    return 'attention';
+  }
+
+  queueStateLabel(count: DashboardCountDto): string {
+    return ({ new: 'جديد', incomplete: 'غير مكتمل', attention: 'ينتظر الإجراء', complete: 'مكتمل' })[this.queueState(count)];
+  }
+
+  queueIcon(code: string): string {
+    return ({
+      PendingExcuses: 'pi-file-edit',
+      RequestedGatePasses: 'pi-ticket',
+      ActiveEntryPermits: 'pi-id-card',
+      PendingBehaviorNotices: 'pi-exclamation-circle',
+      PendingAcademicNotices: 'pi-book',
+      OpenReferrals: 'pi-share-alt',
+      UnassignedReferrals: 'pi-user-plus',
+      AutomationReviews: 'pi-history',
+      UnreadOfficerThreads: 'pi-comments'
+    } as Record<string, string>)[code] ?? 'pi-inbox';
+  }
+
   classroomRate(row: { present: number; absent: number; absentExcused: number }): number {
     const total = row.present + row.absent + row.absentExcused;
     return total === 0 ? 0 : Math.round((row.present / total) * 100);
