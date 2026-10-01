@@ -9,7 +9,7 @@ import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { Observable, interval } from 'rxjs';
+import { Observable, catchError, forkJoin, interval, of } from 'rxjs';
 import {
   DashboardRole,
   DashboardRoleCode,
@@ -22,6 +22,9 @@ import {
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { DashboardService, downloadDashboardBlob } from '../../../core/services/dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
+import { GatePassService } from '../../../core/services/gate-pass.service';
+import { Phase5Service } from '../../../core/services/phase5.service';
 import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
 import {
   PUBLISHED_MAXIMUM,
@@ -94,6 +97,24 @@ interface ManagerSummary {
   attentionCount: number;
 }
 
+interface ManagerOperationsSnapshot {
+  attendanceTotal: number | null;
+  attendanceRate: number | null;
+  instructors: number | null;
+  gatePasses: number | null;
+  conversations: number | null;
+}
+
+interface ManagerOperationsCard {
+  label: string;
+  description: string;
+  value: string | number;
+  meta: string;
+  icon: string;
+  route: string;
+  tone: 'green' | 'gold' | 'blue' | 'purple';
+}
+
 @Component({
   selector: 'app-dashboard-live',
   standalone: true,
@@ -111,10 +132,15 @@ export class DashboardLiveComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly studentAffairs = inject(StudentAffairsDashboardService);
+  private readonly gatePasses = inject(GatePassService);
+  private readonly phase5 = inject(Phase5Service);
 
   readonly data = signal<DashboardData | null>(null);
   readonly loading = signal(false);
   readonly exporting = signal<'excel' | 'pdf' | null>(null);
+  readonly managerOperationsLoading = signal(false);
+  readonly managerOperations = signal<ManagerOperationsSnapshot | null>(null);
 
   get currentDateLabel(): string {
     const locale = this.translate.currentLang === 'en' ? 'en-SA' : 'ar-SA';
@@ -507,6 +533,41 @@ export class DashboardLiveComponent implements OnInit {
     ];
   });
 
+  readonly managerStudentAffairsTools = computed<ManagerOperationsCard[]>(() => {
+    if (this.role !== 'school-manager') return [];
+    const snapshot = this.managerOperations();
+    return [
+      {
+        label: 'الإشراف المدرسي',
+        description: 'الحضور والحالات على مستوى المدرسة',
+        value: snapshot?.attendanceRate == null ? '—' : `${snapshot.attendanceRate}٪`,
+        meta: snapshot?.attendanceTotal == null ? 'بيانات اليوم' : `${snapshot.attendanceTotal} طالبًا مرصودًا`,
+        icon: 'pi-chart-line', route: '/student-affairs/oversight', tone: 'green'
+      },
+      {
+        label: 'الساعات المكتبية',
+        description: 'اعتماد الفترات والتجاوزات الموثقة',
+        value: snapshot?.instructors ?? '—',
+        meta: 'معلم نشط',
+        icon: 'pi-clock', route: '/student-affairs/office-hours/manage', tone: 'gold'
+      },
+      {
+        label: 'تدقيق الخروج',
+        description: 'مراجعة الرحلة والإجراءات الاستثنائية',
+        value: snapshot?.gatePasses ?? '—',
+        meta: 'سجل استئذان',
+        icon: 'pi-sign-out', route: '/student-affairs/gate-passes/audit', tone: 'blue'
+      },
+      {
+        label: 'تدقيق المراسلات',
+        description: 'مراقبة وصفية تحافظ على الخصوصية',
+        value: snapshot?.conversations ?? '—',
+        meta: 'مسار تواصل',
+        icon: 'pi-envelope', route: '/student-affairs/messaging-audit', tone: 'purple'
+      }
+    ];
+  });
+
   readonly statusChartData = computed<ChartData<'doughnut'> | null>(() => {
     const rows = this.statusRows();
     if (rows.length === 0) return null;
@@ -606,9 +667,42 @@ export class DashboardLiveComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.loadManagerOperations();
     interval(60_000)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.load());
+      .subscribe(() => {
+        this.load();
+        this.loadManagerOperations();
+      });
+  }
+
+  loadManagerOperations(): void {
+    if (this.role !== 'school-manager' || this.managerOperationsLoading()) return;
+    this.managerOperationsLoading.set(true);
+    forkJoin({
+      oversight: this.studentAffairs.getSchoolOversightDashboard().pipe(catchError(() => of(null))),
+      instructors: this.phase5.getSchoolInstructorOptions().pipe(catchError(() => of(null))),
+      gatePasses: this.gatePasses.managerAudit({ pageNumber: 1, pageSize: 1 }).pipe(catchError(() => of(null))),
+      conversations: this.phase5.getMessagingAudit({ pageNumber: 1, pageSize: 1, sortDirection: 'desc' }).pipe(catchError(() => of(null)))
+    }).subscribe({
+      next: result => {
+        const oversight = result.oversight?.isSuccess ? result.oversight.data : null;
+        const attendanceTotal = oversight
+          ? oversight.present + oversight.absent + oversight.absentExcused
+          : null;
+        this.managerOperations.set({
+          attendanceTotal,
+          attendanceRate: oversight && attendanceTotal
+            ? Math.round((oversight.present / attendanceTotal) * 100)
+            : oversight ? 0 : null,
+          instructors: result.instructors?.isSuccess ? result.instructors.data?.length ?? 0 : null,
+          gatePasses: result.gatePasses?.isSuccess ? result.gatePasses.data?.totalCount ?? 0 : null,
+          conversations: result.conversations?.isSuccess ? result.conversations.data?.totalCount ?? 0 : null
+        });
+        this.managerOperationsLoading.set(false);
+      },
+      error: () => this.managerOperationsLoading.set(false)
+    });
   }
 
   load(): void {

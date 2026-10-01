@@ -30,6 +30,14 @@ public class GlobalExceptionMiddleware
         {
             await _next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // The client disconnected (for example, a browser navigation closed an in-flight
+            // request). This is not an application fault and must not be reported as a 500.
+            _logger.LogDebug("Request was canceled by the client");
+            if (!context.Response.HasStarted)
+                context.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);

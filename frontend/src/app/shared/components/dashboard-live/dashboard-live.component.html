@@ -164,6 +164,33 @@
         </section>
       </ng-container>
 
+      <section class="student-affairs-command" aria-labelledby="student-affairs-command-title">
+        <div class="student-affairs-command__header">
+          <div>
+            <span class="section-kicker"><i class="pi pi-shield"></i>تشغيل المدرسة اليومي</span>
+            <h2 id="student-affairs-command-title">مركز عمليات شؤون الطلاب</h2>
+            <p>الإشراف والتدقيق والقرارات الإدارية الجديدة في مساحة واحدة، مع مؤشرات حية وروابط مباشرة.</p>
+          </div>
+          <button type="button" class="student-affairs-command__refresh" [disabled]="managerOperationsLoading()" (click)="loadManagerOperations()">
+            <i class="pi" [ngClass]="managerOperationsLoading() ? 'pi-spin pi-spinner' : 'pi-refresh'"></i>
+            تحديث المؤشرات
+          </button>
+        </div>
+        <div class="student-affairs-command__grid">
+          <button
+            type="button"
+            *ngFor="let tool of managerStudentAffairsTools(); let i = index"
+            class="operations-card"
+            [ngClass]="'operations-card--' + tool.tone"
+            [style.animation-delay.ms]="i * 70"
+            (click)="navigateTo(tool.route)">
+            <span class="operations-card__top"><span class="operations-card__icon"><i class="pi" [ngClass]="tool.icon"></i></span><i class="pi pi-arrow-up-left operations-card__arrow"></i></span>
+            <span class="operations-card__copy"><strong>{{ tool.label }}</strong><small>{{ tool.description }}</small></span>
+            <span class="operations-card__metric"><strong>{{ tool.value }}</strong><small>{{ tool.meta }}</small></span>
+          </button>
+        </div>
+      </section>
+
       <!-- ── Interactive Tools Hub ── -->
       <section class="tools-hub">
         <div class="tools-hub__header">

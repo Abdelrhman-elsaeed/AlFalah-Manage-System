@@ -97,7 +97,9 @@ public sealed class StudentAffairsNotificationDispatcher
 
         summon.GuardianNotifiedAt = now;
         summon.UpdatedAt = now;
-        summon.UpdatedByUserId = "system:student-affairs-outbox";
+        // Audit columns are foreign keys to Users. Preserve the real actor captured in the
+        // immutable domain event instead of writing a synthetic identifier that cannot exist.
+        summon.UpdatedByUserId = domainEvent.ActorUserId;
     }
 
     private async Task MessageReleasedAsync(MessageReleaseDueEvent domainEvent, CancellationToken cancellationToken)

@@ -131,7 +131,8 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             foreach (var slot in configuration.Slots.Where(item => item.IsActive && !item.IsDeleted))
             {
                 if (eligible.TryGetValue((ToDayOfWeek(slot.Day), slot.Period ?? 0), out var replacement)
-                    && replacement.StartsAt == slot.LocalStartTime && replacement.EndsAt == slot.LocalEndTime)
+                    && (slot.Period.HasValue
+                        || (replacement.StartsAt == slot.LocalStartTime && replacement.EndsAt == slot.LocalEndTime)))
                 {
                     slot.StableSlotKey = replacement.StableKey;
                     slot.SchoolTimetableId = replacement.SchoolTimetableId;
@@ -239,6 +240,39 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
                         && !link.IsDeleted
                         && link.ValidFrom <= localDate
                         && (link.ValidTo == null || link.ValidTo >= localDate))),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        var isOfficerGuardianStart = request.ThreadType == ConversationThreadType.GuardianStudentAffairs
+            && request.TargetGuardianProfileId.HasValue
+            && string.IsNullOrWhiteSpace(request.TargetStaffUserId)
+            && string.IsNullOrWhiteSpace(request.TargetStaffRole)
+            && request.TargetInstructorProfileId is null;
+        if (isOfficerGuardianStart)
+        {
+            return await _context.UserSchoolRoles.AsNoTracking().AnyAsync(assignment =>
+                assignment.SchoolId == schoolId
+                && assignment.UserId == creatorUserId
+                && assignment.User.IsActive
+                && assignment.IsActive
+                && !assignment.IsDeleted
+                && assignment.Role.Name == RoleNames.StudentAffairsOfficer
+                && _context.StudentGuardians.Any(link => link.SchoolId == schoolId
+                    && link.StudentId == request.StudentId
+                    && link.GuardianProfileId == request.TargetGuardianProfileId.GetValueOrDefault()
+                    && !link.IsDeleted
+                    && link.ValidFrom <= localDate
+                    && (link.ValidTo == null || link.ValidTo >= localDate)
+                    && link.Student.IsActive
+                    && !link.Student.IsDeleted
+                    && link.Student.Enrollments.Any(enrollment => enrollment.SchoolId == schoolId
+                        && enrollment.Status == StudentEnrollmentStatus.Active
+                        && !enrollment.IsDeleted
+                        && enrollment.EnrolledOn <= localDate
+                        && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= localDate))
+                    && link.GuardianProfile.IsActive
+                    && !link.GuardianProfile.IsDeleted
+                    && link.GuardianProfile.ApplicationUser.IsActive),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -639,6 +673,40 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             .ToArray();
     }
 
+    public async Task<IReadOnlyList<StudentGuardianOptionDto>> GetStudentGuardianOptionsAsync(
+        int schoolId,
+        int studentId,
+        DateTimeOffset instant,
+        CancellationToken cancellationToken)
+    {
+        var localDate = DateOnly.FromDateTime(instant.UtcDateTime);
+        return await _context.StudentGuardians.AsNoTracking()
+            .Where(link => link.SchoolId == schoolId
+                && link.StudentId == studentId
+                && !link.IsDeleted
+                && link.ValidFrom <= localDate
+                && (link.ValidTo == null || link.ValidTo >= localDate)
+                && link.Student.IsActive
+                && !link.Student.IsDeleted
+                && link.Student.Enrollments.Any(enrollment => enrollment.SchoolId == schoolId
+                    && enrollment.Status == StudentEnrollmentStatus.Active
+                    && !enrollment.IsDeleted
+                    && enrollment.EnrolledOn <= localDate
+                    && (enrollment.WithdrawnOn == null || enrollment.WithdrawnOn >= localDate))
+                && link.GuardianProfile.IsActive
+                && !link.GuardianProfile.IsDeleted
+                && link.GuardianProfile.ApplicationUser.IsActive)
+            .OrderByDescending(link => link.IsPrimary)
+            .ThenBy(link => link.GuardianProfile.ApplicationUser.FirstName)
+            .Select(link => new StudentGuardianOptionDto(
+                link.GuardianProfileId,
+                (link.GuardianProfile.ApplicationUser.FirstName + " "
+                    + link.GuardianProfile.ApplicationUser.LastName).Trim(),
+                link.RelationshipType.ToString(),
+                link.IsPrimary))
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<ConversationDto?> GetConversationByIdAsync(
         int schoolId,
         string userId,
@@ -860,7 +928,12 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             && request.ReferralId.HasValue
             && request.TargetGuardianProfileId.HasValue
             && string.IsNullOrWhiteSpace(request.TargetStaffUserId);
-        if (socialWorkerInitiatedCase)
+        var officerInitiatedGuardian = request.ThreadType == ConversationThreadType.GuardianStudentAffairs
+            && request.TargetGuardianProfileId.HasValue
+            && string.IsNullOrWhiteSpace(request.TargetStaffUserId)
+            && string.IsNullOrWhiteSpace(request.TargetStaffRole)
+            && request.TargetInstructorProfileId is null;
+        if (socialWorkerInitiatedCase || officerInitiatedGuardian)
         {
             targetUserId = await _context.GuardianProfiles.AsNoTracking()
                 .Where(profile => profile.Id == request.TargetGuardianProfileId!.Value
@@ -945,7 +1018,9 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         {
             SchoolId = schoolId,
             ApplicationUserId = creatorUserId,
-            ParticipantRoleSnapshot = socialWorkerInitiatedCase ? RoleNames.SocialWorker : RoleNames.Guardian,
+            ParticipantRoleSnapshot = socialWorkerInitiatedCase
+                ? RoleNames.SocialWorker
+                : officerInitiatedGuardian ? RoleNames.StudentAffairsOfficer : RoleNames.Guardian,
             JoinedAt = now,
             CreatedByUserId = creatorUserId,
             CreatedAt = now,
@@ -957,7 +1032,7 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             {
                 SchoolId = schoolId,
                 ApplicationUserId = targetUserId,
-                ParticipantRoleSnapshot = socialWorkerInitiatedCase
+                ParticipantRoleSnapshot = socialWorkerInitiatedCase || officerInitiatedGuardian
                     ? RoleNames.Guardian
                     : request.TargetStaffRole ?? RoleNames.Instructor,
                 JoinedAt = now,
@@ -1503,8 +1578,10 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
                 BellScheduleRevisionId = slot.BellScheduleRevisionId,
                 Day = ToTimetableDay(slot.DayOfWeek),
                 Period = slot.PeriodSequence,
-                LocalStartTime = slot.StartsAt,
-                LocalEndTime = slot.EndsAt,
+                // Bell-period selections use Period; explicit clock ranges use LocalStart/End.
+                // Populating both violates CK_TeacherOfficeHours_TimeShape.
+                LocalStartTime = null,
+                LocalEndTime = null,
                 Source = source,
                 EffectiveFrom = effectiveFrom,
                 IsActive = true,
@@ -1514,6 +1591,26 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
                 UpdatedByUserId = actorUserId
             });
         }
+
+        // SQL Server is free to order an INSERT before an UPDATE inside one SaveChanges call.
+        // Persist the old row leaving the filtered unique "current" index first, while the
+        // surrounding transaction keeps the version replacement atomic.
+        if (existing is not null)
+        {
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                throw new InvalidOperationException("The office-hours configuration was modified by another user", exception);
+            }
+            catch (DbUpdateException exception)
+            {
+                throw new InvalidOperationException("The office-hours configuration was modified concurrently", exception);
+            }
+        }
+
         _context.TeacherOfficeHourConfigurations.Add(configuration);
         try
         {

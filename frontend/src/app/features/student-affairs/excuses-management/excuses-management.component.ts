@@ -14,6 +14,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { finalize } from 'rxjs';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import {
   AbsenceExcuseDto,
@@ -210,14 +211,17 @@ export class ExcusesManagementComponent implements OnDestroy {
   }
 
   loadOfficerQueue(event?: TableLazyLoadEvent): void {
+    if (this.queueLoading()) return;
     const pageSize = event?.rows ?? this.queuePageSize();
     const pageNumber = Math.floor((event?.first ?? 0) / pageSize) + 1;
     this.queuePageSize.set(pageSize);
     this.queueLoading.set(true);
     this.queueError.set('');
-    this.api.getPendingExcuses(pageNumber, pageSize).subscribe({
+    this.api.getPendingExcuses(pageNumber, pageSize).pipe(
+      finalize(() => this.queueLoading.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: response => {
-        this.queueLoading.set(false);
         if (!response.isSuccess || !response.data) {
           this.queueError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل قائمة الأعذار.');
           return;
@@ -226,7 +230,6 @@ export class ExcusesManagementComponent implements OnDestroy {
         this.queueTotal.set(response.data.totalCount);
       },
       error: error => {
-        this.queueLoading.set(false);
         this.queueError.set(error instanceof Error ? error.message : 'تعذر تحميل قائمة الأعذار.');
       }
     });

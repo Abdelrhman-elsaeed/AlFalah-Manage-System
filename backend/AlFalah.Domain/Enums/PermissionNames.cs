@@ -174,6 +174,7 @@ public static class PermissionNames
     public const string MessagingSend = "Messaging.Send";
     public const string MessagingStartGuardianTeacher = "Messaging.StartGuardianTeacher";
     public const string MessagingStartGuardianAdministration = "Messaging.StartGuardianAdministration";
+    public const string MessagingStartOfficerGuardian = "Messaging.StartOfficerGuardian";
     public const string MessagingCloseThread = "Messaging.CloseThread";
     public const string MessagingViewAudit = "Messaging.ViewAudit";
     public const string OfficeHoursView = "OfficeHours.View";

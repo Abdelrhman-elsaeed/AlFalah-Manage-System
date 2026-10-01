@@ -23,7 +23,7 @@ type DashboardKind = 'officer' | 'oversight';
   standalone: true,
   imports: [CommonModule, RouterLink, ButtonModule, CardModule, ProgressSpinnerModule, TableModule, TagModule],
   templateUrl: './officer-dashboard.component.html',
-  styleUrl: './officer-dashboard.component.css'
+  styleUrls: ['../manager-workspace.css', './officer-dashboard.component.css']
 })
 export class OfficerDashboardComponent {
   private readonly api = inject(StudentAffairsDashboardService);
@@ -74,6 +74,24 @@ export class OfficerDashboardComponent {
   percentage(value: number, dashboard: SchoolOversightDashboardDto): string {
     const total = dashboard.present + dashboard.absent + dashboard.absentExcused;
     return total === 0 ? '—' : `${((value / total) * 100).toFixed(1)}٪`;
+  }
+
+  attendanceTotal(dashboard: SchoolOversightDashboardDto): number {
+    return dashboard.present + dashboard.absent + dashboard.absentExcused;
+  }
+
+  attendanceRate(dashboard: SchoolOversightDashboardDto): number {
+    const total = this.attendanceTotal(dashboard);
+    return total === 0 ? 0 : Math.round((dashboard.present / total) * 100);
+  }
+
+  totalCounts(counts: readonly DashboardCountDto[]): number {
+    return counts.reduce((sum, item) => sum + item.count, 0);
+  }
+
+  classroomRate(row: { present: number; absent: number; absentExcused: number }): number {
+    const total = row.present + row.absent + row.absentExcused;
+    return total === 0 ? 0 : Math.round((row.present / total) * 100);
   }
 
   countSeverity(count: DashboardCountDto): 'success' | 'info' | 'warning' | 'danger' {

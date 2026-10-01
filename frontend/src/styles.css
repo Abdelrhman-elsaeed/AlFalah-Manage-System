@@ -8,6 +8,7 @@
 @import './styles/responsive.css';
 @import './styles/intelligent-timetable.css';
 @import './styles/landing-motion.css';
+@import './styles/manager-student-affairs.css';
 
 @tailwind base;
 @tailwind components;

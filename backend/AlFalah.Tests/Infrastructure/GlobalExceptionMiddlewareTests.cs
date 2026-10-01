@@ -45,6 +45,23 @@ public sealed class GlobalExceptionMiddlewareTests
         json.RootElement.GetProperty("message").GetString().Should().Be(message);
     }
 
+    [Fact]
+    public async Task Client_disconnection_is_not_converted_to_internal_server_error()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var middleware = new GlobalExceptionMiddleware(
+            _ => throw new TaskCanceledException(),
+            NullLogger<GlobalExceptionMiddleware>.Instance);
+        var context = NewContext();
+        context.RequestAborted = cancellation.Token;
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status499ClientClosedRequest);
+        (await ReadBodyAsync(context)).Should().BeEmpty();
+    }
+
     private static DefaultHttpContext NewContext()
     {
         var context = new DefaultHttpContext();

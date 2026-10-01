@@ -37,6 +37,9 @@ public interface IMessagingWorkflowRepository
     Task<IReadOnlyList<GuardianStaffOptionDto>> GetGuardianStaffOptionsAsync(
         int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<StudentGuardianOptionDto>> GetStudentGuardianOptionsAsync(
+        int schoolId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken);
+
     Task<ConversationDto?> GetConversationByIdAsync(
         int schoolId,
         string userId,

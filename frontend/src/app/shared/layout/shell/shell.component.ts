@@ -26,13 +26,48 @@ interface NavItem {
 }
 
 interface NavCategory {
-  id: 'evaluation' | 'people' | 'administration' | 'intelligent-timetable' | 'reports' | 'settings';
+  id: 'student-affairs' | 'evaluation' | 'people' | 'administration' | 'intelligent-timetable' | 'reports' | 'settings';
   labelKey: string;
   icon: string;
   items: NavItem[];
 }
 
 export const SHELL_NAV_CATEGORIES: NavCategory[] = [
+  {
+    id: 'student-affairs',
+    labelKey: 'NAV.CATEGORIES.STUDENT_AFFAIRS',
+    icon: 'pi pi-graduation-cap',
+    items: [
+      {
+        labelKey: 'الإشراف على شؤون الطلاب',
+        icon: 'pi pi-chart-line',
+        route: '/student-affairs/oversight',
+        roles: ['SchoolManager'],
+        permissions: ['StudentAffairsDashboard.SchoolOversight']
+      },
+      {
+        labelKey: 'إدارة الساعات المكتبية',
+        icon: 'pi pi-clock',
+        route: '/student-affairs/office-hours/manage',
+        roles: ['SchoolManager'],
+        permissions: ['OfficeHours.ManageSchool']
+      },
+      {
+        labelKey: 'تدقيق استئذانات الخروج',
+        icon: 'pi pi-sign-out',
+        route: '/student-affairs/gate-passes/audit',
+        roles: ['SchoolManager'],
+        permissions: ['GatePass.ViewAudit']
+      },
+      {
+        labelKey: 'تدقيق المراسلات',
+        icon: 'pi pi-envelope',
+        route: '/student-affairs/messaging-audit',
+        roles: ['SchoolManager'],
+        permissions: ['Messaging.ViewAudit']
+      }
+    ]
+  },
   {
     id: 'evaluation',
     labelKey: 'NAV.CATEGORIES.EVALUATION',
@@ -248,6 +283,13 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         requireAllPermissions: true
       },
       {
+        labelKey: 'دليل استخدام الميزات',
+        icon: 'pi pi-compass',
+        route: '/student-affairs/officer/guide',
+        roles: ['StudentAffairsOfficer'],
+        permissions: ['StudentAffairsDashboard.Officer']
+      },
+      {
         labelKey: 'استدعاءات أولياء الأمور',
         icon: 'pi pi-calendar-clock',
         route: '/student-affairs/summons',
@@ -367,10 +409,6 @@ export class ShellComponent implements OnInit {
     const roles = this.authService.roles();
     if (roles.includes('SchoolManager'))
       items.push(
-        { labelKey: 'الإشراف على شؤون الطلاب', icon: 'pi pi-chart-line', route: '/student-affairs/oversight', permissions: ['StudentAffairsDashboard.SchoolOversight'] },
-        { labelKey: 'إدارة الساعات المكتبية', icon: 'pi pi-clock', route: '/student-affairs/office-hours/manage', permissions: ['OfficeHours.ManageSchool'] },
-        { labelKey: 'تدقيق استئذانات الخروج', icon: 'pi pi-sign-out', route: '/student-affairs/gate-passes/audit', permissions: ['GatePass.ViewAudit'] },
-        { labelKey: 'تدقيق المراسلات', icon: 'pi pi-envelope', route: '/student-affairs/messaging-audit', permissions: ['Messaging.ViewAudit'] },
         { labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/school-manager/evidence-matrix' }
       );
     else if (roles.includes('Moderator'))

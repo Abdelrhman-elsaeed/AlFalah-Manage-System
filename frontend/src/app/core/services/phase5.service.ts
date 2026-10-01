@@ -37,6 +37,7 @@ import {
   SendMessageResultDto,
   StartSummonObservationRequestDto,
   StudentGuardianLinkDto,
+  StudentGuardianOptionDto,
   SummonDto,
   SummonHistoryDto,
   SummonListQuery,
@@ -169,6 +170,9 @@ export class Phase5Service {
   }
   getGuardianStaffOptions(studentId: number): Observable<ApiResponse<readonly GuardianStaffOptionDto[]>> {
     return this.get<readonly GuardianStaffOptionDto[]>(`conversations/recipient-options/staff?studentId=${studentId}`);
+  }
+  getStudentGuardianOptions(studentId: number): Observable<ApiResponse<readonly StudentGuardianOptionDto[]>> {
+    return this.get<readonly StudentGuardianOptionDto[]>(`conversations/recipient-options/guardians?studentId=${studentId}`);
   }
   createConversation(request: CreateConversationRequestDto): Observable<ApiResponse<ConversationDto>> {
     return this.post<ConversationDto>('conversations', request);

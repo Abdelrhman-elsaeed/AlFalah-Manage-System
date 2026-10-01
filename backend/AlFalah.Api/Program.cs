@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using AlFalah.Api.Middlewares;
+using AlFalah.Api.Testing;
 using AlFalah.Infrastructure;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Infrastructure.Data.Seeders;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Http.Features;
 using System.Security.Claims;
 using AlFalah.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +61,21 @@ builder.Services.AddAlFalahDataProtection(builder.Configuration, builder.Environ
 // Infrastructure (EF Core, Identity, services)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-if (builder.Environment.IsDevelopment())
+var isE2E = builder.Environment.IsEnvironment("E2E");
+var isLocalFrontendEnvironment = builder.Environment.IsDevelopment() || isE2E;
+
+if (isE2E)
+{
+    EnsureSafeE2EDatabase(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var clockFile = builder.Configuration["E2E:ClockFile"];
+    if (string.IsNullOrWhiteSpace(clockFile))
+        throw new InvalidOperationException("E2E:ClockFile is required in the E2E environment.");
+
+    builder.Services.AddSingleton<TimeProvider>(new E2EFileTimeProvider(clockFile));
+    builder.Services.AddScoped<E2EIsolationDataSeeder>();
+}
+
+if (isLocalFrontendEnvironment)
 {
     builder.Services.AddScoped<StudentAffairsDataSeeder>();
     builder.Services.AddScoped<IntermediateSchoolTimetableDataSeeder>();
@@ -283,7 +299,7 @@ app.UseSwaggerUI(c =>
 // its CORS preflight requests from the HTTP API to HTTPS causes browsers to
 // reject the request before CORS headers are evaluated. Production remains
 // HTTPS-only; development keeps the HTTP endpoint usable for local integration.
-if (!app.Environment.IsDevelopment())
+if (!isLocalFrontendEnvironment)
 {
     app.UseHttpsRedirection();
 }
@@ -292,7 +308,7 @@ app.UseCors("AlFalahCors");
 // During development Angular is served only by its dev server on port 4200.
 // wwwroot is a generated production artifact, so exposing it here can show a
 // stale frontend and make the two local URLs appear to be different apps.
-if (!app.Environment.IsDevelopment())
+if (!isLocalFrontendEnvironment)
 {
     app.UseDefaultFiles();
     app.UseStaticFiles();
@@ -303,7 +319,7 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
-if (!app.Environment.IsDevelopment())
+if (!isLocalFrontendEnvironment)
 {
     app.MapFallbackToFile("index.html");
 }
@@ -328,13 +344,19 @@ using (var scope = app.Services.CreateScope())
         var rubricV2Seeder = scope.ServiceProvider.GetRequiredService<RubricV2Seeder>();
         await rubricV2Seeder.SeedAsync();
 
-        if (app.Environment.IsDevelopment())
+        if (isLocalFrontendEnvironment)
         {
-            logger.LogInformation("Running development Student Affairs data seeder...");
+            logger.LogInformation("Running local Student Affairs data seeder...");
             var studentAffairsSeeder = scope.ServiceProvider.GetRequiredService<StudentAffairsDataSeeder>();
             await studentAffairsSeeder.SeedAsync();
 
-            logger.LogInformation("Running development intelligent timetable data seeder...");
+            if (isE2E)
+            {
+                var isolationSeeder = scope.ServiceProvider.GetRequiredService<E2EIsolationDataSeeder>();
+                await isolationSeeder.SeedAsync();
+            }
+
+            logger.LogInformation("Running local intelligent timetable data seeder...");
             var timetableSeeder = scope.ServiceProvider.GetRequiredService<IntermediateSchoolTimetableDataSeeder>();
             await timetableSeeder.SeedAsync();
         }
@@ -342,7 +364,30 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred during database migration or seeding.");
+        if (isE2E)
+            throw;
     }
 }
 
 app.Run();
+
+static void EnsureSafeE2EDatabase(string? connectionString)
+{
+    if (string.IsNullOrWhiteSpace(connectionString))
+        throw new InvalidOperationException("An isolated E2E database connection is required.");
+
+    var builder = new SqlConnectionStringBuilder(connectionString);
+    if (string.IsNullOrWhiteSpace(builder.InitialCatalog)
+        || !builder.InitialCatalog.Contains("E2E", StringComparison.OrdinalIgnoreCase))
+    {
+        throw new InvalidOperationException("The E2E database name must contain the marker 'E2E'.");
+    }
+
+    var dataSource = builder.DataSource ?? string.Empty;
+    if (!dataSource.Contains("localdb", StringComparison.OrdinalIgnoreCase)
+        && !dataSource.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+        && !dataSource.Contains("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+    {
+        throw new InvalidOperationException("The E2E database must use a local SQL Server instance.");
+    }
+}

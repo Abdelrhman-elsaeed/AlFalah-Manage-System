@@ -165,6 +165,43 @@ public sealed class Phase5AutomationsAndIntegrationsTests
     }
 
     [Fact]
+    public async Task SummonScheduleNotification_PreservesRealActorForForeignKeyBackedAudit()
+    {
+        await using var context = CreateContext();
+        await SeedAutomationContextAsync(context);
+        var scheduledAt = Now.AddDays(1);
+        context.GuardianSummons.Add(new GuardianSummon
+        {
+            Id = 90,
+            SchoolId = 1,
+            StudentId = 10,
+            AcademicTermId = 20,
+            GuardianProfileId = 40,
+            CreatedReason = "Follow-up",
+            Status = GuardianSummonStatus.Pending,
+            ScheduledAt = scheduledAt,
+            Location = "Student Affairs",
+            CreatedByUserId = "officer",
+            UpdatedByUserId = "officer"
+        });
+        await context.SaveChangesAsync();
+
+        var domainEvent = new GP9jdFE6bJJJBXm548MTsCQvpLk7RqkKB7(
+            Guid.NewGuid(), 90, 10, 1, 20, 40,
+            GuardianSummonStatus.Pending, GuardianSummonStatus.Pending,
+            "Scheduled", "officer", Now, scheduledAt, null, null, null, Now);
+        var dispatcher = new StudentAffairsNotificationDispatcher(context, new FixedTimeProvider(Now));
+
+        await dispatcher.ProcessAsync(domainEvent, CancellationToken.None);
+        await context.SaveChangesAsync();
+
+        var summon = await context.GuardianSummons.SingleAsync(item => item.Id == 90);
+        summon.UpdatedByUserId.Should().Be(domainEvent.ActorUserId);
+        summon.GuardianNotifiedAt.Should().Be(Now);
+        (await context.Notifications.SingleAsync()).UserId.Should().Be("guardian");
+    }
+
+    [Fact]
     public async Task AbsenceRule_UsesDistinctUnexcusedDays_AndTriggersThreeFiveTenActions()
     {
         await using var context = CreateContext();

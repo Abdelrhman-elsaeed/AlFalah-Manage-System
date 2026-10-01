@@ -61,6 +61,11 @@ public sealed record GuardianStaffOptionDto(
     string DisplayName,
     string Role,
     ConversationThreadType ThreadType);
+public sealed record StudentGuardianOptionDto(
+    int GuardianProfileId,
+    string DisplayName,
+    string Relationship,
+    bool IsPrimary);
 
 public sealed record OfficeHourSlotDto(
     string StableKey,
@@ -106,6 +111,7 @@ public sealed record MarkConversationReadCommand(int ConversationId, MarkConvers
 public sealed record CloseConversationCommand(int ConversationId, CloseConversationRequestDto Request) : IRequest<ApiResponse<ConversationDto>>;
 public sealed record GetGuardianTeacherOptionsQuery(int StudentId) : IRequest<ApiResponse<IReadOnlyList<GuardianTeacherOptionDto>>>;
 public sealed record GetGuardianStaffOptionsQuery(int StudentId) : IRequest<ApiResponse<IReadOnlyList<GuardianStaffOptionDto>>>;
+public sealed record GetStudentGuardianOptionsQuery(int StudentId) : IRequest<ApiResponse<IReadOnlyList<StudentGuardianOptionDto>>>;
 public sealed record GetEligibleOfficeHoursQuery : IRequest<ApiResponse<OfficeHoursAggregateDto>>;
 public sealed record GetMyOfficeHoursQuery : IRequest<ApiResponse<OfficeHoursAggregateDto>>;
 public sealed record UpdateMyOfficeHoursCommand(UpdateMyOfficeHoursRequestDto Request) : IRequest<ApiResponse<OfficeHoursAggregateDto>>;

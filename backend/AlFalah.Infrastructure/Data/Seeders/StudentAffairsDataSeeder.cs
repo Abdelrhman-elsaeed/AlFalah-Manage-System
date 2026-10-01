@@ -6,6 +6,7 @@ using AlFalah.Domain.Enums;
 using AlFalah.Domain.Enums.StudentAffairs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace AlFalah.Infrastructure.Data.Seeders;
@@ -16,7 +17,7 @@ namespace AlFalah.Infrastructure.Data.Seeders;
 /// </summary>
 public sealed class StudentAffairsDataSeeder
 {
-    private const string TestPassword = "Test@1234";
+    private const string DefaultDevelopmentPassword = "Test@1234";
     private const string TestSchoolName = "Al-Falah E2E Test School";
     private const string TestSchoolCity = "Cairo";
     private const string TestStudentNumber = "E2E-STUDENT-001";
@@ -41,6 +42,8 @@ public sealed class StudentAffairsDataSeeder
     private readonly TimetableValidationEngine _timetableValidator;
     private readonly TimetableRepairEngine _timetableRepair;
     private readonly ILogger<StudentAffairsDataSeeder> _logger;
+    private readonly string _testPassword;
+    private readonly bool _seedShowcaseData;
 
     public StudentAffairsDataSeeder(
         AlFalahDbContext context,
@@ -50,6 +53,7 @@ public sealed class StudentAffairsDataSeeder
         ITimetableReviewRepository timetableReviewRepository,
         TimetableValidationEngine timetableValidator,
         TimetableRepairEngine timetableRepair,
+        IConfiguration configuration,
         ILogger<StudentAffairsDataSeeder> logger)
     {
         _context = context;
@@ -60,6 +64,8 @@ public sealed class StudentAffairsDataSeeder
         _timetableValidator = timetableValidator;
         _timetableRepair = timetableRepair;
         _logger = logger;
+        _testPassword = configuration["ALFALAH_E2E_PASSWORD"] ?? DefaultDevelopmentPassword;
+        _seedShowcaseData = string.IsNullOrWhiteSpace(configuration["E2E:FixtureFile"]);
     }
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
@@ -125,6 +131,17 @@ public sealed class StudentAffairsDataSeeder
             manager.Id,
             today,
             cancellationToken).ConfigureAwait(false);
+        if (_seedShowcaseData)
+        {
+            await EnsureShowcaseStudentsAsync(
+                school,
+                academicTerm,
+                classroom,
+                users[RoleNames.Guardian],
+                manager.Id,
+                today,
+                cancellationToken).ConfigureAwait(false);
+        }
         await EnsureStudentAffairsSettingsAsync(
             school,
             manager.Id,
@@ -136,6 +153,20 @@ public sealed class StudentAffairsDataSeeder
             users[RoleNames.Guardian],
             manager.Id,
             cancellationToken).ConfigureAwait(false);
+        if (_seedShowcaseData)
+        {
+            await EnsureShowcaseWorkflowDataAsync(
+                school,
+                academicTerm,
+                classroom,
+                instructorProfile,
+                users[RoleNames.StudentAffairsOfficer],
+                users[RoleNames.Guardian],
+                users[RoleNames.Secretary],
+                manager.Id,
+                today,
+                cancellationToken).ConfigureAwait(false);
+        }
 
         _logger.LogInformation(
             "Development Student Affairs test data is ready for school {SchoolName} (Id: {SchoolId}).",
@@ -220,7 +251,7 @@ public sealed class StudentAffairsDataSeeder
             };
 
             EnsureIdentitySuccess(
-                await _userManager.CreateAsync(user, TestPassword).ConfigureAwait(false),
+                await _userManager.CreateAsync(user, _testPassword).ConfigureAwait(false),
                 $"create {account.UserName}");
         }
         else
@@ -243,7 +274,7 @@ public sealed class StudentAffairsDataSeeder
                 $"update {account.UserName}");
         }
 
-        if (!await _userManager.CheckPasswordAsync(user, TestPassword).ConfigureAwait(false))
+        if (!await _userManager.CheckPasswordAsync(user, _testPassword).ConfigureAwait(false))
         {
             if (!string.IsNullOrWhiteSpace(user.PasswordHash))
             {
@@ -253,7 +284,7 @@ public sealed class StudentAffairsDataSeeder
             }
 
             EnsureIdentitySuccess(
-                await _userManager.AddPasswordAsync(user, TestPassword).ConfigureAwait(false),
+                await _userManager.AddPasswordAsync(user, _testPassword).ConfigureAwait(false),
                 $"set password for {account.UserName}");
         }
 
@@ -707,8 +738,19 @@ public sealed class StudentAffairsDataSeeder
         }
 
         var primaryProfile = EnsureTeacherProfile(instructor, "E2E Teacher");
-        EnsureTeacherProfile(substituteInstructor, "E2E Substitute");
+        var substituteProfile = EnsureTeacherProfile(substituteInstructor, "E2E Substitute");
         await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // This setup profile belongs to the deterministic Student Affairs fixture. Other
+        // development QA flows can leave availability overrides behind on the same test
+        // accounts, which would make the next startup unable to republish its own schedule.
+        var fixtureProfileIds = new[] { primaryProfile.Id, substituteProfile.Id };
+        var availabilityOverrides = await _context.TeacherAvailabilitySlots
+            .Where(slot => fixtureProfileIds.Contains(slot.TeacherTimetableProfileId))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        foreach (var slot in availabilityOverrides)
+            slot.IsAvailable = true;
 
         var requirement = await _context.Set<ClassSubjectRequirement>()
             .IgnoreQueryFilters()
@@ -737,6 +779,42 @@ public sealed class StudentAffairsDataSeeder
         requirement.UpdatedAt = _timeProvider.GetUtcNow();
         requirement.UpdatedByUserId = actorUserId;
         await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // Keep the fixture profile isolated from subject requirements created by other
+        // timetable QA scenarios. They have their own fixtures and must not prevent this
+        // deterministic schedule from passing the real publish validation boundary.
+        var unrelatedRequirements = await _context.Set<ClassSubjectRequirement>()
+            .IgnoreQueryFilters()
+            .Where(candidate => candidate.TimetableSetupProfileId == setupId
+                && candidate.Id != requirement.Id
+                && !candidate.IsDeleted)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var unrelatedRequirementIds = unrelatedRequirements.Select(candidate => candidate.Id).ToArray();
+        if (unrelatedRequirementIds.Length > 0)
+        {
+            foreach (var unrelated in unrelatedRequirements)
+            {
+                unrelated.IsDeleted = true;
+                unrelated.UpdatedAt = _timeProvider.GetUtcNow();
+                unrelated.UpdatedByUserId = actorUserId;
+            }
+
+            var unrelatedAssignments = await _context.Set<TeachingAssignment>()
+                .IgnoreQueryFilters()
+                .Where(candidate => unrelatedRequirementIds.Contains(candidate.ClassSubjectRequirementId)
+                    && !candidate.IsDeleted)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+            foreach (var unrelated in unrelatedAssignments)
+            {
+                unrelated.IsDeleted = true;
+                unrelated.UpdatedAt = _timeProvider.GetUtcNow();
+                unrelated.UpdatedByUserId = actorUserId;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         var assignments = await _context.Set<TeachingAssignment>()
             .IgnoreQueryFilters()
@@ -1066,6 +1144,540 @@ public sealed class StudentAffairsDataSeeder
             settings.IsDeleted = false;
             settings.DeletedAt = null;
             settings.DeletedByUserId = null;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task EnsureShowcaseStudentsAsync(
+        School school,
+        AcademicTerm academicTerm,
+        Classroom classroom,
+        ApplicationUser guardianUser,
+        string actorUserId,
+        DateOnly today,
+        CancellationToken cancellationToken)
+    {
+        var guardianProfile = await _context.GuardianProfiles
+            .IgnoreQueryFilters()
+            .SingleAsync(candidate => candidate.SchoolId == school.Id
+                && candidate.ApplicationUserId == guardianUser.Id, cancellationToken)
+            .ConfigureAwait(false);
+        var showcaseStudents = new[]
+        {
+            new { Number = "DEMO-101", Identity = "1000000101", First = "سلمان", Last = "العتيبي", Gender = StudentGender.Male },
+            new { Number = "DEMO-102", Identity = "1000000102", First = "ليان", Last = "القحطاني", Gender = StudentGender.Female },
+            new { Number = "DEMO-103", Identity = "1000000103", First = "عبدالله", Last = "الشهري", Gender = StudentGender.Male },
+            new { Number = "DEMO-104", Identity = "1000000104", First = "جود", Last = "الحربي", Gender = StudentGender.Female },
+            new { Number = "DEMO-105", Identity = "1000000105", First = "راكان", Last = "المطيري", Gender = StudentGender.Male },
+            new { Number = "DEMO-106", Identity = "1000000106", First = "نورة", Last = "الغامدي", Gender = StudentGender.Female },
+            new { Number = "DEMO-107", Identity = "1000000107", First = "زياد", Last = "الدوسري", Gender = StudentGender.Male },
+            new { Number = "DEMO-108", Identity = "1000000108", First = "تالا", Last = "الزهراني", Gender = StudentGender.Female }
+        };
+
+        for (var index = 0; index < showcaseStudents.Length; index++)
+        {
+            var fixture = showcaseStudents[index];
+            var student = await _context.Students
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(
+                    candidate => candidate.SchoolId == school.Id && candidate.StudentNumber == fixture.Number,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (student is null)
+            {
+                student = new Student
+                {
+                    SchoolId = school.Id,
+                    StudentNumber = fixture.Number,
+                    IdentityNumber = fixture.Identity,
+                    FirstName = fixture.First,
+                    LastName = fixture.Last,
+                    Gender = fixture.Gender,
+                    IsActive = true,
+                    CreatedByUserId = actorUserId,
+                    UpdatedByUserId = actorUserId
+                };
+                _context.Students.Add(student);
+                await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                student.IdentityNumber = fixture.Identity;
+                student.FirstName = fixture.First;
+                student.LastName = fixture.Last;
+                student.Gender = fixture.Gender;
+                student.IsActive = true;
+                student.IsDeleted = false;
+                student.DeletedAt = null;
+                student.DeletedByUserId = null;
+                student.UpdatedByUserId = actorUserId;
+            }
+
+            var enrollment = await _context.StudentEnrollments
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(
+                    candidate => candidate.SchoolId == school.Id
+                        && candidate.StudentId == student.Id
+                        && candidate.AcademicTermId == academicTerm.Id,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (enrollment is null)
+            {
+                _context.StudentEnrollments.Add(new StudentEnrollment
+                {
+                    SchoolId = school.Id,
+                    StudentId = student.Id,
+                    ClassroomId = classroom.Id,
+                    AcademicTermId = academicTerm.Id,
+                    RollNumber = index + 3,
+                    EnrolledOn = today < academicTerm.StartsOn ? academicTerm.StartsOn : today,
+                    Status = StudentEnrollmentStatus.Active,
+                    CreatedByUserId = actorUserId,
+                    UpdatedByUserId = actorUserId
+                });
+            }
+            else
+            {
+                enrollment.ClassroomId = classroom.Id;
+                enrollment.RollNumber = index + 3;
+                enrollment.WithdrawnOn = null;
+                enrollment.Status = StudentEnrollmentStatus.Active;
+                enrollment.IsDeleted = false;
+                enrollment.DeletedAt = null;
+                enrollment.DeletedByUserId = null;
+                enrollment.UpdatedByUserId = actorUserId;
+            }
+
+            if (index < 4)
+            {
+                var guardianLink = await _context.StudentGuardians.IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(candidate => candidate.SchoolId == school.Id
+                        && candidate.StudentId == student.Id
+                        && candidate.GuardianProfileId == guardianProfile.Id, cancellationToken)
+                    .ConfigureAwait(false);
+                if (guardianLink is null)
+                {
+                    _context.StudentGuardians.Add(new StudentGuardian
+                    {
+                        SchoolId = school.Id,
+                        StudentId = student.Id,
+                        GuardianProfileId = guardianProfile.Id,
+                        RelationshipType = GuardianRelationshipType.LegalGuardian,
+                        IsPrimary = index == 0,
+                        ReceivesNotifications = true,
+                        CanSubmitExcuses = true,
+                        CanRequestGatePass = true,
+                        ValidFrom = academicTerm.StartsOn,
+                        CreatedByUserId = actorUserId,
+                        UpdatedByUserId = actorUserId
+                    });
+                }
+                else
+                {
+                    guardianLink.RelationshipType = GuardianRelationshipType.LegalGuardian;
+                    guardianLink.ReceivesNotifications = true;
+                    guardianLink.ValidFrom = academicTerm.StartsOn;
+                    guardianLink.ValidTo = null;
+                    guardianLink.IsDeleted = false;
+                    guardianLink.DeletedAt = null;
+                    guardianLink.DeletedByUserId = null;
+                    guardianLink.UpdatedByUserId = actorUserId;
+                }
+            }
+
+            if (index < 4)
+            {
+                var hasShowcaseReferral = await _context.StudentReferrals
+                    .IgnoreQueryFilters()
+                    .AnyAsync(
+                        candidate => candidate.SchoolId == school.Id
+                            && candidate.StudentId == student.Id
+                            && candidate.AcademicTermId == academicTerm.Id
+                            && candidate.SourceType == ReferralSourceType.Manual,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!hasShowcaseReferral)
+                {
+                    var reasons = new[]
+                    {
+                        "متابعة انتظام الطالب بعد تكرار التأخر الصباحي خلال الأسبوعين الماضيين",
+                        "دعم الطالبة في التكيف الدراسي والتنسيق مع الأسرة والمعلمات",
+                        "خطة متابعة قصيرة لتحسين المشاركة الصفية والالتزام بالواجبات",
+                        "تقييم احتياج الطالبة إلى جلسة إرشادية بعد ملاحظة تغير مفاجئ في الأداء"
+                    };
+                    var priorities = new[]
+                    {
+                        ReferralPriority.High,
+                        ReferralPriority.Normal,
+                        ReferralPriority.Normal,
+                        ReferralPriority.Critical
+                    };
+                    var createdAt = _timeProvider.GetUtcNow().AddDays(-(index + 1));
+                    _context.StudentReferrals.Add(new StudentReferral
+                    {
+                        SchoolId = school.Id,
+                        StudentId = student.Id,
+                        AcademicTermId = academicTerm.Id,
+                        SourceType = ReferralSourceType.Manual,
+                        Priority = priorities[index],
+                        Status = StudentReferralStatus.Open,
+                        RecommendedActions = reasons[index],
+                        CreatedAt = createdAt,
+                        CreatedByUserId = actorUserId,
+                        UpdatedAt = createdAt,
+                        UpdatedByUserId = actorUserId
+                    });
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task EnsureShowcaseWorkflowDataAsync(
+        School school,
+        AcademicTerm academicTerm,
+        Classroom classroom,
+        InstructorProfile instructorProfile,
+        ApplicationUser officerUser,
+        ApplicationUser guardianUser,
+        ApplicationUser secretaryUser,
+        string actorUserId,
+        DateOnly today,
+        CancellationToken cancellationToken)
+    {
+        var students = await _context.Students
+            .Where(student => student.SchoolId == school.Id
+                && (student.StudentNumber == TestStudentNumber || student.StudentNumber.StartsWith("DEMO-")))
+            .OrderBy(student => student.StudentNumber)
+            .Take(8)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+        if (students.Count < 5) return;
+
+        var now = _timeProvider.GetUtcNow();
+        var guardian = await _context.GuardianProfiles
+            .SingleAsync(profile => profile.SchoolId == school.Id
+                && profile.ApplicationUserId == guardianUser.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        for (var index = 0; index < 4; index++)
+        {
+            var localDate = today.AddDays(-(index + 1));
+            if (!await _context.MorningArrivalDelays.AnyAsync(delay => delay.SchoolId == school.Id
+                    && delay.StudentId == students[index].Id && delay.SchoolLocalDate == localDate,
+                cancellationToken).ConfigureAwait(false))
+            {
+                _context.MorningArrivalDelays.Add(new MorningArrivalDelay
+                {
+                    SchoolId = school.Id,
+                    StudentId = students[index].Id,
+                    AcademicTermId = academicTerm.Id,
+                    ArrivalAt = now.AddDays(-(index + 1)).AddMinutes(index * 4),
+                    SchoolLocalDate = localDate,
+                    CutoffTimeSnapshot = new TimeOnly(7, 10),
+                    DelayMinutes = 8 + index * 6,
+                    Reason = index % 2 == 0 ? "ازدحام مروري في الطريق إلى المدرسة" : "تأخر الحافلة المدرسية",
+                    NotificationPolicySnapshot = "ImmediateGuardian",
+                    CreatedByUserId = actorUserId,
+                    UpdatedByUserId = actorUserId
+                });
+            }
+        }
+
+        if (!await _context.SessionDelays.AnyAsync(item => item.SchoolId == school.Id
+            && item.Reason == "بيانات عرض: تأخر بعد الفسحة", cancellationToken).ConfigureAwait(false))
+        {
+            _context.SessionDelays.AddRange(
+                new SessionDelay
+                {
+                    SchoolId = school.Id, StudentId = students[1].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, Period = 3, OccurredAt = now.AddDays(-1), DelayMinutes = 7,
+                    Reason = "بيانات عرض: تأخر بعد الفسحة", ReportedByInstructorProfileId = instructorProfile.Id,
+                    GuardianNotificationStatus = GuardianNotificationStatus.Delivered,
+                    CreatedByUserId = instructorProfile.UserId, UpdatedByUserId = instructorProfile.UserId
+                },
+                new SessionDelay
+                {
+                    SchoolId = school.Id, StudentId = students[2].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, Period = 2, OccurredAt = now.AddDays(-3), DelayMinutes = 12,
+                    Reason = "بيانات عرض: مراجعة شؤون الطلاب", ReportedByInstructorProfileId = instructorProfile.Id,
+                    GuardianNotificationStatus = GuardianNotificationStatus.Pending,
+                    CreatedByUserId = instructorProfile.UserId, UpdatedByUserId = instructorProfile.UserId
+                });
+        }
+
+        if (!await _context.BehaviorIncidents.AnyAsync(item => item.SchoolId == school.Id
+            && item.Description.StartsWith("بيانات عرض:"), cancellationToken).ConfigureAwait(false))
+        {
+            _context.BehaviorIncidents.AddRange(
+                new BehaviorIncident
+                {
+                    SchoolId = school.Id, StudentId = students[0].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, CategoryCode = "CLASSROOM_CONDUCT", Severity = BehaviorSeverity.Medium,
+                    Description = "بيانات عرض: مقاطعة متكررة لشرح المعلم مع استجابة جيدة للتوجيه",
+                    OccurredAt = now.AddDays(-2), Location = "الفصل", ReportedByInstructorProfileId = instructorProfile.Id,
+                    ImmediateActionTaken = "تنبيه الطالب والاتفاق على قواعد المشاركة",
+                    GuardianDispatchDecision = GuardianDispatchDecision.PendingOfficerDecision,
+                    CreatedByUserId = instructorProfile.UserId, UpdatedByUserId = instructorProfile.UserId
+                },
+                new BehaviorIncident
+                {
+                    SchoolId = school.Id, StudentId = students[3].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, CategoryCode = "PEER_CONFLICT", Severity = BehaviorSeverity.High,
+                    Description = "بيانات عرض: خلاف بين طالبين أثناء الفسحة يحتاج متابعة هادئة",
+                    OccurredAt = now.AddDays(-4), Location = "ساحة المدرسة", ReportedByStaffUserId = officerUser.Id,
+                    ImmediateActionTaken = "فصل الطرفين وتوثيق إفادة كل طالب",
+                    GuardianDispatchDecision = GuardianDispatchDecision.PendingOfficerDecision,
+                    CreatedByUserId = officerUser.Id, UpdatedByUserId = officerUser.Id
+                });
+        }
+
+        if (!await _context.AcademicConcerns.AnyAsync(item => item.SchoolId == school.Id
+            && item.Description.StartsWith("بيانات عرض:"), cancellationToken).ConfigureAwait(false))
+        {
+            _context.AcademicConcerns.AddRange(
+                new AcademicConcern
+                {
+                    SchoolId = school.Id, StudentId = students[2].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, Category = "Homework", Description = "بيانات عرض: عدم اكتمال الواجبات ثلاث مرات خلال أسبوعين",
+                    OccurredAt = now.AddDays(-2), ReportedByInstructorProfileId = instructorProfile.Id,
+                    GuardianDispatchDecision = GuardianDispatchDecision.PendingOfficerDecision,
+                    CreatedByUserId = instructorProfile.UserId, UpdatedByUserId = instructorProfile.UserId
+                },
+                new AcademicConcern
+                {
+                    SchoolId = school.Id, StudentId = students[4].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, Category = "Participation", Description = "بيانات عرض: انخفاض مفاجئ في المشاركة الصفية",
+                    OccurredAt = now.AddDays(-5), ReportedByInstructorProfileId = instructorProfile.Id,
+                    GuardianDispatchDecision = GuardianDispatchDecision.Approved,
+                    CreatedByUserId = instructorProfile.UserId, UpdatedByUserId = instructorProfile.UserId
+                });
+        }
+
+        if (!await _context.StudentRecognitions.AnyAsync(item => item.SchoolId == school.Id
+            && item.Title.StartsWith("بيانات عرض:"), cancellationToken).ConfigureAwait(false))
+        {
+            _context.StudentRecognitions.AddRange(
+                new StudentRecognition
+                {
+                    SchoolId = school.Id, StudentId = students[1].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, RecognitionType = "AcademicExcellence", Title = "بيانات عرض: تميز في مشروع العلوم",
+                    Description = "قدمت الطالبة مشروعًا منظمًا وساعدت فريقها على إتمام العرض.", RecognizedAt = now.AddDays(-1),
+                    ReportedByInstructorProfileId = instructorProfile.Id, GuardianNotificationStatus = GuardianNotificationStatus.Delivered,
+                    CreatedByUserId = instructorProfile.UserId, UpdatedByUserId = instructorProfile.UserId
+                },
+                new StudentRecognition
+                {
+                    SchoolId = school.Id, StudentId = students[4].Id, AcademicTermId = academicTerm.Id,
+                    ClassroomId = classroom.Id, RecognitionType = "PositiveConduct", Title = "بيانات عرض: مبادرة إيجابية داخل الفصل",
+                    Description = "بادر الطالب بمساعدة زملائه والمحافظة على ترتيب الفصل.", RecognizedAt = now.AddDays(-4),
+                    ReportedByInstructorProfileId = instructorProfile.Id, GuardianNotificationStatus = GuardianNotificationStatus.Queued,
+                    CreatedByUserId = instructorProfile.UserId, UpdatedByUserId = instructorProfile.UserId
+                });
+        }
+
+        // Approval queues are backed by Notification records rather than the source fact alone.
+        // Persist the showcase facts first so their generated IDs can be referenced safely.
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        var pendingBehavior = await _context.BehaviorIncidents
+            .Where(item => item.SchoolId == school.Id
+                && item.Description.StartsWith("بيانات عرض:")
+                && item.GuardianDispatchDecision == GuardianDispatchDecision.PendingOfficerDecision)
+            .OrderBy(item => item.Id)
+            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        var pendingConcern = await _context.AcademicConcerns
+            .Where(item => item.SchoolId == school.Id
+                && item.Description.StartsWith("بيانات عرض:")
+                && item.GuardianDispatchDecision == GuardianDispatchDecision.PendingOfficerDecision)
+            .OrderBy(item => item.Id)
+            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
+        if (pendingBehavior is not null
+            && !await _context.Notifications.AnyAsync(item => item.SchoolId == school.Id
+                && item.DeduplicationKey == "showcase-behavior-approval", cancellationToken).ConfigureAwait(false))
+        {
+            _context.Notifications.Add(new Notification
+            {
+                SchoolId = school.Id, UserId = guardianUser.Id, StudentId = pendingBehavior.StudentId,
+                Title = "ملاحظة سلوكية بانتظار الاعتماد",
+                Message = "راجع الواقعة السلوكية وسياقها قبل اعتماد إرسالها إلى ولي الأمر.",
+                Type = "GuardianApprovalRequired", RelatedEntityType = nameof(BehaviorIncident),
+                RelatedEntityId = pendingBehavior.Id.ToString(), Priority = NotificationPriority.High,
+                TemplateKey = "student-affairs.behavior.approval", CorrelationId = Guid.NewGuid(),
+                DeduplicationKey = "showcase-behavior-approval", DeliveryStatus = NotificationDeliveryStatus.Pending,
+                RequiresApproval = true, CreatedAt = now.AddHours(-3), UpdatedAt = now.AddHours(-3),
+                CreatedByUserId = actorUserId, UpdatedByUserId = actorUserId
+            });
+        }
+
+        if (pendingConcern is not null
+            && !await _context.Notifications.AnyAsync(item => item.SchoolId == school.Id
+                && item.DeduplicationKey == "showcase-academic-approval", cancellationToken).ConfigureAwait(false))
+        {
+            _context.Notifications.Add(new Notification
+            {
+                SchoolId = school.Id, UserId = guardianUser.Id, StudentId = pendingConcern.StudentId,
+                Title = "ملاحظة أكاديمية بانتظار الاعتماد",
+                Message = "راجع الملاحظة الأكاديمية قبل مشاركتها مع ولي الأمر.",
+                Type = "GuardianApprovalRequired", RelatedEntityType = nameof(AcademicConcern),
+                RelatedEntityId = pendingConcern.Id.ToString(), Priority = NotificationPriority.High,
+                TemplateKey = "student-affairs.academic-concern.approval", CorrelationId = Guid.NewGuid(),
+                DeduplicationKey = "showcase-academic-approval", DeliveryStatus = NotificationDeliveryStatus.Pending,
+                RequiresApproval = true, CreatedAt = now.AddHours(-2), UpdatedAt = now.AddHours(-2),
+                CreatedByUserId = actorUserId, UpdatedByUserId = actorUserId
+            });
+        }
+
+        if (!await _context.ClassroomEntryPermits.AnyAsync(item => item.SchoolId == school.Id
+            && item.Reason == "بيانات عرض: عودة من العيادة المدرسية", cancellationToken).ConfigureAwait(false))
+        {
+            _context.ClassroomEntryPermits.Add(new ClassroomEntryPermit
+            {
+                SchoolId = school.Id, StudentId = students[3].Id, AcademicTermId = academicTerm.Id,
+                ClassroomId = classroom.Id, IssuedByStudentAffairsUserId = officerUser.Id,
+                IssuedAt = now.AddMinutes(-5), Reason = "بيانات عرض: عودة من العيادة المدرسية",
+                ValidFrom = now.AddMinutes(-5), ValidUntil = now.AddMinutes(25), TargetInstructorProfileId = instructorProfile.Id,
+                Status = ClassroomEntryPermitStatus.Issued,
+                CreatedByUserId = officerUser.Id, UpdatedByUserId = officerUser.Id
+            });
+        }
+
+        if (!await _context.GatePasses.AnyAsync(item => item.SchoolId == school.Id
+            && item.IdempotencyKey == "showcase-gate-pass", cancellationToken).ConfigureAwait(false))
+        {
+            _context.GatePasses.Add(new GatePass
+            {
+                SchoolId = school.Id, StudentId = students[0].Id, AcademicTermId = academicTerm.Id,
+                RequestedByGuardianProfileId = guardian.Id, IdempotencyKey = "showcase-gate-pass",
+                RequestedAt = now.AddHours(-1), RequestedExitAt = now.AddHours(2),
+                Reason = "موعد طبي مجدول", PickupPersonName = "ولي الأمر", PickupRelationship = "الأب",
+                PickupIdentityHint = "سيتم إبراز الهوية الوطنية عند البوابة", Status = GatePassStatus.Requested,
+                CreatedByUserId = guardianUser.Id, UpdatedByUserId = guardianUser.Id
+            });
+        }
+
+        var attendanceDate = today.AddDays(-1);
+        var attendance = await _context.DailyStudentAttendances.FirstOrDefaultAsync(item => item.SchoolId == school.Id
+            && item.StudentId == students[0].Id && item.AttendanceDate == attendanceDate, cancellationToken).ConfigureAwait(false);
+        if (attendance is null)
+        {
+            attendance = new DailyStudentAttendance
+            {
+                SchoolId = school.Id, StudentId = students[0].Id, AcademicTermId = academicTerm.Id,
+                ClassroomId = classroom.Id, AttendanceDate = attendanceDate, Status = StudentAttendanceStatus.Absent,
+                ExcuseStatus = AbsenceExcuseStatus.Pending, RecordedByUserId = secretaryUser.Id, RecordedAt = now.AddDays(-1),
+                Source = StudentAttendanceSource.SecretaryRoster,
+                CreatedByUserId = secretaryUser.Id, UpdatedByUserId = secretaryUser.Id
+            };
+            _context.DailyStudentAttendances.Add(attendance);
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        if (!await _context.AbsenceExcuses.AnyAsync(item => item.SchoolId == school.Id
+            && item.IdempotencyKey == "showcase-pending-excuse", cancellationToken).ConfigureAwait(false))
+        {
+            _context.AbsenceExcuses.Add(new AbsenceExcuse
+            {
+                SchoolId = school.Id, DailyStudentAttendanceId = attendance.Id, GuardianProfileId = guardian.Id,
+                IdempotencyKey = "showcase-pending-excuse", ExcuseType = AbsenceExcuseType.Medical,
+                GuardianNotes = "تعرض الطالب لوعكة صحية صباحية ويجري استكمال المستند الطبي.",
+                Status = AbsenceExcuseStatus.Pending, SubmittedAt = now.AddHours(-4),
+                CreatedByUserId = guardianUser.Id, UpdatedByUserId = guardianUser.Id
+            });
+        }
+
+        var summon = await _context.GuardianSummons.FirstOrDefaultAsync(item => item.SchoolId == school.Id
+            && item.Status == GuardianSummonStatus.Pending, cancellationToken).ConfigureAwait(false);
+        if (summon is null)
+        {
+            summon = new GuardianSummon
+            {
+                SchoolId = school.Id, StudentId = students[2].Id, AcademicTermId = academicTerm.Id,
+                GuardianProfileId = guardian.Id,
+                CreatedReason = "بيانات عرض: مراجعة استدعاء بعد انخفاض مؤشر الغياب",
+                Priority = ReferralPriority.High, Status = GuardianSummonStatus.Pending,
+                SourceCountSnapshot = 5, ThresholdSnapshot = 5,
+                IdempotencyKey = "showcase-automation-review",
+                IdempotencyPayloadHash = new string('C', 64),
+                RequiresOfficerReview = true,
+                OfficerReviewReason = "انخفض المؤشر الحالي بعد تصحيح بيانات سابقة؛ يلزم قرار وكيل الشؤون.",
+                OfficerReviewFlaggedAt = now.AddHours(-2),
+                CreatedAt = now.AddDays(-2), UpdatedAt = now.AddHours(-2),
+                CreatedByUserId = actorUserId, UpdatedByUserId = officerUser.Id
+            };
+            _context.GuardianSummons.Add(summon);
+        }
+        else if (!summon.RequiresOfficerReview)
+        {
+            summon.RequiresOfficerReview = true;
+            summon.OfficerReviewReason = "انخفض المؤشر الحالي بعد تصحيح بيانات سابقة؛ يلزم قرار وكيل الشؤون.";
+            summon.OfficerReviewFlaggedAt = now.AddHours(-2);
+            summon.SourceCountSnapshot ??= 5;
+            summon.ThresholdSnapshot ??= 5;
+            summon.UpdatedByUserId = officerUser.Id;
+        }
+
+        if (!await _context.ConversationThreads.AnyAsync(thread => thread.SchoolId == school.Id
+            && thread.Subject == "متابعة انتظام الطالب - تجربة", cancellationToken).ConfigureAwait(false))
+        {
+            var thread = new ConversationThread
+            {
+                SchoolId = school.Id, StudentId = students[0].Id,
+                ThreadType = ConversationThreadType.GuardianStudentAffairs,
+                Subject = "متابعة انتظام الطالب - تجربة", Status = ConversationThreadStatus.Open,
+                CreatedAt = now.AddDays(-1), UpdatedAt = now.AddMinutes(-30),
+                CreatedByUserId = guardianUser.Id, UpdatedByUserId = officerUser.Id
+            };
+            thread.Participants.Add(new ConversationParticipant
+            {
+                SchoolId = school.Id, ApplicationUserId = guardianUser.Id, ParticipantRoleSnapshot = RoleNames.Guardian,
+                JoinedAt = now.AddDays(-1), CreatedAt = now.AddDays(-1), UpdatedAt = now.AddDays(-1),
+                CreatedByUserId = guardianUser.Id, UpdatedByUserId = guardianUser.Id
+            });
+            thread.Participants.Add(new ConversationParticipant
+            {
+                SchoolId = school.Id, ApplicationUserId = officerUser.Id, ParticipantRoleSnapshot = RoleNames.StudentAffairsOfficer,
+                JoinedAt = now.AddDays(-1), CreatedAt = now.AddDays(-1), UpdatedAt = now.AddDays(-1),
+                CreatedByUserId = guardianUser.Id, UpdatedByUserId = guardianUser.Id
+            });
+            var firstMessage = new ConversationMessage
+            {
+                SchoolId = school.Id, SenderUserId = guardianUser.Id,
+                Body = "أرغب في معرفة خطة متابعة انتظام ابني خلال هذا الأسبوع.",
+                SentAt = now.AddDays(-1), QueuedAt = now.AddDays(-1), ReleasedAt = now.AddDays(-1),
+                OfficeHoursDisposition = OfficeHoursDisposition.SentImmediately,
+                IdempotencyKey = "showcase-message-guardian", IdempotencyPayloadHash = new string('A', 64),
+                CreatedAt = now.AddDays(-1), UpdatedAt = now.AddDays(-1),
+                CreatedByUserId = guardianUser.Id, UpdatedByUserId = guardianUser.Id
+            };
+            firstMessage.Receipts.Add(new MessageReceipt
+            {
+                SchoolId = school.Id, RecipientUserId = officerUser.Id,
+                DeliveryState = MessageDeliveryState.Delivered, DeliveredAt = now.AddDays(-1), ReadAt = now.AddHours(-20),
+                CreatedAt = now.AddDays(-1)
+            });
+            var reply = new ConversationMessage
+            {
+                SchoolId = school.Id, SenderUserId = officerUser.Id,
+                Body = "تمت مراجعة السجل، وسنشاركك ملخص المتابعة بعد نهاية الأسبوع.",
+                SentAt = now.AddMinutes(-30), QueuedAt = now.AddMinutes(-30), ReleasedAt = now.AddMinutes(-30),
+                OfficeHoursDisposition = OfficeHoursDisposition.SentImmediately,
+                IdempotencyKey = "showcase-message-officer", IdempotencyPayloadHash = new string('B', 64),
+                CreatedAt = now.AddMinutes(-30), UpdatedAt = now.AddMinutes(-30),
+                CreatedByUserId = officerUser.Id, UpdatedByUserId = officerUser.Id
+            };
+            reply.Receipts.Add(new MessageReceipt
+            {
+                SchoolId = school.Id, RecipientUserId = guardianUser.Id,
+                DeliveryState = MessageDeliveryState.Delivered, DeliveredAt = now.AddMinutes(-30),
+                CreatedAt = now.AddMinutes(-30)
+            });
+            thread.Messages.Add(firstMessage);
+            thread.Messages.Add(reply);
+            _context.ConversationThreads.Add(thread);
         }
 
         await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

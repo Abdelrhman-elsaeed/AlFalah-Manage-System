@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -17,12 +17,15 @@ import {
   ConversationMessageDto,
   ConversationThreadType,
   CreateConversationRequestDto,
-  SendMessageResultDto
+  SendMessageResultDto,
+  StudentGuardianOptionDto
 } from '../../../core/models/phase5.models';
+import { ClassroomDto, StudentStatsDto } from '../../../core/models/daily-operations.models';
 import { GuardianStudentDto } from '../../../core/models/student-affairs-dashboard.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { Phase5Service } from '../../../core/services/phase5.service';
 import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
+import { DailyOperationsService } from '../../../core/services/daily-operations.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 interface ConversationRecipientOption {
@@ -32,6 +35,7 @@ interface ConversationRecipientOption {
   readonly instructorProfileId: number | null;
   readonly staffUserId: string | null;
   readonly staffRole: string | null;
+  readonly guardianProfileId: number | null;
 }
 
 @Component({
@@ -44,6 +48,7 @@ interface ConversationRecipientOption {
 export class MessagingChatComponent implements OnInit {
   private readonly api = inject(Phase5Service);
   private readonly dashboardApi = inject(StudentAffairsDashboardService);
+  private readonly directoryApi = inject(DailyOperationsService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -53,6 +58,18 @@ export class MessagingChatComponent implements OnInit {
   readonly loadingInbox = signal(true);
   readonly inboxError = signal('');
   readonly unreadOnly = signal(false);
+  readonly conversationSearch = new FormControl('', { nonNullable: true });
+  private readonly conversationSearchTerm = signal('');
+  readonly filteredConversations = computed(() => {
+    const term = this.conversationSearchTerm().trim().toLocaleLowerCase('ar');
+    if (!term) return this.conversations();
+    return this.conversations().filter(item =>
+      item.subject.toLocaleLowerCase('ar').includes(term)
+      || item.student.displayName.toLocaleLowerCase('ar').includes(term)
+      || item.student.studentNumber.toLocaleLowerCase('ar').includes(term));
+  });
+  readonly unreadCount = computed(() => this.conversations().reduce((total, item) => total + item.unreadCount, 0));
+  readonly openCount = computed(() => this.conversations().filter(item => item.status === 'Open').length);
   readonly selected = signal<ConversationDto | null>(null);
   readonly messages = signal<readonly ConversationMessageDto[]>([]);
   readonly loadingThread = signal(false);
@@ -68,23 +85,35 @@ export class MessagingChatComponent implements OnInit {
   readonly closing = signal(false);
   readonly createDialogVisible = signal(false);
   readonly guardianStudents = signal<readonly GuardianStudentDto[]>([]);
+  readonly officerClassrooms = signal<readonly ClassroomDto[]>([]);
+  readonly officerStudents = signal<readonly StudentStatsDto[]>([]);
+  readonly loadingOfficerDirectory = signal(false);
   readonly recipientOptions = signal<readonly ConversationRecipientOption[]>([]);
   readonly loadingCreateScope = signal(false);
   readonly createError = signal('');
   readonly creatingConversation = signal(false);
   readonly createStudentId = new FormControl<number | null>(null, Validators.required);
+  readonly createClassroomId = new FormControl<number | null>(null);
   readonly createThreadType = new FormControl<ConversationThreadType | null>(null, Validators.required);
   readonly createRecipientKey = new FormControl<string | null>(null, Validators.required);
   readonly createSubject = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] });
   readonly createBody = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] });
+  readonly quickReplies = [
+    'تمت مراجعة الحالة، وسنوافيكم بالتحديث فور اكتمال الإجراء.',
+    'شكرًا لتواصلكم. نرجو تزويدنا بالمستند أو التفصيل المطلوب للمتابعة.',
+    'تم استلام رسالتكم وتحويلها للجهة المختصة داخل المدرسة.',
+    'نرجو تأكيد استلام الرسالة، ويمكنكم الرد هنا مباشرة عند وجود أي استفسار.'
+  ] as const;
   private pendingCreateAttempt: { readonly fingerprint: string; readonly key: string } | null = null;
 
   get currentUserId(): string { return this.auth.currentUser()?.userId ?? ''; }
   get canClose(): boolean { return this.auth.hasPermission('Messaging.CloseThread'); }
   get isGuardian(): boolean { return this.auth.hasRole('Guardian'); }
+  get isOfficer(): boolean { return this.auth.hasRole('StudentAffairsOfficer'); }
   get canStartConversation(): boolean {
-    return this.isGuardian && (this.auth.hasPermission('Messaging.StartGuardianTeacher')
-      || this.auth.hasPermission('Messaging.StartGuardianAdministration'));
+    return (this.isGuardian && (this.auth.hasPermission('Messaging.StartGuardianTeacher')
+      || this.auth.hasPermission('Messaging.StartGuardianAdministration')))
+      || (this.isOfficer && this.auth.hasPermission('Messaging.StartOfficerGuardian'));
   }
   get threadTypeOptions(): readonly { label: string; value: ConversationThreadType }[] {
     const options: { label: string; value: ConversationThreadType }[] = [];
@@ -99,6 +128,8 @@ export class MessagingChatComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInbox();
+    this.conversationSearch.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(value => this.conversationSearchTerm.set(value));
     timer(25_000, 25_000).pipe(
       filter(() => typeof document === 'undefined' || document.visibilityState === 'visible'),
       switchMap(() => {
@@ -126,6 +157,9 @@ export class MessagingChatComponent implements OnInit {
         if (selectedId) {
           const latest = response.data.items.find(item => item.id === selectedId);
           if (latest) this.selected.set(latest);
+          else if (response.data.items.length) this.selectConversation(response.data.items[0]);
+        } else if (response.data.items.length) {
+          this.selectConversation(response.data.items[0]);
         }
       },
       error: error => this.inboxError.set(this.httpMessage(error, 'تعذر تحميل المحادثات.'))
@@ -137,12 +171,33 @@ export class MessagingChatComponent implements OnInit {
     this.createError.set('');
     this.recipientOptions.set([]);
     this.createStudentId.reset(null);
+    this.createClassroomId.reset(null);
     this.createThreadType.reset(null);
     this.createRecipientKey.reset(null);
     this.createSubject.reset('');
     this.createBody.reset('');
     this.pendingCreateAttempt = null;
-    this.loadGuardianStudents();
+    if (this.isOfficer) {
+      this.createThreadType.setValue('GuardianStudentAffairs');
+      this.loadOfficerClassrooms();
+    } else {
+      this.loadGuardianStudents();
+    }
+  }
+
+  onOfficerClassroomChanged(): void {
+    this.createStudentId.reset(null);
+    this.createRecipientKey.reset(null);
+    this.recipientOptions.set([]);
+    const classroomId = this.createClassroomId.value;
+    if (!classroomId) { this.officerStudents.set([]); return; }
+    this.loadingOfficerDirectory.set(true);
+    this.directoryApi.getStudentsStats({ pageNumber: 1, pageSize: 100, classroomId, isActive: true }).pipe(
+      finalize(() => this.loadingOfficerDirectory.set(false))
+    ).subscribe({
+      next: response => this.officerStudents.set(response.data?.items ?? []),
+      error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل طلاب الفصل.'))
+    });
   }
 
   onConversationScopeChanged(): void {
@@ -154,6 +209,27 @@ export class MessagingChatComponent implements OnInit {
     if (!studentId || !threadType) return;
 
     this.loadingCreateScope.set(true);
+    if (this.isOfficer) {
+      this.api.getStudentGuardianOptions(studentId).pipe(finalize(() => this.loadingCreateScope.set(false))).subscribe({
+        next: response => {
+          if (!response.isSuccess || !response.data) {
+            this.createError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل أولياء الأمور المرتبطين بالطالب.');
+            return;
+          }
+          this.recipientOptions.set(response.data.map(option => ({
+            key: `guardian:${option.guardianProfileId}`,
+            label: `${option.displayName} — ${this.relationshipLabel(option)}${option.isPrimary ? ' · ولي أساسي' : ''}`,
+            threadType: 'GuardianStudentAffairs',
+            instructorProfileId: null,
+            staffUserId: null,
+            staffRole: null,
+            guardianProfileId: option.guardianProfileId
+          })));
+        },
+        error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل أولياء الأمور المرتبطين بالطالب.'))
+      });
+      return;
+    }
     if (threadType === 'GuardianTeacher') {
       this.api.getGuardianTeacherOptions(studentId).pipe(finalize(() => this.loadingCreateScope.set(false))).subscribe({
         next: response => {
@@ -167,7 +243,8 @@ export class MessagingChatComponent implements OnInit {
             threadType,
             instructorProfileId: option.instructorProfileId,
             staffUserId: null,
-            staffRole: null
+            staffRole: null,
+            guardianProfileId: null
           })));
         },
         error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل المعلمين المصرح بهم.'))
@@ -187,7 +264,8 @@ export class MessagingChatComponent implements OnInit {
             threadType,
             instructorProfileId: null,
             staffUserId: option.userId,
-            staffRole: option.role
+            staffRole: option.role,
+            guardianProfileId: null
           })));
       },
       error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل المستلمين المصرح بهم.'))
@@ -215,7 +293,8 @@ export class MessagingChatComponent implements OnInit {
       targetStaffUserId: recipient.staffUserId,
       subject,
       initialBody,
-      idempotencyKey
+      idempotencyKey,
+      targetGuardianProfileId: recipient.guardianProfileId
     };
     this.creatingConversation.set(true);
     this.createError.set('');
@@ -293,6 +372,17 @@ export class MessagingChatComponent implements OnInit {
     });
   }
 
+  submitComposer(event: SubmitEvent): void {
+    event.preventDefault();
+    this.send();
+  }
+
+  useQuickReply(reply: string): void {
+    const current = this.draft.value.trim();
+    this.draft.setValue(current ? `${current}\n${reply}` : reply);
+    this.draft.markAsDirty();
+  }
+
   openCloseDialog(): void { this.closeReason.reset(''); this.closeDialogVisible.set(true); }
   closeThread(): void {
     const thread = this.selected();
@@ -356,6 +446,17 @@ export class MessagingChatComponent implements OnInit {
       },
       error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل الأبناء المرتبطين بحسابك.'))
     });
+  }
+  private loadOfficerClassrooms(): void {
+    if (this.officerClassrooms().length) return;
+    this.loadingOfficerDirectory.set(true);
+    this.directoryApi.getClassrooms().pipe(finalize(() => this.loadingOfficerDirectory.set(false))).subscribe({
+      next: response => this.officerClassrooms.set((response.data?.items ?? []).filter(item => item.isActive)),
+      error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل الفصول.'))
+    });
+  }
+  private relationshipLabel(option: StudentGuardianOptionDto): string {
+    return ({ Father: 'الأب', Mother: 'الأم', Brother: 'الأخ', Sister: 'الأخت', Grandfather: 'الجد', Grandmother: 'الجدة', Uncle: 'العم أو الخال', Aunt: 'العمة أو الخالة', Other: 'صلة أخرى' } as Record<string, string>)[option.relationship] ?? option.relationship;
   }
   private revalidateOpenThread(): void {
     const thread = this.selected();

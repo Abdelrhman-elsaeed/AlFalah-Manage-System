@@ -79,16 +79,23 @@
     </p-dialog>
   } @else {
     <header class="officer-header">
-      <div><span class="eyebrow">شؤون الطلاب</span><h1>مراجعة الأعذار</h1><p>قائمة الأعذار المعلقة، محملة بتزامن محدود لحماية أداء الخدمة.</p></div>
+      <div><span class="eyebrow"><i class="pi pi-verified"></i> مركز المراجعات</span><h1>مراجعة أعذار الغياب</h1><p>راجع المستند والسياق الدراسي واتخذ قرارًا موثقًا من مساحة عمل واحدة.</p></div>
       <button pButton type="button" label="تحديث القائمة" icon="pi pi-refresh" class="p-button-outlined" [loading]="queueLoading()" (click)="loadOfficerQueue()"></button>
     </header>
 
+    <section class="queue-overview" aria-label="ملخص قائمة الأعذار">
+      <div><span class="overview-icon overview-icon--pending"><i class="pi pi-clock"></i></span><p><strong>{{ queueTotal() }}</strong><span>عذر ينتظر القرار</span></p></div>
+      <div><span class="overview-icon"><i class="pi pi-shield"></i></span><p><strong>مراجعة آمنة</strong><span>القرار يسجل مع هوية المراجع</span></p></div>
+      <div><span class="overview-icon"><i class="pi pi-file-pdf"></i></span><p><strong>مرفقات محمية</strong><span>معاينة PDF داخل النظام</span></p></div>
+    </section>
+
     @if (queueError()) { <div class="error" role="alert"><i class="pi pi-exclamation-circle"></i>{{ queueError() }}</div> }
-    @if (queueLoading()) {
-      <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ جمع الأعذار المعلقة…</span></div>
-    } @else {
-      <div class="queue-card">
-        <p-table [value]="queue()" [lazy]="true" (onLazyLoad)="loadOfficerQueue($event)" [paginator]="true" [rows]="queuePageSize()" [rowsPerPageOptions]="[10, 20, 50]" [totalRecords]="queueTotal()" [loading]="queueLoading()" styleClass="p-datatable-striped" responsiveLayout="scroll">
+    <div class="queue-card" [attr.aria-busy]="queueLoading()">
+      <div class="queue-card__heading">
+        <div><span class="section-kicker">صندوق المراجعة</span><h2>الأعذار المعلقة</h2></div>
+        <span class="live-status"><i class="pi pi-circle-fill"></i> محدث الآن</span>
+      </div>
+      <p-table [value]="queue()" [lazy]="true" (onLazyLoad)="loadOfficerQueue($event)" [paginator]="true" [rows]="queuePageSize()" [rowsPerPageOptions]="[10, 20, 50]" [totalRecords]="queueTotal()" [loading]="queueLoading()" styleClass="p-datatable-striped" responsiveLayout="scroll">
           <ng-template pTemplate="header"><tr><th>الطالب</th><th>الفصل</th><th>تاريخ الغياب</th><th>قُدم في</th><th>نوع العذر</th><th>المرفقات</th><th>الحالة</th><th>الإجراء</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
@@ -103,9 +110,8 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage"><tr><td colspan="8" class="empty"><i class="pi pi-check-circle"></i> لا توجد أعذار معلقة حاليًا.</td></tr></ng-template>
-        </p-table>
-      </div>
-    }
+      </p-table>
+    </div>
 
     <p-dialog
       header="مراجعة عذر الغياب"

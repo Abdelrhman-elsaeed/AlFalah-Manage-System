@@ -57,6 +57,7 @@ public sealed class GatePassAndMessagingMediatRTests
         // Messaging handlers
         provider.GetService<IRequestHandler<GetConversationsQuery, ApiResponse<PagedResult<ConversationDto>>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetGuardianStaffOptionsQuery, ApiResponse<IReadOnlyList<GuardianStaffOptionDto>>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<GetStudentGuardianOptionsQuery, ApiResponse<IReadOnlyList<StudentGuardianOptionDto>>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<CreateConversationCommand, ApiResponse<ConversationDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetConversationByIdQuery, ApiResponse<ConversationDto>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<GetConversationMessagesQuery, ApiResponse<PagedResult<ConversationMessageDto>>>>().Should().NotBeNull();
@@ -254,6 +255,52 @@ public sealed class GatePassAndMessagingMediatRTests
         repository.CreatedRequest.Should().BeSameAs(request);
     }
 
+    [Fact]
+    public async Task GetStudentGuardianOptions_RequiresExactOfficerRole()
+    {
+        var currentUser = new StubCurrentUser(
+            "guardian", 1, PermissionNames.MessagingStartOfficerGuardian);
+        currentUser.Roles.Clear();
+        currentUser.Roles.Add(RoleNames.Guardian);
+        var handler = new GetStudentGuardianOptionsQueryHandler(
+            new StubMessagingWorkflowRepository(), currentUser, TimeProvider.System);
+
+        var result = await handler.Handle(new GetStudentGuardianOptionsQuery(10), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Contains("permission"));
+    }
+
+    [Fact]
+    public async Task CreateConversation_OfficerCanStartGuardianThread_WithExplicitPermission()
+    {
+        var repository = new StubMessagingWorkflowRepository();
+        var currentUser = new StubCurrentUser(
+            "officer-1", 1,
+            PermissionNames.MessagingStartOfficerGuardian,
+            PermissionNames.MessagingSend);
+        currentUser.Roles.Clear();
+        currentUser.Roles.Add(RoleNames.StudentAffairsOfficer);
+        var handler = new CreateConversationCommandHandler(repository, currentUser, TimeProvider.System);
+        var request = new CreateConversationRequestDto(
+            10,
+            ConversationThreadType.GuardianStudentAffairs,
+            null,
+            null,
+            null,
+            "Attendance follow-up",
+            "Please contact Student Affairs about the student's attendance.",
+            "officer-guardian-conversation-1",
+            null,
+            72);
+
+        var result = await handler.Handle(
+            new CreateConversationCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        repository.CreatedRequest.Should().BeSameAs(request);
+    }
+
     private sealed class StubGatePassWorkflowRepository : IGatePassWorkflowRepository
     {
         public Task<bool> IsActiveGuardianAsync(int schoolId, string guardianUserId, CancellationToken cancellationToken) =>
@@ -397,6 +444,9 @@ public sealed class GatePassAndMessagingMediatRTests
 
         public Task<IReadOnlyList<GuardianStaffOptionDto>> GetGuardianStaffOptionsAsync(int schoolId, string guardianUserId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<GuardianStaffOptionDto>>(Array.Empty<GuardianStaffOptionDto>());
+
+        public Task<IReadOnlyList<StudentGuardianOptionDto>> GetStudentGuardianOptionsAsync(int schoolId, int studentId, DateTimeOffset instant, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<StudentGuardianOptionDto>>(Array.Empty<StudentGuardianOptionDto>());
 
         public Task<ConversationDto?> GetConversationByIdAsync(int schoolId, string userId, int conversationId, CancellationToken cancellationToken) =>
             Task.FromResult<ConversationDto?>(new ConversationDto(conversationId, new StudentSummaryDto(1, "STU-1", "Test Student", null, null, true, null),

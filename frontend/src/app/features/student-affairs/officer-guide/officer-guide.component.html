@@ -1,0 +1,21 @@
+<main class="guide-page" dir="rtl">
+  <header class="guide-hero">
+    <div class="hero-copy"><span class="eyebrow"><i class="pi pi-compass"></i> دليل العمل اليومي</span><h1>كل أدوات شؤون الطلاب،<br /><em>من أول خطوة حتى إغلاق الإجراء</em></h1><p>دليل بصري سريع يوضح متى تستخدم كل ميزة، فائدتها، وترتيب الخطوات الصحيح. يمكنك الانتقال مباشرةً للأداة من كل بطاقة.</p><div class="hero-badges"><span><i class="pi pi-shield"></i> صلاحيات آمنة</span><span><i class="pi pi-history"></i> قرارات قابلة للتدقيق</span><span><i class="pi pi-users"></i> الطالب في مركز الإجراء</span></div></div>
+    <div class="journey-map" aria-label="دورة عمل شؤون الطلاب"><div><span>1</span><strong>التقاط الواقعة</strong><small>حضور · سلوك · طلب</small></div><i class="pi pi-arrow-left"></i><div><span>2</span><strong>المراجعة والقرار</strong><small>تحقق · اعتماد · إسناد</small></div><i class="pi pi-arrow-left"></i><div><span>3</span><strong>المتابعة والتواصل</strong><small>رسالة · تنفيذ · تدقيق</small></div></div>
+  </header>
+
+  <section class="guide-intro"><div><span>11</span><p><strong>ميزة إدارية</strong><small>موثقة في هذا الدليل</small></p></div><div><i class="pi pi-lightbulb"></i><p><strong>ابدأ من لوحة المتابعة</strong><small>ثم اتبع الأولوية بدل التنقل العشوائي بين القوائم.</small></p></div></section>
+
+  <section class="feature-grid">
+    @for (feature of features; track feature.number) {
+      <article class="feature-card" [attr.data-tone]="feature.tone">
+        <header><span class="feature-icon"><i class="pi" [ngClass]="feature.icon"></i></span><b>{{ feature.number }}</b></header>
+        <h2>{{ feature.title }}</h2><p class="benefit">{{ feature.benefit }}</p>
+        <div class="steps"><span>طريقة الاستخدام</span><ol>@for (step of feature.steps; track step) { <li><i>{{ $index + 1 }}</i><span>{{ step }}</span></li> }</ol></div>
+        <a [routerLink]="feature.route"><span>{{ feature.action }}</span><i class="pi pi-arrow-left"></i></a>
+      </article>
+    }
+  </section>
+
+  <footer class="guide-footer"><i class="pi pi-info-circle"></i><div><strong>قاعدة عملية مهمة</strong><p>راجع السياق قبل القرار، اكتب سببًا مفهومًا، ثم تحقق من حالة التسليم أو التنفيذ. هذا يجعل سجل الطالب واضحًا لمن يستكمل العمل بعدك.</p></div></footer>
+</main>

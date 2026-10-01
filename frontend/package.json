@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:e2e": "node scripts/run-student-affairs-e2e.mjs",
     "test:student-analyzer-layout": "node scripts/check-student-analyzer-layout.mjs"
   },
   "private": true,
@@ -42,6 +43,7 @@
     "@angular-devkit/build-angular": "^17.3.17",
     "@angular/cli": "^17.3.17",
     "@angular/compiler-cli": "^17.3.0",
+    "@playwright/test": "^1.63.0",
     "@types/jasmine": "~5.1.0",
     "@types/leaflet": "^1.9.21",
     "autoprefixer": "^10.4.20",

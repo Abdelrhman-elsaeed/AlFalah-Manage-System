@@ -339,6 +339,12 @@ export interface GuardianStaffOptionDto {
   readonly role: string;
   readonly threadType: ConversationThreadType;
 }
+export interface StudentGuardianOptionDto {
+  readonly guardianProfileId: number;
+  readonly displayName: string;
+  readonly relationship: string;
+  readonly isPrimary: boolean;
+}
 export interface CreateConversationRequestDto {
   readonly studentId: number;
   readonly threadType: ConversationThreadType;

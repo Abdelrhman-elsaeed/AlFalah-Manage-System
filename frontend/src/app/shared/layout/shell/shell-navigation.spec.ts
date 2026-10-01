@@ -1,5 +1,19 @@
 import { SHELL_NAV_CATEGORIES } from './shell.component';
 
+describe('shell school manager Student Affairs navigation', () => {
+  const studentAffairs = SHELL_NAV_CATEGORIES.find(category => category.id === 'student-affairs');
+
+  it('groups the four manager workspaces under one Student Affairs category', () => {
+    expect(studentAffairs?.items.map(item => item.route)).toEqual([
+      '/student-affairs/oversight',
+      '/student-affairs/office-hours/manage',
+      '/student-affairs/gate-passes/audit',
+      '/student-affairs/messaging-audit'
+    ]);
+    expect(studentAffairs?.items.every(item => item.roles?.includes('SchoolManager'))).toBe(true);
+  });
+});
+
 describe('shell evaluation navigation roles', () => {
   const evaluation = SHELL_NAV_CATEGORIES.find(category => category.id === 'evaluation');
 
@@ -54,6 +68,14 @@ describe('shell Phase 5 navigation', () => {
 
     expect(messages?.roles).toEqual(['Guardian', 'StudentAffairsOfficer', 'SocialWorker']);
     expect(messages?.roles).not.toContain('SchoolManager');
+  });
+
+  it('exposes the visual feature guide only in the officer administration workspace', () => {
+    const guide = administration?.items.find(item => item.route === '/student-affairs/officer/guide');
+
+    expect(guide?.roles).toEqual(['StudentAffairsOfficer']);
+    expect(guide?.permissions).toEqual(['StudentAffairsDashboard.Officer']);
+    expect(guide?.icon).toBe('pi pi-compass');
   });
 });
 

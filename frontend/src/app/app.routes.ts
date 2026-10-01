@@ -738,6 +738,17 @@ export const routes: Routes = [
         title: 'السجلات التشغيلية'
       },
       {
+        path: 'student-affairs/officer/guide',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['StudentAffairsOfficer'],
+          permissions: ['StudentAffairsDashboard.Officer']
+        },
+        loadComponent: () => import('./features/student-affairs/officer-guide/officer-guide.component')
+          .then(m => m.OfficerGuideComponent),
+        title: 'دليل استخدام شؤون الطلاب'
+      },
+      {
         path: 'student-affairs/office-hours',
         canActivate: [roleGuard, permissionGuard],
         data: { roles: ['Instructor'], permissions: ['OfficeHours.ManageOwn'] },

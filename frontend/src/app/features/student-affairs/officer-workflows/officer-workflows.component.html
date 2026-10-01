@@ -1,46 +1,74 @@
 <main class="page" dir="rtl">
-  <header>
+  <header class="workspace-hero">
     <div>
-      <span class="eyebrow">مسؤول شؤون الطلاب</span>
+      <span class="eyebrow"><i class="pi pi-sparkles"></i> مسؤول شؤون الطلاب</span>
       <h1>{{ mode === 'permits' ? 'تصاريح دخول الفصل' : mode === 'referrals' ? 'إنشاء وإسناد الإحالات' : mode === 'automation' ? 'مراجعة أثر الأتمتة' : 'السجلات التشغيلية' }}</h1>
-      <p>بيانات المدرسة النشطة فقط، مع ترقيم صفحات من الخادم وتحديث آمن عند التعارض.</p>
+      <p>{{ mode === 'permits' ? 'اختر الفصل ثم الطالب، وحدد نافذة التصريح بوضوح قبل الإصدار.' : mode === 'referrals' ? 'أنشئ الحالة وأسندها في مسار واحد واضح مع الحفاظ على سجل القرار.' : 'بيانات المدرسة النشطة فقط مع تحديث آمن عند التعارض.' }}</p>
     </div>
     <button pButton type="button" icon="pi pi-refresh" label="تحديث" class="p-button-outlined" [loading]="loading()" (click)="load()"></button>
   </header>
 
   @if (mode === 'permits' || mode === 'referrals') {
-    <p-card styleClass="form-card">
-      <div class="lookup">
-        <label for="student-search">بحث الطالب بالاسم أو الرقم</label>
-        <div class="search-row"><input id="student-search" pInputText [formControl]="studentSearch" (keyup.enter)="searchForStudents()" /><button pButton type="button" label="بحث" icon="pi pi-search" [loading]="studentLookupLoading()" (click)="searchForStudents()"></button></div>
-        @if (studentOptions().length) { <div class="lookup-results" role="listbox">@for (student of studentOptions(); track student.studentId) { <button type="button" (click)="chooseStudent(student)"><strong>{{ student.name }}</strong><span>{{ student.studentNumber }} — {{ student.classroomName || 'دون فصل' }}</span></button> }</div> }
-        @if (selectedStudent(); as student) { <p class="selected"><i class="pi pi-user"></i> الطالب المختار: <strong>{{ student.name }}</strong> — {{ student.classroomName }}</p> }
+    <section class="workflow-builder">
+      <div class="builder-heading">
+        <div><span class="step-number">1</span><div><span class="section-kicker">تحديد النطاق</span><h2>اختر الطالب</h2></div></div>
+        <span class="builder-hint"><i class="pi pi-info-circle"></i> البحث يعمل داخل الفصل المختار</span>
       </div>
+
+      <div class="directory-toolbar">
+        <label class="field classroom-field" for="classroom-filter"><span>الفصل</span><p-dropdown inputId="classroom-filter" ariaLabel="الفصل" [formControl]="classroomControl" [options]="classrooms()" optionLabel="label" optionValue="id" placeholder="كل الفصول" [showClear]="true" [filter]="true" filterBy="label" [loading]="classroomsLoading()"></p-dropdown></label>
+        <label class="field search-field" for="student-search"><span>بحث اختياري داخل النطاق</span><div class="search-row"><span class="search-input"><i class="pi pi-search"></i><input id="student-search" pInputText [formControl]="studentSearch" placeholder="اسم الطالب أو رقمه" (keyup.enter)="searchForStudents()" /></span><button pButton type="button" label="بحث" icon="pi pi-search" [loading]="studentLookupLoading()" (click)="searchForStudents()"></button>@if (studentSearch.value) { <button pButton type="button" icon="pi pi-times" class="p-button-text clear-search" aria-label="مسح البحث" (click)="clearStudentSearch()"></button> }</div></label>
+      </div>
+
+      @if (selectedStudent(); as student) {
+        <div class="selected-student" aria-live="polite"><span class="student-avatar">{{ student.name.slice(0, 1) }}</span><div><span>الطالب المختار</span><strong>{{ student.name }}</strong><small>{{ student.studentNumber }} · {{ student.classroomName || 'دون فصل' }}</small></div><button type="button" class="change-student" (click)="clearSelectedStudent(); searchForStudents()"><i class="pi pi-pencil"></i> تغيير</button></div>
+      } @else {
+        <div class="student-directory" role="listbox" aria-label="الطالب">
+          @if (studentLookupLoading()) {
+            @for (item of [1, 2, 3, 4]; track item) { <div class="student-skeleton"><span></span><div><i></i><i></i></div></div> }
+          } @else {
+            @for (student of studentOptions(); track student.studentId) {
+              <button type="button" class="student-option" role="option" (click)="chooseStudent(student)"><span class="student-avatar">{{ student.name.slice(0, 1) }}</span><span class="student-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNumber }}</small></span><span class="student-class">{{ student.classroomName || 'دون فصل' }}</span><i class="pi pi-angle-left"></i></button>
+            }
+          }
+        </div>
+        <p class="directory-hint"><i class="pi" [ngClass]="studentOptions().length ? 'pi-users' : 'pi-info-circle'"></i>{{ studentLookupHint() }}</p>
+      }
 
       @if (mode === 'permits') {
         <form class="workflow-form" [formGroup]="permitForm" (ngSubmit)="issuePermit()">
-          <label><span>سبب التصريح</span><textarea pInputTextarea formControlName="reason" rows="3"></textarea></label>
-          <label><span>بداية الصلاحية</span><input pInputText type="datetime-local" formControlName="validFrom" /></label>
-          <label><span>نهاية الصلاحية</span><input pInputText type="datetime-local" formControlName="validUntil" /></label>
-          <button pButton type="submit" label="إصدار التصريح" icon="pi pi-plus" [loading]="saving()" [disabled]="permitForm.invalid"></button>
+          <div class="form-section-title"><span class="step-number">2</span><div><span class="section-kicker">بيانات التصريح</span><h2>السبب ومدة الصلاحية</h2></div></div>
+          <label class="field reason-field"><span>سبب التصريح *</span><textarea pInputTextarea formControlName="reason" rows="4" placeholder="مثال: تأخر بسبب موعد طبي موثق"></textarea><small>اكتب سببًا مختصرًا وواضحًا يظهر للمعلم المستهدف.</small></label>
+          <div class="date-fields"><label class="field"><span>بداية الصلاحية *</span><input pInputText type="datetime-local" formControlName="validFrom" /></label><label class="field"><span>نهاية الصلاحية *</span><input pInputText type="datetime-local" formControlName="validUntil" /></label></div>
+          <div class="form-submit"><span><i class="pi pi-lock"></i> لن يصدر التصريح قبل اكتمال الطالب والسبب والمدة.</span><button pButton type="submit" label="إصدار تصريح الدخول" icon="pi pi-ticket" [loading]="saving()" [disabled]="permitForm.invalid"></button></div>
         </form>
       } @else {
         <form class="workflow-form" [formGroup]="referralForm" (ngSubmit)="createReferral()">
-          <label><span>سبب الإحالة</span><textarea pInputTextarea formControlName="reason" rows="3"></textarea></label>
-          <label><span>الأولوية</span><p-dropdown formControlName="priority" [options]="priorities" optionLabel="label" optionValue="value"></p-dropdown></label>
-          <button pButton type="submit" label="إنشاء إحالة" icon="pi pi-plus" [loading]="saving()" [disabled]="referralForm.invalid"></button>
+          <div class="form-section-title"><span class="step-number">2</span><div><span class="section-kicker">تفاصيل الحالة</span><h2>سبب الإحالة وأولويتها</h2></div></div>
+          <label class="field reason-field"><span>سبب الإحالة *</span><textarea pInputTextarea formControlName="reason" rows="4" placeholder="صف بإيجاز ما يحتاج إلى متابعة من الأخصائي"></textarea><small>يظهر هذا النص في ملف الحالة، لذلك تجنب التفاصيل غير الضرورية.</small></label>
+          <label class="field priority-field"><span>الأولوية *</span><p-dropdown formControlName="priority" [options]="priorities" optionLabel="label" optionValue="value"></p-dropdown></label>
+          <div class="assignment-block"><div class="form-section-title compact"><span class="step-number">3</span><div><span class="section-kicker">إسناد اختياري</span><h2>أسند الآن أو اتركها في قائمة الانتظار</h2></div></div><label class="field"><span>الأخصائي الاجتماعي</span><p-dropdown formControlName="workerId" [options]="workers()" optionLabel="displayName" optionValue="userId" placeholder="بدون إسناد مباشر" [showClear]="true" [loading]="workersLoading()"></p-dropdown></label><label class="field"><span>ملاحظة الإسناد</span><input pInputText formControlName="assignmentReason" placeholder="ما المطلوب من الأخصائي؟" /></label>@if (workersError()) { <small class="field-error">{{ workersError() }}</small> }</div>
+          <div class="form-submit"><span><i class="pi pi-shield"></i> يمكنك إنشاء الحالة فقط أو إنشاؤها وإسنادها في خطوة واحدة.</span><button pButton type="submit" [label]="referralForm.controls.workerId.value ? 'إنشاء وإسناد الحالة' : 'إنشاء الحالة'" icon="pi pi-send" [loading]="saving()" [disabled]="referralForm.invalid"></button></div>
         </form>
       }
-    </p-card>
+    </section>
   }
 
   @if (mode === 'records') {
-    <p-card>
-      <div class="record-filters">
-        <label class="type-picker"><span>نوع السجل</span><p-dropdown [formControl]="recordType" [options]="recordTypes" optionLabel="label" optionValue="value"></p-dropdown></label>
-        <label><span>بحث بالطالب أو الوصف</span><div class="search-row"><input pInputText [formControl]="recordSearch" (keyup.enter)="load()" /><button pButton type="button" label="بحث" icon="pi pi-search" (click)="load()"></button></div></label>
+    <section class="records-hub">
+      <div class="records-overview">
+        <div><span class="section-kicker">مركز المتابعة</span><h2>اختر نوع السجل الذي تريد مراجعته</h2><p>كل نوع له سياق مختلف؛ انتقل بينه من هنا ثم استخدم البحث لتضييق النتائج.</p></div>
+        <div class="records-kpis"><span><strong>{{ total() }}</strong> سجل مطابق</span><span><strong>{{ recordsWithSeverity() }}</strong> مصنف بالشدة</span></div>
       </div>
-    </p-card>
+      <div class="record-type-grid">
+        @for (type of recordTypes; track type.value) {
+          <button type="button" class="record-type-card" [class.active]="recordType.value === type.value" [attr.data-tone]="type.tone" (click)="chooseRecordType(type.value)">
+            <span class="record-type-icon"><i class="pi" [ngClass]="type.icon"></i></span><span><strong>{{ type.label }}</strong><small>{{ type.hint }}</small></span><i class="pi pi-angle-left"></i>
+          </button>
+        }
+      </div>
+      <div class="record-searchbar"><div><i class="pi pi-search"></i><input pInputText [formControl]="recordSearch" placeholder="ابحث باسم الطالب أو الرقم أو وصف الواقعة" (keyup.enter)="load()" /></div><button pButton type="button" label="تطبيق البحث" icon="pi pi-sliders-h" [loading]="loading()" (click)="load()"></button>@if (recordSearch.value) { <button pButton type="button" label="مسح" class="p-button-text" (click)="recordSearch.reset(''); load()"></button> }</div>
+    </section>
   }
 
   @if (error()) { <section class="state error" role="alert"><i class="pi pi-exclamation-triangle"></i>{{ error() }}</section> }
@@ -74,11 +102,15 @@
       </p-table>
       @if (selectedReview(); as review) { <form class="action-panel" [formGroup]="reviewForm" (ngSubmit)="submitReview()"><h2>مراجعة أثر الأتمتة — {{ review.student.displayName }}</h2><p>لن تُحذف الإحالة أو الاستدعاء؛ يُسجل قرار المراجعة فقط.</p><label><span>القرار</span><p-dropdown formControlName="decision" [options]="decisions" optionLabel="label" optionValue="value"></p-dropdown></label><label><span>مبررات القرار</span><textarea pInputTextarea formControlName="rationale" rows="3"></textarea></label><div><button pButton type="button" label="إلغاء" class="p-button-text" (click)="selectedReview.set(null)"></button><button pButton type="submit" label="حفظ المراجعة" [loading]="saving()" [disabled]="reviewForm.invalid"></button></div></form> }
     } @else {
-      <p-table [value]="records()" [lazy]="true" (onLazyLoad)="load($event)" [paginator]="true" [rows]="pageSize()" [totalRecords]="total()" [loading]="loading()" responsiveLayout="scroll">
-        <ng-template pTemplate="header"><tr><th>الطالب</th><th>التاريخ</th><th>التصنيف/النوع</th><th>الوصف/العنوان</th><th>الدقائق</th><th>الشدة</th></tr></ng-template>
-        <ng-template pTemplate="body" let-item><tr><td><strong>{{ item.student.displayName }}</strong><small>{{ item.student.studentNumber }} — {{ item.student.classLabel || 'دون فصل' }}</small></td><td>{{ formatDate(recordDate(item)) }}</td><td>{{ item.category || item.recognitionType || '—' }}</td><td>{{ item.description || item.title || '—' }}</td><td>{{ item.delayMinutes ?? '—' }}</td><td>{{ item.severity || '—' }}</td></tr></ng-template>
-        <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty">لا توجد سجلات مطابقة.</td></tr></ng-template>
+      <div class="records-table-heading"><div><span class="record-type-icon" [attr.data-tone]="currentRecordType().tone"><i class="pi" [ngClass]="currentRecordType().icon"></i></span><div><span class="section-kicker">السجل النشط</span><h2>{{ currentRecordType().label }}</h2></div></div><span>اضغط على أي صف لعرض ملخصه</span></div>
+      <p-table [value]="records()" [lazy]="true" (onLazyLoad)="load($event)" [paginator]="true" [rows]="pageSize()" [totalRecords]="total()" [loading]="loading()" responsiveLayout="scroll" styleClass="records-table">
+        <ng-template pTemplate="header"><tr><th>الطالب</th><th>وقت التسجيل</th><th>التصنيف</th><th>ملخص الواقعة</th><th>المؤشر</th><th></th></tr></ng-template>
+        <ng-template pTemplate="body" let-item><tr class="record-row" tabindex="0" (click)="selectedRecord.set(item)" (keyup.enter)="selectedRecord.set(item)"><td><div class="record-student"><span>{{ item.student.displayName.slice(0, 1) }}</span><div><strong>{{ item.student.displayName }}</strong><small>{{ item.student.studentNumber }} · {{ item.student.classLabel || 'دون فصل' }}</small></div></div></td><td><time>{{ formatDate(recordDate(item)) }}</time></td><td><span class="category-pill">{{ recordCategory(item) }}</span></td><td class="record-description">{{ recordSummary(item) }}</td><td>@if (item.delayMinutes != null) { <strong class="minutes">{{ item.delayMinutes }} دقيقة</strong> } @else { <span class="severity-pill" [attr.data-level]="item.severity || 'none'">{{ severityLabel(item.severity) }}</span> }</td><td><button type="button" class="row-open" aria-label="عرض التفاصيل" (click)="$event.stopPropagation(); selectedRecord.set(item)"><i class="pi pi-arrow-up-left"></i></button></td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty"><div class="rich-empty"><span><i class="pi" [ngClass]="currentRecordType().icon"></i></span><strong>لا توجد سجلات مطابقة</strong><small>غيّر عبارة البحث أو اختر نوع سجل آخر.</small></div></td></tr></ng-template>
       </p-table>
+      @if (selectedRecord(); as record) {
+        <aside class="record-detail" aria-live="polite"><button type="button" aria-label="إغلاق التفاصيل" (click)="selectedRecord.set(null)"><i class="pi pi-times"></i></button><span class="section-kicker">تفاصيل السجل</span><h2>{{ record.student.displayName }}</h2><div class="detail-meta"><span><i class="pi pi-id-card"></i>{{ record.student.studentNumber }}</span><span><i class="pi pi-users"></i>{{ record.student.classLabel || 'دون فصل' }}</span><span><i class="pi pi-calendar"></i>{{ formatDate(recordDate(record)) }}</span></div><div class="detail-body"><span>{{ recordCategory(record) }}</span><p>{{ recordSummary(record) }}</p></div><div class="detail-measure">@if (record.delayMinutes != null) { <span>مدة التأخر</span><strong>{{ record.delayMinutes }} دقيقة</strong> } @else { <span>درجة الشدة</span><strong>{{ severityLabel(record.severity) }}</strong> }</div></aside>
+      }
     }
   </section>
 </main>

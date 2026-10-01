@@ -37,12 +37,17 @@ public sealed class CreateConversationCommandHandler
             && command.Request.ThreadType == Domain.Enums.StudentAffairs.ConversationThreadType.GuardianSocialWorker
             && _currentUser.HasPermission(PermissionNames.MessagingSend)
             && _currentUser.HasPermission(PermissionNames.MessagingViewOwn);
+        var isOfficerGuardianStart = _currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
+            && command.Request.ThreadType == Domain.Enums.StudentAffairs.ConversationThreadType.GuardianStudentAffairs
+            && command.Request.TargetGuardianProfileId.HasValue
+            && _currentUser.HasPermission(PermissionNames.MessagingStartOfficerGuardian)
+            && _currentUser.HasPermission(PermissionNames.MessagingSend);
         var hasThreadPermission = command.Request.ThreadType == Domain.Enums.StudentAffairs.ConversationThreadType.GuardianTeacher
             ? _currentUser.HasPermission(PermissionNames.MessagingStartGuardianTeacher)
             : command.Request.ThreadType is Domain.Enums.StudentAffairs.ConversationThreadType.GuardianStudentAffairs
                 or Domain.Enums.StudentAffairs.ConversationThreadType.GuardianSocialWorker
                 && _currentUser.HasPermission(PermissionNames.MessagingStartGuardianAdministration);
-        if ((!isGuardian || !hasThreadPermission) && !isAssignedSocialWorkerCase)
+        if ((!isGuardian || !hasThreadPermission) && !isAssignedSocialWorkerCase && !isOfficerGuardianStart)
             return ApiResponse<ConversationDto>.Fail("You do not have permission to perform this action");
 
         if (string.IsNullOrWhiteSpace(command.Request.IdempotencyKey))
