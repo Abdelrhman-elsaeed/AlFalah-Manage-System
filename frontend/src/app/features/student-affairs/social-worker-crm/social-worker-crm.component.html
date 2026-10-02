@@ -1,25 +1,26 @@
-<main class="crm-page" dir="rtl">
-  <header class="page-header">
-    <div>
-      <span class="eyebrow">إدارة الحالات الطلابية</span>
+<main class="manager-workspace crm-page" dir="rtl">
+  <section class="workspace-hero crm-hero">
+    <div class="workspace-hero__content">
+      <span class="workspace-hero__eyebrow"><i class="pi" [ngClass]="section() === 'cases' ? 'pi-briefcase' : 'pi-calendar-clock'"></i>{{ section() === 'cases' ? 'إدارة ومتابعة الحالات' : 'تنسيق التواصل الأسري' }}</span>
       <h1>{{ section() === 'cases' ? 'إحالات الموجه الطلابي' : 'استدعاءات أولياء الأمور' }}</h1>
-      <p>{{ section() === 'cases' ? 'الإحالات المنشأة من محرك الأتمتة مع الاحتفاظ بلقطة المصدر التاريخية.' : 'متابعة دورة الاستدعاء بأربع حالات مع حماية كل انتقال بإصدار السجل.' }}</p>
+      <p>{{ section() === 'cases' ? 'رتّب الحالات حسب أولويتها، ابدأ المتابعة، ووثّق كل إجراء في مكان واحد واضح.' : 'تابع دورة الاستدعاء من تحديد الموعد حتى الملاحظة والتحسّن، بخطوات واضحة ومحفوظة.' }}</p>
     </div>
-    <div class="header-actions">
-      <a pButton routerLink="/student-affairs/cases" label="الإحالات" icon="pi pi-briefcase" [class.p-button-outlined]="section() !== 'cases'"></a>
-      <a pButton routerLink="/student-affairs/summons" label="الاستدعاءات" icon="pi pi-calendar-clock" [class.p-button-outlined]="section() !== 'summons'"></a>
+    <div class="workspace-hero__actions header-actions">
+      <a routerLink="/student-affairs/social-worker" class="hero-action"><i class="pi pi-home"></i><span>اللوحة الرئيسية</span></a>
+      <a routerLink="/student-affairs/cases" class="hero-action" [class.hero-action--active]="section() === 'cases'"><i class="pi pi-briefcase"></i><span>الإحالات</span></a>
+      <a routerLink="/student-affairs/summons" class="hero-action" [class.hero-action--active]="section() === 'summons'"><i class="pi pi-calendar-clock"></i><span>الاستدعاءات</span></a>
     </div>
-  </header>
+  </section>
 
   @if (dashboardCounts().length) {
-    <section class="crm-kpis" aria-label="ملخص عمل الأخصائي الاجتماعي">
+    <section class="overview-grid crm-kpis" aria-label="ملخص عمل الموجه الطلابي">
       @for (metric of dashboardCounts(); track metric.code) {
-        <article><span>{{ metric.label }}</span><strong>{{ metric.count }}</strong></article>
+        <article class="metric-card" [ngClass]="'metric-card--' + dashboardMetricTone(metric.code)"><span class="metric-card__icon"><i class="pi" [ngClass]="dashboardMetricIcon(metric.code)"></i></span><span class="metric-card__copy"><span>{{ metric.label }}</span><strong>{{ metric.count }}</strong><small>{{ metric.count ? 'عنصر يحتاج متابعة' : 'لا توجد عناصر حاليًا' }}</small></span></article>
       }
     </section>
   }
 
-  <section class="toolbar">
+  <section class="toolbar surface-panel">
     <div class="toolbar-filters">
       <span class="p-input-icon-right search-box"><i class="pi pi-search"></i><input pInputText [formControl]="search" placeholder="بحث باسم الطالب أو رقم الحالة" /></span>
       <p-dropdown
@@ -158,9 +159,16 @@
     @if (selectedReferral(); as item) {
       <div class="dialog-context"><strong>{{ item.student.displayName }}</strong><p-tag [value]="referralStatusLabel(item.status)" severity="info"></p-tag><span>الإصدار الأحدث محمي بخادم النظام</span></div>
       @if (referralConflict()) { <div class="conflict" role="alert"><i class="pi pi-exclamation-triangle"></i><div><strong>تم تحديث الحالة بواسطة مستخدم آخر</strong><span>المسودة أدناه محفوظة. راجع الحالة الأحدث ثم أعد التأكيد يدويًا إن بقيت مناسبة.</span></div></div> }
-      @if (item.actions.length) { <section class="case-history"><h3>سجل الإجراءات السري المصرح</h3>@for (action of item.actions; track action.id) { <article><div><strong>{{ action.actor.displayName }}</strong><time>{{ formatDateTime(action.actionAt) }}</time></div><p>{{ action.description }}</p>@if (action.result) { <small>النتيجة: {{ action.result }}</small> }</article> }</section> }
+      @if (item.actions.length) { <section class="case-history"><h3>سجل الإجراءات السري المصرح</h3>@for (action of item.actions; track action.id) { <article><div><strong>{{ action.actor.displayName }}</strong><time>{{ formatDateTime(action.actionAt) }}</time></div><p>{{ displayActionDescription(action) }}</p>@if (action.result) { <small>النتيجة: {{ displayActionResult(action.result) }}</small> }</article> }</section> }
       @if (referralActionMode() === 'addAction') {
         <form [formGroup]="referralActionForm" class="form-grid">
+          <div class="action-guidance full" role="note">
+            <i class="pi pi-info-circle"></i>
+            <div>
+              <strong>هذا الإجراء يوثّق ما تم داخل ملف الحالة فقط</strong>
+              <span>لإنشاء موعد استدعاء رسمي ومتابعة الحضور، استخدم زر «إنشاء استدعاء» الموجود على بطاقة الحالة.</span>
+            </div>
+          </div>
           <label class="field"><span>نوع الإجراء *</span><p-dropdown formControlName="actionType" [options]="caseActionOptions" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown></label>
           <label class="field"><span>وقت الإجراء (اختياري)</span><p-calendar formControlName="actionAt" [showTime]="true" [showIcon]="true" appendTo="body"></p-calendar></label>
           <label class="field full"><span>الوصف *</span><textarea pInputTextarea formControlName="description" rows="5"></textarea></label>

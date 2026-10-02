@@ -77,7 +77,7 @@ public sealed class ReopenReferralCommandHandler
         var action = ReferralHandlerSupport.CreateAction(
             referral,
             StudentCaseActionType.Other,
-            $"Referral reopened: {request.Reason.Trim()}",
+            $"أُعيد فتح الإحالة: {request.Reason.Trim()}",
             userId,
             now);
 

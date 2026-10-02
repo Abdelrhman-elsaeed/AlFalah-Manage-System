@@ -71,12 +71,12 @@ public sealed class AcceptReferralCommandHandler
 
         ReferralHandlerSupport.AppendTransition(
             referral, StudentReferralStatus.Assigned, StudentReferralStatus.InProgress,
-            userId, RoleNames.SocialWorker, now, "Referral accepted");
+            userId, RoleNames.SocialWorker, now, "تم قبول الإحالة وبدء المتابعة");
 
         var action = ReferralHandlerSupport.CreateAction(
             referral,
             StudentCaseActionType.Other,
-            "Referral accepted and moved to in-progress",
+            "تم قبول الإحالة ونقلها إلى قيد المتابعة",
             userId,
             now);
 

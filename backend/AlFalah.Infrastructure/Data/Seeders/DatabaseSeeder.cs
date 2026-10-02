@@ -1,5 +1,7 @@
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
+using AlFalah.Domain.Enums.StudentAffairs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -36,10 +38,68 @@ public class DatabaseSeeder
         await SeedRolesAsync();
         await SeedPermissionsAsync();
         await SyncRolePermissionsAsync();
+        await BackfillGuardianProfilesAsync();
         await SeedRubricAsync();
         await RetirePlaceholderStandardsAsync();
 
         _logger.LogInformation("Database seeding completed.");
+    }
+
+    private async Task BackfillGuardianProfilesAsync()
+    {
+        var guardianRole = await _roleManager.FindByNameAsync(RoleNames.Guardian);
+        if (guardianRole is null) return;
+
+        var assignments = await _context.UserSchoolRoles
+            .IgnoreQueryFilters()
+            .Where(assignment => assignment.RoleId == guardianRole.Id
+                && assignment.IsActive
+                && !assignment.IsDeleted
+                && assignment.User.IsActive
+                && !assignment.User.IsDeleted)
+            .Select(assignment => new
+            {
+                assignment.SchoolId,
+                assignment.UserId,
+                assignment.User.PreferredLanguage
+            })
+            .ToListAsync();
+
+        if (assignments.Count == 0) return;
+
+        var schoolIds = assignments.Select(item => item.SchoolId).Distinct().ToArray();
+        var userIds = assignments.Select(item => item.UserId).Distinct().ToArray();
+        var existing = await _context.GuardianProfiles
+            .IgnoreQueryFilters()
+            .Where(profile => schoolIds.Contains(profile.SchoolId)
+                && userIds.Contains(profile.ApplicationUserId)
+                && !profile.IsDeleted)
+            .Select(profile => new { profile.SchoolId, profile.ApplicationUserId })
+            .ToListAsync();
+        var existingKeys = existing
+            .Select(item => $"{item.SchoolId}|{item.ApplicationUserId}")
+            .ToHashSet(StringComparer.Ordinal);
+
+        var now = DateTimeOffset.UtcNow;
+        foreach (var assignment in assignments)
+        {
+            if (existingKeys.Contains($"{assignment.SchoolId}|{assignment.UserId}")) continue;
+            _context.GuardianProfiles.Add(new GuardianProfile
+            {
+                SchoolId = assignment.SchoolId,
+                ApplicationUserId = assignment.UserId,
+                PreferredContactLanguage = assignment.PreferredLanguage == "en"
+                    ? PreferredContactLanguage.English
+                    : PreferredContactLanguage.Arabic,
+                IsActive = true,
+                CreatedAt = now,
+                CreatedByUserId = assignment.UserId,
+                UpdatedAt = now,
+                UpdatedByUserId = assignment.UserId
+            });
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     // ─── Roles ───────────────────────────────────────────────────────────────
@@ -471,7 +531,8 @@ public class DatabaseSeeder
             {
                 PermissionNames.AttendanceView, PermissionNames.AttendanceManage,
                 PermissionNames.AttendanceViewStudents, PermissionNames.AttendanceManageStudents,
-                PermissionNames.ClassroomManage, PermissionNames.StudentManage,
+                PermissionNames.ClassroomManage, PermissionNames.StudentManage, PermissionNames.StudentEnrollmentManage,
+                PermissionNames.GuardianView, PermissionNames.GuardianLinkStudent,
                 PermissionNames.BiometricImport,
                 PermissionNames.TimetableView, PermissionNames.TimetableReview, PermissionNames.TimetableManage,
             },

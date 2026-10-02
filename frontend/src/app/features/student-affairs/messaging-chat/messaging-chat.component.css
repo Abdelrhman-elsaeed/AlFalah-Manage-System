@@ -17,6 +17,9 @@
 .inbox > header div { display: flex; align-items: center; gap: var(--space-2); }
 .inbox h2 { margin: 0; color: var(--text-strong); font-size: 1.05rem; }
 .inbox header div span { display: grid; width: 1.7rem; height: 1.7rem; place-items: center; color: white; background: var(--brand-600); border-radius: 999px; font-size: .78rem; }
+.inbox-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: .35rem; margin: .65rem .75rem 0; padding: .3rem; background: #eaf1ec; border-radius: 12px; }
+.inbox-tabs button { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 2.45rem; color: #5d7166; background: transparent; border: 0; border-radius: 9px; cursor: pointer; font: inherit; font-size: .78rem; font-weight: 800; transition: .15s ease; }
+.inbox-tabs button.active { color: #0d6139; background: #fff; box-shadow: 0 3px 10px rgba(20, 68, 43, .1); }
 .new-thread-note { display: flex; gap: var(--space-2); margin: var(--space-3); padding: var(--space-2); color: var(--info); background: var(--info-bg); border-radius: var(--radius-md); font-size: .75rem; }
 .new-thread-actions { display: grid; gap: var(--space-2); padding: var(--space-3); border-bottom: 1px solid var(--border); }
 .new-thread-actions .new-thread-note { margin: 0; }
@@ -24,6 +27,16 @@
 .inbox-search i { position: absolute; z-index: 1; top: 50%; inset-inline-start: calc(var(--space-3) + .75rem); color: #799085; transform: translateY(-50%); }
 .inbox-search input { width: 100%; padding-inline-start: 2.25rem; background: #fff; border-color: #dce7df; border-radius: 11px; }
 .thread-list { display: grid; max-height: 620px; overflow-y: auto; }
+.people-list { display: grid; align-content: start; max-height: 620px; overflow-y: auto; }
+.person-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .7rem; width: 100%; padding: .85rem 1rem; color: var(--text); background: transparent; border: 0; border-bottom: 1px solid var(--border); cursor: pointer; text-align: start; font: inherit; }
+.person-item:hover, .person-item.active { background: linear-gradient(100deg, var(--brand-50), #fff); }
+.person-item.active { box-shadow: inset -4px 0 var(--brand-600); }
+.person-avatar { display: grid; width: 2.55rem; height: 2.55rem; place-items: center; color: #fff; background: linear-gradient(145deg, #0a6f42, #1a9a5e); border-radius: 13px; font-size: 1rem; font-weight: 900; box-shadow: 0 5px 14px rgba(11, 111, 67, .18); }
+.person-avatar.large { width: 3.6rem; height: 3.6rem; border-radius: 17px; font-size: 1.4rem; }
+.person-copy { display: grid; min-width: 0; gap: .15rem; }
+.person-copy strong, .person-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.person-copy strong { color: var(--text-strong); font-size: .86rem; }
+.person-copy small { color: var(--text-muted); font-size: .7rem; }
 .thread-item { display: grid; gap: var(--space-2); width: 100%; padding: var(--space-4); color: var(--text); background: transparent; border: 0; border-bottom: 1px solid var(--border); cursor: pointer; text-align: start; font: inherit; }
 .thread-item:hover, .thread-item.active { background: linear-gradient(100deg, var(--brand-50), #fff); }
 .thread-item.active { box-shadow: inset -4px 0 var(--brand-600); }
@@ -72,6 +85,28 @@
 .closed-note { color: var(--info); background: var(--info-bg); }
 .send-error { color: var(--danger); background: var(--danger-bg); }
 .conversation-empty.small { min-height: 160px; }
+.contact-history { min-width: 0; overflow: auto; background: linear-gradient(180deg, #fbfdfb, #fff); }
+.contact-history-header { display: flex; align-items: center; gap: 1rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+.contact-history-header > div:not(.contact-stats) { display: grid; gap: .15rem; }
+.contact-history-header h2 { margin: 0; color: var(--text-strong); font-size: 1.25rem; }
+.contact-history-header p, .contact-history-header > div > span { margin: 0; color: var(--text-muted); font-size: .78rem; }
+.contact-stats { display: flex; gap: .5rem; margin-inline-start: auto; }
+.contact-stats span { display: grid; min-width: 5.5rem; gap: .1rem; padding: .55rem .7rem; color: #5d7166; background: #f2f7f4; border: 1px solid #dce9e1; border-radius: 11px; text-align: center; font-size: .7rem; }
+.contact-stats b { color: #12643d; font-size: 1rem; }
+.history-intro { display: flex; gap: .8rem; margin: 1rem 1.25rem; padding: .85rem 1rem; color: #245c40; background: #edf8f1; border: 1px solid #d1e9d9; border-radius: 13px; }
+.history-intro > i { margin-top: .15rem; }
+.history-intro div { display: grid; gap: .2rem; }
+.history-intro span { color: #60766a; font-size: .75rem; }
+.contact-thread-list { display: grid; gap: .7rem; padding: .25rem 1.25rem 1.25rem; }
+.contact-thread-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .85rem; width: 100%; padding: 1rem; color: var(--text); background: #fff; border: 1px solid #dce8e0; border-radius: 14px; cursor: pointer; text-align: start; font: inherit; box-shadow: 0 5px 16px rgba(25, 66, 44, .04); transition: .15s ease; }
+.contact-thread-card:hover { border-color: #a9d0b7; box-shadow: 0 9px 22px rgba(25, 66, 44, .09); transform: translateY(-1px); }
+.thread-icon { display: grid; width: 2.4rem; height: 2.4rem; place-items: center; color: var(--brand-700); background: var(--brand-50); border-radius: 11px; }
+.contact-thread-copy { display: grid; min-width: 0; gap: .2rem; }
+.contact-thread-copy strong, .contact-thread-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contact-thread-copy strong { color: var(--text-strong); }
+.contact-thread-copy small { color: var(--text-muted); font-size: .73rem; }
+.thread-badges { display: flex; align-items: center; justify-content: flex-end; gap: .4rem; flex-wrap: wrap; }
+.referral-chip { padding: .3rem .5rem; color: #795b0b; background: #fff7dc; border: 1px solid #ead79c; border-radius: 999px; font-size: .68rem; font-weight: 800; }
 .empty-illustration { display: grid; width: 72px; height: 72px; place-items: center; color: #0b8b53; background: linear-gradient(145deg, #e8f7ee, #f8fcfa); border: 1px solid #cce7d7; border-radius: 22px; box-shadow: 0 12px 28px rgba(10, 120, 71, .1); font-size: 1.65rem; }
 .conversation-empty h2 { margin: .35rem 0 0; color: #1a3829; }
 .conversation-empty p { max-width: 480px; margin: 0; line-height: 1.7; }
@@ -81,6 +116,8 @@
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .form-grid .wide { grid-column: 1 / -1; }
 .form-grid input, .form-grid textarea { width: 100%; }
+.referral-option { display: grid; gap: .15rem; padding-block: .2rem; }
+.referral-option small { color: var(--text-muted); }
 :host ::ng-deep .form-grid .p-dropdown { width: 100%; }
 .dialog-actions { justify-content: flex-end; margin-top: var(--space-4); }
 .mobile-back { display: none; }
@@ -109,7 +146,7 @@
   .chat-shell.has-selection .inbox { display: none; }
   .inbox {
     display: grid;
-    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
     height: 100%;
     border: 0;
   }
@@ -121,11 +158,24 @@
   .inbox-search i { inset-inline-start: 1.45rem; }
   .inbox-search input { min-height: 2.45rem; }
   .thread-list { max-height: none; overflow-y: auto; }
+  .people-list { max-height: none; overflow-y: auto; }
   .thread-item { gap: .35rem; padding: .72rem .85rem; }
   .thread-top strong { font-size: .8rem; }
   .thread-item > span, .thread-meta small { font-size: .68rem; }
+  .person-item { padding: .68rem .8rem; }
+  .person-avatar { width: 2.2rem; height: 2.2rem; border-radius: 11px; }
 
   .conversation { height: 100%; }
+  .contact-history { height: 100%; }
+  .contact-history-header { position: relative; padding: .75rem; padding-inline-start: 3.2rem; }
+  .contact-history-header .person-avatar { display: none; }
+  .contact-history-header h2 { font-size: .95rem; }
+  .contact-stats { gap: .3rem; }
+  .contact-stats span { min-width: 3.8rem; padding: .35rem; font-size: .58rem; }
+  .history-intro { margin: .65rem; padding: .65rem; }
+  .contact-thread-list { padding: 0 .65rem .65rem; }
+  .contact-thread-card { grid-template-columns: auto minmax(0, 1fr); padding: .75rem; }
+  .thread-badges { grid-column: 2; justify-content: flex-start; }
   .conversation-header { position: relative; align-items: center; gap: .55rem; padding: .7rem .75rem; padding-inline-start: 3.2rem; }
   .conversation-header > div:first-of-type { min-width: 0; }
   .conversation-header h2 { overflow: hidden; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }

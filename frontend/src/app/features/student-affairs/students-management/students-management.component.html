@@ -4,66 +4,150 @@
   <header class="page-header">
     <div class="page-header__titles">
       <span class="eyebrow">البيانات الأساسية</span>
-      <h1 class="page-header__title">إدارة الطلاب</h1>
-      <p class="page-header__subtitle">أضف الطلاب وحدّث بياناتهم والفصل الحالي مع الحفاظ على السجلات التشغيلية السابقة.</p>
+      <h1 class="page-header__title">{{ listVisible() ? selectedListTitle : 'إدارة الطلاب' }}</h1>
+      <p class="page-header__subtitle">
+        {{ listVisible()
+          ? 'اعرض الطلاب وحدّث بياناتهم وانقلهم بين الفصول مع الحفاظ على السجلات السابقة.'
+          : 'اختر فصلًا لعرض طلابه، أو أضف طالبًا جديدًا مباشرة إلى الفصل المطلوب.' }}
+      </p>
     </div>
-    <button pButton type="button" class="page-header__action" icon="pi pi-plus" label="إضافة طالب" (click)="openCreate()"></button>
+    <div class="page-header__actions">
+      @if (listVisible()) {
+        <button pButton type="button" class="p-button-outlined" icon="pi pi-arrow-right" label="العودة للفصول" (click)="backToClassrooms()"></button>
+      }
+      <button pButton type="button" class="page-header__action" icon="pi pi-plus" label="إضافة طالب"
+              (click)="openCreate(listVisible() ? selectedClassroomId() : null)"></button>
+    </div>
   </header>
 
-  <div class="list-toolbar">
-    <label class="toolbar-field toolbar-field--grow" for="student-search">
-      <span class="toolbar-field__label">البحث</span>
-      <span class="p-input-icon-right toolbar-field__control">
-        <i class="pi pi-search"></i>
-        <input id="student-search" pInputText type="search" class="pr-10" placeholder="اسم الطالب أو رقمه أو الفصل" [value]="search()" (input)="setSearch($event)" />
-      </span>
-    </label>
-    <div class="toolbar-summary">{{ filteredStudents.length }} طالب</div>
-  </div>
+  @if (!listVisible()) {
+    <section class="classrooms-section" aria-labelledby="classrooms-heading">
+      <div class="classrooms-heading">
+        <div>
+          <h2 id="classrooms-heading">اختر الفصل</h2>
+          <p>افتح فصلًا لعرض طلابه في صفحة مستقلة، أو اختر جميع الطلاب لعرض المدرسة بالكامل.</p>
+        </div>
+        <span>{{ activeClassrooms.length }} فصل نشط</span>
+      </div>
 
-  @if (errorMessage()) {
-    <div class="error-banner" role="alert">
-      <span>{{ errorMessage() }}</span>
-      <button pButton type="button" class="p-button-text" icon="pi pi-refresh" label="إعادة المحاولة" (click)="loadStudents()"></button>
-    </div>
+      @if (loadingClassrooms()) {
+        <div class="classes-loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الفصول...</span></div>
+      } @else {
+        <div class="classrooms-grid">
+          <article class="classroom-card classroom-card--all" role="button" tabindex="0"
+                   (click)="openStudentList(null)" (keydown.enter)="openStudentList(null)"
+                   (keydown.space)="$event.preventDefault(); openStudentList(null)">
+            <div class="classroom-card__icon"><i class="pi pi-users"></i></div>
+            <div class="classroom-card__body">
+              <span class="classroom-card__eyebrow">المدرسة بالكامل</span>
+              <h3>جميع الطلاب</h3>
+              <span class="classroom-card__count"><strong>{{ totalStudents() }}</strong> طالب</span>
+            </div>
+            <div class="classroom-card__actions">
+              <button pButton type="button" class="p-button-outlined" icon="pi pi-plus" label="إضافة طالب"
+                      (click)="openCreate(null, $event)"></button>
+              <button pButton type="button" icon="pi pi-list" label="عرض الجميع"
+                      (click)="$event.stopPropagation(); openStudentList(null)"></button>
+            </div>
+          </article>
+
+          @for (classroom of activeClassrooms; track classroom.id) {
+            <article class="classroom-card" role="button" tabindex="0"
+                     (click)="openStudentList(classroom.id)" (keydown.enter)="openStudentList(classroom.id)"
+                     (keydown.space)="$event.preventDefault(); openStudentList(classroom.id)">
+              <div class="classroom-card__icon"><i class="pi pi-building"></i></div>
+              <div class="classroom-card__body">
+                <span class="classroom-card__eyebrow">{{ classroom.academicYearLabel }}</span>
+                <h3>{{ classroom.label }}</h3>
+                <span class="classroom-card__count"><strong>{{ classroom.activeEnrollmentCount }}</strong> طالب حاليًا</span>
+              </div>
+              <div class="classroom-card__actions">
+                <button pButton type="button" class="p-button-outlined" icon="pi pi-user-plus" label="إضافة طالب"
+                        (click)="openCreate(classroom.id, $event)"></button>
+                <button pButton type="button" icon="pi pi-folder-open" label="فتح الفصل"
+                        (click)="$event.stopPropagation(); openStudentList(classroom.id)"></button>
+              </div>
+            </article>
+          } @empty {
+            <div class="empty-classes"><i class="pi pi-building"></i><span>لا توجد فصول نشطة حاليًا.</span></div>
+          }
+        </div>
+      }
+    </section>
   }
 
-  <p-card styleClass="table-card students-table-card">
-    @if (loading()) {
-      <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الطلاب...</span></div>
-    } @else {
-      <p-table [value]="filteredStudents" [rowHover]="true" [paginator]="filteredStudents.length > 10" [rows]="10" responsiveLayout="scroll">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>رقم الطالب</th>
-            <th>رقم الهوية</th>
-            <th>اسم الطالب</th>
-            <th>الفصل الحالي</th>
-            <th>الحالة</th>
-            <th class="actions-column">الإجراءات</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-item>
-          <tr>
-            <td><bdi dir="ltr">{{ item.student.studentNumber }}</bdi></td>
-            <td><bdi dir="ltr">{{ item.student.identityNumber || '—' }}</bdi></td>
-            <td><strong>{{ item.student.displayName }}</strong></td>
-            <td>{{ item.student.classLabel || 'غير مسند لفصل' }}</td>
-            <td><p-tag [value]="item.student.isActive ? 'نشط' : 'غير نشط'" [severity]="item.student.isActive ? 'success' : 'warning'"></p-tag></td>
-            <td>
-              <div class="row-actions">
-                <button pButton type="button" class="p-button-text" icon="pi pi-pencil" aria-label="تعديل الطالب" [disabled]="loadingDetails()" (click)="openEdit(item)"></button>
-                <button pButton type="button" class="p-button-text p-button-danger" icon="pi pi-trash" aria-label="حذف الطالب" (click)="confirmDelete(item)"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr><td colspan="6" class="empty">لا يوجد طلاب مطابقون. أضف طالبًا جديدًا للبدء.</td></tr>
-        </ng-template>
-      </p-table>
-    }
-  </p-card>
+  @if (listVisible()) {
+    <section class="students-list" aria-labelledby="students-list-heading">
+      <div class="students-list__heading">
+        <div>
+          <span class="eyebrow">قائمة الطلاب</span>
+          <h2 id="students-list-heading">{{ selectedListTitle }}</h2>
+        </div>
+        <span class="students-list__count">{{ selectedStudentsTotal() }} طالب</span>
+      </div>
+
+      <div class="list-toolbar">
+        <label class="toolbar-field toolbar-field--grow" for="student-search">
+          <span class="toolbar-field__label">البحث داخل القائمة</span>
+          <span class="p-input-icon-right toolbar-field__control">
+            <i class="pi pi-search"></i>
+            <input id="student-search" pInputText type="search" class="pr-10" placeholder="اسم الطالب أو رقمه أو الفصل" [value]="search()" (input)="setSearch($event)" />
+          </span>
+        </label>
+        <div class="toolbar-summary">{{ filteredStudents.length }} نتيجة ظاهرة</div>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-banner" role="alert">
+          <span>{{ errorMessage() }}</span>
+          <button pButton type="button" class="p-button-text" icon="pi pi-refresh" label="إعادة المحاولة" (click)="loadStudents()"></button>
+        </div>
+      }
+
+      <p-card styleClass="table-card students-table-card">
+        @if (loading()) {
+          <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الطلاب...</span></div>
+        } @else {
+          <p-table [value]="filteredStudents" [rowHover]="true" [paginator]="filteredStudents.length > 10" [rows]="10" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>رقم الطالب</th>
+                <th>رقم الهوية</th>
+                <th>اسم الطالب</th>
+                <th>الفصل الحالي</th>
+                <th>الحالة</th>
+                <th class="actions-column">الإجراءات</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td><bdi dir="ltr">{{ item.student.studentNumber }}</bdi></td>
+                <td><bdi dir="ltr">{{ item.student.identityNumber || '—' }}</bdi></td>
+                <td><strong>{{ item.student.displayName }}</strong></td>
+                <td>{{ item.student.classLabel || 'غير مسند لفصل' }}</td>
+                <td><p-tag [value]="item.student.isActive ? 'نشط' : 'غير نشط'" [severity]="item.student.isActive ? 'success' : 'warning'"></p-tag></td>
+                <td>
+                  <div class="row-actions">
+                    <button pButton type="button" class="p-button-text" icon="pi pi-pencil" aria-label="تعديل الطالب" [disabled]="loadingDetails()" (click)="openEdit(item)"></button>
+                    <button pButton type="button" class="p-button-text" icon="pi pi-arrow-right-arrow-left"
+                            aria-label="نقل الطالب إلى فصل آخر" title="نقل الطالب إلى فصل آخر"
+                            [disabled]="loadingDetails() || !item.student.classroomId" (click)="openTransfer(item)"></button>
+                    <button pButton type="button" class="p-button-text" icon="pi pi-users"
+                            aria-label="إدارة أولياء أمر الطالب" title="إدارة أولياء الأمر"
+                            [disabled]="loadingGuardians()" (click)="openGuardians(item)"></button>
+                    <button pButton type="button" class="p-button-text p-button-danger" icon="pi pi-trash" aria-label="حذف الطالب" (click)="confirmDelete(item)"></button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="6" class="empty">لا يوجد طلاب مطابقون في هذا الاختيار.</td></tr>
+            </ng-template>
+          </p-table>
+        }
+      </p-card>
+    </section>
+  }
 
   <p-dialog
     [visible]="dialogVisible()"
@@ -116,5 +200,106 @@
         <button pButton type="submit" icon="pi pi-check" [label]="editing() ? 'حفظ التعديلات' : 'إضافة الطالب'" [loading]="saving()"></button>
       </div>
     </form>
+  </p-dialog>
+
+  <p-dialog
+    [visible]="transferDialogVisible()"
+    (visibleChange)="transferDialogVisible.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="!transferSaving()"
+    [style]="{ width: 'min(520px, calc(100vw - 2rem))' }"
+    header="نقل الطالب إلى فصل آخر">
+    @if (transferStudentDetails(); as details) {
+      <div class="dialog-context">
+        <span>الطالب</span>
+        <strong>{{ details.student.displayName }}</strong>
+        <small>الفصل الحالي: {{ details.currentEnrollment?.classroom?.label }}</small>
+      </div>
+      <form class="student-form transfer-form" [formGroup]="transferForm" (ngSubmit)="transferStudent()">
+        <label class="form-field form-field--wide" for="transfer-classroom">
+          <span>الفصل الجديد <b>*</b></span>
+          <app-clearable-select inputId="transfer-classroom" formControlName="classroomId"
+                                [options]="transferClassroomOptions" optionLabel="label" optionValue="value"
+                                placeholder="اختر الفصل الجديد" [filter]="true" filterBy="label"></app-clearable-select>
+        </label>
+        <label class="form-field form-field--wide" for="transfer-date">
+          <span>تاريخ النقل <b>*</b></span>
+          <input id="transfer-date" pInputText type="date" formControlName="effectiveOn" />
+        </label>
+        <p class="form-note form-field--wide">سيُغلق تسجيل الفصل الحالي كـ «منقول» ويُنشأ تسجيل جديد، مع الاحتفاظ بتاريخ الفصول السابقة.</p>
+        <div class="dialog-actions form-field--wide">
+          <button pButton type="button" class="p-button-outlined" label="إلغاء" [disabled]="transferSaving()" (click)="closeTransferDialog()"></button>
+          <button pButton type="submit" icon="pi pi-arrow-right-arrow-left" label="تأكيد النقل"
+                  [loading]="transferSaving()" [disabled]="transferForm.invalid"></button>
+        </div>
+      </form>
+    }
+  </p-dialog>
+
+  <p-dialog
+    [visible]="guardianDialogVisible()"
+    (visibleChange)="guardianDialogVisible.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="!guardianSaving()"
+    [style]="{ width: 'min(820px, calc(100vw - 2rem))' }"
+    [header]="'أولياء أمر ' + (guardianStudent()?.student?.displayName || '')">
+    @if (loadingGuardians()) {
+      <div class="loading dialog-loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل أولياء الأمر...</span></div>
+    } @else {
+      <section class="guardian-section">
+        <div class="section-heading">
+          <div><h2>أولياء الأمر المرتبطون</h2><p>يمكن للطالب الارتباط بأكثر من ولي أمر، مع تحديد ولي أمر أساسي واحد.</p></div>
+          <span class="toolbar-summary">{{ guardianLinks().length }} مرتبط</span>
+        </div>
+        <p-table [value]="guardianLinks()" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header"><tr><th>ولي الأمر</th><th>صلة القرابة</th><th>الصفة</th><th>الحالة</th><th></th></tr></ng-template>
+          <ng-template pTemplate="body" let-link><tr>
+            <td><strong>{{ link.guardian.displayName }}</strong></td>
+            <td>{{ guardianRelationshipLabel(link.guardian.relationship) }}</td>
+            <td><p-tag [value]="link.guardian.isPrimary ? 'أساسي' : 'إضافي'" [severity]="link.guardian.isPrimary ? 'success' : 'info'"></p-tag></td>
+            <td><p-tag [value]="link.isActive ? 'نشط' : 'منتهي'" [severity]="link.isActive ? 'success' : 'secondary'"></p-tag></td>
+            <td><button pButton type="button" class="p-button-text p-button-danger" icon="pi pi-times"
+                        label="إلغاء الربط" [disabled]="guardianSaving() || !link.isActive" (click)="confirmRevokeGuardian(link)"></button></td>
+          </tr></ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="5" class="empty">لا يوجد ولي أمر مرتبط بهذا الطالب بعد.</td></tr></ng-template>
+        </p-table>
+      </section>
+
+      <section class="guardian-section guardian-section--add">
+        <div class="section-heading"><div><h2>ربط ولي أمر</h2><p>اختر حساب ولي أمر موجودًا في المدرسة وحدد صلاحياته تجاه الطالب.</p></div></div>
+        @if (availableGuardianOptions.length) {
+          <form class="guardian-form" [formGroup]="guardianForm" (ngSubmit)="linkGuardian()">
+            <label class="form-field guardian-picker" for="guardian-profile">
+              <span>ولي الأمر <b>*</b></span>
+              <app-clearable-select inputId="guardian-profile" formControlName="guardianProfileId"
+                                    [options]="availableGuardianOptions" optionLabel="label" optionValue="value"
+                                    placeholder="اختر ولي الأمر" [filter]="true" filterBy="label"></app-clearable-select>
+            </label>
+            <label class="form-field" for="guardian-relationship">
+              <span>صلة القرابة <b>*</b></span>
+              <app-clearable-select inputId="guardian-relationship" formControlName="relationship"
+                                    [options]="relationshipOptions" optionLabel="label" optionValue="value"
+                                    placeholder="اختر صلة القرابة"></app-clearable-select>
+            </label>
+            <div class="guardian-permissions">
+              <label><p-checkbox formControlName="isPrimary" [binary]="true"></p-checkbox><span>ولي الأمر الأساسي</span></label>
+              <label><p-checkbox formControlName="receivesNotifications" [binary]="true"></p-checkbox><span>يستقبل الإشعارات</span></label>
+              <label><p-checkbox formControlName="canSubmitExcuses" [binary]="true"></p-checkbox><span>يقدم أعذار الغياب</span></label>
+              <label><p-checkbox formControlName="canRequestGatePass" [binary]="true"></p-checkbox><span>يطلب استئذان خروج</span></label>
+            </div>
+            <div class="dialog-actions">
+              <button pButton type="submit" icon="pi pi-link" label="ربط ولي الأمر"
+                      [loading]="guardianSaving()" [disabled]="guardianForm.invalid"></button>
+            </div>
+          </form>
+        } @else {
+          <div class="empty-inline"><i class="pi pi-info-circle"></i><span>لا توجد حسابات أولياء أمور أخرى متاحة للربط في المدرسة.</span></div>
+        }
+      </section>
+    }
   </p-dialog>
 </section>

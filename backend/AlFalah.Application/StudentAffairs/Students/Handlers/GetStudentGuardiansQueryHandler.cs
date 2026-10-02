@@ -47,6 +47,8 @@ public sealed class GetStudentGuardiansQueryHandler
                 PermissionNames.AttendanceViewStudents,
                 PermissionNames.GatePassView,
                 PermissionNames.GuardianViewLinkedStudents)
+            && !(_currentUser.IsInRole(RoleNames.Secretary)
+                && _currentUser.HasPermission(PermissionNames.StudentManage))
             && !_currentUser.IsInRole(RoleNames.SocialWorker)
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)
@@ -56,6 +58,13 @@ public sealed class GetStudentGuardiansQueryHandler
         }
 
         var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);
+        if (_currentUser.IsInRole(RoleNames.SocialWorker)
+            && !await _repository.CanSocialWorkerAccessStudentGuardiansAsync(
+                schoolId.Value, userId, query.StudentId, cancellationToken).ConfigureAwait(false))
+        {
+            return ApiResponse<IReadOnlyList<StudentGuardianLinkDto>>.Fail(StudentHandlerSupport.NotFound);
+        }
+
         if (_currentUser.IsInRole(RoleNames.Guardian)
             && !await _repository.IsGuardianLinkedToStudentAsync(
                 schoolId.Value, userId, query.StudentId, today, cancellationToken).ConfigureAwait(false))

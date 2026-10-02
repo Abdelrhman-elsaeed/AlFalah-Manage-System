@@ -161,7 +161,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         permissions: ['Student.Manage']
       },
       {
-        labelKey: 'رصد الغياب اليومي',
+        labelKey: 'رصد الغياب للطلاب',
         icon: 'pi pi-list-check',
         route: '/student-affairs/attendance/sheet',
         roles: ['Secretary'],

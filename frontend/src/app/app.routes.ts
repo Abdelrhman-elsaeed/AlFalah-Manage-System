@@ -531,6 +531,30 @@ export const routes: Routes = [
         title: 'إدارة الفصول'
       },
       {
+        path: 'student-affairs/students/all',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary'],
+          permissions: ['Student.Manage'],
+          studentListMode: 'all'
+        },
+        loadComponent: () => import('./features/student-affairs/students-management/students-management.component')
+          .then(m => m.StudentsManagementComponent),
+        title: 'جميع طلاب المدرسة'
+      },
+      {
+        path: 'student-affairs/students/classroom/:classroomId',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Secretary'],
+          permissions: ['Student.Manage'],
+          studentListMode: 'classroom'
+        },
+        loadComponent: () => import('./features/student-affairs/students-management/students-management.component')
+          .then(m => m.StudentsManagementComponent),
+        title: 'طلاب الفصل'
+      },
+      {
         path: 'student-affairs/students',
         canActivate: [roleGuard, permissionGuard],
         data: {
@@ -550,7 +574,7 @@ export const routes: Routes = [
         },
         loadComponent: () => import('./features/student-affairs/attendance-sheet/attendance-sheet.component')
           .then(m => m.AttendanceSheetComponent),
-        title: 'رصد الغياب اليومي'
+        title: 'رصد الغياب للطلاب'
       },
       {
         path: 'student-affairs/biometrics/zajel',
@@ -657,10 +681,10 @@ export const routes: Routes = [
       {
         path: 'student-affairs/social-worker',
         canActivate: [roleGuard, permissionGuard],
-        data: { roles: ['SocialWorker'], permissions: ['Referral.View'], crmView: 'cases' },
-        loadComponent: () => import('./features/student-affairs/social-worker-crm/social-worker-crm.component')
-          .then(m => m.SocialWorkerCrmComponent),
-        title: 'مساحة الأخصائي الاجتماعي'
+        data: { roles: ['SocialWorker'], permissions: ['StudentAffairsDashboard.SocialWorker'] },
+        loadComponent: () => import('./features/student-affairs/social-worker-dashboard/social-worker-dashboard.component')
+          .then(m => m.SocialWorkerDashboardComponent),
+        title: 'لوحة الموجه الطلابي'
       },
       {
         path: 'student-affairs/cases',

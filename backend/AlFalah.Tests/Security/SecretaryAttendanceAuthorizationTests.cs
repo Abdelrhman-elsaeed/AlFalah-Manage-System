@@ -8,6 +8,7 @@ using AlFalah.Application.StudentAffairs.DTOs.Referrals;
 using AlFalah.Application.StudentAffairs.DTOs.Students;
 using AlFalah.Application.StudentAffairs.DTOs.Summons;
 using AlFalah.Domain.Enums;
+using AlFalah.Domain.Enums.StudentAffairs;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -150,6 +151,77 @@ public sealed class SecretaryAttendanceAuthorizationTests
     }
 
     [Fact]
+    public async Task Students_GuardianLinking_Allows_Secretary_With_StudentManagement_Permission()
+    {
+        var controller = new StudentsController(
+            CreateMediator(),
+            new SecretaryCurrentUser(PermissionNames.StudentManage));
+
+        (await controller.GuardianOptions(CancellationToken.None))
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
+        (await controller.Guardians(17, CancellationToken.None))
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
+        (await controller.LinkGuardian(
+                17,
+                new LinkStudentGuardianRequestDto(
+                    9, GuardianRelationshipType.Father, true, true, true, true,
+                    new DateOnly(2026, 10, 2), null),
+                CancellationToken.None))
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(201);
+        (await controller.RevokeGuardian(
+                17,
+                3,
+                new RevokeStudentGuardianRequestDto("Secretary correction", string.Empty),
+                CancellationToken.None))
+            .Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task Students_Transfer_Allows_Secretary_With_Enrollment_Permission()
+    {
+        var controller = new StudentsController(
+            CreateMediator(),
+            new SecretaryCurrentUser(PermissionNames.StudentEnrollmentManage));
+
+        var result = await controller.UpdateEnrollment(
+            17,
+            4,
+            new UpdateStudentEnrollmentRequestDto(
+                StudentEnrollmentStatus.Active,
+                22,
+                new DateOnly(2026, 10, 2),
+                "Move to another classroom",
+                string.Empty),
+            CancellationToken.None);
+
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
+    }
+
+    [Fact]
+    public async Task Students_GuardianLinking_DoesNotTreat_StudentManage_AsUniversalGuardianPermission()
+    {
+        var controller = new StudentsController(
+            CreateMediator(),
+            new SocialWorkerCurrentUser(PermissionNames.StudentManage));
+
+        (await controller.GuardianOptions(CancellationToken.None))
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(403);
+        (await controller.LinkGuardian(
+                17,
+                new LinkStudentGuardianRequestDto(
+                    9, GuardianRelationshipType.Father, true, true, true, true,
+                    new DateOnly(2026, 10, 2), null),
+                CancellationToken.None))
+            .Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
     public async Task Secretary_CannotReadReferralCaseActionsOrManageSummons()
     {
         var user = new SecretaryCurrentUser();
@@ -161,6 +233,19 @@ public sealed class SecretaryAttendanceAuthorizationTests
 
         referrals.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
         summons.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
+    public async Task Students_Guardians_Allows_SocialWorker_With_Summon_Permission()
+    {
+        var controller = new StudentsController(
+            CreateMediator(),
+            new SocialWorkerCurrentUser(PermissionNames.SummonCreate));
+
+        var result = await controller.Guardians(17, CancellationToken.None);
+
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -241,6 +326,27 @@ public sealed class SecretaryAttendanceAuthorizationTests
             string.Equals(roleName, RoleNames.Secretary, StringComparison.OrdinalIgnoreCase);
         public bool HasPermission(string permissionName) => _permissions.Contains(permissionName);
         public IEnumerable<string> GetRoles() => new[] { RoleNames.Secretary };
+        public IEnumerable<string> GetPermissions() => _permissions;
+        public bool IsGlobalAdmin() => false;
+        public bool IsSchoolScopedRole() => true;
+    }
+
+    private sealed class SocialWorkerCurrentUser : ICurrentUserService
+    {
+        private readonly HashSet<string> _permissions;
+
+        public SocialWorkerCurrentUser(params string[] permissions) =>
+            _permissions = new HashSet<string>(permissions, StringComparer.OrdinalIgnoreCase);
+
+        public string? UserId => "social-worker-test";
+        public string? Username => "socialworker.test";
+        public int? ActiveSchoolId => 18;
+        public string? PreferredLanguage => "ar";
+        public bool IsAuthenticated => true;
+        public bool IsInRole(string roleName) =>
+            string.Equals(roleName, RoleNames.SocialWorker, StringComparison.OrdinalIgnoreCase);
+        public bool HasPermission(string permissionName) => _permissions.Contains(permissionName);
+        public IEnumerable<string> GetRoles() => new[] { RoleNames.SocialWorker };
         public IEnumerable<string> GetPermissions() => _permissions;
         public bool IsGlobalAdmin() => false;
         public bool IsSchoolScopedRole() => true;

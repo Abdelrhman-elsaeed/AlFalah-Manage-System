@@ -1265,7 +1265,14 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         thread.UpdatedByUserId = userId;
         thread.UpdatedAt = _timeProvider.GetUtcNow();
 
-        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateConcurrencyException exception)
+        {
+            throw new InvalidOperationException("The conversation was modified by another user", exception);
+        }
         return await GetConversationByIdAsync(schoolId, userId, conversationId, cancellationToken).ConfigureAwait(false);
     }
 
@@ -1823,6 +1830,7 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             {
                 Message = item,
                 SenderName = (item.SenderUser.FirstName + " " + item.SenderUser.LastName).Trim(),
+                ConversationRowVersion = item.ConversationThread.RowVersion,
                 DeliveryState = item.Receipts.Count == 0 || item.Receipts.All(receipt => receipt.DeliveryState == MessageDeliveryState.Delivered)
                     ? MessageDeliveryState.Delivered
                     : item.Receipts.Any(receipt => receipt.DeliveryState == MessageDeliveryState.Failed)
@@ -1836,7 +1844,11 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             projection.Message.SentAt ?? projection.Message.CreatedAt, projection.DeliveryState,
             projection.Message.OfficeHoursDisposition, projection.Message.NextEligibleSendAt,
             Array.Empty<NotificationDeliveryDto>());
-        return new SendMessageResultDto(dto, projection.Message.OfficeHoursDisposition, projection.Message.NextEligibleSendAt);
+        return new SendMessageResultDto(
+            dto,
+            projection.Message.OfficeHoursDisposition,
+            projection.Message.NextEligibleSendAt,
+            Convert.ToBase64String(projection.ConversationRowVersion));
     }
 
     private static DateTimeOffset? LocalBoundary(DateOnly date, TimeOnly time, string timeZoneId)

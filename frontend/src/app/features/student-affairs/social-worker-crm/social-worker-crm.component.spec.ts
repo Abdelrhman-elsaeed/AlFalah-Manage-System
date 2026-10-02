@@ -56,6 +56,27 @@ describe('SocialWorkerCrmComponent', () => {
     expect(fixture.componentInstance.referrals().length).toBe(1);
   });
 
+  it('localizes system actions and hides damaged legacy fixture text', () => {
+    const component = TestBed.createComponent(SocialWorkerCrmComponent).componentInstance;
+    const baseAction = {
+      id: 1,
+      actionType: 'Other' as const,
+      description: '',
+      actor: { userId: 'worker-1', displayName: 'Worker', roleSnapshot: 'SocialWorker' },
+      actionAt: '2026-10-01T08:00:00Z',
+      result: null
+    };
+
+    expect(component.displayActionDescription({
+      ...baseAction,
+      description: 'Referral accepted and moved to in-progress'
+    })).toBe('تم قبول الإحالة وبدء المتابعة.');
+    expect(component.displayActionDescription({
+      ...baseAction,
+      description: '???? ?????? ??????'
+    })).not.toContain('???');
+  });
+
   it('preserves one idempotency key across a retryable summons create failure', () => {
     api.createSummon.and.returnValue(throwError(() => new Error('network')));
     const component = TestBed.createComponent(SocialWorkerCrmComponent).componentInstance;

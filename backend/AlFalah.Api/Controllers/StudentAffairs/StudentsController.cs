@@ -1,5 +1,6 @@
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.StudentAffairs.DTOs.Students;
+using AlFalah.Application.StudentAffairs.DTOs.Guardian;
 using AlFalah.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,13 @@ public sealed class StudentsController : StudentAffairsControllerBase
             return PermissionDenied();
         }
         return Ok(await Mediator.Send(new GetStudentsStatsQuery(query), cancellationToken));
+    }
+
+    [HttpGet("guardian-options")]
+    public async Task<IActionResult> GuardianOptions(CancellationToken cancellationToken)
+    {
+        if (!CanManageStudentGuardians()) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetGuardianDirectoryOptionsQuery(), cancellationToken));
     }
 
     [HttpGet("{studentId:int}")]
@@ -110,13 +118,15 @@ public sealed class StudentsController : StudentAffairsControllerBase
     [HttpGet("{studentId:int}/guardians")]
     public async Task<IActionResult> Guardians(int studentId, CancellationToken cancellationToken)
     {
-        if (HasAggregateOrAssignedOnlyRole()) return PermissionDenied();
-        if (!HasAnyPermission(
+        if (!CanManageStudentGuardians()
+            && !HasAnyPermission(
                 PermissionNames.GuardianView,
                 PermissionNames.StudentView,
                 PermissionNames.SummonView,
+                PermissionNames.SummonCreate,
                 PermissionNames.SummonSchedule,
                 PermissionNames.SummonMarkAttended,
+                PermissionNames.MessagingSend,
                 PermissionNames.GuardianViewLinkedStudents))
             return PermissionDenied();
         return FromResponse(await Mediator.Send(new GetStudentGuardiansQuery(studentId), cancellationToken));
@@ -125,7 +135,7 @@ public sealed class StudentsController : StudentAffairsControllerBase
     [HttpPost("{studentId:int}/guardians")]
     public async Task<IActionResult> LinkGuardian(int studentId, [FromBody] LinkStudentGuardianRequestDto request, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.GuardianLinkStudent)) return PermissionDenied();
+        if (!CanManageStudentGuardians()) return PermissionDenied();
         var response = await Mediator.Send(new LinkStudentGuardianCommand(studentId, request), cancellationToken);
         return StatusCode(StatusCodes.Status201Created, response);
     }
@@ -133,7 +143,7 @@ public sealed class StudentsController : StudentAffairsControllerBase
     [HttpDelete("{studentId:int}/guardians/{linkId:int}")]
     public async Task<IActionResult> RevokeGuardian(int studentId, int linkId, [FromBody] RevokeStudentGuardianRequestDto request, CancellationToken cancellationToken)
     {
-        if (!HasAnyPermission(PermissionNames.GuardianLinkStudent)) return PermissionDenied();
+        if (!CanManageStudentGuardians()) return PermissionDenied();
         return Ok(await Mediator.Send(new RevokeStudentGuardianCommand(studentId, linkId, request), cancellationToken));
     }
 
@@ -141,4 +151,9 @@ public sealed class StudentsController : StudentAffairsControllerBase
         CurrentUser.IsInRole(RoleNames.SocialWorker)
         || CurrentUser.IsInRole(RoleNames.SchoolManager)
         || CurrentUser.IsInRole(RoleNames.MainManager);
+
+    private bool CanManageStudentGuardians() =>
+        CurrentUser.HasPermission(PermissionNames.GuardianLinkStudent)
+        || (CurrentUser.IsInRole(RoleNames.Secretary)
+            && CurrentUser.HasPermission(PermissionNames.StudentManage));
 }

@@ -305,6 +305,7 @@ export interface ConversationDto {
   readonly unreadCount: number;
   readonly updatedAt: string;
   readonly rowVersion: string;
+  readonly referralId?: number | null;
 }
 export interface ConversationMessageDto {
   readonly id: number;
@@ -327,6 +328,7 @@ export interface SendMessageResultDto {
   readonly message: ConversationMessageDto;
   readonly disposition: OfficeHoursDisposition;
   readonly nextEligibleSendAt: string | null;
+  readonly conversationRowVersion: string;
 }
 export interface GuardianTeacherOptionDto {
   readonly instructorProfileId: number;

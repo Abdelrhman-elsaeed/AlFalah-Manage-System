@@ -1251,7 +1251,9 @@ public sealed class StudentAffairsDataSeeder
                 enrollment.UpdatedByUserId = actorUserId;
             }
 
-            if (index < 4)
+            // The first six showcase students participate in real Social Worker flows,
+            // so each needs an active guardian for summons and case messaging tests.
+            if (index < 6)
             {
                 var guardianLink = await _context.StudentGuardians.IgnoreQueryFilters()
                     .FirstOrDefaultAsync(candidate => candidate.SchoolId == school.Id
@@ -1691,10 +1693,15 @@ public sealed class StudentAffairsDataSeeder
         string actorUserId,
         CancellationToken cancellationToken)
     {
-        var student = await _context.Students
+        var students = await _context.Students
             .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(s => s.SchoolId == school.Id && s.StudentNumber == TestStudentNumber, cancellationToken)
+            .Where(candidate => candidate.SchoolId == school.Id
+                && (candidate.StudentNumber == TestStudentNumber || candidate.StudentNumber.StartsWith("DEMO-")))
+            .OrderBy(candidate => candidate.StudentNumber == TestStudentNumber ? 0 : 1)
+            .ThenBy(candidate => candidate.StudentNumber)
+            .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
+        var student = students.FirstOrDefault();
 
         var guardian = await _context.GuardianProfiles
             .IgnoreQueryFilters()
@@ -1705,104 +1712,162 @@ public sealed class StudentAffairsDataSeeder
 
         var now = _timeProvider.GetUtcNow();
 
-        var existingReferral = await _context.StudentReferrals
+        var referralFixtures = new[]
+        {
+            new { Key = "showcase-referral-assigned", Source = ReferralSourceType.Absence, Priority = ReferralPriority.High,
+                Status = StudentReferralStatus.Assigned, Count = 6, Threshold = 5, DaysAgo = 1,
+                Summary = "متابعة انتظام الطالب بعد تكرار الغياب والتواصل مع الأسرة لوضع خطة حضور." },
+            new { Key = "showcase-referral-progress", Source = ReferralSourceType.Behavior, Priority = ReferralPriority.Critical,
+                Status = StudentReferralStatus.InProgress, Count = 4, Threshold = 3, DaysAgo = 3,
+                Summary = "جلسة إرشادية وخطة متابعة سلوكية قصيرة بمؤشرات أسبوعية واضحة." },
+            new { Key = "showcase-referral-academic", Source = ReferralSourceType.AcademicConcern, Priority = ReferralPriority.Normal,
+                Status = StudentReferralStatus.InProgress, Count = 3, Threshold = 3, DaysAgo = 5,
+                Summary = "متابعة انخفاض المشاركة والواجبات بالتنسيق مع المعلم وولي الأمر." },
+            new { Key = "showcase-referral-resolved", Source = ReferralSourceType.MorningDelay, Priority = ReferralPriority.Normal,
+                Status = StudentReferralStatus.Resolved, Count = 5, Threshold = 5, DaysAgo = 9,
+                Summary = "تحسن انتظام الوصول بعد تنفيذ اتفاق المتابعة مع الطالب والأسرة." }
+        };
+
+        var referralsByKey = await _context.StudentReferrals
             .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(r => r.SchoolId == school.Id && r.StudentId == student.Id, cancellationToken)
+            .Where(item => item.SchoolId == school.Id && item.IdempotencyKey != null
+                && item.IdempotencyKey.StartsWith("showcase-referral-"))
+            .ToDictionaryAsync(item => item.IdempotencyKey!, cancellationToken)
             .ConfigureAwait(false);
 
-        if (existingReferral is null)
+        for (var fixtureIndex = 0; fixtureIndex < referralFixtures.Length; fixtureIndex++)
         {
-            var openReferral = new StudentReferral
-            {
-                SchoolId = school.Id,
-                StudentId = student.Id,
-                AcademicTermId = academicTerm.Id,
-                SourceType = ReferralSourceType.Absence,
-                Priority = ReferralPriority.High,
-                Status = StudentReferralStatus.Open,
-                CountSnapshot = 5,
-                ThresholdSnapshot = 5,
-                RecommendedActions = "تكرار الغياب بدون عذر مقبول يتطلب متابعة الموجه الطلابي والتواصل مع ولي الأمر",
-                CreatedAt = now.AddDays(-2),
-                CreatedByUserId = actorUserId,
-                UpdatedAt = now.AddDays(-2),
-                UpdatedByUserId = actorUserId
-            };
+            var fixture = referralFixtures[fixtureIndex];
+            if (referralsByKey.ContainsKey(fixture.Key)) continue;
+            var referralStudent = students[fixtureIndex % students.Count];
 
-            var inProgressReferral = new StudentReferral
+            var referral = new StudentReferral
             {
                 SchoolId = school.Id,
-                StudentId = student.Id,
+                StudentId = referralStudent.Id,
                 AcademicTermId = academicTerm.Id,
-                SourceType = ReferralSourceType.Behavior,
-                Priority = ReferralPriority.Normal,
-                Status = StudentReferralStatus.InProgress,
+                SourceType = fixture.Source,
+                Priority = fixture.Priority,
+                Status = fixture.Status,
                 AssignedSocialWorkerUserId = socialWorkerUser.Id,
-                CountSnapshot = 3,
-                ThresholdSnapshot = 3,
-                RecommendedActions = "متابعة سلوكية وجلسة إرشادية فردية مع الطالب",
-                CreatedAt = now.AddDays(-5),
+                CountSnapshot = fixture.Count,
+                ThresholdSnapshot = fixture.Threshold,
+                IdempotencyKey = fixture.Key,
+                IdempotencyPayloadHash = new string('D', 64),
+                RecommendedActions = fixture.Summary,
+                ResolutionNotes = fixture.Status == StudentReferralStatus.Resolved
+                    ? "اكتملت خطة المتابعة وثبت تحسن الانتظام لمدة أسبوعين."
+                    : null,
+                CreatedAt = now.AddDays(-fixture.DaysAgo),
                 CreatedByUserId = actorUserId,
-                UpdatedAt = now.AddDays(-1),
+                UpdatedAt = now.AddHours(-fixture.DaysAgo * 3),
                 UpdatedByUserId = socialWorkerUser.Id
             };
-            inProgressReferral.Actions.Add(new StudentCaseAction
-            {
-                SchoolId = school.Id,
-                ActionType = StudentCaseActionType.CounselingSession,
-                Description = "عقد جلسة إرشاد فردية لمناقشة أسباب التأخر والسلوك داخل الصف",
-                ActorUserId = socialWorkerUser.Id,
-                ActionAt = now.AddDays(-1),
-                Result = "أبدى الطالب تجاوباً والتزاماً بتحسين الأداء",
-                CreatedAt = now.AddDays(-1),
-                CreatedByUserId = socialWorkerUser.Id,
-                UpdatedAt = now.AddDays(-1),
-                UpdatedByUserId = socialWorkerUser.Id
-            });
 
-            _context.StudentReferrals.AddRange(openReferral, inProgressReferral);
-            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            if (fixture.Status is StudentReferralStatus.InProgress or StudentReferralStatus.Resolved)
+            {
+                referral.Actions.Add(new StudentCaseAction
+                {
+                    SchoolId = school.Id,
+                    ActionType = StudentCaseActionType.CounselingSession,
+                    Description = fixture.Status == StudentReferralStatus.Resolved
+                        ? "مراجعة نتائج الخطة مع الطالب وتوثيق التحسن."
+                        : "جلسة إرشاد فردية لفهم الأسباب والاتفاق على خطوات عملية.",
+                    ActorUserId = socialWorkerUser.Id,
+                    ActionAt = now.AddDays(-Math.Max(1, fixture.DaysAgo - 1)),
+                    Result = fixture.Status == StudentReferralStatus.Resolved
+                        ? "استقرت المؤشرات ضمن المستوى المطلوب."
+                        : "أبدى الطالب تجاوبًا وبدأ تنفيذ الخطة.",
+                    CreatedAt = now.AddDays(-Math.Max(1, fixture.DaysAgo - 1)),
+                    CreatedByUserId = socialWorkerUser.Id,
+                    UpdatedAt = now.AddDays(-Math.Max(1, fixture.DaysAgo - 1)),
+                    UpdatedByUserId = socialWorkerUser.Id
+                });
+            }
+
+            _context.StudentReferrals.Add(referral);
         }
 
-        var existingSummon = await _context.GuardianSummons
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var summonFixtures = new[]
+        {
+            new { Key = "showcase-summon-pending", Status = GuardianSummonStatus.Pending, Priority = ReferralPriority.High,
+                ScheduledAt = (DateTimeOffset?)now.AddDays(1).AddHours(2), DaysAgo = 1,
+                Reason = "مناقشة خطة تحسين الحضور والالتزام بمواعيد بداية اليوم." },
+            new { Key = "showcase-summon-attended", Status = GuardianSummonStatus.Attended, Priority = ReferralPriority.Normal,
+                ScheduledAt = (DateTimeOffset?)now.AddDays(-1), DaysAgo = 4,
+                Reason = "مراجعة مستوى المشاركة الصفية والاتفاق على وسائل دعم منزلية." },
+            new { Key = "showcase-summon-observation", Status = GuardianSummonStatus.UnderObservation, Priority = ReferralPriority.High,
+                ScheduledAt = (DateTimeOffset?)now.AddDays(-5), DaysAgo = 7,
+                Reason = "بدء خطة متابعة سلوكية مشتركة بين المدرسة والأسرة لمدة أسبوعين." },
+            new { Key = "showcase-summon-improved", Status = GuardianSummonStatus.Improved, Priority = ReferralPriority.Normal,
+                ScheduledAt = (DateTimeOffset?)now.AddDays(-12), DaysAgo = 15,
+                Reason = "مراجعة ختامية لخطة الانتظام وتوثيق مؤشرات التحسن." }
+        };
+
+        var summonsByKey = await _context.GuardianSummons
             .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(s => s.SchoolId == school.Id && s.StudentId == student.Id, cancellationToken)
+            .Where(item => item.SchoolId == school.Id && item.IdempotencyKey != null
+                && item.IdempotencyKey.StartsWith("showcase-summon-"))
+            .ToDictionaryAsync(item => item.IdempotencyKey!, cancellationToken)
             .ConfigureAwait(false);
 
-        if (existingSummon is null)
+        foreach (var fixture in summonFixtures)
         {
-            var pendingSummon = new GuardianSummon
+            if (summonsByKey.ContainsKey(fixture.Key)) continue;
+
+            var summon = new GuardianSummon
             {
                 SchoolId = school.Id,
                 StudentId = student.Id,
                 AcademicTermId = academicTerm.Id,
                 GuardianProfileId = guardian.Id,
-                CreatedReason = "استدعاء ولي أمر لمناقشة مستوى الطالب الدراسي والغياب المتكرر",
-                Priority = ReferralPriority.High,
-                Status = GuardianSummonStatus.Pending,
-                ScheduledAt = now.AddDays(2),
+                CreatedReason = fixture.Reason,
+                Priority = fixture.Priority,
+                Status = fixture.Status,
+                ScheduledAt = fixture.ScheduledAt,
                 ScheduledBySocialWorkerUserId = socialWorkerUser.Id,
                 Location = "مكتب الموجه الطلابي - الدور الأرضي",
-                Instructions = "يرجى إحضار الهوية الوطنية والتقارير الطبية إن وجدت",
-                CreatedAt = now.AddDays(-1),
+                Instructions = "يرجى الحضور قبل الموعد بعشر دقائق.",
+                SourceCountSnapshot = fixture.Priority == ReferralPriority.High ? 6 : 3,
+                ThresholdSnapshot = fixture.Priority == ReferralPriority.High ? 5 : 3,
+                IdempotencyKey = fixture.Key,
+                IdempotencyPayloadHash = new string('E', 64),
+                GuardianNotifiedAt = now.AddDays(-fixture.DaysAgo).AddMinutes(10),
+                AttendedAt = fixture.Status == GuardianSummonStatus.Pending ? null : fixture.ScheduledAt,
+                AttendanceNotes = fixture.Status == GuardianSummonStatus.Pending ? null : "حضر ولي الأمر وتمت مناقشة خطة المتابعة.",
+                ObservationStartedAt = fixture.Status is GuardianSummonStatus.UnderObservation or GuardianSummonStatus.Improved ? now.AddDays(-5) : null,
+                ObservationGoals = fixture.Status is GuardianSummonStatus.UnderObservation or GuardianSummonStatus.Improved ? "رفع الانتظام وتقليل الملاحظات السلوكية." : null,
+                ObservationStartDate = fixture.Status is GuardianSummonStatus.UnderObservation or GuardianSummonStatus.Improved ? DateOnly.FromDateTime(now.AddDays(-5).DateTime) : null,
+                ObservationReviewDate = fixture.Status is GuardianSummonStatus.UnderObservation or GuardianSummonStatus.Improved ? DateOnly.FromDateTime(now.AddDays(7).DateTime) : null,
+                ObservationIndicatorsJson = fixture.Status is GuardianSummonStatus.UnderObservation or GuardianSummonStatus.Improved ? "[\"الحضور في الموعد\",\"الالتزام داخل الفصل\"]" : null,
+                ObservationNotes = fixture.Status is GuardianSummonStatus.UnderObservation or GuardianSummonStatus.Improved ? "مراجعة أسبوعية مع الطالب والأسرة." : null,
+                ImprovedAt = fixture.Status == GuardianSummonStatus.Improved ? now.AddDays(-1) : null,
+                ImprovementNotes = fixture.Status == GuardianSummonStatus.Improved ? "تحسن واضح ومستقر في الانتظام والسلوك." : null,
+                ImprovementVerificationDetails = fixture.Status == GuardianSummonStatus.Improved ? "مقارنة سجل الأسبوعين ومراجعة إفادة المعلم." : null,
+                CreatedAt = now.AddDays(-fixture.DaysAgo),
                 CreatedByUserId = socialWorkerUser.Id,
-                UpdatedAt = now.AddDays(-1),
+                UpdatedAt = now.AddHours(-fixture.DaysAgo * 2),
                 UpdatedByUserId = socialWorkerUser.Id
             };
-            pendingSummon.StatusHistory.Add(new GuardianSummonStatusHistory
+
+            summon.StatusHistory.Add(new GuardianSummonStatusHistory
             {
                 SchoolId = school.Id,
                 FromStatus = GuardianSummonStatus.Pending,
-                ToStatus = GuardianSummonStatus.Pending,
+                ToStatus = fixture.Status,
                 ActorUserId = socialWorkerUser.Id,
-                OccurredAt = now.AddDays(-1),
-                Notes = "تم تحديد موعد الاستدعاء",
+                ActorRole = RoleNames.SocialWorker,
+                OccurredAt = now.AddHours(-fixture.DaysAgo * 2),
+                Notes = fixture.Status == GuardianSummonStatus.Pending ? "تم تحديد موعد الاستدعاء." : "بيانات عرض لمسار الاستدعاء.",
                 CorrelationId = Guid.NewGuid()
             });
 
-            _context.GuardianSummons.Add(pendingSummon);
-            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            _context.GuardianSummons.Add(summon);
         }
+
+        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static void EnsureIdentitySuccess(IdentityResult result, string operation)

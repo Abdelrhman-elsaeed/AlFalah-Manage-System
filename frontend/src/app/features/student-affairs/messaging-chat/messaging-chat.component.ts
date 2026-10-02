@@ -10,14 +10,16 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
-import { EMPTY, filter, finalize, forkJoin, fromEvent, switchMap, timer } from 'rxjs';
+import { EMPTY, expand, filter, finalize, forkJoin, fromEvent, switchMap, timer, toArray } from 'rxjs';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import {
   ConversationDto,
   ConversationMessageDto,
   ConversationThreadType,
   CreateConversationRequestDto,
+  ReferralDto,
   SendMessageResultDto,
+  StudentGuardianLinkDto,
   StudentGuardianOptionDto
 } from '../../../core/models/phase5.models';
 import { ClassroomDto, StudentStatsDto } from '../../../core/models/daily-operations.models';
@@ -46,6 +48,18 @@ interface MessageReceiptView {
   readonly tone: 'pending' | 'delivered' | 'read' | 'failed';
 }
 
+type InboxView = 'conversations' | 'people';
+
+interface ConversationContact {
+  readonly userId: string;
+  readonly displayName: string;
+  readonly role: string;
+  readonly conversations: readonly ConversationDto[];
+  readonly unreadCount: number;
+  readonly openCount: number;
+  readonly updatedAt: string;
+}
+
 @Component({
   selector: 'app-messaging-chat',
   standalone: true,
@@ -67,6 +81,8 @@ export class MessagingChatComponent implements OnInit {
   readonly loadingInbox = signal(true);
   readonly inboxError = signal('');
   readonly unreadOnly = signal(false);
+  readonly inboxView = signal<InboxView>('conversations');
+  readonly selectedContactId = signal<string | null>(null);
   readonly compactViewport = signal(typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches);
   readonly conversationSearch = new FormControl('', { nonNullable: true });
   private readonly conversationSearchTerm = signal('');
@@ -78,6 +94,42 @@ export class MessagingChatComponent implements OnInit {
       || item.student.displayName.toLocaleLowerCase('ar').includes(term)
       || item.student.studentNumber.toLocaleLowerCase('ar').includes(term));
   });
+  readonly contacts = computed<readonly ConversationContact[]>(() => {
+    const grouped = new Map<string, ConversationContact>();
+    for (const conversation of this.conversations()) {
+      for (const participant of conversation.participants.filter(item => item.userId !== this.currentUserId)) {
+        const existing = grouped.get(participant.userId);
+        const conversations = existing
+          ? [...existing.conversations, conversation]
+          : [conversation];
+        grouped.set(participant.userId, {
+          userId: participant.userId,
+          displayName: participant.displayName,
+          role: participant.role,
+          conversations,
+          unreadCount: conversations.reduce((total, item) => total + item.unreadCount, 0),
+          openCount: conversations.filter(item => item.status === 'Open').length,
+          updatedAt: conversations.reduce(
+            (latest, item) => !latest || item.updatedAt > latest ? item.updatedAt : latest,
+            ''
+          )
+        });
+      }
+    }
+    return [...grouped.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  });
+  readonly filteredContacts = computed(() => {
+    const term = this.conversationSearchTerm().trim().toLocaleLowerCase('ar');
+    if (!term) return this.contacts();
+    return this.contacts().filter(contact =>
+      contact.displayName.toLocaleLowerCase('ar').includes(term)
+      || this.participantRoleLabel(contact.role).toLocaleLowerCase('ar').includes(term)
+      || contact.conversations.some(item =>
+        item.student.displayName.toLocaleLowerCase('ar').includes(term)
+        || item.subject.toLocaleLowerCase('ar').includes(term)));
+  });
+  readonly selectedContact = computed(() =>
+    this.contacts().find(item => item.userId === this.selectedContactId()) ?? null);
   readonly unreadCount = computed(() => this.conversations().reduce((total, item) => total + item.unreadCount, 0));
   readonly openCount = computed(() => this.conversations().filter(item => item.status === 'Open').length);
   readonly selected = signal<ConversationDto | null>(null);
@@ -97,12 +149,14 @@ export class MessagingChatComponent implements OnInit {
   readonly guardianStudents = signal<readonly GuardianStudentDto[]>([]);
   readonly officerClassrooms = signal<readonly ClassroomDto[]>([]);
   readonly officerStudents = signal<readonly StudentStatsDto[]>([]);
+  readonly socialWorkerReferrals = signal<readonly ReferralDto[]>([]);
   readonly loadingOfficerDirectory = signal(false);
   readonly recipientOptions = signal<readonly ConversationRecipientOption[]>([]);
   readonly loadingCreateScope = signal(false);
   readonly createError = signal('');
   readonly creatingConversation = signal(false);
   readonly createStudentId = new FormControl<number | null>(null, Validators.required);
+  readonly createReferralId = new FormControl<number | null>(null);
   readonly createClassroomId = new FormControl<number | null>(null);
   readonly createThreadType = new FormControl<ConversationThreadType | null>(null, Validators.required);
   readonly createRecipientKey = new FormControl<string | null>(null, Validators.required);
@@ -121,10 +175,14 @@ export class MessagingChatComponent implements OnInit {
   get canClose(): boolean { return this.auth.hasPermission('Messaging.CloseThread'); }
   get isGuardian(): boolean { return this.auth.hasRole('Guardian'); }
   get isOfficer(): boolean { return this.auth.hasRole('StudentAffairsOfficer'); }
+  get isSocialWorker(): boolean { return this.auth.hasRole('SocialWorker'); }
   get canStartConversation(): boolean {
     return (this.isGuardian && (this.auth.hasPermission('Messaging.StartGuardianTeacher')
       || this.auth.hasPermission('Messaging.StartGuardianAdministration')))
-      || (this.isOfficer && this.auth.hasPermission('Messaging.StartOfficerGuardian'));
+      || (this.isOfficer && this.auth.hasPermission('Messaging.StartOfficerGuardian'))
+      || (this.isSocialWorker
+        && this.auth.hasPermission('Messaging.Send')
+        && this.auth.hasPermission('Messaging.ViewOwn'));
   }
   get threadTypeOptions(): readonly { label: string; value: ConversationThreadType }[] {
     const options: { label: string; value: ConversationThreadType }[] = [];
@@ -163,18 +221,30 @@ export class MessagingChatComponent implements OnInit {
   loadInbox(): void {
     this.loadingInbox.set(true);
     this.inboxError.set('');
-    this.api.listConversations({ pageNumber: 1, pageSize: 100, isUnread: this.unreadOnly() || undefined }).pipe(finalize(() => this.loadingInbox.set(false))).subscribe({
-      next: response => {
-        if (!response.isSuccess || !response.data) { this.inboxError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل المحادثات.'); return; }
-        this.conversations.set(response.data.items);
-        this.totalRecords.set(response.data.totalCount);
+    const isUnread = this.unreadOnly() || undefined;
+    this.api.listConversations({ pageNumber: 1, pageSize: 100, isUnread }).pipe(
+      expand(response => response.isSuccess && response.data?.hasNext
+        ? this.api.listConversations({ pageNumber: response.data.page + 1, pageSize: 100, isUnread })
+        : EMPTY),
+      toArray(),
+      finalize(() => this.loadingInbox.set(false))
+    ).subscribe({
+      next: pages => {
+        const failed = pages.find(response => !response.isSuccess || !response.data);
+        if (failed || !pages[0]?.data) {
+          this.inboxError.set(failed?.errors[0] ?? failed?.message ?? 'تعذر تحميل المحادثات.');
+          return;
+        }
+        const items = pages.flatMap(response => response.data?.items ?? []);
+        this.conversations.set(items);
+        this.totalRecords.set(pages[0].data.totalCount);
         const selectedId = this.selected()?.id;
         if (selectedId) {
-          const latest = response.data.items.find(item => item.id === selectedId);
+          const latest = items.find(item => item.id === selectedId);
           if (latest) this.selected.set(latest);
-          else if (response.data.items.length) this.selectConversation(response.data.items[0]);
-        } else if (response.data.items.length && !this.compactViewport()) {
-          this.selectConversation(response.data.items[0]);
+          else if (items.length) this.selectConversation(items[0]);
+        } else if (items.length && !this.compactViewport() && this.inboxView() === 'conversations') {
+          this.selectConversation(items[0]);
         }
       },
       error: error => this.inboxError.set(this.httpMessage(error, 'تعذر تحميل المحادثات.'))
@@ -186,6 +256,7 @@ export class MessagingChatComponent implements OnInit {
     this.createError.set('');
     this.recipientOptions.set([]);
     this.createStudentId.reset(null);
+    this.createReferralId.reset(null);
     this.createClassroomId.reset(null);
     this.createThreadType.reset(null);
     this.createRecipientKey.reset(null);
@@ -195,9 +266,58 @@ export class MessagingChatComponent implements OnInit {
     if (this.isOfficer) {
       this.createThreadType.setValue('GuardianStudentAffairs');
       this.loadOfficerClassrooms();
+    } else if (this.isSocialWorker) {
+      this.createThreadType.setValue('GuardianSocialWorker');
+      this.loadSocialWorkerReferrals();
     } else {
       this.loadGuardianStudents();
     }
+  }
+
+  setInboxView(view: InboxView): void {
+    this.inboxView.set(view);
+    this.conversationSearch.reset('');
+    if (view === 'conversations') {
+      this.selectedContactId.set(null);
+    } else if (this.unreadOnly()) {
+      this.unreadOnly.set(false);
+      this.loadInbox();
+    }
+  }
+
+  selectContact(contact: ConversationContact): void {
+    this.selectedContactId.set(contact.userId);
+    this.selected.set(null);
+    this.messages.set([]);
+    this.sendError.set('');
+  }
+
+  selectContactConversation(item: ConversationDto): void {
+    this.selectConversation(item);
+  }
+
+  onSocialWorkerReferralChanged(): void {
+    this.createRecipientKey.reset(null);
+    this.recipientOptions.set([]);
+    this.createError.set('');
+    const referral = this.socialWorkerReferrals().find(item => item.id === this.createReferralId.value);
+    this.createStudentId.setValue(referral?.student.id ?? null);
+    if (!referral) return;
+
+    this.loadingCreateScope.set(true);
+    this.api.getStudentGuardians(referral.student.id).pipe(
+      finalize(() => this.loadingCreateScope.set(false))
+    ).subscribe({
+      next: response => {
+        if (!response.isSuccess || !response.data) {
+          this.createError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل أولياء الأمور المرتبطين بالطالب.');
+          return;
+        }
+        this.recipientOptions.set(response.data.filter(option => option.isActive).map(option =>
+          this.guardianLinkRecipient(option)));
+      },
+      error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل أولياء الأمور المرتبطين بالطالب.'))
+    });
   }
 
   onOfficerClassroomChanged(): void {
@@ -309,6 +429,7 @@ export class MessagingChatComponent implements OnInit {
       subject,
       initialBody,
       idempotencyKey,
+      referralId: this.isSocialWorker ? this.createReferralId.value : null,
       targetGuardianProfileId: recipient.guardianProfileId
     };
     this.creatingConversation.set(true);
@@ -353,7 +474,14 @@ export class MessagingChatComponent implements OnInit {
   }
 
   backToInbox(): void {
+    if (this.selected() && this.selectedContactId()) {
+      this.selected.set(null);
+      this.messages.set([]);
+      this.sendError.set('');
+      return;
+    }
     this.selected.set(null);
+    this.selectedContactId.set(null);
     this.messages.set([]);
     this.sendError.set('');
   }
@@ -429,10 +557,23 @@ export class MessagingChatComponent implements OnInit {
   isMine(message: ConversationMessageDto): boolean { return message.sender.userId === this.currentUserId; }
   queuedResult(message: ConversationMessageDto): SendMessageResultDto | null {
     return this.queuedResults().get(message.id) ?? (message.disposition === 'QueuedUntilOfficeHours'
-      ? { message, disposition: message.disposition, nextEligibleSendAt: message.nextEligibleSendAt }
+      ? {
+          message,
+          disposition: message.disposition,
+          nextEligibleSendAt: message.nextEligibleSendAt,
+          conversationRowVersion: this.selected()?.rowVersion ?? ''
+        }
       : null);
   }
   threadTypeLabel(type: ConversationDto['threadType']): string { return ({ GuardianTeacher: 'ولي الأمر والمعلم', GuardianStudentAffairs: 'ولي الأمر وشؤون الطلاب', GuardianSocialWorker: 'ولي الأمر والموجه الطلابي' })[type]; }
+  participantRoleLabel(role: string): string {
+    return ({
+      Guardian: 'ولي أمر',
+      Instructor: 'معلم',
+      StudentAffairsOfficer: 'مسؤول شؤون الطلاب',
+      SocialWorker: 'موجه طلابي'
+    } as Record<string, string>)[role] ?? role;
+  }
   receiptView(message: ConversationMessageDto): MessageReceiptView {
     const receipts = message.receipts ?? [];
     if (!receipts.length) {
@@ -470,6 +611,14 @@ export class MessagingChatComponent implements OnInit {
 
   private appendSendResult(result: SendMessageResultDto): void {
     this.mergeMessages([result.message]);
+    const thread = this.selected();
+    if (thread && thread.id === result.message.conversationId) {
+      this.acceptConversationUpdate({
+        ...thread,
+        rowVersion: result.conversationRowVersion,
+        updatedAt: result.message.createdAt
+      });
+    }
     this.queuedResults.update(current => {
       const next = new Map(current);
       next.set(result.message.id, result);
@@ -496,6 +645,33 @@ export class MessagingChatComponent implements OnInit {
       error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل الأبناء المرتبطين بحسابك.'))
     });
   }
+  private loadSocialWorkerReferrals(): void {
+    this.loadingCreateScope.set(true);
+    this.api.listReferrals({ pageNumber: 1, pageSize: 100, sortDirection: 'desc' }).pipe(
+      finalize(() => this.loadingCreateScope.set(false))
+    ).subscribe({
+      next: response => {
+        if (!response.isSuccess || !response.data) {
+          this.createError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل الإحالات المسندة إليك.');
+          return;
+        }
+        this.socialWorkerReferrals.set(response.data.items.filter(item =>
+          item.status === 'Assigned' || item.status === 'InProgress'));
+      },
+      error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل الإحالات المسندة إليك.'))
+    });
+  }
+  private guardianLinkRecipient(option: StudentGuardianLinkDto): ConversationRecipientOption {
+    return {
+      key: `guardian:${option.guardian.id}`,
+      label: `${option.guardian.displayName} — ${this.relationshipLabel({ relationship: option.guardian.relationship })}`,
+      threadType: 'GuardianSocialWorker',
+      instructorProfileId: null,
+      staffUserId: null,
+      staffRole: null,
+      guardianProfileId: option.guardian.id
+    };
+  }
   private loadOfficerClassrooms(): void {
     if (this.officerClassrooms().length) return;
     this.loadingOfficerDirectory.set(true);
@@ -504,7 +680,7 @@ export class MessagingChatComponent implements OnInit {
       error: error => this.createError.set(this.httpMessage(error, 'تعذر تحميل الفصول.'))
     });
   }
-  private relationshipLabel(option: StudentGuardianOptionDto): string {
+  private relationshipLabel(option: Pick<StudentGuardianOptionDto, 'relationship'>): string {
     return ({ Father: 'الأب', Mother: 'الأم', Brother: 'الأخ', Sister: 'الأخت', Grandfather: 'الجد', Grandmother: 'الجدة', Uncle: 'العم أو الخال', Aunt: 'العمة أو الخالة', Other: 'صلة أخرى' } as Record<string, string>)[option.relationship] ?? option.relationship;
   }
   private revalidateOpenThread(): void {

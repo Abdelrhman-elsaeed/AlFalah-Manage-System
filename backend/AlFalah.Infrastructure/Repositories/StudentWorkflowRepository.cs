@@ -60,6 +60,31 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
                 && (link.ValidTo == null || link.ValidTo >= onDate),
             cancellationToken);
 
+    public async Task<bool> CanSocialWorkerAccessStudentGuardiansAsync(
+        int schoolId,
+        string socialWorkerUserId,
+        int studentId,
+        CancellationToken cancellationToken)
+    {
+        var hasActiveReferral = await _context.StudentReferrals.AsNoTracking().AnyAsync(
+            referral => referral.SchoolId == schoolId
+                && referral.StudentId == studentId
+                && referral.AssignedSocialWorkerUserId == socialWorkerUserId
+                && !referral.IsDeleted
+                && (referral.Status == StudentReferralStatus.Assigned
+                    || referral.Status == StudentReferralStatus.InProgress),
+            cancellationToken).ConfigureAwait(false);
+        if (hasActiveReferral) return true;
+
+        return await _context.GuardianSummons.AsNoTracking().AnyAsync(
+            summon => summon.SchoolId == schoolId
+                && summon.StudentId == studentId
+                && summon.ScheduledBySocialWorkerUserId == socialWorkerUserId
+                && !summon.IsDeleted
+                && summon.Status != GuardianSummonStatus.Improved,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<StudentGuardianLinkDto>> GetStudentGuardiansAsync(
         int schoolId,
         int studentId,

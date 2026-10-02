@@ -6,7 +6,36 @@
     </div>
   </header>
 
-  <section *ngIf="canManage()" class="surface-card attendance-sheet">
+  <nav *ngIf="canManage()" class="attendance-tabs" role="tablist" aria-label="أقسام حضور الموظفين">
+    <button type="button"
+            id="attendance-sheet-tab"
+            class="attendance-tab"
+            role="tab"
+            [class.is-active]="activeView() === 'sheet'"
+            [attr.aria-selected]="activeView() === 'sheet'"
+            aria-controls="attendance-sheet-panel"
+            (click)="activeView.set('sheet')">
+      <i class="pi pi-calendar-plus" aria-hidden="true"></i>
+      <span>كشف حضور الموظفين</span>
+    </button>
+    <button type="button"
+            id="attendance-records-tab"
+            class="attendance-tab"
+            role="tab"
+            [class.is-active]="activeView() === 'records'"
+            [attr.aria-selected]="activeView() === 'records'"
+            aria-controls="attendance-records-panel"
+            (click)="activeView.set('records')">
+      <i class="pi pi-history" aria-hidden="true"></i>
+      <span>سجل حضور الموظفين</span>
+    </button>
+  </nav>
+
+  <section *ngIf="canManage() && activeView() === 'sheet'"
+           id="attendance-sheet-panel"
+           class="surface-card attendance-sheet"
+           role="tabpanel"
+           aria-labelledby="attendance-sheet-tab">
     <div class="attendance-sheet__toolbar">
       <div>
         <h2>كشف حضور الموظفين</h2>
@@ -54,7 +83,11 @@
     </p-table>
   </section>
 
-  <section class="surface-card my-attendance">
+  <section *ngIf="!canManage() || activeView() === 'records'"
+           id="attendance-records-panel"
+           class="surface-card my-attendance"
+           [attr.role]="canManage() ? 'tabpanel' : null"
+           [attr.aria-labelledby]="canManage() ? 'attendance-records-tab' : null">
     <div class="my-attendance__heading">
       <div>
         <h2>{{ canManage() ? 'سجل حضور الموظفين' : 'سجل حضوري' }}</h2>

@@ -83,8 +83,8 @@ public sealed class AssignReferralCommandHandler
             userId, RoleNames.StudentAffairsOfficer, now, request.Reason?.Trim());
 
         var reasonText = string.IsNullOrWhiteSpace(request.Reason)
-            ? "Referral assigned to social worker"
-            : $"Referral assigned to social worker: {request.Reason.Trim()}";
+            ? "تم إسناد الإحالة إلى الموجه الطلابي"
+            : $"تم إسناد الإحالة إلى الموجه الطلابي: {request.Reason.Trim()}";
 
         var action = ReferralHandlerSupport.CreateAction(
             referral,

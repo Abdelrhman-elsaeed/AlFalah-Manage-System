@@ -53,7 +53,11 @@ public sealed record CloseConversationRequestDto(string Reason, string RowVersio
 public sealed record ConversationParticipantDto(string UserId, string DisplayName, string Role);
 public sealed record ConversationDto(int Id, StudentSummaryDto Student, string Subject, ConversationThreadType ThreadType, ConversationThreadStatus Status, IReadOnlyList<ConversationParticipantDto> Participants, int UnreadCount, DateTimeOffset UpdatedAt, string RowVersion, int? ReferralId = null);
 public sealed record ConversationMessageDto(long Id, int ConversationId, ActorSummaryDto Sender, string Body, long? ReplyToMessageId, DateTimeOffset CreatedAt, MessageDeliveryState DeliveryState, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt, IReadOnlyList<NotificationDeliveryDto> Receipts);
-public sealed record SendMessageResultDto(ConversationMessageDto Message, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt);
+public sealed record SendMessageResultDto(
+    ConversationMessageDto Message,
+    OfficeHoursDisposition Disposition,
+    DateTimeOffset? NextEligibleSendAt,
+    string ConversationRowVersion);
 public sealed record GuardianTeacherOptionDto(int InstructorProfileId, string DisplayName, string Subject);
 public sealed record SchoolInstructorOptionDto(int InstructorProfileId, string DisplayName, string Subject);
 public sealed record GuardianStaffOptionDto(

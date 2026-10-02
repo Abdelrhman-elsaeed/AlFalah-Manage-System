@@ -11,6 +11,7 @@ using AlFalah.Application.StudentAffairs.Notifications;
 using AlFalah.Application.StudentAffairs.Settings;
 using AlFalah.Application.StudentAffairs.Messaging;
 using AlFalah.Application.StudentAffairs.Students;
+using AlFalah.Application.StudentAffairs.Guardians;
 using AlFalah.Application.StudentAffairs.Permits;
 using AlFalah.Application.StudentAffairs.OfficerOperations;
 using AlFalah.Application.IntelligentTimetable;
@@ -156,6 +157,7 @@ public static class DependencyInjection
         services.AddScoped<IStudentAffairsSettingsRepository, StudentAffairsSettingsRepository>();
         services.AddScoped<IMessagingWorkflowRepository, MessagingWorkflowRepository>();
         services.AddScoped<IStudentWorkflowRepository, StudentWorkflowRepository>();
+        services.AddScoped<IGuardianDirectoryRepository, GuardianDirectoryRepository>();
         services.AddScoped<IOfficerOperationalReadRepository, OfficerOperationalReadRepository>();
         services.AddScoped<StudentAffairsAutomationRuleEngine>();
         services.AddScoped<StudentAffairsNotificationDispatcher>();

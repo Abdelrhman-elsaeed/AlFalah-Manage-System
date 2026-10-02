@@ -174,6 +174,24 @@ public sealed class GatePassAndMessagingMediatRTests
     }
 
     [Fact]
+    public async Task CloseConversationCommandHandler_Returns_Conflict_Response_For_Stale_RowVersion()
+    {
+        var repository = new StubMessagingWorkflowRepository
+        {
+            CloseException = new InvalidOperationException("The conversation was modified by another user")
+        };
+        var currentUser = new StubCurrentUser("user-1", 1, PermissionNames.MessagingCloseThread);
+        var handler = new CloseConversationCommandHandler(repository, currentUser);
+
+        var result = await handler.Handle(
+            new CloseConversationCommand(25, new CloseConversationRequestDto("Resolved", "AQID")),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain("The conversation was modified by another user");
+    }
+
+    [Fact]
     public async Task UpdateMyOfficeHoursCommandHandler_RequiresExactInstructorRole()
     {
         var repository = new StubMessagingWorkflowRepository();
@@ -403,6 +421,7 @@ public sealed class GatePassAndMessagingMediatRTests
         public bool IsParticipant { get; set; } = true;
         public bool SendWasCalled { get; private set; }
         public CreateConversationRequestDto? CreatedRequest { get; private set; }
+        public InvalidOperationException? CloseException { get; set; }
 
         public Task<MessageReleaseResult> ReleaseDueMessageAsync(int messageId, CancellationToken cancellationToken) =>
             Task.FromResult(new MessageReleaseResult(true, null));
@@ -475,14 +494,17 @@ public sealed class GatePassAndMessagingMediatRTests
             SendWasCalled = true;
             return Task.FromResult(new SendMessageResultDto(
                 new ConversationMessageDto(1, conversationId, new ActorSummaryDto(senderUserId, "User", "Sender"), request.Body, request.ReplyToMessageId, DateTimeOffset.UtcNow, MessageDeliveryState.Delivered, OfficeHoursDisposition.SentImmediately, null, Array.Empty<NotificationDeliveryDto>()),
-                OfficeHoursDisposition.SentImmediately, null));
+                OfficeHoursDisposition.SentImmediately, null, "AQIE"));
         }
 
         public Task<bool> MarkConversationReadAsync(int schoolId, string userId, int conversationId, long throughMessageId, CancellationToken cancellationToken) =>
             Task.FromResult(true);
 
-        public Task<ConversationDto?> CloseConversationAsync(int schoolId, string userId, int conversationId, CloseConversationRequestDto request, CancellationToken cancellationToken) =>
-            GetConversationByIdAsync(schoolId, userId, conversationId, cancellationToken);
+        public Task<ConversationDto?> CloseConversationAsync(int schoolId, string userId, int conversationId, CloseConversationRequestDto request, CancellationToken cancellationToken)
+        {
+            if (CloseException is not null) throw CloseException;
+            return GetConversationByIdAsync(schoolId, userId, conversationId, cancellationToken);
+        }
 
         public Task<OfficeHoursAggregateDto> GetEligibleOfficeHoursAsync(int schoolId, string userId, CancellationToken cancellationToken) =>
             Task.FromResult(EmptyOfficeHours());

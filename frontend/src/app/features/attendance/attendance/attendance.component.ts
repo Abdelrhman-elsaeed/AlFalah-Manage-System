@@ -25,6 +25,7 @@ export class AttendanceComponent implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly canManage = computed(() => this.auth.hasPermission('Attendance.Manage'));
+  readonly activeView = signal<'sheet' | 'records'>('sheet');
   readonly selectedDate = signal(this.today());
   readonly sheetRows = signal<AttendanceSheetRow[]>([]);
   readonly myAttendance = signal<MyAttendanceItem[]>([]);

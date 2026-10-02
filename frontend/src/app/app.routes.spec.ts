@@ -37,7 +37,7 @@ describe('Student Affairs role workspace routes', () => {
     ['student-affairs/officer', 'StudentAffairsOfficer', 'StudentAffairsDashboard.Officer'],
     ['student-affairs/guardian', 'Guardian', 'StudentAffairsDashboard.Guardian'],
     ['student-affairs/security', 'SecurityGuard', 'StudentAffairsDashboard.Security'],
-    ['student-affairs/social-worker', 'SocialWorker', 'Referral.View'],
+    ['student-affairs/social-worker', 'SocialWorker', 'StudentAffairsDashboard.SocialWorker'],
     ['student-affairs/teacher', 'Instructor', 'StudentAffairsDashboard.Teacher'],
     ['student-affairs/attendance/sheet', 'Secretary', 'Attendance.ViewStudents'],
     ['student-affairs/oversight', 'SchoolManager', 'StudentAffairsDashboard.SchoolOversight'],
@@ -76,6 +76,16 @@ describe('Student Affairs role workspace routes', () => {
 
     expect(alias?.redirectTo).toBe('student-affairs/security');
     expect(alias?.pathMatch).toBe('full');
+  });
+
+  it('opens classroom and school-wide student lists on separate routes', () => {
+    const allStudents = allRoutes.find(item => item.path === 'student-affairs/students/all');
+    const classroomStudents = allRoutes.find(item => item.path === 'student-affairs/students/classroom/:classroomId');
+
+    expect(allStudents?.data?.['studentListMode']).toBe('all');
+    expect(classroomStudents?.data?.['studentListMode']).toBe('classroom');
+    expect(allStudents?.canActivate).toContain(permissionGuard);
+    expect(classroomStudents?.canActivate).toContain(permissionGuard);
   });
 });
 

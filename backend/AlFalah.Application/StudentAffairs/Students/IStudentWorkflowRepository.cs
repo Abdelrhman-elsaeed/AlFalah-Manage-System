@@ -28,6 +28,12 @@ public interface IStudentWorkflowRepository
         DateOnly onDate,
         CancellationToken cancellationToken);
 
+    Task<bool> CanSocialWorkerAccessStudentGuardiansAsync(
+        int schoolId,
+        string socialWorkerUserId,
+        int studentId,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<StudentGuardianLinkDto>> GetStudentGuardiansAsync(
         int schoolId,
         int studentId,

@@ -8,7 +8,7 @@ import {
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
+import { SUPPRESS_ERROR_TOAST, SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
 import { ApiResponse } from '../models/api-response.model';
 import {
   AbsenceExcuseDto,
@@ -23,7 +23,13 @@ import {
   CreateClassroomRequestDto,
   CreateStudentRequestDto,
   DeleteStudentRequestDto,
+  GuardianDirectoryOptionDto,
+  LinkStudentGuardianRequestDto,
+  RevokeStudentGuardianRequestDto,
   StudentDetailsDto,
+  StudentEnrollmentDto,
+  StudentGuardianLinkDto,
+  StudentListQuery,
   StudentPage,
   StudentAttendanceHistoryDto,
   StudentAttendanceRecordsQuery,
@@ -36,6 +42,7 @@ import {
   ReviewAbsenceExcuseRequestDto,
   RejectAbsenceExcuseRequestDto,
   UpdateClassroomRequestDto,
+  UpdateStudentEnrollmentRequestDto,
   UpdateStudentRequestDto
 } from '../models/daily-operations.models';
 import { GuardianStudentDto } from '../models/student-affairs-dashboard.models';
@@ -45,6 +52,9 @@ export class DailyOperationsService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/api/v1`;
   private readonly callerHandlesErrors = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
+  private readonly guardianDialogContext = new HttpContext()
+    .set(SUPPRESS_ERROR_TOAST, true)
+    .set(SUPPRESS_FORBIDDEN_REDIRECT, true);
 
   getClassrooms(): Observable<ApiResponse<ClassroomPage>> {
     return this.http.get<ApiResponse<ClassroomPage>>(`${this.api}/classrooms`, {
@@ -79,10 +89,16 @@ export class DailyOperationsService {
     });
   }
 
-  getStudents(): Observable<ApiResponse<StudentPage>> {
+  getStudents(query?: StudentListQuery): Observable<ApiResponse<StudentPage>> {
+    let params = new HttpParams().set('pageSize', query?.pageSize?.toString() ?? '100');
+    if (query?.pageNumber) params = params.set('pageNumber', query.pageNumber.toString());
+    if (query?.search) params = params.set('search', query.search);
+    if (query?.classroomId) params = params.set('classroomId', query.classroomId.toString());
+    if (query?.isActive !== undefined) params = params.set('isActive', query.isActive.toString());
+
     return this.http.get<ApiResponse<StudentPage>>(`${this.api}/students`, {
       context: this.callerHandlesErrors,
-      params: new HttpParams().set('pageSize', 100)
+      params
     });
   }
 
@@ -129,6 +145,54 @@ export class DailyOperationsService {
       context: this.callerHandlesErrors,
       body: request
     });
+  }
+
+  getGuardianOptions(): Observable<ApiResponse<readonly GuardianDirectoryOptionDto[]>> {
+    return this.http.get<ApiResponse<readonly GuardianDirectoryOptionDto[]>>(
+      `${this.api}/students/guardian-options`,
+      { context: this.guardianDialogContext }
+    );
+  }
+
+  getStudentGuardians(studentId: number): Observable<ApiResponse<readonly StudentGuardianLinkDto[]>> {
+    return this.http.get<ApiResponse<readonly StudentGuardianLinkDto[]>>(
+      `${this.api}/students/${studentId}/guardians`,
+      { context: this.guardianDialogContext }
+    );
+  }
+
+  linkStudentGuardian(
+    studentId: number,
+    request: LinkStudentGuardianRequestDto
+  ): Observable<ApiResponse<StudentGuardianLinkDto>> {
+    return this.http.post<ApiResponse<StudentGuardianLinkDto>>(
+      `${this.api}/students/${studentId}/guardians`,
+      request,
+      { context: this.guardianDialogContext }
+    );
+  }
+
+  revokeStudentGuardian(
+    studentId: number,
+    linkId: number,
+    request: RevokeStudentGuardianRequestDto
+  ): Observable<ApiResponse<boolean>> {
+    return this.http.delete<ApiResponse<boolean>>(
+      `${this.api}/students/${studentId}/guardians/${linkId}`,
+      { context: this.guardianDialogContext, body: request }
+    );
+  }
+
+  transferStudent(
+    studentId: number,
+    enrollmentId: number,
+    request: UpdateStudentEnrollmentRequestDto
+  ): Observable<ApiResponse<StudentEnrollmentDto>> {
+    return this.http.patch<ApiResponse<StudentEnrollmentDto>>(
+      `${this.api}/students/${studentId}/enrollments/${enrollmentId}`,
+      request,
+      { context: this.callerHandlesErrors }
+    );
   }
 
   getAttendanceSheet(date: string, classroomId: number): Observable<ApiResponse<StudentAttendanceSheetDto>> {

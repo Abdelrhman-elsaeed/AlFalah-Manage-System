@@ -1,0 +1,74 @@
+<main class="manager-workspace social-dashboard" dir="rtl">
+  <section class="workspace-hero social-hero">
+    <div class="workspace-hero__content">
+      <span class="workspace-hero__eyebrow"><i class="pi pi-sparkles"></i>مساحة المتابعة والإرشاد</span>
+      <h1>لوحة الموجه الطلابي</h1>
+      <p>صورة واضحة لأولويات اليوم: الحالات النشطة، مواعيد أولياء الأمور، وخطط الملاحظة التي تحتاج متابعة.</p>
+    </div>
+    <div class="workspace-hero__actions">
+      <a routerLink="/student-affairs/cases" class="hero-action"><i class="pi pi-briefcase"></i><span>فتح الإحالات</span></a>
+      <button type="button" class="hero-action" [disabled]="loading()" (click)="load()"><i class="pi" [ngClass]="loading() ? 'pi-spin pi-spinner' : 'pi-refresh'"></i><span>تحديث</span></button>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <section class="state-card" role="status" aria-live="polite"><div class="state-card__icon"><i class="pi pi-chart-bar"></i></div><h2>نرتب أولويات يومك</h2><p>يتم جمع الإحالات والاستدعاءات من مصادرها المعتمدة.</p><div class="skeleton-lines"><span></span><span></span><span></span></div></section>
+  } @else if (errorMessage()) {
+    <section class="state-card state-card--error" role="alert"><div class="state-card__icon"><i class="pi pi-exclamation-triangle"></i></div><h2>تعذر تحميل اللوحة</h2><p>{{ errorMessage() }}</p><button type="button" class="danger-action" (click)="load()"><i class="pi pi-refresh"></i>إعادة المحاولة</button></section>
+  } @else {
+    @if (dashboard(); as data) {
+    <section class="overview-grid" aria-label="ملخص عمل الموجه الطلابي">
+      <article class="metric-card metric-card--danger"><span class="metric-card__icon"><i class="pi pi-briefcase"></i></span><span class="metric-card__copy"><span>حالات نشطة</span><strong>{{ total(data.cases) }}</strong><small>تحتاج إجراء أو متابعة</small></span></article>
+      <article class="metric-card metric-card--warning"><span class="metric-card__icon"><i class="pi pi-calendar-clock"></i></span><span class="metric-card__copy"><span>بانتظار الموعد</span><strong>{{ count(data.summons, 'Pending') }}</strong><small>{{ scheduledToday() }} موعد اليوم</small></span></article>
+      <article class="metric-card metric-card--purple"><span class="metric-card__icon"><i class="pi pi-eye"></i></span><span class="metric-card__copy"><span>تحت الملاحظة</span><strong>{{ count(data.summons, 'UnderObservation') }}</strong><small>خطط متابعة مستمرة</small></span></article>
+      <article class="metric-card metric-card--success"><span class="metric-card__icon"><i class="pi pi-check-circle"></i></span><span class="metric-card__copy"><span>حالات تحسّنت</span><strong>{{ count(data.summons, 'Improved') }}</strong><small>نتائج إيجابية موثقة</small></span></article>
+    </section>
+
+    <section class="day-focus" [class.day-focus--clear]="attentionTotal(data) === 0">
+      <span class="day-focus__icon"><i class="pi" [ngClass]="attentionTotal(data) ? 'pi-bell' : 'pi-check'"></i></span>
+      <div><span class="section-kicker">تركيز اليوم</span><strong>{{ attentionTotal(data) ? 'ابدأ بالحالات ذات الأولوية والمواعيد الأقرب' : 'رائع، لا توجد متابعات عاجلة الآن' }}</strong><p>{{ criticalCases() ? criticalCases() + ' حالات ظاهرة بأولوية عالية أو حرجة وتستحق المراجعة أولًا.' : 'تابع المؤشرات دوريًا وستظهر هنا أي أولوية جديدة.' }}</p></div>
+      <b>{{ attentionTotal(data) }}</b>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="surface-panel">
+        <div class="section-heading"><div><span class="section-kicker">آخر الحالات</span><h2>إحالات تحتاج عينك</h2><p>أحدث الحالات المسندة إليك، مرتبة حسب آخر نشاط.</p></div><a routerLink="/student-affairs/cases" class="section-link">عرض الكل <i class="pi pi-arrow-left"></i></a></div>
+        <div class="case-feed">
+          @for (item of recentReferrals().slice(0, 4); track item.id) {
+            <a routerLink="/student-affairs/cases" class="feed-card" [attr.data-priority]="item.priority">
+              <span class="student-avatar">{{ item.student.displayName.charAt(0) }}</span>
+              <span class="feed-card__main"><span><strong>{{ item.student.displayName }}</strong><em class="priority-chip">{{ priorityLabel(item.priority) }}</em></span><small><bdi dir="ltr">{{ item.student.studentNumber }}</bdi> · {{ item.student.classLabel || 'الفصل غير محدد' }}</small><span class="feed-meta"><i class="pi pi-tag"></i>{{ referralStatusLabel(item.status) }}<i class="pi pi-list-check"></i>{{ item.actions.length }} إجراء</span></span>
+              <i class="pi pi-chevron-left feed-arrow"></i>
+            </a>
+          } @empty {
+            <div class="empty-note"><i class="pi pi-check-circle"></i><strong>لا توجد إحالات حالية</strong><span>ستظهر الحالات الجديدة هنا فور إسنادها إليك.</span></div>
+          }
+        </div>
+      </article>
+
+      <aside class="dashboard-side">
+        <section class="surface-panel">
+          <div class="section-heading"><div><span class="section-kicker">المواعيد</span><h2>استدعاءات أولياء الأمور</h2></div><a routerLink="/student-affairs/summons" class="icon-link" aria-label="عرض الاستدعاءات"><i class="pi pi-arrow-left"></i></a></div>
+          <div class="appointment-list">
+            @for (item of upcomingSummons().slice(0, 3); track item.id) {
+              <a routerLink="/student-affairs/summons" class="appointment-card">
+                <span class="appointment-card__date"><i class="pi pi-calendar"></i></span>
+                <span><strong>{{ item.student.displayName }}</strong><small>{{ item.guardian.displayName }} · {{ summonStatusLabel(item.status) }}</small><time>{{ formatDate(item.scheduledAt) }}</time></span>
+              </a>
+            } @empty {
+              <div class="empty-note empty-note--compact"><i class="pi pi-calendar-check"></i><strong>لا توجد مواعيد قريبة</strong><span>يمكنك إنشاء استدعاء من داخل الحالة.</span></div>
+            }
+          </div>
+        </section>
+        <section class="quick-actions surface-panel">
+          <div class="section-heading"><div><span class="section-kicker">وصول سريع</span><h2>أدوات المتابعة</h2></div></div>
+          <a routerLink="/student-affairs/cases"><i class="pi pi-briefcase"></i><span><strong>إدارة الإحالات</strong><small>بدء الحالة وتوثيق الإجراءات</small></span><i class="pi pi-arrow-left"></i></a>
+          <a routerLink="/student-affairs/summons"><i class="pi pi-calendar-clock"></i><span><strong>مواعيد أولياء الأمور</strong><small>الجدولة والحضور والملاحظة</small></span><i class="pi pi-arrow-left"></i></a>
+          <a routerLink="/student-affairs/messages"><i class="pi pi-comments"></i><span><strong>الرسائل</strong><small>تواصل آمن حول الحالة</small></span><i class="pi pi-arrow-left"></i></a>
+        </section>
+      </aside>
+    </section>
+    <p class="freshness"><i class="pi pi-clock"></i> آخر تحديث للوحة: {{ formatTime(refreshedAt()) }}</p>
+    }
+  }
+</main>

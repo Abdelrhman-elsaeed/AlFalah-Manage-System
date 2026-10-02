@@ -19,6 +19,7 @@ import {
   GuardianSummonStatus,
   REFERRAL_STATUSES,
   ReferralDto,
+  StudentCaseActionDto,
   StudentCaseActionType,
   StudentGuardianLinkDto,
   StudentReferralStatus,
@@ -54,7 +55,7 @@ type EngagementMode = 'summon' | 'message';
     TagModule
   ],
   templateUrl: './social-worker-crm.component.html',
-  styleUrl: './social-worker-crm.component.css'
+  styleUrls: ['../manager-workspace.css', './social-worker-crm.component.css']
 })
 export class SocialWorkerCrmComponent implements OnInit {
   private readonly api = inject(Phase5Service);
@@ -108,7 +109,7 @@ export class SocialWorkerCrmComponent implements OnInit {
   });
   readonly caseActionOptions: readonly { label: string; value: StudentCaseActionType }[] = [
     { label: 'جلسة إرشاد', value: 'CounselingSession' },
-    { label: 'استدعاء ولي الأمر', value: 'GuardianSummon' },
+    { label: 'توثيق تواصل أو استدعاء تم داخل الحالة', value: 'GuardianSummon' },
     { label: 'توصية بحسم درجات', value: 'GradeDeductionRecommendation' },
     { label: 'توصية بإيقاف', value: 'SuspensionRecommendation' },
     { label: 'إحالة إلى لجنة حقوق الطفل', value: 'ChildRightsCommitteeReferral' },
@@ -221,6 +222,40 @@ export class SocialWorkerCrmComponent implements OnInit {
     this.load();
   }
   totalPages(): number { return Math.max(1, Math.ceil(this.totalCount() / this.pageSize)); }
+
+  dashboardMetricIcon(code: string): string {
+    return ({
+      ActiveCases: 'pi-briefcase',
+      Pending: 'pi-calendar-clock',
+      Attended: 'pi-user-plus',
+      UnderObservation: 'pi-eye',
+      Improved: 'pi-check-circle'
+    } as Record<string, string>)[code] ?? 'pi-chart-bar';
+  }
+
+  dashboardMetricTone(code: string): string {
+    return ({
+      ActiveCases: 'danger',
+      Pending: 'warning',
+      Attended: 'info',
+      UnderObservation: 'purple',
+      Improved: 'success'
+    } as Record<string, string>)[code] ?? 'info';
+  }
+
+  displayActionDescription(action: StudentCaseActionDto): string {
+    const value = action.description.trim();
+    if (value.startsWith('Referral assigned to social worker')) return 'تم إسناد الإحالة إلى الموجه الطلابي.';
+    if (value === 'Referral accepted and moved to in-progress') return 'تم قبول الإحالة وبدء المتابعة.';
+    if (value.startsWith('Referral resolved:')) return 'تم حل الإحالة بعد اكتمال خطة المتابعة.';
+    if (value.startsWith('Referral reopened:')) return 'أُعيد فتح الإحالة لاستكمال المتابعة.';
+    if (this.hasEncodingDamage(value)) return 'إجراء متابعة مسجل — تعذر عرض نص بيانات الاختبار القديمة.';
+    return value;
+  }
+
+  displayActionResult(value: string): string {
+    return this.hasEncodingDamage(value) ? 'نتيجة متابعة مسجلة.' : value;
+  }
 
   referralsFor(status: StudentReferralStatus): readonly ReferralDto[] { return this.referrals().filter(item => item.status === status); }
   summonsFor(status: GuardianSummonStatus): readonly SummonDto[] { return this.summons().filter(item => item.status === status); }
@@ -638,4 +673,5 @@ export class SocialWorkerCrmComponent implements OnInit {
     return value.includes('rowversion') || value.includes('row version') || value.includes('concurrency') || value.includes('مستخدم آخر');
   }
   private httpMessage(error: unknown, fallback: string): string { return extractHttpErrorMessage(error) ?? fallback; }
+  private hasEncodingDamage(value: string): boolean { return /\?{3,}/.test(value); }
 }

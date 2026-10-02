@@ -12,6 +12,8 @@ import {
 export type StudentAttendanceStatus = 'Present' | 'Absent' | 'AbsentExcused';
 export type AbsenceExcuseStatus = 'Pending' | 'Accepted' | 'Rejected';
 export type AbsenceExcuseType = 'Medical' | 'Family' | 'Official' | 'Other';
+export type StudentEnrollmentStatus = 'Active' | 'Transferred' | 'Withdrawn' | 'Graduated';
+export type GuardianRelationshipType = 'Father' | 'Mother' | 'LegalGuardian' | 'Other';
 
 export interface ClassroomDto {
   readonly id: number;
@@ -66,9 +68,31 @@ export interface StudentListItemDto {
 
 export interface StudentEnrollmentDto {
   readonly id: number;
+  readonly term: AcademicTermSummaryDto;
   readonly classroom: ClassroomSummaryDto;
   readonly rollNumber: number | null;
+  readonly enrolledOn: string;
+  readonly withdrawnOn: string | null;
+  readonly status: StudentEnrollmentStatus;
   readonly rowVersion: string;
+}
+
+export interface StudentGuardianLinkDto {
+  readonly id: number;
+  readonly guardian: GuardianSummaryDto;
+  readonly canSubmitExcuses: boolean;
+  readonly canRequestGatePass: boolean;
+  readonly validFrom: string;
+  readonly validTo: string | null;
+  readonly isActive: boolean;
+  readonly rowVersion: string;
+}
+
+export interface GuardianDirectoryOptionDto {
+  readonly id: number;
+  readonly displayName: string;
+  readonly username: string;
+  readonly phoneNumber: string | null;
 }
 
 export interface StudentDetailsDto {
@@ -81,6 +105,7 @@ export interface StudentDetailsDto {
   readonly dateOfBirth: string | null;
   readonly gender: string | null;
   readonly currentEnrollment: StudentEnrollmentDto | null;
+  readonly guardians: readonly StudentGuardianLinkDto[];
   readonly rowVersion: string;
 }
 
@@ -103,6 +128,30 @@ export interface UpdateStudentRequestDto extends CreateStudentRequestDto {
 }
 
 export interface DeleteStudentRequestDto {
+  readonly reason: string;
+  readonly rowVersion: string;
+}
+
+export interface UpdateStudentEnrollmentRequestDto {
+  readonly status: StudentEnrollmentStatus;
+  readonly classroomId: number;
+  readonly effectiveOn: string;
+  readonly reason: string;
+  readonly rowVersion: string;
+}
+
+export interface LinkStudentGuardianRequestDto {
+  readonly guardianProfileId: number;
+  readonly relationship: GuardianRelationshipType;
+  readonly isPrimary: boolean;
+  readonly receivesNotifications: boolean;
+  readonly canSubmitExcuses: boolean;
+  readonly canRequestGatePass: boolean;
+  readonly validFrom: string;
+  readonly validTo: string | null;
+}
+
+export interface RevokeStudentGuardianRequestDto {
   readonly reason: string;
   readonly rowVersion: string;
 }
@@ -221,6 +270,14 @@ export type ClassroomPage = PagedResult<ClassroomDto>;
 export type StudentPage = PagedResult<StudentListItemDto>;
 export type AttendanceRecordsPage = PagedResult<StudentAttendanceRecordDto>;
 export type LinkedGuardianStudent = GuardianStudentDto;
+
+export interface StudentListQuery {
+  readonly pageNumber?: number;
+  readonly pageSize?: number;
+  readonly search?: string;
+  readonly classroomId?: number;
+  readonly isActive?: boolean;
+}
 
 export interface StudentStatsQuery {
   readonly pageNumber?: number;

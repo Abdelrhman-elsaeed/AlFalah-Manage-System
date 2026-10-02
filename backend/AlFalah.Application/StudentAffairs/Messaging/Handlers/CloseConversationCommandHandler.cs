@@ -39,12 +39,20 @@ public sealed class CloseConversationCommandHandler
                 cancellationToken).ConfigureAwait(false))
             return ApiResponse<ConversationDto>.Fail("Conversation was not found");
 
-        var conversation = await _repository.CloseConversationAsync(
-            schoolId.Value,
-            userId,
-            command.ConversationId,
-            command.Request,
-            cancellationToken).ConfigureAwait(false);
+        ConversationDto? conversation;
+        try
+        {
+            conversation = await _repository.CloseConversationAsync(
+                schoolId.Value,
+                userId,
+                command.ConversationId,
+                command.Request,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return ApiResponse<ConversationDto>.Fail(exception.Message);
+        }
 
         if (conversation is null)
             return ApiResponse<ConversationDto>.Fail("Conversation was not found");

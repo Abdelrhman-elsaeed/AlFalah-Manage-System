@@ -2,7 +2,9 @@ using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Users;
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
+using AlFalah.Domain.Enums.StudentAffairs;
 using AlFalah.Infrastructure.Data;
 using AlFalah.Shared.Models;
 using Microsoft.AspNetCore.Identity;
@@ -418,6 +420,21 @@ public class UserService : IUserService
             if (request.Role == RoleNames.Instructor)
             {
                 await UpsertInstructorProfileAsync(user.Id, school.Id, request.EmployeeNumber, request.Subject, request.Stage, request.Classes, cancellationToken);
+            }
+
+            if (request.Role == RoleNames.Guardian)
+            {
+                _context.GuardianProfiles.Add(new GuardianProfile
+                {
+                    SchoolId = school.Id,
+                    ApplicationUserId = user.Id,
+                    PreferredContactLanguage = request.PreferredLanguage == "en"
+                        ? PreferredContactLanguage.English
+                        : PreferredContactLanguage.Arabic,
+                    IsActive = true,
+                    CreatedByUserId = _currentUser.UserId ?? user.Id,
+                    UpdatedByUserId = _currentUser.UserId ?? user.Id
+                });
             }
 
             await _context.SaveChangesAsync(cancellationToken);

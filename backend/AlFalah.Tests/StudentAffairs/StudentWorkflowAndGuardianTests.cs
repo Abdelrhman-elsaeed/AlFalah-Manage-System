@@ -10,6 +10,8 @@ using AlFalah.Application.StudentAffairs.DTOs.Guardian;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.DTOs.Students;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
+using AlFalah.Application.StudentAffairs.Guardians;
+using AlFalah.Application.StudentAffairs.Guardians.Handlers;
 using AlFalah.Application.StudentAffairs.Classrooms.Handlers;
 using AlFalah.Application.StudentAffairs.Dashboards.Handlers;
 using AlFalah.Application.StudentAffairs.Students;
@@ -102,6 +104,22 @@ public sealed class StudentWorkflowAndGuardianTests
     }
 
     [Fact]
+    public async Task GetStudentGuardiansQuery_WhenStudentIsOutsideSocialWorkerAssignments_ReturnsNotFound()
+    {
+        var repository = new FakeStudentWorkflowRepository { SocialWorkerCanAccessGuardians = false };
+        var handler = new GetStudentGuardiansQueryHandler(
+            repository,
+            CreateUser(RoleNames.SocialWorker, PermissionNames.SummonCreate),
+            new FixedTimeProvider(Now));
+
+        var result = await handler.Handle(new GetStudentGuardiansQuery(17), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(StudentHandlerSupport.NotFound);
+        repository.QueriedStudentId.Should().Be(0);
+    }
+
+    [Fact]
     public async Task GetStudentGuardiansQuery_WhenGuardianViewPermission_ReturnsGuardians()
     {
         var repository = new FakeStudentWorkflowRepository
@@ -118,6 +136,34 @@ public sealed class StudentWorkflowAndGuardianTests
 
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GuardianManagement_WhenSecretaryHasStudentManage_IsAuthorizedAcrossHandlers()
+    {
+        var repository = new FakeStudentWorkflowRepository { Guardians = Array.Empty<StudentGuardianLinkDto>() };
+        var directory = new FakeGuardianDirectoryRepository();
+        var user = CreateUser(RoleNames.Secretary, PermissionNames.StudentManage);
+
+        var options = await new GetGuardianDirectoryOptionsQueryHandler(directory, user)
+            .Handle(new GetGuardianDirectoryOptionsQuery(), CancellationToken.None);
+        var guardians = await new GetStudentGuardiansQueryHandler(repository, user, new FixedTimeProvider(Now))
+            .Handle(new GetStudentGuardiansQuery(17), CancellationToken.None);
+        var link = await new LinkStudentGuardianCommandHandler(repository, directory, user, new FixedTimeProvider(Now))
+            .Handle(new LinkStudentGuardianCommand(17, new LinkStudentGuardianRequestDto(
+                9, GuardianRelationshipType.Father, true, true, true, true,
+                new DateOnly(2026, 9, 1), null)), CancellationToken.None);
+        var revoke = await new RevokeStudentGuardianCommandHandler(repository, user, new FixedTimeProvider(Now))
+            .Handle(new RevokeStudentGuardianCommand(
+                17, 3, new RevokeStudentGuardianRequestDto("Secretary correction", string.Empty)),
+                CancellationToken.None);
+
+        options.IsSuccess.Should().BeTrue();
+        guardians.IsSuccess.Should().BeTrue();
+        link.Errors.Should().Contain(StudentHandlerSupport.StudentNotFound);
+        link.Errors.Should().NotContain(StudentHandlerSupport.PermissionDenied);
+        revoke.Errors.Should().Contain(StudentHandlerSupport.NotFound);
+        revoke.Errors.Should().NotContain(StudentHandlerSupport.PermissionDenied);
     }
 
     [Fact]
@@ -784,6 +830,19 @@ public sealed class StudentWorkflowAndGuardianTests
         public override DateTimeOffset GetUtcNow() => _utcNow;
     }
 
+    private sealed class FakeGuardianDirectoryRepository : IGuardianDirectoryRepository
+    {
+        public Task<IReadOnlyList<GuardianDirectoryOptionDto>> GetActiveOptionsAsync(
+            int schoolId,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<GuardianDirectoryOptionDto>>(Array.Empty<GuardianDirectoryOptionDto>());
+
+        public Task<bool> IsActiveAsync(
+            int schoolId,
+            int guardianProfileId,
+            CancellationToken cancellationToken) => Task.FromResult(true);
+    }
+
     private sealed class FakeSchoolLocalDateResolver(DateOnly? date) : ISchoolLocalDateResolver
     {
         public Task<DateOnly?> ResolveAsync(int schoolId, DateTimeOffset instant, CancellationToken cancellationToken) =>
@@ -798,7 +857,11 @@ public sealed class StudentWorkflowAndGuardianTests
         public Task<bool> IsGuardianLinkedToStudentAsync(int schoolId, string guardianUserId, int studentId, DateOnly onDate, CancellationToken cancellationToken) =>
             Task.FromResult(GuardianLinked);
 
+        public Task<bool> CanSocialWorkerAccessStudentGuardiansAsync(int schoolId, string socialWorkerUserId, int studentId, CancellationToken cancellationToken) =>
+            Task.FromResult(SocialWorkerCanAccessGuardians);
+
         public bool GuardianLinked { get; set; } = true;
+        public bool SocialWorkerCanAccessGuardians { get; set; } = true;
         public int QueriedSchoolId { get; private set; }
         public int QueriedStudentId { get; private set; }
         public IReadOnlyList<StudentGuardianLinkDto> Guardians { get; set; } = new List<StudentGuardianLinkDto>();

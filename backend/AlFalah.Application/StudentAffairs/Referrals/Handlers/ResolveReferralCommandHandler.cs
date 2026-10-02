@@ -77,7 +77,7 @@ public sealed class ResolveReferralCommandHandler
         var action = ReferralHandlerSupport.CreateAction(
             referral,
             StudentCaseActionType.Other,
-            $"Referral resolved: {request.ResolutionNote.Trim()}",
+            $"تم حل الإحالة: {request.ResolutionNote.Trim()}",
             userId,
             now);
 

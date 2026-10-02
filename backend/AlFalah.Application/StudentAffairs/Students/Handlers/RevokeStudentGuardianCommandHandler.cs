@@ -36,6 +36,8 @@ public sealed class RevokeStudentGuardianCommandHandler
             return ApiResponse<bool>.Fail(StudentHandlerSupport.AuthenticationRequired);
 
         if (!_currentUser.HasPermission(PermissionNames.GuardianLinkStudent)
+            && !(_currentUser.IsInRole(RoleNames.Secretary)
+                && _currentUser.HasPermission(PermissionNames.StudentManage))
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)
             && !_currentUser.IsInRole(RoleNames.SchoolManager))

@@ -3,7 +3,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
 import { ClassroomPage, StudentStatsPage } from '../../../core/models/daily-operations.models';
-import { ConversationDto, ConversationMessageDto } from '../../../core/models/phase5.models';
+import { ConversationDto, ConversationMessageDto, ReferralDto, SendMessageResultDto } from '../../../core/models/phase5.models';
 import { GuardianStudentDto } from '../../../core/models/student-affairs-dashboard.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
@@ -21,13 +21,16 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
   beforeEach(async () => {
     api = jasmine.createSpyObj<Phase5Service>('Phase5Service', [
       'listConversations', 'getGuardianTeacherOptions', 'getGuardianStaffOptions',
-      'getStudentGuardianOptions', 'createConversation', 'createIdempotencyKey'
+      'getStudentGuardianOptions', 'getStudentGuardians', 'listReferrals',
+      'createConversation', 'createIdempotencyKey', 'sendMessage', 'closeConversation'
     ]);
     api.listConversations.and.returnValue(of(success(page<ConversationDto>())));
     api.getGuardianTeacherOptions.and.returnValue(of(success([
       { instructorProfileId: 31, displayName: 'المعلم أحمد', subject: 'الرياضيات' }
     ])));
     api.getGuardianStaffOptions.and.returnValue(of(success([])));
+    api.getStudentGuardians.and.returnValue(of(success([])));
+    api.listReferrals.and.returnValue(of(success<PagedResult<ReferralDto>>(page<ReferralDto>())));
     api.createIdempotencyKey.and.returnValue('stable-create-key');
 
     dashboard = jasmine.createSpyObj<StudentAffairsDashboardService>('StudentAffairsDashboardService', ['getGuardianStudents']);
@@ -139,7 +142,108 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
     expect(read.label).toBe('تمت القراءة');
     expect(read.time).toBe('2026-09-30T08:03:00Z');
   });
+
+  it('uses the row version returned after sending when the conversation is closed', () => {
+    const open = conversation(9, 'old-version');
+    const message = {
+      id: 91,
+      conversationId: open.id,
+      sender: { userId: 'guardian-1', displayName: 'ولي الأمر', roleSnapshot: 'Guardian' },
+      body: 'تمت المتابعة',
+      replyToMessageId: null,
+      createdAt: '2026-10-02T08:00:00Z',
+      deliveryState: 'Delivered',
+      disposition: 'SentImmediately',
+      nextEligibleSendAt: null,
+      receipts: []
+    } as ConversationMessageDto;
+    api.sendMessage.and.returnValue(of(success<SendMessageResultDto>({
+      message,
+      disposition: 'SentImmediately',
+      nextEligibleSendAt: null,
+      conversationRowVersion: 'new-version'
+    })));
+    api.closeConversation.and.returnValue(of(success<ConversationDto>({ ...open, status: 'Closed', rowVersion: 'closed-version' })));
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+    component.selected.set(open);
+    component.draft.setValue('تمت المتابعة');
+
+    component.send();
+    component.closeReason.setValue('اكتملت المتابعة');
+    component.closeThread();
+
+    expect(component.selected()?.rowVersion).toBe('closed-version');
+    expect(api.closeConversation).toHaveBeenCalledOnceWith(9, jasmine.objectContaining({ rowVersion: 'new-version' }));
+  });
+
+  it('groups every old and open thread under the same person', () => {
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+    const first = conversation(1, 'v1');
+    const second = { ...conversation(2, 'v2'), status: 'Closed' as const, subject: 'موضوع سابق' };
+    component.conversations.set([first, second]);
+
+    expect(component.contacts()).toHaveSize(1);
+    expect(component.contacts()[0].conversations.map(item => item.id)).toEqual([1, 2]);
+    expect(component.contacts()[0].openCount).toBe(1);
+  });
+
+  it('lets the assigned social worker start a guardian conversation from an active referral', () => {
+    auth.hasRole.and.callFake(role => role === 'SocialWorker');
+    api.listReferrals.and.returnValue(of(success({
+      ...page(),
+      items: [{
+        id: 44,
+        student: { id: 19, studentNumber: 'S-19', displayName: 'الطالب التجريبي', classroomId: 2, classLabel: '1/A', isActive: true, photoUrl: null },
+        status: 'InProgress'
+      } as any]
+    })));
+    api.getStudentGuardians.and.returnValue(of(success([{
+      id: 7,
+      guardian: { id: 72, displayName: 'ولي أمر الطالب', relationship: 'Father', isPrimary: true, receivesNotifications: true },
+      canSubmitExcuses: true,
+      canRequestGatePass: true,
+      validFrom: '2026-09-01',
+      validTo: null,
+      isActive: true,
+      rowVersion: 'link-version'
+    }] as const)));
+    api.createConversation.and.returnValue(throwError(() => new Error('stop after request capture')));
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+
+    component.openCreateDialog();
+    component.createReferralId.setValue(44);
+    component.onSocialWorkerReferralChanged();
+    component.createRecipientKey.setValue('guardian:72');
+    component.createSubject.setValue('متابعة الحالة');
+    component.createBody.setValue('نرغب في متابعة حالة الطالب.');
+    component.createConversation();
+
+    expect(api.createConversation).toHaveBeenCalledOnceWith(jasmine.objectContaining({
+      studentId: 19,
+      referralId: 44,
+      threadType: 'GuardianSocialWorker',
+      targetGuardianProfileId: 72
+    }));
+  });
 });
+
+function conversation(id: number, rowVersion: string): ConversationDto {
+  return {
+    id,
+    student: { id: 5, studentNumber: 'S-5', displayName: 'Student', classroomId: 2, classLabel: '1/A', isActive: true, photoUrl: null },
+    subject: `Thread ${id}`,
+    threadType: 'GuardianSocialWorker',
+    status: 'Open',
+    participants: [
+      { userId: 'guardian-1', displayName: 'ولي الأمر', role: 'Guardian' },
+      { userId: 'worker-1', displayName: 'الموجه الطلابي', role: 'SocialWorker' }
+    ],
+    unreadCount: 0,
+    updatedAt: '2026-10-02T07:00:00Z',
+    rowVersion,
+    referralId: 44
+  };
+}
 
 function guardianStudent(): GuardianStudentDto {
   return {
