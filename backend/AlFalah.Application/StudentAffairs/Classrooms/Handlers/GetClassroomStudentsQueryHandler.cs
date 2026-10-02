@@ -7,6 +7,7 @@ using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.Students;
 using AlFalah.Application.StudentAffairs.Students.Handlers;
+using AlFalah.Application.StudentAffairs.TeacherContext;
 using AlFalah.Domain.Enums;
 using AlFalah.Shared.Models;
 using MediatR;
@@ -18,15 +19,18 @@ public sealed class GetClassroomStudentsQueryHandler
 {
     private readonly IStudentWorkflowRepository _repository;
     private readonly ICurrentUserService _currentUser;
+    private readonly ITeacherContextRepository _teacherContextRepository;
     private readonly TimeProvider _timeProvider;
 
     public GetClassroomStudentsQueryHandler(
         IStudentWorkflowRepository repository,
         ICurrentUserService currentUser,
+        ITeacherContextRepository teacherContextRepository,
         TimeProvider timeProvider)
     {
         _repository = repository;
         _currentUser = currentUser;
+        _teacherContextRepository = teacherContextRepository;
         _timeProvider = timeProvider;
     }
 
@@ -49,6 +53,16 @@ public sealed class GetClassroomStudentsQueryHandler
             && !_currentUser.IsInRole(RoleNames.StudentAffairsOfficer)
             && !_currentUser.IsInRole(RoleNames.MainManager)
             && !_currentUser.IsInRole(RoleNames.SchoolManager))
+        {
+            return ApiResponse<IReadOnlyList<StudentSummaryDto>>.Fail(StudentHandlerSupport.PermissionDenied);
+        }
+
+        if (_currentUser.IsInRole(RoleNames.Instructor)
+            && !await _teacherContextRepository.IsClassroomAssignedAsync(
+                schoolId.Value,
+                userId,
+                query.ClassroomId,
+                cancellationToken).ConfigureAwait(false))
         {
             return ApiResponse<IReadOnlyList<StudentSummaryDto>>.Fail(StudentHandlerSupport.PermissionDenied);
         }

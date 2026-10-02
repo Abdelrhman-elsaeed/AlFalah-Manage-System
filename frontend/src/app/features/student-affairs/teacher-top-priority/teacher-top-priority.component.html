@@ -1,8 +1,8 @@
 <main class="teacher-page" dir="rtl">
   <header class="page-header">
     <div>
-      <p class="eyebrow">مساحة عمل المعلم والطلاب</p>
-      <h1>إدارة الفصل</h1>
+      <p class="eyebrow">{{ detailMode() ? 'فصولي · عرض الفصل' : 'مساحة عمل المعلم والطلاب' }}</p>
+      <h1>{{ detailMode() ? activeClassroomLabel() : 'إدارة الفصل' }}</h1>
       <p *ngIf="context() as current">{{ current.teacher.displayName }} · {{ current.schoolTimeZone }}</p>
     </div>
 
@@ -14,7 +14,7 @@
         icon="pi pi-refresh"
         label="تحديث"
         [loading]="refreshing() || loading()"
-        (click)="load()">
+        (click)="refreshWorkspace()">
       </button>
     </div>
   </header>
@@ -53,7 +53,7 @@
       </article>
       <article *ngFor="let alert of priority.alerts" class="priority-alert">
         <i class="pi pi-bell"></i>
-        <span>{{ alert }}</span>
+        <span>{{ alertLabel(alert, priority.context) }}</span>
       </article>
     </section>
 
@@ -65,7 +65,7 @@
       </div>
       <div>
         <span class="context-label">الحصة المكتشفة</span>
-        <strong>{{ priority.context.currentPeriod ? 'الحصة ' + priority.context.currentPeriod.period : priority.context.resolutionKind }}</strong>
+        <strong>{{ priority.context.currentPeriod ? 'الحصة ' + priority.context.currentPeriod.period : lessonStateLabel(priority.context) }}</strong>
       </div>
       <div>
         <span class="context-label">الوقت المدرسي</span>
@@ -86,14 +86,42 @@
       </div>
     </section>
 
-    <section *ngIf="!priority.context.currentPeriod" class="state-card" role="status">
+    <section *ngIf="!detailMode() && !priority.context.currentPeriod" class="state-card compact-state" role="status">
       <i class="pi pi-info-circle"></i>
       <h2>لا توجد حصة نشطة</h2>
-      <p>{{ priority.context.resolutionReason }}</p>
+      <p>{{ lessonReason(priority.context) }}</p>
     </section>
 
-    <section class="acknowledgement-grid" aria-label="إقرارات الاستلام المعلقة">
-      <article class="table-card">
+    <nav *ngIf="!detailMode()" class="workspace-tabs" role="tablist" aria-label="أقسام إدارة الفصل">
+      <button type="button" role="tab" [class.active]="activeTab() === 'gate-passes'"
+        [attr.aria-selected]="activeTab() === 'gate-passes'" (click)="selectTab('gate-passes')">
+        <i class="pi pi-sign-out"></i><span>استئذانات الخروج</span>
+        <b *ngIf="priority.pendingGatePassAcknowledgements">{{ priority.pendingGatePassAcknowledgements }}</b>
+      </button>
+      <button type="button" role="tab" [class.active]="activeTab() === 'entry-permits'"
+        [attr.aria-selected]="activeTab() === 'entry-permits'" (click)="selectTab('entry-permits')">
+        <i class="pi pi-id-card"></i><span>تصاريح دخول الفصل</span>
+        <b *ngIf="priority.pendingEntryPermitAcknowledgements">{{ priority.pendingEntryPermitAcknowledgements }}</b>
+      </button>
+      <button type="button" role="tab" [class.active]="activeTab() === 'classes'"
+        [attr.aria-selected]="activeTab() === 'classes'" (click)="selectTab('classes')">
+        <i class="pi pi-th-large"></i><span>فصولي</span>
+        <b *ngIf="myClassrooms().length">{{ myClassrooms().length }}</b>
+      </button>
+    </nav>
+
+    <a *ngIf="detailMode()" routerLink="/student-affairs/teacher" class="back-to-classes">
+      <i class="pi pi-arrow-right"></i> العودة إلى فصولي
+    </a>
+
+    <section *ngIf="detailMode() && !priority.context.currentPeriod" class="state-card compact-state" role="status">
+      <i class="pi pi-info-circle"></i>
+      <h2>لا توجد حصة نشطة</h2>
+      <p>{{ lessonReason(priority.context) }} يمكنك استعراض الطلاب، وتُفعّل الإجراءات السريعة أثناء حصة هذا الفصل فقط.</p>
+    </section>
+
+    <section *ngIf="!detailMode() && activeTab() !== 'classes'" class="acknowledgement-grid" aria-label="إقرارات الاستلام المعلقة">
+      <article *ngIf="activeTab() === 'gate-passes'" class="table-card acknowledgement-panel">
         <h2>استئذانات الخروج المعلقة</h2>
         <p *ngIf="priority.gatePassAcknowledgements.length === 0">لا توجد استئذانات بانتظار إقرارك.</p>
         <div *ngFor="let item of priority.gatePassAcknowledgements" class="acknowledgement-item">
@@ -111,7 +139,7 @@
         </div>
       </article>
 
-      <article class="table-card">
+      <article *ngIf="activeTab() === 'entry-permits'" class="table-card acknowledgement-panel">
         <h2>تصاريح دخول الفصل المعلقة</h2>
         <p *ngIf="priority.entryPermitAcknowledgements.length === 0">لا توجد تصاريح بانتظار إقرارك.</p>
         <div *ngFor="let item of priority.entryPermitAcknowledgements" class="acknowledgement-item">
@@ -130,15 +158,38 @@
       </article>
     </section>
 
+    <section *ngIf="!detailMode() && activeTab() === 'classes'" class="classes-panel">
+      <div class="section-intro">
+        <div><span>الفصول المسندة</span><h2>فصولي</h2><p>افتح أي فصل في نافذة مستقلة لاستعراض طلابه والعمل بدون فقد موضعك هنا.</p></div>
+        <strong>{{ myClassrooms().length }}</strong>
+      </div>
+      <div *ngIf="classroomsLoading()" class="classes-loading"><i class="pi pi-spin pi-spinner"></i> جارٍ تحميل فصولك…</div>
+      <div *ngIf="!classroomsLoading() && classroomsError()" class="classes-message error" role="alert"><i class="pi pi-exclamation-triangle"></i>{{ classroomsError() }}</div>
+      <div *ngIf="!classroomsLoading() && !classroomsError() && myClassrooms().length" class="classrooms-grid">
+        <button *ngFor="let classroom of myClassrooms()" type="button" class="classroom-card" (click)="openClassroom(classroom)">
+          <span class="classroom-card__icon"><i class="pi pi-users"></i></span>
+          <span class="classroom-card__copy"><small>{{ classroom.academicYearLabel }}</small><strong>{{ classroom.label }}</strong><span>{{ classroom.physicalLocation || 'الموقع غير محدد' }}</span></span>
+          <span class="classroom-card__meta"><b>{{ classroom.activeEnrollmentCount }}</b><small>طالب</small></span>
+          <i class="pi pi-external-link classroom-card__open"></i>
+        </button>
+      </div>
+      <div *ngIf="!classroomsLoading() && !classroomsError() && !myClassrooms().length" class="classes-empty">
+        <i class="pi pi-inbox"></i><strong>لا توجد فصول مسندة إليك</strong><span>ستظهر هنا الفصول بعد ربطها بملفك التعليمي.</span>
+      </div>
+    </section>
+
     <!-- Full-Width Pure Table Container -->
-    <section class="table-card">
+    <section *ngIf="detailMode()" class="table-card classroom-detail-card">
       <div class="table-header-bar">
         <div class="table-title-area">
           <div class="title-with-badge">
             <h2>طلاب الفصل ({{ activeClassroomLabel() }})</h2>
             <span class="count-badge">{{ filteredRoster().length }} طالب</span>
           </div>
-          <p class="table-subtitle">انقر على أيقونة الإجراء المباشر في صف الطالب لتنفيذ الإجراء فورًا.</p>
+          <p class="table-subtitle" *ngIf="detailClassroomId() === priority.context.currentPeriod?.classroom?.id; else readOnlyClass">
+            الإجراءات السريعة متاحة لأن هذا هو فصل الحصة النشطة الآن.
+          </p>
+          <ng-template #readOnlyClass><p class="table-subtitle">العرض متاح دائمًا، وتُفعّل الإجراءات أثناء حصة هذا الفصل فقط.</p></ng-template>
         </div>
 
         <div class="table-actions-area">
@@ -158,6 +209,7 @@
       <div class="table-wrapper">
         <p-table
           [value]="filteredRoster()"
+          [loading]="classroomRosterLoading()"
           dataKey="id"
           [rowTrackBy]="trackByStudentId"
           [paginator]="filteredRoster().length > 12"

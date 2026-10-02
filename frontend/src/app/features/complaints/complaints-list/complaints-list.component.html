@@ -2,9 +2,9 @@
   <header class="page-header">
     <div class="page-header__titles">
       <h1 class="page-header__title">{{ 'COMPLAINTS.TITLE' | translate }}</h1>
-      <p class="page-header__subtitle">{{ 'COMPLAINTS.LIST' | translate }}</p>
+      <p class="page-header__subtitle">{{ (isInstructorOnly() ? 'COMPLAINTS.WORKSPACE_HINT' : 'COMPLAINTS.LIST') | translate }}</p>
     </div>
-    <div class="page-header__action">
+    <div class="page-header__action" *ngIf="!isInstructorOnly() || activeTab() === 'results'">
       <button pButton type="button" icon="pi pi-refresh"
               class="p-button-outlined"
               [label]="'COMMON.RETRY' | translate"
@@ -12,6 +12,105 @@
               (click)="load()"></button>
     </div>
   </header>
+
+  <nav *ngIf="isInstructorOnly()" class="complaint-tabs" role="tablist" [attr.aria-label]="'COMPLAINTS.TITLE' | translate">
+    <button type="button" role="tab"
+            [class.active]="activeTab() === 'submit'"
+            [attr.aria-selected]="activeTab() === 'submit'"
+            (click)="selectTab('submit')">
+      <i class="pi pi-send"></i>
+      <span>{{ 'COMPLAINTS.SUBMIT_TAB' | translate }}</span>
+    </button>
+    <button type="button" role="tab"
+            [class.active]="activeTab() === 'results'"
+            [attr.aria-selected]="activeTab() === 'results'"
+            (click)="selectTab('results')">
+      <i class="pi pi-history"></i>
+      <span>{{ 'COMPLAINTS.RESULTS_TAB' | translate }}</span>
+      <b *ngIf="complaints().length">{{ complaints().length }}</b>
+    </button>
+  </nav>
+
+  <section *ngIf="isInstructorOnly() && activeTab() === 'submit'" class="complaint-submit-workspace">
+    <div class="submit-intro">
+      <span class="submit-intro__icon"><i class="pi pi-file-edit"></i></span>
+      <div>
+        <span class="section-kicker">{{ 'COMPLAINTS.SUBMIT_TAB' | translate }}</span>
+        <h2>{{ 'COMPLAINTS.SELECT_REPORT_TITLE' | translate }}</h2>
+        <p>{{ 'COMPLAINTS.SELECT_REPORT_HINT' | translate }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="reportsLoading()" class="submit-state" role="status">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>{{ 'COMPLAINTS.REPORTS_LOADING' | translate }}</span>
+    </div>
+
+    <ng-container *ngIf="!reportsLoading()">
+      <div *ngIf="!selectedReport() && reports().length" class="report-grid">
+        <article *ngFor="let report of reports()" class="report-card">
+          <div class="report-card__top">
+            <span class="report-card__number">#{{ report.id }}</span>
+            <p-tag severity="success" [value]="report.statusLabelAr"></p-tag>
+          </div>
+          <div class="report-card__copy">
+            <strong>{{ report.visitCategoryLabelAr }}</strong>
+            <span>{{ report.visitSequenceLabelAr }}</span>
+            <small><i class="pi pi-calendar"></i> {{ report.visitDate | date:'mediumDate' }}</small>
+          </div>
+          <button pButton type="button" icon="pi pi-send"
+                  [label]="'COMPLAINTS.USE_REPORT' | translate"
+                  [loading]="reportOpeningId() === report.id"
+                  [disabled]="reportOpeningId() !== null"
+                  (click)="prepareComplaint(report)"></button>
+        </article>
+      </div>
+
+      <div *ngIf="!selectedReport() && !reports().length" class="submit-state submit-state--empty">
+        <i class="pi pi-inbox"></i>
+        <strong>{{ 'COMPLAINTS.NO_APPROVED_REPORTS' | translate }}</strong>
+        <span>{{ 'COMPLAINTS.NO_APPROVED_REPORTS_HINT' | translate }}</span>
+      </div>
+
+      <form *ngIf="selectedReport() as report" class="complaint-compose" (ngSubmit)="submitComplaint()">
+        <header class="selected-report">
+          <span class="selected-report__icon"><i class="pi pi-check-circle"></i></span>
+          <div>
+            <small>{{ 'COMPLAINTS.SELECTED_REPORT' | translate }}</small>
+            <strong>#{{ report.id }} · {{ report.visitCategoryLabelAr }}</strong>
+            <span>{{ report.visitSequenceLabelAr }} · {{ report.visitDate | date:'mediumDate' }}</span>
+          </div>
+          <button pButton type="button" class="p-button-text p-button-sm"
+                  [label]="'COMPLAINTS.CHANGE_REPORT' | translate"
+                  [disabled]="complaintSubmitting()"
+                  (click)="changeReport()"></button>
+        </header>
+
+        <div class="compose-fields">
+          <label>
+            <span>{{ 'COMPLAINTS.SUBJECT' | translate }}</span>
+            <input type="text" maxlength="200" name="complaintSubject"
+                   [(ngModel)]="complaintSubject" [disabled]="complaintSubmitting()" />
+          </label>
+          <label>
+            <span>{{ 'COMPLAINTS.BODY' | translate }}</span>
+            <textarea pInputTextarea rows="6" maxlength="4000" name="complaintBody"
+                      [(ngModel)]="complaintBody" [disabled]="complaintSubmitting()"></textarea>
+          </label>
+        </div>
+
+        <footer class="compose-actions">
+          <p><i class="pi pi-shield"></i> {{ 'COMPLAINTS.SUBMIT_PRIVACY_HINT' | translate }}</p>
+          <button pButton type="submit" icon="pi pi-send"
+                  [label]="'COMPLAINTS.SUBMIT' | translate"
+                  [loading]="complaintSubmitting()"
+                  [disabled]="!complaintSubject.trim() || !complaintBody.trim()"></button>
+        </footer>
+      </form>
+    </ng-container>
+  </section>
+
+  <ng-container *ngIf="!isInstructorOnly() || activeTab() === 'results'">
 
   <!-- Status filter — same shared toolbar every other list page uses, so the
        single filter stays a compact field instead of a page-wide empty bar. -->
@@ -90,6 +189,7 @@
       </ng-template>
     </p-table>
   </section>
+  </ng-container>
 </div>
 
 <!-- Detail dialog -->

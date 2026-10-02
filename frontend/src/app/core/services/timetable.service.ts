@@ -23,16 +23,20 @@ export class TimetableService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/api/v1/timetables`;
 
-  getCatalog(): Observable<ApiResponse<TimetableCatalog>> {
-    return this.http.get<ApiResponse<TimetableCatalog>>(`${this.base}/catalog`).pipe(
+  getCatalog(personalOnly = true): Observable<ApiResponse<TimetableCatalog>> {
+    const params = new HttpParams().set('personalOnly', personalOnly);
+    return this.http.get<ApiResponse<TimetableCatalog>>(`${this.base}/catalog`, { params }).pipe(
       map(response => response.data?.bellSchedule
         ? { ...response, data: { ...response.data, bellSchedule: normalizeBellSchedule(response.data.bellSchedule) } }
         : response)
     );
   }
 
-  getCurrent(academicYearId: number, semester: TimetableSemester): Observable<ApiResponse<SchoolTimetable | null>> {
-    const params = new HttpParams().set('academicYearId', academicYearId).set('semester', semester);
+  getCurrent(academicYearId: number, semester: TimetableSemester, personalOnly = true): Observable<ApiResponse<SchoolTimetable | null>> {
+    const params = new HttpParams()
+      .set('academicYearId', academicYearId)
+      .set('semester', semester)
+      .set('personalOnly', personalOnly);
     return this.http.get<ApiResponse<SchoolTimetable | null>>(`${this.base}/current`, { params }).pipe(
       map(normalizeTimetableResponse)
     );
@@ -77,8 +81,8 @@ export class TimetableService {
     );
   }
 
-  downloadPdf(id: number, colorMode: TimetablePdfColorMode): Observable<Blob> {
-    const params = new HttpParams().set('colorMode', colorMode);
+  downloadPdf(id: number, colorMode: TimetablePdfColorMode, personalOnly = true): Observable<Blob> {
+    const params = new HttpParams().set('colorMode', colorMode).set('personalOnly', personalOnly);
     return this.download(`${this.base}/${id}/pdf`, params);
   }
 

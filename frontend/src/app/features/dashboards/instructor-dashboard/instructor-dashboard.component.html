@@ -1,0 +1,109 @@
+<main class="manager-workspace teacher-workspace" dir="rtl">
+  <section class="workspace-hero">
+    <div class="workspace-hero__content">
+      <span class="workspace-hero__eyebrow"><i class="pi pi-sparkles"></i> مساحة المعلم اليومية</span>
+      <h1>لوحة عمل المعلم</h1>
+      <p>صورة تشغيلية مختصرة للحصة الحالية، والإقرارات التي تحتاج متابعة، وأدواتك اليومية.</p>
+    </div>
+    <div class="workspace-hero__actions">
+      <button type="button" class="hero-action" [disabled]="loading()" (click)="load()">
+        <i class="pi" [ngClass]="loading() ? 'pi-spin pi-spinner' : 'pi-refresh'"></i>
+        <span>تحديث المؤشرات</span>
+      </button>
+    </div>
+  </section>
+
+  <section *ngIf="loading()" class="state-card" role="status" aria-live="polite">
+    <div class="state-card__icon"><i class="pi pi-chart-bar"></i></div>
+    <h2>نجهز يومك الدراسي</h2>
+    <p>يتم تحميل الحصة الحالية والتنبيهات ومؤشرات الأداء.</p>
+    <div class="skeleton-lines"><span></span><span></span><span></span></div>
+  </section>
+
+  <section *ngIf="!loading() && errorMessage()" class="state-card state-card--error" role="alert">
+    <div class="state-card__icon"><i class="pi pi-exclamation-triangle"></i></div>
+    <h2>تعذر تحميل اللوحة</h2>
+    <p>{{ errorMessage() }}</p>
+    <button type="button" class="danger-action" (click)="load()"><i class="pi pi-refresh"></i> إعادة المحاولة</button>
+  </section>
+
+  <ng-container *ngIf="!loading() && !errorMessage() && priority() as current">
+    <section class="overview-grid teacher-overview" aria-label="ملخص يوم المعلم">
+      <article class="metric-card metric-card--info">
+        <span class="metric-card__icon"><i class="pi pi-book"></i></span>
+        <span class="metric-card__copy">
+          <span>الحصة الحالية</span>
+          <strong>{{ current.context.currentPeriod ? 'الحصة ' + current.context.currentPeriod.period : '—' }}</strong>
+          <small>{{ current.context.currentPeriod?.classroom?.label || lessonReason(current.context) }}</small>
+        </span>
+      </article>
+      <article class="metric-card metric-card--warning" [class.metric-card--quiet]="current.pendingGatePassAcknowledgements === 0">
+        <span class="metric-card__icon"><i class="pi pi-sign-out"></i></span>
+        <span class="metric-card__copy"><span>استئذانات خروج</span><strong>{{ current.pendingGatePassAcknowledgements }}</strong><small>بانتظار إقرار الاستلام</small></span>
+      </article>
+      <article class="metric-card metric-card--purple" [class.metric-card--quiet]="current.pendingEntryPermitAcknowledgements === 0">
+        <span class="metric-card__icon"><i class="pi pi-id-card"></i></span>
+        <span class="metric-card__copy"><span>تصاريح دخول</span><strong>{{ current.pendingEntryPermitAcknowledgements }}</strong><small>بانتظار إقرار الاستلام</small></span>
+      </article>
+      <article class="metric-card metric-card--success">
+        <span class="metric-card__icon"><i class="pi pi-star"></i></span>
+        <span class="metric-card__copy"><span>آخر تقييم معتمد</span><strong>{{ latestScore() }}</strong><small>{{ performance()?.latestEvaluation?.performanceLevelAr || 'لا يوجد تقييم معتمد' }}</small></span>
+      </article>
+    </section>
+
+    <section class="attention-banner" [class.attention-banner--clear]="attentionCount() === 0">
+      <span class="attention-banner__icon"><i class="pi" [ngClass]="attentionCount() ? 'pi-bell' : 'pi-check'"></i></span>
+      <div>
+        <strong>{{ attentionCount() ? 'لديك عناصر تحتاج الانتباه الآن' : 'لا توجد إجراءات معلقة الآن' }}</strong>
+        <p *ngIf="pendingTotal()">{{ pendingTotal() }} إقرارًا ينتظر المراجعة داخل إدارة الفصل.</p>
+        <p *ngIf="!pendingTotal() && current.alerts.length">{{ alertLabel(current.alerts[0], current.context) }}</p>
+        <p *ngIf="attentionCount() === 0">ستظهر هنا الاستئذانات والتصاريح والتنبيهات الجديدة فور وصولها.</p>
+      </div>
+      <span class="attention-banner__count">{{ attentionCount() }}</span>
+    </section>
+
+    <section class="teacher-workspace-grid">
+      <article class="surface-panel action-center">
+        <div class="section-heading">
+          <div><span class="section-kicker">مركز الإجراء</span><h2>أدوات المعلم</h2><p>اختصارات واضحة للمهام الأكثر استخدامًا خلال اليوم.</p></div>
+          <span class="status-pill"><i class="pi pi-bolt"></i> وصول سريع</span>
+        </div>
+        <div class="action-grid">
+          <a *ngFor="let shortcut of shortcuts" [routerLink]="shortcut.route" class="action-card" [ngClass]="'action-card--' + shortcut.tone">
+            <span class="action-card__icon"><i class="pi" [ngClass]="shortcut.icon"></i></span>
+            <span class="action-card__copy"><strong>{{ shortcut.label }}</strong><small>{{ shortcut.description }}</small></span>
+            <span *ngIf="shortcutBadge(shortcut)" class="action-card__badge">{{ shortcutBadge(shortcut) }}</span>
+            <span class="action-card__open"><i class="pi pi-arrow-up-left"></i></span>
+          </a>
+        </div>
+      </article>
+
+      <aside class="teacher-side-stack">
+        <section class="surface-panel lesson-panel">
+          <div class="section-heading"><div><span class="section-kicker">سياق اليوم</span><h2>الحصة الحالية</h2></div><span class="context-icon"><i class="pi pi-book"></i></span></div>
+          <ng-container *ngIf="current.context.currentPeriod as period; else noLesson">
+            <strong class="lesson-title">{{ period.subject }}</strong>
+            <div class="detail-list"><span><small>الفصل</small><b>{{ period.classroom.label }}</b></span><span><small>الوقت</small><b>{{ lessonTime() }}</b></span><span><small>المعلم الفعلي</small><b>{{ period.effectiveInstructor.displayName }}</b></span></div>
+            <a routerLink="/student-affairs/teacher" class="panel-link">فتح إدارة الفصل <i class="pi pi-arrow-left"></i></a>
+          </ng-container>
+          <ng-template #noLesson><div class="empty-note empty-note--compact"><i class="pi pi-calendar-times"></i><strong>لا توجد حصة نشطة</strong><span>{{ lessonReason(current.context) }}</span></div></ng-template>
+        </section>
+
+        <section *ngIf="performance() as stats" class="surface-panel performance-panel">
+          <div class="section-heading"><div><span class="section-kicker">أدائي المهني</span><h2>ملخص التقييم</h2></div><span class="context-icon context-icon--gold"><i class="pi pi-star"></i></span></div>
+          <ng-container *ngIf="stats.latestEvaluation as evaluation; else noEvaluation">
+            <div class="score-row"><strong>{{ latestScore() }}</strong><span><b>{{ evaluation.performanceLevelAr }}</b><small>{{ formatDate(evaluation.visitDate) }}</small></span></div>
+            <div class="mini-stats"><span><b>{{ stats.approvedVisitsCount }}</b><small>تقييم معتمد</small></span><span><b>{{ stats.openImprovementPlansCount }}</b><small>خطة مفتوحة</small></span><span><b>{{ stats.totalFollowUpsCount }}</b><small>متابعة</small></span></div>
+          </ng-container>
+          <ng-template #noEvaluation><div class="empty-note empty-note--compact"><i class="pi pi-star"></i><strong>لا يوجد تقييم معتمد</strong><span>سيظهر الملخص بعد اعتماد أول زيارة.</span></div></ng-template>
+          <a routerLink="/instructor/reports" class="panel-link">عرض تقاريري <i class="pi pi-arrow-left"></i></a>
+        </section>
+
+        <section *ngIf="current.alerts.length" class="surface-panel alerts-panel">
+          <div class="section-heading"><div><span class="section-kicker">تنبيهات</span><h2>ملاحظات اليوم</h2></div></div>
+          <div class="alert-list"><p *ngFor="let alert of current.alerts"><i class="pi pi-info-circle"></i><span>{{ alertLabel(alert, current.context) }}</span></p></div>
+        </section>
+      </aside>
+    </section>
+  </ng-container>
+</main>

@@ -42,7 +42,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
 
     public async Task<TimetableCatalogDto> GetCatalogAsync(
         int? schoolId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool personalOnly = true)
     {
         var resolvedSchoolId = ResolveSchoolId(schoolId);
         var school = await _repository.GetSchools()
@@ -69,7 +70,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             .ToListAsync(cancellationToken);
 
         var teacherQuery = _repository.GetTeachers(resolvedSchoolId);
-        if (ShouldLimitToCurrentInstructor(capabilities))
+        if (ShouldLimitToCurrentInstructor(capabilities, personalOnly))
         {
             var currentUserId = RequireUserId();
             teacherQuery = teacherQuery.Where(x => x.UserId == currentUserId);
@@ -115,7 +116,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         int academicYearId,
         TimetableSemester semester,
         int? schoolId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool personalOnly = true)
     {
         EnsureSemester(semester);
         var resolvedSchoolId = ResolveSchoolId(schoolId);
@@ -138,13 +140,14 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             .FirstOrDefaultAsync(cancellationToken);
 
         return timetableId.HasValue
-            ? await LoadDtoAsync(timetableId.Value, capabilities, cancellationToken)
+            ? await LoadDtoAsync(timetableId.Value, capabilities, cancellationToken, personalOnly)
             : null;
     }
 
     public async Task<SchoolTimetableDto> GetByIdAsync(
         int timetableId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool personalOnly = true)
     {
         var header = await _repository.GetAll()
             .Where(x => x.Id == timetableId)
@@ -155,7 +158,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         var capabilities = await GetCapabilitiesAsync(header.SchoolId, cancellationToken);
         if (!header.IsPublished && !capabilities.CanManage)
             throw new KeyNotFoundException("لا يوجد جدول منشور حاليًا.");
-        return await LoadDtoAsync(timetableId, capabilities, cancellationToken);
+        return await LoadDtoAsync(timetableId, capabilities, cancellationToken, personalOnly);
     }
 
     public async Task<SchoolTimetableDto> CreateAsync(
@@ -371,12 +374,13 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     public async Task<TimetableFileDto> BuildPdfAsync(
         int timetableId,
         TimetablePdfColorMode colorMode,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool personalOnly = true)
     {
         if (!Enum.IsDefined(colorMode))
             throw new ArgumentException("نمط ألوان ملف PDF غير صالح.", nameof(colorMode));
-        var timetable = await GetByIdAsync(timetableId, cancellationToken);
-        var catalog = await GetCatalogAsync(timetable.SchoolId, cancellationToken);
+        var timetable = await GetByIdAsync(timetableId, cancellationToken, personalOnly);
+        var catalog = await GetCatalogAsync(timetable.SchoolId, cancellationToken, personalOnly);
         return _documents.BuildPdf(timetable, catalog, colorMode);
     }
 
@@ -511,9 +515,10 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     private async Task<SchoolTimetableDto> LoadDtoAsync(
         int timetableId,
         TimetableCapabilitiesDto capabilities,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool personalOnly = true)
     {
-        var currentInstructorUserId = ShouldLimitToCurrentInstructor(capabilities)
+        var currentInstructorUserId = ShouldLimitToCurrentInstructor(capabilities, personalOnly)
             ? RequireUserId()
             : null;
         var data = await _repository.GetAll()
@@ -565,8 +570,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             capabilities, timing, header.TimingsRequireRevalidation, header.TimetableSetupProfileId);
     }
 
-    private bool ShouldLimitToCurrentInstructor(TimetableCapabilitiesDto capabilities) =>
-        !capabilities.CanManage && _currentUser.IsInRole(RoleNames.Instructor);
+    private bool ShouldLimitToCurrentInstructor(TimetableCapabilitiesDto capabilities, bool personalOnly) =>
+        personalOnly && !capabilities.CanManage && _currentUser.IsInRole(RoleNames.Instructor);
 
     private async Task<TimetableCapabilitiesDto> GetCapabilitiesAsync(int schoolId, CancellationToken cancellationToken)
     {

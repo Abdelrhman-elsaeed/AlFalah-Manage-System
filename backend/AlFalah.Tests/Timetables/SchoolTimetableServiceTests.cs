@@ -107,6 +107,18 @@ public sealed class SchoolTimetableServiceTests
         published.Should().NotBeNull();
         published!.Entries.Should().OnlyContain(x => x.InstructorProfileId == 1);
         published!.Entries.Single().Subject.Should().Be("رياضيات");
+
+        var schoolCatalog = await instructor.GetCatalogAsync(null, personalOnly: false);
+        schoolCatalog.Teachers.Should().HaveCount(2);
+        var schoolTimetable = await instructor.GetCurrentAsync(
+            1,
+            TimetableSemester.First,
+            null,
+            personalOnly: false);
+        schoolTimetable.Should().NotBeNull();
+        schoolTimetable!.Entries.Should().HaveCount(2);
+        schoolTimetable.Entries.Select(x => x.InstructorProfileId).Should().BeEquivalentTo([1, 2]);
+
         (await instructor.GetByIdAsync(timetable.Id)).Entries.Should().OnlyContain(x => x.InstructorProfileId == 1);
 
         await manager.Invoking(x => x.SaveAsync(timetable.Id, new("الجدول المعدل", timetable.Revision, new[]

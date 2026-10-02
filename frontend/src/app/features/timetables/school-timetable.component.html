@@ -20,6 +20,27 @@
     </div>
   </header>
 
+  <nav *ngIf="isTeacherViewer()" class="teacher-view-switcher" aria-label="نطاق عرض الجدول">
+    <button
+      type="button"
+      [class.active]="viewMode() === 'mine'"
+      [attr.aria-pressed]="viewMode() === 'mine'"
+      [disabled]="loading()"
+      (click)="changeViewMode('mine')">
+      <i class="pi pi-user"></i>
+      <span><strong>جدولي</strong><small>حصصي فقط</small></span>
+    </button>
+    <button
+      type="button"
+      [class.active]="viewMode() === 'school'"
+      [attr.aria-pressed]="viewMode() === 'school'"
+      [disabled]="loading()"
+      (click)="changeViewMode('school')">
+      <i class="pi pi-building"></i>
+      <span><strong>جدول المدرسة كامل</strong><small>جميع المعلمين والفصول</small></span>
+    </button>
+  </nav>
+
   <div class="filters-card" *ngIf="catalog() as data">
     <label>
       <span>العام الدراسي</span>
@@ -46,10 +67,10 @@
   </div>
 
   <div class="empty-state" *ngIf="!loading() && !timetable()">
-    <div class="empty-icon"><i class="pi pi-calendar-plus"></i></div>
-    <h2>لا يوجد جدول لهذا الفصل الدراسي</h2>
+    <div class="empty-icon"><i class="pi" [ngClass]="canManage() ? 'pi-calendar-plus' : 'pi-calendar-times'"></i></div>
+    <h2>{{ canManage() ? 'لا يوجد جدول لهذا الفصل الدراسي' : 'لم يُنشر جدول لهذا الفصل الدراسي بعد' }}</h2>
     <p *ngIf="canManage(); else teacherEmpty">أنشئ مسودة جديدة، أضف الحصص، ثم انشرها للمعلمين.</p>
-    <ng-template #teacherEmpty><p>لم تنشر الإدارة جدولًا لهذا الفصل الدراسي حتى الآن.</p></ng-template>
+    <ng-template #teacherEmpty><p>سيظهر الجدول هنا تلقائيًا بعد اعتماده ونشره من إدارة المدرسة.</p></ng-template>
     <button *ngIf="canManage()" pButton type="button" icon="pi pi-plus" label="إنشاء الجدول" (click)="openCreate()"></button>
   </div>
 
@@ -78,7 +99,7 @@
     </div>
     </ng-container>
 
-    <div class="grid-preview-note" *ngIf="!timetable() || usingFallbackGrid()">
+    <div class="grid-preview-note" *ngIf="(canManage() && !timetable()) || (timetable() && usingFallbackGrid())">
       <i class="pi pi-eye"></i>
       <span *ngIf="!timetable()">معاينة شبكة الجدول قبل إنشاء المسودة.</span>
       <span *ngIf="usingFallbackGrid()">تظهر 8 حصص افتراضية حتى يتم ربط قالب توقيت بملف الإعداد.</span>
@@ -86,7 +107,7 @@
 
     <div
         class="grid-shell"
-        *ngIf="selectedYearId() && catalog() as data"
+        *ngIf="(timetable() || canManage()) && selectedYearId() && catalog() as data"
         [class.grid-shell--fullscreen]="gridFullscreen()"
         [attr.role]="gridFullscreen() ? 'dialog' : null"
         [attr.aria-modal]="gridFullscreen() ? 'true' : null"

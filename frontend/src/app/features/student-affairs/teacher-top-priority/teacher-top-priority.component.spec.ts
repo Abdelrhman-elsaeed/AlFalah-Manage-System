@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { MessageService } from 'primeng/api';
 import { Subject, of, throwError } from 'rxjs';
 import { ApiResponse } from '../../../core/models/api-response.model';
@@ -21,31 +23,58 @@ describe('TeacherTopPriorityComponent', () => {
       'createSessionDelay',
       'createRecognition',
       'acknowledgeGatePass',
-      'acknowledgeEntryPermit'
+      'acknowledgeEntryPermit',
+      'getClassroomStudents',
+      'getTeacherClassrooms'
     ]);
     api.getTeacherTopPriority.and.returnValue(of(success(priority())));
+    api.getClassroomStudents.and.returnValue(of(success(priority().context.roster)));
+    api.getTeacherClassrooms.and.returnValue(of(success([
+      { id: 9, label: '1/A', stage: 'Primary', gradeLevel: 1, section: 'A', physicalLocation: 'الدور الأول',
+        academicYearId: 1, academicYearLabel: '2026-2027', isActive: true, activeEnrollmentCount: 1, rowVersion: 'AQ==' }
+    ])));
     auth = jasmine.createSpyObj<AuthService>('AuthService', ['hasRole', 'hasPermission']);
     auth.hasRole.and.callFake(role => role === 'Instructor');
     auth.hasPermission.and.returnValue(true);
 
     await TestBed.configureTestingModule({
-      imports: [TeacherTopPriorityComponent, NoopAnimationsModule],
+      imports: [TeacherTopPriorityComponent, NoopAnimationsModule, RouterTestingModule],
       providers: [
         MessageService,
         { provide: StudentAffairsDashboardService, useValue: api },
-        { provide: AuthService, useValue: auth }
+        { provide: AuthService, useValue: auth },
+        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap({}) } } }
       ]
     }).compileComponents();
   });
 
-  it('renders only the canonical current roster with no classroom fallback or referral action', () => {
+  it('splits classroom management into the three requested tabs and renders assigned classes as cards', () => {
     const fixture = TestBed.createComponent(TeacherTopPriorityComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('#classroomSelect')).toBeNull();
+    const tabs = fixture.nativeElement.querySelectorAll('.workspace-tabs button');
+    expect(tabs.length).toBe(3);
+    expect(fixture.nativeElement.textContent).toContain('استئذانات الخروج');
+    expect(fixture.nativeElement.textContent).toContain('تصاريح دخول الفصل');
+    expect(fixture.nativeElement.textContent).toContain('فصولي');
+
+    fixture.componentInstance.selectTab('classes');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.classroom-card').length).toBe(1);
+    expect(fixture.nativeElement.textContent).toContain('1/A');
+    expect(fixture.nativeElement.querySelector('.student-row')).toBeNull();
+  });
+
+  it('renders the selected classroom roster in detail mode with the canonical quick actions', () => {
+    const fixture = TestBed.createComponent(TeacherTopPriorityComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.detailClassroomId.set(9);
+    fixture.componentInstance.classroomRoster.set(priority().context.roster);
+    fixture.detectChanges();
+
     expect(fixture.nativeElement.textContent).not.toContain('إحالة طالب');
     expect(fixture.nativeElement.textContent).toContain('Student One');
-    expect(fixture.nativeElement.textContent).toContain('Mathematics');
     expect(fixture.nativeElement.querySelector('[aria-label="تسجيل ملاحظة سلوكية"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[aria-label="تسجيل ملاحظة أكاديمية"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[aria-label="تسجيل تأخر عن الحصة"]')).not.toBeNull();
@@ -95,12 +124,13 @@ describe('TeacherTopPriorityComponent', () => {
     expect(component.acknowledgingId()).toBeNull();
   });
 
-  it('shows the real no-lesson resolution and exposes no roster actions', () => {
+  it('shows a localized no-lesson resolution and exposes no roster actions', () => {
     api.getTeacherTopPriority.and.returnValue(of(success(priority(null, 'Break', 'Configured school break'))));
     const fixture = TestBed.createComponent(TeacherTopPriorityComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Configured school break');
+    expect(fixture.nativeElement.textContent).toContain('استراحة مدرسية');
+    expect(fixture.nativeElement.textContent).not.toContain('Configured school break');
     expect(fixture.nativeElement.querySelector('.student-row')).toBeNull();
   });
 

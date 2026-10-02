@@ -17,23 +17,27 @@ public sealed class SchoolTimetablesController : ControllerBase
     public SchoolTimetablesController(ISchoolTimetableService service) => _service = service;
 
     [HttpGet("catalog")]
-    public async Task<IActionResult> Catalog([FromQuery] int? schoolId, CancellationToken cancellationToken) =>
-        Ok(ApiResponse<TimetableCatalogDto>.Success(await _service.GetCatalogAsync(schoolId, cancellationToken)));
+    public async Task<IActionResult> Catalog(
+        [FromQuery] int? schoolId,
+        [FromQuery] bool personalOnly = true,
+        CancellationToken cancellationToken = default) =>
+        Ok(ApiResponse<TimetableCatalogDto>.Success(await _service.GetCatalogAsync(schoolId, cancellationToken, personalOnly)));
 
     [HttpGet("current")]
     public async Task<IActionResult> Current(
         [FromQuery] int academicYearId,
         [FromQuery] TimetableSemester semester,
         [FromQuery] int? schoolId,
-        CancellationToken cancellationToken)
+        [FromQuery] bool personalOnly = true,
+        CancellationToken cancellationToken = default)
     {
-        var timetable = await _service.GetCurrentAsync(academicYearId, semester, schoolId, cancellationToken);
+        var timetable = await _service.GetCurrentAsync(academicYearId, semester, schoolId, cancellationToken, personalOnly);
         return Ok(ApiResponse<SchoolTimetableDto?>.Success(timetable));
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> Get(int id, CancellationToken cancellationToken) =>
-        Ok(ApiResponse<SchoolTimetableDto>.Success(await _service.GetByIdAsync(id, cancellationToken)));
+    public async Task<IActionResult> Get(int id, [FromQuery] bool personalOnly = true, CancellationToken cancellationToken = default) =>
+        Ok(ApiResponse<SchoolTimetableDto>.Success(await _service.GetByIdAsync(id, cancellationToken, personalOnly)));
 
     [HttpPost]
     public async Task<IActionResult> Create(
@@ -119,13 +123,14 @@ public sealed class SchoolTimetablesController : ControllerBase
     public async Task<IActionResult> Pdf(
         int id,
         [FromQuery] string? colorMode,
+        [FromQuery] bool personalOnly = true,
         CancellationToken cancellationToken = default)
     {
         var mode = string.Equals(colorMode, "monochrome", StringComparison.OrdinalIgnoreCase)
                    || string.Equals(colorMode, "2", StringComparison.Ordinal)
             ? TimetablePdfColorMode.Monochrome
             : TimetablePdfColorMode.Color;
-        var file = await _service.BuildPdfAsync(id, mode, cancellationToken);
+        var file = await _service.BuildPdfAsync(id, mode, cancellationToken, personalOnly);
         return File(file.Bytes, file.ContentType, file.FileName);
     }
 }

@@ -31,4 +31,11 @@ public sealed class TeacherStudentAffairsController : StudentAffairsControllerBa
         if (!HasAnyPermission(PermissionNames.TeacherQuickActionView)) return PermissionDenied();
         return FromResponse(await Mediator.Send(new GetTeacherTopPriorityQuery(), cancellationToken));
     }
+
+    [HttpGet("classrooms")]
+    public async Task<IActionResult> Classrooms(CancellationToken cancellationToken)
+    {
+        if (!HasAnyPermission(PermissionNames.TeacherQuickActionView)) return PermissionDenied();
+        return FromResponse(await Mediator.Send(new GetTeacherClassroomsQuery(), cancellationToken));
+    }
 }

@@ -72,6 +72,48 @@
 .regenerate-warning p { margin: 0; line-height: 1.75; }
 .monochrome-pdf-button { color: #3e4843; border-color: #94a099; }
 
+.teacher-view-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(560px, 100%);
+  margin: 0 0 .85rem auto;
+  padding: 5px;
+  gap: 5px;
+  border: 1px solid var(--tt-border-strong);
+  border-radius: 13px;
+  background: #eef3ef;
+}
+
+.teacher-view-switcher button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  min-height: 52px;
+  padding: .5rem .8rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--tt-muted);
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.teacher-view-switcher button.active {
+  border-color: #b9d6c3;
+  background: #fff;
+  color: var(--tt-green-dark);
+  box-shadow: 0 2px 8px rgb(15 72 36 / 8%);
+}
+
+.teacher-view-switcher button:disabled { cursor: wait; opacity: .65; }
+.teacher-view-switcher i { color: var(--tt-green); font-size: 1.05rem; }
+.teacher-view-switcher span { display: grid; gap: 1px; }
+.teacher-view-switcher strong { font-size: .86rem; }
+.teacher-view-switcher small { color: var(--tt-muted); font-size: .69rem; }
+
 .filters-card,
 .editor-toolbar,
 .viewer-title {
@@ -408,9 +450,17 @@ tbody tr:nth-child(even) .schedule-cell { background: #fafcfb; }
   .timetable-page { padding: 1rem .7rem; }
   .page-header { flex-direction: column; }
   .header-actions { justify-content: flex-start; }
+  .teacher-view-switcher { width: 100%; margin-inline: 0; }
   .filters-card label, .filters-card select { width: 100%; }
   .status-block { margin-inline-start: 0; }
   .editor-toolbar { grid-template-columns: 1fr; }
   .viewer-title { align-items: flex-start; flex-direction: column; }
   .grid-scroll { max-height: calc(100vh - 260px); }
+}
+
+@media (max-width: 480px) {
+  .teacher-view-switcher button { gap: .45rem; min-height: 48px; padding: .4rem; }
+  .teacher-view-switcher strong { font-size: .78rem; }
+  .teacher-view-switcher small { display: none; }
+  .loading-state, .empty-state { min-height: 300px; padding: 1rem; }
 }

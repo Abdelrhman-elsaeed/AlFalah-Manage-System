@@ -1,4 +1,5 @@
 using AlFalah.Domain.Enums;
+using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 
 namespace AlFalah.Application.StudentAffairs.TeacherContext;
@@ -53,6 +54,17 @@ public sealed record TeacherRosterStudentSnapshot(
 
 public interface ITeacherContextRepository
 {
+    Task<IReadOnlyList<ClassroomDto>> GetAssignedClassroomsAsync(
+        int schoolId,
+        string teacherUserId,
+        CancellationToken cancellationToken);
+
+    Task<bool> IsClassroomAssignedAsync(
+        int schoolId,
+        string teacherUserId,
+        int classroomId,
+        CancellationToken cancellationToken);
+
     Task<TeacherContextSnapshot?> GetTopPriorityAsync(
         TeacherContextLookup lookup,
         CancellationToken cancellationToken);

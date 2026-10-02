@@ -5,9 +5,9 @@ namespace AlFalah.Application.Interfaces;
 
 public interface ISchoolTimetableService
 {
-    Task<TimetableCatalogDto> GetCatalogAsync(int? schoolId, CancellationToken cancellationToken = default);
-    Task<SchoolTimetableDto?> GetCurrentAsync(int academicYearId, TimetableSemester semester, int? schoolId, CancellationToken cancellationToken = default);
-    Task<SchoolTimetableDto> GetByIdAsync(int timetableId, CancellationToken cancellationToken = default);
+    Task<TimetableCatalogDto> GetCatalogAsync(int? schoolId, CancellationToken cancellationToken = default, bool personalOnly = true);
+    Task<SchoolTimetableDto?> GetCurrentAsync(int academicYearId, TimetableSemester semester, int? schoolId, CancellationToken cancellationToken = default, bool personalOnly = true);
+    Task<SchoolTimetableDto> GetByIdAsync(int timetableId, CancellationToken cancellationToken = default, bool personalOnly = true);
     Task<SchoolTimetableDto> CreateAsync(CreateSchoolTimetableRequest request, int? schoolId, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> RegenerateAsync(int timetableId, TimetableRevisionRequest request, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> SaveAsync(int timetableId, SaveSchoolTimetableRequest request, CancellationToken cancellationToken = default);
@@ -20,5 +20,6 @@ public interface ISchoolTimetableService
     Task<TimetableFileDto> BuildPdfAsync(
         int timetableId,
         TimetablePdfColorMode colorMode,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        bool personalOnly = true);
 }

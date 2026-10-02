@@ -12,17 +12,19 @@ import { NEVER, of, throwError } from 'rxjs';
 describe('School timetable empty grid', () => {
   let component: SchoolTimetableComponent;
   let timetableApi: jasmine.SpyObj<TimetableService>;
+  let settingsApi: jasmine.SpyObj<TimetableSettingsService>;
   let substitutionApi: jasmine.SpyObj<TimetableSubstitutionService>;
   let toast: { success: jasmine.Spy; error: jasmine.Spy; warn: jasmine.Spy };
 
   beforeEach(() => {
     timetableApi = jasmine.createSpyObj<TimetableService>('TimetableService', ['getCurrent', 'regenerate']);
+    settingsApi = jasmine.createSpyObj<TimetableSettingsService>('TimetableSettingsService', ['getOverview']);
     substitutionApi = jasmine.createSpyObj<TimetableSubstitutionService>('TimetableSubstitutionService', ['inlineCandidates', 'executeInline']);
     toast = { success: jasmine.createSpy('success'), error: jasmine.createSpy('error'), warn: jasmine.createSpy('warn') };
     substitutionApi.inlineCandidates.and.returnValue(NEVER);
     TestBed.configureTestingModule({ providers: [
       { provide: TimetableService, useValue: timetableApi },
-      { provide: TimetableSettingsService, useValue: {} },
+      { provide: TimetableSettingsService, useValue: settingsApi },
       { provide: ToastService, useValue: toast },
       { provide: TimetableSubstitutionService, useValue: substitutionApi },
       InlineSwapSessionStore
@@ -74,6 +76,23 @@ describe('School timetable empty grid', () => {
 
     expect(component.cellDialogVisible()).toBeFalse();
     expect(component.selectedCell).toBeNull();
+  });
+
+  it('shows an empty published-schedule state for instructors without requesting manager settings', () => {
+    component.catalog.update(catalog => ({
+      ...catalog!,
+      teachers: [{ instructorProfileId: 4, userId: 'teacher-4', fullName: 'معلم تجريبي', employeeNumber: null,
+        subject: 'الرياضيات', classes: ['الأول - أ'], isCurrentUser: true }],
+      capabilities: { canManage: false, canDelegate: false, canViewVersions: false }
+    }));
+    timetableApi.getCurrent.and.returnValue(of({ isSuccess: true, message: '', errors: [], data: null }));
+
+    component.loadCurrent();
+
+    expect(component.timetable()).toBeNull();
+    expect(component.loading()).toBeFalse();
+    expect(settingsApi.getOverview).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it('toggles the timetable fullscreen workspace without changing editability', () => {

@@ -75,6 +75,7 @@ export class SchoolTimetableComponent implements OnInit {
   readonly timetable = signal<SchoolTimetable | null>(null);
   readonly selectedYearId = signal<number | null>(null);
   readonly selectedSemester = signal<TimetableSemester>(1);
+  readonly viewMode = signal<'mine' | 'school'>('mine');
   readonly title = signal('');
   readonly entries = signal<Record<string, TimetableEntry>>({});
   readonly loading = signal(true);
@@ -94,9 +95,10 @@ export class SchoolTimetableComponent implements OnInit {
 
   readonly canManage = computed(() => this.timetable()?.capabilities.canManage ?? this.catalog()?.capabilities.canManage ?? false);
   readonly canDelegate = computed(() => this.catalog()?.capabilities.canDelegate ?? false);
+  readonly isTeacherViewer = computed(() =>
+    !this.canManage() && (this.catalog()?.teachers.some(teacher => teacher.isCurrentUser) ?? false));
   readonly isPersonalView = computed(() => {
-    const teachers = this.catalog()?.teachers ?? [];
-    return !this.canManage() && teachers.length === 1 && teachers[0].isCurrentUser;
+    return this.isTeacherViewer() && this.viewMode() === 'mine';
   });
   readonly gridEditable = computed(() => this.canManage() && this.timetable() !== null);
   readonly gridModificationEnabled = computed(() => this.gridEditable() && !this.inlineSwap.active());
@@ -171,7 +173,7 @@ export class SchoolTimetableComponent implements OnInit {
 
   loadCatalog(): void {
     this.loading.set(true);
-    this.api.getCatalog().subscribe({
+    this.api.getCatalog(this.personalOnly()).subscribe({
       next: response => {
         if (!response.isSuccess || !response.data) {
           this.loading.set(false);
@@ -179,8 +181,10 @@ export class SchoolTimetableComponent implements OnInit {
           return;
         }
         this.catalog.set(response.data);
-        const activeYear = response.data.academicYears.find(year => year.isActive) ?? response.data.academicYears[0];
-        if (activeYear) this.selectedYearId.set(activeYear.id);
+        const selectedYear = response.data.academicYears.find(year => year.id === this.selectedYearId())
+          ?? response.data.academicYears.find(year => year.isActive)
+          ?? response.data.academicYears[0];
+        if (selectedYear) this.selectedYearId.set(selectedYear.id);
         this.grantedModeratorIds = new Set(response.data.moderators.filter(item => item.isGranted).map(item => item.userId));
         this.loadCurrent();
       },
@@ -199,12 +203,14 @@ export class SchoolTimetableComponent implements OnInit {
     }
     this.contextBellSchedule.set(null);
     this.loading.set(true);
-    this.api.getCurrent(academicYearId, this.selectedSemester()).subscribe({
+    this.api.getCurrent(academicYearId, this.selectedSemester(), this.personalOnly()).subscribe({
       next: response => {
         this.loading.set(false);
         const timetable = response.data ?? null;
         this.applyTimetable(timetable);
-        if (!timetable?.bellSchedule) this.loadContextBellSchedule(academicYearId, this.selectedSemester());
+        if (this.canManage() && !timetable?.bellSchedule) {
+          this.loadContextBellSchedule(academicYearId, this.selectedSemester());
+        }
       },
       error: error => {
         this.loading.set(false);
@@ -221,6 +227,13 @@ export class SchoolTimetableComponent implements OnInit {
   changeSemester(value: string): void {
     this.selectedSemester.set(Number(value) as TimetableSemester);
     this.loadCurrent();
+  }
+
+  changeViewMode(mode: 'mine' | 'school'): void {
+    if (this.viewMode() === mode || this.loading()) return;
+    this.viewMode.set(mode);
+    this.contextBellSchedule.set(null);
+    this.loadCatalog();
   }
 
   openCreate(): void {
@@ -392,7 +405,7 @@ export class SchoolTimetableComponent implements OnInit {
     const academicYearId = this.selectedYearId();
     if (!source || !academicYearId) return;
     this.loading.set(true);
-    this.api.getCurrent(academicYearId, this.selectedSemester()).subscribe({
+    this.api.getCurrent(academicYearId, this.selectedSemester(), this.personalOnly()).subscribe({
       next: response => {
         this.loading.set(false);
         if (!response.data) return;
@@ -660,7 +673,7 @@ export class SchoolTimetableComponent implements OnInit {
   downloadPdf(colorMode: TimetablePdfColorMode): void {
     const timetable = this.timetable();
     if (!timetable) return;
-    this.api.downloadPdf(timetable.id, colorMode).subscribe({
+    this.api.downloadPdf(timetable.id, colorMode, this.personalOnly()).subscribe({
       next: blob => {
         const suffix = colorMode === 'color' ? 'ملون' : 'أبيض-وأسود';
         this.saveBlob(blob, `${this.title()}-A4-${suffix}.pdf`);
@@ -727,7 +740,7 @@ export class SchoolTimetableComponent implements OnInit {
     const academicYearId = this.selectedYearId();
     if (!academicYearId) return;
     this.loading.set(true);
-    this.api.getCurrent(academicYearId, this.selectedSemester()).subscribe({
+    this.api.getCurrent(academicYearId, this.selectedSemester(), this.personalOnly()).subscribe({
       next: response => {
         this.loading.set(false);
         this.applyTimetable(response.data ?? null);
@@ -761,6 +774,10 @@ export class SchoolTimetableComponent implements OnInit {
 
   private displayBellSchedule(): BellSchedule | null {
     return this.timetable()?.bellSchedule ?? this.contextBellSchedule();
+  }
+
+  private personalOnly(): boolean {
+    return this.viewMode() === 'mine';
   }
 
   private loadContextBellSchedule(academicYearId: number, semester: TimetableSemester): void {

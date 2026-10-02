@@ -1,4 +1,5 @@
 using AlFalah.Application.StudentAffairs.TeacherContext;
+using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
 using AlFalah.Domain.Enums;
@@ -13,6 +14,69 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
     private readonly AlFalahDbContext _context;
 
     public TeacherContextRepository(AlFalahDbContext context) => _context = context;
+
+    public async Task<IReadOnlyList<ClassroomDto>> GetAssignedClassroomsAsync(
+        int schoolId,
+        string teacherUserId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Classrooms
+            .AsNoTracking()
+            .Where(classroom => classroom.SchoolId == schoolId
+                && classroom.IsActive
+                && !classroom.IsDeleted
+                && classroom.AcademicYear.IsActive
+                && _context.InstructorProfiles.Any(profile =>
+                    profile.SchoolId == schoolId
+                    && profile.UserId == teacherUserId
+                    && profile.IsActive
+                    && !profile.IsDeleted
+                    && profile.User.IsActive
+                    && profile.Classes.Any(assignment =>
+                        !assignment.IsDeleted
+                        && assignment.ClassLabel == classroom.ClassLabel)))
+            .OrderBy(classroom => classroom.Stage)
+            .ThenBy(classroom => classroom.GradeLevel)
+            .ThenBy(classroom => classroom.Section)
+            .Select(classroom => new ClassroomDto(
+                classroom.Id,
+                classroom.ClassLabel,
+                classroom.Stage,
+                classroom.GradeLevel,
+                classroom.Section,
+                classroom.AcademicYearId,
+                classroom.AcademicYear.NameAr,
+                classroom.IsActive,
+                classroom.Enrollments.Count(enrollment =>
+                    !enrollment.IsDeleted && enrollment.Status == StudentEnrollmentStatus.Active),
+                string.Empty,
+                classroom.PhysicalLocation))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public Task<bool> IsClassroomAssignedAsync(
+        int schoolId,
+        string teacherUserId,
+        int classroomId,
+        CancellationToken cancellationToken) =>
+        _context.Classrooms
+            .AsNoTracking()
+            .AnyAsync(classroom => classroom.Id == classroomId
+                && classroom.SchoolId == schoolId
+                && classroom.IsActive
+                && !classroom.IsDeleted
+                && classroom.AcademicYear.IsActive
+                && _context.InstructorProfiles.Any(profile =>
+                    profile.SchoolId == schoolId
+                    && profile.UserId == teacherUserId
+                    && profile.IsActive
+                    && !profile.IsDeleted
+                    && profile.User.IsActive
+                    && profile.Classes.Any(assignment =>
+                        !assignment.IsDeleted
+                        && assignment.ClassLabel == classroom.ClassLabel)),
+                cancellationToken);
 
     public async Task<TeacherContextSnapshot?> GetTopPriorityAsync(
         TeacherContextLookup lookup,

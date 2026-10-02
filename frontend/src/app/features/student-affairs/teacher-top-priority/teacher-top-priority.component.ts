@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators, NonNullableFormBuilder } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
@@ -31,10 +32,17 @@ import {
   TeacherTopPriorityDto
 } from '../../../core/models/student-affairs-dashboard.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { ClassroomDto } from '../../../core/models/daily-operations.models';
 import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
+import {
+  currentLessonReasonLabel,
+  currentLessonStateLabel,
+  teacherAlertLabel
+} from '../../../core/utils/current-lesson-labels';
 
 export type QuickAction = 'behavior' | 'academic' | 'delay' | 'recognition';
+export type TeacherWorkspaceTab = 'gate-passes' | 'entry-permits' | 'classes';
 export type QuickActionReceipt = BehaviorIncidentDto | AcademicConcernDto | SessionDelayDto | RecognitionDto;
 
 function notMoreThanFiveMinutesInFuture(control: AbstractControl): ValidationErrors | null {
@@ -49,6 +57,7 @@ function notMoreThanFiveMinutesInFuture(control: AbstractControl): ValidationErr
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterLink,
     ButtonModule,
     CalendarModule,
     DialogModule,
@@ -68,6 +77,8 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   private readonly api = inject(StudentAffairsDashboardService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private loadSubscription?: Subscription;
@@ -80,6 +91,13 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   readonly denied = signal(false);
   readonly errorMessage = signal('');
   readonly topPriority = signal<TeacherTopPriorityDto | null>(null);
+  readonly activeTab = signal<TeacherWorkspaceTab>('gate-passes');
+  readonly myClassrooms = signal<readonly ClassroomDto[]>([]);
+  readonly classroomsLoading = signal(true);
+  readonly classroomsError = signal('');
+  readonly classroomRoster = signal<readonly StudentSummaryDto[]>([]);
+  readonly classroomRosterLoading = signal(false);
+  readonly detailClassroomId = signal<number | null>(null);
   readonly selectedStudent = signal<StudentSummaryDto | null>(null);
   readonly rosterSearch = signal('');
   readonly activeAction = signal<QuickAction | null>(null);
@@ -92,7 +110,14 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
 
   readonly context = computed(() => this.topPriority()?.context ?? null);
 
-  readonly effectiveRoster = computed(() => this.context()?.roster ?? []);
+  readonly detailMode = computed(() => this.detailClassroomId() !== null);
+
+  readonly detailClassroom = computed(() =>
+    this.myClassrooms().find(classroom => classroom.id === this.detailClassroomId()) ?? null);
+
+  readonly effectiveRoster = computed(() => this.detailMode()
+    ? this.classroomRoster()
+    : this.context()?.roster ?? []);
 
   readonly filteredRoster = computed(() => {
     const query = this.rosterSearch().trim().toLocaleLowerCase('ar');
@@ -102,7 +127,12 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       : roster;
   });
 
-  readonly activeClassroomLabel = computed(() => this.context()?.currentPeriod?.classroom.label ?? 'لا يوجد فصل نشط');
+  readonly activeClassroomLabel = computed(() => {
+    if (this.detailMode()) {
+      return this.detailClassroom()?.label ?? this.classroomRoster()[0]?.classLabel ?? 'الفصل المحدد';
+    }
+    return this.context()?.currentPeriod?.classroom.label ?? 'لا يوجد فصل نشط';
+  });
 
   readonly behaviorForm = this.fb.group({
     category: ['', Validators.required],
@@ -161,7 +191,11 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    const classroomId = Number(this.route.snapshot.queryParamMap.get('classroomId'));
+    if (Number.isInteger(classroomId) && classroomId > 0) this.detailClassroomId.set(classroomId);
     this.load();
+    this.loadMyClassrooms();
+    if (this.detailClassroomId()) this.loadClassroomRoster(this.detailClassroomId()!);
     if (typeof window !== 'undefined') {
       fromEvent(window, 'focus').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load(true));
       fromEvent(document, 'visibilitychange').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -215,12 +249,31 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     });
   }
 
+  refreshWorkspace(): void {
+    this.load();
+    this.loadMyClassrooms();
+    const classroomId = this.detailClassroomId();
+    if (classroomId) this.loadClassroomRoster(classroomId);
+  }
+
   selectStudent(student: StudentSummaryDto): void {
     this.selectedStudent.set(student);
   }
 
   setRosterSearch(event: Event): void {
     this.rosterSearch.set((event.target as HTMLInputElement).value);
+  }
+
+  selectTab(tab: TeacherWorkspaceTab): void {
+    this.activeTab.set(tab);
+  }
+
+  openClassroom(classroom: ClassroomDto): void {
+    const tree = this.router.createUrlTree(['/student-affairs/teacher'], {
+      queryParams: { view: 'classroom', classroomId: classroom.id }
+    });
+    const url = this.router.serializeUrl(tree);
+    window.open(url, '_blank', 'noopener');
   }
 
   openAction(action: QuickAction, student?: StudentSummaryDto): void {
@@ -343,7 +396,9 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     const permission = this.actionPermission(action);
     const allowlist = this.context()?.permittedQuickActions ?? [];
     const aliases = [permission, action, permission.split('.')[0] ?? ''].map(value => value.toLocaleLowerCase('en'));
-    return !this.refreshing() && !this.errorMessage()
+    const selectedClassroomMatchesCurrent = !this.detailMode()
+      || this.detailClassroomId() === this.context()?.currentPeriod?.classroom.id;
+    return selectedClassroomMatchesCurrent && !this.refreshing() && !this.errorMessage()
       && this.auth.hasRole('Instructor') && this.auth.hasPermission(permission)
       && allowlist.some(value => aliases.includes(value.toLocaleLowerCase('en')));
   }
@@ -368,6 +423,18 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     } catch {
       return new Intl.DateTimeFormat('ar-SA', { hour: '2-digit', minute: '2-digit' }).format(date);
     }
+  }
+
+  lessonStateLabel(context: TeacherCurrentContextDto): string {
+    return currentLessonStateLabel(context.resolutionKind);
+  }
+
+  lessonReason(context: TeacherCurrentContextDto): string {
+    return currentLessonReasonLabel(context.resolutionKind, context.resolutionReason);
+  }
+
+  alertLabel(alert: string, context: TeacherCurrentContextDto): string {
+    return teacherAlertLabel(alert, context.resolutionKind, context.resolutionReason);
   }
 
   initials(name: string): string {
@@ -397,6 +464,43 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
       }
     }
     return changed ? merged : current;
+  }
+
+  private loadMyClassrooms(): void {
+    this.classroomsLoading.set(true);
+    this.classroomsError.set('');
+    this.api.getTeacherClassrooms().subscribe({
+      next: response => {
+        this.classroomsLoading.set(false);
+        if (!response.isSuccess || !response.data) {
+          this.classroomsError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل قائمة الفصول المسندة إليك.');
+          return;
+        }
+        this.myClassrooms.set(response.data);
+      },
+      error: () => {
+        this.classroomsLoading.set(false);
+        this.classroomsError.set('تعذر تحميل قائمة الفصول المسندة إليك. حاول التحديث مرة أخرى.');
+      }
+    });
+  }
+
+  private loadClassroomRoster(classroomId: number): void {
+    this.classroomRosterLoading.set(true);
+    this.api.getClassroomStudents(classroomId).subscribe({
+      next: response => {
+        this.classroomRosterLoading.set(false);
+        if (!response.isSuccess || !response.data) {
+          this.classroomsError.set(response.errors[0] ?? response.message ?? 'تعذر تحميل طلاب الفصل.');
+          return;
+        }
+        this.classroomRoster.set(response.data);
+      },
+      error: () => {
+        this.classroomRosterLoading.set(false);
+        this.classroomsError.set('تعذر تحميل طلاب الفصل. حاول مرة أخرى.');
+      }
+    });
   }
 
   private applyTopPriority(value: TeacherTopPriorityDto): void {

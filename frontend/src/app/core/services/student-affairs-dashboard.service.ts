@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response.model';
+import { ClassroomDto } from '../models/daily-operations.models';
 import {
   AcademicConcernDto,
   BehaviorIncidentDto,
@@ -35,6 +36,10 @@ export class StudentAffairsDashboardService {
 
   getTeacherTopPriority(): Observable<ApiResponse<TeacherTopPriorityDto>> {
     return this.http.get<ApiResponse<TeacherTopPriorityDto>>(`${this.api}/teacher/student-affairs/top-priority`);
+  }
+
+  getTeacherClassrooms(): Observable<ApiResponse<readonly ClassroomDto[]>> {
+    return this.http.get<ApiResponse<readonly ClassroomDto[]>>(`${this.api}/teacher/student-affairs/classrooms`);
   }
 
   getTeacherDashboard(): Observable<ApiResponse<TeacherStudentAffairsDashboardDto>> {

@@ -17,12 +17,29 @@
 .queue-meta span { color: var(--text-muted); }
 .live { display: flex; align-items: center; gap: var(--space-2); }
 .live i { width: 9px; height: 9px; background: var(--success); border-radius: 50%; box-shadow: 0 0 0 5px var(--success-bg); }
-.gate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-4); }
-.gate-card { overflow: hidden; background: var(--bg-surface); border: 1px solid var(--border); border-top: 5px solid var(--info); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
+.gate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 480px));
+  justify-content: start;
+  align-items: start;
+  gap: var(--space-4);
+}
+.gate-card {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-top: 5px solid var(--info);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
 .gate-card.acknowledged { border-top-color: var(--success); }
 .gate-card.expired { opacity: .8; border-top-color: var(--danger); }
 .card-top { padding: var(--space-4); }
-.student-photo img, .student-photo span { display: grid; width: 64px; height: 64px; place-items: center; object-fit: cover; color: var(--brand-900); background: var(--brand-100); border-radius: 50%; font-size: 1.1rem; font-weight: 900; }
+.student-photo img, .student-photo span { display: grid; width: 56px; height: 56px; place-items: center; object-fit: cover; color: var(--brand-900); background: var(--brand-100); border-radius: 50%; font-size: 1rem; font-weight: 900; }
 .student-name { min-width: 0; flex: 1; }
 .student-name h2 { margin: 0; overflow: hidden; color: var(--text-strong); font-size: 1.2rem; text-overflow: ellipsis; white-space: nowrap; }
 .student-name span { color: var(--text-muted); }
@@ -62,4 +79,88 @@ dd { margin: 0; color: var(--text-strong); font-weight: 700; overflow-wrap: anyw
 .field b, .validation { color: var(--danger); }
 :host ::ng-deep .field .p-dropdown { width: 100%; }
 .dialog-actions { justify-content: flex-end; }
-@media (max-width: 720px) { .security-page { padding: var(--space-4); } .page-header { align-items: stretch; flex-direction: column; } .window { align-items: stretch; flex-direction: column; } .countdown { align-items: flex-start; } dl { grid-template-columns: 1fr; } .card-top { align-items: flex-start; flex-wrap: wrap; } }
+@media (max-width: 720px) {
+  .security-page { padding: var(--space-4); }
+
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .page-header h1 { font-size: clamp(1.45rem, 7vw, 1.8rem); }
+  .page-header p { font-size: .88rem; line-height: 1.65; }
+  .page-header > button { width: 100%; }
+
+  .queue-meta { margin-bottom: var(--space-3); }
+  .queue-meta strong { font-size: 1.35rem; }
+
+  .gate-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .gate-card { border-radius: var(--radius-lg); }
+
+  .card-top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .student-photo img, .student-photo span {
+    width: 48px;
+    height: 48px;
+    font-size: .88rem;
+  }
+
+  .student-name h2 { font-size: 1rem; }
+  .student-name span { font-size: .78rem; }
+
+  .window {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .window strong { font-size: .82rem; line-height: 1.55; }
+  .countdown { align-items: flex-end; text-align: end; }
+  .countdown bdi { font-size: 1.05rem; }
+
+  .gate-card dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .gate-card dl > div:nth-child(4),
+  .gate-card dl > div:nth-child(5) { grid-column: 1 / -1; }
+  .gate-card dt { font-size: .72rem; }
+  .gate-card dd { font-size: .86rem; line-height: 1.5; }
+
+  .card-actions { gap: var(--space-2); padding: var(--space-3); }
+  .card-actions > button { min-height: 46px; font-size: .9rem; }
+  .card-actions small { line-height: 1.5; }
+  .ack-confirmed { align-items: flex-start; }
+
+  :host ::ng-deep .exit-button,
+  :host ::ng-deep .final-exit { min-height: 48px; font-size: .95rem; }
+
+  .physical-warning { padding: var(--space-3); }
+  .dialog-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dialog-actions > button { width: 100%; }
+}
+
+@media (max-width: 380px) {
+  .security-page { padding: var(--space-3); }
+  .card-top { grid-template-columns: auto minmax(0, 1fr); }
+  .card-top p-tag { grid-column: 1 / -1; justify-self: start; }
+  .gate-card dl { grid-template-columns: 1fr; }
+  .gate-card dl > div:nth-child(4),
+  .gate-card dl > div:nth-child(5) { grid-column: auto; }
+}

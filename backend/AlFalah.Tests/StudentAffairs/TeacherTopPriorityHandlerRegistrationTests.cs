@@ -6,6 +6,7 @@ using AlFalah.Application.Interfaces;
 using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.StudentAffairs;
 using AlFalah.Application.StudentAffairs.DTOs.Teacher;
+using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Application.StudentAffairs.TeacherContext;
 using AlFalah.Application.StudentAffairs.TeacherContext.Handlers;
@@ -30,6 +31,25 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
             .GetTypes()
             .Should()
             .Contain(type => !type.IsAbstract && handlerContract.IsAssignableFrom(type));
+    }
+
+    [Fact]
+    public async Task TeacherClassrooms_Returns_Only_Repository_Assigned_Classrooms()
+    {
+        var classroom = new ClassroomDto(
+            9, "E2E-1-A", SchoolStage.Primary, 1, "A", 4, "2026/2027", true, 20, string.Empty);
+        var repository = new StubTeacherContextRepository
+        {
+            AssignedClassrooms = new[] { classroom }
+        };
+        var handler = new GetTeacherClassroomsQueryHandler(
+            repository,
+            new StubCurrentUser("teacher-user", 18, PermissionNames.TeacherQuickActionView));
+
+        var response = await handler.Handle(new GetTeacherClassroomsQuery(), CancellationToken.None);
+
+        response.IsSuccess.Should().BeTrue();
+        response.Data.Should().ContainSingle().Which.Should().Be(classroom);
     }
 
     [Fact]
@@ -90,6 +110,15 @@ public sealed class TeacherTopPriorityHandlerRegistrationTests
     {
         public TeacherContextSnapshot? Snapshot { get; init; }
         public TeacherContextLookup? Lookup { get; private set; }
+        public IReadOnlyList<ClassroomDto> AssignedClassrooms { get; init; } = Array.Empty<ClassroomDto>();
+
+        public Task<IReadOnlyList<ClassroomDto>> GetAssignedClassroomsAsync(
+            int schoolId, string teacherUserId, CancellationToken cancellationToken) =>
+            Task.FromResult(AssignedClassrooms);
+
+        public Task<bool> IsClassroomAssignedAsync(
+            int schoolId, string teacherUserId, int classroomId, CancellationToken cancellationToken) =>
+            Task.FromResult(true);
 
         public Task<TeacherContextSnapshot?> GetTopPriorityAsync(
             TeacherContextLookup lookup,

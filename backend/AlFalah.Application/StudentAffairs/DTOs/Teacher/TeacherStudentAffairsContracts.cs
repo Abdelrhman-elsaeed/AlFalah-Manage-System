@@ -1,3 +1,4 @@
+using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 using AlFalah.Application.StudentAffairs.DTOs.Shared;
 using AlFalah.Shared.Models;
 using MediatR;
@@ -58,3 +59,4 @@ public sealed record TeacherTopPriorityDto(
 public sealed record GetTeacherCurrentContextQuery : IRequest<ApiResponse<TeacherCurrentContextDto>>;
 public sealed record GetTeacherPeriodRosterQuery(int TimetableEntryId) : IRequest<ApiResponse<TeacherCurrentContextDto>>;
 public sealed record GetTeacherTopPriorityQuery : IRequest<ApiResponse<TeacherTopPriorityDto>>;
+public sealed record GetTeacherClassroomsQuery : IRequest<ApiResponse<IReadOnlyList<ClassroomDto>>>;

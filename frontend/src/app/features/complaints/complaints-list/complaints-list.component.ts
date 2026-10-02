@@ -14,14 +14,29 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { Observable, finalize, forkJoin } from 'rxjs';
+import { ApiResponse } from '../../../core/models/api-response.model';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ComplaintsService } from '../../../core/services/complaints.service';
+import { VisitsService } from '../../../core/services/visits.service';
+import { VisitsV2Service } from '../../../core/services/visits-v2.service';
 import {
   Complaint,
   COMPLAINT_STATUSES,
   COMPLAINT_STATUS_SEVERITY
 } from '../../../core/models/complaint.models';
+
+type ComplaintWorkspaceTab = 'submit' | 'results';
+
+interface ComplaintReportOption {
+  readonly id: number;
+  readonly experienceVersion: 1 | 2;
+  readonly visitCategoryLabelAr: string;
+  readonly visitSequenceLabelAr: string;
+  readonly visitDate: string;
+  readonly statusLabelAr: string;
+}
 
 /**
  * Phase 8 — School-management complaints page. The backend scopes the data
@@ -45,6 +60,8 @@ import {
 })
 export class ComplaintsListComponent implements OnInit {
   private readonly complaintsService = inject(ComplaintsService);
+  private readonly visitsService = inject(VisitsService);
+  private readonly visitsV2Service = inject(VisitsV2Service);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
@@ -54,6 +71,16 @@ export class ComplaintsListComponent implements OnInit {
   readonly complaints = signal<Complaint[]>([]);
   readonly loading = signal(false);
   readonly statusFilter = signal<number | null>(null);
+
+  // Instructor workspace: submit and follow up complaints from one route.
+  readonly activeTab = signal<ComplaintWorkspaceTab>('submit');
+  readonly reports = signal<readonly ComplaintReportOption[]>([]);
+  readonly reportsLoading = signal(false);
+  readonly selectedReport = signal<ComplaintReportOption | null>(null);
+  readonly reportOpeningId = signal<number | null>(null);
+  readonly complaintSubmitting = signal(false);
+  complaintSubject = '';
+  complaintBody = '';
 
   // Template refs for the status-filter dropdown's translated item labels.
   @ViewChild('statusItemTpl', { static: true })
@@ -83,6 +110,8 @@ export class ComplaintsListComponent implements OnInit {
   });
   readonly canHandle = computed(() => this.auth.hasPermission('Complaint.Manage'));
   readonly canDelete = computed(() => this.auth.hasPermission('Complaint.Delete'));
+  readonly canSubmit = computed(() =>
+    this.isInstructorOnly() && this.auth.hasPermission('Complaint.Create'));
   readonly canReopenVisit = computed(() =>
     this.canHandle() && this.auth.hasPermission('Visit.Reopen'));
 
@@ -96,6 +125,111 @@ export class ComplaintsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    if (this.canSubmit()) {
+      this.loadReports();
+    } else {
+      this.activeTab.set('results');
+    }
+  }
+
+  selectTab(tab: ComplaintWorkspaceTab): void {
+    this.activeTab.set(tab);
+  }
+
+  loadReports(): void {
+    this.reportsLoading.set(true);
+    forkJoin({
+      legacy: this.visitsService.listMyApprovedReports(1, 100),
+      v2: this.visitsV2Service.list({ page: 1, pageSize: 100, status: 4 })
+    }).subscribe({
+      next: ({ legacy, v2 }) => {
+        const legacyItems: ComplaintReportOption[] = legacy.data?.items.map(item => ({
+          id: item.id,
+          experienceVersion: 1,
+          visitCategoryLabelAr: item.visitCategoryLabelAr,
+          visitSequenceLabelAr: item.visitSequenceLabelAr,
+          visitDate: item.visitDate,
+          statusLabelAr: item.statusLabelAr
+        })) ?? [];
+        const v2Items: ComplaintReportOption[] = v2.data?.page.items.map(item => ({
+          id: item.id,
+          experienceVersion: 2,
+          visitCategoryLabelAr: item.visitCategoryLabelAr,
+          visitSequenceLabelAr: item.visitSequenceLabelAr,
+          visitDate: item.visitDate,
+          statusLabelAr: item.statusLabelAr
+        })) ?? [];
+        this.reports.set([...v2Items, ...legacyItems]
+          .sort((left, right) => right.visitDate.localeCompare(left.visitDate)));
+        this.reportsLoading.set(false);
+      },
+      error: (error) => {
+        this.reportsLoading.set(false);
+        this.toast.error(this.t('COMPLAINTS.REPORTS_LOAD_FAILED'), error?.error?.message || '');
+      }
+    });
+  }
+
+  prepareComplaint(report: ComplaintReportOption): void {
+    if (this.reportOpeningId() !== null) return;
+    this.reportOpeningId.set(report.id);
+
+    // Opening the authoritative report endpoint records the required view log
+    // before the complaint form becomes available.
+    const request = (report.experienceVersion === 2
+      ? this.visitsV2Service.get(report.id)
+      : this.visitsService.getInstructorReport(report.id)) as Observable<ApiResponse<unknown>>;
+
+    request.pipe(finalize(() => this.reportOpeningId.set(null))).subscribe({
+      next: response => {
+        if (!response.isSuccess || !response.data) {
+          this.toast.error(this.t('COMPLAINTS.REPORT_OPEN_FAILED'), response.message || '');
+          return;
+        }
+        this.selectedReport.set(report);
+        this.complaintSubject = '';
+        this.complaintBody = '';
+      },
+      error: error => this.toast.error(
+        this.t('COMPLAINTS.REPORT_OPEN_FAILED'),
+        error?.error?.message || '')
+    });
+  }
+
+  changeReport(): void {
+    if (this.complaintSubmitting()) return;
+    this.selectedReport.set(null);
+    this.complaintSubject = '';
+    this.complaintBody = '';
+  }
+
+  submitComplaint(): void {
+    const report = this.selectedReport();
+    const subject = this.complaintSubject.trim();
+    const body = this.complaintBody.trim();
+    if (!report || !subject || !body || this.complaintSubmitting()) return;
+
+    this.complaintSubmitting.set(true);
+    this.complaintsService.create(report.id, { subject, body })
+      .pipe(finalize(() => this.complaintSubmitting.set(false)))
+      .subscribe({
+        next: response => {
+          if (!response.isSuccess) {
+            this.toast.error(this.t('COMPLAINTS.SUBMIT_FAILED'), response.message || '');
+            return;
+          }
+          this.toast.success(this.t('COMPLAINTS.SUBMIT_SUCCESS'), response.message || this.t('COMPLAINTS.SUBMIT_SUCCESS_DESC'));
+          this.selectedReport.set(null);
+          this.complaintSubject = '';
+          this.complaintBody = '';
+          this.activeTab.set('results');
+          this.statusFilter.set(null);
+          this.load();
+        },
+        error: error => this.toast.error(
+          this.t('COMPLAINTS.SUBMIT_FAILED'),
+          error?.error?.message || '')
+      });
   }
 
   load(): void {
