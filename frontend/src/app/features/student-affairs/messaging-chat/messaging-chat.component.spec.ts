@@ -17,6 +17,7 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
   let dashboard: jasmine.SpyObj<StudentAffairsDashboardService>;
   let directory: jasmine.SpyObj<DailyOperationsService>;
   let auth: jasmine.SpyObj<AuthService>;
+  let toast: jasmine.SpyObj<ToastService>;
 
   beforeEach(async () => {
     api = jasmine.createSpyObj<Phase5Service>('Phase5Service', [
@@ -44,6 +45,7 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
     auth.hasRole.and.callFake(role => role === 'Guardian');
     auth.hasPermission.and.returnValue(true);
     auth.currentUser.and.returnValue({ userId: 'guardian-1' } as any);
+    toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error', 'warn', 'info']);
 
     await TestBed.configureTestingModule({
       imports: [MessagingChatComponent, NoopAnimationsModule],
@@ -52,7 +54,7 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
         { provide: StudentAffairsDashboardService, useValue: dashboard },
         { provide: DailyOperationsService, useValue: directory },
         { provide: AuthService, useValue: auth },
-        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success', 'error', 'warn', 'info']) }
+        { provide: ToastService, useValue: toast }
       ]
     }).compileComponents();
   });
@@ -176,6 +178,62 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
     expect(api.closeConversation).toHaveBeenCalledOnceWith(9, jasmine.objectContaining({ rowVersion: 'new-version' }));
   });
 
+  it('accepts a guardian message outside office hours, clears the draft and shows an Arabic notice beside it', () => {
+    const fixture = TestBed.createComponent(MessagingChatComponent);
+    const component = fixture.componentInstance;
+    // Render this selected thread without starting inbox polling.
+    spyOn(component, 'ngOnInit');
+    component.loadingThread.set(false);
+    component.selected.set({ ...conversation(9, 'v1'), threadType: 'GuardianTeacher' });
+    api.sendMessage.and.returnValue(of(success<SendMessageResultDto>({
+      message: queuedMessage(), disposition: 'QueuedUntilOfficeHours',
+      nextEligibleSendAt: queuedMessage().nextEligibleSendAt, conversationRowVersion: 'v2'
+    })));
+    component.draft.setValue('متابعة مستوى الطالب');
+
+    component.send();
+    fixture.detectChanges();
+
+    expect(api.sendMessage).toHaveBeenCalledOnceWith(9, jasmine.objectContaining({ body: 'متابعة مستوى الطالب' }));
+    expect(component.draft.value).toBe('');
+    expect(component.sendError()).toBe('');
+    const notice: HTMLElement = fixture.nativeElement.querySelector('article.message .queued-warning');
+    expect(notice.textContent).toContain('أرسلت هذه الرسالة خارج الساعات المكتبية');
+    expect(notice.textContent).toContain('أقرب ساعات مكتبية وموعد الرد المتوقع');
+    expect(notice.textContent).toContain('الأحد');
+    expect(notice.textContent).toContain('٧:٥٠');
+    expect(notice.textContent).toContain('بتوقيت المدرسة');
+    expect(toast.info).toHaveBeenCalledOnceWith('أرسلت رسالتك خارج الساعات المكتبية', jasmine.any(String));
+  });
+
+  it('restores the office hours notice from the persisted message after reload', () => {
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+    expect(component.officeHoursNotice(queuedMessage())).toContain('موعد الرد المتوقع');
+    expect(component.officeHoursNotice({ ...queuedMessage(), nextEligibleSendAt: '2026-10-05T09:15:00+03:00' }))
+      .toContain('٩:١٥');
+  });
+
+  it('does not invent a reply time when no eligible office hours are configured', () => {
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+    expect(component.officeHoursNotice({ ...queuedMessage(), nextEligibleSendAt: null }))
+      .toBe('لم يُحدد موعد للساعات المكتبية بعد؛ لا يمكن تحديد موعد الرد المتوقع حاليًا.');
+  });
+
+  it('removes the pending office hours notice once the message is delivered', () => {
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+    expect(component.officeHoursNotice({ ...queuedMessage(), deliveryState: 'Delivered', nextEligibleSendAt: null })).toBeNull();
+    expect(component.officeHoursNotice({ ...queuedMessage(), disposition: 'SentImmediately' })).toBeNull();
+  });
+
+  it('shows the notice only to the guardian who sent the message', () => {
+    const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
+    expect(component.officeHoursNotice({ ...queuedMessage(), sender: { userId: 'other-guardian', displayName: 'ولي أمر', roleSnapshot: 'Guardian' } })).toBeNull();
+    for (const role of ['Instructor', 'StudentAffairsOfficer', 'SocialWorker']) {
+      auth.hasRole.and.callFake(candidate => candidate === role);
+      expect(component.officeHoursNotice(queuedMessage())).toBeNull();
+    }
+  });
+
   it('groups every old and open thread under the same person', () => {
     const component = TestBed.createComponent(MessagingChatComponent).componentInstance;
     const first = conversation(1, 'v1');
@@ -242,6 +300,16 @@ function conversation(id: number, rowVersion: string): ConversationDto {
     updatedAt: '2026-10-02T07:00:00Z',
     rowVersion,
     referralId: 44
+  };
+}
+
+function queuedMessage(): ConversationMessageDto {
+  return {
+    id: 91, conversationId: 9,
+    sender: { userId: 'guardian-1', displayName: 'ولي الأمر', roleSnapshot: 'Guardian' },
+    body: 'متابعة مستوى الطالب', replyToMessageId: null, createdAt: '2026-10-03T20:00:00Z',
+    deliveryState: 'Pending', disposition: 'QueuedUntilOfficeHours',
+    nextEligibleSendAt: '2026-10-04T07:50:00+03:00', receipts: []
   };
 }
 

@@ -140,7 +140,6 @@ export class MessagingChatComponent implements OnInit {
   readonly sending = signal(false);
   readonly sendError = signal('');
   readonly pendingIdempotencyKey = signal<string | null>(null);
-  readonly queuedResults = signal<ReadonlyMap<number, SendMessageResultDto>>(new Map<number, SendMessageResultDto>());
   readonly draft = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] });
   readonly closeDialogVisible = signal(false);
   readonly closeReason = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)] });
@@ -556,14 +555,21 @@ export class MessagingChatComponent implements OnInit {
 
   isMine(message: ConversationMessageDto): boolean { return message.sender.userId === this.currentUserId; }
   queuedResult(message: ConversationMessageDto): SendMessageResultDto | null {
-    return this.queuedResults().get(message.id) ?? (message.disposition === 'QueuedUntilOfficeHours'
+    return message.disposition !== 'SentImmediately'
       ? {
           message,
           disposition: message.disposition,
           nextEligibleSendAt: message.nextEligibleSendAt,
           conversationRowVersion: this.selected()?.rowVersion ?? ''
         }
-      : null);
+      : null;
+  }
+  officeHoursNotice(message: ConversationMessageDto): string | null {
+    if (!this.isGuardian || !this.isMine(message) || message.disposition !== 'QueuedUntilOfficeHours'
+      || this.receiptView(message).tone !== 'pending') return null;
+    return message.nextEligibleSendAt
+      ? `أقرب ساعات مكتبية وموعد الرد المتوقع: ${this.formatOfficeHoursTime(message.nextEligibleSendAt)} (بتوقيت المدرسة).`
+      : 'لم يُحدد موعد للساعات المكتبية بعد؛ لا يمكن تحديد موعد الرد المتوقع حاليًا.';
   }
   threadTypeLabel(type: ConversationDto['threadType']): string { return ({ GuardianTeacher: 'ولي الأمر والمعلم', GuardianStudentAffairs: 'ولي الأمر وشؤون الطلاب', GuardianSocialWorker: 'ولي الأمر والموجه الطلابي' })[type]; }
   participantRoleLabel(role: string): string {
@@ -609,6 +615,19 @@ export class MessagingChatComponent implements OnInit {
     return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('ar-SA', { dateStyle: 'short', timeStyle: 'short' }).format(date);
   }
 
+  private formatOfficeHoursTime(value: string): string {
+    // The server returns the occurrence with the school's UTC offset.
+    const offset = /([+-])(\d{2}):(\d{2})$/.exec(value);
+    const offsetMinutes = offset
+      ? (Number(offset[2]) * 60 + Number(offset[3])) * (offset[1] === '+' ? 1 : -1)
+      : 0;
+    const localTime = new Date(new Date(value).getTime() + offsetMinutes * 60_000);
+    return new Intl.DateTimeFormat('ar-EG', {
+      calendar: 'gregory', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZone: 'UTC'
+    }).format(localTime);
+  }
+
   private appendSendResult(result: SendMessageResultDto): void {
     this.mergeMessages([result.message]);
     const thread = this.selected();
@@ -619,13 +638,9 @@ export class MessagingChatComponent implements OnInit {
         updatedAt: result.message.createdAt
       });
     }
-    this.queuedResults.update(current => {
-      const next = new Map(current);
-      next.set(result.message.id, result);
-      return next;
-    });
-    if (result.disposition === 'QueuedUntilOfficeHours') {
-      this.toast.info('الرسالة مجدولة للساعات المكتبية', result.nextEligibleSendAt ? `سيتم التنبيه في أقرب ساعة مكتبية: ${this.formatDateTime(result.nextEligibleSendAt)}` : 'سيتم تنبيه المعلم خلال فترة مكتبية قادمة.');
+    const officeHoursNotice = this.officeHoursNotice(result.message);
+    if (officeHoursNotice) {
+      this.toast.info('أرسلت رسالتك خارج الساعات المكتبية', officeHoursNotice);
     } else if (result.disposition === 'BypassedForUrgency') {
       this.toast.warn('أُرسلت كحالة عاجلة', 'تم تسجيل التجاوز للتدقيق.');
     }

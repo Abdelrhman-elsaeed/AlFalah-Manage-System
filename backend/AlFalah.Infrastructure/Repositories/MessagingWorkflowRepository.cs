@@ -1669,14 +1669,14 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
         return result;
     }
 
-    private async Task<DeliveryDecision> ResolveDeliveryAsync(
+    private async Task<MessagingDeliveryDecision> ResolveDeliveryAsync(
         ConversationThread thread,
         string senderUserId,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
         if (thread.ThreadType != ConversationThreadType.GuardianTeacher)
-            return new DeliveryDecision(true, OfficeHoursDisposition.SentImmediately, null);
+            return MessagingDeliveryDecision.Immediate;
 
         var participantIds = thread.Participants.Select(participant => participant.ApplicationUserId).ToArray();
         var teacher = await _context.InstructorProfiles.AsNoTracking()
@@ -1684,15 +1684,11 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             .Select(profile => new { profile.Id, profile.UserId })
             .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidOperationException("The conversation teacher was not found");
+        if (!MessagingDeliveryPolicy.RequiresOfficeHours(thread.ThreadType, senderUserId == teacher.UserId))
+            return MessagingDeliveryDecision.Immediate;
+
         var next = await FindNextEligibleAsync(thread.SchoolId, teacher.Id, now, cancellationToken).ConfigureAwait(false);
-        var inside = next.HasValue && next.Value <= now;
-        if (senderUserId == teacher.UserId && !inside)
-            throw new InvalidOperationException(next.HasValue
-                ? $"Teacher routine replies are allowed only during office hours; next eligible instant is {next.Value:O}"
-                : "Teacher routine replies are allowed only during office hours; no eligible occurrence is configured");
-        return inside
-            ? new DeliveryDecision(true, OfficeHoursDisposition.SentImmediately, null)
-            : new DeliveryDecision(false, OfficeHoursDisposition.QueuedUntilOfficeHours, next);
+        return MessagingDeliveryPolicy.ForOfficeHours(now, next);
     }
 
     private async Task<DateTimeOffset?> FindNextEligibleAsync(
@@ -1754,7 +1750,8 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             if (dayDefinition is null || !dayDefinition.IsStudyDay) continue;
             var periods = BellScheduleResolver.EffectivePeriods(publication.Schedule, day);
             var breaks = BellScheduleResolver.EffectiveBreaks(publication.Schedule, day);
-            foreach (var slot in configuration.Slots.Where(item => item.Day == day && item.Period.HasValue))
+            foreach (var slot in configuration.Slots.Where(item => item.Day == day && item.Period.HasValue)
+                .OrderBy(item => periods.SingleOrDefault(period => period.Sequence == item.Period)?.StartLocalTime))
             {
                 var period = periods.SingleOrDefault(item => item.Sequence == slot.Period);
                 if (period is null || breaks.Any(item => item.StartLocalTime < period.EndLocalTime && period.StartLocalTime < item.EndLocalTime)) continue;
@@ -1890,8 +1887,6 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             allowed.Add(ConversationThreadType.GuardianSocialWorker);
         return allowed.Distinct().ToArray();
     }
-
-    private sealed record DeliveryDecision(bool DeliverNow, OfficeHoursDisposition Disposition, DateTimeOffset? NextEligibleSendAt);
 
     private static TimetableDay ToTimetableDay(DayOfWeek day) => day switch
     {

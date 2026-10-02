@@ -58,7 +58,14 @@
                   <footer><span class="receipt-status" [class]="'receipt-status receipt-status--' + receipt.tone"><i [class]="receipt.icon"></i>{{ receipt.label }}@if (receipt.time) { <time><bdi dir="ltr">{{ formatDateTime(receipt.time) }}</bdi></time> }</span></footer>
                 }
                 @if (queuedResult(message); as result) {
-                  @if (result.disposition === 'QueuedUntilOfficeHours') { <div class="queued-warning" role="status"><p-tag value="مجدولة للساعات المكتبية" severity="warning"></p-tag><strong>{{ result.nextEligibleSendAt ? 'سيتم التنبيه في أقرب ساعة مكتبية: ' + formatDateTime(result.nextEligibleSendAt) : 'تنتظر الرسالة تهيئة ساعات مكتبية صالحة' }}</strong><span>الرسالة محفوظة وقيد الانتظار، وليست «تم التسليم».</span></div> }
+                  @if (officeHoursNotice(message); as notice) {
+                    <div class="queued-warning" role="status">
+                      <p-tag value="خارج الساعات المكتبية" severity="warning"></p-tag>
+                      <span>أرسلت هذه الرسالة خارج الساعات المكتبية.</span>
+                      <strong>{{ notice }}</strong>
+                      <span>تم حفظ رسالتك، وسيتم تسليمها وتنبيه المعلم عند بدء أقرب ساعات مكتبية متاحة.</span>
+                    </div>
+                  }
                   @else if (result.disposition === 'BypassedForUrgency') { <div class="urgent-warning"><i class="pi pi-bolt"></i><span>أُرسلت كحالة عاجلة (مسجلة للتدقيق)</span></div> }
                 }
               </article>
