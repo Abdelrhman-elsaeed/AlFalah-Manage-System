@@ -74,7 +74,7 @@ public sealed class StorageRepository(AlFalahDbContext db) : IStorageRepository
     }
 
     public Task<StorageFileAccess?> GetFileAccessAsync(int schoolId, int id, CancellationToken ct) =>
-        (from file in db.StoredFiles.AsNoTracking()
+        (from file in db.StoredFiles.IgnoreQueryFilters().AsNoTracking()
          join version in db.StoredFileVersions.AsNoTracking() on file.CurrentVersionId equals version.Id
          join teacher in db.InstructorProfiles.AsNoTracking() on file.OwnerTeacherId equals teacher.Id into owners
          from teacher in owners.DefaultIfEmpty()

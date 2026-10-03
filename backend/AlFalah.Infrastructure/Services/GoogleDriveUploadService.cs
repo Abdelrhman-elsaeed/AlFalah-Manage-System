@@ -4,6 +4,10 @@ using AlFalah.Application.Interfaces;
 using AlFalah.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using AlFalah.Application.Storage;
+using AlFalah.Application.Common;
+using AlFalah.Domain.Enums;
+using Microsoft.Extensions.Options;
 
 namespace AlFalah.Infrastructure.Services;
 
@@ -25,6 +29,8 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
     private readonly IEvidenceSubmissionService _submissions;
     private readonly IConfiguration _configuration;
     private readonly AlFalahDbContext _context;
+    private readonly IStorageLibraryService? _library;
+    private readonly IOptions<StorageOptions>? _storageOptions;
 
     public GoogleDriveUploadService(
         ITeacherDriveIdentityService identity,
@@ -33,7 +39,9 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
         TeacherDriveFolderGuard guard,
         IEvidenceSubmissionService submissions,
         IConfiguration configuration,
-        AlFalahDbContext context)
+        AlFalahDbContext context,
+        IStorageLibraryService? library = null,
+        IOptions<StorageOptions>? storageOptions = null)
     {
         _identity = identity;
         _mappings = mappings;
@@ -42,10 +50,14 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
         _submissions = submissions;
         _configuration = configuration;
         _context = context;
+        _library = library;
+        _storageOptions = storageOptions;
     }
 
     public async Task<UploadFileResultDto> UploadAsync(UploadFileRequest request, CancellationToken cancellationToken = default)
     {
+        if (_storageOptions?.Value.ReadModelEnabled == true)
+            return await _library!.LegacyUploadAsync(request, cancellationToken);
         Validate(request);
         var teacher = await _identity.ResolveCurrentTeacherAsync(cancellationToken);
         var mapping = await _mappings.GetForTeacherAsync(teacher.TeacherId, cancellationToken);
@@ -86,12 +98,17 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
     public async Task<DriveItemDto> RenameAsync(
         long submissionId, string name, CancellationToken cancellationToken = default)
     {
+        if (_storageOptions?.Value.ReadModelEnabled == true)
+            return await _library!.LegacyRenameAsync(submissionId, name, cancellationToken);
         var teacher = await _identity.ResolveCurrentTeacherAsync(cancellationToken);
         var submission = await _context.TeacherEvidenceSubmissions.AsNoTracking()
             .SingleOrDefaultAsync(
                 x => x.Id == submissionId && x.TeacherId == teacher.TeacherId && !x.IsDeleted,
                 cancellationToken)
             ?? throw new KeyNotFoundException("ملف الدليل غير موجود.");
+
+        if (submission.ReviewStatus == EvidenceReviewStatus.Approved)
+            throw new BusinessRuleException("الملف معتمد ومحمي. يلزم طلب تغيير.");
 
         var normalizedName = ValidateRename(name, submission.FileName);
         var mapping = await _mappings.GetForTeacherAsync(teacher.TeacherId, cancellationToken);
@@ -114,11 +131,18 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
 
     public async Task DeleteAsync(long submissionId, CancellationToken cancellationToken = default)
     {
+        if (_storageOptions?.Value.ReadModelEnabled == true)
+        {
+            await _library!.LegacyDeleteAsync(submissionId, cancellationToken);
+            return;
+        }
         var teacher = await _identity.ResolveCurrentTeacherAsync(cancellationToken);
         var submission = await _context.TeacherEvidenceSubmissions.AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == submissionId && x.TeacherId == teacher.TeacherId, cancellationToken)
             ?? throw new KeyNotFoundException("ملف الدليل غير موجود.");
         if (submission.IsDeleted) return;
+        if (submission.ReviewStatus == EvidenceReviewStatus.Approved)
+            throw new BusinessRuleException("الملف معتمد ومحمي. يلزم طلب تغيير.");
 
         var mapping = await _mappings.GetForTeacherAsync(teacher.TeacherId, cancellationToken);
         if (mapping.SchoolId != teacher.SchoolId) throw new TeacherDriveAccessDeniedException();

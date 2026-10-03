@@ -12,6 +12,7 @@ import { VisitsV2Service } from '../../../core/services/visits-v2.service';
 import { MessagingUnreadService } from '../../../core/services/messaging-unread.service';
 import { roleLandingFor } from '../../../core/utils/role-landing';
 import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
+import { StorageApiService } from '../../../features/storage/storage-api.service';
 
 interface NavItem {
   labelKey: string;
@@ -378,6 +379,7 @@ export class ShellComponent implements OnInit {
   private readonly studentAnalyzer = inject(StudentAnalyzerService);
   private readonly visitsV2 = inject(VisitsV2Service);
   private readonly messagingUnreadService = inject(MessagingUnreadService);
+  private readonly storageApi = inject(StorageApiService);
   private readonly sidebarStorageKey = 'alfalah-shell-sidebar-collapsed';
 
   /** Stable references so `routerLinkActiveOptions` isn't a fresh object per CD pass. */
@@ -389,6 +391,8 @@ export class ShellComponent implements OnInit {
   readonly isSidebarCollapsed = signal(this.getInitialSidebarState());
   readonly hasStudentAnalyzerAccess = signal(false);
   readonly visitsV2Enabled = signal(false);
+  readonly hasSchoolStorageAccess = signal(false);
+  readonly hasOwnStorageAccess = signal(false);
   readonly ksaTime = signal<string>('');
   readonly guardianUnreadNotifications = this.guardianSelfService.unreadNotifications;
   readonly unreadMessages = this.messagingUnreadService.count;
@@ -411,6 +415,8 @@ export class ShellComponent implements OnInit {
       : [];
 
     const roles = this.authService.roles();
+    if (this.hasSchoolStorageAccess()) items.push({ labelKey: 'STORAGE.TITLE', icon: 'pi pi-folder', route: '/school-manager/storage' });
+    if (this.hasOwnStorageAccess()) items.push({ labelKey: 'STORAGE.OWN_TITLE', icon: 'pi pi-folder-open', route: '/instructor/my-files' });
     if (roles.includes('SchoolManager'))
       items.push(
         { labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/school-manager/evidence-matrix' }
@@ -471,6 +477,12 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.storageApi.contextInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.hasSchoolStorageAccess.set(true), error: () => this.hasSchoolStorageAccess.set(false)
+    });
+    if (this.authService.hasRole('Instructor')) this.storageApi.contextInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.hasOwnStorageAccess.set(true), error: () => this.hasOwnStorageAccess.set(false)
+    });
     this.visitsV2.availability().subscribe({ next: response => this.visitsV2Enabled.set(!!response.data?.isEnabled) });
     this.updateKsaTime();
     if (typeof window !== 'undefined') {

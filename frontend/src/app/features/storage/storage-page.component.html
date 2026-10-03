@@ -1,0 +1,88 @@
+<section class="storage-page" dir="rtl" [attr.aria-busy]="busy">
+  <header class="page-header">
+    <div><span class="eyebrow">{{ 'STORAGE.WORKSPACE' | translate }}</span><h1>{{ (own ? 'STORAGE.OWN_TITLE' : 'STORAGE.TITLE') | translate }}</h1>
+      <p>{{ context?.schoolName }} <span *ngIf="context?.academicYearName"> · {{ context?.academicYearName }}</span></p></div>
+    <button pButton type="button" icon="pi pi-refresh" [label]="'STORAGE.REFRESH' | translate" (click)="refreshContext()" [disabled]="busy || uploading"></button>
+  </header>
+  <p *ngIf="error" class="error" role="alert">{{ error }}</p>
+  <p *ngIf="notice" class="notice" role="status">{{ notice }}</p>
+  <div *ngIf="disabled" class="empty"><i class="pi pi-lock"></i><h2>{{ 'STORAGE.DISABLED' | translate }}</h2></div>
+  <div *ngIf="!disabled && context && !connected" class="empty" role="status">
+    <i class="pi pi-cloud"></i><h2>{{ ('STORAGE.STATE_' + context.connectionState) | translate }}</h2>
+    <p>{{ 'STORAGE.CONNECTION_HELP' | translate }}</p>
+    <button *ngIf="!own && context.connectionState === 'LibraryNotInitialized' && context.canManage" pButton type="button" [label]="'STORAGE.INITIALIZE' | translate" (click)="initialize()"></button>
+  </div>
+  <p-progressBar *ngIf="busy" mode="indeterminate" [style]="{ height: '4px' }" [attr.aria-label]="'STORAGE.LOADING' | translate"></p-progressBar>
+  <div *ngIf="connected" class="workspace">
+    <aside class="folder-panel"><h2>{{ 'STORAGE.FOLDERS' | translate }}</h2>
+      <p-tree [value]="tree" selectionMode="single" (onNodeSelect)="selectNode($event.node)" (onNodeExpand)="loadChildren($event.node)" [ariaLabel]="'STORAGE.FOLDERS' | translate"></p-tree>
+    </aside>
+    <main>
+      <nav class="breadcrumbs" [attr.aria-label]="'STORAGE.BREADCRUMBS' | translate"><ng-container *ngFor="let crumb of crumbs; let index = index; let last = last">
+        <button type="button" (click)="breadcrumb(index)" [attr.aria-current]="last ? 'page' : null">{{ crumb.displayName }}</button><span *ngIf="!last" aria-hidden="true"> / </span>
+      </ng-container></nav>
+      <form class="toolbar" (ngSubmit)="searchSubmit()">
+        <label class="search"><span class="sr-only">{{ 'STORAGE.SEARCH' | translate }}</span><i class="pi pi-search" aria-hidden="true"></i><input name="search" [(ngModel)]="search" maxlength="200" [placeholder]="'STORAGE.SEARCH' | translate"></label>
+        <label><input type="checkbox" name="global" [(ngModel)]="global"> {{ 'STORAGE.GLOBAL' | translate }}</label>
+        <button pButton type="submit" [label]="'STORAGE.SEARCH' | translate" [disabled]="busy"></button>
+        <button pButton type="button" [label]="'STORAGE.SORT_NAME' | translate" (click)="sort='name'; searchSubmit()" [class.active]="sort === 'name'"></button>
+        <button pButton type="button" [label]="'STORAGE.SORT_DATE' | translate" (click)="sort='date'; searchSubmit()" [class.active]="sort === 'date'"></button>
+        <button pButton type="button" [label]="'STORAGE.SORT_SIZE' | translate" (click)="sort='size'; searchSubmit()" [class.active]="sort === 'size'"></button>
+        <button pButton type="button" icon="pi pi-sort-alt" [attr.aria-label]="'STORAGE.DIRECTION' | translate" (click)="descending=!descending; searchSubmit()"></button>
+        <button pButton type="button" [icon]="cards ? 'pi pi-list' : 'pi pi-th-large'" [attr.aria-label]="'STORAGE.VIEW' | translate" (click)="cards=!cards"></button>
+      </form>
+      <div *ngIf="context?.canManage" class="upload-zone" (dragover)="$event.preventDefault()" (drop)="drop($event)">
+        <i class="pi pi-cloud-upload" aria-hidden="true"></i><div><strong>{{ 'STORAGE.DROP' | translate }}</strong><small>{{ 'STORAGE.UPLOAD_HINT' | translate }}</small></div>
+        <label class="choose-file" tabindex="0" (keydown.enter)="picker.click()" (keydown.space)="$event.preventDefault(); picker.click()">{{ 'STORAGE.CHOOSE' | translate }}<input #picker type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.mp4,.mov,.webp,.heic" (change)="choose($event)" [disabled]="uploading"></label>
+        <button *ngIf="!own" pButton type="button" icon="pi pi-folder" [label]="'STORAGE.NEW_FOLDER' | translate" (click)="folderDialog=true" [disabled]="uploading"></button>
+      </div>
+      <div *ngIf="selectedFile" class="upload-queue" role="status"><span>{{ selectedFile.name }} · {{ selectedFile.size / 1048576 | number:'1.1-1' }} MiB</span>
+        <button pButton type="button" [label]="'STORAGE.SEND' | translate" (click)="upload()" [disabled]="uploading"></button>
+        <button pButton type="button" [label]="'STORAGE.CANCEL' | translate" (click)="cancelQueued()" [disabled]="uploading"></button>
+        <p-progressBar *ngIf="uploading || progress" [value]="progress" [attr.aria-label]="'STORAGE.PROGRESS' | translate"></p-progressBar>
+      </div>
+      <div *ngIf="operation && operation.status !== 'Completed'" class="notice"><p>{{ 'STORAGE.RECONCILIATION' | translate }}</p><button pButton type="button" [label]="'STORAGE.RECONCILE' | translate" (click)="reconcile()"></button></div>
+      <div *ngIf="!busy && !files.length" class="empty"><i class="pi pi-folder-open"></i><h2>{{ 'STORAGE.EMPTY' | translate }}</h2><p>{{ 'STORAGE.EMPTY_HINT' | translate }}</p></div>
+      <div class="file-grid" [class.cards]="cards">
+        <article *ngFor="let file of files" class="file-row">
+          <i [class]="file.mimeType?.startsWith('image/') ? 'pi pi-image' : 'pi pi-file'" aria-hidden="true"></i>
+          <div class="file-name"><button type="button" (click)="openDetails(file.storedFileId)">{{ file.displayName }}</button><small>{{ file.uploadedAt | date:'mediumDate' }} · {{ file.size / 1048576 | number:'1.1-1' }} MiB</small></div>
+          <span class="state" [class.missing]="file.state === 'MissingFromDrive'">{{ ('STORAGE.STATE_' + file.state) | translate }}</span>
+          <span *ngIf="file.isProtected" class="protected"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'STORAGE.PROTECTED' | translate }}</span>
+          <div class="file-actions"><button pButton type="button" icon="pi pi-download" [attr.aria-label]="('STORAGE.DOWNLOAD' | translate) + ' ' + file.displayName" (click)="download(file)" [disabled]="file.state === 'MissingFromDrive'"></button><button pButton type="button" icon="pi pi-link" [attr.aria-label]="'STORAGE.COPY_LINK' | translate" (click)="copy(file)"></button></div>
+        </article>
+      </div>
+      <p-paginator [rows]="25" [first]="(page-1)*25" [totalRecords]="total" (onPageChange)="paginate($event.first || 0)"></p-paginator>
+      <p class="count" aria-live="polite">{{ 'STORAGE.COUNT' | translate:{ count: total } }}</p>
+      <section class="discovery"><button pButton type="button" [label]="'STORAGE.DISCOVER' | translate" (click)="discover()"></button>
+        <div *ngIf="discovery"><h2>{{ 'STORAGE.DISCOVERY' | translate }}</h2><p>{{ 'STORAGE.DISCOVERY_HINT' | translate }}</p>
+          <div *ngFor="let item of discovery.items" class="file-row"><span>{{ item.displayName }}</span><span class="state">{{ ('STORAGE.STATE_' + item.state) | translate }}</span><button *ngIf="item.storedFileId" type="button" (click)="openDetails(item.storedFileId)">{{ 'STORAGE.DETAILS' | translate }}</button></div>
+          <button *ngIf="discovery.nextPageToken" pButton type="button" [label]="'STORAGE.NEXT' | translate" (click)="discover(true)"></button>
+        </div>
+      </section>
+      <section *ngIf="!own && context?.canManage && folders.length" class="folder-actions"><h2>{{ 'STORAGE.MOVE_FOLDER' | translate }}</h2><button *ngFor="let folder of folders" type="button" (click)="moveSource=folder; moveDialog=true">{{ folder.displayName }} <i class="pi pi-arrows-alt" aria-hidden="true"></i></button></section>
+    </main>
+  </div>
+</section>
+<p-dialog [(visible)]="detailOpen" [header]="'STORAGE.DETAILS' | translate" [modal]="true" [style]="{width:'min(95vw, 650px)'}" (onHide)="deleteConfirmed=false">
+  <p *ngIf="!details">{{ 'STORAGE.LOADING' | translate }}</p>
+  <div *ngIf="details" dir="rtl" class="details"><h2>{{ details.file.displayName }}</h2><p>{{ details.file.mimeType }} · {{ details.file.size / 1048576 | number:'1.1-1' }} MiB</p>
+    <div class="dialog-actions"><button pButton type="button" [label]="'STORAGE.DOWNLOAD' | translate" (click)="download(details.file)" [disabled]="details.file.state === 'MissingFromDrive'"></button><button *ngIf="previewable" pButton type="button" [label]="'STORAGE.PREVIEW' | translate" (click)="preview()" [disabled]="details.file.state === 'MissingFromDrive'"></button></div>
+    <p *ngIf="!previewable">{{ 'STORAGE.PREVIEW_FALLBACK' | translate }}</p>
+    <h3>{{ 'STORAGE.VERSIONS' | translate }}</h3><ul><li *ngFor="let version of details.versions">{{ 'STORAGE.VERSION' | translate:{ number: version.versionNumber } }} · {{ version.uploadedAt | date:'medium' }} · {{ ('STORAGE.AVAILABILITY_' + version.availability) | translate }}</li></ul>
+    <p *ngIf="details.file.isProtected" class="notice">{{ 'STORAGE.PROTECTED_HINT' | translate }}</p>
+    <div *ngIf="!details.file.isProtected && context?.canManage"><label>{{ 'STORAGE.RENAME' | translate }}<input [(ngModel)]="renameName" maxlength="255"></label><button pButton type="button" [label]="'STORAGE.SAVE' | translate" (click)="rename()"></button>
+      <label class="delete-confirm"><input type="checkbox" [(ngModel)]="deleteConfirmed">{{ 'STORAGE.DELETE_CONFIRM' | translate }}</label><button pButton type="button" class="p-button-danger" [label]="'STORAGE.DELETE' | translate" [disabled]="!deleteConfirmed" (click)="delete()"></button>
+    </div>
+  </div>
+</p-dialog>
+<p-dialog [(visible)]="previewOpen" [header]="'STORAGE.PREVIEW' | translate" [modal]="true" [style]="{width:'min(95vw, 1000px)'}" (onHide)="closePreview()">
+  <p *ngIf="previewBusy" role="status">{{ 'STORAGE.LOADING' | translate }}</p>
+  <ng-container *ngIf="previewUrl && details">
+    <iframe *ngIf="details.file.mimeType === 'application/pdf'" [src]="previewUrl" [title]="details.file.displayName" sandbox="allow-same-origin" class="pdf-preview"></iframe>
+    <img *ngIf="details.file.mimeType?.startsWith('image/')" [src]="rawPreviewUrl" [alt]="details.file.displayName" class="image-preview">
+    <video *ngIf="details.file.mimeType === 'video/mp4'" [src]="rawPreviewUrl" controls class="image-preview"></video>
+  </ng-container>
+</p-dialog>
+<p-dialog [(visible)]="folderDialog" [header]="'STORAGE.NEW_FOLDER' | translate" [modal]="true"><form (ngSubmit)="createFolder()" dir="rtl"><label>{{ 'STORAGE.FOLDER_NAME' | translate }}<input name="folderName" [(ngModel)]="folderName" maxlength="255" required></label><button pButton type="submit" [label]="'STORAGE.CREATE' | translate" [disabled]="!folderName.trim()"></button></form></p-dialog>
+<p-dialog [(visible)]="moveDialog" [header]="'STORAGE.MOVE_FOLDER' | translate" [modal]="true"><form (ngSubmit)="moveFolder()" dir="rtl"><p>{{ moveSource?.displayName }}</p><p-tree [value]="tree" selectionMode="single" [ariaLabel]="'STORAGE.DESTINATION' | translate" (onNodeExpand)="loadChildren($event.node)" (onNodeSelect)="moveDestination=$event.node.data?.id"></p-tree><p>{{ 'STORAGE.MOVE_HINT' | translate }}</p><button pButton type="submit" [label]="'STORAGE.MOVE' | translate" [disabled]="!moveDestination"></button></form></p-dialog>

@@ -95,6 +95,9 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
         services.Configure<AlFalah.Application.Storage.StorageOptions>(configuration.GetSection(AlFalah.Application.Storage.StorageOptions.SectionName));
         services.AddScoped<AlFalah.Application.Storage.IStorageRepository, StorageRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageLibraryRepository, StorageLibraryRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageProvider, GoogleStorageProvider>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageLibraryService, AlFalah.Application.Storage.StorageLibraryService>();
         services.AddScoped<AlFalah.Application.Storage.IStorageDriveBoundary, StorageDriveBoundary>();
         services.AddScoped<AlFalah.Application.Storage.IStorageAuthorizationService, AlFalah.Application.Storage.StorageAuthorizationService>();
         services.AddScoped<AlFalah.Application.Storage.IStorageDelegationService, AlFalah.Application.Storage.StorageDelegationService>();

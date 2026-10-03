@@ -136,4 +136,5 @@ public sealed record GoogleDriveUploadRequest(
     string FileName,
     string ContentType,
     string ParentFolderId,
-    string? SharedDriveId);
+    string? SharedDriveId,
+    string? PreGeneratedId = null);

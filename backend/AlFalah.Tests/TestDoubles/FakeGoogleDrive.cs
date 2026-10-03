@@ -18,6 +18,27 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
 {
     private readonly Dictionary<string, Node> _nodes = new(StringComparer.Ordinal);
     private int _generatedIds;
+    public bool LoseNextUploadResponse { get; set; }
+    public bool FailNextUpload { get; set; }
+    public bool RejectNextUpload { get; set; }
+    public Task<string> AllocateFileIdAsync(int schoolId, CancellationToken ct = default)
+    {
+        EnsureReachable(schoolId);
+        return Task.FromResult($"reserved-{++_generatedIds}");
+    }
+    public Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct = default)
+    {
+        EnsureReachable(schoolId);
+        if (_nodes.ContainsKey(id)) throw new InvalidOperationException("Duplicate provider ID");
+        AddFolder(id, name, parent);
+        return GetFileAsync(schoolId, id, ct).ContinueWith(t => t.Result!, ct);
+    }
+    public async Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct = default)
+    {
+        EnsureReachable(schoolId);
+        MoveExternally(id, newParent);
+        return (await GetFileAsync(schoolId, id, ct))!;
+    }
 
     /// <summary>Every upload the code under test performed, in order.</summary>
     public List<UploadRecord> Uploads { get; } = [];
@@ -93,6 +114,8 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
     public async Task<GoogleDriveFile> UploadAsync(int schoolId, GoogleDriveUploadRequest request, CancellationToken cancellationToken = default)
     {
         EnsureReachable(schoolId);
+        if (FailNextUpload) { FailNextUpload = false; throw new HttpRequestException("Network unavailable"); }
+        if (RejectNextUpload) { RejectNextUpload = false; throw new AlFalah.Application.Storage.StorageProviderRejectedException("Quota exceeded"); }
         // The real API rejects an upload into a folder the credential cannot see; without this
         // a test could "succeed" writing into a folder that does not exist.
         if (!_nodes.TryGetValue(request.ParentFolderId, out var parent) || !parent.IsFolder)
@@ -100,9 +123,11 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
 
         using var buffer = new MemoryStream();
         await request.Content.CopyToAsync(buffer, cancellationToken);
-        var id = $"uploaded-{++_generatedIds}";
+        var id = request.PreGeneratedId ?? $"uploaded-{++_generatedIds}";
+        if (_nodes.ContainsKey(id)) throw new InvalidOperationException("Duplicate provider ID");
         _nodes[id] = new Node(id, request.FileName, request.ContentType, request.ParentFolderId, buffer.ToArray());
         Uploads.Add(new(schoolId, id, request.FileName, request.ParentFolderId, request.SharedDriveId, buffer.Length));
+        if (LoseNextUploadResponse) { LoseNextUploadResponse = false; throw new HttpRequestException("Response lost after commit"); }
         return _nodes[id].ToFile();
     }
 

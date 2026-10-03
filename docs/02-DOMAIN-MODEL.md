@@ -268,3 +268,9 @@ Implemented `StorageFolder`, `StoredFile`, `StoredFileVersion`, `EvidenceRequire
 Teacher identities remain InstructorProfile; no new teacher table or replacement of TeacherDriveFolder. Historical files retain their original SchoolId after a transfer, while access resolves active membership/profile/grant on every request. LegacySubmissionId is unique and immutable provenance retains review, deletion, missing, upload and timestamp fields. Incomplete task/year context is NeedsLink, with no invented link/decision. Unknown byte hashes and uploading users stay nullable; the old ledger's existence is not live availability.
 
 Archive and import entities are schema preparation only. See [S1 data/verification contract](specs/school-file-storage/verification/README.md) for actual FK/index shapes and rollback. S2–S6 workflows are not implemented.
+
+## School File Storage S2 (2026-10-03)
+
+`StorageOperation` records SchoolId/actor/request key/fingerprint/action/status, authorized destination/owner, pre-generated provider identity, upload metadata/hash, optional legacy reservation/submission and resulting file/version IDs, safe error code/timestamps/rowversion. Pending precedes provider write; Completed requires a committed file/version for Upload; uncertain results are NeedsAttention, definitive rejection Failed. Scope-composite FKs and unique keys prevent cross-school or duplicate results.
+
+S2 uploads create one StoredFile and immutable StoredFileVersion with NeedsLink and no EvidenceLink for standalone files. Legacy task uploads retain the original submission contract and PendingReview matrix through the shared service. Historical/Approved/multi-version facts protect mutations; source version identity/DriveFileName stays immutable on display-name changes. S3 links/reviews/change requests, S4 readiness, S5 archive and S6 imports remain unimplemented. [S2 domain and lifecycle contracts](specs/school-file-storage/verification/s2-library-and-uploads.md).

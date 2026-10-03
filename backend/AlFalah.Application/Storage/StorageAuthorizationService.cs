@@ -46,11 +46,12 @@ public sealed class StorageAuthorizationService(
         throw Denied();
     }
 
-    public async Task<StorageFileAccess> RequireFileAsync(int schoolId, int fileId, bool mutation = false, CancellationToken ct = default)
+    public async Task<StorageFileAccess> RequireFileAsync(int schoolId, int fileId, bool mutation = false, CancellationToken ct = default, bool metadataOnly = false)
     {
         var scope = await RequireScopeAsync(schoolId, ct);
         var file = await repository.GetFileAccessAsync(schoolId, fileId, ct) ?? throw new KeyNotFoundException("الملف غير متاح.");
-        if (file.IsDeleted || file.Availability is StoredFileAvailability.Deleted or StoredFileAvailability.Missing or StoredFileAvailability.UploadIncomplete)
+        if (file.IsDeleted || file.Availability is StoredFileAvailability.Deleted or StoredFileAvailability.UploadIncomplete ||
+            file.Availability == StoredFileAvailability.Missing && !metadataOnly)
             throw new KeyNotFoundException("الملف غير متاح.");
         var own = file.OwnerIsActiveInSchool && file.OwnerUserId == scope.UserId && file.SourceKind == StoredFileSourceKind.TeacherUpload;
         StorageDriveRoot? root;
@@ -75,7 +76,7 @@ public sealed class StorageAuthorizationService(
             if (schoolRoot is null || schoolRoot.DriveId != file.DriveId) throw Denied();
             await driveBoundary.EnsureWithinAsync(schoolId, schoolRoot, root.RootItemId, ct);
         }
-        await driveBoundary.EnsureWithinAsync(schoolId, root, file.DriveItemId, ct);
+        if (!metadataOnly) await driveBoundary.EnsureWithinAsync(schoolId, root, file.DriveItemId, ct);
         return file;
     }
 

@@ -198,3 +198,11 @@ folder, and `GET /api/v1/evidence-matrix/submissions/{submissionId}/content` for
 restricted to their school).
 
 Apply the EF migration with `dotnet ef database update --project backend/AlFalah.Infrastructure --startup-project backend/AlFalah.Api`. The runtime also applies pending migrations on API startup in development. The Google Drive migration drops the OneDrive tables and deactivates any surviving folder grant, because a OneDrive item id resolves to nothing on Google — grants must be re-issued deliberately.
+
+## School file storage — S2
+
+S2 implements the RTL school library (`/school-manager/storage`) for the actual manager/direct delegate and teacher files (`/instructor/my-files`), folder creation/moves, server search/pagination, authorized previews/downloads, protected history, and streamed uploads up to 250 MiB. Durable upload operations reserve a Google item ID before sending bytes; retry/reconciliation never creates a second item for the same key. The legacy teacher writer uses the same service when the read model is enabled.
+
+Both `SchoolFileStorage:AdministrationEnabled` and `SchoolFileStorage:ReadModelEnabled` remain **false**. Original Development was not migrated, Google credentials/keys were not rewritten, and the S0 decryption limitation still blocks live Drive verification and cutover. New library uploads do not count as evidence before S3 linking/review. S3 has not started.
+
+See [S2 contracts, verification, limitations and safe test commands](docs/specs/school-file-storage/verification/s2-library-and-uploads.md), [performance evidence](docs/specs/school-file-storage/verification/s2-performance.json), and [phase status](docs/specs/school-file-storage/phases/02-library-and-uploads.md). SQL tests require a fresh, explicitly named isolated LocalDB database. Browser tests mock API responses and start Angular only; do not start the actual Development API for them because startup applies migrations.

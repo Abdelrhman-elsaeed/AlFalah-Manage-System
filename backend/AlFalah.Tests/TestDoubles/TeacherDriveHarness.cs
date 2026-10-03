@@ -62,11 +62,12 @@ public sealed class TeacherDriveHarness : IAsyncDisposable
     public AlFalahDbContext Context { get; }
     public FakeGoogleDrive Drive { get; }
 
-    public static async Task<TeacherDriveHarness> CreateAsync(bool connectSchoolDrive = true, bool grantFolders = true)
+    public static async Task<TeacherDriveHarness> CreateAsync(bool connectSchoolDrive = true, bool grantFolders = true,
+        Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesInterceptor? interceptor = null)
     {
-        var context = new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>()
-            .UseInMemoryDatabase($"teacher-drive-{Guid.NewGuid()}")
-            .Options);
+        var builder = new DbContextOptionsBuilder<AlFalahDbContext>().UseInMemoryDatabase($"teacher-drive-{Guid.NewGuid()}");
+        if (interceptor is not null) builder.AddInterceptors(interceptor);
+        var context = new AlFalahDbContext(builder.Options);
 
         var school = new School { Id = SchoolId, Name = "مدرسة الفلاح", City = "الرياض", IsActive = true };
         var otherSchool = new School { Id = OtherSchoolId, Name = "مدرسة أخرى", City = "جدة", IsActive = true };

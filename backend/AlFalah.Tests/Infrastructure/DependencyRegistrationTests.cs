@@ -41,6 +41,8 @@ public class DependencyRegistrationTests
         scope.ServiceProvider.GetRequiredService<IDashboardService>().Should().NotBeNull();
         scope.ServiceProvider.GetRequiredService<IStorageDelegationService>().Should().NotBeNull();
         scope.ServiceProvider.GetRequiredService<IStorageAuthorizationService>().Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<IStorageLibraryService>().Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<IStorageProvider>().Should().NotBeNull();
     }
 
     private sealed class TestHostEnvironment : IHostEnvironment

@@ -39,6 +39,9 @@ public sealed class StorageSqlCollection : ICollectionFixture<StorageSqlFixture>
 
 public sealed class StorageSqlFixture : IAsyncLifetime
 {
+    private readonly string? configuredConnection;
+    public StorageSqlFixture() { }
+    internal StorageSqlFixture(string? connection) => configuredConnection = connection;
     public bool LegacyPreserved { get; private set; }
     public bool CredentialPreserved { get; private set; }
     public string Connection { get; private set; } = "";
@@ -47,7 +50,7 @@ public sealed class StorageSqlFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var connection = Environment.GetEnvironmentVariable("ALFALAH_STORAGE_TEST_CONNECTION");
+        var connection = configuredConnection ?? Environment.GetEnvironmentVariable("ALFALAH_STORAGE_TEST_CONNECTION");
         if (string.IsNullOrWhiteSpace(connection)) return;
         var b = new SqlConnectionStringBuilder(connection);
         if (!b.DataSource.StartsWith("(localdb)\\", StringComparison.OrdinalIgnoreCase) ||

@@ -143,6 +143,36 @@ public sealed class GoogleDriveClientTests
 
     // ─── Harness ──────────────────────────────────────────────────────────────
 
+    [Fact]
+    public async Task Generated_ID_is_preserved_in_folder_and_streamed_upload_requests()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK,
+            """{"id":"reserved-1","name":"file.pdf","mimeType":"application/pdf","parents":["parent"],"size":"8"}""");
+        var client = new GoogleDriveClient(new RecordingTokenService(), new StubClientFactory(handler),
+            new ConfigurationBuilder().Build(), NullLogger<GoogleDriveClient>.Instance);
+        await client.CreateFolderAsync(1, "reserved-1", "parent", "folder");
+        using var folder = JsonDocument.Parse(handler.LastBody!);
+        folder.RootElement.GetProperty("id").GetString().Should().Be("reserved-1");
+        folder.RootElement.GetProperty("parents")[0].GetString().Should().Be("parent");
+        handler.LastUrl.Should().Contain("supportsAllDrives=true");
+        using var stream = new MemoryStream("%PDF-1.7"u8.ToArray());
+        await client.UploadAsync(1, new(stream, "file.pdf", "application/pdf", "parent", null, "reserved-1"));
+        handler.LastBody.Should().Contain("\"id\":\"reserved-1\"").And.Contain("%PDF-1.7");
+        handler.LastUrl.Should().Contain("uploadType=multipart").And.Contain("supportsAllDrives=true");
+    }
+
+    [Fact]
+    public async Task Allocation_uses_Google_drive_generated_ID_without_creating_a_file()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK, """{"ids":["reserved-2"],"space":"drive"}""");
+        var client = new GoogleDriveClient(new RecordingTokenService(), new StubClientFactory(handler),
+            new ConfigurationBuilder().Build(), NullLogger<GoogleDriveClient>.Instance);
+        (await client.AllocateFileIdAsync(1)).Should().Be("reserved-2");
+        handler.LastMethod.Should().Be(HttpMethod.Get);
+        handler.LastUrl.Should().Contain("files/generateIds?count=1&space=drive&type=files");
+        handler.LastBody.Should().BeNull();
+    }
+
     private static GoogleDriveClient Client(
         HttpStatusCode statusCode, string body, IGoogleDriveTokenService? tokens = null) =>
         new(tokens ?? new RecordingTokenService(),

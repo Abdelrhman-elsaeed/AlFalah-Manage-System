@@ -7,7 +7,7 @@ public sealed class StorageOptions
 {
     public const string SectionName = "SchoolFileStorage";
     public bool AdministrationEnabled { get; set; } = false;
-    // Reserved for the later, reconciled cutover; S1 registers no new file readers.
+    // Activate only after schema/backfill/live Drive gates; defaults deliberately remain OFF.
     public bool ReadModelEnabled { get; set; } = false;
 }
 
@@ -49,7 +49,7 @@ public interface IStorageAuthorizationService
     Task<StorageActorScope> RequireScopeAsync(int schoolId, CancellationToken ct = default);
     Task<StorageActorScope> RequireManagerAsync(int schoolId, CancellationToken ct = default);
     Task RequireSchoolPermissionAsync(int schoolId, string permission, CancellationToken ct = default);
-    Task<StorageFileAccess> RequireFileAsync(int schoolId, int fileId, bool mutation = false, CancellationToken ct = default);
+    Task<StorageFileAccess> RequireFileAsync(int schoolId, int fileId, bool mutation = false, CancellationToken ct = default, bool metadataOnly = false);
 }
 
 public interface IStorageDelegationService

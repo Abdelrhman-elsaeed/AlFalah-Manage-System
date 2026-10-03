@@ -153,6 +153,10 @@ public sealed class TeacherDriveMappingService : ITeacherDriveMappingService
             .Where(x => x.SchoolId == teacher.SchoolId && x.IsActive && x.TeacherId != teacherId)
             .Select(x => x.RootItemId)
             .ToListAsync(cancellationToken);
+        var protectedRoots = await _context.StorageFolders.AsNoTracking()
+            .Where(x => x.SchoolId == teacher.SchoolId && x.IsActive && x.OwnerTeacherId == null && x.ParentFolderId == null)
+            .Select(x => x.DriveItemId).ToListAsync(cancellationToken);
+        otherActiveGrantRoots.AddRange(protectedRoots);
         foreach (var otherRoot in otherActiveGrantRoots)
         {
             var overlaps = await _guard.IsWithinAsync(teacher.SchoolId, otherRoot, folderId, cancellationToken)

@@ -83,7 +83,7 @@ public sealed class TeacherDriveController : ControllerBase
         Ok(ApiResponse<EvidenceUploadCatalogDto>.Success(await _submissions.GetUploadCatalogAsync(cancellationToken)));
 
     [HttpPost("uploads")]
-    [RequestSizeLimit(262_144_000)]
+    [RequestSizeLimit(263_192_576)]
     public async Task<IActionResult> Upload(
         [FromForm] IFormFile? file,
         [FromForm] string? parentItemId,

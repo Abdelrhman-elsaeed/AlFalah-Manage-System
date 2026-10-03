@@ -127,3 +127,11 @@ src/app/features
 - Improvement-plan and follow-up pages consume the shared Saudi design tokens,
   PrimeNG buttons/tags, the unified select, and calendar controls while keeping
   RTL layout and the dynamic rubric behavior (D-65).
+
+## School File Storage S2 UI (2026-10-03)
+
+Lazy standalone storage feature under shell: `/school-manager/storage` for actual manager/direct delegate, `/instructor/my-files` for Instructor own files. The school-library route uses a live storage API guard before the manager-only branch so a valid delegate needs no copied manager role. Shell navigation probes the live scoped context; flags OFF hides new links. Backend checks remain authoritative.
+
+Shared RTL/PrimeNG page includes school/year context, lazy paginated folder tree/breadcrumbs, SQL search/global search/sort/pagination, list/cards, drop/select upload/progress/cancel-before-send, durable retry key in sessionStorage, explicit reconciliation, detail/version/protection state, authorized blob preview/download and internal links. Connection unavailable/no folder/uninitialized/loading/empty/error states are explicit. Read-only users do not receive folder mutation controls; 403 clears loaded data/preview. Previews cap at20 MiB and revoke object URLs; Office/unsupported/large files offer download fallback. No static prototype names/counts or Windows paths.
+
+Angular API/component/shell tests and desktop/mobile RTL Playwright contracts are in [S2 verification](specs/school-file-storage/verification/s2-library-and-uploads.md). Browser fixtures mock API and start Angular only, preserving the actual database/credentials. S3 review/link/change UI has not started.

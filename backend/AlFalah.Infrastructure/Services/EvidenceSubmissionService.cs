@@ -260,6 +260,19 @@ public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
         }
     }
 
+    public async Task MarkAvailabilityAsync(int teacherId, long submissionId, bool missing, CancellationToken ct = default)
+    {
+        await using var transaction = await BeginTransactionIfRelationalAsync(ct);
+        var submission = await _context.TeacherEvidenceSubmissions.SingleAsync(x => x.Id == submissionId && x.TeacherId == teacherId, ct);
+        submission.IsMissingFromDrive = missing;
+        submission.MissingFromDriveAtUtc = missing ? DateTimeOffset.UtcNow : null;
+        await _context.SaveChangesAsync(ct);
+        if (submission.TaskId is not null && submission.AcademicYearId is not null)
+            await RecalculateTaskStatusAsync(teacherId, submission.SchoolId, submission.TaskId.Value, submission.AcademicYearId.Value, ct);
+        await _context.SaveChangesAsync(ct);
+        if (transaction is not null) await transaction.CommitAsync(ct);
+    }
+
     internal static EvidenceCellStatus CalculateCellStatus(IReadOnlyCollection<TeacherEvidenceSubmission> activeFiles)
     {
         if (activeFiles.Count == 0) return EvidenceCellStatus.NotUploaded;
@@ -283,7 +296,7 @@ public sealed class EvidenceSubmissionService : IEvidenceSubmissionService
 
     private async Task<IDbContextTransaction?> BeginTransactionIfRelationalAsync(CancellationToken cancellationToken)
     {
-        if (!_context.Database.IsRelational()) return null;
+        if (!_context.Database.IsRelational() || _context.Database.CurrentTransaction is not null) return null;
         return await _context.Database.BeginTransactionAsync(cancellationToken);
     }
 }

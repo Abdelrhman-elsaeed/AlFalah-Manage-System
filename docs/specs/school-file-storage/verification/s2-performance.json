@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-03",
+  "database": "isolated LocalDB fixture",
+  "assets": 5000,
+  "pageSize": 25,
+  "page": 100,
+  "samplesMs": [
+    43.8217,
+    149.2236,
+    60.3877,
+    74.0982,
+    68.372,
+    59.2151,
+    57.2823,
+    68.8755,
+    84.8549,
+    100.5617
+  ],
+  "medianMs": 68.62375,
+  "maxMs": 149.2236,
+  "serviceWithFakeDriveMs": 187.2455,
+  "liveDrive": "Unavailable; S0 credential constraint unchanged",
+  "targetMs": 200
+}

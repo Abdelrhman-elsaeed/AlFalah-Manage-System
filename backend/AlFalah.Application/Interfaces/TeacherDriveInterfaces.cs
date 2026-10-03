@@ -21,6 +21,9 @@ public interface IGoogleDriveTokenService
 /// </summary>
 public interface IGoogleDriveClient
 {
+    Task<string> AllocateFileIdAsync(int schoolId, CancellationToken ct = default) => throw new NotSupportedException();
+    Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct = default) => throw new NotSupportedException();
+    Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct = default) => throw new NotSupportedException();
     /// <summary>Returns null when the file does not exist (or is no longer visible to the school credential).</summary>
     Task<GoogleDriveFile?> GetFileAsync(int schoolId, string fileId, CancellationToken cancellationToken = default);
 
@@ -105,6 +108,7 @@ public interface IGoogleDriveUploadService
 
 public interface IEvidenceSubmissionService
 {
+    Task MarkAvailabilityAsync(int teacherId, long submissionId, bool missing, CancellationToken ct = default) => throw new NotSupportedException();
     Task<EvidenceUploadCatalogDto> GetUploadCatalogAsync(CancellationToken cancellationToken = default);
     Task<EvidenceUploadReservationDto> ReserveUploadAsync(int teacherId, int schoolId, int taskId, string requestId, CancellationToken cancellationToken = default);
     Task<UploadFileResultDto> RecordCompletedUploadAsync(long operationId, int teacherId, int schoolId, string driveId, string parentItemId, DriveItemDto item, CancellationToken cancellationToken = default);

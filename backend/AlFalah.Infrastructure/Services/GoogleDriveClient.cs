@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using AlFalah.Application.Common.Exceptions;
 using AlFalah.Application.DTOs.TeacherDrive;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -77,6 +78,7 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
             ["name"] = request.FileName,
             ["parents"] = new JsonArray(request.ParentFolderId)
         };
+        if (request.PreGeneratedId is not null) metadata["id"] = request.PreGeneratedId;
 
         // Multipart/related is Drive's one-request upload: metadata part, then bytes.
         // Drive never overwrites on create, so a same-named file can only ever be an
@@ -91,6 +93,27 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
         var json = await SendAsync(schoolId, HttpMethod.Post, uploadUrl, content, allowNotFound: false, cancellationToken)
             ?? throw new InvalidOperationException("لم تُرجع Google Drive بيانات الملف بعد الرفع.");
         return ParseFile(json);
+    }
+
+    public async Task<string> AllocateFileIdAsync(int schoolId, CancellationToken ct = default)
+    {
+        var json = await SendAsync(schoolId, HttpMethod.Get, "files/generateIds?count=1&space=drive&type=files", null, false, ct);
+        return json?["ids"]?[0]?.GetValue<string>() ?? throw new InvalidOperationException("تعذر حجز معرّف ملف Drive.");
+    }
+
+    public async Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct = default)
+    {
+        using var body = new StringContent(new JsonObject { ["id"] = id, ["name"] = name,
+            ["mimeType"] = GoogleDriveFile.FolderMimeType, ["parents"] = new JsonArray(parent) }.ToJsonString(), Encoding.UTF8, "application/json");
+        var json = await SendAsync(schoolId, HttpMethod.Post, $"files?supportsAllDrives=true&fields={Uri.EscapeDataString(FileFields)}", body, false, ct);
+        return ParseFile(json!);
+    }
+
+    public async Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct = default)
+    {
+        var path = $"files/{Uri.EscapeDataString(id)}?supportsAllDrives=true&addParents={Uri.EscapeDataString(newParent)}&removeParents={Uri.EscapeDataString(oldParent)}&fields={Uri.EscapeDataString(FileFields)}";
+        using var body = new StringContent("{}", Encoding.UTF8, "application/json");
+        return ParseFile((await SendAsync(schoolId, HttpMethod.Patch, path, body, false, ct))!);
     }
 
     public async Task<GoogleDriveFile> RenameAsync(
@@ -190,7 +213,7 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
             // next attempt re-authenticates instead of replaying the dead token.
             _tokens.InvalidateCachedToken(schoolId);
             _logger.LogWarning("Google Drive rejected the school {SchoolId} credential with 401.", schoolId);
-            throw new InvalidOperationException("انتهت صلاحية اتصال Google Drive الخاص بالمدرسة. يرجى إعادة إعداده.");
+            throw new StorageProviderRejectedException("انتهت صلاحية اتصال Google Drive الخاص بالمدرسة. يرجى إعادة إعداده.");
         }
         if (response.StatusCode == HttpStatusCode.Forbidden)
         {
@@ -201,19 +224,19 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
             throw ReadErrorReason(forbiddenBody) switch
             {
                 "rateLimitExceeded" or "userRateLimitExceeded" =>
-                    new InvalidOperationException("خدمة الملفات مشغولة حالياً. يرجى المحاولة بعد قليل."),
+                    new StorageProviderRejectedException("خدمة الملفات مشغولة حالياً. يرجى المحاولة بعد قليل."),
                 // A service account owns no storage quota, so a file it CREATES in an ordinary
                 // My Drive folder is refused even when it can read that folder perfectly well.
                 // Naming the real cause stops an administrator hunting a permission problem
                 // that does not exist.
-                "storageQuotaExceeded" => new InvalidOperationException(
+                "storageQuotaExceeded" => new StorageProviderRejectedException(
                     "لا تتوفر مساحة تخزين لحساب Google المستخدم لحفظ الملف. حساب الخدمة لا يملك مساحة خاصة: "
                     + "استخدم Shared Drive أو بريد مستخدم للانتحال (Domain-Wide Delegation)، أو حساب Google عادي برمز تحديث."),
                 _ => new TeacherDriveAccessDeniedException("ليس لدى حساب المدرسة صلاحية على هذا المجلد.")
             };
         }
         if (response.StatusCode == HttpStatusCode.TooManyRequests)
-            throw new InvalidOperationException("خدمة الملفات مشغولة حالياً. يرجى المحاولة بعد قليل.");
+            throw new StorageProviderRejectedException("خدمة الملفات مشغولة حالياً. يرجى المحاولة بعد قليل.");
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
