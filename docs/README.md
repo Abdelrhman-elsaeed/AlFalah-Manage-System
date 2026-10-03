@@ -40,6 +40,7 @@
 | HP-01 | [specs/homepage/01-premium-landing-page.md](specs/homepage/01-premium-landing-page.md) | Proposed premium Arabic landing page, separate login route, achievements redesign, and acceptance plan |
 | CV2 | [specs/classroom-visits-v2/plan.md](specs/classroom-visits-v2/plan.md) | Classroom Visits V2 approved prototype parity, implementation phases, and safety decisions |
 | CV2-OPS | [specs/classroom-visits-v2/rollout-runbook.md](specs/classroom-visits-v2/rollout-runbook.md) | V2 pilot, cutover, monitoring, and fast rollback procedure |
+| SFS | [specs/school-file-storage/plan.md](specs/school-file-storage/plan.md) | School file storage, teacher evidence, prototype parity, permissions, readiness, and visit PDF archival specification |
 | SA-1 | [Phase1-Domain-And-Database-Schema.md](Phase1-Domain-And-Database-Schema.md) | Student Affairs domain and EF Core schema specification |
 | SA-2 | [Phase2-Identity-Roles-And-Permissions.md](Phase2-Identity-Roles-And-Permissions.md) | Student Affairs Identity roles and granular permissions |
 | SA-3 | [Phase3-Core-API-Contracts.md](Phase3-Core-API-Contracts.md) | Student Affairs REST/CQRS contracts |
@@ -61,11 +62,13 @@
 | 8 | [phases/PHASE-08-COMPLAINTS.md](phases/PHASE-08-COMPLAINTS.md) | COMPLETED ✅ |
 | 9 | [phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md](phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md) | COMPLETED ✅ |
 | 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | IN PROGRESS |
+| SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | SPECIFIED — implementation not started |
 | SA-1–SA-5 | Student Affairs Technical Specification Kit | BLUEPRINT LOCKED — implementation not started |
 
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-10-03 | Added the integrated [School File Storage Spec Kit](specs/school-file-storage/plan.md) and phase gate. It inventories the existing teacher Drive/evidence flow and the supplied self-evaluation prototype, fixes manager-only delegation, independent review of multiple evidence links per file, computed readiness, and post-approval V2 PDF archival, and defines additive implementation stages and acceptance checks. No application or Drive data changed. | Codex |
 | 2026-09-22 | Implemented the Classroom Visits V2 code cutover: V2 is globally enabled; `/visits` is V2 and `/visits-legacy` is historical read-only; V1 writes return logged `410 Gone`; V2 workflow no longer depends on `IVisitService`; teacher reports/history, complaints, dashboards and CSV/PDF/ZIP are version-aware. Development readiness found 10 non-final V1 records, so production cutover remains operationally blocked pending documented dispositions, restore rehearsal, browser smoke tests and screenshots. No legacy data or schema was removed. | Codex |
 | 2026-09-21 | Enabled Classroom Visits V2 in local Development configuration for manual QA, leaving production OFF. Started the API and Angular development servers and verified an authenticated School Manager receives `isEnabled:true` from `/api/v2/visits/availability`. | Codex |
 | 2026-09-21 | Implemented Classroom Visits V2 phases 2–7: additive rubric/indicator/treatment schema and migration; exact 5/25/66 seed; versioned scoring and transactional service/repository layers; scoped V2 API; RTL Angular observation/archive/report/dashboard workspace; 22-column UTF-8 BOM CSV; branded/signature PDF; report-view logging; teacher progress scale conversion; and feature-aware legacy navigation. Phase 8 mechanisms and runbook are ready with flags OFF by default; pilot/client acceptance is intentionally pending. Optional physical retirement remains unexecuted pending separate approval. | Codex |
