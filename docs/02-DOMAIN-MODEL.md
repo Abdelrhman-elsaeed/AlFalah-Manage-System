@@ -260,3 +260,11 @@ See [Phase 02 blueprint](specs/intelligent-timetable/02-timings.md) for the full
 - `VisitTreatmentSnapshot` is visit-owned and persists generated or manually edited goal/actions/success-indicator text. It replaces the standalone improvement-plan UI only for V2; existing plan/follow-up records remain retained.
 
 The additive migration is `20260920233213_ClassroomVisitsV2AdditiveSchema`. No V1 column/table is dropped or renamed.
+
+## School File Storage S1 (2026-10-03)
+
+Implemented `StorageFolder`, `StoredFile`, `StoredFileVersion`, `EvidenceRequirement`, `EvidenceLink`, `EvidenceReviewDecision`, `StorageDelegation`, `VisitArchiveOperation`, `VisitArchiveArtifact`, `PrototypeImportBatch`, and `PrototypeImportRow` under `Entities/Storage`. Every readable record has explicit SchoolId; only requirement templates may have nullable school/year. File identity, immutable version identity, independent link status, and append-only decisions are separate facts. School/year requirements retain OriginalTaskId and stable Code; prototype domain/standard codes are separate from classroom-visit rubric identities.
+
+Teacher identities remain InstructorProfile; no new teacher table or replacement of TeacherDriveFolder. Historical files retain their original SchoolId after a transfer, while access resolves active membership/profile/grant on every request. LegacySubmissionId is unique and immutable provenance retains review, deletion, missing, upload and timestamp fields. Incomplete task/year context is NeedsLink, with no invented link/decision. Unknown byte hashes and uploading users stay nullable; the old ledger's existence is not live availability.
+
+Archive and import entities are schema preparation only. See [S1 data/verification contract](specs/school-file-storage/verification/README.md) for actual FK/index shapes and rollback. S2–S6 workflows are not implemented.

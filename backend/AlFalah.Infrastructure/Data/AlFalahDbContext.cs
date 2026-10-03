@@ -47,6 +47,19 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<TeacherTaskStatus> TeacherTaskStatuses => Set<TeacherTaskStatus>();
     public DbSet<EvidenceUploadOperation> EvidenceUploadOperations => Set<EvidenceUploadOperation>();
 
+    // School file storage S1 (legacy readers remain authoritative until cutover).
+    public DbSet<AlFalah.Domain.Entities.Storage.StorageFolder> StorageFolders => Set<AlFalah.Domain.Entities.Storage.StorageFolder>();
+    public DbSet<AlFalah.Domain.Entities.Storage.StoredFile> StoredFiles => Set<AlFalah.Domain.Entities.Storage.StoredFile>();
+    public DbSet<AlFalah.Domain.Entities.Storage.StoredFileVersion> StoredFileVersions => Set<AlFalah.Domain.Entities.Storage.StoredFileVersion>();
+    public DbSet<AlFalah.Domain.Entities.Storage.EvidenceRequirement> EvidenceRequirements => Set<AlFalah.Domain.Entities.Storage.EvidenceRequirement>();
+    public DbSet<AlFalah.Domain.Entities.Storage.EvidenceLink> EvidenceLinks => Set<AlFalah.Domain.Entities.Storage.EvidenceLink>();
+    public DbSet<AlFalah.Domain.Entities.Storage.EvidenceReviewDecision> EvidenceReviewDecisions => Set<AlFalah.Domain.Entities.Storage.EvidenceReviewDecision>();
+    public DbSet<AlFalah.Domain.Entities.Storage.StorageDelegation> StorageDelegations => Set<AlFalah.Domain.Entities.Storage.StorageDelegation>();
+    public DbSet<AlFalah.Domain.Entities.Storage.VisitArchiveOperation> VisitArchiveOperations => Set<AlFalah.Domain.Entities.Storage.VisitArchiveOperation>();
+    public DbSet<AlFalah.Domain.Entities.Storage.VisitArchiveArtifact> VisitArchiveArtifacts => Set<AlFalah.Domain.Entities.Storage.VisitArchiveArtifact>();
+    public DbSet<AlFalah.Domain.Entities.Storage.PrototypeImportBatch> PrototypeImportBatches => Set<AlFalah.Domain.Entities.Storage.PrototypeImportBatch>();
+    public DbSet<AlFalah.Domain.Entities.Storage.PrototypeImportRow> PrototypeImportRows => Set<AlFalah.Domain.Entities.Storage.PrototypeImportRow>();
+
     // System
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Notification> Notifications => Set<Notification>();
@@ -305,6 +318,15 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     {
         foreach (var entry in ChangeTracker.Entries())
         {
+            if (entry.Entity is AlFalah.Domain.Entities.Storage.EvidenceReviewDecision && entry.State is EntityState.Modified or EntityState.Deleted)
+                throw new InvalidOperationException("Evidence decisions are append-only.");
+            if (entry.Entity is AlFalah.Domain.Entities.Storage.StoredFileVersion &&
+                (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
+                 entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not ("Availability" or "MissingFromDriveAtUtc" or "UpdatedAtUtc"))))
+                throw new InvalidOperationException("File version bytes and identity are immutable.");
+            if (entry.Entity is AlFalah.Domain.Entities.Storage.StoredFile && entry.State == EntityState.Modified &&
+                entry.Properties.Any(p => p.IsModified && p.Metadata.Name is "LegacySubmissionId" or "LegacyProvenanceJson" or "LegacyFingerprint"))
+                throw new InvalidOperationException("Legacy provenance is immutable; rerun reports source drift.");
             if (entry.Entity is TimetableSubstitution or TimetableSubstitutionMovement && entry.State is EntityState.Modified or EntityState.Deleted)
                 throw new InvalidOperationException("Confirmed timetable changes are immutable.");
             if (entry.Entity is TimetableAnalysisRun && entry.State is EntityState.Modified or EntityState.Deleted)
@@ -328,6 +350,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
             switch (entry.Entity)
             {
+                case AlFalah.Domain.Entities.Storage.IStorageRecord storage: storage.UpdatedAtUtc = now; break;
+                case AlFalah.Domain.Entities.Storage.EvidenceRequirement requirement: requirement.UpdatedAtUtc = now; break;
                 case School s: s.UpdatedAt = now; break;
                 case SchoolLocation sl: sl.UpdatedAt = now; break;
                 case ApplicationUser u: u.UpdatedAt = now; break;

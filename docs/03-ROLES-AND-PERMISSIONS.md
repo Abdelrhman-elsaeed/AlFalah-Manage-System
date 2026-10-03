@@ -8,6 +8,12 @@
 > the same user may have different roles per school in the future, and school context
 > must be selected at login for school users.
 
+## Storage S1 permissions (2026-10-03)
+
+Eight DB permissions: `Storage.ViewSchool`, `Storage.ManageSchool`, `Storage.ReviewEvidence`, `Storage.ViewOwn`, `Storage.ManageOwn`, `Storage.ViewArchive`, `Storage.RetryArchive`, `Storage.Delegate`. The canonical seeder and additive migration grant all eight to SchoolManager and the own pair to Instructor. Existing `Instructor.View/Edit` definitions are unchanged. Global roles and other school roles receive no new storage permissions implicitly; an active direct delegation is required for school operations by anyone other than the actual manager. This follows the storage phase's default-deny actor matrix (D-94).
+
+Storage services re-query active school, user, UserSchoolRole, role/permission mappings and temporal delegation instead of trusting JWT permission claims. Manager-only grant/list/revoke additionally requires `School.ManagerUserId == current UserId` and live `Storage.Delegate`; a delegate never receives this permission or the ability to grant/revoke. StartsAt is inclusive, ExpiresAt exclusive, and RevokedAt stops access immediately. Grant/revocation reason and actors remain separate audit fields. `SchoolFileStorage.AdministrationEnabled` defaults false; see [S1 contracts](specs/school-file-storage/verification/README.md).
+
 ## Roles
 - Super Admin / Developer
 - Main Manager / مدير المدارس العام

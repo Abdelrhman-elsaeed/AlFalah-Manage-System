@@ -61,3 +61,11 @@ Applied migration: `20260905163146_AddTimetableTimings`, local development `AlFa
 - No guessed historical backfill. Existing unconfigured timetables require selecting a template and explicit publication. Development E2E seed data supplies a realistic six-period template and targeted lessons.
 
 For local EF commands set `ALFALAH_MIGRATIONS_CONNECTION` from the Development connection configuration; the design-time factory otherwise uses its separate migrations database. Do not substitute the base appsettings connection for local verification.
+
+## School File Storage S1 schema (2026-10-03)
+
+Migration `20261003023752_SchoolFileStorageFoundation` creates 11 additive tables, scoped composite foreign keys, search/unique filtered indexes, rowversion, immutable-history/tree/scope triggers, and 8 permission rows with manager/teacher mappings. It drops, renames or alters no legacy table/column. The cyclic current-version FK is explicitly defined in the migration rather than the EF navigation model; preserve this constraint when evolving the schema.
+
+Nullable active-link and school/year template uniqueness use explicit filtered index shapes, documented and exercised on SQL Server in [S1 verification](specs/school-file-storage/verification/README.md). No destructive Down: rollback uses flags and retains history. The migration was tested on a fresh LocalDB database and an isolated COPY_ONLY clone of Development. Original Development and production were not migrated; no Google configuration/credential was modified.
+
+Offline backfill is opt-in and never runs at API startup. [Runbook](specs/school-file-storage/scripts/README.md) requires an explicit local database and report, offers dry-run, and reports unmapped rows or drift without overwriting history. Existing APIs/matrix continue using legacy tables during S1.

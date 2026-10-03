@@ -51,6 +51,7 @@ public class GlobalExceptionMiddleware
 
         var (statusCode, message) = exception switch
         {
+            AlFalah.Application.Storage.StorageConflictException => (StatusCodes.Status409Conflict, exception.Message),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, exception.Message),
             UnauthorizedSchoolAccessException => (StatusCodes.Status403Forbidden, exception.Message),
             TeacherDriveAccessDeniedException => (StatusCodes.Status403Forbidden, exception.Message),

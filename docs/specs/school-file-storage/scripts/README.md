@@ -32,3 +32,26 @@ dotnet --roll-forward Major docs/specs/school-file-storage/scripts/DriveBaseline
 يفحص جذر كل اتصال مفعّل ويقرأ كل صفحات المجلدات حتى 300 طلب HTTP و90 ثانية لكل مدرسة؛ يوقف الدوران بالمجلدات. يطابق IDs في الذاكرة مع ledger ويحسب الملفات غير المفهرسة ومجموعات منح المعلمين. لا يستنتج سنة لملف غير مفهرس؛ تفاصيل المدرسة/المعلم/السنة للشواهد المسجلة في قياس SQL. أسماء الملفات ومعرفات Drive وأجسام HTTP والاستثناءات التفصيلية لا تخرج. الحساب Complete فقط، وما تعذر أو اكتمل جزئيًا تكون أرقامه null.
 
 المخرج `drive-baseline.json`. Unavailable/Partial نتيجة صالحة للمراقبة لكنها ليست اتصالًا ناجحًا أو أرقامًا صفرية. النتيجة الحالية فشل فك تشفير credential قبل HTTP؛ إعادة التشغيل وحدها لا تصلح الاتصال. تتطلب رؤية شاملة أن credential نفسها تستطيع قراءة كل شجرة الجذر؛ لا يمكن للأداة عد ملفات لا يسمح Google لها برؤيتها.
+
+## S1 — backfill تحضيري مستقل
+
+اقرأ [تقرير S1 وخطة الرجوع](../verification/README.md). أنشئ قاعدة SQL محلية تجريبية مستقلة من نسخة COPY_ONLY، ولا تستخدم اسم قاعدة التشغيل في أمثلة الاختبار. عيّن `ALFALAH_MIGRATIONS_CONNECTION` صراحة إلى القاعدة المستهدفة قبل migration؛ design-time factory لا يبدأ API ولا seeder أو reconciliation. راجع SQL الناتج قبل أي نشر خارج الاختبار؛ لم تُطبق migration على قاعدة التشغيل في S1.
+
+```powershell
+dotnet build docs/specs/school-file-storage/scripts/StorageBackfill --verbosity quiet
+# بعد تطبيق migration على قاعدة الاختبار المعزولة:
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahS1Baseline_EXAMPLE' --dry-run --report '.audit/sfs-s1/dry-run.json'
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahS1Baseline_EXAMPLE' --apply --report '.audit/sfs-s1/apply-1.json'
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahS1Baseline_EXAMPLE' --apply --report '.audit/sfs-s1/apply-2.json'
+```
+
+اسم EXAMPLE مثال يجب استبداله باسم قاعدة الاختبار الموجودة، وليس أمر إنشاء/restore. الأداة تقرأ إعداد خادم Development المحلي فقط ثم تختار `--database` المحدد؛ ترفض خادمًا بعيدًا. يتطلب التشغيل schema S1. لا migration أو seed أو Drive/token/decryption داخل الأداة. `--dry-run` لا يحفظ صفوفًا أو audit؛ `--apply` يحفظ graph في معاملة Serializable، مع عدم تحديث legacy. التقارير المجردة تضم مفاتيح SQL وحالات/عدادات وأكواد الاستثناء؛ لا اسم شخص أو معرف Google. خروج 2 يعني وجود استثناء/انحراف يستلزم مراجعة قبل cutover، وليس نجاحًا كاملًا. SHA256/UploadedBy غير المعروفين لا يخمّنان.
+
+اختبارات SQL الاختيارية تحتاج اسم قاعدة **جديدة** لأن fixture يتحقق من migration السابقة ويحفظ شاهدًا قديمًا قبل S1. لا تحذف fixture قواعد التشغيل أو قواعد الاختبار:
+
+```powershell
+$env:ALFALAH_STORAGE_TEST_CONNECTION = 'Server=(localdb)\mssqllocaldb;Database=AlFalahS1Tests_' + [Guid]::NewGuid().ToString('N') + ';Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=False'
+dotnet test backend/AlFalah.Tests --filter FullyQualifiedName~Storage
+```
+
+بدون المتغير تُعلَّم اختبارات SQL skipped صراحة، وتعمل اختبارات الخدمات العادية. تحقق S1 المسجل شغّلها بالمتغير ولم يتخطّ أي اختبار. لا تشغّل API للحصول على baseline أو backfill؛ بدء API يغير البيئة القديمة.

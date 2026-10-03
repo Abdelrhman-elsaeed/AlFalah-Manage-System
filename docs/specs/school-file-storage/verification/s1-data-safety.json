@@ -1,0 +1,21 @@
+﻿{
+    "date":  "2026-10-03",
+    "environment":  "Isolated COPY_ONLY clone of local Development; original database not migrated or backfilled",
+    "originalCredentialUnchanged":  true,
+    "cloneCredentialUnchanged":  true,
+    "originalStorageMigrations":  0,
+    "originalSubmissions":  1,
+    "cloneSubmissions":  1,
+    "originalTeacherFolderGrants":  1,
+    "cloneTeacherFolderGrants":  1,
+    "storedFiles":  1,
+    "storedVersions":  1,
+    "evidenceLinks":  1,
+    "reviewDecisions":  1,
+    "originalApproved":  1,
+    "cloneLegacyApproved":  1,
+    "newApprovedLinks":  1,
+    "noInventedAvailability":  0,
+    "driveWrites":  0,
+    "liveDriveVerification":  "Unavailable: S0 credential decryption limitation retained"
+}

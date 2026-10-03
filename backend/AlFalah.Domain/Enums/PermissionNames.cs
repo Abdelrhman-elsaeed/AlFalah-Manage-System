@@ -4,7 +4,7 @@ namespace AlFalah.Domain.Enums;
 /// Permission name constants used across the system.
 /// Actual permissions are seeded into the Permission table.
 /// </summary>
-public static class PermissionNames
+public static partial class PermissionNames
 {
     // School permissions
     public const string SchoolView = "School.View";

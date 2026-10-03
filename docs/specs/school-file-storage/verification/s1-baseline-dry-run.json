@@ -1,0 +1,29 @@
+{
+  "dryRun": true,
+  "sourceCount": 1,
+  "existingCount": 0,
+  "createdFiles": 1,
+  "createdVersions": 1,
+  "createdLinks": 1,
+  "createdDecisions": 1,
+  "needsLinkCount": 0,
+  "groups": [
+    {
+      "schoolId": 1,
+      "teacherId": 3,
+      "taskId": 1,
+      "academicYearId": 1,
+      "reviewStatus": 3,
+      "uploadStatus": 3,
+      "isDeleted": false,
+      "isMissingFromDrive": false,
+      "source": 1,
+      "existing": 0,
+      "plannedFiles": 1,
+      "plannedLinks": 1,
+      "plannedDecisions": 1,
+      "exceptions": 0
+    }
+  ],
+  "issues": []
+}

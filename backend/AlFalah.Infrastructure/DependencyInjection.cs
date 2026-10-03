@@ -93,6 +93,11 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton(TimeProvider.System);
+        services.Configure<AlFalah.Application.Storage.StorageOptions>(configuration.GetSection(AlFalah.Application.Storage.StorageOptions.SectionName));
+        services.AddScoped<AlFalah.Application.Storage.IStorageRepository, StorageRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageDriveBoundary, StorageDriveBoundary>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageAuthorizationService, AlFalah.Application.Storage.StorageAuthorizationService>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageDelegationService, AlFalah.Application.Storage.StorageDelegationService>();
         var teacherContextOptions = BuildTeacherContextOptions(configuration);
         services.AddSingleton(teacherContextOptions);
         services.AddScoped<TeacherContextSchedule>();

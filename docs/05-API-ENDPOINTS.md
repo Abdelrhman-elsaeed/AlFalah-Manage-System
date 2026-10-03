@@ -384,3 +384,17 @@ All timing endpoints are school-scoped through the authenticated active school a
 Save bodies include `academicYearId`, `semester`, `name`, `revision`, `schoolTimeZoneId`, `defaultPeriods`, and all seven `days`. Periods contain `sequence`, optional `displayLabel`, `startLocalTime`, and `endLocalTime` (unambiguous time-only strings). Days contain `day`, `isStudyDay`, `usesDefaultSchedule`, and `periods`; inherited/holiday days carry empty period arrays.
 
 Timetable settings overview now includes `bellSchedule`. `POST /api/v1/timetables` accepts optional `timetableSetupProfileId`; specify it when the scope has more than one selected timing template. Timetable responses include the pinned `bellSchedule` and `timingsRequireRevalidation`. Existing save/publication/restore/export endpoints use per-day timing definitions. Teacher context and gate-pass resolution use the published revision and the requested instant in its school timezone.
+
+## School File Storage S1 — delegation (2026-10-03)
+
+Authenticated, selected-school routes; actual manager plus live DB Storage.Delegate and membership required. All success bodies use `ApiResponse<T>`. `SchoolFileStorage.AdministrationEnabled=false` by default returns 404 for this workspace. S1 exposes no new file list/content/export/upload API.
+
+| Method | Route | Body / result |
+|---|---|---|
+| GET | `/api/v1/storage/delegations` | Array of delegation DTOs for the manager's active school, including expired/revoked history |
+| POST | `/api/v1/storage/delegations` | `{ granteeUserId, startsAt, expiresAt?, reason }`; creates direct delegation and returns its DTO |
+| DELETE | `/api/v1/storage/delegations/{id:int}` | `{ reason, rowVersion }`; revokes and returns the retained DTO; repeated revoke preserves the first revocation |
+
+DTO: `id`, `granteeUserId`, `grantedByManagerUserId`, `startsAt`, `expiresAt`, `revokedAt`, `reason`, `revocationReason`, `revokedByManagerUserId`, `rowVersion` (base64 SQL rowversion). No Drive/provider identifiers or credentials. UTC/offset dates; reason required and <=1000 chars. StartsAt may be future or at most five minutes before server time; ExpiresAt must be strictly later. Grantee must be active and assigned to this school, distinct from manager. Overlapping nonrevoked intervals are rejected; contiguous intervals are allowed.
+
+Failures use the existing ApiResponse middleware: 400 invalid input, 401 unauthenticated, 403 manager/school/identity denial, 404 disabled workspace or missing in-school ID, 409 stale rowversion, overlapping/duplicate grant or concurrency conflict. A delegate cannot list/manage delegations, including with copied claims. [S1 verification and rollout](specs/school-file-storage/verification/README.md).

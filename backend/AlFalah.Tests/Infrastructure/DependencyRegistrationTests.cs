@@ -3,6 +3,9 @@ using AlFalah.Infrastructure;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using AlFalah.Application.Storage;
 using Xunit;
 
 namespace AlFalah.Tests.Infrastructure;
@@ -21,6 +24,7 @@ public class DependencyRegistrationTests
 
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton<IHostEnvironment>(new TestHostEnvironment());
         services.AddLogging();
         services.AddHttpContextAccessor();
         services.AddInfrastructure(configuration);
@@ -35,5 +39,15 @@ public class DependencyRegistrationTests
         scope.ServiceProvider.GetRequiredService<ITeacherService>().Should().NotBeNull();
         scope.ServiceProvider.GetRequiredService<IComplaintService>().Should().NotBeNull();
         scope.ServiceProvider.GetRequiredService<IDashboardService>().Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<IStorageDelegationService>().Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<IStorageAuthorizationService>().Should().NotBeNull();
+    }
+
+    private sealed class TestHostEnvironment : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = Environments.Development;
+        public string ApplicationName { get; set; } = "AlFalah.Tests";
+        public string ContentRootPath { get; set; } = Path.GetTempPath();
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }
