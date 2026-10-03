@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-09-17
+**Last updated:** 2026-10-03
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -62,12 +62,13 @@
 | 8 | [phases/PHASE-08-COMPLAINTS.md](phases/PHASE-08-COMPLAINTS.md) | COMPLETED ✅ |
 | 9 | [phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md](phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md) | COMPLETED ✅ |
 | 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | IN PROGRESS |
-| SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | SPECIFIED — implementation not started |
+| SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | S0 AUDIT COMPLETE — parity review/live Drive gate pending; S1–S6 specified |
 | SA-1–SA-5 | Student Affairs Technical Specification Kit | BLUEPRINT LOCKED — implementation not started |
 
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-10-03 | Completed the read-only [SFS S0 baseline audit](specs/school-file-storage/baseline/README.md): 14 hashed sources, 108 source coverage rows, 36 tracker items, 145 matrix rows, 11 standards/31 current tasks mapping, current endpoints and architecture gaps, and repeatable collectors. Measured local Development SQL without startup/seed/migrations. Live Drive observation could not decrypt the stored credential with current keys and sent no HTTP requests; counts remain unknown. Recorded owner-approved folder organization, 250 MiB plus new media types, and retention/trash policy (D-93). S0 gate awaits parity review and usable Drive observation; S1 not started. | Codex |
 | 2026-10-03 | Split the School File Storage implementation stages into [seven detailed, standalone phase files](specs/school-file-storage/plan.md) under `docs/specs/school-file-storage/phases/`. Each now defines scope, dependencies, implementation tasks, contracts or data rules, verification, and an exit gate; the main plan remains the shared decisions and stage index. No runtime behavior changed. | Codex |
 | 2026-10-03 | Added the integrated [School File Storage Spec Kit](specs/school-file-storage/plan.md) and phase gate. It inventories the existing teacher Drive/evidence flow and the supplied self-evaluation prototype, fixes manager-only delegation, independent review of multiple evidence links per file, computed readiness, and post-approval V2 PDF archival, and defines additive implementation stages and acceptance checks. No application or Drive data changed. | Codex |
 | 2026-09-22 | Implemented the Classroom Visits V2 code cutover: V2 is globally enabled; `/visits` is V2 and `/visits-legacy` is historical read-only; V1 writes return logged `410 Gone`; V2 workflow no longer depends on `IVisitService`; teacher reports/history, complaints, dashboards and CSV/PDF/ZIP are version-aware. Development readiness found 10 non-final V1 records, so production cutover remains operationally blocked pending documented dispositions, restore rehearsal, browser smoke tests and screenshots. No legacy data or schema was removed. | Codex |

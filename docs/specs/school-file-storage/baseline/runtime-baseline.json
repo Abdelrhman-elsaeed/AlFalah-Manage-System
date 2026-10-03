@@ -1,0 +1,312 @@
+{
+    "capturedAtUtc":  "2026-10-03T01:43:41.4187067+00:00",
+    "environment":  "Development local only; not production and not E2E",
+    "database":  "AlFalahDb",
+    "method":  "Direct SqlClient fixed SELECT aggregates; no API, migrations, seed, or Drive calls",
+    "totals":  [
+                   {
+                       "Schools":  18,
+                       "NonDeletedSchools":  3,
+                       "DriveConfigurations":  1,
+                       "EnabledDriveConfigurations":  1,
+                       "EnabledWithStoredCredential":  1,
+                       "TeacherFolderGrants":  1,
+                       "ActiveTeacherFolderGrants":  1,
+                       "Submissions":  1,
+                       "NonDeletedSubmissions":  1,
+                       "FlaggedMissingFromDrive":  0,
+                       "LegacyUnlinkedSubmissions":  0,
+                       "DistinctRecordedDriveItems":  1,
+                       "PendingUploadOperations":  0,
+                       "EvidenceTasks":  31,
+                       "AcademicYears":  1,
+                       "TaskStatusRows":  1
+                   }
+               ],
+    "schoolGroups":  [
+                         {
+                             "SchoolKey":  1,
+                             "EnabledDrives":  1,
+                             "ActiveGrants":  1,
+                             "Submissions":  1,
+                             "PendingOperations":  0
+                         },
+                         {
+                             "SchoolKey":  17,
+                             "EnabledDrives":  0,
+                             "ActiveGrants":  0,
+                             "Submissions":  0,
+                             "PendingOperations":  0
+                         },
+                         {
+                             "SchoolKey":  18,
+                             "EnabledDrives":  0,
+                             "ActiveGrants":  0,
+                             "Submissions":  0,
+                             "PendingOperations":  0
+                         }
+                     ],
+    "teacherYearTaskGroups":  [
+                                  {
+                                      "SchoolKey":  1,
+                                      "TeacherKey":  3,
+                                      "YearKey":  1,
+                                      "TaskKey":  1,
+                                      "Submissions":  1,
+                                      "NonDeleted":  1,
+                                      "ApprovedPresentInLedger":  1
+                                  }
+                              ],
+    "reviewStates":  [
+                         {
+                             "ReviewStatus":  3,
+                             "UploadStatus":  3,
+                             "IsDeleted":  false,
+                             "IsMissingFromDrive":  false,
+                             "Records":  1
+                         }
+                     ],
+    "uploadStates":  [
+                         {
+                             "Status":  2,
+                             "Records":  1
+                         }
+                     ],
+    "taskCatalog":  [
+                        {
+                            "Id":  1,
+                            "Code":  "CV-01",
+                            "NameAr":  "البيانات الأساسية",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  2,
+                            "Code":  "CV-02",
+                            "NameAr":  "الإنجازات الشخصية",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  3,
+                            "Code":  "CV-03",
+                            "NameAr":  "التكريمات",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  4,
+                            "Code":  "CV-04",
+                            "NameAr":  "الخبرات",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  5,
+                            "Code":  "CV-05",
+                            "NameAr":  "الدورات التدريبية",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  6,
+                            "Code":  "CV-06",
+                            "NameAr":  "الرخصة المهنية",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  7,
+                            "Code":  "CV-07",
+                            "NameAr":  "الشهادات التدريبية",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  8,
+                            "Code":  "CV-08",
+                            "NameAr":  "ملف إنجاز المعلم",
+                            "Category":  "السيرة الذاتية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  9,
+                            "Code":  "PC-01",
+                            "NameAr":  "تبادل الزيارات",
+                            "Category":  "المجتمعات المهنية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  10,
+                            "Code":  "PC-02",
+                            "NameAr":  "الخبرات المهنية",
+                            "Category":  "المجتمعات المهنية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  11,
+                            "Code":  "PC-03",
+                            "NameAr":  "مبادرات المعلم",
+                            "Category":  "المجتمعات المهنية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  12,
+                            "Code":  "EN-01",
+                            "NameAr":  "الأنشطة الصفية",
+                            "Category":  "المواد الإثرائية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  13,
+                            "Code":  "EN-02",
+                            "NameAr":  "تصميمات ورسومات",
+                            "Category":  "المواد الإثرائية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  14,
+                            "Code":  "EN-03",
+                            "NameAr":  "عروض تقديمية",
+                            "Category":  "المواد الإثرائية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  15,
+                            "Code":  "EN-04",
+                            "NameAr":  "مواقع ومنصات",
+                            "Category":  "المواد الإثرائية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  16,
+                            "Code":  "EN-05",
+                            "NameAr":  "أوراق العمل",
+                            "Category":  "المواد الإثرائية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  17,
+                            "Code":  "RP-01",
+                            "NameAr":  "الفاقد التعليمي",
+                            "Category":  "الخطط العلاجية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  18,
+                            "Code":  "RP-02",
+                            "NameAr":  "خطة الطلاب المتعثرين والضعاف",
+                            "Category":  "الخطط العلاجية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  19,
+                            "Code":  "RP-03",
+                            "NameAr":  "خطة الطلاب المتفوقين والموهوبين",
+                            "Category":  "الخطط العلاجية",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  20,
+                            "Code":  "AS-01",
+                            "NameAr":  "اختبارات قصيرة لكل وحدة",
+                            "Category":  "التقويم",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  21,
+                            "Code":  "AS-02",
+                            "NameAr":  "بحوث ومشاريع للطلاب",
+                            "Category":  "التقويم",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  22,
+                            "Code":  "AS-03",
+                            "NameAr":  "تحليل النتائج",
+                            "Category":  "التقويم",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  23,
+                            "Code":  "SP-01",
+                            "NameAr":  "تحفيز الطلاب وتشجيعهم",
+                            "Category":  "حقيبة الطالب",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  24,
+                            "Code":  "SP-02",
+                            "NameAr":  "سجل المتابعة للطلاب",
+                            "Category":  "حقيبة الطالب",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  25,
+                            "Code":  "SP-03",
+                            "NameAr":  "شواهد من التواصل الأسري",
+                            "Category":  "حقيبة الطالب",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  26,
+                            "Code":  "SP-04",
+                            "NameAr":  "عينة من أنشطة الطالب",
+                            "Category":  "حقيبة الطالب",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  27,
+                            "Code":  "SP-05",
+                            "NameAr":  "كشوف رصد الدرجات",
+                            "Category":  "حقيبة الطالب",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  28,
+                            "Code":  "SP-06",
+                            "NameAr":  "ملفات إنجاز الطالب",
+                            "Category":  "حقيبة الطالب",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  29,
+                            "Code":  "CP-01",
+                            "NameAr":  "استراتيجيات التعلم النشط وشواهد",
+                            "Category":  "حقيبة المنهج",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  30,
+                            "Code":  "CP-02",
+                            "NameAr":  "الخطة الأسبوعية لكل فصل دراسي",
+                            "Category":  "حقيبة المنهج",
+                            "IsActive":  true
+                        },
+                        {
+                            "Id":  31,
+                            "Code":  "CP-03",
+                            "NameAr":  "توزيع المنهج",
+                            "Category":  "حقيبة المنهج",
+                            "IsActive":  true
+                        }
+                    ],
+    "yearGroups":  [
+                       {
+                           "YearKey":  1,
+                           "Code":  "2026-2027",
+                           "IsActive":  true
+                       }
+                   ],
+    "driveMetadataOnly":  [
+                              {
+                                  "SchoolKey":  1,
+                                  "CredentialType":  2,
+                                  "IsEnabled":  true,
+                                  "HasCredential":  1,
+                                  "HasRoot":  1,
+                                  "UsesSharedDrive":  1
+                              }
+                          ],
+    "limitation":  "Drive contents and unindexed Drive items have not been measured. Stored metadata is not proof of connectivity or file existence."
+}

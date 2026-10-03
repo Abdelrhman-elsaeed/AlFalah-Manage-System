@@ -1,0 +1,2622 @@
+{
+  "capturedAtUtc": "2026-10-03T01:59:56.716672+00:00",
+  "sourceDirectory": "C:\\Users\\abdelrhman\\Downloads\\Telegram Desktop\\[DEVELOPER_SYSTEM_CORE - DO_NOT_MODIFY]\\[DEVELOPER_SYSTEM_CORE - DO_NOT_MODIFY]",
+  "prototypeBaseDirectory": "C:\\Users\\abdelrhman\\Downloads\\Telegram Desktop\\[DEVELOPER_SYSTEM_CORE - DO_NOT_MODIFY]",
+  "method": "Static parsing and file existence checks; prototype code never executed",
+  "sources": [
+    {
+      "resource": "app_server.py",
+      "bytes": 46371,
+      "lastModifiedUtc": "2026-09-15T03:48:09.429294+00:00",
+      "sha256": "E51529F7A7D19C241073F54D9BD304BDB00B24F5C192B5EE116BD7444DCE800F",
+      "lines": 848
+    },
+    {
+      "resource": "generate_report.py",
+      "bytes": 908689,
+      "lastModifiedUtc": "2026-09-15T03:54:41.501608+00:00",
+      "sha256": "C55DF98490ECCF3E87095EB26637A139815F34CD3AC253F19580CFF445837246",
+      "lines": 11120
+    },
+    {
+      "resource": "index.html",
+      "bytes": 12228129,
+      "lastModifiedUtc": "2026-09-15T15:08:12.716067+00:00",
+      "sha256": "5D109BB0F13B3FC50096F090D425DE33D5211822FAD0819BB094D242FE569204",
+      "lines": 22217
+    },
+    {
+      "resource": "تقرير_التدقيق_الشامل_لجاهزية_التقويم_الذاتي.md",
+      "bytes": 9471,
+      "lastModifiedUtc": "2026-09-14T20:38:07.130687+00:00",
+      "sha256": "20A368BA772375A3DADEC5FAB4B4A38AF9922033AD50A1282837518329841D9E",
+      "lines": 66
+    },
+    {
+      "resource": "تقرير_التقويم_الذاتي_والاعتماد_المدرسي_الشامل.html",
+      "bytes": 11952405,
+      "lastModifiedUtc": "2026-09-15T03:54:53.228854+00:00",
+      "sha256": "BF1602AF53ED6A89F124CF61E63F9C64D0AFB328C9D948437BA0D0B374E895F8",
+      "lines": 22178
+    },
+    {
+      "resource": "تقرير_الجاهزية_للتقويم_الخارجي_القديم.html",
+      "bytes": 21662,
+      "lastModifiedUtc": "2026-09-11T21:51:25.565162+00:00",
+      "sha256": "EA30EEB9AA022DB483217644DAE352D1525725B6CE1393A2E2EBD562F1F70BA1",
+      "lines": 133
+    },
+    {
+      "resource": "تقرير_جاهزية_المدرسة_للاعتماد_المدرسي_المحدث.html",
+      "bytes": 46609,
+      "lastModifiedUtc": "2026-09-14T20:35:02.654033+00:00",
+      "sha256": "5EA0D901CEF0694DA3604DCA04A2EC4383967A8E25472013F13C615A866B2089",
+      "lines": 1007
+    },
+    {
+      "resource": "تقرير_شامل_عن_جميع_الملفات_والشواهد.md",
+      "bytes": 4139,
+      "lastModifiedUtc": "2026-09-06T07:29:06.095379+00:00",
+      "sha256": "9CB2459EF24FB9C707134C85B0394FEA979A3F8A0B5C46C22CFD8293532F57F1",
+      "lines": 47
+    },
+    {
+      "resource": "دليل_الجاهزية_الشامل.md",
+      "bytes": 2725,
+      "lastModifiedUtc": "2026-09-11T21:52:00.491315+00:00",
+      "sha256": "E138B50684057B7C2A1F7723927983D3778C49EFD4270DDEE6DFBDDCFE4CBAC9",
+      "lines": 65
+    },
+    {
+      "resource": "فهرس_الشواهد_الرقمي_الشامل.md",
+      "bytes": 106174,
+      "lastModifiedUtc": "2026-09-06T09:00:01.280762+00:00",
+      "sha256": "B4496FEA685BFD237BFEA5AE26EA2C3FE6BB8B4456B0A2B7FE9914012C494CEA",
+      "lines": 389
+    },
+    {
+      "resource": "فهرس_الملفات_والشواهد_الشامل.json",
+      "bytes": 2574182,
+      "lastModifiedUtc": "2026-09-14T08:53:04.769941+00:00",
+      "sha256": "F2A9533A08829BB61653420EDE7B3EE16285BF7692DE040FB7C62C3BB5E988C4",
+      "lines": 41573,
+      "schema": [
+        "academicYear",
+        "files",
+        "school",
+        "standardsCount",
+        "totalFiles"
+      ],
+      "records": 4617
+    },
+    {
+      "resource": "مصفوفة_استيفاء_النواقص.csv",
+      "bytes": 74792,
+      "lastModifiedUtc": "2026-09-14T04:39:04.100520+00:00",
+      "sha256": "1540733EF1F89EE65C304CAC79CCEE91C441D6B5F0109DB468756B0E549D4878",
+      "lines": 146,
+      "schema": [
+        "name",
+        "rel_path",
+        "category",
+        "role",
+        "status",
+        "size_kb",
+        "importance",
+        "action",
+        "is_fulfilled"
+      ],
+      "records": 145
+    },
+    {
+      "resource": "مصفوفة_استيفاء_النواقص.json",
+      "bytes": 100527,
+      "lastModifiedUtc": "2026-09-14T04:39:04.096122+00:00",
+      "sha256": "400017E44A3185AB968424AFBE3ADBA81C5E0884BA00E89D18A78998CA2D3CEA",
+      "lines": 1597,
+      "schema": [
+        "action",
+        "category",
+        "importance",
+        "is_fulfilled",
+        "name",
+        "rel_path",
+        "role",
+        "size_kb",
+        "status"
+      ],
+      "records": 145
+    },
+    {
+      "resource": "مصفوفة_النماذج_الفارغة_واستيفاء_النواقص.html",
+      "bytes": 115060,
+      "lastModifiedUtc": "2026-09-06T16:01:54.203172+00:00",
+      "sha256": "2131E1364E3031082874CBC66912549E0110A96E1746051227341AFBDAD640D2",
+      "lines": 1986
+    }
+  ],
+  "slideIds": [
+    "slide-0",
+    "slide-1",
+    "slide-2",
+    "slide-3",
+    "slide-4",
+    "slide-5",
+    "slide-6",
+    "slide-7",
+    "slide-8",
+    "slide-9",
+    "slide-10",
+    "slide-11",
+    "slide-12"
+  ],
+  "domProbes": {
+    "containerMatrix192": {
+      "present": false,
+      "line": null
+    },
+    "matrixTableBody": {
+      "present": false,
+      "line": null
+    },
+    "matrixSearchInput": {
+      "present": false,
+      "line": null
+    },
+    "matrixRoleFilter": {
+      "present": false,
+      "line": null
+    },
+    "matrixCategoryFilter": {
+      "present": false,
+      "line": null
+    },
+    "trackerDynamicContainer": {
+      "present": false,
+      "line": null
+    },
+    "uploadHelperModal": {
+      "present": true,
+      "line": 20005
+    },
+    "explorerFileGrid": {
+      "present": true,
+      "line": 19956
+    },
+    "slideNavList": {
+      "present": true,
+      "line": 4881
+    }
+  },
+  "indexCatalog": {
+    "records": 4617,
+    "keys": [
+      "ext",
+      "fileName",
+      "mainDomain",
+      "relPath",
+      "sizeBytes",
+      "sizeStr",
+      "standard"
+    ],
+    "missingOrEmptyByField": {
+      "ext": 1,
+      "fileName": 0,
+      "mainDomain": 0,
+      "relPath": 0,
+      "sizeBytes": 0,
+      "sizeStr": 0,
+      "standard": 0
+    },
+    "distinctReferencePaths": 4617,
+    "duplicatePathOccurrences": 0,
+    "exactDuplicateRows": 0,
+    "existingOriginalBytesInPackage": 0,
+    "nonRelativeOrUnsafeReferencePaths": 0,
+    "declaredTotal": 4617,
+    "mainDomains": {
+      "1. الإدارة المدرسية": 1463,
+      "2. التعليم والتعلم": 2521,
+      "3. نواتج التعلم": 447,
+      "4. البيئة المدرسية": 186
+    },
+    "standards": {
+      "1.1 التخطيط": 61,
+      "1.2 قيادة العملية التعليمية": 241,
+      "1.3 المجتمع المدرسي": 854,
+      "1.4 التطوير المؤسسي": 275,
+      "1.5 حقوق المتعلم وحمايته": 32,
+      "2.1 بناء خبرات التعلم": 2427,
+      "2.2 تقويم التعلم": 94,
+      "3.1 التحصيل التعليمي": 51,
+      "3.2 التطور الشخصي والصحي": 396,
+      "4.1 المبنى المدرسي": 105,
+      "4.2 الأمن والسلامة": 81
+    },
+    "extensions": {
+      "": 1,
+      ".5": 1,
+      ".accdb": 3,
+      ".doc": 51,
+      ".docx": 343,
+      ".heic": 503,
+      ".jfif": 5,
+      ".jpeg": 260,
+      ".jpg": 965,
+      ".md": 4,
+      ".mov": 16,
+      ".mp4": 105,
+      ".pdf": 1981,
+      ".png": 83,
+      ".pps": 1,
+      ".pptm": 1,
+      ".pptx": 145,
+      ".rar": 2,
+      ".tscproj": 1,
+      ".url": 9,
+      ".wav": 1,
+      ".webp": 2,
+      ".xlsm": 16,
+      ".xlsx": 116,
+      ".zip": 2
+    }
+  },
+  "embeddedExplorer": {
+    "records": 4116,
+    "keys": [
+      "ext",
+      "filePath",
+      "name",
+      "relPath",
+      "size",
+      "sizeStr",
+      "type"
+    ],
+    "missingOrEmptyByField": {
+      "ext": 1,
+      "filePath": 0,
+      "name": 0,
+      "relPath": 0,
+      "size": 0,
+      "sizeStr": 0,
+      "type": 0
+    },
+    "distinctReferencePaths": 4116,
+    "duplicatePathOccurrences": 0,
+    "exactDuplicateRows": 0,
+    "existingOriginalBytesInPackage": 0,
+    "nonRelativeOrUnsafeReferencePaths": 0,
+    "line": 20216,
+    "standardNodes": 11,
+    "declaredTotal": 4116
+  },
+  "matrixJson": {
+    "records": 145,
+    "keys": [
+      "action",
+      "category",
+      "importance",
+      "is_fulfilled",
+      "name",
+      "rel_path",
+      "role",
+      "size_kb",
+      "status"
+    ],
+    "missingOrEmptyByField": {
+      "action": 0,
+      "category": 0,
+      "importance": 0,
+      "is_fulfilled": 0,
+      "name": 0,
+      "rel_path": 0,
+      "role": 0,
+      "size_kb": 0,
+      "status": 0
+    },
+    "distinctReferencePaths": 89,
+    "duplicatePathOccurrences": 56,
+    "exactDuplicateRows": 46,
+    "existingOriginalBytesInPackage": 0,
+    "nonRelativeOrUnsafeReferencePaths": 0,
+    "categories": {
+      "1.1 التخطيط": 11,
+      "1.2 قيادة العملية التعليمية": 2,
+      "1.3 المجتمع المدرسي": 70,
+      "2.1 بناء خبرات التعلم": 56,
+      "2.2 تقويم التعلم": 4,
+      "3.1 التحصيل التعليمي": 1,
+      "3.2 التطور الشخصي والصحي": 1
+    },
+    "roles": {
+      "أمين مصادر التعلم / المحضر": 21,
+      "إدارة المدرسة": 9,
+      "الموجه الصحي": 15,
+      "الموجه الطلابي": 2,
+      "رائد النشاط الطلابي": 16,
+      "مدير المدرسة": 5,
+      "مسؤول الأمن والسلامة والصيانة": 3,
+      "معلم المادة / التخصص": 50,
+      "وكيل الشؤون التعليمية": 24
+    },
+    "statuses": {
+      "مكتمل ومستوفى": 145
+    },
+    "importance": {
+      "عادية / تكميلية": 67,
+      "حرجة (مؤشر اعتماد)": 78
+    },
+    "categoryNotInReferencePath": 56,
+    "rows": [
+      {
+        "ordinal": 1,
+        "sourceRowSha256": "2CAC4A88EA6750F9A865CC3FCF65C3D2293D56381EDB1F0323FC4EB91743F8C5",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 2,
+        "sourceRowSha256": "4855F1D172984D107790426FEDE9296990D43D2849EE0B8CC310FABAEF00FDD5",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 3,
+        "sourceRowSha256": "F8D4E6F5C316FF4D55804A4B952B3BC07C5A706044A76CD0A7E27AC049443BA6",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 4,
+        "sourceRowSha256": "F8D4E6F5C316FF4D55804A4B952B3BC07C5A706044A76CD0A7E27AC049443BA6",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 5,
+        "sourceRowSha256": "F8D4E6F5C316FF4D55804A4B952B3BC07C5A706044A76CD0A7E27AC049443BA6",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 6,
+        "sourceRowSha256": "176302BE2CF529FAE3FC1D6E84DDF8C52EB8BF05E4CD4F6FDDB8FC3AB1970C54",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 7,
+        "sourceRowSha256": "73CE4DD20AEC2D26A0F3DBF3A1FD9543C55AC354471733C88467ED7ABFC8E354",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "إدارة المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 8,
+        "sourceRowSha256": "CF4B6C71D42E48DC2C15AEE973919F430AE2A295EAE392CA952D254C62686303",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "مسؤول الأمن والسلامة والصيانة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 9,
+        "sourceRowSha256": "973394D732311998753F502AE926E4E6090D29A25C630FCC98E81F627B68AC41",
+        "category": "1.1 التخطيط",
+        "role": "مدير المدرسة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 10,
+        "sourceRowSha256": "59E3D7AA3C05D1125D304E3AD3AE62A87310243DCA8FB4884BB3D51EB2CB1008",
+        "category": "1.1 التخطيط",
+        "role": "رائد النشاط الطلابي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 11,
+        "sourceRowSha256": "16F4AF4EF52C7947698A38AC52989300C2BC9F9FF8E98B5FD020CCE51683DA80",
+        "category": "1.1 التخطيط",
+        "role": "مدير المدرسة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 12,
+        "sourceRowSha256": "E4AAEE6EA39D09FCA7D5C9CD0A0BA6274DB4C518831D63426667DEB135B35ED2",
+        "category": "1.2 قيادة العملية التعليمية",
+        "role": "إدارة المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 13,
+        "sourceRowSha256": "64F999D8F375E757904598D6F3274161598A4E1349D73697551E67484CAA1372",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 14,
+        "sourceRowSha256": "CA4838FB49466460DEB9CEC05FB6A427455985BB8E56F116304F9C8B6EE26A14",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 15,
+        "sourceRowSha256": "E79F4DB2590CB8EC535334764307617F21D492709252C65C1CE19EF5C4BDC49A",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 16,
+        "sourceRowSha256": "D951862D69110F3DCA40FE82BB472134C9BDE8C6BCFD6A3997F71D8164A76F19",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 17,
+        "sourceRowSha256": "767BA1FEB79AEAB10E892C4320A25CC4130028A8AED06776CD43428642A4A54D",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 18,
+        "sourceRowSha256": "CC1383C9CFE42E60573BE3AAD014EC30BE7A32E6FABE221DA4D0CAB2CB7F466E",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 19,
+        "sourceRowSha256": "B4B4667E8C895E16188E3E0F5EC8E2C2B4FC045349D02082FB7936AF8F377CC3",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 20,
+        "sourceRowSha256": "828905958A2F6A810AB375729DCA379011F41C1A68AB67CE0939F9B79837C1FD",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 21,
+        "sourceRowSha256": "4B3EF73CA49DA4027F5FDC5F7C65C53F0A8CF864C1BF07A0C028742883C7638C",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "إدارة المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 22,
+        "sourceRowSha256": "D2571AFDA90DFF59BCD26EDFB12F9ED9F14DF892ED28C0D21B94B50266763658",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "إدارة المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 23,
+        "sourceRowSha256": "F841C772B04D98ED1F10926E96A7F78407C05B9909887CE3BD2C33192109F319",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "إدارة المدرسة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 24,
+        "sourceRowSha256": "B1EC8D276AA305B205FC8C794CA4DB8DA8DAF897B14BA546B833BFAFD8BFD283",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 25,
+        "sourceRowSha256": "F4DAD1C78DE4CBD6216192D6E5B76BA403C49411306D097396C0B969B6637CCE",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 26,
+        "sourceRowSha256": "F0C501605B8DA8D0BF97C3F1CC75A70507F82197C063FBA2106DE0A037227BEA",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 27,
+        "sourceRowSha256": "9B3D074C026E4F0503DBD9F77392D31418A00C1ABF35D0589097015E57FA025C",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 28,
+        "sourceRowSha256": "C17F1EBE61A63612428417A8C710BDA95F166E34D9E9C249BDB586473F2D718B",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 29,
+        "sourceRowSha256": "E8A0FDC2951432118B786FC9FF84C4B680F056D1E23AD7784C3427990ACDA452",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 30,
+        "sourceRowSha256": "7E51907C540B09143499F72C7DFC4CC60C5E759E53960776C19D2C9E81C97D12",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 31,
+        "sourceRowSha256": "A090A2E4D221D2279B5BA10275E142EFC7F34D068EE064C71B763C6942902655",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 32,
+        "sourceRowSha256": "CF492CFCE7B41720911DAEEFB7DD3096E51F230B7846A6FD954DFB07B13AAB04",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 33,
+        "sourceRowSha256": "0471ECA542A75BA227B73059D956E6F23DBDF0E95385E82FC9711B3B2462B0C4",
+        "category": "3.1 التحصيل التعليمي",
+        "role": "إدارة المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 34,
+        "sourceRowSha256": "E55EF68BA86448B4F70DDF26B747682ACC8FDDA2363CFC62F81A08D8328F67E4",
+        "category": "3.2 التطور الشخصي والصحي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 35,
+        "sourceRowSha256": "BA735D2EA9E843112E73AAE449A74036BC2A87EE14CFFE07261FC509E57F2335",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 36,
+        "sourceRowSha256": "E267E8DD519A5F26C9C3BC6E5238C4D983DA86BC3FB74C29A3FBB1A3297B5824",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 37,
+        "sourceRowSha256": "490099E401D14DDADD92611E2E4FA3AA598CFD78F035F91F0D01FA87773D7E00",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 38,
+        "sourceRowSha256": "CDC725053839F469A4785A16FCB409576C424D97680A55B466DDDF0FDD7A9D79",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 39,
+        "sourceRowSha256": "AC4F6F99317502311A90FB85C7F369356CBE22F4EEF9EB6460B9D46A66C57DE4",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 40,
+        "sourceRowSha256": "9387105D9137CF4D61FFD4CEAA39AC3A87E3C949D05B46EF7A5A79166DF6EDD7",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 41,
+        "sourceRowSha256": "828905958A2F6A810AB375729DCA379011F41C1A68AB67CE0939F9B79837C1FD",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 42,
+        "sourceRowSha256": "F4F221636036476BAE75564ABCE523C81A758CF1FE3FCB71F604CA6E136C93C9",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 43,
+        "sourceRowSha256": "8B0B6E79F3AFA3021F3B098B98BF68C04C75BB3F6A8C81A95DB1B3508DE8D707",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 44,
+        "sourceRowSha256": "B82DEABCF4D3E33A176B76DF3A57278430BCCA05F7BDD7547AA91BD9BDDD6C21",
+        "category": "2.2 تقويم التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 45,
+        "sourceRowSha256": "4730BC124F798C38CCF234119C1F44D78D9DB6AF22DFE41A33E8092B5DE0720B",
+        "category": "2.2 تقويم التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 46,
+        "sourceRowSha256": "9E637DB625529DF35852B395005FF273FEBC5A735E993A276EEFF1B368D4DC07",
+        "category": "2.2 تقويم التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 47,
+        "sourceRowSha256": "048A0F9C4221DC501ECC2631D9AA65B17D4AD959E77FF9C06BB24C367EBFB812",
+        "category": "2.2 تقويم التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 48,
+        "sourceRowSha256": "BEA42B095988EB01DC73C82365C7D79915439616F9F081182A48088B8C3834C8",
+        "category": "1.1 التخطيط",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 49,
+        "sourceRowSha256": "B1EC8D276AA305B205FC8C794CA4DB8DA8DAF897B14BA546B833BFAFD8BFD283",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 50,
+        "sourceRowSha256": "F4DAD1C78DE4CBD6216192D6E5B76BA403C49411306D097396C0B969B6637CCE",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 51,
+        "sourceRowSha256": "F0C501605B8DA8D0BF97C3F1CC75A70507F82197C063FBA2106DE0A037227BEA",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 52,
+        "sourceRowSha256": "9B3D074C026E4F0503DBD9F77392D31418A00C1ABF35D0589097015E57FA025C",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 53,
+        "sourceRowSha256": "C17F1EBE61A63612428417A8C710BDA95F166E34D9E9C249BDB586473F2D718B",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 54,
+        "sourceRowSha256": "E8A0FDC2951432118B786FC9FF84C4B680F056D1E23AD7784C3427990ACDA452",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 55,
+        "sourceRowSha256": "B1EC8D276AA305B205FC8C794CA4DB8DA8DAF897B14BA546B833BFAFD8BFD283",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 56,
+        "sourceRowSha256": "F4DAD1C78DE4CBD6216192D6E5B76BA403C49411306D097396C0B969B6637CCE",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 57,
+        "sourceRowSha256": "9B3D074C026E4F0503DBD9F77392D31418A00C1ABF35D0589097015E57FA025C",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 58,
+        "sourceRowSha256": "9B3D074C026E4F0503DBD9F77392D31418A00C1ABF35D0589097015E57FA025C",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 59,
+        "sourceRowSha256": "7E51907C540B09143499F72C7DFC4CC60C5E759E53960776C19D2C9E81C97D12",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 60,
+        "sourceRowSha256": "A090A2E4D221D2279B5BA10275E142EFC7F34D068EE064C71B763C6942902655",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 61,
+        "sourceRowSha256": "CF492CFCE7B41720911DAEEFB7DD3096E51F230B7846A6FD954DFB07B13AAB04",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 62,
+        "sourceRowSha256": "E8A0FDC2951432118B786FC9FF84C4B680F056D1E23AD7784C3427990ACDA452",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "أمين مصادر التعلم / المحضر",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 63,
+        "sourceRowSha256": "BA735D2EA9E843112E73AAE449A74036BC2A87EE14CFFE07261FC509E57F2335",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 64,
+        "sourceRowSha256": "127AC94B2004F19071521896546242259FA3E9A40763B9239877C688A7456577",
+        "category": "1.1 التخطيط",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 65,
+        "sourceRowSha256": "0163F0D0330C46A11671B0F3433825FD0EE6A100BBEF160BA91DC891247BB9E7",
+        "category": "1.1 التخطيط",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 66,
+        "sourceRowSha256": "0C34BD16E18BDCD97C0AF6AEA89D79D76CD613766C65A0CFD27F2F6DEA3309AD",
+        "category": "1.1 التخطيط",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 67,
+        "sourceRowSha256": "E267E8DD519A5F26C9C3BC6E5238C4D983DA86BC3FB74C29A3FBB1A3297B5824",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 68,
+        "sourceRowSha256": "490099E401D14DDADD92611E2E4FA3AA598CFD78F035F91F0D01FA87773D7E00",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 69,
+        "sourceRowSha256": "CDC725053839F469A4785A16FCB409576C424D97680A55B466DDDF0FDD7A9D79",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 70,
+        "sourceRowSha256": "AC4F6F99317502311A90FB85C7F369356CBE22F4EEF9EB6460B9D46A66C57DE4",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 71,
+        "sourceRowSha256": "BA735D2EA9E843112E73AAE449A74036BC2A87EE14CFFE07261FC509E57F2335",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الصحي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 72,
+        "sourceRowSha256": "38EDDE23E0581A175A8F05F95B0610A25CDCF2C3C3257F6F6BFD5C8B7B09D3FD",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "الموجه الطلابي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 73,
+        "sourceRowSha256": "88D6DC9A42343F3282EB12C4EBC00AD15E7D6F3A4343D0DBF28CE5DFE9E4C2A4",
+        "category": "1.1 التخطيط",
+        "role": "الموجه الطلابي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 74,
+        "sourceRowSha256": "CA4838FB49466460DEB9CEC05FB6A427455985BB8E56F116304F9C8B6EE26A14",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 75,
+        "sourceRowSha256": "E79F4DB2590CB8EC535334764307617F21D492709252C65C1CE19EF5C4BDC49A",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 76,
+        "sourceRowSha256": "D951862D69110F3DCA40FE82BB472134C9BDE8C6BCFD6A3997F71D8164A76F19",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 77,
+        "sourceRowSha256": "767BA1FEB79AEAB10E892C4320A25CC4130028A8AED06776CD43428642A4A54D",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 78,
+        "sourceRowSha256": "CC1383C9CFE42E60573BE3AAD014EC30BE7A32E6FABE221DA4D0CAB2CB7F466E",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 79,
+        "sourceRowSha256": "B4B4667E8C895E16188E3E0F5EC8E2C2B4FC045349D02082FB7936AF8F377CC3",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "رائد النشاط الطلابي",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 80,
+        "sourceRowSha256": "CF4B6C71D42E48DC2C15AEE973919F430AE2A295EAE392CA952D254C62686303",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "مسؤول الأمن والسلامة والصيانة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 81,
+        "sourceRowSha256": "69C10350747AA32BD760CB96C339E2821C1DFDF7E394F36A26DEC6388A3A1407",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "إدارة المدرسة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 82,
+        "sourceRowSha256": "CF4B6C71D42E48DC2C15AEE973919F430AE2A295EAE392CA952D254C62686303",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "مسؤول الأمن والسلامة والصيانة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 83,
+        "sourceRowSha256": "973394D732311998753F502AE926E4E6090D29A25C630FCC98E81F627B68AC41",
+        "category": "1.1 التخطيط",
+        "role": "مدير المدرسة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 84,
+        "sourceRowSha256": "1B0E7FB43CF2E64CAFEF025983E41CE80FA6D580EE4A37090CD7EF44EBF14BCA",
+        "category": "1.2 قيادة العملية التعليمية",
+        "role": "مدير المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 85,
+        "sourceRowSha256": "59E3D7AA3C05D1125D304E3AD3AE62A87310243DCA8FB4884BB3D51EB2CB1008",
+        "category": "1.1 التخطيط",
+        "role": "رائد النشاط الطلابي",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 86,
+        "sourceRowSha256": "16F4AF4EF52C7947698A38AC52989300C2BC9F9FF8E98B5FD020CCE51683DA80",
+        "category": "1.1 التخطيط",
+        "role": "مدير المدرسة",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 87,
+        "sourceRowSha256": "9387105D9137CF4D61FFD4CEAA39AC3A87E3C949D05B46EF7A5A79166DF6EDD7",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 88,
+        "sourceRowSha256": "828905958A2F6A810AB375729DCA379011F41C1A68AB67CE0939F9B79837C1FD",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 89,
+        "sourceRowSha256": "B9E54E54A757FEBC4BC15CD10851595477610066A7C9648DC8E338190045154E",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 90,
+        "sourceRowSha256": "493886DC0259E0EDA68FF171189124B893C02B25E54FD74B3A677241C051F574",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 91,
+        "sourceRowSha256": "4B3EF73CA49DA4027F5FDC5F7C65C53F0A8CF864C1BF07A0C028742883C7638C",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "إدارة المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 92,
+        "sourceRowSha256": "D2571AFDA90DFF59BCD26EDFB12F9ED9F14DF892ED28C0D21B94B50266763658",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "إدارة المدرسة",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 93,
+        "sourceRowSha256": "474E68EA72CC16F9C0696919299D5D13D606CFFA30BD5C041AB540DFDED33EE3",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 94,
+        "sourceRowSha256": "17BB3A2DD79ECB65DF8145294BC7895CC6799640C623CA7404060B2E99D53375",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 95,
+        "sourceRowSha256": "4541E858BB56F7CE4DCEED3E2160D5A2C6A82BA187607AE8612E2BE2537E091C",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 96,
+        "sourceRowSha256": "17BB3A2DD79ECB65DF8145294BC7895CC6799640C623CA7404060B2E99D53375",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 97,
+        "sourceRowSha256": "4541E858BB56F7CE4DCEED3E2160D5A2C6A82BA187607AE8612E2BE2537E091C",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 98,
+        "sourceRowSha256": "64F999D8F375E757904598D6F3274161598A4E1349D73697551E67484CAA1372",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 99,
+        "sourceRowSha256": "6B67215C7687E0F67F0031F7238F1C896E475F030481700FB47BEB0ADD8108B1",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 100,
+        "sourceRowSha256": "83F9C08BD2D174B7D19B9C003204CED1DF221DFAC6FCB5D54D2011270B32D448",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 101,
+        "sourceRowSha256": "2227029E7E3DCC30ACFE168A341133FB5CDF32B2F28489D2FD1C378BD030C3A4",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 102,
+        "sourceRowSha256": "6D0450D4A185880F135B80DAFBA681FABB74D4FBD993D7A66683497925CEAFD8",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 103,
+        "sourceRowSha256": "AC1C5573D953DF4F97A482FB358D80C29C292CA85AE9DFE8F7B0E12F2F1839DC",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 104,
+        "sourceRowSha256": "8C2E5A0A7778107EA40C5079FC5DEAC5664899776A0AFB4B5E1906B407EBBAE2",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 105,
+        "sourceRowSha256": "6E2BFA8F471E60AF3B1FBD7182BE51E19ED36C2E33AADC4254884CFA1C3AA371",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 106,
+        "sourceRowSha256": "E1A8359D60D0478E76C3D810DE5469FABC54C3E66BB910B7351E4A0CAB8D9E4F",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 107,
+        "sourceRowSha256": "B2E74D5E98D82FA9B8D3D2F9BCCD2A142ABBAA7137C1191377E6233C9AC3250F",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 108,
+        "sourceRowSha256": "2F7D0F32E7EE7370BE28480F9643C60715E211AD9FBF7FEF0C8722D506EB897E",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 109,
+        "sourceRowSha256": "897D6CEF2516474F2E057FF1645CD767BCCF49331D837677A13081F4274D375B",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 110,
+        "sourceRowSha256": "5C5511EE69F4E9B07ED30DFE8C77FA08C83DDEF4B352A53A489291C828744F29",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 111,
+        "sourceRowSha256": "5916B4DA5EC7AD935D0E80F0D6A8FD3CE0E62629E93650801FF0BF073EC15BCB",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 112,
+        "sourceRowSha256": "F312452E8FD7A931BA98E0FE26605D8F3ED053385315F05887D477DE3D1B3666",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 113,
+        "sourceRowSha256": "F9EBF097725290C01C556661B30CD014362CE9496005CD96EBEA6089E7AD6B46",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 114,
+        "sourceRowSha256": "E658322A39C2D5AD5982CD45118E434893145671FF59A1520CB1D001022F5421",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 115,
+        "sourceRowSha256": "661EEA48EC85CC25FEA9784FF9FFC37A2C7A926B65A03BD50DCC80A059F1BC5C",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 116,
+        "sourceRowSha256": "4174D593375FC6F2CD9100185246D8536B891427D5B20AA58231D4523D9FED96",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 117,
+        "sourceRowSha256": "EF6E088299588E7E8078E54A2DCF8A92EFBBAD2748DF0CAAE95985F4DC22D501",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 118,
+        "sourceRowSha256": "531DA750931CC774A6217C572689EF83B6CE71E91810B1DBB7049B38E60D21E2",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 119,
+        "sourceRowSha256": "5AC6855BCB749942B831F26E36234459745FA4683ED1C7B360B260147D28E79D",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 120,
+        "sourceRowSha256": "9AC79380E46F16999B1F2F8DE29DDC3CA054260B1494D4119836342402E7FA9D",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 121,
+        "sourceRowSha256": "EAF9C7CFEDC147189F193FCFC3C8D40A6A2E0B7521C2B0D9E74A12A5A9D0C95B",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 122,
+        "sourceRowSha256": "C0A8C489304B6717F0D7CD99DB8096DB74E5417F4EE3AB41B4504197A6981FC9",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 123,
+        "sourceRowSha256": "02604C2D01237DACDCBC7FF51701C4F6FC8CD0772710633108458E6BF82BF90E",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 124,
+        "sourceRowSha256": "78749C4398E4D2EA7D144572F541E2B78A21DFAE38BCAF46BD7AA19F803E83AB",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 125,
+        "sourceRowSha256": "8387FA74204573692BB0A5F2D5D56E0B19E813507DBB7C59C21BF47218EF54B0",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 126,
+        "sourceRowSha256": "BD05343A96F2BC84BC287853FFE0D832DF5493D2D050DF4B4CC22B5C0E5578DE",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 127,
+        "sourceRowSha256": "9917EA515FA42CED48C13A42C64C2EB0CDB2178F061B80A43502BD6FBCDF1A52",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 128,
+        "sourceRowSha256": "5944445B19FDB8FA244E3CA28E5C0C786B2D1EA2AC69B761E3372A37F11E0F2E",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 129,
+        "sourceRowSha256": "816CB0A94BC362AA9507AC2892E6054D25097F7F2E283DC5E73AEAB451201C16",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 130,
+        "sourceRowSha256": "3B9847C5C2B10478651330F912357E32467F6A39AC2E0AB9BF11C1EE316A32FC",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 131,
+        "sourceRowSha256": "2AC80C84A28BEF0A8EC047077789B1E18C43FAB87CD1BABDB2013CC90DD49F61",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 132,
+        "sourceRowSha256": "E2FDC1FB3E8D47EBC19FF8C51CA4ACFAC20ECA880E3C0F20B33FE95B70E4BE02",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 133,
+        "sourceRowSha256": "5D0F6609D2703B689039CE27EB29D1890F5EAF356DBC740C199DEA210011A1E8",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 134,
+        "sourceRowSha256": "FF23B9BC3A7B7D46EC0BD834511C07A2270CAA0899CCA2AAF0AC33ADE83A025E",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 135,
+        "sourceRowSha256": "1177025344188A4AB0C7F7EE1D800D616BF3678DB23943C90A6322DEE2E4E3C2",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 136,
+        "sourceRowSha256": "369767991619E7F798564C0D32F8315CF9DD9163FB8FE204082F1A01DDBD5EC5",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 137,
+        "sourceRowSha256": "33B9FCA34B25EFD94EEE8C7E86ACF1F2586CC37DC2CE28417363C834A812FB6E",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 138,
+        "sourceRowSha256": "D83EECBB9CFE654206E85EB0BF4424A2B1A7FC89B14BEB24B86EA12D80B7030C",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 139,
+        "sourceRowSha256": "1511CF8E651AD37EF07C9FF17967053C0E2057C076372A24F0E571404272475A",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 140,
+        "sourceRowSha256": "580968EB71C4194C309D06A25B4283E7563932BD4B8C4171C2BBEF30D3717CFF",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 141,
+        "sourceRowSha256": "580968EB71C4194C309D06A25B4283E7563932BD4B8C4171C2BBEF30D3717CFF",
+        "category": "2.1 بناء خبرات التعلم",
+        "role": "معلم المادة / التخصص",
+        "importance": "عادية / تكميلية",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 142,
+        "sourceRowSha256": "9387105D9137CF4D61FFD4CEAA39AC3A87E3C949D05B46EF7A5A79166DF6EDD7",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 143,
+        "sourceRowSha256": "828905958A2F6A810AB375729DCA379011F41C1A68AB67CE0939F9B79837C1FD",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "وكيل الشؤون التعليمية",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 144,
+        "sourceRowSha256": "B9E54E54A757FEBC4BC15CD10851595477610066A7C9648DC8E338190045154E",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      },
+      {
+        "ordinal": 145,
+        "sourceRowSha256": "493886DC0259E0EDA68FF171189124B893C02B25E54FD74B3A677241C051F574",
+        "category": "1.3 المجتمع المدرسي",
+        "role": "معلم المادة / التخصص",
+        "importance": "حرجة (مؤشر اعتماد)",
+        "status": "مكتمل ومستوفى",
+        "availability": "ReferenceOnly"
+      }
+    ]
+  },
+  "matrixCsvRecords": 145,
+  "embeddedMatrix": {
+    "records": 145,
+    "keys": [
+      "action",
+      "category",
+      "importance",
+      "is_fulfilled",
+      "name",
+      "rel_path",
+      "role",
+      "size_kb",
+      "status"
+    ],
+    "missingOrEmptyByField": {
+      "action": 0,
+      "category": 0,
+      "importance": 0,
+      "is_fulfilled": 0,
+      "name": 0,
+      "rel_path": 0,
+      "role": 0,
+      "size_kb": 0,
+      "status": 0
+    },
+    "distinctReferencePaths": 145,
+    "duplicatePathOccurrences": 0,
+    "exactDuplicateRows": 0,
+    "existingOriginalBytesInPackage": 0,
+    "nonRelativeOrUnsafeReferencePaths": 0,
+    "line": 20218,
+    "identicalToJson": false
+  },
+  "tracker": {
+    "records": 36,
+    "line": 20217,
+    "schema": [
+      "doc",
+      "domain",
+      "domainKey",
+      "id",
+      "importance",
+      "num",
+      "personGroup",
+      "personRole",
+      "responsible",
+      "status",
+      "targetRelPath"
+    ],
+    "duplicateIds": 0,
+    "missingOrEmptyByField": {
+      "doc": 0,
+      "domain": 0,
+      "domainKey": 0,
+      "id": 0,
+      "importance": 0,
+      "num": 0,
+      "personGroup": 0,
+      "personRole": 0,
+      "responsible": 0,
+      "status": 0,
+      "targetRelPath": 0
+    },
+    "domainKeys": {
+      "1.1 التخطيط": 4,
+      "1.2 قيادة العملية التعليمية": 3,
+      "1.3 المجتمع المدرسي": 4,
+      "1.4 التطوير المؤسسي": 3,
+      "2.1 بناء خبرات التعلم": 3,
+      "2.2 تقويم التعلم": 7,
+      "3.1 التحصيل التعليمي": 2,
+      "3.2 التطور الشخصي والصحي": 4,
+      "4.1 المبنى المدرسي": 3,
+      "4.2 الأمن والسلامة": 3
+    },
+    "statuses": {
+      "completed": 36
+    },
+    "items": [
+      {
+        "sourceId": "item-1-1",
+        "ordinal": 1,
+        "domainKey": "1.1 التخطيط",
+        "sourceRowSha256": "41198B6B252BA4DE414477F4DFF201BB25D9EFCE8E4E7F5DC4C9C626086A6145",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-1-2",
+        "ordinal": 2,
+        "domainKey": "1.1 التخطيط",
+        "sourceRowSha256": "23139EF04C39735F66AE5A206889653B0ED4383765EEBEED138AC5FEF2A0C739",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-1-3",
+        "ordinal": 3,
+        "domainKey": "1.1 التخطيط",
+        "sourceRowSha256": "D235F802FC817F221056BAA073A648DBAA1F1AB474EF2AC38C273C05EE1F46F0",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-1-4",
+        "ordinal": 4,
+        "domainKey": "1.1 التخطيط",
+        "sourceRowSha256": "8D2599512251CF0E3C28180DE5A0FA042BEE7C913AAD92DBC91A92C9DF6EA76D",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-2-1",
+        "ordinal": 5,
+        "domainKey": "1.2 قيادة العملية التعليمية",
+        "sourceRowSha256": "E124000F0D6820CF741171955B10887D5E193E9858BFEF8AD17B0BB0AA929AAC",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-2-2",
+        "ordinal": 6,
+        "domainKey": "1.2 قيادة العملية التعليمية",
+        "sourceRowSha256": "2250EF25FE78B6F8F1DC309B5B3655124947C64188F6F00EDEB5F076C1ECCBE6",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-2-3",
+        "ordinal": 7,
+        "domainKey": "1.2 قيادة العملية التعليمية",
+        "sourceRowSha256": "49EF0F4B309A2810284DAE89DF2CF5079CA2838D2BFD7E8F1C2BF2B186CEEEE1",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-3-1",
+        "ordinal": 8,
+        "domainKey": "1.3 المجتمع المدرسي",
+        "sourceRowSha256": "2663005AA13611307A4AF051339654F344159887F074A27F2096E43B16B6D135",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-3-2",
+        "ordinal": 9,
+        "domainKey": "1.3 المجتمع المدرسي",
+        "sourceRowSha256": "D946CB93E79F00FB3D77C2AF48F90D46317FD2AEC66609B8B269FE42F2F09B37",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-3-3",
+        "ordinal": 10,
+        "domainKey": "1.3 المجتمع المدرسي",
+        "sourceRowSha256": "295EC54F939953887E0E90AA6899B63F92B823F84DCF243580E5662B95C45EE0",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-3-4",
+        "ordinal": 11,
+        "domainKey": "1.3 المجتمع المدرسي",
+        "sourceRowSha256": "A2CE1CF006BEE8987541C883230944476C1567C19EDC2AA5F8BB27F4756D5837",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-4-1",
+        "ordinal": 12,
+        "domainKey": "1.4 التطوير المؤسسي",
+        "sourceRowSha256": "FD024F9ADFC17727C89622B53F3CA39130E3D766A81FCFA24DD80E7C837C7321",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-4-2",
+        "ordinal": 13,
+        "domainKey": "1.4 التطوير المؤسسي",
+        "sourceRowSha256": "4539BEE7D71B7CFD1347F9B8277A7917A53E3E695860CEFD67756D0CABB6B2D9",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-4-3",
+        "ordinal": 14,
+        "domainKey": "1.4 التطوير المؤسسي",
+        "sourceRowSha256": "714B970C65AF8C3A679E6F116EBF801F702DA0235EB05A46FF531D933F4367B2",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-5-1",
+        "ordinal": 15,
+        "domainKey": "2.1 بناء خبرات التعلم",
+        "sourceRowSha256": "FA37A2309D2726A5775E6940F8AEA426C8D69B5BAC575AFD07CC5DA3C0905A6A",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-5-2",
+        "ordinal": 16,
+        "domainKey": "2.1 بناء خبرات التعلم",
+        "sourceRowSha256": "8EFC38E8C8B6423831ADE03D2282577A2880F86247D48BF2CE581CED9D43D129",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-5-3",
+        "ordinal": 17,
+        "domainKey": "2.1 بناء خبرات التعلم",
+        "sourceRowSha256": "A32DAB9790F672BC5FB79C833E1E22E6A07FBD2BD61167D25742D099542699D6",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-6-1",
+        "ordinal": 18,
+        "domainKey": "2.2 تقويم التعلم",
+        "sourceRowSha256": "BD5EBA42B5C963B94443955423B8ECFA8062A1FA65CCCADDC9473C228CEEF51C",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-6-2",
+        "ordinal": 19,
+        "domainKey": "2.2 تقويم التعلم",
+        "sourceRowSha256": "035CFC922F76FC7DE9FA8E9EB3165E5567C55619AB4CCD01624B8ACD9B7DEE28",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-6-3",
+        "ordinal": 20,
+        "domainKey": "2.2 تقويم التعلم",
+        "sourceRowSha256": "F95BB26E8F77B28CA5F0BD708D8B3C6D5AC246109372EE1F3330D7AA8AF251DD",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-6-4",
+        "ordinal": 21,
+        "domainKey": "2.2 تقويم التعلم",
+        "sourceRowSha256": "C8E09C76568FBB47A15E4920D323304B87BA2B31B39E69B72B50AAB20514994E",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-6-5",
+        "ordinal": 22,
+        "domainKey": "2.2 تقويم التعلم",
+        "sourceRowSha256": "3B58EACD28995159D3093764BEB77FA6BBD8D3DDE2245A801A9235D627FB72B3",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-7-1",
+        "ordinal": 23,
+        "domainKey": "3.1 التحصيل التعليمي",
+        "sourceRowSha256": "DA8ED28553E9215A36EA71D2F8E73B629E277FE83E35E582CD8FFAAAD2B0B237",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-7-2",
+        "ordinal": 24,
+        "domainKey": "3.1 التحصيل التعليمي",
+        "sourceRowSha256": "583F58C7CA6A566A5CE925CFC6DC17B25F3C9FCB9D0DF1930211C4A022CD3A97",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-8-1",
+        "ordinal": 25,
+        "domainKey": "3.2 التطور الشخصي والصحي",
+        "sourceRowSha256": "24992A41983E44BC49ECEA67264787CE4C5C9FC39BADF15F45984832363196E8",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-8-2",
+        "ordinal": 26,
+        "domainKey": "3.2 التطور الشخصي والصحي",
+        "sourceRowSha256": "19550D4A44C9756E69E0ACF773912A19FF02B2C7C9E13680D7EB59FF4B780889",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-8-3",
+        "ordinal": 27,
+        "domainKey": "3.2 التطور الشخصي والصحي",
+        "sourceRowSha256": "B4BFDA6860476B61552F558F8E61B75891DABC2CBE0BFCE6758A7FAA3B97E9AC",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-8-4",
+        "ordinal": 28,
+        "domainKey": "3.2 التطور الشخصي والصحي",
+        "sourceRowSha256": "F66098FABC55EF6C51F8A469F054D71257D406CFC1551AAB838814491BD5E61D",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-9-1",
+        "ordinal": 29,
+        "domainKey": "4.1 المبنى المدرسي",
+        "sourceRowSha256": "1423166532B5F6863070DCF8025BB8F80C8520C8496E1BC4AFD3345B79C96A21",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-9-2",
+        "ordinal": 30,
+        "domainKey": "4.1 المبنى المدرسي",
+        "sourceRowSha256": "A63D9704F82030B24ACC1D237395271FF1D4B5A7A6E948482367A4CEB5C53D04",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-9-3",
+        "ordinal": 31,
+        "domainKey": "4.1 المبنى المدرسي",
+        "sourceRowSha256": "FCD4EE5BE22B0DC9B6CAB9C443AAB8CB2A872C6631B2674312CB9AE940DD3035",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-10-1",
+        "ordinal": 32,
+        "domainKey": "4.2 الأمن والسلامة",
+        "sourceRowSha256": "5783683E7EE7DD07A19ED247F2830B707FF456AB5BD6B566FD5540E5E4C8A8E4",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-10-2",
+        "ordinal": 33,
+        "domainKey": "4.2 الأمن والسلامة",
+        "sourceRowSha256": "6305D70E570AC37F165D61902192244BD53CFC4C7F1B050694CE9F7D1D8B57DA",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-10-3",
+        "ordinal": 34,
+        "domainKey": "4.2 الأمن والسلامة",
+        "sourceRowSha256": "CC9EE42805E42F5E0601E5D97DC1B49200E3942CDD26F35863853DA9657A4218",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-11-1",
+        "ordinal": 35,
+        "domainKey": "2.2 تقويم التعلم",
+        "sourceRowSha256": "14C7FF8A380EE8E760E822500CA9296F8B45C32B760EA8799F36815C19BA9BF5",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      },
+      {
+        "sourceId": "item-11-2",
+        "ordinal": 36,
+        "domainKey": "2.2 تقويم التعلم",
+        "sourceRowSha256": "9163B6C32E11946A57A210179785573188267E4BAB4F00E48D725BD64117A3A3",
+        "status": "completed",
+        "targetPathPresent": true,
+        "mappingStatus": "Needs human requirement and responsible-user mapping"
+      }
+    ]
+  },
+  "standaloneMatrix": {
+    "resource": "مصفوفة_النماذج_الفارغة_واستيفاء_النواقص.html",
+    "domIds": [
+      "categoryFilter",
+      "importanceFilter",
+      "roleFilter",
+      "searchInput",
+      "stat-critical",
+      "stat-empty",
+      "stat-roles",
+      "stat-total",
+      "tableBody"
+    ],
+    "functions": [
+      {
+        "function": "populateFilters",
+        "line": 1909
+      },
+      {
+        "function": "renderTable",
+        "line": 1930
+      },
+      {
+        "function": "filterTable",
+        "line": 1960
+      },
+      {
+        "function": "exportToCSV",
+        "line": 1977
+      }
+    ]
+  },
+  "indexFunctions": [
+    {
+      "function": "quickOpenFile",
+      "line": 20071,
+      "inlineHandlerOccurrences": 696
+    },
+    {
+      "function": "checkServerStatus",
+      "line": 20092,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "initTheme",
+      "line": 20120,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleTheme",
+      "line": 20143,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "updateThemeBtn",
+      "line": 20150,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "showRollSlide",
+      "line": 20166,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "nextRoll",
+      "line": 20184,
+      "inlineHandlerOccurrences": 6
+    },
+    {
+      "function": "prevRoll",
+      "line": 20186,
+      "inlineHandlerOccurrences": 3
+    },
+    {
+      "function": "setRollSlide",
+      "line": 20187,
+      "inlineHandlerOccurrences": 36
+    },
+    {
+      "function": "initRollCarousels",
+      "line": 20188,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderExplorerTree",
+      "line": 20257,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleMainDomain",
+      "line": 20350,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleExpandAllTree",
+      "line": 20360,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderTreeNodesHtml",
+      "line": 20371,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderSubNodesHtml",
+      "line": 20410,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleExplorerDomain",
+      "line": 20444,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "selectTreeNode",
+      "line": 20457,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "openDomainInExplorer",
+      "line": 20473,
+      "inlineHandlerOccurrences": 33
+    },
+    {
+      "function": "toggleHeroVideo",
+      "line": 20493,
+      "inlineHandlerOccurrences": 4
+    },
+    {
+      "function": "filterCommandDeck",
+      "line": 20520,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "handleUrlSlideNavigation",
+      "line": 20534,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleHeroVideoFullscreen",
+      "line": 20559,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "findNodeInTree",
+      "line": 20571,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "collectAllFiles",
+      "line": 20583,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderExplorerFiles",
+      "line": 20594,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "getFilePriorityScore",
+      "line": 20688,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "isPrimaryMasterDoc",
+      "line": 20699,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "escapeQuotes",
+      "line": 20704,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "filterExplorerFiles",
+      "line": 20708,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "extractCleanRelPath",
+      "line": 20732,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "encodePathUrl",
+      "line": 20751,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "closeEvidenceModal",
+      "line": 20755,
+      "inlineHandlerOccurrences": 2
+    },
+    {
+      "function": "copyModalPath",
+      "line": 20763,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "switchMainMatrixTab",
+      "line": 20773,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "forceSyncWithServer",
+      "line": 20798,
+      "inlineHandlerOccurrences": 2
+    },
+    {
+      "function": "openNativeFile",
+      "line": 20834,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "openCurrentModalFileNatively",
+      "line": 20879,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "openCurrentModalFolder",
+      "line": 20883,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "openFilePreviewModal",
+      "line": 20908,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "previewMatrixItem",
+      "line": 21033,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "openEvidenceModal",
+      "line": 21051,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "initMatrixTable",
+      "line": 21058,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "filterMatrixTable",
+      "line": 21076,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderMatrixTable",
+      "line": 21104,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "getFilteredMatrixData",
+      "line": 21169,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "exportMatrixToCSV",
+      "line": 21173,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "getSavedItems",
+      "line": 21211,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "saveItems",
+      "line": 21230,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "resetTrackerStorage",
+      "line": 21236,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleItemStatus",
+      "line": 21246,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "switchTrackerView",
+      "line": 21257,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "setPersonFilter",
+      "line": 21262,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleHideCompleted",
+      "line": 21270,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "setFilterStatus",
+      "line": 21280,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "filterTracker",
+      "line": 21287,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderPersonQuickFilters",
+      "line": 21291,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "getFilteredItems",
+      "line": 21311,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderTrackerUI",
+      "line": 21327,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderPersonGroupedView",
+      "line": 21346,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderDomainGroupedView",
+      "line": 21402,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderTableView",
+      "line": 21439,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderItemBoxHTML",
+      "line": 21493,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderTeacherDrawerHTML",
+      "line": 21527,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "renderStatusBtnHTML",
+      "line": 21558,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "togglePersonCardCollapse",
+      "line": 21568,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "updateStats",
+      "line": 21575,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "openUploadModalForItem",
+      "line": 21633,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "onModalTeacherSelectChange",
+      "line": 21657,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "updateComputedTargetPath",
+      "line": 21661,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "toggleTeacherDrawer",
+      "line": 21675,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "closeUploadHelperModal",
+      "line": 21683,
+      "inlineHandlerOccurrences": 2
+    },
+    {
+      "function": "triggerUploadFilePicker",
+      "line": 21689,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "handleDragOver",
+      "line": 21693,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "handleDragLeave",
+      "line": 21700,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "handleDrop",
+      "line": 21707,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "executeWitnessFileUpload",
+      "line": 21722,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "uploadFileDirectly",
+      "line": 21729,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "copyTargetRelPath",
+      "line": 21799,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "openTargetFolderDirect",
+      "line": 21807,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "viewFolderFiles",
+      "line": 21814,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "openFolderByRelPath",
+      "line": 21887,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "copyText",
+      "line": 21891,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "showToast",
+      "line": 21897,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "showSlide",
+      "line": 21907,
+      "inlineHandlerOccurrences": 0
+    },
+    {
+      "function": "nextSlide",
+      "line": 21939,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "prevSlide",
+      "line": 21941,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "goToSlide",
+      "line": 21942,
+      "inlineHandlerOccurrences": 31
+    },
+    {
+      "function": "toggleDashboardMode",
+      "line": 21954,
+      "inlineHandlerOccurrences": 1
+    },
+    {
+      "function": "switchEvidenceView",
+      "line": 22088,
+      "inlineHandlerOccurrences": 22
+    },
+    {
+      "function": "filterByChip",
+      "line": 22111,
+      "inlineHandlerOccurrences": 77
+    },
+    {
+      "function": "filterEvidenceShowcase",
+      "line": 22161,
+      "inlineHandlerOccurrences": 11
+    },
+    {
+      "function": "initEvidenceShowcaseViews",
+      "line": 22200,
+      "inlineHandlerOccurrences": 0
+    }
+  ],
+  "literalLocations": {
+    "4116": {
+      "index.html": [
+        5070,
+        5098,
+        5142,
+        5169,
+        5187,
+        19923,
+        19926,
+        20216
+      ],
+      "تقرير_التقويم_الذاتي_والاعتماد_المدرسي_الشامل.html": [
+        5066,
+        5094,
+        5138,
+        5165,
+        5183,
+        19913,
+        19916,
+        20207
+      ],
+      "فهرس_الملفات_والشواهد_الشامل.json": [
+        3777,
+        28617
+      ]
+    },
+    "4617": {
+      "فهرس_الملفات_والشواهد_الشامل.json": [
+        4
+      ]
+    },
+    "4994": {
+      "تقرير_شامل_عن_جميع_الملفات_والشواهد.md": [
+        9,
+        40
+      ]
+    },
+    "4,116": {},
+    "4,617": {},
+    "4,994": {},
+    "14 محطة": {
+      "generate_report.py": [
+        5949
+      ],
+      "index.html": [
+        4879
+      ],
+      "تقرير_التقويم_الذاتي_والاعتماد_المدرسي_الشامل.html": [
+        4875
+      ]
+    },
+    "totalSlides = 13": {
+      "generate_report.py": [
+        8977
+      ],
+      "index.html": [
+        20068
+      ],
+      "تقرير_التقويم_الذاتي_والاعتماد_المدرسي_الشامل.html": [
+        20058
+      ]
+    }
+  },
+  "privacy": "No file names/reference paths, personal teacher/responsible names or original file bytes exported"
+}
