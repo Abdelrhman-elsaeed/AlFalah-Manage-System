@@ -34,6 +34,7 @@ backend/AlFalah.Api/wwwroot/
 secrets/
 *.pem
 **/App_Data/DataProtectionKeys/
+**/App_Data/absence-excuses/
 # Live-testing JWTs. Four of these were committed by mistake; they are removed
 # from the tree but remain in git history, so the signing key must be rotated.
 *.tok

@@ -844,12 +844,26 @@ export const routes: Routes = [
         title: 'إشعارات ولي الأمر'
       },
       {
+        path: 'student-affairs/guardian/dashboard',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          roles: ['Guardian'],
+          permissions: ['StudentAffairsDashboard.Guardian', 'Guardian.ViewLinkedStudents'],
+          requireAllPermissions: true,
+          guardianView: 'overview'
+        },
+        loadComponent: () => import('./features/student-affairs/guardian-dashboard/guardian-dashboard.component')
+          .then(m => m.GuardianDashboardComponent),
+        title: 'لوحة ولي الأمر'
+      },
+      {
         path: 'student-affairs/guardian',
         canActivate: [roleGuard, permissionGuard],
         data: {
           roles: ['Guardian'],
           permissions: ['StudentAffairsDashboard.Guardian', 'Guardian.ViewLinkedStudents'],
-          requireAllPermissions: true
+          requireAllPermissions: true,
+          guardianView: 'children'
         },
         loadComponent: () => import('./features/student-affairs/guardian-dashboard/guardian-dashboard.component')
           .then(m => m.GuardianDashboardComponent),

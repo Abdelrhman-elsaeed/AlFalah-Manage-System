@@ -1,48 +1,86 @@
-<main class="guardian-page" dir="rtl">
-  <header class="page-header">
-    <div><p class="eyebrow">مساحة ولي الأمر</p><h1>أبنائي</h1><p>متابعة الحضور والطلبات والتنبيهات من مكان واحد.</p></div>
-    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="تحديث" [loading]="loading()" (click)="load()"></button>
+<main class="manager-workspace guardian-workspace" [class.children-view]="view === 'children'" dir="rtl">
+  <header class="workspace-hero">
+    <div class="workspace-hero__content">
+      <span class="workspace-hero__eyebrow"><i class="pi pi-home" aria-hidden="true"></i>مساحة ولي الأمر</span>
+      <h1>{{ view === 'overview' ? 'لوحة ولي الأمر' : 'أبنائي' }}</h1>
+      <p>{{ view === 'overview' ? 'صورة واضحة لأبنائك، وطلباتك، وآخر مستجدات المدرسة في مكان واحد.' : 'متابعة مختصرة لكل ابن، مع التفاصيل والخدمات عندما تحتاج إليها.' }}</p>
+      <div class="sync-note"><span class="live-dot" aria-hidden="true"></span>تحديث تلقائي كل دقيقة<span *ngIf="dashboard() as data"> · آخر تحديث {{ data.generatedAt | date:'HH:mm' }}</span></div>
+    </div>
+    <div class="workspace-hero__actions">
+      <a class="hero-action" [routerLink]="view === 'overview' ? '/student-affairs/guardian' : '/student-affairs/guardian/dashboard'"><i class="pi" [ngClass]="view === 'overview' ? 'pi-users' : 'pi-chart-line'" aria-hidden="true"></i>{{ view === 'overview' ? 'عرض أبنائي' : 'اللوحة الرئيسية' }}</a>
+      <button type="button" class="hero-action" [disabled]="refreshing()" (click)="load()"><i class="pi" [ngClass]="refreshing() ? 'pi-spin pi-spinner' : 'pi-refresh'" aria-hidden="true"></i>{{ refreshing() ? 'جارٍ التحديث' : 'تحديث' }}</button>
+    </div>
   </header>
 
-  <nav class="quick-links" aria-label="خدمات ولي الأمر">
-    <a pButton routerLink="/student-affairs/guardian/excuses" icon="pi pi-paperclip" label="أعذار الغياب" class="p-button-outlined"></a>
-    <a pButton routerLink="/student-affairs/gate-passes/mine/new" icon="pi pi-send" label="استئذانات الخروج" class="p-button-outlined"></a>
-    <a pButton routerLink="/student-affairs/guardian/activity" icon="pi pi-calendar-clock" label="التصاريح والاستدعاءات" class="p-button-outlined"></a>
-    <a pButton routerLink="/student-affairs/guardian/notifications" icon="pi pi-bell" [label]="'الإشعارات (' + unreadNotifications() + ')'" class="p-button-outlined"></a>
-    <a pButton routerLink="/student-affairs/messages" icon="pi pi-comments" [label]="'الرسائل (' + unreadThreads() + ')'" class="p-button-outlined"></a>
-  </nav>
+  <section *ngIf="loading()" class="state-card loading-state" role="status" aria-live="polite">
+    <div class="state-card__icon"><i class="pi pi-chart-bar" aria-hidden="true"></i></div><h2>نحمّل بيانات أبنائك</h2><p>لحظات وتظهر آخر المستجدات.</p><div class="skeleton-lines" aria-hidden="true"><span></span><span></span><span></span></div>
+  </section>
+  <section *ngIf="!loading() && errorMessage()" class="refresh-error" role="alert">
+    <i class="pi pi-exclamation-circle" aria-hidden="true"></i><div><strong>{{ errorMessage() }}</strong><p *ngIf="dashboard()">نعرض آخر بيانات تم تحميلها حتى ينجح التحديث.</p></div><button class="danger-action" type="button" [disabled]="refreshing()" (click)="load()">إعادة المحاولة</button>
+  </section>
 
-  <section *ngIf="loading()" class="state-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><p>جارٍ تحميل بيانات الأبناء…</p></section>
-  <section *ngIf="!loading() && errorMessage()" class="feedback-error" role="alert"><i class="pi pi-exclamation-triangle"></i><span>{{ errorMessage() }}</span><button pButton type="button" class="p-button-text" label="إعادة المحاولة" (click)="load()"></button></section>
+  <ng-container *ngIf="!loading() && dashboard() as data">
+    <ng-container *ngIf="view === 'overview'">
+      <section class="overview-grid" aria-label="ملخص المتابعة">
+        <article class="metric-card metric-card--success"><span class="metric-card__icon"><i class="pi pi-users" aria-hidden="true"></i></span><div class="metric-card__copy"><span>الأبناء المرتبطون</span><strong>{{ cards().length }}</strong><small>متابعة جميع الأبناء من حساب واحد</small></div></article>
+        <article class="metric-card metric-card--warning"><span class="metric-card__icon"><i class="pi pi-inbox" aria-hidden="true"></i></span><div class="metric-card__copy"><span>طلبات ومواعيد نشطة</span><strong>{{ pendingFollowUps() }}</strong><small>أعذار معلقة واستئذانات واستدعاءات</small></div></article>
+        <article class="metric-card metric-card--info"><span class="metric-card__icon"><i class="pi pi-bell" aria-hidden="true"></i></span><div class="metric-card__copy"><span>إشعارات جديدة</span><strong>{{ data.unreadNotifications }}</strong><small>تنبيهات لم تُقرأ بعد</small></div></article>
+        <article class="metric-card metric-card--purple"><span class="metric-card__icon"><i class="pi pi-comments" aria-hidden="true"></i></span><div class="metric-card__copy"><span>محادثات جديدة</span><strong>{{ data.unreadThreads }}</strong><small>محادثات تحتوي على رسائل غير مقروءة</small></div></article>
+      </section>
 
-  <ng-container *ngIf="!loading()">
-    <section *ngIf="actions().length" class="actions-strip" aria-label="الملخص الإجمالي" aria-live="polite">
-      <article *ngFor="let action of actions()"><div><span>{{ action.label || action.code }}</span><strong>{{ action.count }}</strong></div><p-tag [value]="action.severity" [severity]="actionSeverity(action)"></p-tag></article>
-    </section>
+      <section class="attention-banner" [class.attention-banner--clear]="studentsNeedingAttention() === 0">
+        <span class="attention-icon"><i class="pi" [ngClass]="studentsNeedingAttention() ? 'pi-bell' : 'pi-check-circle'" aria-hidden="true"></i></span>
+        <div><strong>{{ studentsNeedingAttention() ? 'مستجدات تستحق المتابعة' : 'لا توجد مستجدات معلقة' }}</strong><p>{{ studentsNeedingAttention() ? 'راجع الرسائل والتنبيهات ومواعيد الاستدعاء، وتابع حالة الأعذار المرسلة.' : 'ستظهر هنا الرسائل والتنبيهات والطلبات الجديدة عند وصولها.' }}</p></div>
+        <span class="status-pill" [class.status-pill--warning]="studentsNeedingAttention() > 0">{{ studentsNeedingAttention() }} من {{ cards().length }} أبناء</span>
+      </section>
 
-    <section *ngIf="cards().length === 0 && !errorMessage()" class="state-card empty"><i class="pi pi-users"></i><h2>لا يوجد أبناء مرتبطون بهذا الحساب</h2><p>راجع إدارة المدرسة للتحقق من ربط حساب ولي الأمر.</p></section>
+      <section class="guardian-layout">
+        <article class="surface-panel">
+          <div class="section-heading"><div><span class="section-kicker">المتابعة والخدمات</span><h2>ما الذي تريد متابعته؟</h2><p>المستجدات أولًا، والخدمات متاحة في أي وقت.</p></div><span class="status-pill">{{ services().length }} خدمات</span></div>
+          <div class="service-grid">
+            <a *ngFor="let service of services()" class="service-card" [class.service-card--quiet]="service.count === 0" [attr.data-tone]="service.count ? service.tone : 'clear'" [routerLink]="service.route">
+              <span class="service-icon"><i class="pi" [ngClass]="service.icon" aria-hidden="true"></i></span>
+              <div class="service-copy"><h3>{{ service.label }}</h3><p>{{ service.description }}</p><span class="service-state">{{ serviceState(service.code, service.count) }}</span></div>
+              <div class="service-tail"><strong>{{ service.count }}</strong><i class="pi pi-arrow-left" aria-hidden="true"></i></div>
+            </a>
+          </div>
+          <p class="empty-note" *ngIf="services().length === 0">لا توجد خدمات متاحة لهذا الحساب حاليًا.</p>
+        </article>
+        <aside class="stack">
+          <section class="surface-panel children-preview">
+            <div class="section-heading"><div><span class="section-kicker">نظرة سريعة</span><h2>أبنائي</h2></div><span class="status-pill">{{ cards().length }} أبناء</span></div>
+            <a *ngFor="let card of previewStudents(); trackBy: trackStudent" class="preview-row" routerLink="/student-affairs/guardian">
+              <span class="student-avatar" aria-hidden="true">{{ initials(card.context.student.displayName) }}</span><div class="preview-copy"><strong>{{ card.context.student.displayName }}</strong><span>{{ classLabel(card) }}</span><small [class.has-updates]="needsAttention(card)">{{ needsAttention(card) ? 'لديه مستجدات للمتابعة' : 'لا توجد مستجدات معلقة' }}</small></div><i class="pi pi-angle-left" aria-hidden="true"></i>
+            </a>
+            <div class="empty-note" *ngIf="cards().length === 0"><i class="pi pi-users" aria-hidden="true"></i><p>لم يتم ربط أبناء بهذا الحساب بعد.</p></div>
+            <a class="view-all" routerLink="/student-affairs/guardian">عرض جميع الأبناء وتفاصيلهم<i class="pi pi-arrow-left" aria-hidden="true"></i></a>
+          </section>
+          <section class="surface-panel legend-panel"><h2>دليل حالات المتابعة</h2><p><span class="legend-dot legend-dot--new"></span>بنفسجي · رسائل وتنبيهات جديدة</p><p><span class="legend-dot legend-dot--attention"></span>ذهبي · موعد أو طلب قيد المتابعة</p><p><span class="legend-dot legend-dot--clear"></span>أخضر · لا توجد عناصر معلقة</p></section>
+        </aside>
+      </section>
+    </ng-container>
 
-    <section class="student-grid" *ngIf="cards().length">
-      <p-card *ngFor="let card of cards()" styleClass="student-card">
-        <ng-template pTemplate="header">
-          <div class="card-header"><span class="avatar">{{ initials(card.context.student.displayName) }}</span><div><h2>{{ card.context.student.displayName }}</h2><p><bdi dir="ltr">{{ card.context.student.studentNumber }}</bdi> · {{ card.context.student.classLabel || card.context.classroom?.label || 'غير مسند لفصل' }}</p></div><p-tag value="نشط" severity="success"></p-tag></div>
-        </ng-template>
-        <div class="metric-list" aria-label="ملخص الطالب">
-          <article><div><span>الغياب الرسمي</span><strong>{{ card.attendance.officialAbsences }}</strong></div></article>
-          <article><div><span>الغياب بعذر</span><strong>{{ card.attendance.excusedAbsences }}</strong></div></article>
-          <article><div><span>أعذار قيد المراجعة</span><strong>{{ card.attendance.pendingExcuses }}</strong></div></article>
-          <article><div><span>استئذانات نشطة</span><strong>{{ card.activeGatePasses }}</strong></div></article>
-          <article><div><span>تصاريح دخول نشطة</span><strong>{{ card.activeEntryPermits }}</strong></div></article>
-          <article><div><span>استدعاءات قادمة</span><strong>{{ card.pendingOrUpcomingSummons }}</strong></div></article>
-          <article><div><span>إشادات حديثة</span><strong>{{ card.recentRecognitions }}</strong></div></article>
-          <article><div><span>إشعارات غير مقروءة</span><strong>{{ card.unreadNotifications }}</strong></div></article>
-        </div>
-        <div class="capabilities" aria-label="الخدمات المتاحة">
-          <span *ngIf="card.canSubmitExcuses"><i class="pi pi-check"></i> رفع عذر غياب</span>
-          <span *ngIf="card.canRequestGatePass"><i class="pi pi-check"></i> طلب استئذان خروج</span>
-          <span *ngIf="card.receivesNotifications"><i class="pi pi-bell"></i> استقبال الإشعارات</span>
-        </div>
-      </p-card>
-    </section>
+    <ng-container *ngIf="view === 'children'">
+      <section class="children-toolbar" aria-label="بحث وتصفية الأبناء">
+        <div class="children-title"><h2>بطاقات الأبناء</h2><span>{{ filteredCards().length }} من {{ cards().length }} أبناء</span></div>
+        <label class="student-search"><i class="pi pi-search" aria-hidden="true"></i><span class="sr-only">ابحث باسم الطالب أو رقمه أو الفصل</span><input type="search" placeholder="اسم الطالب، رقمه أو الفصل" [value]="search()" (input)="search.set($any($event.target).value)"></label>
+        <button type="button" class="soft-button attention-filter" [class.is-selected]="attentionOnly()" [attr.aria-pressed]="attentionOnly()" (click)="attentionOnly.set(!attentionOnly())"><i class="pi pi-filter" aria-hidden="true"></i>لديهم مستجدات<span>{{ studentsNeedingAttention() }}</span></button>
+      </section>
+
+      <section class="student-grid" aria-label="الأبناء">
+        <article *ngFor="let card of filteredCards(); trackBy: trackStudent" class="student-card">
+          <header class="student-heading"><span class="student-avatar" aria-hidden="true">{{ initials(card.context.student.displayName) }}</span><div class="student-identity"><h3>{{ card.context.student.displayName }}</h3><p>{{ classLabel(card) }}<span aria-hidden="true"> · </span><bdi>{{ card.context.student.studentNumber }}</bdi></p></div><span class="enrollment-dot" [class.enrollment-dot--inactive]="!card.context.student.isActive" [attr.title]="card.context.student.isActive ? 'طالب نشط' : 'طالب غير نشط'"><span class="sr-only">{{ card.context.student.isActive ? 'طالب نشط' : 'طالب غير نشط' }}</span></span></header>
+          <div class="student-stats"><div><strong>{{ card.attendance.officialAbsences }}</strong><span>غياب محتسب</span></div><div [class.stat-attention]="card.attendance.pendingExcuses > 0"><strong>{{ card.attendance.pendingExcuses }}</strong><span>أعذار معلقة</span></div><div><strong>{{ card.activeGatePasses }}</strong><span>استئذانات نشطة</span></div></div>
+          <div class="student-updates"><span [class.has-updates]="needsAttention(card)"><i class="pi" [ngClass]="needsAttention(card) ? 'pi-bell' : 'pi-check-circle'" aria-hidden="true"></i>{{ needsAttention(card) ? 'مستجدات للمتابعة' : 'لا توجد مستجدات معلقة' }}</span><button type="button" class="details-button" [attr.aria-expanded]="expandedStudentIds().has(card.context.student.id)" [attr.aria-controls]="'student-details-' + card.context.student.id" (click)="toggleDetails(card.context.student.id)">{{ expandedStudentIds().has(card.context.student.id) ? 'إخفاء التفاصيل' : 'التفاصيل' }}<i class="pi" [ngClass]="expandedStudentIds().has(card.context.student.id) ? 'pi-angle-up' : 'pi-angle-down'" aria-hidden="true"></i></button></div>
+          <div *ngIf="expandedStudentIds().has(card.context.student.id)" class="student-details" [id]="'student-details-' + card.context.student.id">
+            <dl><div><dt>غياب بعذر</dt><dd>{{ card.attendance.excusedAbsences }}</dd></div><div><dt>أعذار مقبولة</dt><dd>{{ card.attendance.acceptedExcuses }}</dd></div><div><dt>أعذار مرفوضة</dt><dd>{{ card.attendance.rejectedExcuses }}</dd></div><div><dt>تصاريح دخول نشطة</dt><dd>{{ card.activeEntryPermits }}</dd></div><div><dt>استدعاءات معلقة / قادمة</dt><dd>{{ card.pendingOrUpcomingSummons }}</dd></div><div><dt>تكريمات حديثة</dt><dd>{{ card.recentRecognitions }}</dd></div><div><dt>إشعارات غير مقروءة</dt><dd>{{ card.unreadNotifications }}</dd></div><div><dt>محادثات غير مقروءة</dt><dd>{{ card.unreadThreads }}</dd></div></dl>
+            <p>مؤشرات الغياب تخص الفصل الدراسي النشط.</p>
+          </div>
+          <footer class="student-footer"><a *ngIf="card.canSubmitExcuses && canUse('Attendance.SubmitExcuse')" routerLink="/student-affairs/guardian/excuses"><i class="pi pi-file-edit" aria-hidden="true"></i>رفع عذر</a><a *ngIf="card.canRequestGatePass && canUse('GatePass.Request')" routerLink="/student-affairs/gate-passes/mine/new"><i class="pi pi-send" aria-hidden="true"></i>طلب استئذان</a><span *ngIf="!card.canSubmitExcuses && !card.canRequestGatePass">الخدمات غير مفعّلة لهذا الطالب</span></footer>
+        </article>
+      </section>
+      <section *ngIf="filteredCards().length === 0" class="state-card"><div class="state-card__icon"><i class="pi pi-users" aria-hidden="true"></i></div><h2>{{ cards().length ? 'لا يوجد أبناء يطابقون البحث' : 'لم يتم ربط أبناء بهذا الحساب' }}</h2><p>{{ cards().length ? 'جرّب اسمًا آخر أو ألغِ التصفية لعرض جميع الأبناء.' : 'ستظهر بطاقات الأبناء هنا بمجرد ربطهم بحسابك في المدرسة.' }}</p><button *ngIf="cards().length" type="button" class="soft-button" (click)="search.set(''); attentionOnly.set(false)">عرض جميع الأبناء</button></section>
+    </ng-container>
+    <p class="freshness"><i class="pi pi-clock" aria-hidden="true"></i>آخر مزامنة: {{ data.generatedAt | date:'dd/MM/yyyy · HH:mm' }}<span>الأرقام محدثة من سجلات المدرسة</span></p>
   </ng-container>
 </main>

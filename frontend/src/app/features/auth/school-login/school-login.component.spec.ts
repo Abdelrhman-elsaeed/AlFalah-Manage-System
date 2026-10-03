@@ -99,7 +99,7 @@ describe('SchoolLoginComponent landing separation regressions', () => {
     ['SuperAdmin', '/main-manager/dashboard'], ['MainManager', '/main-manager/dashboard'],
     ['SchoolManager', '/school-manager/dashboard'], ['Moderator', '/moderator/dashboard'],
     ['Instructor', '/instructor/dashboard'], ['StudentAffairsOfficer', '/student-affairs/officer'],
-    ['Secretary', '/student-affairs/attendance/sheet'], ['Guardian', '/student-affairs/guardian'],
+    ['Secretary', '/student-affairs/attendance/sheet'], ['Guardian', '/student-affairs/guardian/dashboard'],
     ['SecurityGuard', '/student-affairs/security'], ['SocialWorker', '/student-affairs/social-worker'],
     ['Unknown', '/dashboard']
   ]) {

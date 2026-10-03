@@ -6,9 +6,10 @@
       <p>يمكن رفع ملف PDF لسجل غياب مرتبط بأحد أبنائك، ثم تتابع حالة المراجعة هنا.</p>
     </header>
 
-    <p-card>
+    <section class="student-panel" aria-label="اختيار الطالب">
+      <div class="student-panel__intro"><i class="pi pi-users"></i><div><h2>اختر الطالب</h2><p>اعرض سجل الغياب وارفع العذر للسجل المطلوب.</p></div></div>
       <label class="student-picker">
-        <span>الطالب</span>
+        <span>الطالب المرتبط بحسابك</span>
         <p-dropdown
           [formControl]="studentControl"
           [options]="guardianStudents()"
@@ -19,18 +20,19 @@
           >
         </p-dropdown>
       </label>
-    </p-card>
+    </section>
 
     @if (guardianLoading()) {
       <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل سجلات الحضور…</span></div>
     }
 
     @if (history(); as attendanceHistory) {
-      <div class="history-heading">
-        <div><h2>سجل غياب {{ attendanceHistory.student.displayName }}</h2><p>{{ attendanceHistory.term.label }}</p></div>
-        <p-tag [value]="'الغياب المحتسب: ' + attendanceHistory.absenceMetric.eligibleTermCount" severity="info"></p-tag>
-      </div>
-      <p-table [value]="attendanceHistory.records" [paginator]="attendanceHistory.records.length > 10" [rows]="10" styleClass="p-datatable-striped" responsiveLayout="scroll">
+      <section class="guardian-history">
+        <div class="history-heading">
+          <div><h2>سجل غياب {{ attendanceHistory.student.displayName }}</h2><p>{{ attendanceHistory.term.label }}</p></div>
+          <p-tag [value]="'الغياب المحتسب: ' + attendanceHistory.absenceMetric.eligibleTermCount" severity="info"></p-tag>
+        </div>
+        <p-table [value]="attendanceHistory.records" [paginator]="attendanceHistory.records.length > 10" [rows]="10" styleClass="p-datatable-striped" responsiveLayout="scroll">
         <ng-template pTemplate="header"><tr><th>التاريخ</th><th>الحالة</th><th>حالة العذر</th><th>الإجراء</th></tr></ng-template>
         <ng-template pTemplate="body" let-record>
           <tr>
@@ -41,6 +43,7 @@
               @if (canUpload(record)) {
                 <button pButton type="button" label="رفع عذر PDF" icon="pi pi-upload" size="small" (click)="openUpload(record)"></button>
               }
+              @if (!canUpload(record) && !record.excuseStatus) { <span class="no-action">—</span> }
               @if (record.excuseStatus) {
                 <button pButton type="button" label="عرض العذر" icon="pi pi-eye" size="small" class="p-button-outlined" (click)="openExcuses(record.id)"></button>
               }
@@ -48,7 +51,8 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage"><tr><td colspan="4" class="empty">لا توجد سجلات حضور في الفصل الدراسي الحالي.</td></tr></ng-template>
-      </p-table>
+        </p-table>
+      </section>
     }
 
     <p-dialog
@@ -65,12 +69,12 @@
         </div>
         <label><span>نوع العذر</span><p-dropdown formControlName="excuseType" [options]="excuseTypes" optionLabel="label" optionValue="value"></p-dropdown></label>
         <label><span>ملاحظة لجهة المراجعة (اختياري)</span><textarea pInputTextarea formControlName="notes" rows="4" maxlength="1000"></textarea></label>
-        <label class="pdf-picker">
+        <div class="pdf-picker">
           <span>المرفق PDF — حتى 10 MB</span>
           <input #pdfPicker type="file" accept=".pdf,application/pdf" (change)="selectPdf($event)" hidden />
           <button pButton type="button" class="p-button-outlined" icon="pi pi-paperclip" [label]="uploadFile()?.name || 'اختيار ملف PDF'" (click)="pdfPicker.click()"></button>
           @if (uploadFile(); as file) { <small>{{ formatBytes(file.size) }}</small> }
-        </label>
+        </div>
         <div class="dialog-actions">
           <button pButton type="button" label="إلغاء" class="p-button-text" (click)="uploadDialogVisible.set(false)"></button>
           <button pButton type="submit" label="إرسال للمراجعة" icon="pi pi-send" [loading]="submitting()" [disabled]="uploadForm.invalid || !uploadFile()"></button>
@@ -188,10 +192,20 @@
         }
       </article>
     }
-    @if (previewUrl()) {
+    @if (previewName()) {
       <div class="pdf-preview">
-        <strong>{{ previewName() }}</strong>
-        <iframe [src]="previewUrl()" sandbox title="معاينة مرفق العذر PDF"></iframe>
+        <div class="pdf-preview__heading">
+          <strong>{{ previewName() }}</strong>
+          @if (previewPageCount() > 1) {
+            <div class="pdf-preview__pages" aria-label="صفحات المرفق">
+              <button type="button" [disabled]="previewPageNumber() === 1 || previewLoading()" (click)="changePreviewPage(-1)" aria-label="الصفحة السابقة"><i class="pi pi-angle-right"></i></button>
+              <span>{{ previewPageNumber() }} من {{ previewPageCount() }}</span>
+              <button type="button" [disabled]="previewPageNumber() === previewPageCount() || previewLoading()" (click)="changePreviewPage(1)" aria-label="الصفحة التالية"><i class="pi pi-angle-left"></i></button>
+            </div>
+          }
+        </div>
+        @if (previewLoading()) { <div class="pdf-preview__loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تجهيز المعاينة…</span></div> }
+        @if (previewImageUrl(); as imageUrl) { <div class="pdf-preview__page"><img [src]="imageUrl" [alt]="'الصفحة ' + previewPageNumber() + ' من ' + previewName()" /></div> }
       </div>
     }
   </p-dialog>

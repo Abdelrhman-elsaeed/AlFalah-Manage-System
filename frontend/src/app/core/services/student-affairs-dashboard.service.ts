@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 import { ApiResponse } from '../models/api-response.model';
 import { ClassroomDto } from '../models/daily-operations.models';
 import {
@@ -92,7 +93,9 @@ export class StudentAffairsDashboardService {
   }
 
   getGuardianDashboard(): Observable<ApiResponse<GuardianStudentAffairsDashboardDto>> {
-    return this.http.get<ApiResponse<GuardianStudentAffairsDashboardDto>>(`${this.api}/student-affairs/dashboard/guardian`);
+    return this.http.get<ApiResponse<GuardianStudentAffairsDashboardDto>>(`${this.api}/student-affairs/dashboard/guardian`, {
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
+    });
   }
 
   getGuardianStudents(): Observable<ApiResponse<readonly GuardianStudentDto[]>> {

@@ -3,11 +3,17 @@
     <div>
       <span class="eyebrow">خدمات ولي الأمر</span>
       <h1>طلب استئذان خروج</h1>
-      <p>أرسل بيانات المستلم ووقت الخروج المطلوب، ثم تابع حالة المراجعة من القائمة أدناه.</p>
+      <p>أرسل بيانات المستلم ووقت الخروج المطلوب، وتابع حالة الطلب من سجل الطلبات.</p>
     </div>
     <button pButton type="button" icon="pi pi-refresh" label="تحديث الطلبات" class="p-button-outlined" [loading]="loading()" (click)="loadInitial()"></button>
   </header>
 
+  <nav class="page-tabs" aria-label="أقسام طلب الاستئذان">
+    <button type="button" [class.active]="activeTab() === 'request'" [attr.aria-current]="activeTab() === 'request' ? 'page' : null" (click)="activeTab.set('request')"><i class="pi pi-send"></i> طلب استئذان خروج</button>
+    <button type="button" [class.active]="activeTab() === 'history'" [attr.aria-current]="activeTab() === 'history' ? 'page' : null" (click)="activeTab.set('history')"><i class="pi pi-history"></i> سجل الطلبات السابقة <span class="tab-count">{{ totalRecords() }}</span></button>
+  </nav>
+
+  @if (activeTab() === 'request') {
   @if (loading()) {
     <section class="loading-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل بيانات الطلاب والاستئذانات…</span></section>
   } @else {
@@ -85,6 +91,12 @@
     </div>
   }
 
+  }
+
+  @if (activeTab() === 'history') {
+  @if (loading()) {
+    <section class="loading-card" role="status"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل سجل الطلبات…</span></section>
+  } @else {
   <section class="history-card">
     <div class="section-heading"><div><h2>طلباتي السابقة</h2><p>الحالة الفعلية كما أعادها الخادم.</p></div><span>{{ totalRecords() }} طلب</span></div>
     <p-table [value]="requests()" [lazy]="true" [paginator]="true" [rows]="pageSize()" [totalRecords]="totalRecords()" [first]="(pageNumber() - 1) * pageSize()" [rowsPerPageOptions]="[10, 20, 50]" responsiveLayout="scroll" (onPage)="onPage($event)">
@@ -106,6 +118,8 @@
       <ng-template pTemplate="emptymessage"><tr><td colspan="6"><div class="table-empty"><i class="pi pi-inbox"></i><strong>لا توجد طلبات استئذان بعد</strong></div></td></tr></ng-template>
     </p-table>
   </section>
+  }
+  }
 
   <p-dialog header="إلغاء طلب الاستئذان" [visible]="cancelVisible()" (visibleChange)="cancelVisible.set($event)" [modal]="true" [draggable]="false" [style]="{ width: 'min(520px, 94vw)' }">
     @if (cancelTarget(); as item) {

@@ -2,12 +2,10 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnDestroy, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextareaModule } from 'primeng/inputtextarea';
@@ -28,6 +26,7 @@ import {
 import { GuardianStudentDto } from '../../../core/models/student-affairs-dashboard.models';
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
 import { downloadBlob, fileNameFromResponse } from '../../../core/utils/browser-download';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
 type ExcuseMode = 'guardian' | 'officer';
@@ -39,7 +38,6 @@ type ExcuseMode = 'guardian' | 'officer';
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,
-    CardModule,
     DialogModule,
     DropdownModule,
     InputTextareaModule,
@@ -54,7 +52,6 @@ export class ExcusesManagementComponent implements OnDestroy {
   private readonly api = inject(DailyOperationsService);
   private readonly messages = inject(MessageService);
   private readonly route = inject(ActivatedRoute);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly mode = (this.route.snapshot.data['excuseMode'] ?? 'guardian') as ExcuseMode;
@@ -82,9 +79,13 @@ export class ExcusesManagementComponent implements OnDestroy {
   readonly excusesDialogVisible = signal(false);
   readonly displayedExcuses = signal<readonly AbsenceExcuseDto[]>([]);
   readonly detailsLoading = signal(false);
-  readonly previewUrl = signal<SafeResourceUrl | null>(null);
+  readonly previewImageUrl = signal<string | null>(null);
   readonly previewName = signal('');
-  private rawPreviewUrl: string | null = null;
+  readonly previewLoading = signal(false);
+  readonly previewPageNumber = signal(1);
+  readonly previewPageCount = signal(0);
+  private previewDocument: PDFDocumentProxy | null = null;
+  private previewRequestId = 0;
 
   readonly queue = signal<readonly OfficerExcuseQueueItem[]>([]);
   readonly queueTotal = signal(0);
@@ -274,20 +275,33 @@ export class ExcusesManagementComponent implements OnDestroy {
   }
 
   previewAttachment(excuse: AbsenceExcuseDto, attachment: AttachmentDto): void {
+    this.revokePreview();
+    const requestId = this.previewRequestId;
+    this.previewName.set(attachment.originalName);
+    this.previewLoading.set(true);
     this.api.downloadExcuseAttachment(excuse.id, attachment.id).subscribe({
       next: response => {
+        if (requestId !== this.previewRequestId) return;
         const blob = response.body;
         if (!blob || !blob.type.toLocaleLowerCase('en').includes('pdf')) {
+          this.previewLoading.set(false);
           this.messages.add({ severity: 'error', summary: 'تعذر عرض الملف', detail: 'الملف المستلم ليس PDF.' });
           return;
         }
-        this.revokePreview();
-        this.rawPreviewUrl = URL.createObjectURL(blob);
-        this.previewUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.rawPreviewUrl));
-        this.previewName.set(attachment.originalName);
+        void this.loadPreview(blob, requestId);
       },
-      error: error => this.showHttpError('تعذر عرض الملف', error)
+      error: error => {
+        if (requestId !== this.previewRequestId) return;
+        this.previewLoading.set(false);
+        this.showHttpError('تعذر عرض الملف', error);
+      }
     });
+  }
+
+  async changePreviewPage(direction: -1 | 1): Promise<void> {
+    const next = this.previewPageNumber() + direction;
+    if (next < 1 || next > this.previewPageCount() || this.previewLoading()) return;
+    await this.renderPreviewPage(next, this.previewRequestId);
   }
 
   downloadAttachment(excuse: AbsenceExcuseDto, attachment: AttachmentDto): void {
@@ -411,11 +425,59 @@ export class ExcusesManagementComponent implements OnDestroy {
     });
   }
 
+  private async loadPreview(blob: Blob, requestId: number): Promise<void> {
+    try {
+      const { GlobalWorkerOptions, getDocument } = await import('pdfjs-dist');
+      GlobalWorkerOptions.workerSrc = new URL('assets/pdfjs/pdf.worker.min.mjs', document.baseURI).toString();
+      const documentTask = getDocument({ data: new Uint8Array(await blob.arrayBuffer()) });
+      const pdf = await documentTask.promise;
+      if (requestId !== this.previewRequestId) {
+        await pdf.destroy();
+        return;
+      }
+      this.previewDocument = pdf;
+      this.previewPageCount.set(pdf.numPages);
+      await this.renderPreviewPage(1, requestId);
+    } catch {
+      if (requestId !== this.previewRequestId) return;
+      this.previewLoading.set(false);
+      this.messages.add({ severity: 'error', summary: 'تعذر عرض الملف', detail: 'تعذر قراءة صفحات PDF. يمكنك تنزيل الملف.' });
+    }
+  }
+
+  private async renderPreviewPage(pageNumber: number, requestId: number): Promise<void> {
+    const pdf = this.previewDocument;
+    if (!pdf) return;
+    this.previewLoading.set(true);
+    try {
+      const page = await pdf.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 1.4 });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas is unavailable');
+      await page.render({ canvasContext: context, viewport }).promise;
+      if (requestId !== this.previewRequestId) return;
+      this.previewImageUrl.set(canvas.toDataURL('image/png'));
+      this.previewPageNumber.set(pageNumber);
+    } catch {
+      if (requestId === this.previewRequestId)
+        this.messages.add({ severity: 'error', summary: 'تعذر عرض الصفحة', detail: 'يمكنك تنزيل ملف PDF لعرضه.' });
+    } finally {
+      if (requestId === this.previewRequestId) this.previewLoading.set(false);
+    }
+  }
+
   private revokePreview(): void {
-    if (this.rawPreviewUrl) URL.revokeObjectURL(this.rawPreviewUrl);
-    this.rawPreviewUrl = null;
-    this.previewUrl.set(null);
+    this.previewRequestId++;
+    if (this.previewDocument) void this.previewDocument.destroy();
+    this.previewDocument = null;
+    this.previewImageUrl.set(null);
     this.previewName.set('');
+    this.previewLoading.set(false);
+    this.previewPageNumber.set(1);
+    this.previewPageCount.set(0);
   }
 
   private showHttpError(summary: string, error: unknown): void {

@@ -67,6 +67,7 @@ export class GatePassRequestComponent implements OnInit {
   readonly cancelVisible = signal(false);
   readonly cancelling = signal(false);
   readonly minExitDate = new Date();
+  readonly activeTab = signal<'request' | 'history'>('request');
 
   readonly form = new FormGroup({
     studentId: new FormControl<number | null>(null, { validators: [Validators.required] }),
@@ -184,6 +185,7 @@ export class GatePassRequestComponent implements OnInit {
         this.requests.update(items => [receipt, ...items.filter(item => item.id !== receipt.id)].slice(0, this.pageSize()));
         this.totalRecords.update(total => total + (this.requests().some(item => item.id === receipt.id) ? 0 : 1));
         this.toast.success('تم إرسال طلب الاستئذان', 'حالة الطلب الآن: بانتظار المراجعة.');
+        this.activeTab.set('history');
         this.form.patchValue({
           desiredExitTime: null,
           reason: '',

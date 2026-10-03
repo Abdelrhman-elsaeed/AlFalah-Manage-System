@@ -1,19 +1,25 @@
 using System.Security.Cryptography;
+using System.Globalization;
 using AlFalah.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace AlFalah.Infrastructure.Services;
 
 public sealed class LocalFileStorageService : IFileStorageService
 {
     private readonly string _rootPath;
+    private readonly string _legacyRootPath;
 
-    public LocalFileStorageService(IConfiguration configuration)
+    public LocalFileStorageService(IConfiguration configuration, IHostEnvironment environment)
     {
         var configuredRoot = configuration["StudentAffairs:ExcuseStoragePath"];
         _rootPath = Path.GetFullPath(string.IsNullOrWhiteSpace(configuredRoot)
-            ? Path.Combine(AppContext.BaseDirectory, "App_Data", "absence-excuses")
-            : configuredRoot);
+            ? Path.Combine(environment.ContentRootPath, "App_Data", "absence-excuses")
+            : Path.IsPathRooted(configuredRoot)
+                ? configuredRoot
+                : Path.Combine(environment.ContentRootPath, configuredRoot));
+        _legacyRootPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "App_Data", "absence-excuses"));
     }
 
     public async Task<StoredFileResult> StoreAsync(
@@ -25,8 +31,8 @@ public sealed class LocalFileStorageService : IFileStorageService
     {
         ArgumentNullException.ThrowIfNull(content);
         var extension = Path.GetExtension(Path.GetFileName(originalFileName)).ToLowerInvariant();
-        var storageKey = $"{schoolId}/{DateTime.UtcNow:yyyy/MM}/{Guid.NewGuid():N}{extension}";
-        var targetPath = ResolvePath(storageKey);
+        var storageKey = $"{schoolId}/{DateTime.UtcNow.ToString("yyyy/MM", CultureInfo.InvariantCulture)}/{Guid.NewGuid():N}{extension}";
+        var targetPath = ResolvePath(storageKey, _rootPath);
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
 
         try
@@ -65,7 +71,7 @@ public sealed class LocalFileStorageService : IFileStorageService
     public Task DeleteIfExistsAsync(string storageKey, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var targetPath = ResolvePath(storageKey);
+        var targetPath = ResolvePath(storageKey, _rootPath);
         if (File.Exists(targetPath)) File.Delete(targetPath);
         return Task.CompletedTask;
     }
@@ -73,14 +79,27 @@ public sealed class LocalFileStorageService : IFileStorageService
     public async Task<byte[]?> ReadBytesAsync(string storageKey, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var targetPath = ResolvePath(storageKey);
-        if (!File.Exists(targetPath)) return null;
-        return await File.ReadAllBytesAsync(targetPath, cancellationToken).ConfigureAwait(false);
+        foreach (var root in new[] { _rootPath, _legacyRootPath }.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var targetPath = ResolvePath(storageKey, root);
+            if (File.Exists(targetPath))
+                return await File.ReadAllBytesAsync(targetPath, cancellationToken).ConfigureAwait(false);
+
+            // Older uploads used the active Arabic calendar. Its year contained a
+            // direction mark that the varchar storage key column saved as '?'.
+            if (storageKey.Contains('?'))
+            {
+                targetPath = ResolvePath(storageKey.Replace('?', '\u200f'), root);
+                if (File.Exists(targetPath))
+                    return await File.ReadAllBytesAsync(targetPath, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        return null;
     }
 
-    private string ResolvePath(string storageKey)
+    private static string ResolvePath(string storageKey, string rootPath)
     {
-        var normalizedRoot = _rootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        var normalizedRoot = rootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             + Path.DirectorySeparatorChar;
         var targetPath = Path.GetFullPath(Path.Combine(
             normalizedRoot,
