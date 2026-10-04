@@ -25,6 +25,7 @@ export class EvidenceWorkspaceComponent implements OnChanges, OnDestroy {
   @Input() year?: number;
   @Input() own = false;
   @Input() canManage = false;
+  @Input() initialRequirement?: number;
   @Output() openFile = new EventEmitter<number>();
   @Output() changed = new EventEmitter<void>();
   @Output() denied = new EventEmitter<void>();
@@ -42,7 +43,7 @@ export class EvidenceWorkspaceComponent implements OnChanges, OnDestroy {
   candidate?: File; uploadKey = ''; uploadChange?: number; operation?: number; progress = 0;
   readonly statusOptions = [{label: 'قيد المراجعة', value: 2}, {label: 'معاد تقديمه', value: 5}, {label: 'معتمد', value: 3}, {label: 'مرفوض', value: 4}, {label: 'مسودة', value: 1}];
   readonly standardOptions = ['1.1','1.2','1.3','1.4','1.5','2.1','2.2','3.1','3.2','4.1','4.2'].map(value => ({label: value, value}));
-  ngOnChanges() { this.reload(); }
+  ngOnChanges() { if(this.initialRequirement) this.selectedRequirement=this.initialRequirement; this.reload(); }
   reload(preserveError = false) {
     if (!this.year) return;
     this.load?.unsubscribe(); this.busy = true; if (!preserveError) this.error = ''; this.links = []; this.changes = [];

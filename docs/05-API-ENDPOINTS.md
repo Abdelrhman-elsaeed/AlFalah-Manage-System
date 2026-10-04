@@ -409,7 +409,7 @@ Thin StorageEvidenceController → Application services → IEvidenceRepository/
 
 | Method | Route beneath `/api/v1/storage` | Contract |
 |---|---|---|
-| GET | `/academic-years`, `/evidence-teachers`, `/requirements?academicYearId=&search=` | Authorized catalog/year/teacher choices; school teacher choices require school view |
+| GET | `/academic-years`, `/evidence-teachers`, `/requirement-catalog?academicYearId=&search=` | Authorized catalog/year/teacher choices; school teacher choices require school view; S4 reserves GET requirements for paginated school evaluation |
 | POST | `/requirements/initialize?academicYearId=` | Idempotent exact task mappings and 4/11 catalog |
 | PATCH | `/requirements/{id}` | Domain/standard, importance, responsibleUserId/role, fulfillmentPolicy, minimumApprovedLinks, rowVersion |
 | POST | `/files/{id}/links` | requirementId, academicYearId, teacherId?; teacher is server-derived for owned teacher files |
@@ -422,3 +422,24 @@ Thin StorageEvidenceController → Application services → IEvidenceRepository/
 | GET | `/change-queue`, `/files/{id}/history`, `/files/{id}/versions/{version}/content` | Pending/Approved/Rejected change queue, withdrawn-inclusive authorized history, scoped historical bytes |
 
 400 invalid context/body/reason, 403 scope/permission/ownership/delegation denial, 404 disabled/missing ID or unavailable bytes, 409 duplicate/race/stale rowversion, 503 provider/SQL upload uncertainty. Candidate upload success follows S2 operation response and reconciliation; a successful upload never approves a link. Existing legacy matrix review and Drive rename/delete reject mapped files even when flags are OFF; unmapped legacy records retain existing behavior.
+
+## School File Storage S4 evaluation API (2026-10-04)
+
+StorageReadinessController → IReadinessService/ReadinessExportService → IReadinessRepository → SQL. School and permissions are inferred from the current active server context and live database membership/delegation. JSON remains ApiResponse<T>; successful exports return authenticated no-store/nosniff file bytes. ReadModelEnabled=false closes all S4 routes (404). Teachers cannot query school evaluation or exports without a separately valid direct delegation.
+
+| Method | Route beneath `/api/v1/storage` | Contract |
+|---|---|---|
+| GET | `/templates`, `/templates/{version}` | Immutable versions and sanitized 4/11/36/145 snapshot |
+| GET | `/evaluation-members` | Current active school members for explicit assignments |
+| POST | `/self-evaluation/initialize` | academicYearId, templateVersion=1; repeatable 36 mandatory rows; no files/approvals/tasks created |
+| GET | `/requirements`, `/gaps`, `/digital-index` | StoragePage<T>, stable order and bounded paging; gaps means mandatory unfulfilled rows |
+| GET | `/readiness` | School/year/version, template hash/name, rounding, calculation time/filters, overall + 4 domains + 11 standards; numerator/denominator/nullable percentage/state and independent counts |
+| PATCH | `/requirements/{id}/follow-up` | responsibleUserId?, responsibleRole?, importance, isMandatory, policy, minimumApprovedLinks, dueDate?, followUpStatus, note?, reason, rowVersion |
+| GET | `/requirements/{id}/follow-up-history` | Last 100 append-only revisions; all revisions retained in SQL |
+| GET / POST | `/manual-evaluations` | GET academicYearId/templateVersion; POST scopeCode, judgment (can be empty when value supplied), value?, reason, rowVersion? plus school year/version |
+| GET | `/manual-evaluations/{id}/history` | Last 100 append-only revision snapshots; school-scoped |
+| GET | `/exports/{csv\|excel\|pdf}` | Same filter contract; comprehensive metrics/requirements/gaps/manual/index report; actual CSV UTF-8 BOM, Excel RTL, embedded-Amiri PDF |
+
+Filter contract: academicYearId required, templateVersion=1, domainCode?, standardCode?, responsibleUserId?, importance? (Normal=1/Important=2/Critical=3), search? (<=200), trackerOnly=false; these define the structural calculation scope. status?, criticalOnly=false, hideCompleted=false and gapsOnly=false affect displayed/exported rows only. page=1, pageSize=25 (1..100). Statuses: Fulfilled, Unfulfilled, NoFile, Unavailable, AwaitingReview, Rejected, InsufficientApprovedLinks. Requirement rows include SourceKey/hash/path/action, candidates labelled for human content review, gapReasons and an action URL retaining the academic year.
+
+GET `/requirements` changes the previous S3 array contract to a paginated school evaluation contract. GET `/requirement-catalog` preserves the S3 linking catalog and own-teacher permissions; Angular consumers and mocked regression tests moved with it. Existing S3 mutation/link routes remain. Curated source metadata cannot be overwritten through the old catalog PATCH. Manual/follow-up mutations require Storage.ManageSchool, a required reason and rowversion, with atomic audit; 400 validation/export cap, 403 current access denial, 404 disabled/not found, 409 concurrency and 503 unavailable provider remain safe ApiResponse errors. Export rows/files are capped at 5000 and live verification at 10000 distinct files; no export job system.

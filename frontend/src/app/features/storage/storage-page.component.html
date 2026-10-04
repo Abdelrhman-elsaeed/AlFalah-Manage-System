@@ -4,6 +4,7 @@
       <p>{{ context?.schoolName }} <span *ngIf="context?.academicYearName"> · {{ context?.academicYearName }}</span></p></div>
     <button pButton type="button" icon="pi pi-refresh" [label]="'STORAGE.REFRESH' | translate" (click)="refreshContext()" [disabled]="busy || uploading"></button>
   </header>
+  <nav *ngIf="!own && context" class="toolbar"><a routerLink="/school-manager/storage/readiness" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.readiness' | translate }}</a><a routerLink="/school-manager/storage/tracker" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.tracker' | translate }}</a><a routerLink="/school-manager/storage/gaps" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.gaps' | translate }}</a></nav>
   <p *ngIf="error" class="error" role="alert">{{ error }}</p>
   <p *ngIf="notice" class="notice" role="status">{{ notice }}</p>
   <div *ngIf="disabled" class="empty"><i class="pi pi-lock"></i><h2>{{ 'STORAGE.DISABLED' | translate }}</h2></div>
@@ -54,7 +55,7 @@
       </div>
       <p-paginator [rows]="25" [first]="(page-1)*25" [totalRecords]="total" (onPageChange)="paginate($event.first || 0)"></p-paginator>
       <p class="count" aria-live="polite">{{ 'STORAGE.COUNT' | translate:{ count: total } }}</p>
-      <app-storage-evidence *ngIf="!own" [year]="context?.academicYearId" [canManage]="context?.canManage || false" (openFile)="openDetails($event)" (denied)="evidenceDenied()"></app-storage-evidence>
+      <app-storage-evidence *ngIf="!own" [year]="evaluationYear" [initialRequirement]="initialRequirement" [canManage]="context?.canManage || false" (openFile)="openDetails($event)" (denied)="evidenceDenied()"></app-storage-evidence>
       <section class="discovery"><button pButton type="button" [label]="'STORAGE.DISCOVER' | translate" (click)="discover()"></button>
         <div *ngIf="discovery"><h2>{{ 'STORAGE.DISCOVERY' | translate }}</h2><p>{{ 'STORAGE.DISCOVERY_HINT' | translate }}</p>
           <div *ngFor="let item of discovery.items" class="file-row"><span>{{ item.displayName }}</span><span class="state">{{ ('STORAGE.STATE_' + item.state) | translate }}</span><button *ngIf="item.storedFileId" type="button" (click)="openDetails(item.storedFileId)">{{ 'STORAGE.DETAILS' | translate }}</button></div>
@@ -72,7 +73,7 @@
     <p *ngIf="!previewable">{{ 'STORAGE.PREVIEW_FALLBACK' | translate }}</p>
     <h3>{{ 'STORAGE.VERSIONS' | translate }}</h3><ul><li *ngFor="let version of details.versions">{{ 'STORAGE.VERSION' | translate:{ number: version.versionNumber } }} · {{ version.uploadedAt | date:'medium' }} · {{ ('STORAGE.AVAILABILITY_' + version.availability) | translate }} <button type="button" (click)="downloadVersion(version.versionId)">{{ 'STORAGE.DOWNLOAD' | translate }}</button></li></ul>
     <p *ngIf="details.file.isProtected" class="notice">{{ 'STORAGE.PROTECTED_HINT' | translate }}</p>
-    <app-storage-evidence [file]="details.file" [year]="context?.academicYearId" [own]="own" [canManage]="!!context?.canManage && details.file.state !== 'Withdrawn'" (changed)="evidenceChanged()" (denied)="evidenceDenied()"></app-storage-evidence>
+    <app-storage-evidence [file]="details.file" [year]="evaluationYear" [initialRequirement]="initialRequirement" [own]="own" [canManage]="!!context?.canManage && details.file.state !== 'Withdrawn'" (changed)="evidenceChanged()" (denied)="evidenceDenied()"></app-storage-evidence>
     <div *ngIf="!details.file.isProtected && context?.canManage && details.file.state !== 'Withdrawn'"><label>{{ 'STORAGE.RENAME' | translate }}<input [(ngModel)]="renameName" maxlength="255"></label><button pButton type="button" [label]="'STORAGE.SAVE' | translate" (click)="rename()"></button>
       <label class="delete-confirm"><input type="checkbox" [(ngModel)]="deleteConfirmed">{{ 'STORAGE.DELETE_CONFIRM' | translate }}</label><button pButton type="button" class="p-button-danger" [label]="'STORAGE.DELETE' | translate" [disabled]="!deleteConfirmed" (click)="delete()"></button>
     </div>

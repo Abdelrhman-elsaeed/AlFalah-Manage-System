@@ -97,6 +97,10 @@ public static class DependencyInjection
         services.AddScoped<AlFalah.Application.Storage.IStorageRepository, StorageRepository>();
         services.AddScoped<AlFalah.Application.Storage.IStorageLibraryRepository, StorageLibraryRepository>();
         services.AddScoped<AlFalah.Application.Storage.IEvidenceRepository, EvidenceRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IReadinessRepository, ReadinessRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IReadinessService, AlFalah.Application.Storage.ReadinessService>();
+        services.AddScoped<AlFalah.Application.Storage.IReadinessExportService, AlFalah.Application.Storage.ReadinessExportService>();
+        services.AddScoped<AlFalah.Application.Storage.IReadinessExportRenderer, ReadinessExportRenderer>();
         services.AddScoped<AlFalah.Application.Storage.EvidenceWorkflowContext>();
         services.AddScoped<AlFalah.Application.Storage.IRequirementCatalogService, AlFalah.Application.Storage.RequirementCatalogService>();
         services.AddScoped<AlFalah.Application.Storage.IEvidenceLinkService, AlFalah.Application.Storage.EvidenceLinkService>();

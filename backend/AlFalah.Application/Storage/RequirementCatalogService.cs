@@ -52,6 +52,7 @@ public sealed class RequirementCatalogService(IEvidenceRepository repository, IS
     {
         await context.ManageAsync(ct);
         var row = await repository.RequirementAsync(context.School, id, ct) ?? throw new KeyNotFoundException();
+        if (row.SourceKey != null) throw new ArgumentException("استخدم إعداد المتابعة في التقويم الذاتي للحفاظ على مرجع القالب وتاريخه.");
         if (request.StandardCode != null && !Standards.Any(x => x.Code == request.StandardCode) ||
             request.DomainCode != null && request.DomainCode is not ("1" or "2" or "3" or "4") ||
             request.StandardCode != null && request.DomainCode != request.StandardCode[..1] ||

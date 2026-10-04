@@ -21,7 +21,7 @@ async function mockSession(page: Page, role = 'SchoolManager', state = 'Connecte
       academicYearName: 'السنة الدراسية', canManage: true, isTeacher: role === 'Instructor', connectionState: state, rootFolderId: 7 };
     else if (path.endsWith('/storage/folders')) data = { items: [], total: 0, page: 1, pageSize: 25 };
     else if (path.endsWith('/storage/academic-years')) data = [{id:1,nameAr:'السنة الدراسية'}];
-    else if (path.endsWith('/storage/evidence-teachers') || path.endsWith('/storage/requirements') || path.endsWith('/links') || path.endsWith('/change-requests')) data = [];
+    else if (path.endsWith('/storage/evidence-teachers') || path.endsWith('/storage/requirement-catalog') || path.endsWith('/links') || path.endsWith('/change-requests')) data = [];
     else if (path.endsWith('/storage/review-queue') || path.endsWith('/storage/change-queue')) data = {items:[],total:0,page:1,pageSize:25};
     else if (path.endsWith('/storage/evidence-counts')) data = {files:1,links:0,approvedLinks:0,fulfilledRequirements:0,requirements:11};
     else if (path.endsWith('/storage/files/31/content')) return route.fulfill({ status: 200, contentType: 'application/pdf', body: '%PDF-1.7\n1 0 obj<</Type /Catalog>>endobj\n%%EOF' });

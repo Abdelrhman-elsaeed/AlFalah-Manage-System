@@ -68,3 +68,9 @@ dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfi
 ```
 
 شكل التقرير الحالي `{backfill, sharedWriterRepairTargets, dryRun}`. dry-run يكشف أهداف الإصلاح ولا يغيرها، ولذلك قد يبقى `LegacyOrTargetDrift` في backfill حتى apply مستقل صريح. الإصلاح يتحقق من مصدر legacy وعملية S2 Completed والأصل والنسخة الأولى، ويحفظ baseline جديدًا مستقلًا دون إعادة كتابة الأصل الموروث. ثم backfill يحفظ الروابط والقرارات الناقصة بنفس Drive IDs؛ الإعادة لا تضاعفها. أي تعارض هو توقف للمراجعة، وليس سماحًا بإعادة كتابة قرار. الاختبار `Legacy_and_S2_shared_writer_repair_backfill_matrix_and_excel_are_compared_offline` يسجل المقارنة في [S3 backfill comparison](../verification/s3-backfill-comparison.json)، ببيانات SQL اصطناعية معزولة وDrive محاكاة؛ ليس قبول اتصال حقيقي أو cutover.
+
+## S4 — تنقيح القالب وفحص المخرجات
+
+`python docs/specs/school-file-storage/scripts/build-s4-template.py` يعيد القالب المضمن من مصادر S0 بعد مطابقة SHA256. يقرأ JSON/مقطع البيانات من HTML دون تشغيل JavaScript أو مصدر تنفيذي. يحتفظ بالنص الوظيفي والبصمات والأكواد، ويزيل الأشخاص من المسارات، ولا ينسخ completed أو بايتات أو ملفات Drive أو قرارات. المصفوفة 145 بصمة ReferenceOnly فقط. هذا تنقيح ثابت للقالب؛ ليس أداة الاستيراد التاريخي S6.
+
+`verify-s4-exports.py` يفحص CSV/XLSX/PDF الناتجة من اختبارات SQL، ويطابق الأرقام والصفوف والعربية والخطوط وحدود النص ويرسم صفحات PDF للفحص البصري. يعتمد PyMuPDF، ويقرأ XLSX مباشرة من ZIP/XML. [أوامر إعادة التحقق والحدود](../verification/s4-self-evaluation-and-reports.md).

@@ -18,4 +18,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Storage\Templates\self-evaluation-v1.json" />
+  </ItemGroup>
+
 </Project>

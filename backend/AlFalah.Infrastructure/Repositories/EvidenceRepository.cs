@@ -13,20 +13,8 @@ namespace AlFalah.Infrastructure.Repositories;
 public sealed class EvidenceRepository(AlFalahDbContext db) : IEvidenceRepository
 {
     private IQueryable<EvidenceLink> Links(int school) => db.EvidenceLinks.Where(x => x.SchoolId == school);
-    private IQueryable<EvidenceLink> Eligible(int school, int year, int? owner) => Links(school).AsNoTracking().Where(x =>
-        x.AcademicYearId == year && x.IsActive && x.Requirement.IsActive && (owner == null || x.TeacherId == owner) &&
-        !x.StoredFile.IsDeleted && x.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive &&
-        x.StoredFile.SourceKind != StoredFileSourceKind.HistoricalImport &&
-        x.VersionId == x.StoredFile.CurrentVersionId &&
-        db.SchoolGoogleDrives.Any(s => s.SchoolId == school && s.IsEnabled && (s.SharedDriveId ?? "") == x.Version.DriveId) &&
-        (x.StoredFile.OwnerTeacherId == null || db.TeacherDriveFolders.Any(g => g.SchoolId == school && g.TeacherId == x.StoredFile.OwnerTeacherId && g.IsActive) &&
-         db.InstructorProfiles.Any(t => t.Id == x.StoredFile.OwnerTeacherId && t.SchoolId == school && t.IsActive && t.User.IsActive &&
-             db.UserSchoolRoles.Any(m => m.UserId == t.UserId && m.SchoolId == school && m.IsActive &&
-                 db.RolePermissions.Any(p => p.RoleId == m.RoleId && p.Permission.Name == PermissionNames.StorageViewOwn)))) &&
-        (x.TeacherId == null || db.InstructorProfiles.Any(t => t.Id == x.TeacherId && t.SchoolId == school && t.IsActive && t.User.IsActive)));
-    private IQueryable<EvidenceLink> Approved(int school, int year, int? owner) => Eligible(school, year, owner).Where(x =>
-        x.Status == EvidenceLinkStatus.Approved && x.Version.Availability == StoredFileAvailability.Available &&
-        db.EvidenceReviewDecisions.Any(d => d.EvidenceLinkId == x.Id && d.VersionId == x.VersionId && d.Decision == EvidenceReviewStatus.Approved));
+    private IQueryable<EvidenceLink> Eligible(int school, int year, int? owner) => EvidenceLinkQueries.Eligible(db, school, year, owner);
+    private IQueryable<EvidenceLink> Approved(int school, int year, int? owner) => EvidenceLinkQueries.Approved(db, school, year, owner);
     public Task<bool> YearExistsAsync(int year, CancellationToken ct) => db.AcademicYears.AnyAsync(x => x.Id == year, ct);
     public async Task<IReadOnlyList<AcademicYearDto>> YearsAsync(CancellationToken ct) => await db.AcademicYears.AsNoTracking().OrderByDescending(x => x.StartsOn)
         .Select(x => new AcademicYearDto(x.Id, x.Code, x.NameAr, x.IsActive)).ToListAsync(ct);

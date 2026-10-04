@@ -1,0 +1,103 @@
+{
+  "stage": "S4",
+  "verifiedAtUtc": "2026-10-04T05:23:15.292089+00:00",
+  "status": "Technical implementation verified; flags OFF; stop after S4",
+  "backend": {
+    "total": 858,
+    "passed": 858,
+    "failed": 0,
+    "skipped": 0,
+    "storageTests": 111,
+    "newS4Tests": 23,
+    "newS4SqlTests": 15,
+    "newS4ContractCases": 8,
+    "trxSha256": "5a5296f603d1d1dc96faf77a7530f4d88a99e4c2620a0edb57a43e8d0ef94faa",
+    "releaseBuildErrors": 0,
+    "releaseBuildWarnings": 0
+  },
+  "frontend": {
+    "unitTests": 40,
+    "browserTests": 40,
+    "desktopBrowserJourneys": 20,
+    "mobileBrowserJourneys": 20,
+    "apiMocked": true,
+    "realApiStarted": false,
+    "productionBuildPassed": true,
+    "s4ArabicEnglishKeys": 97,
+    "existingWarnings": [
+      "visits-v2 CSS budget",
+      "dashboard-live CSS budget",
+      "3 PrimeNG selectors"
+    ]
+  },
+  "templates": {
+    "domains": 4,
+    "standards": 11,
+    "trackerItems": 36,
+    "matrixReferences": 145,
+    "initialMandatoryRows": 36,
+    "exactExistingTaskCodes": 31,
+    "sourceSentinelPreserved": true,
+    "duplicateTasksCreated": 0,
+    "sourceCompletedApplied": false,
+    "personalResponsibleIdentitiesSeeded": false
+  },
+  "sql": {
+    "freshIsolatedLocalDbOnly": true,
+    "s4ScriptAppliedTwiceFromS3": true,
+    "pendingModelChanges": false,
+    "originalDevelopmentMigrated": false,
+    "productionMigrated": false,
+    "destructiveRollback": false,
+    "appendOnlyHistoryVerified": true
+  },
+  "performance": {
+    "medianMs": 97.5364,
+    "maxMs": 130.0783,
+    "targetMs": 200,
+    "links": 5000,
+    "files": 250,
+    "pageSize": 25,
+    "page": 100,
+    "queriesPerRequest": 18,
+    "fakeProvider": true,
+    "liveGoogleTimingMeasured": false,
+    "exportRowsLimit": 5000,
+    "exportFilesLimit": 5000,
+    "liveVerificationLimit": 10000
+  },
+  "exports": {
+    "actualBytesVerified": true,
+    "csvUtf8Bom": true,
+    "excelRtlSheets": 5,
+    "metricsComparedEachFormat": 16,
+    "pdfVisualRtlArabicPaginationVerified": true,
+    "arabicPdfSearchCopyReliable": false,
+    "comparison": "s4-export-comparison.json"
+  },
+  "security": {
+    "serverDerivedSchool": true,
+    "teacherSchoolReadDenied": true,
+    "currentDelegationRevocationVerified": true,
+    "currentOwnershipMembershipGrantVerified": true,
+    "archiveImportDeniedUntilPolicy": true
+  },
+  "flags": {
+    "AdministrationEnabled": false,
+    "ReadModelEnabled": false,
+    "configSectionAbsentDefaultsUsed": true,
+    "configFilesChanged": false,
+    "environmentOverrideObserved": false
+  },
+  "limitations": [
+    "S0 encrypted Google credential cannot currently be decrypted; no live Google acceptance claimed",
+    "Owner parity acceptance and rollout/cutover gates remain open",
+    "Existing QuestPDF 2024.3.4 Amiri shaped-glyph ToUnicode mapping limits Arabic search/copy; visual rendering verified",
+    "Live Google response times unmeasured; benchmark uses fake provider"
+  ],
+  "credentialsOrDataProtectionKeysChanged": false,
+  "liveGoogleWrites": 0,
+  "cutoverEnabled": false,
+  "s5Started": false,
+  "s6Started": false
+}

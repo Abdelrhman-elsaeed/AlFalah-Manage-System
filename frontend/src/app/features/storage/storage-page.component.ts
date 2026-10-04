@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +19,7 @@ import { EvidenceWorkspaceComponent } from './evidence-workspace.component';
 
 @Component({
   selector: 'app-storage-page', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, DialogModule, ProgressBarModule, PaginatorModule, TreeModule, EvidenceWorkspaceComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslateModule, ButtonModule, DialogModule, ProgressBarModule, PaginatorModule, TreeModule, EvidenceWorkspaceComponent],
   templateUrl: './storage-page.component.html', styleUrls: ['./storage-page.component.css']
 })
 export class StoragePageComponent implements OnInit, OnDestroy {
@@ -36,6 +36,8 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   private readonly folderPages = new Map<number, number>();
   readonly own = this.route.snapshot.data['own'] === true;
   context?: StorageContext;
+  evaluationYear?: number;
+  initialRequirement?: number;
   discovery?: StorageDiscovery;
   folders: StorageFolder[] = [];
   tree: TreeNode<StorageFolder>[] = [];
@@ -68,6 +70,8 @@ export class StoragePageComponent implements OnInit, OnDestroy {
           this.crumbs = [root]; this.tree = [{ key: String(root.id), label: root.displayName, data: root, expanded: true, leaf: false }];
           this.loadChildren(this.tree[0]);
           const params = this.route.snapshot.queryParamMap;
+          this.evaluationYear=Number(params.get('academicYearId')) || context.academicYearId;
+          this.initialRequirement=Number(params.get('requirement')) || undefined;
           this.search = params.get('search') || ''; this.global = params.get('global') === 'true';
           this.sort = ['name', 'size', 'date'].includes(params.get('sort') || '') ? params.get('sort')! : 'name';
           this.page = Math.max(1, Number(params.get('page')) || 1);
@@ -117,7 +121,8 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     if (!this.currentFolder) return;
     this.load?.unsubscribe(); this.busy = true; this.error = ''; this.files = []; this.discovery = undefined;
     this.router.navigate([], { relativeTo: this.route, replaceUrl: true, queryParams: {
-      folder: this.currentFolder.id, search: this.search || null, global: this.global || null, sort: this.sort, page: this.page
+      folder: this.currentFolder.id, search: this.search || null, global: this.global || null, sort: this.sort, page: this.page,
+      requirement:this.initialRequirement || null,academicYearId:this.evaluationYear || null
     }});
     this.load = forkJoin({ files: this.api.files(this.own, this.currentFolder.id, this.search, this.global, this.sort, this.descending, this.page),
       folders: this.api.folders(this.own, this.currentFolder.id) }).pipe(takeUntil(this.destroyed)).subscribe({

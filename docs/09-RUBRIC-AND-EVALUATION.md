@@ -66,3 +66,11 @@ Rubric version 2 is a frozen approved snapshot: 5 domains, 25 standards distribu
 - Quick rating: 4 observes all; 3 observes the first two; 2 observes the first one; 1 clears observations.
 
 The backend `VisitV2AnalysisEngine` is authoritative at finalize; the Angular calculator is a live preview covered by the same boundary cases. Persisted V1 analyses are never recalculated under this rule set.
+
+## School self-evaluation S4 (2026-10-04)
+
+This is a separate 4-domain/11-standard template, with stable codes 1.1–1.5, 2.1–2.2, 3.1–3.2 and 4.1–4.2. Readiness scope is SchoolId + AcademicYearId + TemplateVersion. Denominator = active mandatory requirements; numerator = requirements meeting AnyApprovedLink (>=1) or MinimumApprovedLinks, counted once. S3's shared SQL predicate requires independent Approved link/current-version decision, current permitted/available file and live membership/grant. Upload/submission, obsolete approvals, missing/deleted assets, archive/import and manual judgments cannot fulfill a requirement.
+
+Percentage = decimal 100*numerator/denominator rounded to two places AwayFromZero. Zero denominator returns null / NoRequirements / «لا متطلبات». Counts for unique assets, links, approved links, requirements and gaps are independent. Structural filters (domain/standard/responsible/importance/search/trackerOnly) define the calculation scope. Display filters (status/criticalOnly/hideCompleted/gapsOnly) select rows without changing that scope's denominator. Critical safety items 4.2 have a separate gap count. Manual judgments/value/reason/evaluator/time/history remain visible independently.
+
+Template v1 initially copies 36 mandatory requirements. The 11 STD rows and 31 exact task mappings from S3 stay optional unless explicitly configured; they do not silently double the denominator. Reference item-11-1/2 remain 2.2; 1.5 retains a visible zero-requirements state. Historical completed and source file totals are never seeded as fulfillment. Future templates are immutable snapshots with explicit scope initialization. [S4 verification and actual exports](specs/school-file-storage/verification/s4-self-evaluation-and-reports.md).

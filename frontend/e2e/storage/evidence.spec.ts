@@ -20,7 +20,7 @@ async function session(page:Page,own:boolean) {
     else if(p.endsWith('/storage/files') || p.endsWith('/storage/me/files'))data={items:[file],total:1,page:1,pageSize:25};
     else if(p.endsWith('/storage/files/31'))data={file,versions:[{versionId:4,versionNumber:1,size:100,mimeType:'application/pdf',uploadedAt:file.uploadedAt,availability:'Available'}]};
     else if(p.endsWith('/storage/files/31/content') || p.endsWith('/versions/4/content'))return route.fulfill({contentType:'application/pdf',body:'%PDF-1.7\nTest'});
-    else if(p.endsWith('/storage/requirements'))data=catalog;
+    else if(p.endsWith('/storage/requirement-catalog'))data=catalog;
     else if(p.endsWith('/storage/requirements/2') && r.method()==='PATCH'){bodies.push(r.postDataJSON());data=catalog[0];}
     else if(p.endsWith('/storage/evidence-counts'))data={files:1,links:links.length,approvedLinks:links.filter(x=>x.status==='Approved').length,fulfilledRequirements:links.filter(x=>x.status==='Approved').length,requirements:2};
     else if(p.endsWith('/storage/review-queue'))data={items:links,total:links.length,page:1,pageSize:25};

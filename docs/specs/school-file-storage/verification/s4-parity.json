@@ -1,0 +1,418 @@
+{
+  "stage": "S4",
+  "sourceCoverageTotal": 108,
+  "s4Rows": 50,
+  "rows": [
+    {
+      "id": "P-006",
+      "sourceFunction": "`showRollSlide`:20166",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-007",
+      "sourceFunction": "`nextRoll`:20184",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-008",
+      "sourceFunction": "`prevRoll`:20186",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-009",
+      "sourceFunction": "`setRollSlide`:20187",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-010",
+      "sourceFunction": "`initRollCarousels`:20188",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-020",
+      "sourceFunction": "`filterCommandDeck`:20520",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-021",
+      "sourceFunction": "`handleUrlSlideNavigation`:20534",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-034",
+      "sourceFunction": "`switchMainMatrixTab`:20773",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "P-042",
+      "sourceFunction": "`initMatrixTable`:21058",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "P-043",
+      "sourceFunction": "`filterMatrixTable`:21076",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "P-044",
+      "sourceFunction": "`renderMatrixTable`:21104",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "P-045",
+      "sourceFunction": "`getFilteredMatrixData`:21169",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "P-046",
+      "sourceFunction": "`exportMatrixToCSV`:21173",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "P-047",
+      "sourceFunction": "`getSavedItems`:21211",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-048",
+      "sourceFunction": "`saveItems`:21230",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-049",
+      "sourceFunction": "`resetTrackerStorage`:21236",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-050",
+      "sourceFunction": "`toggleItemStatus`:21246",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-051",
+      "sourceFunction": "`switchTrackerView`:21257",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-052",
+      "sourceFunction": "`setPersonFilter`:21262",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-053",
+      "sourceFunction": "`toggleHideCompleted`:21270",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-054",
+      "sourceFunction": "`setFilterStatus`:21280",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-055",
+      "sourceFunction": "`filterTracker`:21287",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-056",
+      "sourceFunction": "`renderPersonQuickFilters`:21291",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-057",
+      "sourceFunction": "`getFilteredItems`:21311",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-058",
+      "sourceFunction": "`renderTrackerUI`:21327",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-059",
+      "sourceFunction": "`renderPersonGroupedView`:21346",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-060",
+      "sourceFunction": "`renderDomainGroupedView`:21402",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-061",
+      "sourceFunction": "`renderTableView`:21439",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-062",
+      "sourceFunction": "`renderItemBoxHTML`:21493",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-063",
+      "sourceFunction": "`renderTeacherDrawerHTML`:21527",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-064",
+      "sourceFunction": "`renderStatusBtnHTML`:21558",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-065",
+      "sourceFunction": "`togglePersonCardCollapse`:21568",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    },
+    {
+      "id": "P-066",
+      "sourceFunction": "`updateStats`:21575",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/readiness/reports",
+      "contracts": "GET readiness/exports, POST manual-evaluations",
+      "evidence": "Rounding_contract; zero denominator; manual independence; actual export bytes and PDF rendering"
+    },
+    {
+      "id": "P-084",
+      "sourceFunction": "`showSlide`:21907",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-085",
+      "sourceFunction": "`nextSlide`:21939",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-086",
+      "sourceFunction": "`prevSlide`:21941",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-087",
+      "sourceFunction": "`goToSlide`:21942",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-088",
+      "sourceFunction": "`toggleDashboardMode`:21954",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "P-089",
+      "sourceFunction": "`switchEvidenceView`:22088",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/digital-index and S2/S3 library",
+      "contracts": "GET digital-index and authenticated file content",
+      "evidence": "readiness digital-index browser journey plus existing S2/S3 desktop/mobile library/evidence journeys"
+    },
+    {
+      "id": "P-090",
+      "sourceFunction": "`filterByChip`:22111",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/digital-index and S2/S3 library",
+      "contracts": "GET digital-index and authenticated file content",
+      "evidence": "readiness digital-index browser journey plus existing S2/S3 desktop/mobile library/evidence journeys"
+    },
+    {
+      "id": "P-091",
+      "sourceFunction": "`filterEvidenceShowcase`:22161",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/digital-index and S2/S3 library",
+      "contracts": "GET digital-index and authenticated file content",
+      "evidence": "readiness digital-index browser journey plus existing S2/S3 desktop/mobile library/evidence journeys"
+    },
+    {
+      "id": "P-092",
+      "sourceFunction": "`initEvidenceShowcaseViews`:22200",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/digital-index and S2/S3 library",
+      "contracts": "GET digital-index and authenticated file content",
+      "evidence": "readiness digital-index browser journey plus existing S2/S3 desktop/mobile library/evidence journeys"
+    },
+    {
+      "id": "M-01",
+      "sourceFunction": "المصفوفة المستقلة — `populateFilters`:1909",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "M-02",
+      "sourceFunction": "المصفوفة المستقلة — `renderTable`:1930",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "M-03",
+      "sourceFunction": "المصفوفة المستقلة — `filterTable`:1960",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "M-04",
+      "sourceFunction": "المصفوفة المستقلة — `exportToCSV`:1977",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/gaps",
+      "contracts": "GET gaps/requirements and exports, GapsOnly",
+      "evidence": "ReadinessSqlTests.Critical_and_status_display_filters_keep_denominator_and_scope_filters_match_rows_and_summary; Exported_CSV_Excel_and_PDF_are_actual_files_with_same_filtered_numbers_and_Arabic_rows"
+    },
+    {
+      "id": "D-01",
+      "sourceFunction": "لوحة القيادة والنسب الثابتة — index.html / updateStats",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/readiness/reports",
+      "contracts": "GET readiness/exports, POST manual-evaluations",
+      "evidence": "Rounding_contract; zero denominator; manual independence; actual export bytes and PDF rendering"
+    },
+    {
+      "id": "D-03",
+      "sourceFunction": "13 شريحة — slide-0..12 / totalSlides",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/standard routes/workspace navigation",
+      "contracts": "GET templates/readiness/requirements",
+      "evidence": "readiness eleven-standard RTL desktop/mobile journey; standardSearch and URL filters"
+    },
+    {
+      "id": "D-04",
+      "sourceFunction": "تقرير التقويم الشامل HTML وMarkdown / generate_report.py",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/readiness/reports",
+      "contracts": "GET readiness/exports, POST manual-evaluations",
+      "evidence": "Rounding_contract; zero denominator; manual independence; actual export bytes and PDF rendering"
+    },
+    {
+      "id": "D-12",
+      "sourceFunction": "حالات completed/pending/not_added وlocalStorage",
+      "status": "ImplementedWithDocumentedReplacement",
+      "route": "/school-manager/storage/tracker",
+      "contracts": "GET requirements, PATCH follow-up, GET follow-up-history",
+      "evidence": "ReadinessSqlTests.Curated_template_4_11_36_145_is_repeatable_preserves_S3_tasks_and_never_inherits_completed; Follow_up_preserves_provenance_audits_assignments_due_dates_and_rejects_stale_versions; readiness browser filter/group/assignment journeys"
+    }
+  ],
+  "replacements": [
+    "Direct 11-standard routes replace carousels/slides; standard navigation search retained",
+    "Four domain comparison bars replace radar",
+    "Open current-page person/domain groups replace collapse drawer; requirement details can expand",
+    "145 source rows remain reference fingerprints, no fabricated files",
+    "Manual/follow-up states never approve evidence; server storage replaces localStorage",
+    "Real S2/S3 authorized media replaces static showcase"
+  ],
+  "futureStagesStarted": false,
+  "liveGoogleVerified": false,
+  "ownerParityAcceptance": "pending"
+}

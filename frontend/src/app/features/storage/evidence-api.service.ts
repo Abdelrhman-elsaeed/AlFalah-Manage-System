@@ -19,7 +19,7 @@ export class StorageEvidenceApiService {
   teachers() { return this.get<{id:number; displayName:string}[]>('evidence-teachers'); }
   history(file: number) { return this.get<StorageDetails>(`files/${file}/history`); }
   changeQueue(year: number, page: number, status = 'Pending') { return this.get<StoragePage<{id:number; storedFileId:number; fileName:string; kind:string; status:string; reason:string}>>('change-queue',{academicYearId:year,page,status}); }
-  catalog(year: number, search = '') { return this.get<Requirement[]>('requirements', { academicYearId: year, search }); }
+  catalog(year: number, search = '') { return this.get<Requirement[]>('requirement-catalog', { academicYearId: year, search }); }
   initialize(year: number) { return this.post<Requirement[]>(`requirements/initialize?academicYearId=${year}`, {}); }
   configure(requirement: Requirement, body: unknown) {
     return this.http.patch<ApiResponse<Requirement>>(`${this.base}/requirements/${requirement.id}`, body, {context: this.context()}).pipe(map(r => this.data(r)));

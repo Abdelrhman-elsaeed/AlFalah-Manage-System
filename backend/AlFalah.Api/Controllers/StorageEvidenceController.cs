@@ -16,7 +16,7 @@ public sealed class StorageEvidenceController(IRequirementCatalogService catalog
     [HttpGet("evidence-teachers")]
     public async Task<IActionResult> Teachers(CancellationToken ct) =>
         Ok(ApiResponse<IReadOnlyList<EvidenceTeacherDto>>.Success(await catalog.TeachersAsync(ct)));
-    [HttpGet("requirements")]
+    [HttpGet("requirement-catalog")]
     public async Task<IActionResult> Catalog([FromQuery] int academicYearId, [FromQuery] string? search, CancellationToken ct) =>
         Ok(ApiResponse<IReadOnlyList<RequirementDto>>.Success(await catalog.ListAsync(academicYearId, search, ct)));
     [HttpPost("requirements/initialize")]
