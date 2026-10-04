@@ -107,6 +107,9 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
                 cancellationToken)
             ?? throw new KeyNotFoundException("ملف الدليل غير موجود.");
 
+        if (await _context.StoredFiles.IgnoreQueryFilters().AnyAsync(x => x.LegacySubmissionId == submissionId, cancellationToken))
+            throw new BusinessRuleException("الملف مفهرس ومحمي بمسار التخزين المشترك. استخدم مساحة الملفات.");
+
         if (submission.ReviewStatus == EvidenceReviewStatus.Approved)
             throw new BusinessRuleException("الملف معتمد ومحمي. يلزم طلب تغيير.");
 
@@ -141,6 +144,8 @@ public sealed class GoogleDriveUploadService : IGoogleDriveUploadService
             .SingleOrDefaultAsync(x => x.Id == submissionId && x.TeacherId == teacher.TeacherId, cancellationToken)
             ?? throw new KeyNotFoundException("ملف الدليل غير موجود.");
         if (submission.IsDeleted) return;
+        if (await _context.StoredFiles.IgnoreQueryFilters().AnyAsync(x => x.LegacySubmissionId == submissionId, cancellationToken))
+            throw new BusinessRuleException("الملف مفهرس ومحمي بمسار التخزين المشترك. استخدم مساحة الملفات.");
         if (submission.ReviewStatus == EvidenceReviewStatus.Approved)
             throw new BusinessRuleException("الملف معتمد ومحمي. يلزم طلب تغيير.");
 

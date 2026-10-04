@@ -11,7 +11,9 @@ public sealed record LegacyStorageSubmission(long Id, int SchoolId, int TeacherI
     bool IsMissingFromDrive, DateTimeOffset? MissingFromDriveAtUtc, DateTimeOffset UploadedAtUtc,
     DateTimeOffset CreatedAtUtc, DateTimeOffset UpdatedAtUtc);
 public sealed record LegacyStorageTask(int Id, string Code, string NameAr, int SortOrder);
-public sealed record BackfillExistingFile(long LegacySubmissionId, string? Fingerprint, bool HasCurrentVersion, bool HasLink, bool HasDecision);
+public sealed record BackfillExistingFile(long LegacySubmissionId, string? Fingerprint, bool HasCurrentVersion, bool HasLink, bool HasDecision,
+    string? SharedWriterProvenanceJson = null, string? SharedWriterFingerprint = null);
+public sealed record SharedWriterRepairTarget(StoredFile File, StoredFileVersion Version, LegacyStorageSubmission Source, LegacyStorageTask? Task);
 public sealed record StorageBackfillInput(IReadOnlyList<LegacyStorageSubmission> Submissions,
     IReadOnlyList<LegacyStorageTask> Tasks, IReadOnlySet<int> SchoolIds, IReadOnlySet<int> TeacherIds,
     IReadOnlySet<int> AcademicYearIds, IReadOnlySet<string> UserIds,
@@ -26,6 +28,7 @@ public sealed record StorageBackfillReport(bool DryRun, int SourceCount, int Exi
     IReadOnlyList<StorageBackfillGroup> Groups, IReadOnlyList<StorageBackfillIssue> Issues);
 public interface IStorageBackfillRepository
 {
+    Task<IReadOnlyList<SharedWriterRepairTarget>> LoadSharedWriterRepairsAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<SharedWriterRepairTarget>>([]);
     Task<StorageBackfillInput> LoadAsync(CancellationToken ct);
     Task<T> InSerializableTransactionAsync<T>(Func<Task<T>> operation, CancellationToken ct);
     Task SaveGraphAsync(IReadOnlyList<StorageFolder> folders, IReadOnlyList<EvidenceRequirement> requirements,

@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using AlFalah.Application.Storage;
+using AlFalah.Application.Common;
+using Microsoft.Extensions.Options;
 
 namespace AlFalah.Infrastructure.Services;
 
@@ -20,6 +23,9 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
     private readonly AuditLogWriter _audit;
     private readonly EvidenceSubmissionService _submissions;
     private readonly IGoogleDriveClient _drive;
+    private readonly IStorageEvidenceReadService? _storageReads;
+    private readonly IStorageLibraryService? _storageLibrary;
+    private readonly IOptions<StorageOptions>? _storageOptions;
 
     public EvidenceMatrixService(
         AlFalahDbContext context,
@@ -27,7 +33,8 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
         SchoolScopeGuard scopeGuard,
         AuditLogWriter audit,
         EvidenceSubmissionService submissions,
-        IGoogleDriveClient drive)
+        IGoogleDriveClient drive, IStorageEvidenceReadService? storageReads = null,
+        IOptions<StorageOptions>? storageOptions = null, IStorageLibraryService? storageLibrary = null)
     {
         _context = context;
         _currentUser = currentUser;
@@ -35,10 +42,13 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
         _audit = audit;
         _submissions = submissions;
         _drive = drive;
+        _storageReads = storageReads; _storageOptions = storageOptions; _storageLibrary = storageLibrary;
     }
 
     public async Task<IReadOnlyList<AcademicYearDto>> GetAcademicYearsAsync(CancellationToken cancellationToken = default)
     {
+        if (_storageOptions?.Value.ReadModelEnabled == true)
+            return await (_storageReads ?? throw new InvalidOperationException()).YearsAsync(cancellationToken);
         EnsureCanView();
         return await _context.AcademicYears.AsNoTracking().OrderByDescending(x => x.IsActive).ThenByDescending(x => x.StartsOn)
             .Select(x => new AcademicYearDto(x.Id, x.Code, x.NameAr, x.IsActive))
@@ -47,6 +57,8 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
 
     public async Task<EvidenceMatrixDto> GetAsync(EvidenceMatrixFilterDto filter, CancellationToken cancellationToken = default)
     {
+        if (_storageOptions?.Value.ReadModelEnabled == true)
+            return await (_storageReads ?? throw new InvalidOperationException()).MatrixAsync(filter, cancellationToken);
         EnsureCanView();
         var year = await ResolveAcademicYearAsync(filter.AcademicYearId, cancellationToken);
         var allowedSchoolId = _scopeGuard.ResolveAllowedSchoolId(filter.SchoolId);
@@ -102,6 +114,8 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
 
     public async Task<EvidenceCellFilesDto> GetCellFilesAsync(int teacherId, int taskId, int academicYearId, CancellationToken cancellationToken = default)
     {
+        if (_storageOptions?.Value.ReadModelEnabled == true)
+            return await (_storageReads ?? throw new InvalidOperationException()).CellAsync(teacherId, taskId, academicYearId, cancellationToken);
         EnsureCanView();
         var teacher = await _context.InstructorProfiles.AsNoTracking()
             .Where(x => x.Id == teacherId && x.IsActive && !x.IsDeleted)
@@ -115,7 +129,7 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
             .Where(x => x.TeacherId == teacherId && x.TaskId == taskId && x.AcademicYearId == academicYearId && !x.IsDeleted)
             .OrderByDescending(x => x.UploadedAtUtc)
             .Select(x => new EvidenceSubmissionFileDto(x.Id, x.FileName, x.FileExtension, x.SizeInBytes, x.WebUrl,
-                x.ReviewStatus, x.IsDeleted, x.IsMissingFromDrive, x.UploadedAtUtc, x.ReviewNote))
+                x.ReviewStatus, x.IsDeleted, x.IsMissingFromDrive, x.UploadedAtUtc, x.ReviewNote, null, null, null, null))
             .ToListAsync(cancellationToken);
         var status = await _context.TeacherTaskStatuses.AsNoTracking()
             .Where(x => x.TeacherId == teacherId && x.TaskId == taskId && x.AcademicYearId == academicYearId)
@@ -129,6 +143,11 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
         EnsureCanReview();
         if (reviewStatus is not (EvidenceReviewStatus.Approved or EvidenceReviewStatus.Rejected))
             throw new ArgumentException("تدعم المراجعة اعتماد الدليل أو رفضه فقط.");
+        if (reviewStatus == EvidenceReviewStatus.Rejected) EvidenceWorkflowContext.Reason(note);
+
+        // Once mapped, this column is a compatibility snapshot, never a second decision writer.
+        if (await _context.StoredFiles.IgnoreQueryFilters().AnyAsync(f => f.LegacySubmissionId == submissionId, cancellationToken))
+            throw new BusinessRuleException("راجع رابط الشاهد من مساحة الملفات باستخدام رقم نسخة البيانات.");
 
         await using var transaction = await BeginTransactionIfRelationalAsync(cancellationToken);
         var submission = await _context.TeacherEvidenceSubmissions.SingleOrDefaultAsync(x => x.Id == submissionId, cancellationToken)
@@ -156,6 +175,12 @@ public sealed class EvidenceMatrixService : IEvidenceMatrixService
     public async Task<AlFalah.Application.DTOs.TeacherDrive.DriveFileContentDto> DownloadSubmissionAsync(
         long submissionId, CancellationToken cancellationToken = default)
     {
+        var mapped = await _context.StoredFiles.IgnoreQueryFilters().Where(x => x.LegacySubmissionId == submissionId).Select(x => (int?)x.Id).SingleOrDefaultAsync(cancellationToken);
+        if (mapped != null)
+        {
+            if (_storageOptions?.Value.ReadModelEnabled != true) throw new BusinessRuleException("الملف المفهرس يتطلب مسار التخزين المصرّح.");
+            return await (_storageLibrary ?? throw new InvalidOperationException()).ContentAsync(mapped.Value, cancellationToken);
+        }
         EnsureCanView();
         var submission = await _context.TeacherEvidenceSubmissions.AsNoTracking()
             .Where(x => x.Id == submissionId)

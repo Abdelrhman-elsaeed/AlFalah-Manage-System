@@ -343,7 +343,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", null, t =>
+                        {
+                            t.HasTrigger("TR_AuditLogs_StorageAppendOnly");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.BellPeriod", b =>
@@ -3256,6 +3261,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("ResponsibleUserId");
 
+                    b.HasIndex("SchoolId", "AcademicYearId", "TemplateVersion", "OriginalTaskId")
+                        .IsUnique()
+                        .HasFilter("[SchoolId] IS NOT NULL AND [AcademicYearId] IS NOT NULL AND [OriginalTaskId] IS NOT NULL");
+
                     b.HasIndex(new[] { "TemplateVersion", "Code" }, "UX_Requirements_GlobalTemplate")
                         .IsUnique()
                         .HasFilter("[SchoolId] IS NULL AND [AcademicYearId] IS NULL");
@@ -3313,6 +3322,11 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ReviewerName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -3346,6 +3360,151 @@ namespace AlFalah.Infrastructure.Data.Migrations
                             t.HasTrigger("TR_EvidenceReviewDecisions_AppendOnly");
 
                             t.HasCheckConstraint("CK_EvidenceReviewDecisions_Decision", "[Decision] IN (3,4) AND ([IsLegacyImported] = 1 OR ([ReviewedAtUtc] IS NOT NULL AND [ReviewedByUserId] IS NOT NULL))");
+
+                            t.HasCheckConstraint("CK_EvidenceReviewDecisions_RejectReason", "[Decision] <> 4 OR [IsLegacyImported] = 1 OR ([Note] IS NOT NULL AND LTRIM(RTRIM([Note])) <> '')");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Storage.FileChangeDecision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("FileChangeRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ReviewerName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("SchoolId", "Id");
+
+                    b.HasIndex("FileChangeRequestId")
+                        .IsUnique();
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("SchoolId", "FileChangeRequestId");
+
+                    b.ToTable("FileChangeDecisions", null, t =>
+                        {
+                            t.HasTrigger("TR_FileChangeDecisions_AppendOnly");
+
+                            t.HasCheckConstraint("CK_FileChangeDecision_State", "[Decision] IN ('Approved','Rejected') AND ([Decision] <> 'Rejected' OR LTRIM(RTRIM([Note])) <> '' AND [Note] IS NOT NULL)");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Storage.FileChangeRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CandidateVersionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("OriginalVersionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("ReplaceBeforeReview")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RequestedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("StoredFileId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("SchoolId", "StoredFileId")
+                        .IsUnique()
+                        .HasFilter("[Status] = 'Pending'");
+
+                    b.HasIndex("SchoolId", "StoredFileId", "CandidateVersionId");
+
+                    b.HasIndex("SchoolId", "StoredFileId", "OriginalVersionId");
+
+                    b.ToTable("FileChangeRequests", null, t =>
+                        {
+                            t.HasTrigger("TR_FileChangeRequests_History");
+
+                            t.HasCheckConstraint("CK_FileChangeRequest_State", "[Kind] IN ('Replace','Delete') AND [Status] IN ('Pending','Approved','Rejected') AND LTRIM(RTRIM([Reason])) <> ''");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -3654,6 +3813,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("ChangeRequestId")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
@@ -3747,6 +3909,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("ActorUserId");
 
+                    b.HasIndex("ChangeRequestId")
+                        .IsUnique()
+                        .HasFilter("[ChangeRequestId] IS NOT NULL");
+
+                    b.HasIndex("SchoolId", "ChangeRequestId");
+
                     b.HasIndex("SchoolId", "FolderId");
 
                     b.HasIndex("SchoolId", "ProviderItemId")
@@ -3829,6 +3997,13 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("SchoolId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SharedWriterFingerprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("SharedWriterProvenanceJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("SourceKind")
                         .HasColumnType("int");
 
@@ -3855,6 +4030,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("StoredFiles", null, t =>
                         {
                             t.HasTrigger("TR_StoredFiles_Provenance");
+
+                            t.HasTrigger("TR_StoredFiles_SharedProvenance");
 
                             t.HasCheckConstraint("CK_StoredFiles_SourceKind", "[SourceKind] BETWEEN 1 AND 4");
                         });
@@ -8229,7 +8406,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("TeacherId", "AcademicYearId", "TaskId", "IsDeleted");
 
-                    b.ToTable("TeacherEvidenceSubmissions", (string)null);
+                    b.ToTable("TeacherEvidenceSubmissions", null, t =>
+                        {
+                            t.HasTrigger("TR_TeacherEvidenceSubmissions_ReviewAuthority");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.TeacherTaskStatus", b =>
@@ -10406,6 +10588,63 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Version");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.Storage.FileChangeDecision", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Storage.FileChangeRequest", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "FileChangeRequestId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Storage.FileChangeRequest", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Storage.StoredFile", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StoredFileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Storage.StoredFileVersion", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StoredFileId", "CandidateVersionId")
+                        .HasPrincipalKey("SchoolId", "StoredFileId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.Storage.StoredFileVersion", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "StoredFileId", "OriginalVersionId")
+                        .HasPrincipalKey("SchoolId", "StoredFileId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.Storage.PrototypeImportBatch", b =>
                 {
                     b.HasOne("AlFalah.Domain.Entities.AcademicYear", null)
@@ -10513,6 +10752,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasForeignKey("SchoolId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Storage.FileChangeRequest", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ChangeRequestId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("AlFalah.Domain.Entities.Storage.StorageFolder", null)
                         .WithMany()

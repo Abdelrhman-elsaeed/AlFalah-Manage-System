@@ -1,0 +1,52 @@
+<section dir="rtl" class="evidence" [attr.aria-busy]="busy">
+  <h2>{{ (file ? 'STORAGE_EVIDENCE.LINKS' : 'STORAGE_EVIDENCE.QUEUE') | translate }}</h2>
+  <p *ngIf="error" role="alert" class="error">{{ error }}</p>
+  <p-progressBar *ngIf="busy" mode="indeterminate" [style]="{height:'4px'}"></p-progressBar>
+  <div class="counts" *ngIf="counts"><span>{{ 'STORAGE_EVIDENCE.FILES' | translate }} <b>{{ counts.files }}</b></span><span>{{ 'STORAGE_EVIDENCE.LINKS' | translate }} <b>{{ counts.links }}</b></span><span>{{ 'STORAGE_EVIDENCE.FULFILLED' | translate }} <b>{{ counts.fulfilledRequirements }} / {{ counts.requirements }}</b></span></div>
+  <p *ngIf="file">{{ 'STORAGE_EVIDENCE.ONE_FILE' | translate:{count:links.length} }}</p>
+  <div class="filters">
+    <label>{{ 'STORAGE_EVIDENCE.YEAR' | translate }}<app-clearable-select [options]="years" optionLabel="nameAr" optionValue="id" [(ngModel)]="year" [clearable]="false" (onDropdownChange)="page=1; reload()"></app-clearable-select></label>
+    <label>{{ 'STORAGE_EVIDENCE.REQUIREMENT' | translate }}<app-clearable-select [options]="catalog" optionLabel="displayName" optionValue="id" [filter]="true" [(ngModel)]="selectedRequirement" (onDropdownChange)="!file && reload()"></app-clearable-select></label>
+    <ng-container *ngIf="!file"><label>{{ 'STORAGE_EVIDENCE.STANDARD' | translate }}<app-clearable-select [options]="standardOptions" optionLabel="label" optionValue="value" [(ngModel)]="standard" (onDropdownChange)="page=1; reload()"></app-clearable-select></label>
+      <label>{{ 'STORAGE_EVIDENCE.STATUS' | translate }}<app-clearable-select [options]="statusOptions" optionLabel="label" optionValue="value" [(ngModel)]="status" (onDropdownChange)="page=1; reload()"></app-clearable-select></label>
+      <label>{{ 'STORAGE_EVIDENCE.TEACHER' | translate }}<app-clearable-select [options]="teachers" optionLabel="displayName" optionValue="id" [filter]="true" [(ngModel)]="teacher" (onDropdownChange)="page=1; reload()"></app-clearable-select></label></ng-container>
+    <button *ngIf="file && canManage" pButton type="button" [label]="'STORAGE_EVIDENCE.LINK' | translate" [disabled]="!selectedRequirement || saving" (click)="link()"></button>
+    <button *ngIf="!own && !catalog.length" pButton type="button" [label]="'STORAGE_EVIDENCE.INITIALIZE' | translate" [disabled]="saving" (click)="initialize()"></button>
+  </div>
+  <button *ngIf="!own && canManage && selectedRequirement" pButton type="button" [label]="'STORAGE_EVIDENCE.CONFIGURE' | translate" (click)="editCatalog()"></button>
+  <form *ngIf="editing && !own && canManage" (ngSubmit)="saveCatalog()" class="change-form">
+    <strong>{{ editing.displayName }}</strong>
+    <label>{{ 'STORAGE_EVIDENCE.STANDARD' | translate }}<app-clearable-select name="mappedStandard" [options]="standardOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappedStandard"></app-clearable-select></label>
+    <ng-template #catalogLabel let-option>{{ option.label | translate }}</ng-template>
+    <label>{{ 'STORAGE_EVIDENCE.IMPORTANCE' | translate }}<app-clearable-select name="importance" [options]="importanceOptions" optionLabel="label" optionValue="value" [itemTpl]="catalogLabel" [selectedItemTpl]="catalogLabel" [(ngModel)]="importance" [clearable]="false"></app-clearable-select></label>
+    <label>{{ 'STORAGE_EVIDENCE.RESPONSIBLE_ROLE' | translate }}<app-clearable-select name="responsibleRole" [options]="roleOptions" optionLabel="label" optionValue="value" [itemTpl]="catalogLabel" [selectedItemTpl]="catalogLabel" [(ngModel)]="responsibleRole"></app-clearable-select></label>
+    <label>{{ 'STORAGE_EVIDENCE.POLICY' | translate }}<app-clearable-select name="policy" [options]="policyOptions" optionLabel="label" optionValue="value" [itemTpl]="catalogLabel" [selectedItemTpl]="catalogLabel" [(ngModel)]="policy" [clearable]="false"></app-clearable-select></label>
+    <label *ngIf="policy === 2">{{ 'STORAGE_EVIDENCE.MIN_LINKS' | translate }}<input type="number" name="minimum" [(ngModel)]="minimum" min="1" max="100" required></label>
+    <button pButton type="submit" [label]="'STORAGE_EVIDENCE.SAVE' | translate" [disabled]="saving || minimum < 1 || minimum > 100"></button>
+    <button pButton type="button" [label]="'STORAGE_EVIDENCE.CANCEL' | translate" (click)="editing=undefined"></button>
+  </form>
+  <label *ngIf="!own" class="note">{{ 'STORAGE_EVIDENCE.NOTE' | translate }}<textarea [(ngModel)]="note" maxlength="1000" rows="2"></textarea></label>
+  <p *ngIf="!busy && !links.length" class="empty">{{ 'STORAGE_EVIDENCE.EMPTY' | translate }}</p>
+  <article *ngFor="let link of links" class="link">
+    <p *ngIf="link.status === 'Rejected'" class="error">{{ link.decisions[link.decisions.length - 1]?.note }}</p>
+    <div><strong>{{ link.requirementName }}</strong><p *ngIf="!file">{{ link.fileName }} · {{ link.teacherName }}</p><span class="badge" [attr.data-status]="link.status">{{ ('STORAGE_EVIDENCE.STATE_' + link.status) | translate }}</span> <span>{{ ('STORAGE.AVAILABILITY_' + link.availability) | translate }}</span></div>
+    <div class="actions"><button *ngIf="!file" pButton type="button" [label]="'STORAGE.PREVIEW' | translate" (click)="openFile.emit(link.storedFileId)"></button>
+      <button *ngIf="file && canManage && (link.status === 'Draft' || link.status === 'Rejected')" pButton type="button" [label]="'STORAGE_EVIDENCE.SUBMIT' | translate" [disabled]="saving" (click)="submit(link)"></button>
+      <ng-container *ngIf="!own && (link.status === 'PendingReview' || link.status === 'Resubmitted')"><button pButton type="button" [label]="'STORAGE_EVIDENCE.APPROVE' | translate" [disabled]="saving || link.availability !== 'Available'" (click)="review(link,true)"></button><button pButton type="button" class="p-button-danger" [label]="'STORAGE_EVIDENCE.REJECT' | translate" [disabled]="saving || !note.trim()" (click)="review(link,false)"></button></ng-container></div>
+    <details *ngIf="link.decisions.length"><summary>{{ 'STORAGE_EVIDENCE.HISTORY' | translate }}</summary><div *ngFor="let decision of link.decisions" class="decision"><span>{{ ('STORAGE_EVIDENCE.STATE_' + decision.decision) | translate }} · {{ decision.reviewedAtUtc | date:'medium' }} · {{ decision.reviewerName }}</span><p>{{ decision.note }}</p><button *ngIf="file" type="button" (click)="downloadVersion(decision.versionId)">{{ 'STORAGE_EVIDENCE.ORIGINAL' | translate }}</button></div></details>
+  </article>
+  <p-paginator *ngIf="!file" [rows]="25" [first]="(page-1)*25" [totalRecords]="total" (onPageChange)="page=($event.page || 0)+1; reload()"></p-paginator>
+  <section *ngIf="!file"><h3>{{ 'STORAGE_EVIDENCE.CHANGES' | translate }}</h3><div class="actions"><button *ngFor="let state of ['Pending','Approved','Rejected']" pButton type="button" [label]="('STORAGE_EVIDENCE.STATE_'+state) | translate" (click)="changeStatus=state; changePage=1; reload()"></button></div><p *ngIf="!busy && !changeQueue.length">{{ 'STORAGE_EVIDENCE.NO_CHANGES' | translate }}</p><article *ngFor="let change of changeQueue" class="link"><strong>{{ change.fileName }}</strong><p>{{ change.reason }}</p><button pButton type="button" [label]="'STORAGE.DETAILS' | translate" (click)="openFile.emit(change.storedFileId)"></button></article><p-paginator [rows]="25" [first]="(changePage-1)*25" [totalRecords]="changeTotal" (onPageChange)="changePage=($event.page || 0)+1; reload()"></p-paginator></section>
+  <ng-container *ngIf="file"><h3>{{ 'STORAGE_EVIDENCE.CHANGES' | translate }}</h3>
+    <form *ngIf="canManage" (ngSubmit)="requestChange()" class="change-form"><fieldset><legend>{{ 'STORAGE_EVIDENCE.CHANGE_KIND' | translate }}</legend><label><input type="radio" name="kind" [(ngModel)]="kind" value="Replace">{{ 'STORAGE_EVIDENCE.REPLACE' | translate }}</label><label><input type="radio" name="kind" [(ngModel)]="kind" value="Delete">{{ 'STORAGE_EVIDENCE.WITHDRAW' | translate }}</label></fieldset><label>{{ 'STORAGE_EVIDENCE.REASON' | translate }}<textarea name="reason" [(ngModel)]="reason" maxlength="1000" required rows="2"></textarea></label><button pButton type="submit" [label]="'STORAGE_EVIDENCE.REQUEST' | translate" [disabled]="saving || !reason.trim() || changes[0]?.status === 'Pending'"></button></form>
+    <p *ngIf="!busy && !changes.length">{{ 'STORAGE_EVIDENCE.NO_CHANGES' | translate }}</p>
+    <article *ngFor="let change of changes" class="link"><strong>{{ ('STORAGE_EVIDENCE.STATE_' + change.status) | translate }} · {{ ('STORAGE_EVIDENCE.' + (change.kind === 'Replace' ? 'REPLACE' : 'WITHDRAW')) | translate }}</strong><p>{{ change.reason }}</p>
+      <div *ngIf="change.kind === 'Replace' && change.status === 'Pending' && !change.candidateVersionId && canManage" class="actions"><label class="choose-file">{{ 'STORAGE_EVIDENCE.CANDIDATE' | translate }}<input type="file" (change)="choose($event,change)" [disabled]="saving"></label><span *ngIf="uploadChange === change.id">{{ candidate?.name }}</span><button pButton type="button" [label]="'STORAGE.SEND' | translate" [disabled]="saving || !candidate || uploadChange !== change.id" (click)="upload(change)"></button></div>
+      <p-progressBar *ngIf="saving && uploadChange === change.id" [value]="progress"></p-progressBar>
+      <button *ngIf="operation && uploadChange === change.id" pButton type="button" [label]="'STORAGE.RECONCILE' | translate" (click)="reconcile()"></button>
+      <button *ngIf="change.candidateVersionId" type="button" (click)="downloadVersion(change.candidateVersionId)">{{ 'STORAGE_EVIDENCE.CANDIDATE' | translate }}</button>
+      <div *ngIf="!own && change.status === 'Pending'" class="actions"><button pButton type="button" [label]="'STORAGE_EVIDENCE.APPROVE_CHANGE' | translate" [disabled]="saving || (change.kind === 'Replace' && !change.candidateVersionId)" (click)="decide(change,true)"></button><button pButton type="button" [label]="'STORAGE_EVIDENCE.REJECT' | translate" [disabled]="saving || !note.trim()" (click)="decide(change,false)"></button></div>
+      <div *ngFor="let decision of change.decisions" class="decision">{{ decision.reviewerName }} · {{ decision.createdAtUtc | date:'medium' }}<p>{{ decision.note }}</p></div>
+    </article>
+  </ng-container>
+</section>

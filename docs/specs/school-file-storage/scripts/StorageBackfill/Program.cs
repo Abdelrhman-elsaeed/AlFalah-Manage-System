@@ -25,12 +25,18 @@ try
     if (!connection.DataSource.StartsWith("(localdb)\\", StringComparison.OrdinalIgnoreCase) &&
         !string.Equals(connection.DataSource, "localhost", StringComparison.OrdinalIgnoreCase))
         throw new ArgumentException("This adapter accepts the configured local Development server only.");
+    if (string.Equals(database, connection.InitialCatalog, StringComparison.OrdinalIgnoreCase) ||
+        !database.StartsWith("AlFalahS1Tests_", StringComparison.OrdinalIgnoreCase) && !database.StartsWith("AlFalahSFS_", StringComparison.OrdinalIgnoreCase))
+        throw new ArgumentException("Use a separately provisioned isolated AlFalahS1Tests_ or AlFalahSFS_ database; never the actual Development database.");
     connection.InitialCatalog = database;
     connection.ApplicationName = "SFS-S1-OfflineBackfill";
     await using var db = new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>().UseSqlServer(connection.ConnectionString).Options);
-    var report = await new StorageBackfillService(new StorageBackfillRepository(db)).RunAsync(dryRun);
+    var repository = new StorageBackfillRepository(db);
+    var repairs = args.Contains("--repair-shared-writer", StringComparer.Ordinal)
+        ? await new StorageSharedWriterRepairService(repository, new EvidenceRepository(db)).RunAsync(dryRun) : 0;
+    var report = await new StorageBackfillService(repository).RunAsync(dryRun);
     Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
-    await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
+    await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new { backfill = report, sharedWriterRepairTargets = repairs, dryRun }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
     Console.WriteLine($"Source={report.SourceCount}; existing={report.ExistingCount}; planned/created files={report.CreatedFiles}; links={report.CreatedLinks}; decisions={report.CreatedDecisions}; issues={report.Issues.Count}; dryRun={report.DryRun}");
     return report.Issues.Count == 0 ? 0 : 2;
 }

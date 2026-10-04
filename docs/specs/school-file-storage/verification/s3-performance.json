@@ -1,0 +1,22 @@
+{
+  "stage": "S3",
+  "links": 5000,
+  "page": 100,
+  "pageSize": 25,
+  "samplesMs": [
+    21.5206,
+    23.0619,
+    26.8883,
+    22.9714,
+    22.3546,
+    24.4853,
+    22.044,
+    25.2081,
+    31.062,
+    24.8959
+  ],
+  "medianMs": 23.773600000000002,
+  "maxMs": 31.062,
+  "provider": "Fake Drive; queue metadata makes no content calls",
+  "targetMs": 200
+}

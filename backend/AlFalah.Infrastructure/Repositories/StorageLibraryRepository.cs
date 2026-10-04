@@ -128,6 +128,11 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
         if (target is null) return;
         target.Version.Availability = missing ? StoredFileAvailability.Missing : StoredFileAvailability.Available;
         target.Version.MissingFromDriveAtUtc = missing ? DateTimeOffset.UtcNow : null;
+        if (target.File.LegacyProvenanceJson != null && target.File.SharedWriterFingerprint == null)
+        {
+            target.File.SharedWriterProvenanceJson = target.File.LegacyProvenanceJson;
+            target.File.SharedWriterFingerprint = target.File.LegacyFingerprint;
+        }
         await SaveAsync(ct);
     }
     public Task<StorageOperation?> FindOperationAsync(int schoolId, string actor, string key, CancellationToken ct) =>
@@ -145,11 +150,36 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
         await using var tx = db.Database.IsRelational() ? await db.Database.BeginTransactionAsync(ct) : null;
         try
         {
+            if (operation.ChangeRequestId != null)
+            {
+                var change = await db.Set<FileChangeRequest>().AsTracking().SingleAsync(x => x.SchoolId == operation.SchoolId && x.Id == operation.ChangeRequestId, ct);
+                var original = await db.StoredFiles.AsTracking().SingleAsync(x => x.SchoolId == operation.SchoolId && x.Id == change.StoredFileId, ct);
+                if (change.Status != "Pending" || change.CandidateVersionId != null || original.CurrentVersionId != change.OriginalVersionId) throw new StorageConflictException();
+                var number = await db.StoredFileVersions.Where(x => x.SchoolId == operation.SchoolId && x.StoredFileId == original.Id).MaxAsync(x => x.VersionNumber, ct) + 1;
+                var candidate = new StoredFileVersion { SchoolId = operation.SchoolId, StoredFileId = original.Id, VersionNumber = number,
+                    DriveId = operation.DriveId, DriveItemId = operation.ProviderItemId, DriveFileName = operation.DisplayName,
+                    FileExtension = Path.GetExtension(operation.DisplayName), SizeInBytes = operation.Size, MimeType = operation.MimeType,
+                    SHA256 = operation.SHA256, UploadedByUserId = operation.ActorUserId, UploadedAtUtc = operation.CreatedAtUtc, Availability = StoredFileAvailability.Available };
+                db.StoredFileVersions.Add(candidate); await SaveAsync(ct);
+                change.CandidateVersionId = candidate.Id;
+                operation.StoredFileId = original.Id; operation.VersionId = candidate.Id; operation.Status = "Completed"; operation.ErrorCode = null;
+                db.AuditLogs.Add(new() { SchoolId = original.SchoolId, UserId = operation.ActorUserId,
+                    Action = "Storage.CandidateUploaded", EntityName = "FileChangeRequest", EntityId = change.Id.ToString() });
+                await SaveAsync(ct);
+                if (tx is not null) await tx.CommitAsync(ct);
+                return;
+            }
             // Unique provider/version indexes and the operation rowversion resolve concurrent reconciliation.
             var file = new StoredFile { SchoolId = operation.SchoolId, FolderId = operation.FolderId!.Value,
                 OwnerTeacherId = operation.OwnerTeacherId, DisplayName = operation.DisplayName, NeedsLink = true,
                 SourceKind = operation.OwnerTeacherId == null ? StoredFileSourceKind.SchoolUpload : StoredFileSourceKind.TeacherUpload,
                 LegacySubmissionId = operation.LegacySubmissionId };
+            if (operation.LegacySubmissionId != null)
+            {
+                var source = await StorageProvenance.ReadAsync(db, operation.LegacySubmissionId.Value, ct);
+                file.LegacyProvenanceJson = file.SharedWriterProvenanceJson = StorageProvenance.Serialize(source);
+                file.LegacyFingerprint = file.SharedWriterFingerprint = StorageProvenance.Hash(file.LegacyProvenanceJson);
+            }
             db.StoredFiles.Add(file);
             await SaveAsync(ct);
             var version = new StoredFileVersion { SchoolId = file.SchoolId, StoredFileId = file.Id, VersionNumber = 1,
@@ -160,6 +190,21 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
             db.StoredFileVersions.Add(version);
             await SaveAsync(ct);
             file.CurrentVersionId = version.Id;
+            if (operation.LegacyTaskId != null)
+            {
+                var source = await db.TeacherEvidenceSubmissions.SingleAsync(x => x.Id == operation.LegacySubmissionId, ct);
+                var task = await db.EvidenceTasks.SingleAsync(x => x.Id == operation.LegacyTaskId, ct);
+                var requirement = await db.EvidenceRequirements.SingleOrDefaultAsync(x => x.SchoolId == file.SchoolId && x.AcademicYearId == source.AcademicYearId && x.OriginalTaskId == task.Id, ct);
+                if (requirement == null)
+                {
+                    requirement = new() { SchoolId = file.SchoolId, AcademicYearId = source.AcademicYearId, Code = task.Code, DisplayName = task.NameAr, OriginalTaskId = task.Id, SortOrder = task.SortOrder };
+                    db.EvidenceRequirements.Add(requirement); await SaveAsync(ct);
+                }
+                db.EvidenceLinks.Add(new() { SchoolId = file.SchoolId, AcademicYearId = source.AcademicYearId!.Value,
+                    StoredFileId = file.Id, VersionId = version.Id, RequirementId = requirement.Id, TeacherId = file.OwnerTeacherId,
+                    Status = EvidenceLinkStatus.PendingReview, SubmittedAtUtc = operation.CreatedAtUtc });
+                file.NeedsLink = false;
+            }
             operation.StoredFileId = file.Id; operation.VersionId = version.Id; operation.Status = "Completed"; operation.ErrorCode = null;
             db.AuditLogs.Add(new() { SchoolId = file.SchoolId, UserId = operation.ActorUserId,
                 Action = "Storage.UploadCompleted", EntityName = "StoredFile", EntityId = file.Id.ToString() });
@@ -170,6 +215,11 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
     }
     public async Task SaveMutationAsync(StorageMutationTarget target, byte[] expectedVersion, string actor, bool delete, CancellationToken ct)
     {
+        if (target.File.LegacyProvenanceJson != null && target.File.SharedWriterFingerprint == null)
+        {
+            target.File.SharedWriterProvenanceJson = target.File.LegacyProvenanceJson;
+            target.File.SharedWriterFingerprint = target.File.LegacyFingerprint;
+        }
         db.Entry(target.File).Property(x => x.RowVersion).OriginalValue = expectedVersion;
         db.AuditLogs.Add(new() { SchoolId = target.File.SchoolId, UserId = actor, Action = delete ? "Storage.FileDeleted" : "Storage.FileRenamed",
             EntityName = "StoredFile", EntityId = target.File.Id.ToString() });

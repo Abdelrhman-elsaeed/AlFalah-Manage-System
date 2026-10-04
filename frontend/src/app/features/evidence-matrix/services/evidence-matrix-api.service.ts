@@ -16,16 +16,18 @@ export class EvidenceMatrixApiService {
   files(teacherId: number, taskId: number, academicYearId: number): Observable<EvidenceCellFiles> {
     return this.get<EvidenceCellFiles>(`cells/${teacherId}/${taskId}`, new HttpParams().set('academicYearId', academicYearId));
   }
-  review(submissionId: number, reviewStatus: 3 | 4, note?: string): Observable<void> {
-    return this.http.post<ApiResponse>(`${this.baseUrl}/submissions/${submissionId}/review`, { reviewStatus, note: note || null })
+  review(submissionId: number, reviewStatus: 3 | 4, note?: string, linkId?: number, rowVersion?: string): Observable<void> {
+    const url = linkId ? `${environment.apiUrl}/api/v1/storage/links/${linkId}/review` : `${this.baseUrl}/submissions/${submissionId}/review`;
+    const body = linkId ? { decision: reviewStatus, note: note || null, rowVersion } : { reviewStatus, note: note || null };
+    return this.http.post<ApiResponse>(url, body)
       .pipe(map(response => { if (!response.isSuccess) throw new Error(response.errors?.join(' ') || response.message); }));
   }
   /**
    * Downloads an evidence file through the API. The stored Drive link is not usable: the file
    * belongs to the school's Google account and a reviewer holds no Google session.
    */
-  submissionContent(submissionId: number): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/submissions/${submissionId}/content`, {
+  submissionContent(submissionId: number, fileId?: number): Observable<Blob> {
+    return this.http.get(fileId ? `${environment.apiUrl}/api/v1/storage/files/${fileId}/content` : `${this.baseUrl}/submissions/${submissionId}/content`, {
       responseType: 'blob',
       context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
     });

@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-10-03
+**Last updated:** 2026-10-04
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -62,12 +62,13 @@
 | 8 | [phases/PHASE-08-COMPLAINTS.md](phases/PHASE-08-COMPLAINTS.md) | COMPLETED ✅ |
 | 9 | [phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md](phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md) | COMPLETED ✅ |
 | 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | IN PROGRESS |
-| SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | S2 IMPLEMENTED — isolated SQL and mocked browser verification; flags OFF; live Drive/cutover gates retained; S3–S6 not started |
+| SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | S3 IMPLEMENTED — isolated SQL and mocked browser verification; flags OFF; live Drive/cutover gates retained; S4–S6 not started |
 | SA-1–SA-5 | Student Affairs Technical Specification Kit | BLUEPRINT LOCKED — implementation not started |
 
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-10-04 | **School File Storage S3 implemented:** school/year catalog with exact EvidenceTask mapping and 4 domains/11 standards; independent evidence links/review, append-only decisions/audit, rowversion, retained change requests/versions, recoverable S2 candidate uploads, shared-writer provenance repair and approved-only matrix/Excel/PDF reader behind the existing disabled flag. RTL teacher/manager/delegate workflows, isolated SQL/backfill/export comparisons and desktop/mobile mocked journeys verified; live Google remains unavailable. Original Development, credentials and keys untouched; no cutover or S4 work. [Evidence, limitations and rollback](specs/school-file-storage/verification/s3-evidence-and-review.md). D-96. | Codex |
 | 2026-10-03 | **School File Storage S2 implemented:** scoped school library/teacher files, folder creation/moves, SQL search/page/sort, authorized streamed content, bounded 250 MiB uploads and durable pre-generated Drive IDs with idempotency/reconciliation; Approved/history protection and shared legacy writer; Angular RTL manager/delegate/teacher UI and failure/preview states. Real isolated SQL, backend/Angular tests, desktop/mobile browser contracts and 5000-asset performance verified. Additive migrations only; flags OFF, original Development/Google credentials untouched; S0 live Drive limitation/cutover gates retained. [S2 verification](specs/school-file-storage/verification/s2-library-and-uploads.md), D-95; stop after S2, no S3. | AI Agent |
 | 2026-10-03 | Implemented [SFS S1](specs/school-file-storage/verification/README.md): 11 additive storage/evidence/delegation/archive/import tables, scoped keys and NULL-safe uniqueness, immutable history and concurrency, 8 DB permissions, actual-manager-only delegation, and offline dry-run/repeatable backfill. Migration and two applies verified on an isolated COPY_ONLY Development clone: one legacy Approved submission maps to one file/version/link/decision; rerun creates zero duplicates. 786 backend tests pass, including 41 storage service/SQL Server checks; original Development/Google credentials unchanged, storage flags OFF, legacy readers preserved. S0 live Drive/parity gates remain; S2 not started (D-94). | Codex |
 | 2026-10-03 | Completed the read-only [SFS S0 baseline audit](specs/school-file-storage/baseline/README.md): 14 hashed sources, 108 source coverage rows, 36 tracker items, 145 matrix rows, 11 standards/31 current tasks mapping, current endpoints and architecture gaps, and repeatable collectors. Measured local Development SQL without startup/seed/migrations. Live Drive observation could not decrypt the stored credential with current keys and sent no HTTP requests; counts remain unknown. Recorded owner-approved folder organization, 250 MiB plus new media types, and retention/trash policy (D-93). S0 gate awaits parity review and usable Drive observation; S1 not started. | Codex |

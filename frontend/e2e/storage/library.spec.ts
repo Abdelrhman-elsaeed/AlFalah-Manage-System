@@ -20,6 +20,10 @@ async function mockSession(page: Page, role = 'SchoolManager', state = 'Connecte
     else if (path.endsWith('/storage/context')) data = { schoolId: 1, schoolName: 'مدرسة الاختبار', academicYearId: 1,
       academicYearName: 'السنة الدراسية', canManage: true, isTeacher: role === 'Instructor', connectionState: state, rootFolderId: 7 };
     else if (path.endsWith('/storage/folders')) data = { items: [], total: 0, page: 1, pageSize: 25 };
+    else if (path.endsWith('/storage/academic-years')) data = [{id:1,nameAr:'السنة الدراسية'}];
+    else if (path.endsWith('/storage/evidence-teachers') || path.endsWith('/storage/requirements') || path.endsWith('/links') || path.endsWith('/change-requests')) data = [];
+    else if (path.endsWith('/storage/review-queue') || path.endsWith('/storage/change-queue')) data = {items:[],total:0,page:1,pageSize:25};
+    else if (path.endsWith('/storage/evidence-counts')) data = {files:1,links:0,approvedLinks:0,fulfilledRequirements:0,requirements:11};
     else if (path.endsWith('/storage/files/31/content')) return route.fulfill({ status: 200, contentType: 'application/pdf', body: '%PDF-1.7\n1 0 obj<</Type /Catalog>>endobj\n%%EOF' });
     else if (path.endsWith('/storage/files/31')) data = { file, versions: [{ versionId: 1, versionNumber: 1, size: 1000, mimeType: 'application/pdf', uploadedAt: file.uploadedAt, availability: 'Available' }] };
     else if (path.endsWith('/storage/files') || path.endsWith('/storage/me/files')) {
@@ -42,7 +46,7 @@ test('manager and delegated role use RTL library, server pagination and authoriz
   await expect(page.locator('iframe')).toHaveAttribute('src', /^blob:/);
   expect(requests.some(r => r.url.includes('/storage/files/31/content?preview=true'))).toBeTruthy();
   await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
-  await page.locator('.p-paginator-next').click();
+  await page.locator('.p-paginator-next').first().click();
   await expect.poll(() => requests.some(r => r.url.includes('/storage/files?') && r.url.includes('page=2'))).toBeTruthy();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
   expect(overflow).toBeFalsy();

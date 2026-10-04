@@ -15,6 +15,9 @@ Eight DB permissions: `Storage.ViewSchool`, `Storage.ManageSchool`, `Storage.Rev
 Storage services re-query active school, user, UserSchoolRole, role/permission mappings and temporal delegation instead of trusting JWT permission claims. Manager-only grant/list/revoke additionally requires `School.ManagerUserId == current UserId` and live `Storage.Delegate`; a delegate never receives this permission or the ability to grant/revoke. StartsAt is inclusive, ExpiresAt exclusive, and RevokedAt stops access immediately. Grant/revocation reason and actors remain separate audit fields. `SchoolFileStorage.AdministrationEnabled` defaults false; see [S1 contracts](specs/school-file-storage/verification/README.md).
 
 ## Roles
+
+Storage S3 adds no role or permission. Catalog initialization/configuration requires Storage.ManageSchool. School queue/reviews require Storage.ReviewEvidence plus the actual manager or current direct delegation; viewing school matrix/export requires Storage.ViewSchool. Teachers use Storage.ViewOwn/ManageOwn, cannot review evidence, cannot pick another teacher identity or link another teacher's asset. Current membership, owner profile/user, permission, grant and provider boundaries are checked again, including historical version reads and change decisions. Revoked delegation/grant removes access immediately. Visit archive remains denied until S5. [S3 contracts](specs/school-file-storage/verification/s3-evidence-and-review.md).
+
 - Super Admin / Developer
 - Main Manager / مدير المدارس العام
 - School Manager / مدير المدرسة

@@ -37,7 +37,9 @@ public sealed class StorageBackfillService(IStorageBackfillRepository repository
             var hasDecision = canLink && row.ReviewStatus is EvidenceReviewStatus.Approved or EvidenceReviewStatus.Rejected;
             if (existing.TryGetValue(row.Id, out var previous))
             {
-                var drift = previous.Fingerprint != fingerprint || !previous.HasCurrentVersion || canLink != previous.HasLink || hasDecision != previous.HasDecision;
+                var drift = previous.SharedWriterFingerprint != null
+                    ? ManagedDrift(previous, row, canLink)
+                    : previous.Fingerprint != fingerprint || !previous.HasCurrentVersion || canLink != previous.HasLink || hasDecision != previous.HasDecision;
                 if (drift) issues.Add(new(row.Id, "LegacyOrTargetDrift"));
                 results.Add((row, true, false, false, false, drift));
                 continue;
@@ -150,6 +152,24 @@ public sealed class StorageBackfillService(IStorageBackfillRepository repository
             await repository.SaveGraphAsync(newFolders, newRequirements, files, versions, links, decisions, ct);
         return new(dryRun, input.Submissions.Count, results.Count(x => x.Existing), files.Count, versions.Count,
             links.Count, decisions.Count, results.Count(x => x.File && !x.Link), groups, issues);
+    }
+
+    private static bool ManagedDrift(BackfillExistingFile previous, LegacyStorageSubmission source, bool canLink)
+    {
+        if (previous.SharedWriterProvenanceJson == null || !previous.HasCurrentVersion || canLink && !previous.HasLink) return true;
+        if (Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(previous.SharedWriterProvenanceJson))) != previous.SharedWriterFingerprint) return true;
+        try
+        {
+            var baseline = JsonSerializer.Deserialize<LegacyStorageSubmission>(previous.SharedWriterProvenanceJson);
+            // Review columns remain the immutable compatibility baseline. Runtime decisions belong to links.
+            return baseline == null || baseline.Id != source.Id || baseline.SchoolId != source.SchoolId || baseline.TeacherId != source.TeacherId ||
+                baseline.TaskId != source.TaskId || baseline.AcademicYearId != source.AcademicYearId || baseline.DriveId != source.DriveId || baseline.DriveItemId != source.DriveItemId ||
+                baseline.SizeInBytes != source.SizeInBytes || baseline.MimeType != source.MimeType || baseline.FileExtension != source.FileExtension ||
+                baseline.UploadedAtUtc != source.UploadedAtUtc || baseline.CreatedAtUtc != source.CreatedAtUtc || baseline.UploadStatus != source.UploadStatus ||
+                canLink && source.ReviewStatus is (EvidenceReviewStatus.Approved or EvidenceReviewStatus.Rejected) && !previous.HasDecision ||
+                baseline.ReviewStatus != source.ReviewStatus || baseline.ReviewNote != source.ReviewNote || baseline.ReviewedByUserId != source.ReviewedByUserId || baseline.ReviewedAtUtc != source.ReviewedAtUtc;
+        }
+        catch (JsonException) { return true; }
     }
 
     private static string? Validate(LegacyStorageSubmission r, StorageBackfillInput input, IReadOnlyDictionary<int, LegacyStorageTask> tasks)

@@ -24,6 +24,9 @@ public sealed class StorageOperationConfiguration : IEntityTypeConfiguration<Sto
         b.HasIndex(x => new { x.SchoolId, x.ActorUserId, x.RequestKey }).IsUnique();
         b.HasIndex(x => new { x.SchoolId, x.RequestKey }).IsUnique().HasFilter("[Action] = 'CreateFolder'");
         b.HasIndex(x => new { x.SchoolId, x.Status, x.CreatedAtUtc });
+        b.HasIndex(x => x.ChangeRequestId).IsUnique().HasFilter("[ChangeRequestId] IS NOT NULL");
+        b.HasOne<FileChangeRequest>().WithMany().HasForeignKey(x => new { x.SchoolId, x.ChangeRequestId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(x => new { x.SchoolId, x.ProviderItemId }).IsUnique().HasFilter("[Action] IN ('Upload','CreateFolder')");
         b.HasOne<StorageFolder>().WithMany().HasForeignKey(x => new { x.SchoolId, x.FolderId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);

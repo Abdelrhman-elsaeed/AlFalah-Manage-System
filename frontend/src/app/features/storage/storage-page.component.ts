@@ -11,17 +11,20 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { PaginatorModule } from 'primeng/paginator';
 import { TreeModule } from 'primeng/tree';
 import { TreeNode } from 'primeng/api';
-import { Subject, Subscription, forkJoin, takeUntil } from 'rxjs';
+import { Subject, Subscription, forkJoin, takeUntil, catchError, throwError } from 'rxjs';
+import { StorageEvidenceApiService } from './evidence-api.service';
 import { StorageApiService } from './storage-api.service';
 import { StorageContext, StorageDetails, StorageFile, StorageFolder, StorageUpload, StorageDiscovery } from './storage.models';
+import { EvidenceWorkspaceComponent } from './evidence-workspace.component';
 
 @Component({
   selector: 'app-storage-page', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, DialogModule, ProgressBarModule, PaginatorModule, TreeModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, DialogModule, ProgressBarModule, PaginatorModule, TreeModule, EvidenceWorkspaceComponent],
   templateUrl: './storage-page.component.html', styleUrls: ['./storage-page.component.css']
 })
 export class StoragePageComponent implements OnInit, OnDestroy {
   private readonly api = inject(StorageApiService);
+  private readonly evidenceApi = inject(StorageEvidenceApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
@@ -180,7 +183,7 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   }
   openDetails(id: number) {
     this.details = undefined; this.detailOpen = true;
-    this.api.details(id).pipe(takeUntil(this.destroyed)).subscribe({ next: data => { this.details = data; this.renameName = data.file.displayName; }, error: e => { this.detailOpen = false; this.fail(e); } });
+    this.api.details(id).pipe(catchError(e => e.status === 404 ? this.evidenceApi.history(id) : throwError(() => e)),takeUntil(this.destroyed)).subscribe({ next: data => { this.details = data; this.renameName = data.file.displayName; }, error: e => { this.detailOpen = false; this.fail(e); } });
   }
   rename() { if (this.details) this.api.rename(this.details.file, this.renameName).pipe(takeUntil(this.destroyed)).subscribe({ next: () => { this.detailOpen = false; this.reload(); }, error: e => this.fail(e) }); }
   deleteConfirmed = false;
@@ -198,6 +201,13 @@ export class StoragePageComponent implements OnInit, OnDestroy {
       const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = file.displayName; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, error: e => this.fail(e) });
   }
+  downloadVersion(version: number) {
+    if (!this.details) return;
+    const file = this.details.file;
+    this.evidenceApi.versionContent(file.storedFileId, version).pipe(takeUntil(this.destroyed)).subscribe({next: blob => {
+      const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = file.displayName; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, error: e => this.fail(e)});
+  }
   copy(file: StorageFile) {
     const url = `${location.origin}${this.router.url.split('?')[0]}?file=${file.storedFileId}`;
     navigator.clipboard.writeText(url).then(() => this.notice = this.translate.instant('STORAGE.LINK_COPIED')).catch(() => this.error = this.translate.instant('STORAGE.COPY_ERROR'));
@@ -210,5 +220,10 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     this.error = error?.error?.message || error?.message || this.translate.instant('STORAGE.ERROR');
     if (error?.status === 403) { this.files = []; this.folders = []; this.tree = []; this.details = undefined; this.detailOpen = false; this.previewOpen = false; this.closePreview(); this.context = undefined; }
   }
+  evidenceChanged() {
+    if (this.details) this.openDetails(this.details.file.storedFileId);
+    this.reload();
+  }
+  evidenceDenied() { this.fail({status:403, message:this.translate.instant('STORAGE.ERROR')}); }
   ngOnDestroy() { this.destroyed.next(); this.destroyed.complete(); this.load?.unsubscribe(); this.closePreview(); }
 }

@@ -12,7 +12,7 @@ namespace AlFalah.Application.Storage;
 
 public sealed class StorageLibraryService(IStorageLibraryRepository repository, IStorageRepository scopes,
     IStorageAuthorizationService authorization, ICurrentUserService user, IStorageProvider provider,
-    IEvidenceSubmissionService submissions, IOptions<StorageOptions> options) : IStorageLibraryService
+    IEvidenceSubmissionService submissions, IOptions<StorageOptions> options, IFileChangeRequestService? changes = null) : IStorageLibraryService
 {
     private int School => user.ActiveSchoolId ?? throw new UnauthorizedSchoolAccessException("اختر المدرسة أولًا.");
     private void Enabled()
@@ -271,11 +271,34 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
     }
     public async Task<StorageUploadDto> UploadAsync(StorageUploadRequest request, CancellationToken ct = default)
     {
-        var teacher = await ActorAsync(request.Own, true, ct);
+        // A completed replacement is replayable even after its request has been decided.
+        // Validate the same bytes and identity, then re-authorize through reconciliation.
+        Enabled(); ValidateKey(request.RequestKey);
+        if (request.ChangeRequestId != null && await repository.FindOperationAsync(School, user.UserId!, request.RequestKey, ct) is { } replay)
+        {
+            await using var validated = await ValidatedStorageUpload.ReadAsync(request.Content, request.FileName, request.Length, ct);
+            var replayFingerprint = Hash(new { validated.FileName, validated.Size, validated.SHA256, Id = replay.FolderId!.Value,
+                request.LegacyTaskId, Own = replay.OwnerTeacherId != null, request.ChangeRequestId });
+            if (replay.ChangeRequestId != request.ChangeRequestId || replay.Fingerprint != replayFingerprint || replay.Action != "Upload") throw new StorageConflictException();
+            return await ReconcileAsync(replay.Id, ct);
+        }
+        ReplacementUploadTarget? replacement = null;
+        if (request.ChangeRequestId != null)
+        {
+            replacement = await (changes ?? throw new InvalidOperationException()).RequireUploadAsync(request.ChangeRequestId.Value, ct);
+            request = request with { Own = replacement.OwnerTeacherId != null, ParentFolderId = replacement.FolderId };
+        }
+        StorageTeacher? teacher;
+        if (replacement?.OwnerTeacherId is int owner)
+        {
+            var root = await scopes.GetTeacherDriveRootAsync(School, owner, ct) ?? throw Denied();
+            teacher = new(owner, user.UserId!, root, "");
+        }
+        else teacher = await ActorAsync(request.Own, true, ct);
         var folder = await FolderAsync(request.ParentFolderId, teacher, ct);
         ValidateKey(request.RequestKey);
         await using var upload = await ValidatedStorageUpload.ReadAsync(request.Content, request.FileName, request.Length, ct);
-        var fingerprint = Hash(new { upload.FileName, upload.Size, upload.SHA256, folder.Folder.Id, request.LegacyTaskId, request.Own });
+        var fingerprint = Hash(new { upload.FileName, upload.Size, upload.SHA256, folder.Folder.Id, request.LegacyTaskId, request.Own, request.ChangeRequestId });
         var operation = await repository.FindOperationAsync(School, user.UserId!, request.RequestKey, ct);
         if (operation is not null)
         {
@@ -285,7 +308,8 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
         operation = new() { SchoolId = School, ActorUserId = user.UserId!, RequestKey = request.RequestKey, Fingerprint = fingerprint,
             FolderId = folder.Folder.Id, OwnerTeacherId = teacher?.Id, DisplayName = upload.FileName, Size = upload.Size,
             MimeType = upload.MimeType, SHA256 = upload.SHA256, DriveId = folder.Folder.DriveId,
-            ParentItemId = folder.Folder.DriveItemId, ProviderItemId = await provider.AllocateIdAsync(School, ct), LegacyTaskId = request.LegacyTaskId };
+            ParentItemId = folder.Folder.DriveItemId, ProviderItemId = await provider.AllocateIdAsync(School, ct), LegacyTaskId = request.LegacyTaskId,
+            ChangeRequestId = request.ChangeRequestId };
         await scopes.InSerializableTransactionAsync(async () =>
         {
             if (request.LegacyTaskId is not null)
@@ -356,15 +380,24 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
         Enabled();
         await authorization.RequireScopeAsync(School, ct);
         var op = await repository.GetOperationAsync(School, id, ct) ?? throw new KeyNotFoundException();
-        var teacher = await ActorAsync(op.OwnerTeacherId != null, true, ct);
+        StorageTeacher? teacher;
+        if (op.ChangeRequestId != null && op.OwnerTeacherId is int owner)
+        {
+            if (op.Status != "Completed") await (changes ?? throw new InvalidOperationException()).RequireUploadAsync(op.ChangeRequestId.Value, ct);
+            var root = await scopes.GetTeacherDriveRootAsync(School, owner, ct) ?? throw Denied();
+            teacher = new(owner, user.UserId!, root, "");
+        }
+        else teacher = await ActorAsync(op.OwnerTeacherId != null, true, ct);
         if (op.ActorUserId != user.UserId || op.OwnerTeacherId != teacher?.Id) throw Denied();
         await FolderAsync(op.FolderId, teacher, ct);
         if (op.Status == "Failed") return UploadDto(op);
         if (op.Status == "Completed")
         {
+            if (op.ChangeRequestId != null) await (changes ?? throw new InvalidOperationException()).CompleteCandidateAsync(op.ChangeRequestId.Value, ct);
             if (op.StoredFileId is not null) await authorization.RequireFileAsync(School, op.StoredFileId.Value, ct: ct);
             return UploadDto(op);
         }
+        if (op.ChangeRequestId != null) await (changes ?? throw new InvalidOperationException()).RequireUploadAsync(op.ChangeRequestId.Value, ct);
         var item = await provider.MetadataAsync(School, op.ProviderItemId, ct);
         if (item is null || item.Trashed)
         {
@@ -387,6 +420,7 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
             await repository.SaveOperationAsync(op, ct);
         }
         await repository.CompleteUploadAsync(op, ct);
+        if (op.ChangeRequestId != null) await (changes ?? throw new InvalidOperationException()).CompleteCandidateAsync(op.ChangeRequestId.Value, ct);
         return UploadDto(op);
     }
     public Task RenameAsync(int id, RenameStorageFileRequest request, CancellationToken ct = default) => MutateAsync(id, request.DisplayName, request.RowVersion, false, ct);

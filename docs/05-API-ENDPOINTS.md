@@ -402,3 +402,23 @@ Failures use the existing ApiResponse middleware: 400 invalid input, 401 unauthe
 ## School File Storage S2 library API (2026-10-03)
 
 Implemented `/api/v1/storage/context`, folder list/create/move/native-Drive-discovery, school/own file list/upload, file details/content/name/delete, and operation reconciliation. Exact query/body/multipart/header/status contracts are recorded in [S2 HTTP contracts](specs/school-file-storage/verification/s2-library-and-uploads.md#عقود-http-المنفذة). JSON uses ApiResponse; content is an authorized stream. ReadModelEnabled defaults OFF; old teacher/matrix paths remain available. No S3 link/review/version-change, S4 reporting, S5 archive or S6 import endpoints were activated.
+
+## School File Storage S3 evidence API (2026-10-04)
+
+Thin StorageEvidenceController → Application services → IEvidenceRepository/IStorageRepository → SQL. All JSON is ApiResponse<T>; content is an authenticated stream. Selected active school is server-side; no client school selector/body can enlarge scope. ReadModelEnabled=false keeps the workspace unavailable (404), including new matrix/export readers. The exact DTOs/statuses and retained-history policy are in [S3 HTTP contracts](specs/school-file-storage/verification/s3-evidence-and-review.md).
+
+| Method | Route beneath `/api/v1/storage` | Contract |
+|---|---|---|
+| GET | `/academic-years`, `/evidence-teachers`, `/requirements?academicYearId=&search=` | Authorized catalog/year/teacher choices; school teacher choices require school view |
+| POST | `/requirements/initialize?academicYearId=` | Idempotent exact task mappings and 4/11 catalog |
+| PATCH | `/requirements/{id}` | Domain/standard, importance, responsibleUserId/role, fulfillmentPolicy, minimumApprovedLinks, rowVersion |
+| POST | `/files/{id}/links` | requirementId, academicYearId, teacherId?; teacher is server-derived for owned teacher files |
+| GET | `/files/{id}/links`, `/me/files/{id}/links`, `/requirements/{id}/links` | Independent badges/rowversions/decision history; own path enforces ownership |
+| GET | `/review-queue`, `/evidence-counts` | School/year requirement/teacher/standard/status filters; queue SQL pages25 by default; counts has own selector |
+| POST | `/links/{id}/submit`, `/links/{id}/review` | rowVersion; review adds numeric decision Approved=3/Rejected=4 and note |
+| POST / GET | `/files/{id}/change-requests` | Create kind Replace/Delete, required reason, file rowVersion, replaceBeforeReview?; GET retained requests/decisions |
+| POST | `/change-requests/{id}/version` | S2 streamed multipart file + declared length, Idempotency-Key; new immutable candidate version of same asset |
+| POST | `/change-requests/{id}/review` | approve boolean, note, change rowVersion; rejection reason required |
+| GET | `/change-queue`, `/files/{id}/history`, `/files/{id}/versions/{version}/content` | Pending/Approved/Rejected change queue, withdrawn-inclusive authorized history, scoped historical bytes |
+
+400 invalid context/body/reason, 403 scope/permission/ownership/delegation denial, 404 disabled/missing ID or unavailable bytes, 409 duplicate/race/stale rowversion, 503 provider/SQL upload uncertainty. Candidate upload success follows S2 operation response and reconciliation; a successful upload never approves a link. Existing legacy matrix review and Drive rename/delete reject mapped files even when flags are OFF; unmapped legacy records retain existing behavior.

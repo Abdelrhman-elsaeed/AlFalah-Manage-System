@@ -40,12 +40,12 @@ dotnet --roll-forward Major docs/specs/school-file-storage/scripts/DriveBaseline
 ```powershell
 dotnet build docs/specs/school-file-storage/scripts/StorageBackfill --verbosity quiet
 # بعد تطبيق migration على قاعدة الاختبار المعزولة:
-dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahS1Baseline_EXAMPLE' --dry-run --report '.audit/sfs-s1/dry-run.json'
-dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahS1Baseline_EXAMPLE' --apply --report '.audit/sfs-s1/apply-1.json'
-dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahS1Baseline_EXAMPLE' --apply --report '.audit/sfs-s1/apply-2.json'
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahSFS_EXAMPLE' --dry-run --report '.audit/sfs-s1/dry-run.json'
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahSFS_EXAMPLE' --apply --report '.audit/sfs-s1/apply-1.json'
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahSFS_EXAMPLE' --apply --report '.audit/sfs-s1/apply-2.json'
 ```
 
-اسم EXAMPLE مثال يجب استبداله باسم قاعدة الاختبار الموجودة، وليس أمر إنشاء/restore. الأداة تقرأ إعداد خادم Development المحلي فقط ثم تختار `--database` المحدد؛ ترفض خادمًا بعيدًا. يتطلب التشغيل schema S1. لا migration أو seed أو Drive/token/decryption داخل الأداة. `--dry-run` لا يحفظ صفوفًا أو audit؛ `--apply` يحفظ graph في معاملة Serializable، مع عدم تحديث legacy. التقارير المجردة تضم مفاتيح SQL وحالات/عدادات وأكواد الاستثناء؛ لا اسم شخص أو معرف Google. خروج 2 يعني وجود استثناء/انحراف يستلزم مراجعة قبل cutover، وليس نجاحًا كاملًا. SHA256/UploadedBy غير المعروفين لا يخمّنان.
+اسم EXAMPLE مثال يجب استبداله باسم قاعدة الاختبار الموجودة، وليس أمر إنشاء/restore. الأداة تقرأ إعداد خادم Development المحلي فقط ثم تختار `--database` المحدد؛ ترفض خادمًا بعيدًا. يتطلب التشغيل schema S3. لا migration أو seed أو Drive/token/decryption داخل الأداة. `--dry-run` لا يحفظ صفوفًا أو audit؛ `--apply` يحفظ graph في معاملة Serializable، مع عدم تحديث legacy. التقارير المجردة تضم مفاتيح SQL وحالات/عدادات وأكواد الاستثناء؛ لا اسم شخص أو معرف Google. خروج 2 يعني وجود استثناء/انحراف يستلزم مراجعة قبل cutover، وليس نجاحًا كاملًا. SHA256/UploadedBy غير المعروفين لا يخمّنان.
 
 اختبارات SQL الاختيارية تحتاج اسم قاعدة **جديدة** لأن fixture يتحقق من migration السابقة ويحفظ شاهدًا قديمًا قبل S1. لا تحذف fixture قواعد التشغيل أو قواعد الاختبار:
 
@@ -55,3 +55,16 @@ dotnet test backend/AlFalah.Tests --filter FullyQualifiedName~Storage
 ```
 
 بدون المتغير تُعلَّم اختبارات SQL skipped صراحة، وتعمل اختبارات الخدمات العادية. تحقق S1 المسجل شغّلها بالمتغير ولم يتخطّ أي اختبار. لا تشغّل API للحصول على baseline أو backfill؛ بدء API يغير البيئة القديمة.
+
+## S3 — إصلاح الكاتب المشترك ومقارنة القراءة
+
+الأداة الآن ترفض اسم قاعدة Development المعرّف في الإعداد، وتقبل فقط قاعدة محلية معزولة باسم `AlFalahSFS_*` أو `AlFalahS1Tests_*`. أمثلة EXAMPLE تشير إلى قاعدة معزولة مُجهزة مسبقًا، ولا تنشئ قاعدة أو تشغّل migration. تشغيل إصلاح S2 يتطلب مخطط S3 كاملًا. لا تسجيل Drive/token/Data Protection أو فتح API.
+
+```powershell
+# بعد تجهيز قاعدة معزولة ومراجعة/تطبيق SQL S3 عليها فقط:
+dotnet build docs/specs/school-file-storage/scripts/StorageBackfill --verbosity minimal
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahSFS_EXAMPLE' --repair-shared-writer --dry-run --report '.audit/sfs-s3/repair-dry.json'
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Debug/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database 'AlFalahSFS_EXAMPLE' --repair-shared-writer --apply --report '.audit/sfs-s3/repair-apply.json'
+```
+
+شكل التقرير الحالي `{backfill, sharedWriterRepairTargets, dryRun}`. dry-run يكشف أهداف الإصلاح ولا يغيرها، ولذلك قد يبقى `LegacyOrTargetDrift` في backfill حتى apply مستقل صريح. الإصلاح يتحقق من مصدر legacy وعملية S2 Completed والأصل والنسخة الأولى، ويحفظ baseline جديدًا مستقلًا دون إعادة كتابة الأصل الموروث. ثم backfill يحفظ الروابط والقرارات الناقصة بنفس Drive IDs؛ الإعادة لا تضاعفها. أي تعارض هو توقف للمراجعة، وليس سماحًا بإعادة كتابة قرار. الاختبار `Legacy_and_S2_shared_writer_repair_backfill_matrix_and_excel_are_compared_offline` يسجل المقارنة في [S3 backfill comparison](../verification/s3-backfill-comparison.json)، ببيانات SQL اصطناعية معزولة وDrive محاكاة؛ ليس قبول اتصال حقيقي أو cutover.

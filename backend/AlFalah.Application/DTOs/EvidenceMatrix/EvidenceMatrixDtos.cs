@@ -52,7 +52,7 @@ public sealed record EvidenceSubmissionFileDto(
     bool IsDeleted,
     bool IsMissingFromDrive,
     DateTimeOffset UploadedAtUtc,
-    string? ReviewNote);
+    string? ReviewNote, int? EvidenceLinkId = null, int? StoredFileId = null, int? VersionId = null, string? RowVersion = null);
 
 public sealed record ReviewEvidenceSubmissionRequest(EvidenceReviewStatus ReviewStatus, string? Note);
 public sealed record EvidenceMatrixExportResult(byte[] Bytes, string ContentType, string FileName);

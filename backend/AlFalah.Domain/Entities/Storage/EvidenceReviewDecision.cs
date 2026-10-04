@@ -11,6 +11,7 @@ public sealed class EvidenceReviewDecision : IStorageRecord
     public int VersionId { get; set; }
     public EvidenceReviewStatus Decision { get; set; }
     public string? ReviewedByUserId { get; set; }
+    public string ReviewerName { get; set; } = "";
     public string? Note { get; set; }
     public DateTimeOffset? ReviewedAtUtc { get; set; }
     public bool IsLegacyImported { get; set; }

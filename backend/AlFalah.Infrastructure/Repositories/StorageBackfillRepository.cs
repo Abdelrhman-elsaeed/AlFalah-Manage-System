@@ -25,9 +25,23 @@ public sealed class StorageBackfillRepository(AlFalahDbContext db) : IStorageBac
             .Select(x => new BackfillExistingFile(x.LegacySubmissionId!.Value, x.LegacyFingerprint,
                 x.CurrentVersionId != null && db.StoredFileVersions.Any(v => v.Id == x.CurrentVersionId && v.StoredFileId == x.Id && v.SchoolId == x.SchoolId),
                 db.EvidenceLinks.Any(l => l.StoredFileId == x.Id && l.SchoolId == x.SchoolId),
-                db.EvidenceReviewDecisions.Any(d => d.StoredFileId == x.Id && d.SchoolId == x.SchoolId))).ToListAsync(ct);
+                db.EvidenceReviewDecisions.Any(d => d.StoredFileId == x.Id && d.SchoolId == x.SchoolId), x.SharedWriterProvenanceJson, x.SharedWriterFingerprint)).ToListAsync(ct);
         return new(submissions, tasks, schools, teachers, years, users, existing,
             await db.StorageFolders.AsNoTracking().ToListAsync(ct), await db.EvidenceRequirements.AsNoTracking().ToListAsync(ct));
+    }
+    public async Task<IReadOnlyList<SharedWriterRepairTarget>> LoadSharedWriterRepairsAsync(CancellationToken ct)
+    {
+        var files = await db.StoredFiles.IgnoreQueryFilters().AsTracking().Where(x => x.LegacySubmissionId != null && x.LegacyFingerprint == null && x.SharedWriterFingerprint == null &&
+            db.Set<StorageOperation>().Any(o => o.StoredFileId == x.Id && o.Status == "Completed" && o.Action == "Upload" && o.LegacySubmissionId == x.LegacySubmissionId)).ToListAsync(ct);
+        var result = new List<SharedWriterRepairTarget>();
+        foreach (var file in files)
+        {
+            var source = await StorageProvenance.ReadAsync(db, file.LegacySubmissionId!.Value, ct);
+            var task = await db.EvidenceTasks.Where(x => x.Id == source.TaskId).Select(x => new LegacyStorageTask(x.Id, x.Code, x.NameAr, x.SortOrder)).SingleOrDefaultAsync(ct);
+            var version = await db.StoredFileVersions.AsTracking().SingleAsync(x => x.SchoolId == file.SchoolId && x.Id == file.CurrentVersionId, ct);
+            result.Add(new(file, version, source, task));
+        }
+        return result;
     }
 
     public async Task<T> InSerializableTransactionAsync<T>(Func<Task<T>> operation, CancellationToken ct)
@@ -44,8 +58,18 @@ public sealed class StorageBackfillRepository(AlFalahDbContext db) : IStorageBac
         IReadOnlyList<EvidenceReviewDecision> decisions, CancellationToken ct)
     {
         // Detached existing principals must not be inserted again.
-        foreach (var folder in files.Select(x => x.Folder).Where(x => x.Id != 0).Distinct()) db.Attach(folder);
-        foreach (var requirement in links.Select(x => x.Requirement).Where(x => x.Id != 0).Distinct()) db.Attach(requirement);
+        foreach (var file in files.Where(x => x.Folder.Id != 0))
+        {
+            var tracked = db.StorageFolders.Local.SingleOrDefault(x => x.Id == file.Folder.Id);
+            if (tracked != null) file.Folder = tracked;
+            else db.Attach(file.Folder);
+        }
+        foreach (var link in links.Where(x => x.Requirement.Id != 0))
+        {
+            var tracked = db.EvidenceRequirements.Local.SingleOrDefault(x => x.Id == link.Requirement.Id);
+            if (tracked != null) link.Requirement = tracked;
+            else db.Attach(link.Requirement);
+        }
         db.StorageFolders.AddRange(folders);
         db.EvidenceRequirements.AddRange(requirements);
         db.StoredFiles.AddRange(files);

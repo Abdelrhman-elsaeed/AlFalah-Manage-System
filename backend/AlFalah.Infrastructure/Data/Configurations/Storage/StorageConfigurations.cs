@@ -57,6 +57,7 @@ public sealed class StoredFileConfiguration : IEntityTypeConfiguration<StoredFil
         b.Property(x => x.Id).ValueGeneratedOnAdd();
         b.Property(x => x.DisplayName).HasMaxLength(512).IsRequired();
         b.Property(x => x.LegacyFingerprint).HasMaxLength(64);
+        b.Property(x => x.SharedWriterFingerprint).HasMaxLength(64);
         b.HasIndex(x => x.LegacySubmissionId).IsUnique().HasFilter("[LegacySubmissionId] IS NOT NULL");
         b.HasIndex(x => new { x.SchoolId, x.OwnerTeacherId });
         b.HasOne(x => x.Folder).WithMany().HasForeignKey(x => new { x.SchoolId, x.FolderId })
@@ -72,6 +73,7 @@ public sealed class StoredFileConfiguration : IEntityTypeConfiguration<StoredFil
         {
             t.HasCheckConstraint("CK_StoredFiles_SourceKind", "[SourceKind] BETWEEN 1 AND 4");
             t.HasTrigger("TR_StoredFiles_Provenance");
+            t.HasTrigger("TR_StoredFiles_SharedProvenance");
         });
     }
 }
@@ -115,6 +117,8 @@ public sealed class EvidenceRequirementConfiguration : IEntityTypeConfiguration<
         b.Property(x => x.DomainCode).HasMaxLength(100);
         b.Property(x => x.StandardCode).HasMaxLength(100);
         b.Property(x => x.ResponsibleRole).HasMaxLength(100);
+        b.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.TemplateVersion, x.OriginalTaskId }).IsUnique()
+            .HasFilter("[SchoolId] IS NOT NULL AND [AcademicYearId] IS NOT NULL AND [OriginalTaskId] IS NOT NULL");
         // Four NULL shapes: NULL scope means an actual template, never an implicit wildcard.
         b.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.TemplateVersion, x.Code }, "UX_Requirements_SchoolYear")
             .IsUnique().HasFilter("[SchoolId] IS NOT NULL AND [AcademicYearId] IS NOT NULL");
@@ -168,6 +172,7 @@ public sealed class EvidenceReviewDecisionConfiguration : IEntityTypeConfigurati
     {
         StorageConfiguration.Record(b, "EvidenceReviewDecisions");
         b.Property(x => x.Note).HasMaxLength(1000);
+        b.Property(x => x.ReviewerName).HasMaxLength(300);
         b.HasOne(x => x.EvidenceLink).WithMany().HasForeignKey(x => new { x.SchoolId, x.StoredFileId, x.EvidenceLinkId })
             .HasPrincipalKey(x => new { x.SchoolId, x.StoredFileId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Version).WithMany().HasForeignKey(x => new { x.SchoolId, x.StoredFileId, x.VersionId })
@@ -176,6 +181,7 @@ public sealed class EvidenceReviewDecisionConfiguration : IEntityTypeConfigurati
         b.ToTable("EvidenceReviewDecisions", t =>
         {
             t.HasCheckConstraint("CK_EvidenceReviewDecisions_Decision", "[Decision] IN (3,4) AND ([IsLegacyImported] = 1 OR ([ReviewedAtUtc] IS NOT NULL AND [ReviewedByUserId] IS NOT NULL))");
+            t.HasCheckConstraint("CK_EvidenceReviewDecisions_RejectReason", "[Decision] <> 4 OR [IsLegacyImported] = 1 OR ([Note] IS NOT NULL AND LTRIM(RTRIM([Note])) <> '')");
             t.HasTrigger("TR_EvidenceReviewDecisions_AppendOnly");
         });
     }

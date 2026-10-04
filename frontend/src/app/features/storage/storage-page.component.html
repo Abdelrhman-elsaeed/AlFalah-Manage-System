@@ -54,6 +54,7 @@
       </div>
       <p-paginator [rows]="25" [first]="(page-1)*25" [totalRecords]="total" (onPageChange)="paginate($event.first || 0)"></p-paginator>
       <p class="count" aria-live="polite">{{ 'STORAGE.COUNT' | translate:{ count: total } }}</p>
+      <app-storage-evidence *ngIf="!own" [year]="context?.academicYearId" [canManage]="context?.canManage || false" (openFile)="openDetails($event)" (denied)="evidenceDenied()"></app-storage-evidence>
       <section class="discovery"><button pButton type="button" [label]="'STORAGE.DISCOVER' | translate" (click)="discover()"></button>
         <div *ngIf="discovery"><h2>{{ 'STORAGE.DISCOVERY' | translate }}</h2><p>{{ 'STORAGE.DISCOVERY_HINT' | translate }}</p>
           <div *ngFor="let item of discovery.items" class="file-row"><span>{{ item.displayName }}</span><span class="state">{{ ('STORAGE.STATE_' + item.state) | translate }}</span><button *ngIf="item.storedFileId" type="button" (click)="openDetails(item.storedFileId)">{{ 'STORAGE.DETAILS' | translate }}</button></div>
@@ -67,11 +68,12 @@
 <p-dialog [(visible)]="detailOpen" [header]="'STORAGE.DETAILS' | translate" [modal]="true" [style]="{width:'min(95vw, 650px)'}" (onHide)="deleteConfirmed=false">
   <p *ngIf="!details">{{ 'STORAGE.LOADING' | translate }}</p>
   <div *ngIf="details" dir="rtl" class="details"><h2>{{ details.file.displayName }}</h2><p>{{ details.file.mimeType }} · {{ details.file.size / 1048576 | number:'1.1-1' }} MiB</p>
-    <div class="dialog-actions"><button pButton type="button" [label]="'STORAGE.DOWNLOAD' | translate" (click)="download(details.file)" [disabled]="details.file.state === 'MissingFromDrive'"></button><button *ngIf="previewable" pButton type="button" [label]="'STORAGE.PREVIEW' | translate" (click)="preview()" [disabled]="details.file.state === 'MissingFromDrive'"></button></div>
+    <div class="dialog-actions"><button pButton type="button" [label]="'STORAGE.DOWNLOAD' | translate" (click)="download(details.file)" [disabled]="details.file.state === 'MissingFromDrive' || details.file.state === 'Withdrawn'"></button><button *ngIf="previewable" pButton type="button" [label]="'STORAGE.PREVIEW' | translate" (click)="preview()" [disabled]="details.file.state === 'MissingFromDrive' || details.file.state === 'Withdrawn'"></button></div>
     <p *ngIf="!previewable">{{ 'STORAGE.PREVIEW_FALLBACK' | translate }}</p>
-    <h3>{{ 'STORAGE.VERSIONS' | translate }}</h3><ul><li *ngFor="let version of details.versions">{{ 'STORAGE.VERSION' | translate:{ number: version.versionNumber } }} · {{ version.uploadedAt | date:'medium' }} · {{ ('STORAGE.AVAILABILITY_' + version.availability) | translate }}</li></ul>
+    <h3>{{ 'STORAGE.VERSIONS' | translate }}</h3><ul><li *ngFor="let version of details.versions">{{ 'STORAGE.VERSION' | translate:{ number: version.versionNumber } }} · {{ version.uploadedAt | date:'medium' }} · {{ ('STORAGE.AVAILABILITY_' + version.availability) | translate }} <button type="button" (click)="downloadVersion(version.versionId)">{{ 'STORAGE.DOWNLOAD' | translate }}</button></li></ul>
     <p *ngIf="details.file.isProtected" class="notice">{{ 'STORAGE.PROTECTED_HINT' | translate }}</p>
-    <div *ngIf="!details.file.isProtected && context?.canManage"><label>{{ 'STORAGE.RENAME' | translate }}<input [(ngModel)]="renameName" maxlength="255"></label><button pButton type="button" [label]="'STORAGE.SAVE' | translate" (click)="rename()"></button>
+    <app-storage-evidence [file]="details.file" [year]="context?.academicYearId" [own]="own" [canManage]="!!context?.canManage && details.file.state !== 'Withdrawn'" (changed)="evidenceChanged()" (denied)="evidenceDenied()"></app-storage-evidence>
+    <div *ngIf="!details.file.isProtected && context?.canManage && details.file.state !== 'Withdrawn'"><label>{{ 'STORAGE.RENAME' | translate }}<input [(ngModel)]="renameName" maxlength="255"></label><button pButton type="button" [label]="'STORAGE.SAVE' | translate" (click)="rename()"></button>
       <label class="delete-confirm"><input type="checkbox" [(ngModel)]="deleteConfirmed">{{ 'STORAGE.DELETE_CONFIRM' | translate }}</label><button pButton type="button" class="p-button-danger" [label]="'STORAGE.DELETE' | translate" [disabled]="!deleteConfirmed" (click)="delete()"></button>
     </div>
   </div>

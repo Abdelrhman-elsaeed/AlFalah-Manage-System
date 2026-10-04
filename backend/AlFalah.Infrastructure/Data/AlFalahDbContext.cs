@@ -318,7 +318,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     {
         foreach (var entry in ChangeTracker.Entries())
         {
-            if (entry.Entity is AlFalah.Domain.Entities.Storage.EvidenceReviewDecision && entry.State is EntityState.Modified or EntityState.Deleted)
+            if (entry.Entity is AlFalah.Domain.Entities.Storage.EvidenceReviewDecision or AlFalah.Domain.Entities.Storage.FileChangeDecision && entry.State is EntityState.Modified or EntityState.Deleted)
                 throw new InvalidOperationException("Evidence decisions are append-only.");
             if (entry.Entity is AlFalah.Domain.Entities.Storage.StoredFileVersion &&
                 (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&

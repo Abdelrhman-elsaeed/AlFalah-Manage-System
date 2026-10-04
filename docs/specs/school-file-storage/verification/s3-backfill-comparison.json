@@ -1,0 +1,569 @@
+{
+  "stage": "S3",
+  "scope": "Fresh isolated SQL, synthetic legacy and pre-S3 S2 shared writer, fake Drive availability; no Development clone or Google writes",
+  "repairDryRun": 1,
+  "repairApplied": 1,
+  "repairRepeated": 0,
+  "firstBackfill": {
+    "DryRun": false,
+    "SourceCount": 4,
+    "ExistingCount": 1,
+    "CreatedFiles": 3,
+    "CreatedVersions": 3,
+    "CreatedLinks": 3,
+    "CreatedDecisions": 3,
+    "NeedsLinkCount": 0,
+    "Groups": [
+      {
+        "SchoolId": 2,
+        "TeacherId": 1,
+        "TaskId": 0,
+        "AcademicYearId": 2,
+        "ReviewStatus": 3,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 0,
+        "PlannedFiles": 1,
+        "PlannedLinks": 1,
+        "PlannedDecisions": 1,
+        "Exceptions": 0
+      },
+      {
+        "SchoolId": 6,
+        "TeacherId": 8,
+        "TaskId": 0,
+        "AcademicYearId": 2,
+        "ReviewStatus": 3,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 0,
+        "PlannedFiles": 1,
+        "PlannedLinks": 1,
+        "PlannedDecisions": 1,
+        "Exceptions": 0
+      },
+      {
+        "SchoolId": 6,
+        "TeacherId": 8,
+        "TaskId": 1,
+        "AcademicYearId": 2,
+        "ReviewStatus": 2,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 1,
+        "PlannedFiles": 0,
+        "PlannedLinks": 0,
+        "PlannedDecisions": 0,
+        "Exceptions": 0
+      },
+      {
+        "SchoolId": 6,
+        "TeacherId": 8,
+        "TaskId": 2,
+        "AcademicYearId": 2,
+        "ReviewStatus": 4,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 0,
+        "PlannedFiles": 1,
+        "PlannedLinks": 1,
+        "PlannedDecisions": 1,
+        "Exceptions": 0
+      }
+    ],
+    "Issues": []
+  },
+  "repeatedBackfill": {
+    "DryRun": false,
+    "SourceCount": 4,
+    "ExistingCount": 4,
+    "CreatedFiles": 0,
+    "CreatedVersions": 0,
+    "CreatedLinks": 0,
+    "CreatedDecisions": 0,
+    "NeedsLinkCount": 0,
+    "Groups": [
+      {
+        "SchoolId": 2,
+        "TeacherId": 1,
+        "TaskId": 0,
+        "AcademicYearId": 2,
+        "ReviewStatus": 3,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 1,
+        "PlannedFiles": 0,
+        "PlannedLinks": 0,
+        "PlannedDecisions": 0,
+        "Exceptions": 0
+      },
+      {
+        "SchoolId": 6,
+        "TeacherId": 8,
+        "TaskId": 0,
+        "AcademicYearId": 2,
+        "ReviewStatus": 3,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 1,
+        "PlannedFiles": 0,
+        "PlannedLinks": 0,
+        "PlannedDecisions": 0,
+        "Exceptions": 0
+      },
+      {
+        "SchoolId": 6,
+        "TeacherId": 8,
+        "TaskId": 1,
+        "AcademicYearId": 2,
+        "ReviewStatus": 2,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 1,
+        "PlannedFiles": 0,
+        "PlannedLinks": 0,
+        "PlannedDecisions": 0,
+        "Exceptions": 0
+      },
+      {
+        "SchoolId": 6,
+        "TeacherId": 8,
+        "TaskId": 2,
+        "AcademicYearId": 2,
+        "ReviewStatus": 4,
+        "UploadStatus": 3,
+        "IsDeleted": false,
+        "IsMissingFromDrive": false,
+        "Source": 1,
+        "Existing": 1,
+        "PlannedFiles": 0,
+        "PlannedLinks": 0,
+        "PlannedDecisions": 0,
+        "Exceptions": 0
+      }
+    ],
+    "Issues": []
+  },
+  "before": {
+    "TeacherId": 8,
+    "TeacherName": "\u0645\u0639\u0644\u0645 \u0623",
+    "SchoolId": 6,
+    "SchoolName": "S3 ab60c6a34d764579b1d8c56e11f734e8",
+    "CompletedTasksCount": 3,
+    "Cells": [
+      {
+        "TaskId": 0,
+        "Status": 4,
+        "IsChecked": true,
+        "ActiveFilesCount": 1
+      },
+      {
+        "TaskId": 1,
+        "Status": 3,
+        "IsChecked": true,
+        "ActiveFilesCount": 1
+      },
+      {
+        "TaskId": 2,
+        "Status": 5,
+        "IsChecked": true,
+        "ActiveFilesCount": 1
+      },
+      {
+        "TaskId": 3,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 4,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 5,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 6,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 7,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 8,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 9,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 10,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 11,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 12,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 13,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 14,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 15,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 16,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 17,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 18,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 19,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 20,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 21,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 22,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 23,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 24,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 25,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 26,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 27,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 28,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 29,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 30,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 31,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      }
+    ]
+  },
+  "after": {
+    "TeacherId": 8,
+    "TeacherName": "\u0645\u0639\u0644\u0645 \u0623",
+    "SchoolId": 6,
+    "SchoolName": "S3 ab60c6a34d764579b1d8c56e11f734e8",
+    "CompletedTasksCount": 1,
+    "Cells": [
+      {
+        "TaskId": 0,
+        "Status": 4,
+        "IsChecked": true,
+        "ActiveFilesCount": 1
+      },
+      {
+        "TaskId": 1,
+        "Status": 3,
+        "IsChecked": false,
+        "ActiveFilesCount": 1
+      },
+      {
+        "TaskId": 2,
+        "Status": 5,
+        "IsChecked": false,
+        "ActiveFilesCount": 1
+      },
+      {
+        "TaskId": 3,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 4,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 5,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 6,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 7,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 8,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 9,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 10,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 11,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 12,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 13,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 14,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 15,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 16,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 17,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 18,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 19,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 20,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 21,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 22,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 23,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 24,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 25,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 26,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 27,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 28,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 29,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 30,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      },
+      {
+        "TaskId": 31,
+        "Status": 1,
+        "IsChecked": false,
+        "ActiveFilesCount": 0
+      }
+    ]
+  },
+  "excelBefore": 3,
+  "excelAfter": 1,
+  "expectedDifferences": [
+    "Legacy IsChecked used ActiveFilesCount \u003E 0. PendingReview and Rejected stop counting; only Approved counts."
+  ],
+  "cutover": false
+}

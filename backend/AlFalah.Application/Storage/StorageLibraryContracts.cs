@@ -24,7 +24,7 @@ public sealed record MoveStorageFolderRequest(int ParentFolderId, string RowVers
 public sealed record RenameStorageFileRequest(string DisplayName, string RowVersion);
 public sealed record DeleteStorageFileRequest(string RowVersion);
 public sealed record StorageUploadRequest(Stream Content, string FileName, long Length, int? ParentFolderId,
-    string RequestKey, bool Own, int? LegacyTaskId = null);
+    string RequestKey, bool Own, int? LegacyTaskId = null, int? ChangeRequestId = null);
 // Provider IDs are confined to these internal projections.
 public sealed record StorageFolderAccess(StorageFolder Folder, StorageDriveRoot SchoolRoot, StorageDriveRoot AuthorizedRoot);
 public sealed record StorageReadRow(StorageFileListDto Dto, string DriveItemId, StoredFileSourceKind SourceKind);

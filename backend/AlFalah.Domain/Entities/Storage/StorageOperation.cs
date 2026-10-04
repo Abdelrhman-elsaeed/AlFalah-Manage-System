@@ -13,6 +13,7 @@ public sealed class StorageOperation : IStorageRecord
     public int? FolderId { get; set; }
     public int? StoredFileId { get; set; }
     public int? VersionId { get; set; }
+    public int? ChangeRequestId { get; set; }
     public int? OwnerTeacherId { get; set; }
     public string DriveId { get; set; } = "";
     public string ProviderItemId { get; set; } = "";

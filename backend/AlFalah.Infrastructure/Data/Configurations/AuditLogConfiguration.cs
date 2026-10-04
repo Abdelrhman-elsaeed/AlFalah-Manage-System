@@ -9,6 +9,7 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
     public void Configure(EntityTypeBuilder<AuditLog> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.ToTable("AuditLogs", t => t.HasTrigger("TR_AuditLogs_StorageAppendOnly"));
         builder.Property(x => x.Action).IsRequired().HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.EntityName).HasMaxLength(200).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.EntityId).HasMaxLength(200);

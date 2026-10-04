@@ -1,6 +1,6 @@
 # Phase SFS — نظام ملفات المدرسة والشواهد
 
-**Status:** S2 IMPLEMENTED — isolated SQL and mocked browser verification; flags OFF; live Drive/cutover gates retained; S3–S6 not started · **Date:** 2026-10-03
+**Status:** S3 IMPLEMENTED — isolated SQL and mocked browser verification; flags OFF; live Drive/cutover gates retained; S4–S6 not started · **Date:** 2026-10-04
 
 The shared decisions and stage map are in [the full Spec Kit plan](../specs/school-file-storage/plan.md). Each stage has a standalone implementation and acceptance specification:
 
@@ -9,7 +9,7 @@ The shared decisions and stage map are in [the full Spec Kit plan](../specs/scho
 | S0 | [Baseline and prototype parity](../specs/school-file-storage/phases/00-baseline-and-parity.md) | Audit complete; parity review pending; live Drive unavailable |
 | S1 | [Data foundation and permissions](../specs/school-file-storage/phases/01-foundation-and-permissions.md) | Implemented; isolated SQL/backfill verified; activation OFF |
 | S2 | [Library and uploads](../specs/school-file-storage/phases/02-library-and-uploads.md) | Implemented; isolated SQL/browser contracts verified; live Drive and activation blocked |
-| S3 | [Evidence and review](../specs/school-file-storage/phases/03-evidence-and-review.md) | Specified |
+| S3 | [Evidence and review](../specs/school-file-storage/phases/03-evidence-and-review.md) | Implemented; independent review/version history, isolated SQL comparisons and browser contracts verified; live acceptance/cutover blocked |
 | S4 | [Self-evaluation and reports](../specs/school-file-storage/phases/04-self-evaluation-and-reports.md) | Specified |
 | S5 | [Approved-visit PDF archive](../specs/school-file-storage/phases/05-approved-visit-pdf-archive.md) | Specified |
 | S6 | [Import and rollout](../specs/school-file-storage/phases/06-import-and-rollout.md) | Specified |
@@ -19,3 +19,5 @@ The shared decisions and stage map are in [the full Spec Kit plan](../specs/scho
 S1 was subsequently authorized by the owner's current instruction with the S0 Drive limitation retained. [S1 evidence and rollback](../specs/school-file-storage/verification/README.md): 11 additive tables, 8 DB permissions, live school/ownership checks, manager-only temporal delegation, atomic audit and concurrency, append-only history, and offline dry-run/repeatable backfill. The migration and two applies ran on an isolated COPY_ONLY Development clone, preserving the one legacy Approved submission and one teacher grant, with one new file/version/link/decision and zero duplicates on rerun. Original Development and Google credentials were not changed. Existing teacher/matrix readers remain authoritative; both storage flags default OFF. Technical verification does not resolve live Drive or parity acceptance. Work stops after S1; S2 has not started.
 
 S2 was subsequently authorized with the same Drive limitation. [S2 contracts/verification/rollback](../specs/school-file-storage/verification/s2-library-and-uploads.md): school library and own teacher files, folder creation/moves, SQL search/page/sort, protected history, authenticated content, 250 MiB streamed uploads, durable ID reservation/idempotency/reconciliation and shared legacy writer. Angular RTL manager/delegate/teacher UI was verified on desktop/mobile with mocked API contracts; actual isolated SQL covers migrations/races/rollback and 5000 assets. Original Development and encrypted Google settings/keys remain untouched, both flags remain OFF, live Drive/cutover acceptance stays blocked. New files do not count as evidence before S3. Work stops after S2; S3–S6 not started.
+
+S3 was subsequently authorized explicitly, stopping before S4. [S3 evidence and rollback](../specs/school-file-storage/verification/s3-evidence-and-review.md): exact task catalog mapping, eleven standard requirements, multiple links per asset, independent submission/review, retained version changes/withdrawal, S2 reconciliation for candidate uploads, immutable decisions/provenance/audit and approved-only matrix/export readers. Pre-S3 shared writers have an explicit offline dry-run/apply repair; SQL comparisons explain the intentional removal of unapproved completion ticks. Four additive migrations were exercised on fresh isolated SQL databases only. Both flags stay OFF; no real API startup, Development migration, Google credential/key change, live Drive write, cutover, visit-archive access or S4–S6 implementation occurred. Technical implementation is complete; live Google and owner parity acceptance remain open rollout gates.

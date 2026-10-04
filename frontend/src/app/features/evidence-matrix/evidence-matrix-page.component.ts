@@ -74,7 +74,7 @@ export class EvidenceMatrixPageComponent {
 
   closeCell(): void { this.selectedCell.set(null); this.selectedRow.set(null); this.selectedTask.set(null); }
   review(file: EvidenceSubmissionFile, status: 3 | 4): void {
-    this.api.review(file.submissionId, status, this.reviewNote()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.api.review(file.submissionId, status, this.reviewNote(), file.evidenceLinkId, file.rowVersion).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => { const row = this.selectedRow(); const task = this.selectedTask(); if (row && task) this.openCell(row, task.id); this.load(); },
       error: () => this.error.set('تعذر تحديث مراجعة الملف.')
     });
@@ -86,7 +86,7 @@ export class EvidenceMatrixPageComponent {
    */
   openFile(file: EvidenceSubmissionFile): void {
     this.error.set(null);
-    this.api.submissionContent(file.submissionId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.api.submissionContent(file.submissionId, file.storedFileId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: blob => {
         const url = URL.createObjectURL(blob);
         if (!window.open(url, '_blank', 'noopener')) {

@@ -19,6 +19,8 @@ public sealed class StoredFile : IStorageRecord
     // Immutable source snapshot, including decisions on legacy unlinked files.
     public string? LegacyProvenanceJson { get; set; }
     public string? LegacyFingerprint { get; set; }
+    public string? SharedWriterProvenanceJson { get; set; }
+    public string? SharedWriterFingerprint { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public byte[] RowVersion { get; set; } = [];

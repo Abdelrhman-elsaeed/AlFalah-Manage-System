@@ -56,10 +56,13 @@ public sealed class StorageLibraryController(IStorageLibraryService service) : C
     [HttpPost("me/files")]
     [RequestSizeLimit(ValidatedStorageUpload.MaxRequestBytes)]
     public Task<IActionResult> UploadOwn(CancellationToken ct) => ReadUploadAsync(true, ct);
+    [HttpPost("change-requests/{id:int}/version")]
+    [RequestSizeLimit(ValidatedStorageUpload.MaxRequestBytes)]
+    public Task<IActionResult> UploadVersion(int id, CancellationToken ct) => ReadUploadAsync(false, ct, id);
 
     // No IFormFile/form binding: metadata precedes the file and the section stream passes
     // directly to bounded validation. Request multipart overhead is independent of file size.
-    private async Task<IActionResult> ReadUploadAsync(bool own, CancellationToken ct)
+    private async Task<IActionResult> ReadUploadAsync(bool own, CancellationToken ct, int? changeRequestId = null)
     {
         if (!MediaTypeHeaderValue.TryParse(Request.ContentType, out var type) ||
             !type.MediaType.Equals("multipart/form-data", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("طلب الرفع غير صالح.");
@@ -80,7 +83,7 @@ public sealed class StorageLibraryController(IStorageLibraryService service) : C
             if (name is not null)
             {
                 if (field != "file" || size <= 0) throw new ArgumentException("حجم الملف مطلوب قبل المحتوى.");
-                var result = await service.UploadAsync(new(section.Body, name, size, folderId, key, own), ct);
+                var result = await service.UploadAsync(new(section.Body, name, size, folderId, key, own, ChangeRequestId: changeRequestId), ct);
                 return result.Status == "Completed"
                     ? Ok(ApiResponse<StorageUploadDto>.Success(result, "تم رفع الملف."))
                     : Accepted(ApiResponse<StorageUploadDto>.Success(result, "عملية الرفع تنتظر المصالحة."));

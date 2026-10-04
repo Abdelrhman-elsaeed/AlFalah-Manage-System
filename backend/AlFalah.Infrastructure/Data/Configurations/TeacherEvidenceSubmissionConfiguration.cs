@@ -8,7 +8,7 @@ public sealed class TeacherEvidenceSubmissionConfiguration : IEntityTypeConfigur
 {
     public void Configure(EntityTypeBuilder<TeacherEvidenceSubmission> builder)
     {
-        builder.ToTable("TeacherEvidenceSubmissions");
+        builder.ToTable("TeacherEvidenceSubmissions", t => t.HasTrigger("TR_TeacherEvidenceSubmissions_ReviewAuthority"));
         builder.HasKey(x => x.Id);
         builder.Property(x => x.DriveId).HasMaxLength(256).IsRequired();
         builder.Property(x => x.DriveItemId).HasMaxLength(256).IsRequired();

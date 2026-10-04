@@ -96,6 +96,13 @@ public static class DependencyInjection
         services.Configure<AlFalah.Application.Storage.StorageOptions>(configuration.GetSection(AlFalah.Application.Storage.StorageOptions.SectionName));
         services.AddScoped<AlFalah.Application.Storage.IStorageRepository, StorageRepository>();
         services.AddScoped<AlFalah.Application.Storage.IStorageLibraryRepository, StorageLibraryRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IEvidenceRepository, EvidenceRepository>();
+        services.AddScoped<AlFalah.Application.Storage.EvidenceWorkflowContext>();
+        services.AddScoped<AlFalah.Application.Storage.IRequirementCatalogService, AlFalah.Application.Storage.RequirementCatalogService>();
+        services.AddScoped<AlFalah.Application.Storage.IEvidenceLinkService, AlFalah.Application.Storage.EvidenceLinkService>();
+        services.AddScoped<AlFalah.Application.Storage.IEvidenceReviewService, AlFalah.Application.Storage.EvidenceReviewService>();
+        services.AddScoped<AlFalah.Application.Storage.IFileChangeRequestService, AlFalah.Application.Storage.FileChangeRequestService>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageEvidenceReadService, AlFalah.Application.Storage.StorageEvidenceReadService>();
         services.AddScoped<AlFalah.Application.Storage.IStorageProvider, GoogleStorageProvider>();
         services.AddScoped<AlFalah.Application.Storage.IStorageLibraryService, AlFalah.Application.Storage.StorageLibraryService>();
         services.AddScoped<AlFalah.Application.Storage.IStorageDriveBoundary, StorageDriveBoundary>();

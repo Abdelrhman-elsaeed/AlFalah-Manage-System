@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { StorageApiService } from './storage-api.service';
 import { StoragePageComponent } from './storage-page.component';
+import { StorageEvidenceApiService } from './evidence-api.service';
 
 describe('Storage page safety', () => {
   let page: StoragePageComponent;
@@ -15,6 +16,7 @@ describe('Storage page safety', () => {
     api.files.and.returnValue(of({ items: [], total: 0, page: 1, pageSize: 25 }));
     TestBed.configureTestingModule({ imports: [TranslateModule.forRoot()], providers: [
       { provide: StorageApiService, useValue: api },
+      { provide: StorageEvidenceApiService, useValue: {} },
       { provide: ActivatedRoute, useValue: { snapshot: { data: { own: true }, queryParamMap: convertToParamMap({}) } } },
       { provide: Router, useValue: { url: '/instructor/my-files', navigate: jasmine.createSpy('navigate') } }
     ] });

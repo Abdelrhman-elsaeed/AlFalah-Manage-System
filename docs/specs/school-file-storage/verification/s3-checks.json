@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-04",
+  "stage": "S3",
+  "backend": {
+    "total": 835,
+    "passed": 835,
+    "failed": 0,
+    "skipped": 0,
+    "realSqlServerTestsPassed": 44,
+    "s3SqlTestsPassed": 17,
+    "databaseSafety": "Fresh isolated LocalDB base, _Library, _Evidence and S2-to-S3 script databases; no original Development startup/migration/reset/drop"
+  },
+  "angularUnit": {
+    "passed": 32,
+    "failed": 0,
+    "scope": "Storage API/page/evidence workspace and shell navigation",
+    "newLocaleKeys": 50,
+    "newLocaleParity": true
+  },
+  "browser": {
+    "passed": 24,
+    "failed": 0,
+    "projects": [
+      "Chromium desktop",
+      "Pixel 5"
+    ],
+    "api": "Mocked; Angular devserver only",
+    "screenshots": "Reviewed desktop/mobile, dialogue and document overflow checked; mocked PDF bytes do not validate real PDF rendering"
+  },
+  "frontendProductionBuild": {
+    "status": "Passed",
+    "existingWarnings": [
+      "visits-v2 component CSS budget",
+      "dashboard-live component CSS budget",
+      "3 PrimeNG organizationchart selectors"
+    ],
+    "storageLazyRawKB": 145.6,
+    "storageLazyTransferEstimateKB": 24.08
+  },
+  "performance": {
+    "artifact": "s3-performance.json",
+    "links": 5000,
+    "pageSize": 25,
+    "medianSqlMs": 23.773600000000002,
+    "maxSqlMs": 31.062,
+    "targetMedianMs": 200,
+    "scope": "Local SQL service with fake Drive; no live Google/HTTP timing"
+  },
+  "comparison": {
+    "backfillArtifact": "s3-backfill-comparison.json",
+    "missingArtifact": "s3-matrix-comparison.json",
+    "scope": "Synthetic legacy plus pre-S3 S2 shared writer in fresh isolated SQL; fake Drive availability",
+    "repairDryRun": 1,
+    "repairApplied": 1,
+    "repairRepeated": 0,
+    "secondBackfillNewFilesLinksDecisions": 0,
+    "secondBackfillDrift": 0,
+    "legacyCompletion": 3,
+    "newCompletion": 1,
+    "excelBefore": 3,
+    "excelAfter": 1,
+    "expectedDifference": "PendingReview and Rejected uploads lose legacy IsChecked tick; only Approved current available permitted versions satisfy requirements",
+    "pdf": "Same flag-aware GetAsync reader; live/visual PDF comparison not claimed"
+  },
+  "migrationScript": "s3-migration.sql, idempotent additive S2-to-S3; SQL applied and reapplied on a fresh S2 database",
+  "liveDrive": {
+    "status": "Unavailable",
+    "reason": "S0 encrypted Development credential cannot be decrypted with current keys",
+    "credentialsOrKeysRewritten": false,
+    "liveGoogleRequestsOrWrites": 0,
+    "liveAcceptanceCompleted": false
+  },
+  "flags": {
+    "SchoolFileStorage.AdministrationEnabled": false,
+    "SchoolFileStorage.ReadModelEnabled": false
+  },
+  "cutover": "Not enabled; real Drive, operational parity/drift, owner acceptance and rollout gates retained",
+  "nextStage": "S4 not started",
+  "verificationNotes": [
+    "A temporary full run under concurrent Angular build missed an existing timetable 5-second timing bound; the final quiet full run passed all 835 without changing timetable code."
+  ]
+}
