@@ -1,0 +1,31 @@
+{
+  "capturedAtUtc": "2026-10-05T16:49:40.9865562+00:00",
+  "isolatedDatabase": "AlFalahSFS_S6_af651aa1cda24760a4deb8b310dc8ccd",
+  "restoreDatabase": "AlFalahSFS_S6_af651aa1cda24760a4deb8b310dc8ccd_Restore",
+  "durationMs": 192544.7481,
+  "sourceBackupCopyOnly": true,
+  "backupChecksumVerified": true,
+  "restoreCheckDbPassed": true,
+  "counts": [
+    {
+      "kind": "clone",
+      "files": 1,
+      "versions": 1,
+      "links": 1,
+      "decisions": 1
+    },
+    {
+      "kind": "restored",
+      "files": 1,
+      "versions": 1,
+      "links": 1,
+      "decisions": 1
+    }
+  ],
+  "credentialDifferences": 0,
+  "originalMigrated": false,
+  "originalFlagsChanged": false,
+  "downExecuted": false,
+  "driveDeleted": false,
+  "rollback": "All four flags stay OFF; preserve new files/versions/links/review history and reconcile before reopening legacy writes"
+}

@@ -489,7 +489,8 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         await db.Database.OpenConnectionAsync();
         for(var run=0;run<2;run++)foreach(var batch in batches.Where(x=>!string.IsNullOrWhiteSpace(x)))
         {await using var command=db.Database.GetDbConnection().CreateCommand();command.CommandText=batch;await command.ExecuteNonQueryAsync();}
-        await db.Database.CloseConnectionAsync();(await db.Database.GetPendingMigrationsAsync()).Should().BeEmpty();db.Database.HasPendingModelChanges().Should().BeFalse();
+        await db.Database.CloseConnectionAsync();
+        (await db.Database.GetPendingMigrationsAsync()).Should().Equal("20261005162718_SchoolFileStorageHistoricalImport");db.Database.HasPendingModelChanges().Should().BeFalse();
         (await db.EvidenceRequirements.SingleAsync(r=>r.Code=="s5-sentinel")).DisplayName.Should().Be("legacy");
     }
 }

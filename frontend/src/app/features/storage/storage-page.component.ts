@@ -65,6 +65,7 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     this.api.contextInfo(this.own).pipe(takeUntil(this.destroyed)).subscribe({
       next: context => {
         this.context = context; this.busy = false;
+        this.disabled = context.connectionState === 'Disabled';
         if (context.connectionState === 'Connected' && context.rootFolderId != null) {
           const root: StorageFolder = { id: context.rootFolderId, displayName: this.translate.instant(this.own ? 'STORAGE.OWN_TITLE' : 'STORAGE.TITLE'), kind: '', rowVersion: '' };
           this.crumbs = [root]; this.tree = [{ key: String(root.id), label: root.displayName, data: root, expanded: true, leaf: false }];

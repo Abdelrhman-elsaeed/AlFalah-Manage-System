@@ -1,0 +1,75 @@
+{
+  "restart": {
+    "capturedAtUtc": "2026-10-05T17:06:03.7251275+00:00",
+    "localApiRestarted": true,
+    "port": 5264,
+    "initializationEnabled": false,
+    "flags": {
+      "ArchiveExternalWritesEnabled": false,
+      "ReadModelEnabled": false,
+      "ArchiveWorkerEnabled": false,
+      "AdministrationEnabled": false
+    },
+    "developmentAndExistingKeyFileHashDifferences": 0
+  },
+  "http": {
+    "capturedAtUtc": "2026-10-05T17:07:04Z",
+    "realLocalApi": true,
+    "sameExistingManagerIdentity": true,
+    "noLoginOrRefreshSqlWrites": true,
+    "checks": [
+      {
+        "route": "/api/v1/storage/context",
+        "status": 200,
+        "context": {
+          "schoolId": 18,
+          "schoolName": "",
+          "academicYearId": null,
+          "academicYearName": null,
+          "canManage": false,
+          "isTeacher": false,
+          "connectionState": "Disabled",
+          "rootFolderId": null
+        }
+      },
+      {
+        "route": "/api/v1/storage/imports",
+        "status": 404,
+        "context": null
+      },
+      {
+        "route": "/api/v1/storage/files/1/content",
+        "status": 404,
+        "context": null
+      }
+    ]
+  },
+  "realBrowser": [
+    {
+      "viewport": "desktop",
+      "realApi": true,
+      "storageSidebarVisible": true,
+      "disabledStatusVisible": true,
+      "driveSettingsVisible": true
+    },
+    {
+      "viewport": "mobile",
+      "realApi": true,
+      "storageSidebarVisible": true,
+      "disabledStatusVisible": true,
+      "driveSettingsVisible": true
+    }
+  ],
+  "authMaterialPublished": false,
+  "originalSchemaObservation": {
+    "capturedAtUtc": "2026-10-05T17:17:06.6496127+00:00",
+    "school": 18,
+    "schemaAvailable": false,
+    "readOnly": true,
+    "googleObserved": false,
+    "unindexedDriveFiles": null,
+    "countDrift": null,
+    "metrics": null
+  },
+  "newKeyFilesAfterRestart": 0
+}

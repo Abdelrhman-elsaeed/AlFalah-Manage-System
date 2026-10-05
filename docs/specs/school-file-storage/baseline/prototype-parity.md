@@ -162,3 +162,7 @@ S5 مطلب جديد للمنصة المدمجة، لا نقل نتيجة/ملف
 | المكتبة والشواهد والفهرس/التصدير | تستمر S2–S4 بنفس السياسة؛ archive ممنوع عن المسارات العامة | لا ربط/اعتماد/استيفاء تلقائي؛ الربط اللاحق يحتاج سياسة ومراجعة مستقلة |
 
 قبول المالك وGoogle الحي وتفعيل الرايات وقواعد cutover بوابات باقية. نُفذت S5 فقط؛ S6 لم تبدأ.
+
+## S6 final implementation mapping — 2026-10-05
+
+[s6-parity.json](../verification/s6-parity.json) retains all 108 source rows with target screens/contracts/stage evidence, baseline scenarios and differences. This is mapping coverage, not 108 independent executed tests. Final regressions: 913 backend, 34 frontend, 70 browser; real disabled desktop/mobile navigation and synthetic Google smoke are separate evidence. Windows open/Explorer has authorized web download/folder navigation; prototype theme toggle remains an explicit gap. Owner acceptance of these and the retained S4/S5 replacements is pending; no cutover acceptance is inferred. [S6 verification and limits](../verification/s6-import-and-rollout.md).

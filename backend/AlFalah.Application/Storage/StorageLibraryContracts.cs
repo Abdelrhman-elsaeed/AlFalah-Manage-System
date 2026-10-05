@@ -33,6 +33,7 @@ public sealed record StorageTeacher(int Id, string UserId, StorageDriveRoot Root
 
 public interface IStorageLibraryRepository
 {
+    Task RecordContentReadAsync(int schoolId, int fileId, string actor, CancellationToken ct);
     Task<StorageTeacher?> FindTeacherAsync(int schoolId, string userId, CancellationToken ct);
     Task<StorageContextDto> ContextAsync(int schoolId, CancellationToken ct);
     Task<IReadOnlyList<StorageDriveRoot>> TeacherRootsAsync(int schoolId, CancellationToken ct);

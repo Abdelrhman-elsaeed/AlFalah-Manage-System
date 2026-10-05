@@ -1,0 +1,40 @@
+<section dir="rtl" class="import-page" [attr.aria-busy]="busy">
+  <header><h1>الاستيراد التاريخي</h1><a routerLink="/school-manager/storage">مكتبة المدرسة</a></header>
+  <p>المعاينة تحفظ المراجع فقط. أسماء المصدر وحالة «مكتمل» لا تمنح صلاحية أو اعتمادًا. مسار المصدر للتوثيق؛ فتح الأصل يتم بالمعاينة أو التنزيل المصرح به بعد رفعه.</p>
+  <p *ngIf="error" role="alert" class="error">{{error}}</p>
+  <p *ngIf="disabled">الاستيراد ينتظر تفعيل مساحة التخزين وخطة التشغيل. <a routerLink="/school-manager/evidence-settings">إعدادات Google Drive</a></p>
+  <form *ngIf="!disabled" (ngSubmit)="preview()" class="source-form">
+    <label>السنة الدراسية<p-dropdown name="year" [options]="years" optionLabel="nameAr" optionValue="id" [(ngModel)]="year" placeholder="اختر السنة"></p-dropdown></label>
+    <label>نسخة القالب<p-dropdown name="template" [options]="templates" optionLabel="name" optionValue="version" [(ngModel)]="version"></p-dropdown></label>
+    <label>نسخة المصدر<input name="sourceVersion" [(ngModel)]="sourceVersion" maxlength="64" required></label>
+    <label>مصدر JSON أو CSV — 16 MiB<input type="file" accept=".json,.csv" (change)="choose($event)" [disabled]="busy"></label>
+    <span>{{file?.name}}</span><button type="submit" [disabled]="busy || !file || !year">معاينة المصدر</button>
+  </form>
+  <nav aria-label="دفعات سابقة"><button *ngFor="let b of batches" (click)="open(b.id)" [disabled]="busy">#{{b.id}} {{b.sourceName}}</button></nav>
+  <ng-container *ngIf="batch as b">
+    <h2>{{b.sourceName}} · {{b.sourceVersion}}</h2><code class="hash">SHA256 {{b.sourceSHA256}}</code>
+    <div class="summary"><span>الصفوف {{b.rows}}</span><span>مطابق {{b.matched}}</span><span>ناقص / جديد {{b.missing}}</span><span>متعارض {{b.conflicts}}</span><span>مرجع فقط {{b.referenceOnly}}</span><span>أصول مرفوعة {{b.importedFiles}}</span></div>
+    <p>أرقام المراجع منفصلة عن الملفات الحية والروابط والشواهد المعتمدة. اعتماد الدفعة يحتفظ بالاستثناءات ولا يعدّل قالبًا منشورًا.</p>
+    <label>سبب المراجعة أو التصحيح<input [(ngModel)]="reason" maxlength="1000" placeholder="وثّق قرارك"></label>
+    <label *ngIf="!b.committedAtUtc"><input type="checkbox" [(ngModel)]="acknowledged">راجعت نتائج المطابقة والاستثناءات في هذه الدفعة</label>
+    <div class="actions"><button *ngIf="!b.committedAtUtc" (click)="decide(false)" [disabled]="busy || !acknowledged || !reason.trim()">تسجيل المراجعة</button>
+      <button *ngIf="!b.committedAtUtc" (click)="decide(true)" [disabled]="busy || !acknowledged || !reason.trim() || b.digest !== b.reviewedDigest">اعتماد الاستيراد</button>
+      <button (click)="export()" [disabled]="busy">تصدير النتائج والاستثناءات</button></div>
+    <p *ngIf="b.committedAtUtc" role="status">تم اعتماد المراجع. استيراد الأصل إجراء منفصل؛ الربط الجديد مسودة ولا يحتسب جاهزية قبل المراجعة. تصحيح مصدر معتمد يحتاج مصدرًا مصححًا ودفعة جديدة.</p>
+    <label>تصنيف الصفوف<p-dropdown [options]="filters" optionLabel="label" optionValue="value" [(ngModel)]="filter" (onChange)="page=1;loadRows()"></p-dropdown></label>
+    <article *ngFor="let row of rows" class="row">
+      <h3>{{row.source.name}}</h3><p>{{label(row.classification)}} · {{label(row.status)}}</p><p>{{row.reason}}</p>
+      <details><summary>مرجع المصدر</summary><p class="reference">{{row.source.referencePath}}</p><p>المسؤول في المصدر: {{row.source.responsibleName || 'غير مسجل'}}</p><p>حالة المصدر: {{row.source.sourceStatus || 'غير مسجلة'}} — ليست قرار مراجعة</p></details>
+      <div *ngIf="!b.committedAtUtc" class="mapping">
+        <label>المتطلب<p-dropdown [options]="requirements" optionLabel="displayName" optionValue="id" [(ngModel)]="row.requirementId" [showClear]="true" [filter]="true" placeholder="احتفاظ كمرجع غير مطابق"></p-dropdown></label>
+        <label>المسؤول الحقيقي<p-dropdown [options]="members" optionLabel="name" optionValue="userId" [(ngModel)]="row.responsibleUserId" [showClear]="true" [filter]="true" placeholder="لا مطابقة آلية بالأسماء"></p-dropdown></label>
+        <p *ngIf="row.suggestions.length">اقتراحات فقط: <span *ngFor="let member of row.suggestions">{{member.name}} </span></p>
+        <button (click)="resolve(row)" [disabled]="busy || !reason.trim()">حفظ المطابقة وإلغاء المراجعة السابقة</button>
+      </div>
+      <label *ngIf="b.committedAtUtc && row.classification === 'Matched' && !row.storedFileId">اختيار الأصل المطابق — 250 MiB<input type="file" (change)="upload(row,$event)" [disabled]="busy || !reason.trim()"></label>
+      <button *ngIf="row.uploadOperationId && !row.storedFileId" (click)="reconcile(row)" [disabled]="busy">مصالحة الرفع</button>
+      <a *ngIf="row.storedFileId" routerLink="/school-manager/storage" [queryParams]="{file:row.storedFileId,academicYearId:b.academicYearId}">معاينة الأصل ومراجعة الرابط</a>
+    </article>
+    <p-paginator [rows]="50" [first]="(page-1)*50" [totalRecords]="total" (onPageChange)="page=($event.page || 0)+1;loadRows()"></p-paginator>
+  </ng-container>
+</section>

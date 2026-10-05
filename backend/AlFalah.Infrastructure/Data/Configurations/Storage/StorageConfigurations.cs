@@ -253,10 +253,15 @@ public sealed class PrototypeImportBatchConfiguration : IEntityTypeConfiguration
         StorageConfiguration.Record(b, "PrototypeImportBatches");
         b.Property(x => x.SourceSHA256).HasMaxLength(64).IsRequired();
         b.Property(x => x.SourceName).HasMaxLength(512).IsRequired();
-        b.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.SourceSHA256 }).IsUnique();
+        b.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.TemplateVersion, x.SourceSHA256 }).IsUnique();
+        b.Property(x => x.SourceVersion).HasMaxLength(64);
+        b.Property(x => x.ReviewedDigest).HasMaxLength(64);
+        b.Property(x => x.ReviewReason).HasMaxLength(1000);
+        StorageConfiguration.User(b, nameof(PrototypeImportBatch.ReviewedByUserId));
+        StorageConfiguration.User(b, nameof(PrototypeImportBatch.CommittedByUserId));
         b.HasOne<AcademicYear>().WithMany().HasForeignKey(x => x.AcademicYearId).OnDelete(DeleteBehavior.Restrict);
         StorageConfiguration.User(b, nameof(PrototypeImportBatch.CreatedByUserId));
-        b.ToTable("PrototypeImportBatches", t => t.HasCheckConstraint("CK_PrototypeImportBatches_Status", "[Status] BETWEEN 1 AND 4"));
+        b.ToTable("PrototypeImportBatches", t => { t.HasCheckConstraint("CK_PrototypeImportBatches_Status", "[Status] BETWEEN 1 AND 4"); t.HasTrigger("TR_PrototypeImportBatches_Provenance"); });
     }
 }
 
@@ -268,9 +273,18 @@ public sealed class PrototypeImportRowConfiguration : IEntityTypeConfiguration<P
         b.Property(x => x.SourceRowSHA256).HasMaxLength(64).IsRequired();
         b.Property(x => x.ReferencePath).HasMaxLength(2048);
         b.Property(x => x.ExceptionNote).HasMaxLength(2000);
+        b.Property(x => x.SourceRowKey).HasMaxLength(128);
+        b.Property(x => x.Classification).HasMaxLength(32);
+        b.Property(x => x.ResolutionReason).HasMaxLength(1000);
+        b.Property(x => x.BytesSHA256).HasMaxLength(64);
+        StorageConfiguration.User(b, nameof(PrototypeImportRow.ResponsibleUserId));
+        b.HasIndex(x => new { x.BatchId, x.SourceRowKey }).IsUnique().HasFilter("[SourceRowKey] <> ''");
+        b.HasOne<EvidenceRequirement>().WithMany().HasForeignKey(x => x.RequirementId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<StoredFile>().WithMany().HasForeignKey(x => new { x.SchoolId, x.StoredFileId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<StorageOperation>().WithMany().HasForeignKey(x => new { x.SchoolId, x.UploadOperationId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(x => new { x.BatchId, x.SourceOrdinal }).IsUnique();
         b.HasOne<PrototypeImportBatch>().WithMany().HasForeignKey(x => new { x.SchoolId, x.BatchId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
-        b.ToTable("PrototypeImportRows", t => t.HasCheckConstraint("CK_PrototypeImportRows_State", "[SourceOrdinal] >= 0 AND [Status] BETWEEN 1 AND 4"));
+        b.ToTable("PrototypeImportRows", t => { t.HasCheckConstraint("CK_PrototypeImportRows_State", "[SourceOrdinal] >= 0 AND [Status] BETWEEN 1 AND 4"); t.HasTrigger("TR_PrototypeImportRows_Provenance"); });
     }
 }

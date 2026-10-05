@@ -17,14 +17,14 @@ public sealed class StorageRepository(AlFalahDbContext db) : IStorageRepository
         var school = await db.Schools.AsNoTracking().Where(x => x.Id == schoolId && x.IsActive)
             .Select(x => new { x.ManagerUserId }).SingleOrDefaultAsync(ct);
         if (school is null) return null;
-        var member = await db.UserSchoolRoles.AsNoTracking().AnyAsync(x => x.SchoolId == schoolId && x.UserId == userId && x.IsActive, ct);
+        var member = await db.UserSchoolRoles.AsNoTracking().AnyAsync(x => x.SchoolId == schoolId && x.UserId == userId && x.IsActive && x.Role.IsActive, ct);
         return new(userId, schoolId, school.ManagerUserId, member);
     }
 
     public Task<bool> HasPermissionAsync(string userId, int schoolId, string permission, CancellationToken ct) =>
         (from assignment in db.UserSchoolRoles.AsNoTracking()
          join rolePermission in db.RolePermissions.AsNoTracking() on assignment.RoleId equals rolePermission.RoleId
-         where assignment.UserId == userId && assignment.SchoolId == schoolId && assignment.IsActive && rolePermission.Permission.Name == permission
+         where assignment.UserId == userId && assignment.SchoolId == schoolId && assignment.IsActive && assignment.Role.IsActive && rolePermission.Permission.Name == permission
          select rolePermission.Id).AnyAsync(ct);
 
     public Task<bool> HasDelegationAsync(string userId, int schoolId, DateTimeOffset now, CancellationToken ct) =>

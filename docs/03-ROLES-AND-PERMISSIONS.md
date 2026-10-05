@@ -186,3 +186,7 @@ review/complaint button.
 | Auth.Login | Auth |
 | Audit.View | Audit |
 > More permissions will be added later.
+
+## S6 import authorization — D-100
+
+Historical import administration uses existing Storage.ManageSchool with live SchoolScope/active membership/role; an actual manager or currently valid direct delegate must also have the persisted storage permission when the feature is enabled. Teachers cannot manage/import school metadata. Responsible-member suggestions are current scoped user identities and require human mapping. No new role/permission or automatic delegation was created. With all flags OFF, the actual current manager may view only Disabled status/settings navigation; this does not bypass enabled import/content permissions.

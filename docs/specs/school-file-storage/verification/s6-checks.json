@@ -1,0 +1,73 @@
+{
+  "stage": "S6",
+  "date": "2026-10-05",
+  "implementation": "Implemented",
+  "isolatedVerification": "Passed",
+  "syntheticLiveGoogle": "Passed, school 18 with isolated SQL",
+  "operationalHistoricalByteImport": "NotExecuted, originals absent",
+  "ownerParityAcceptance": false,
+  "cutoverExecuted": false,
+  "backend": {
+    "buildErrors": 0,
+    "buildWarnings": 0,
+    "passed": 913,
+    "failed": 0,
+    "skipped": 0,
+    "duration": "4m25s",
+    "sqlExplicitlyIsolated": true
+  },
+  "frontend": {
+    "targetedUnitPassed": 34,
+    "productionBuild": "Passed with existing CSS/PrimeNG warnings",
+    "browserPassed": 70,
+    "browserDuration": "4.7m",
+    "enabledFlowsUseMockedApi": true,
+    "realDisabledApiDesktopMobile": "Passed"
+  },
+  "sourceRows": {
+    "index": 4617,
+    "matrixJson": 145,
+    "matrixCsvAlternativeRepresentation": 145,
+    "tracker": 36,
+    "historicalOriginalFilesUploaded": 0,
+    "referenceEvidenceApproved": 0
+  },
+  "migration": {
+    "id": "20261005162718_SchoolFileStorageHistoricalImport",
+    "isolatedIdempotentSqlAppliedTwice": true,
+    "retainsExistingS5Rows": true,
+    "originalDevelopmentMigrated": false,
+    "destructiveDown": false
+  },
+  "recovery": {
+    "concurrentPreviewCommit": true,
+    "uncertainUploadSameIdentity": true,
+    "sameHashOneFileTwoDraftLinks": true,
+    "revokedDelegateDuringUpload": true,
+    "retainedRestoreCheckDb": true,
+    "versionIdentityHashDifferences": 0,
+    "liveArchiveOutageRehearsal": false
+  },
+  "flags": {
+    "AdministrationEnabled": false,
+    "ReadModelEnabled": false,
+    "ArchiveWorkerEnabled": false,
+    "ArchiveExternalWritesEnabled": false
+  },
+  "preserved": {
+    "developmentConfiguration": true,
+    "googleCredentials": true,
+    "existingEncryptionKeys": true,
+    "legacyInterfacesAndData": true,
+    "driveDeleted": false
+  },
+  "remainingGates": [
+    "original bytes and attributable historical decision provenance",
+    "owner final parity/UI acceptance including theme difference",
+    "authorized school/year/operators and migration/capacity/backup window",
+    "global flags require isolated pilot hosting/data or approved multi-school scope",
+    "participating-school root/grant/quota and credential checks",
+    "monitored real V2 archive approval/recovery and sustained-load checks"
+  ],
+  "arabicPdfSearchCopyReliable": false
+}

@@ -1,0 +1,59 @@
+{
+  "capturedAtUtc": "2026-10-05T17:04:10.8425516+00:00",
+  "isolatedSource": "AlFalahSFS_S6_af651aa1cda24760a4deb8b310dc8ccd",
+  "isolatedRestore": "AlFalahSFS_S6_af651aa1cda24760a4deb8b310dc8ccd_Retained_98dc9f23c640463fb8553beb9f46c205",
+  "postSyntheticWrites": true,
+  "checksumVerified": true,
+  "checkDbPassed": true,
+  "counts": [
+    {
+      "entity": "StoredFiles",
+      "sourceRows": 2,
+      "restoredRows": 2
+    },
+    {
+      "entity": "StoredFileVersions",
+      "sourceRows": 2,
+      "restoredRows": 2
+    },
+    {
+      "entity": "EvidenceLinks",
+      "sourceRows": 3,
+      "restoredRows": 3
+    },
+    {
+      "entity": "EvidenceReviewDecisions",
+      "sourceRows": 2,
+      "restoredRows": 2
+    },
+    {
+      "entity": "PrototypeImportBatches",
+      "sourceRows": 1,
+      "restoredRows": 1
+    },
+    {
+      "entity": "PrototypeImportRows",
+      "sourceRows": 2,
+      "restoredRows": 2
+    },
+    {
+      "entity": "AuditLogs",
+      "sourceRows": 269,
+      "restoredRows": 269
+    },
+    {
+      "entity": "VisitArchiveOperations",
+      "sourceRows": 0,
+      "restoredRows": 0
+    },
+    {
+      "entity": "VisitArchiveArtifacts",
+      "sourceRows": 0,
+      "restoredRows": 0
+    }
+  ],
+  "versionIdentityOrHashDifferences": 0,
+  "originalDatabaseTouched": false,
+  "driveFilesDeleted": false,
+  "downExecuted": false
+}

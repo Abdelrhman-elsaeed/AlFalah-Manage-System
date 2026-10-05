@@ -284,7 +284,7 @@ public sealed class StorageLibraryTests
     public async Task Workspace_flags_default_off_and_page_limits_are_explicit()
     {
         await using var h = await Setup();
-        await Service(h, TeacherDriveHarness.Manager(), false).Invoking(x => x.ContextAsync(false)).Should().ThrowAsync<KeyNotFoundException>();
+        (await Service(h, TeacherDriveHarness.Manager(), false).ContextAsync(false)).ConnectionState.Should().Be("Disabled");
         await Service(h, TeacherDriveHarness.TeacherA()).Invoking(x => x.FilesAsync(true, new(PageSize: 101))).Should().ThrowAsync<ArgumentException>();
     }
     [Fact]

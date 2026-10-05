@@ -81,6 +81,11 @@ export const routes: Routes = [
 
       // Live storage permission/delegation guard, outside the manager role subtree.
       {
+        path: 'school-manager/storage/imports', canActivate: [storageGuard], data: {own: false},
+        loadComponent: () => import('./features/storage/import-page.component').then(m => m.ImportPageComponent),
+        title: 'الاستيراد التاريخي'
+      },
+      {
         path:'school-manager/storage/visits',
         loadComponent:()=>import('./features/storage/visit-archive-page.component').then(m=>m.VisitArchivePageComponent),
         title:translatedTitle('S5.TITLE')

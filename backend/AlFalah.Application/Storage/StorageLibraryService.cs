@@ -83,10 +83,18 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
     }
     public async Task<StorageContextDto> ContextAsync(bool own, CancellationToken ct = default)
     {
-        Enabled();
-        await authorization.RequireScopeAsync(School, ct);
-        var context = await repository.ContextAsync(School, ct);
+        var actorScope = await authorization.RequireScopeAsync(School, ct);
+        if (!options.Value.ReadModelEnabled)
+        {
+            if (own && !await scopes.HasPermissionAsync(user.UserId!, School, PermissionNames.StorageViewOwn, ct)) throw Denied();
+            if (!own && actorScope.ManagerUserId != actorScope.UserId)
+                await authorization.RequireSchoolPermissionAsync(School, PermissionNames.StorageViewSchool, ct);
+            // No storage schema or Google I/O needed to explain the disabled feature in navigation.
+            return new(School, "", null, null, false, own, "Disabled", null);
+        }
         if (!own) await authorization.RequireSchoolPermissionAsync(School, PermissionNames.StorageViewSchool, ct);
+        Enabled();
+        var context = await repository.ContextAsync(School, ct);
         try
         {
             var teacher = await ActorAsync(own, false, ct);
@@ -191,6 +199,12 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
         if (access.Availability == StoredFileAvailability.Missing) await SetAvailabilityAsync(id, false, ct);
         await authorization.RequireFileAsync(School, id, ct: ct);
         var content = await provider.ContentAsync(School, access.DriveItemId, ct);
+        try
+        {
+            await authorization.RequireFileAsync(School, id, ct: ct);
+            await repository.RecordContentReadAsync(School, id, user.UserId!, ct);
+        }
+        catch { await content.Content.DisposeAsync(); throw; }
         var details = await repository.DetailsAsync(School, id, ct) ?? throw new KeyNotFoundException();
         return content with { FileName = details.File.DisplayName, ContentType = details.File.MimeType ?? "application/octet-stream" };
     }

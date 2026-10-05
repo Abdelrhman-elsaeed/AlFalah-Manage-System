@@ -3,11 +3,11 @@
     <div><span class="eyebrow">{{ 'STORAGE.WORKSPACE' | translate }}</span><h1>{{ (own ? 'STORAGE.OWN_TITLE' : 'STORAGE.TITLE') | translate }}</h1>
       <p>{{ context?.schoolName }} <span *ngIf="context?.academicYearName"> · {{ context?.academicYearName }}</span></p></div>
     <button pButton type="button" icon="pi pi-refresh" [label]="'STORAGE.REFRESH' | translate" (click)="refreshContext()" [disabled]="busy || uploading"></button>
-  <a *ngIf="!own" routerLink="/school-manager/storage/visits">{{ 'S5.TITLE' | translate }}</a></header>
+  <a *ngIf="!own" routerLink="/school-manager/storage/visits">{{ 'S5.TITLE' | translate }}</a><a *ngIf="!own && !disabled && context?.canManage" routerLink="/school-manager/storage/imports">الاستيراد التاريخي</a></header>
   <nav *ngIf="!own && context" class="toolbar"><a routerLink="/school-manager/storage/readiness" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.readiness' | translate }}</a><a routerLink="/school-manager/storage/tracker" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.tracker' | translate }}</a><a routerLink="/school-manager/storage/gaps" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.gaps' | translate }}</a></nav>
   <p *ngIf="error" class="error" role="alert">{{ error }}</p>
   <p *ngIf="notice" class="notice" role="status">{{ notice }}</p>
-  <div *ngIf="disabled" class="empty"><i class="pi pi-lock"></i><h2>{{ 'STORAGE.DISABLED' | translate }}</h2></div>
+  <div *ngIf="disabled" class="empty"><i class="pi pi-lock"></i><h2>{{ 'STORAGE.DISABLED' | translate }}</h2><p>حساب Drive ومساحة الملفات لهما تفعيل منفصل. تُفتح المساحة بعد تحقق خطة التشغيل.</p><a *ngIf="!own" routerLink="/school-manager/evidence-settings">إعدادات Google Drive</a></div>
   <div *ngIf="!disabled && context && !connected" class="empty" role="status">
     <i class="pi pi-cloud"></i><h2>{{ ('STORAGE.STATE_' + context.connectionState) | translate }}</h2>
     <p>{{ 'STORAGE.CONNECTION_HELP' | translate }}</p>

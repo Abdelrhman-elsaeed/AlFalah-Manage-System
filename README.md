@@ -213,7 +213,7 @@ S3 and S4 were subsequently authorized and implemented. S4 adds immutable 4-doma
 
 Both storage flags stay OFF. No operational Development migration/API startup, Google credential/key rewrite, live Drive writes or cutover occurred. Live Google remains blocked by the S0 credential constraint; Arabic PDF search/copy is an existing renderer limitation despite correct visual rendering. Work stops after S4: no S5/S6. [S4 verification, limits and retained-data rollback](docs/specs/school-file-storage/verification/s4-self-evaluation-and-reports.md), [actual export comparison](docs/specs/school-file-storage/verification/s4-export-comparison.json), [SQL performance](docs/specs/school-file-storage/verification/s4-performance.json).
 
-## School file storage — current S5 status
+## School file storage — S5 historical status
 
 S5 archives only a real V2 approval transition, manual or automatic. SQL atomically retains the approval revision, outbox and frozen official-report snapshot. The background worker reserves the Drive identity before bytes, renews its lease with SQL session exclusion, reconciles uncertain results, and preserves original/recreated versions and historical approvals. `/school-manager/storage/visits` provides RTL filters, pagination, status, authorized retry/recreation and version history; V2 details show the archive badge. Official single/ZIP PDFs remain available while archival waits.
 
@@ -224,3 +224,13 @@ All four `SchoolFileStorage` flags (`AdministrationEnabled`, `ReadModelEnabled`,
 | Date | Change |
 |---|---|
 | 2026-10-05 | S5 approved-visit PDF archival implemented and verified on isolated SQL with simulated Drive and desktop/mobile API contracts; durable snapshots, leases, recovery/history, live visit authorization and RTL UI. Four flags OFF, D-98, live activation pending; no S6/cutover. |
+
+## School file storage — current S6 status
+
+S6 adds the reviewed, repeatable JSON/CSV import workspace (`/school-manager/storage/imports`), retained provenance/exception reports and separate verified original-byte uploads using S2 recovery and the existing S4 template. The manager now sees storage navigation while disabled, with a clear status and Google settings link. Local API 5264 runs the fix with startup initialization disabled.
+
+Backend 913, storage/settings units 34 and browser tests 70 pass. Actual reference sources, old SQL backfill and retained-write restores passed separately from one synthetic real Google PDF round trip. Historical originals are absent; reference rows are not files or approved evidence. All four flags remain OFF, original Development/credentials/keys/schemas are preserved, and operational cutover awaits owner acceptance and the [specific runbook gates](docs/specs/school-file-storage/s6-rollout-runbook.md). Existing Arabic PDF search/copy remains unreliable; live archive/load checks remain pending. [S6 verification and commands](docs/specs/school-file-storage/verification/s6-import-and-rollout.md). Work stops at S6.
+
+| Date | Change |
+|---|---|
+| 2026-10-05 | S6 reviewed imports, byte recovery, disabled manager sidebar, isolated regressions/backfill/retained restores and synthetic live Google verification; D-100, flags OFF, no operational cutover. |

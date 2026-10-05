@@ -1,0 +1,136 @@
+{
+  "sample": "actual COPY_ONLY Development source; one retained legacy Approved submission, not synthetic",
+  "dry": {
+    "backfill": {
+      "dryRun": true,
+      "sourceCount": 1,
+      "existingCount": 0,
+      "createdFiles": 1,
+      "createdVersions": 1,
+      "createdLinks": 1,
+      "createdDecisions": 1,
+      "needsLinkCount": 0,
+      "groups": [
+        {
+          "schoolId": 1,
+          "teacherId": 3,
+          "taskId": 1,
+          "academicYearId": 1,
+          "reviewStatus": 3,
+          "uploadStatus": 3,
+          "isDeleted": false,
+          "isMissingFromDrive": false,
+          "source": 1,
+          "existing": 0,
+          "plannedFiles": 1,
+          "plannedLinks": 1,
+          "plannedDecisions": 1,
+          "exceptions": 0
+        }
+      ],
+      "issues": []
+    },
+    "sharedWriterRepairTargets": 0,
+    "dryRun": true
+  },
+  "first": {
+    "backfill": {
+      "dryRun": false,
+      "sourceCount": 1,
+      "existingCount": 0,
+      "createdFiles": 1,
+      "createdVersions": 1,
+      "createdLinks": 1,
+      "createdDecisions": 1,
+      "needsLinkCount": 0,
+      "groups": [
+        {
+          "schoolId": 1,
+          "teacherId": 3,
+          "taskId": 1,
+          "academicYearId": 1,
+          "reviewStatus": 3,
+          "uploadStatus": 3,
+          "isDeleted": false,
+          "isMissingFromDrive": false,
+          "source": 1,
+          "existing": 0,
+          "plannedFiles": 1,
+          "plannedLinks": 1,
+          "plannedDecisions": 1,
+          "exceptions": 0
+        }
+      ],
+      "issues": []
+    },
+    "sharedWriterRepairTargets": 0,
+    "dryRun": false
+  },
+  "second": {
+    "backfill": {
+      "dryRun": false,
+      "sourceCount": 1,
+      "existingCount": 1,
+      "createdFiles": 0,
+      "createdVersions": 0,
+      "createdLinks": 0,
+      "createdDecisions": 0,
+      "needsLinkCount": 0,
+      "groups": [
+        {
+          "schoolId": 1,
+          "teacherId": 3,
+          "taskId": 1,
+          "academicYearId": 1,
+          "reviewStatus": 3,
+          "uploadStatus": 3,
+          "isDeleted": false,
+          "isMissingFromDrive": false,
+          "source": 1,
+          "existing": 1,
+          "plannedFiles": 0,
+          "plannedLinks": 0,
+          "plannedDecisions": 0,
+          "exceptions": 0
+        }
+      ],
+      "issues": []
+    },
+    "sharedWriterRepairTargets": 0,
+    "dryRun": false
+  },
+  "restore": {
+    "capturedAtUtc": "2026-10-05T16:49:40.9865562+00:00",
+    "isolatedDatabase": "AlFalahSFS_S6_af651aa1cda24760a4deb8b310dc8ccd",
+    "restoreDatabase": "AlFalahSFS_S6_af651aa1cda24760a4deb8b310dc8ccd_Restore",
+    "durationMs": 192544.7481,
+    "sourceBackupCopyOnly": true,
+    "backupChecksumVerified": true,
+    "restoreCheckDbPassed": true,
+    "counts": [
+      {
+        "kind": "clone",
+        "files": 1,
+        "versions": 1,
+        "links": 1,
+        "decisions": 1
+      },
+      {
+        "kind": "restored",
+        "files": 1,
+        "versions": 1,
+        "links": 1,
+        "decisions": 1
+      }
+    ],
+    "credentialDifferences": 0,
+    "originalMigrated": false,
+    "originalFlagsChanged": false,
+    "downExecuted": false,
+    "driveDeleted": false,
+    "rollback": "All four flags stay OFF; preserve new files/versions/links/review history and reconcile before reopening legacy writes"
+  },
+  "originalDatabaseMigrated": false,
+  "liveGoogleUsedForOldSample": false,
+  "sampleLimit": "one school/teacher/year/task only; no wider completeness claim"
+}

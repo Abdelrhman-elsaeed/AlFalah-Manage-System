@@ -467,3 +467,21 @@ Existing teacher-drive items/content/breadcrumb also deny archived IDs and filte
 `PUT /api/v1/school-google-drive` now supports an inactive connection draft with empty root ID/name, enabling OAuth consent before root selection. Settings add `hasStoredOAuthClientSecret` as a boolean only. On root change or activation, the server validates real Drive folder metadata, write capability, other schools' roots and retained teacher/library/archive boundaries; name and shared drive ID come from validated metadata. Missing account consent is HTTP 400, forbidden scope/manager is 403, missing folder 404 and changed setup connection 409. Account browsing requires stored credentials but does not activate normal Drive access.
 
 The setup reader performs metadata/list GETs only. No new migrations or automatic storage rollout are introduced. [Contracts, verification and local pilot](specs/school-file-storage/verification/drive-settings-and-pilot.md).
+
+## S6 imports — D-100
+
+All `/api/v1/storage/imports` operations require authenticated live SchoolScope + Storage.ManageSchool and both administrative/read flags. Thin controller delegates to Application; Infrastructure owns scoped SQL and durable locks. Standard ApiResponse/StoragePage/ErrorCode contracts apply; CSV/content stream separately.
+
+| Method | Relative path | Input / behavior |
+|---|---|---|
+| GET | `/` or `/{id}` | Scoped retained batch list/detail |
+| POST | `/preview` | multipart file, academicYearId, templateVersion, sourceVersion; inert JSON/CSV ≤16 MiB/10k rows |
+| GET | `/{id}/rows` | page (50 rows), classification; source/mapping/suggestions/reasons/rowversion |
+| PATCH | `/{id}/rows/{row}` | rowVersion, requirementId, responsibleUserId, reason; existing scoped identities only |
+| POST | `/{id}/review` | rowVersion, digest, reason; records explicit review |
+| POST | `/{id}/commit` | rowVersion, digest, reason; reviewed current digest required, idempotent metadata commit |
+| GET | `/{id}/exceptions.csv` | UTF-8 BOM/formula-safe retained result and exception report |
+| POST | `/{id}/rows/{row}/bytes` | multipart file, rowVersion, reason; ≤250 MiB, reviewed mapping/S2 reservation/hash verification/Draft link |
+| POST | `/{id}/rows/{row}/reconcile` | Same retained reservation/identity; no blind retry duplication |
+
+Disabled `GET /api/v1/storage/context` returns minimal Disabled state for the actual current school manager without storage-schema/Google access; operational routes remain 404. Generic file content checks live access again after provider acquisition and persists Storage.ContentRead. [Detailed S6 contract rules](specs/school-file-storage/verification/s6-import-and-rollout.md).

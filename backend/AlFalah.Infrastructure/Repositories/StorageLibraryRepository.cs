@@ -11,6 +11,11 @@ namespace AlFalah.Infrastructure.Repositories;
 
 public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibraryRepository
 {
+    public async Task RecordContentReadAsync(int schoolId, int fileId, string actor, CancellationToken ct)
+    {
+        db.AuditLogs.Add(new() { SchoolId = schoolId, UserId = actor, Action = "Storage.ContentRead", EntityName = "StoredFile", EntityId = fileId.ToString() });
+        await SaveAsync(ct);
+    }
     private IQueryable<StoredFile> Files(int school) => db.StoredFiles.AsNoTracking().Where(x => x.SchoolId == school);
     private Expression<Func<StoredFile, bool>> Protected => f =>
         f.SourceKind == StoredFileSourceKind.HistoricalImport || f.SourceKind == StoredFileSourceKind.VisitArchive ||

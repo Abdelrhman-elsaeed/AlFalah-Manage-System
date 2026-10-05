@@ -1,0 +1,40 @@
+{
+  "CapturedAtUtc": "2026-10-05T16:32:25.9898503+00:00",
+  "Environment": "Development connection; actual Drive HTTP read attempt",
+  "Method": "Existing token/client adapters with HTTP method gate; no SQL or Drive mutations, no content downloads",
+  "MaxHttpRequests": 300,
+  "HttpRequests": 3,
+  "Schools": [
+    {
+      "SchoolKey": 1,
+      "Status": "Unavailable",
+      "ErrorType": "InvalidOperationException",
+      "FailedStage": "AcquireAccessToken",
+      "FailureReason": "StoredCredentialCannotBeDecryptedWithCurrentKeys",
+      "Files": null,
+      "FoldersIncludingRoot": null,
+      "UnindexedFiles": null,
+      "RecordedFilesObserved": null,
+      "TeacherGroups": [
+        {
+          "TeacherKey": 3,
+          "Files": null,
+          "UnindexedFiles": null
+        }
+      ]
+    },
+    {
+      "SchoolKey": 18,
+      "Status": "Complete",
+      "ErrorType": null,
+      "FailedStage": null,
+      "FailureReason": null,
+      "Files": 0,
+      "FoldersIncludingRoot": 1,
+      "UnindexedFiles": 0,
+      "RecordedFilesObserved": 0,
+      "TeacherGroups": []
+    }
+  ],
+  "Privacy": "No names, raw Drive identifiers, URLs, tokens, response bodies or exception messages exported"
+}

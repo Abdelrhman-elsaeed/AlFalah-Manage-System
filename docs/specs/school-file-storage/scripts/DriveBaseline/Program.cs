@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 // Development-only observer: no application host, seeding, migrations or SaveChanges.
 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
-var output = Path.Combine(root, "docs/specs/school-file-storage/baseline/drive-baseline.json");
+var output = args.Length > 1 ? Path.GetFullPath(args[1]) : Path.Combine(root, "docs/specs/school-file-storage/baseline/drive-baseline.json");
 var apiRoot = Path.Combine(root, "backend/AlFalah.Api");
 var configuration = new ConfigurationBuilder().SetBasePath(apiRoot)
     .AddJsonFile("appsettings.json").AddJsonFile("appsettings.Development.json").Build();
