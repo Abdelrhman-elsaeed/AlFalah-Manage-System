@@ -83,5 +83,19 @@
   "sourceCredentialScan": {
     "passed": true,
     "matches": 0
+  },
+  "userRequestedRestart": {
+    "apiPort": 5264,
+    "frontendPort": 4200,
+    "frontendStatus": 200,
+    "settingsStatus": 200,
+    "schoolId": 18,
+    "hasStoredOAuthClientSecret": true,
+    "hasRefreshToken": false,
+    "isEnabled": false,
+    "authUrlStatus": 200,
+    "localCallbackMatches": true,
+    "pendingConsentBrowseStatus": 400,
+    "restartedByExplicitUserRequest": true
   }
 }
