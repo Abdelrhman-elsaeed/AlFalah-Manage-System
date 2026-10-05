@@ -5,20 +5,21 @@ const file = { itemId: 'document', name: 'تقرير داخل الحساب.pdf',
 const root = { currentFolderId: 'account-root', currentFolderName: 'ملفاتي', isAccountRoot: true, canSelectCurrent: false,
   breadcrumbs: [{ itemId: 'account-root', name: 'ملفاتي' }], items: [folder('school-folder', 'ملفات المدرسة التجريبية'), folder('read-only', 'مجلد للقراءة فقط', false), file], nextPageToken: 'next-1' };
 
-async function setup(page: Page, connected = true) {
+async function setup(page: Page, connected = true, rootEnabled = false) {
   const user = { userId: 'drive-manager', username: 'ui-test', fullName: 'مدير الاختبار', activeSchoolId: 18,
     activeSchoolName: 'Al-Falah E2E Test School', preferredLanguage: 'ar', roles: ['SchoolManager'], permissions: ['Settings.Manage'] };
   await page.addInitScript(user => {
     const payload = btoa(JSON.stringify({ sub: user.userId, exp: 2000000000 }));
     sessionStorage.setItem('alfalah_access_token', `e30.${payload}.mock`); sessionStorage.setItem('alfalah_user', JSON.stringify(user));
   }, user);
-  let settings = { schoolId: 18, isConfigured: true, isEnabled: false, credentialType: 'OAuthRefreshToken', schoolGoogleEmail: 'test@example.invalid',
-    oAuthClientId: 'fixture.apps.googleusercontent.com', rootFolderId: '', rootFolderDisplayName: '', hasStoredCredential: connected, hasStoredOAuthClientSecret: true };
+  let settings = { schoolId: 18, isConfigured: true, isEnabled: rootEnabled, credentialType: 'OAuthRefreshToken', schoolGoogleEmail: 'test@example.invalid',
+    oAuthClientId: 'fixture.apps.googleusercontent.com', rootFolderId: rootEnabled ? 'school-folder' : '', rootFolderDisplayName: rootEnabled ? 'ملفات المدرسة التجريبية' : '', hasStoredCredential: connected, hasStoredOAuthClientSecret: true };
   const writes: Record<string, unknown>[] = []; const browses: URL[] = [];
   await page.route('**/api/**', async route => {
     const request = route.request(); const url = new URL(request.url()); let data: unknown = {};
     if (url.pathname.endsWith('/auth/me')) data = user;
     else if (url.pathname.endsWith('/auth/schools')) data = [];
+    else if (url.pathname.endsWith('/storage/context')) data = { schoolId: 18, connectionState: 'Disabled', canManage: false, isTeacher: false };
     else if (url.pathname.endsWith('/school-google-drive/folders')) {
       browses.push(url);
       const parent = url.searchParams.get('parentItemId');
@@ -40,6 +41,16 @@ async function setup(page: Page, connected = true) {
   await expect(page.getByRole('heading', { name: 'إعدادات ملفات الإنجاز' })).toBeVisible();
   return { writes, browses };
 }
+
+test('linked Google folder distinguishes disabled library and explains file linking', async ({ page }) => {
+  const { writes } = await setup(page, true, true);
+  await expect(page.locator('p.status')).not.toContainText('ملفات المدرسة مفعّلة');
+  const guidance = page.locator('.library-guidance');
+  await expect(guidance).toContainText('مكتبة المدرسة غير مفعّلة بعد');
+  await expect(guidance).toContainText('رفع الملف وربطه ببند');
+  await expect(guidance.getByRole('link', { name: 'فتح مكتبة المدرسة' })).toHaveAttribute('href', '/school-manager/storage');
+  expect(writes).toHaveLength(0);
+});
 
 test('OAuth JSON imports and saves a disabled connection without a manual folder ID', async ({ page }) => {
   const { writes } = await setup(page, false);
@@ -70,7 +81,7 @@ test('RTL account browser opens folders, shows files, pages and selects the curr
   await expect(dialog).not.toBeVisible(); await expect(page.locator('.selected-folder')).toContainText('ملفات المدرسة التجريبية');
   expect(writes).toHaveLength(0);
   await page.getByRole('button', { name: 'حفظ إعدادات المجلد' }).click();
-  await expect(page.locator('p.status')).toContainText('ملفات المدرسة مفعّلة');
+  await expect(page.locator('p.status')).toContainText('اتصال مجلد المدرسة مفعّل');
   expect(writes[0]['rootFolderId']).toBe('school-folder'); expect(writes[0]['rootFolderDisplayName']).toBe('ملفات المدرسة التجريبية'); expect(writes[0]['isEnabled']).toBe(true);
 });
 

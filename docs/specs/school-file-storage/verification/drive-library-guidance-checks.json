@@ -1,0 +1,32 @@
+﻿{
+    "date":  "2026-10-05",
+    "regressionBeforeFix":  "Failed on misleading enabled-files sentence",
+    "driveSettingsBrowserPassed":  14,
+    "frontendProductionBuild":  "Passed with existing warnings",
+    "realBrowser":  {
+                        "value":  [
+                                      {
+                                          "viewport":  "desktop",
+                                          "realApi":  true,
+                                          "googleConnected":  true,
+                                          "libraryDisabledExplicit":  true,
+                                          "libraryLinkWorks":  true,
+                                          "apiWrites":  0
+                                      },
+                                      {
+                                          "viewport":  "mobile",
+                                          "realApi":  true,
+                                          "googleConnected":  true,
+                                          "libraryDisabledExplicit":  true,
+                                          "libraryLinkWorks":  true,
+                                          "apiWrites":  0
+                                      }
+                                  ],
+                        "Count":  2
+                    },
+    "originalFlagsChanged":  false,
+    "originalSchemaMigrated":  false,
+    "credentialsOrKeysChanged":  false,
+    "driveMutations":  false,
+    "cutover":  false
+}

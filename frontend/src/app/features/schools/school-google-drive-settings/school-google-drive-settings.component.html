@@ -15,8 +15,19 @@
       الذي يراه كل معلم.
     </p>
     <p class="status" [class.status--ready]="hasStoredCredential() && enabled()" role="status">
-      {{ hasStoredCredential() ? (enabled() ? 'الحساب مرتبط وملفات المدرسة مفعّلة.' : 'الحساب مرتبط. اختر مجلد المدرسة واحفظ الإعدادات للتفعيل.') : (configured() ? 'بيانات الاتصال محفوظة. أكمل ربط حساب Google.' : 'ابدأ بحفظ بيانات الاتصال، ثم اربط الحساب.') }}
+      {{ hasStoredCredential() ? (enabled() ? 'حساب Google مرتبط واتصال مجلد المدرسة مفعّل.' : 'الحساب مرتبط. اختر مجلد المدرسة واحفظ إعدادات الاتصال.') : (configured() ? 'بيانات الاتصال محفوظة. أكمل ربط حساب Google.' : 'ابدأ بحفظ بيانات الاتصال، ثم اربط الحساب.') }}
     </p>
+
+    <section *ngIf="hasStoredCredential() && enabled()" class="library-guidance" aria-labelledby="library-guidance-title">
+      <h2 id="library-guidance-title">رفع الملف وربطه ببند</h2>
+      <p *ngIf="libraryState() === 'Checking'" role="status">جارٍ التحقق من حالة مكتبة المدرسة…</p>
+      <p *ngIf="libraryState() === 'Disabled'" role="status"><strong>مكتبة المدرسة غير مفعّلة بعد.</strong> ربط Google مكتمل، لكن رفع الملفات وربط الشواهد يحتاج استكمال تشغيل المكتبة بواسطة مسؤول النظام. لا تحتاج إعادة ربط الحساب.</p>
+      <p *ngIf="libraryState() === 'LibraryNotInitialized'" role="status">الاتصال جاهز. افتح مكتبة المدرسة وابدأ بتهيئتها قبل رفع الملفات.</p>
+      <p *ngIf="libraryState() !== 'Checking' && libraryState() !== 'Disabled' && libraryState() !== 'LibraryNotInitialized' && libraryState() !== 'Connected'" role="status">راجع حالة الاتصال والصلاحيات داخل مكتبة المدرسة قبل رفع الملفات.</p>
+      <p>هذه الصفحة لإعداد حساب التخزين ومجلده. بعد تشغيل المكتبة: ارفع الملف، ثم افتح تفاصيله واختر السنة والبند واربطه كشاهد، ثم أرسله للمراجعة.</p>
+      <p class="field-hint">ملف OAuth JSON أدناه يخص بيانات اتصال Google؛ ملف الشاهد ترفعه من المكتبة.</p>
+      <a class="library-link" routerLink="/school-manager/storage"><i class="pi pi-folder" aria-hidden="true"></i> فتح مكتبة المدرسة</a>
+    </section>
 
     <ol class="setup-steps" aria-label="خطوات الإعداد">
       <li [class.done]="configured()">حفظ الاتصال</li>
@@ -116,7 +127,7 @@
     </div>
     <div class="grid">
       <label class="toggle">
-        <p-inputSwitch formControlName="isEnabled" [disabled]="!hasStoredCredential()" /> تفعيل ملفات الإنجاز للمدرسة
+        <p-inputSwitch formControlName="isEnabled" [disabled]="!hasStoredCredential()" /> تفعيل اتصال مجلد المدرسة
       </label>
     </div>
 

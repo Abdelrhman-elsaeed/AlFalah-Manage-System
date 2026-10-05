@@ -241,3 +241,4 @@ S6 implementation, isolated QA/backfill/restore and one synthetic school-18 live
 | Date | Change | Author |
 |---|---|---|
 | 2026-10-05 | S6 reviewed JSON/CSV imports and original-byte recovery with S4/S2, 913 backend/34 frontend/70 browser, actual one-row backfill/repeat and retained-write restore, synthetic live Google hash verification, and real disabled manager sidebar fix. Four flags OFF; original Development/credentials/keys preserved; no historical-byte import or cutover; remaining gates recorded. | Codex |
+| 2026-10-05 | D-101: fixed misleading Google settings activation message; display actual library status and provide upload/link guidance and library navigation. Drive browser 14/14 and real desktop/mobile checks passed; frontend build passed. Original flags OFF, no configuration/schema/credential/Drive write or cutover. [Evidence](specs/school-file-storage/verification/drive-library-guidance.md). | Codex |

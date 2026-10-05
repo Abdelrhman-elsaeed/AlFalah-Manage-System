@@ -7,15 +7,16 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { DialogModule } from 'primeng/dialog';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { SchoolGoogleDriveService } from '../../../core/services/school-google-drive.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { StorageApiService } from '../../storage/storage-api.service';
 import { ConfigureSchoolGoogleDriveRequest, GoogleDriveCredentialType, SchoolDriveFolderPage, SchoolGoogleDriveSettings } from '../../../core/models/school-google-drive.models';
 
 @Component({
   selector: 'app-school-google-drive-settings', standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, InputTextareaModule, InputSwitchModule, DialogModule],
+  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, InputTextareaModule, InputSwitchModule, DialogModule, RouterLink],
   templateUrl: './school-google-drive-settings.component.html',
   styleUrls: ['./school-google-drive-settings.component.css']
 })
@@ -23,6 +24,7 @@ export class SchoolGoogleDriveSettingsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(SchoolGoogleDriveService);
   private readonly auth = inject(AuthService);
+  private readonly storage = inject(StorageApiService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -40,6 +42,7 @@ export class SchoolGoogleDriveSettingsComponent implements OnInit {
   readonly hasStoredClientSecret = signal(false);
   readonly connectionDirty = signal(false);
   readonly enabled = signal(false);
+  readonly libraryState = signal('Checking');
   readonly error = signal('');
   readonly selectedType = signal<GoogleDriveCredentialType>(GoogleDriveCredentialType.OAuthRefreshToken);
   readonly isServiceAccount = computed(() => this.selectedType() === GoogleDriveCredentialType.ServiceAccount);
@@ -143,6 +146,14 @@ export class SchoolGoogleDriveSettingsComponent implements OnInit {
       rootFolderId: data.rootFolderId ?? '', rootFolderDisplayName: data.rootFolderDisplayName ?? '', isEnabled: data.isEnabled,
       serviceAccountJson: '', oAuthClientSecret: '' }, { emitEvent: false });
     this.selectedType.set(this.form.controls.credentialType.value!); this.savedConnection = this.connectionSignature(); this.connectionDirty.set(false); this.importedFile.set('');
+    this.libraryState.set('Checking');
+    if (data.hasStoredCredential && data.isEnabled) {
+      const revision = this.scopeRevision;
+      this.storage.contextInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: context => { if (revision === this.scopeRevision) this.libraryState.set(context.connectionState || 'Unavailable'); },
+        error: () => { if (revision === this.scopeRevision) this.libraryState.set('Unavailable'); }
+      });
+    }
   }
   private connectionSignature(): string {
     const v = this.form.getRawValue();
@@ -188,6 +199,7 @@ export class SchoolGoogleDriveSettingsComponent implements OnInit {
   private clearState(closePicker = true): void {
     if (closePicker) this.closePicker(); this.savedSettings = null; this.savedConnection = '';
     this.configured.set(false); this.hasStoredCredential.set(false); this.hasStoredClientSecret.set(false); this.enabled.set(false);
+    this.libraryState.set('Checking');
     this.saving.set(false); this.connecting.set(false); this.error.set(''); this.importedFile.set('');
     this.selectedType.set(GoogleDriveCredentialType.OAuthRefreshToken);
     this.form.reset({ credentialType: GoogleDriveCredentialType.OAuthRefreshToken, isEnabled: false }, { emitEvent: false });
