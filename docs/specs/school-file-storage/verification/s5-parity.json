@@ -1,0 +1,59 @@
+{
+  "stage": "S5",
+  "date": "2026-10-05",
+  "scope": "Integrated-platform approved V2 PDF archive; no prototype counts, files, decisions or historical import",
+  "rows": [
+    {
+      "feature": "Manual and automatic genuine approval only",
+      "implementation": "VisitV2Service ApproveAsync/FinalizeAsync, monotonic persisted revision, atomic outbox/snapshot, current V2 policy unchanged",
+      "evidence": "VisitArchiveSqlTests approval exports, reject/pending, atomic rollback, concurrent approval",
+      "difference": "No archival on ordinary completion or PendingApproval; no old-approved backfill"
+    },
+    {
+      "feature": "Full official Arabic report",
+      "implementation": "Frozen V2 report/branding/signatures/time; shared VisitV2DocumentService; official PDF and ZIP reuse approval snapshot",
+      "evidence": "s5-pdf-comparison.json: actual archive/official/ZIP page pixels, Amiri, bounded glyphs, logo/signature fixtures and visual review",
+      "difference": "Existing shaped-glyph Arabic search/copy limitation remains; unavailable asset uses existing fallback"
+    },
+    {
+      "feature": "Recoverable exclusive worker",
+      "implementation": "Atomic SQL lease, heartbeat, SQL session application lock, persisted PDF/hash and provider ID/identity before bytes",
+      "evidence": "SQL worker race, expired lease during blocked upload, abandoned lease, provider lost response, SQL failure after Drive commit, identity mismatch",
+      "difference": "All worker/external-write gates OFF; fake provider proves algorithm, not live Google latency or quotas"
+    },
+    {
+      "feature": "History and external missing recovery",
+      "implementation": "Reopen historical artifacts, reapprove new revision, guarded Current, OriginalStoredFileVersionId and append-only versions, live missing reconciliation, authorized reasoned recreate",
+      "evidence": "Late old worker, delete/trash/move/archive-folder move, periodic reconciliation, original identity SQL guards",
+      "difference": "No automatic recreation of completed missing artifact; restored available success cannot be retried"
+    },
+    {
+      "feature": "School and visit permission boundary",
+      "implementation": "Current server school/membership/permissions/delegation and V2 visibility; teacher own current Approved only; visit-authorized streamed bytes",
+      "evidence": "Foreign school/teacher, revoked delegate, reopened teacher denial, nested teacher/archive grant guard",
+      "difference": "No public Drive link/provider IDs or teacher archive-management list/retry/history"
+    },
+    {
+      "feature": "Library, evidence, index and exports retain separate policy",
+      "implementation": "Generic file details/content/history and evidence paths deny archive, library/readiness/index/export predicates exclude it; legacy teacher-drive denies reserved/folder/all-version identities even after external relocation or stripped properties",
+      "evidence": "Actual generic details/content and evidence create/history denial, SQL library list/index/export data exclusion, legacy moved-archive list/details/download/breadcrumb denial, S1-S4 regression",
+      "difference": "Archived report creates no EvidenceLink, review decision or readiness; future linking needs independent authorized policy"
+    },
+    {
+      "feature": "Arabic RTL archive workflow and visit badge",
+      "implementation": "/school-manager/storage/visits: server filters, stable numbered pages, timestamps/status, safe failures, retry, reasoned recreate, revision/version history; V2 badge/current artifact download",
+      "evidence": "Angular transport/safety tests; ten S5 desktop/mobile Playwright cases plus S2-S4 browser regression",
+      "difference": "Official V2 download is available while archival waits; POST queues and does not fabricate completion"
+    },
+    {
+      "feature": "Retained-data rollback and explicit rollout gate",
+      "implementation": "Additive migration, immutable snapshot/PDF/original history, safe audit/metrics, four default-false gates, Down refuses deletion",
+      "evidence": "Fresh isolated SQL, idempotent S5 script twice from S4, flag OFF and immutable guards; s5-checks.json",
+      "difference": "S0 live credential/owner acceptance gates remain; no operational Development changes, S6/import/cutover"
+    }
+  ],
+  "ownerParityAccepted": false,
+  "liveGoogleVerified": false,
+  "s6Started": false,
+  "cutoverActivated": false
+}

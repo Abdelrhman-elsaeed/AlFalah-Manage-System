@@ -401,6 +401,11 @@ public sealed class VisitV2Repository(AlFalahDbContext db) : IVisitV2Repository
             await action(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw new AlFalah.Application.Storage.StorageConflictException();
+        }
         catch
         {
             await transaction.RollbackAsync(cancellationToken);

@@ -124,8 +124,8 @@ public sealed class EvidenceWorkflowSqlTests(EvidenceWorkflowSqlFixture fixture,
         for (var run = 0; run < 2; run++)
             foreach (var batch in batches.Where(x => !string.IsNullOrWhiteSpace(x))) await db.Database.ExecuteSqlRawAsync(batch);
         await db.Database.CloseConnectionAsync();
-        // This regression deliberately stops at the S3 boundary; S4 has its own script rehearsal.
-        (await db.Database.GetPendingMigrationsAsync()).Should().Equal("20261004015709_SchoolFileStorageSelfEvaluation");
+        // This regression deliberately stops at the S3 boundary; later stages have their own script rehearsals.
+        (await db.Database.GetPendingMigrationsAsync()).Should().Equal("20261004015709_SchoolFileStorageSelfEvaluation", "20261005112201_SchoolFileStorageVisitArchive");
         db.Database.HasPendingModelChanges().Should().BeFalse();
     }
     [StorageSqlFact]

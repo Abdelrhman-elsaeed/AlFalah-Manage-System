@@ -4455,7 +4455,13 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<bool>("IsCurrent")
                         .HasColumnType("bit");
 
+                    b.Property<DateTimeOffset?>("LastReconciledAtUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("OperationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OriginalStoredFileVersionId")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
@@ -4480,6 +4486,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasAlternateKey("SchoolId", "Id");
 
+                    b.HasIndex("SchoolId", "OriginalStoredFileVersionId");
+
                     b.HasIndex("SchoolId", "StoredFileVersionId");
 
                     b.HasIndex("VisitId", "ApprovalRevision")
@@ -4491,7 +4499,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("[IsCurrent] = 1");
 
-                    b.ToTable("VisitArchiveArtifacts", (string)null);
+                    b.ToTable("VisitArchiveArtifacts", (string)null, t => t.HasTrigger("TR_VisitArchiveArtifacts_History"));
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.Storage.VisitArchiveOperation", b =>
@@ -4505,21 +4513,66 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("ApprovalRevision")
                         .HasColumnType("int");
 
+                    b.Property<string>("ApprovalSource")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTimeOffset>("ApprovedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ArchiveFolderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ArchiveFolderItemId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<int>("Attempts")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DriveId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset?>("LastAttemptAtUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("LastErrorCode")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTimeOffset?>("LeaseExpiresAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("LeaseToken")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTimeOffset?>("LockedAtUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset?>("NextAttemptAtUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("PdfBytes")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("PdfSHA256")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ProviderItemId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("RecoveryGeneration")
+                        .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -4530,11 +4583,29 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("SchoolId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SchoolRootItemId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SnapshotJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SnapshotSHA256")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UploadIdentity")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("UploadStarted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("VisitId")
                         .HasColumnType("int");
@@ -4547,6 +4618,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("VisitId", "ApprovalRevision")
                         .IsUnique();
+
+                    b.HasIndex("SchoolId", "ApprovedAtUtc", "Id");
 
                     b.ToTable("VisitArchiveOperations", null, t =>
                         {
@@ -9470,6 +9543,11 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("AbsentCount")
                         .HasColumnType("int");
 
+                    b.Property<int>("ApprovalRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTimeOffset?>("ApprovedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -9557,6 +9635,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("RubricVersionId")
                         .HasColumnType("int");
 
@@ -9623,6 +9707,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("Visits", t =>
                         {
                             t.HasCheckConstraint("CK_Visits_ClassroomPeriod", "[ClassroomPeriod] IS NULL OR ([ClassroomPeriod] >= 1 AND [ClassroomPeriod] <= 7)");
+
+                            t.HasTrigger("TR_Visits_ApprovalRevision");
                         });
                 });
 
@@ -11229,6 +11315,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasForeignKey("SchoolId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Storage.StoredFileVersion", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "OriginalStoredFileVersionId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("AlFalah.Domain.Entities.Storage.StoredFileVersion", null)
                         .WithMany()

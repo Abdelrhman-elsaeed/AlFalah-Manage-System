@@ -17,13 +17,14 @@ import { ComplaintsService } from '../../../core/services/complaints.service';
 import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
 import { downloadBlob, fileNameFromResponse } from '../../../core/utils/browser-download';
 import { applyQuickScore, liveTotals, suggestedScore } from '../visit-v2-calculator';
+import { VisitArchiveBadgeComponent } from '../../storage/visit-archive-badge.component';
 
 type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report';
 
 @Component({
   selector: 'app-visit-v2-workspace',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, VisitArchiveBadgeComponent],
   templateUrl: './visit-workspace.component.html',
   styleUrls: ['./visit-workspace.component.css']
 })

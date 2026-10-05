@@ -20,7 +20,9 @@ public sealed record VisitV2PdfAssetSources(
     string? EvaluatorSignatureSource,
     string? ManagerSignatureSource,
     bool ShowEvaluatorSignature,
-    bool ShowManagerSignature);
+    bool ShowManagerSignature,
+    bool Frozen = false,
+    DateTimeOffset? GeneratedAtUtc = null);
 
 public sealed record VisitV2CsvRow(
     int VisitId,

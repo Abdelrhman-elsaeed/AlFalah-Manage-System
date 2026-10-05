@@ -74,3 +74,7 @@ dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfi
 `python docs/specs/school-file-storage/scripts/build-s4-template.py` يعيد القالب المضمن من مصادر S0 بعد مطابقة SHA256. يقرأ JSON/مقطع البيانات من HTML دون تشغيل JavaScript أو مصدر تنفيذي. يحتفظ بالنص الوظيفي والبصمات والأكواد، ويزيل الأشخاص من المسارات، ولا ينسخ completed أو بايتات أو ملفات Drive أو قرارات. المصفوفة 145 بصمة ReferenceOnly فقط. هذا تنقيح ثابت للقالب؛ ليس أداة الاستيراد التاريخي S6.
 
 `verify-s4-exports.py` يفحص CSV/XLSX/PDF الناتجة من اختبارات SQL، ويطابق الأرقام والصفوف والعربية والخطوط وحدود النص ويرسم صفحات PDF للفحص البصري. يعتمد PyMuPDF، ويقرأ XLSX مباشرة من ZIP/XML. [أوامر إعادة التحقق والحدود](../verification/s4-self-evaluation-and-reports.md).
+
+## S5 — فحص PDF اللقطة الفعلية
+
+`verify-s5-pdfs.py` يقرأ archive/official/ZIP PDFs الناتجة من VisitArchiveSqlTests عبر ALFALAH_S5_EXPORT_DIRECTORY، ويقارن pixels لكل صفحة لنفس snapshot ويفحص embedded Amiri وبقاء النص داخل الورق والشعار وPNG التواقيع المجمدة والأرقام. يرسم أول/آخر صفحة للمراجعة، ويسجل shaped ToUnicode0000 وقيد البحث/النسخ دون ادعاء نجاحه. لا يبدأ API أو Drive ولا يقرأ credentials. [أوامر SQL الجديد المعزول والقيود](../verification/s5-approved-visit-pdf-archive.md). النتائج في s5-pdf-comparison.json؛ تشغيل الفحص لا يجيز worker/Drive أو S6.

@@ -1,6 +1,7 @@
 using AlFalah.Application.Common.Exceptions;
 using AlFalah.Application.DTOs.TeacherDrive;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.Storage;
 
 namespace AlFalah.Infrastructure.Services;
 
@@ -24,15 +25,31 @@ public sealed class TeacherDriveFolderGuard
     private const int MaxAncestorsInspected = 64;
 
     private readonly IGoogleDriveClient _drive;
+    private readonly IVisitArchiveRepository? _archives;
 
-    public TeacherDriveFolderGuard(IGoogleDriveClient drive) => _drive = drive;
+    public TeacherDriveFolderGuard(IGoogleDriveClient drive, IVisitArchiveRepository? archives = null)
+    { _drive = drive; _archives = archives; }
+
+    public async Task<HashSet<string>> ExcludedArchiveIdsAsync(int schoolId, IReadOnlyList<GoogleDriveFile> items, CancellationToken ct)
+    {
+        var excluded = new HashSet<string>(StringComparer.Ordinal);
+        if (_archives != null && items.Count != 0)
+            excluded.UnionWith(await _archives.ProtectedProviderIdsAsync(schoolId, items.Select(i => i.Id).ToArray(), ct));
+        foreach (var item in items)
+            if (item.AppProperties?.ContainsKey("visitId") == true && item.AppProperties.ContainsKey("approvalRevision")) excluded.Add(item.Id);
+        return excluded;
+    }
 
     /// <summary>
     /// Proves <paramref name="itemId"/> is the granted root itself or a live descendant of
     /// it, and returns the item's metadata so callers need no second fetch.
     /// </summary>
-    public async Task<GoogleDriveFile> EnsureWithinGrantAsync(
+    public Task<GoogleDriveFile> EnsureWithinGrantAsync(
         DriveFolderMappingDto mapping, string itemId, CancellationToken cancellationToken = default)
+        => ProveWithinAsync(mapping, itemId, true, cancellationToken);
+
+    private async Task<GoogleDriveFile> ProveWithinAsync(DriveFolderMappingDto mapping, string itemId,
+        bool enforceArchivePolicy, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(itemId)) throw new TeacherDriveAccessDeniedException();
 
@@ -41,6 +58,8 @@ public sealed class TeacherDriveFolderGuard
         // A trashed item is still readable by id, so without this a deleted file would stay
         // reachable through a direct request.
         if (item.Trashed) throw new TeacherDriveAccessDeniedException("لم يعد الملف أو المجلد موجوداً.");
+        if (enforceArchivePolicy && (await ExcludedArchiveIdsAsync(mapping.SchoolId, [item], cancellationToken)).Contains(item.Id))
+            throw new TeacherDriveAccessDeniedException("التقرير محمي بمسار الزيارة المصرح.");
         if (string.Equals(item.Id, mapping.RootItemId, StringComparison.Ordinal)) return item;
 
         // Breadth-first over `parents` rather than following parents[0]: Drive permits an
@@ -87,7 +106,8 @@ public sealed class TeacherDriveFolderGuard
         var probe = new DriveFolderMappingDto(0, schoolId, string.Empty, rootFolderId, string.Empty, null, true);
         try
         {
-            await EnsureWithinGrantAsync(probe, candidateFolderId, cancellationToken);
+            // Folder-grant validation needs pure containment, including protected roots.
+            await ProveWithinAsync(probe, candidateFolderId, false, cancellationToken);
             return true;
         }
         catch (TeacherDriveAccessDeniedException)

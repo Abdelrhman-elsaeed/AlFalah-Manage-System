@@ -1,0 +1,35 @@
+{
+  "Operations": 5000,
+  "Page": 100,
+  "PageSize": 25,
+  "Iterations": 10,
+  "ServiceWithFakeProviderMs": [
+    46.395,
+    30.0382,
+    30.6437,
+    31.8968,
+    31.541,
+    35.0244,
+    32.5779,
+    32.4545,
+    30.2671,
+    35.6191
+  ],
+  "QueriesPerRequest": [
+    21,
+    21,
+    21,
+    21,
+    21,
+    21,
+    21,
+    21,
+    21,
+    21
+  ],
+  "MedianMs": 32.4545,
+  "MaxMs": 46.395,
+  "SelectedPdfBlobs": false,
+  "FakeProvider": true,
+  "LiveGoogleTimingMeasured": false
+}

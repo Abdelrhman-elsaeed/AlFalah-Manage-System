@@ -64,6 +64,9 @@ public interface IStorageProvider
     Task<GoogleDriveFile?> MetadataAsync(int schoolId, string id, CancellationToken ct);
     Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct);
     Task<GoogleDriveFile> UploadAsync(int schoolId, string id, string parent, string name, string mime, Stream content, CancellationToken ct);
+    Task<GoogleDriveFile> UploadArchiveAsync(int schoolId, string id, string parent, string name,
+        Stream content, IReadOnlyDictionary<string, string> identity, CancellationToken ct) =>
+        throw new NotSupportedException("Provider must support archive identity metadata.");
     Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct);
     Task<GoogleDriveFile> RenameAsync(int schoolId, string id, string name, CancellationToken ct);
     Task<bool> TrashAsync(int schoolId, string id, string driveId, CancellationToken ct);

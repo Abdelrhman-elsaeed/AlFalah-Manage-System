@@ -9,6 +9,9 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
     public void Configure(EntityTypeBuilder<Visit> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.RowVersion).IsRowVersion();
+        builder.Property(x => x.ApprovalRevision).HasDefaultValue(0);
+        builder.ToTable(t => t.HasTrigger("TR_Visits_ApprovalRevision"));
 
         builder.Property(x => x.InstructorId).IsRequired().HasMaxLength(450);
         builder.Property(x => x.CreatedByUserId).IsRequired().HasMaxLength(450);

@@ -1,0 +1,36 @@
+<section class="archive-page" dir="rtl" [attr.aria-busy]="busy">
+  <header><div><span class="eyebrow">{{ 'S5.WORKSPACE' | translate }}</span><h1>{{ 'S5.TITLE' | translate }}</h1><p>{{ 'S5.HELP' | translate }}</p></div><a routerLink="/school-manager/storage">{{ 'S4.LIBRARY' | translate }}</a><button pButton type="button" icon="pi pi-refresh" [label]="'S5.REFRESH' | translate" (click)="reload()" [disabled]="busy || saving"></button></header>
+  <p *ngIf="error" role="alert" class="error">{{ error }}</p><p *ngIf="notice" role="status" class="notice">{{ notice }}</p>
+  <p-progressBar *ngIf="busy" mode="indeterminate" [style]="{height:'4px'}" [attr.aria-label]="'S5.LOADING' | translate"></p-progressBar>
+  <form class="filters" *ngIf="!disabled" (ngSubmit)="apply()">
+    <label>{{ 'S5.FROM' | translate }}<p-calendar name="from" [(ngModel)]="from" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" appendTo="body"></p-calendar></label>
+    <label>{{ 'S5.TO' | translate }}<p-calendar name="to" [(ngModel)]="to" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" appendTo="body"></p-calendar></label>
+    <label>{{ 'S5.TEACHER' | translate }}<app-clearable-select name="teacher" [(ngModel)]="filter.teacherId" [options]="teachers" optionLabel="name" optionValue="userId" [filter]="true"></app-clearable-select></label>
+    <label>{{ 'S5.STATUS' | translate }}<app-clearable-select name="status" [(ngModel)]="filter.status" [options]="states" [itemTpl]="translatedOption" [selectedItemTpl]="translatedOption" optionLabel="label" optionValue="value"></app-clearable-select></label>
+    <button pButton type="submit" [label]="'S5.APPLY' | translate" [disabled]="busy || saving"></button>
+  </form>
+  <p *ngIf="!busy && !error && !rows.length" class="empty">{{ 'S5.EMPTY' | translate }}</p>
+  <article *ngFor="let visit of rows; let index=index" class="visit-row">
+    <div class="visit-heading"><strong>{{ (filter.page-1)*filter.pageSize+index+1 }}. {{ visit.instructorName }}</strong><a routerLink="/school-manager/visits" [queryParams]="{visitId:visit.visitId}">{{ 'S5.VISIT' | translate }} #{{ visit.visitId }}</a></div>
+    <p *ngIf="!visit.isApproved" class="historical">{{ 'S5.REOPENED' | translate }}</p>
+    <p *ngIf="visit.isApproved && !visit.revisions[0]?.isCurrent" class="historical">{{ 'S5.AWAITING_CURRENT' | translate }}</p>
+    <div *ngIf="visit.revisions[0] as revision" class="revision">
+      <ng-container *ngTemplateOutlet="revisionContent; context:{$implicit:revision,visit:visit}"></ng-container>
+    </div>
+    <details *ngIf="visit.revisions.length>1"><summary>{{ 'S5.HISTORY' | translate }} ({{ visit.revisions.length-1 }})</summary>
+      <div *ngFor="let revision of visit.revisions.slice(1)" class="revision"><ng-container *ngTemplateOutlet="revisionContent;context:{$implicit:revision,visit:visit}"></ng-container></div>
+    </details>
+  </article>
+  <p-paginator *ngIf="total && !disabled" [rows]="filter.pageSize" [totalRecords]="total" [first]="(filter.page-1)*filter.pageSize" (onPageChange)="apply(($event.page || 0)+1)"></p-paginator>
+</section>
+<ng-template #translatedOption let-option>{{ option.label | translate }}</ng-template>
+<ng-template #revisionContent let-revision let-visit="visit">
+  <div class="status-line"><span class="badge" [attr.data-status]="revision.status">{{ ('S5.'+revision.status) | translate }}</span><strong>{{ 'S5.REVISION' | translate }} {{ revision.approvalRevision }}</strong><span>{{ (revision.isCurrent?'S5.CURRENT':'S5.HISTORICAL') | translate }}</span></div>
+  <dl><div><dt>{{ 'S5.APPROVED' | translate }}</dt><dd>{{ revision.approvedAtUtc | date:'medium' }}</dd></div><div><dt>{{ 'S5.ATTEMPT' | translate }}</dt><dd>{{ revision.lastAttemptAtUtc ? (revision.lastAttemptAtUtc | date:'medium') : '—' }} · {{ revision.attempts }}</dd></div><div><dt>{{ 'S5.COMPLETED' | translate }}</dt><dd>{{ revision.completedAtUtc ? (revision.completedAtUtc | date:'medium') : '—' }}</dd></div><div *ngIf="revision.nextAttemptAtUtc"><dt>{{ 'S5.NEXT' | translate }}</dt><dd>{{ revision.nextAttemptAtUtc | date:'medium' }}</dd></div></dl>
+  <p *ngIf="revision.errorCode" class="error">{{ ('S5.'+revision.errorCode) | translate }}</p>
+  <button *ngIf="revision.canRetry && visit.canManage" pButton type="button" [label]="(revision.status==='MissingFromDrive'?'S5.RECREATE':'S5.RETRY') | translate" (click)="retry(visit,revision)" [disabled]="busy || saving"></button>
+  <div class="versions" *ngFor="let version of revision.versions"><span>{{ 'S5.FILE_VERSION' | translate }} {{ version.versionNumber }} · {{ version.uploadedAtUtc | date:'medium' }} · {{ version.size | number }} B</span><span *ngIf="version.availability!=='Available'">{{ 'S5.MissingFromDrive' | translate }}</span><button *ngIf="version.availability==='Available' && revision.status==='Completed'" type="button" pButton icon="pi pi-download" [label]="'S5.DOWNLOAD' | translate" (click)="download(visit,revision,version.versionId)" [disabled]="saving"></button></div>
+</ng-template>
+<p-dialog [(visible)]="recreateOpen" [modal]="true" [style]="{width:'min(94vw,500px)'}" [header]="'S5.RECREATE' | translate">
+  <p>{{ 'S5.RECREATE_HELP' | translate }}</p><label>{{ 'S5.REASON' | translate }}<textarea [(ngModel)]="reason" maxlength="1000" rows="3"></textarea></label><button pButton type="button" [label]="'S5.RECREATE' | translate" (click)="recreate()" [disabled]="saving || !reason.trim()"></button>
+</p-dialog>

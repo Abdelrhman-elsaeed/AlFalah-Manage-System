@@ -3,7 +3,7 @@
     <div><span class="eyebrow">{{ 'STORAGE.WORKSPACE' | translate }}</span><h1>{{ (own ? 'STORAGE.OWN_TITLE' : 'STORAGE.TITLE') | translate }}</h1>
       <p>{{ context?.schoolName }} <span *ngIf="context?.academicYearName"> · {{ context?.academicYearName }}</span></p></div>
     <button pButton type="button" icon="pi pi-refresh" [label]="'STORAGE.REFRESH' | translate" (click)="refreshContext()" [disabled]="busy || uploading"></button>
-  </header>
+  <a *ngIf="!own" routerLink="/school-manager/storage/visits">{{ 'S5.TITLE' | translate }}</a></header>
   <nav *ngIf="!own && context" class="toolbar"><a routerLink="/school-manager/storage/readiness" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.readiness' | translate }}</a><a routerLink="/school-manager/storage/tracker" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.tracker' | translate }}</a><a routerLink="/school-manager/storage/gaps" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.gaps' | translate }}</a></nav>
   <p *ngIf="error" class="error" role="alert">{{ error }}</p>
   <p *ngIf="notice" class="notice" role="status">{{ notice }}</p>

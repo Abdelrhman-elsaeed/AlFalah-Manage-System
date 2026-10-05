@@ -115,7 +115,8 @@ public sealed record GoogleDriveFile(
     string? WebViewLink,
     string? Version,
     IReadOnlyList<string> Parents,
-    bool Trashed)
+    bool Trashed,
+    IReadOnlyDictionary<string, string>? AppProperties = null)
 {
     public const string FolderMimeType = "application/vnd.google-apps.folder";
     public bool IsFolder => string.Equals(MimeType, FolderMimeType, StringComparison.Ordinal);
@@ -137,4 +138,5 @@ public sealed record GoogleDriveUploadRequest(
     string ContentType,
     string ParentFolderId,
     string? SharedDriveId,
-    string? PreGeneratedId = null);
+    string? PreGeneratedId = null,
+    IReadOnlyDictionary<string, string>? AppProperties = null);

@@ -207,8 +207,20 @@ Both `SchoolFileStorage:AdministrationEnabled` and `SchoolFileStorage:ReadModelE
 
 See [S2 contracts, verification, limitations and safe test commands](docs/specs/school-file-storage/verification/s2-library-and-uploads.md), [performance evidence](docs/specs/school-file-storage/verification/s2-performance.json), and [phase status](docs/specs/school-file-storage/phases/02-library-and-uploads.md). SQL tests require a fresh, explicitly named isolated LocalDB database. Browser tests mock API responses and start Angular only; do not start the actual Development API for them because startup applies migrations.
 
-## School file storage — current S4 status
+## School file storage — S4 history
 
 S3 and S4 were subsequently authorized and implemented. S4 adds immutable 4-domain/11-standard/36-item templates, 145 reference fingerprints, scoped SQL readiness/gaps, audited follow-up assignments, independent manual judgments/history and RTL dashboard/standard/tracker/report/index pages. CSV BOM, Excel RTL and actual embedded-Amiri PDFs use the same server scope/filters. Linking/review/preview reuses S2/S3; neither uploading nor a manual judgment approves evidence. GET requirements is paginated; S3 linking uses requirement-catalog.
 
 Both storage flags stay OFF. No operational Development migration/API startup, Google credential/key rewrite, live Drive writes or cutover occurred. Live Google remains blocked by the S0 credential constraint; Arabic PDF search/copy is an existing renderer limitation despite correct visual rendering. Work stops after S4: no S5/S6. [S4 verification, limits and retained-data rollback](docs/specs/school-file-storage/verification/s4-self-evaluation-and-reports.md), [actual export comparison](docs/specs/school-file-storage/verification/s4-export-comparison.json), [SQL performance](docs/specs/school-file-storage/verification/s4-performance.json).
+
+## School file storage — current S5 status
+
+S5 archives only a real V2 approval transition, manual or automatic. SQL atomically retains the approval revision, outbox and frozen official-report snapshot. The background worker reserves the Drive identity before bytes, renews its lease with SQL session exclusion, reconciles uncertain results, and preserves original/recreated versions and historical approvals. `/school-manager/storage/visits` provides RTL filters, pagination, status, authorized retry/recreation and version history; V2 details show the archive badge. Official single/ZIP PDFs remain available while archival waits.
+
+All four `SchoolFileStorage` flags (`AdministrationEnabled`, `ReadModelEnabled`, `ArchiveWorkerEnabled`, `ArchiveExternalWritesEnabled`) remain **false**. No operational Development/API/Google/credentials/keys changes or old-visit backfill occurred. Live Google remains blocked by S0; Arabic PDF search/copy remains unreliable despite verified display. Rollback disables flags and retains every snapshot, file and revision. **Stop after S5; S6 and cutover have not started.** [Verification, contracts and activation gates](docs/specs/school-file-storage/verification/s5-approved-visit-pdf-archive.md), [test results](docs/specs/school-file-storage/verification/s5-checks.json), [actual PDF comparison](docs/specs/school-file-storage/verification/s5-pdf-comparison.json).
+
+### Change-log
+
+| Date | Change |
+|---|---|
+| 2026-10-05 | S5 approved-visit PDF archival implemented and verified on isolated SQL with simulated Drive and desktop/mobile API contracts; durable snapshots, leases, recovery/history, live visit authorization and RTL UI. Four flags OFF, D-98, live activation pending; no S6/cutover. |

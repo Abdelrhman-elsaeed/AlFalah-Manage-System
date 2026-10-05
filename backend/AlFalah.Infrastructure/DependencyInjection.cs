@@ -112,6 +112,13 @@ public static class DependencyInjection
         services.AddScoped<AlFalah.Application.Storage.IStorageDriveBoundary, StorageDriveBoundary>();
         services.AddScoped<AlFalah.Application.Storage.IStorageAuthorizationService, AlFalah.Application.Storage.StorageAuthorizationService>();
         services.AddScoped<AlFalah.Application.Storage.IStorageDelegationService, AlFalah.Application.Storage.StorageDelegationService>();
+        services.AddScoped<AlFalah.Application.Storage.IVisitArchiveRepository, VisitArchiveRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IVisitArchiveAssetFreezer, VisitArchiveAssetFreezer>();
+        services.AddScoped<AlFalah.Application.Storage.IVisitArchiveCaptureService, AlFalah.Application.Storage.VisitArchiveCaptureService>();
+        services.AddScoped<AlFalah.Application.Storage.VisitArchiveDriveService>();
+        services.AddScoped<AlFalah.Application.Storage.IVisitArchiveProcessor, AlFalah.Application.Storage.VisitArchiveProcessor>();
+        services.AddScoped<AlFalah.Application.Storage.IVisitArchiveService, AlFalah.Application.Storage.VisitArchiveService>();
+        services.AddHostedService<VisitArchiveWorker>();
         var teacherContextOptions = BuildTeacherContextOptions(configuration);
         services.AddSingleton(teacherContextOptions);
         services.AddScoped<TeacherContextSchedule>();

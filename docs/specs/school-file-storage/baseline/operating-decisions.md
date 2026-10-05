@@ -31,3 +31,11 @@
 - templates/scopes/revisions/provenance لا تمحى في الرجوع؛ الرايات OFF هي خطة الرجوع، وDown يرفض الحذف. لا تغيير في credentials/keys، ولا ملفات وهمية على Google.
 - تقرير CSV/Excel/PDF جامع لنفس الفلاتر، يتضمن الفهرس وخطة الاستكمال والحكم اليدوي المستقل. محرك PDF الحالي يصور العربية وRTL صحيحًا، مع قيد استخراج/بحث النص العربي موثق في [المقارنة الفعلية](../verification/s4-export-comparison.json).
 - تحقق SQL والمتصفح المحاكى لا يحل قيد Google أو قبول المالك. انتهى نطاق S4؛ لا S5 أو S6 أو cutover.
+
+## تطبيق S5 — 2026-10-05
+
+- وجهة v1 هي مجلد «أرشيف الزيارات» واحد تحت جذر المدرسة الموثق على الخادم، محمي من تداخل منح المعلمين في الاتجاهين. لا مسارات سنة/معلم إضافية ولا وجهة من العميل.
+- الاعتماد فقط، من المسارين اليدوي والتلقائي، يثبت ApprovalRevision وsnapshot كاملًا مع الأصول المجمدة وoutbox في SQL. لا PDF أو Google داخل طلب الاعتماد. صور غير متاحة تستخدم fallback القائم؛ Google URLs/redirects محجوبة في تجميد أصول الاعتماد.
+- تحفظ PDF bytes/hash وreserved Drive ID/appProperties قبل upload؛ التصالح بالهوية والبصمة لا بالاسم. missing recreation إجراء مسؤول بسبب وتدقيق، نفس snapshot والبايتات، نسخة جديدة مع الأصل والتاريخ. لا حذف تلقائي ولا rewrite اعتماد قديم ولا backfill.
+- الأربع AdministrationEnabled/ReadModelEnabled/ArchiveWorkerEnabled/ArchiveExternalWritesEnabled OFF افتراضيًا. schema/application بعد migration تلتقط الاعتمادات الجديدة وهيOFF، لكن العامل والكتابة ينتظران تفعيلًا مستقلًا. الرجوع يغلقها ويحفظ Approved/outbox/snapshots/PDF/versions/history.
+- القراءة من المكتبة والشواهد والفهرس والتصدير العام لا تكشف الأرشيف؛ المعلم يرى تقريره المعتمد الحالي فقط، والإدارة بصلاحيات الأرشيف والزيارة الحية. التوثيق/الاختبارات لا يفتحان قيد Google أو قبول المالك. [S5 تحقق وتشغيل ورجوع](../verification/s5-approved-visit-pdf-archive.md). انتهى S5 فقط؛ S6 وcutover غير منفذين.

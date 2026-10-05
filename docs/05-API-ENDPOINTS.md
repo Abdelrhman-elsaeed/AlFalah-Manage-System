@@ -443,3 +443,19 @@ StorageReadinessController → IReadinessService/ReadinessExportService → IRea
 Filter contract: academicYearId required, templateVersion=1, domainCode?, standardCode?, responsibleUserId?, importance? (Normal=1/Important=2/Critical=3), search? (<=200), trackerOnly=false; these define the structural calculation scope. status?, criticalOnly=false, hideCompleted=false and gapsOnly=false affect displayed/exported rows only. page=1, pageSize=25 (1..100). Statuses: Fulfilled, Unfulfilled, NoFile, Unavailable, AwaitingReview, Rejected, InsufficientApprovedLinks. Requirement rows include SourceKey/hash/path/action, candidates labelled for human content review, gapReasons and an action URL retaining the academic year.
 
 GET `/requirements` changes the previous S3 array contract to a paginated school evaluation contract. GET `/requirement-catalog` preserves the S3 linking catalog and own-teacher permissions; Angular consumers and mocked regression tests moved with it. Existing S3 mutation/link routes remain. Curated source metadata cannot be overwritten through the old catalog PATCH. Manual/follow-up mutations require Storage.ManageSchool, a required reason and rowversion, with atomic audit; 400 validation/export cap, 403 current access denial, 404 disabled/not found, 409 concurrency and 503 unavailable provider remain safe ApiResponse errors. Export rows/files are capped at 5000 and live verification at 10000 distinct files; no export job system.
+
+## School File Storage S5 archive contracts (2026-10-05)
+
+Authenticated, rate-limited `/api/v1/storage/visits`, JSON ApiResponse<T>, server ActiveSchoolId only. Defaults remain disabled; V2 school feature must also be enabled for reads.
+
+| Method | Route | Contract |
+|---|---|---|
+| GET | `/api/v1/storage/visits` | From/To UTC, TeacherId?, Status?, Page=1/PageSize=25 (max100); SQL filtered, descending latest approval time then VisitId; administrative list requires current Storage.ViewArchive and Visit.View. |
+| GET | `/api/v1/storage/visits/teachers` | Distinct in-school archive teachers, sorted, capped1000; same list gate. |
+| GET | `/api/v1/storage/visits/{visitId}/archive` | VisitArchiveDto with revisions/status/times/attempts/safe error/current/version history; teacher sees only own current Approved approval, no management data. |
+| POST | `/api/v1/storage/visits/{visitId}/archive/retry` | `{approvalRevision,recreateMissing=false,reason?}`; current ViewArchive/RetryArchive/Visit.View, 202. Missing recreation requires true/nonempty reason<=1000; reserved/Processing/Pending or available Completed return409. |
+| GET | `/api/v1/storage/visits/{visitId}/archive/{revision}/content?versionId` | Authorized PDF stream; same visit/school/root/identity/hash validation. Old revisions/versions restricted to authorized management; no Google IDs/public URL. private/no-store/nosniff/sandbox. |
+
+No archive bytes/details/history are available through generic storage/files, evidence, digital index or readiness exports. Official V2 PDF/ZIP uses the frozen snapshot for new approvals even when archival waits; legacy approvals without snapshot retain existing V2 rendering. [Complete S5 contracts, security, tests and limitations](specs/school-file-storage/verification/s5-approved-visit-pdf-archive.md).
+
+Existing teacher-drive items/content/breadcrumb also deny archived IDs and filter them from items lists, including external relocation into the teacher's grant or stripped properties. No legacy endpoint or response contract changes; archive content must use its visit-authorized API.

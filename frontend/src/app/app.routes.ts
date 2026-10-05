@@ -80,6 +80,11 @@ export const routes: Routes = [
       },
 
       // Live storage permission/delegation guard, outside the manager role subtree.
+      {
+        path:'school-manager/storage/visits',
+        loadComponent:()=>import('./features/storage/visit-archive-page.component').then(m=>m.VisitArchivePageComponent),
+        title:translatedTitle('S5.TITLE')
+      },
       ...['readiness','gaps','tracker','reports','digital-index','manual'].map(mode => ({
         path: 'school-manager/storage/'+mode, canActivate:[storageGuard], data:{own:false,mode},
         loadComponent: () => import('./features/storage/readiness-page.component').then(m=>m.ReadinessPageComponent),

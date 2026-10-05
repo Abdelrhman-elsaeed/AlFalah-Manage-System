@@ -325,6 +325,9 @@ public sealed class ReadinessSqlTests(ReadinessSqlFixture fixture, ITestOutputHe
         for (var run = 0; run < 2; run++) foreach (var batch in batches.Where(x => !string.IsNullOrWhiteSpace(x)))
         { using var command = db.Database.GetDbConnection().CreateCommand(); command.CommandText = batch; await command.ExecuteNonQueryAsync(); }
         await db.Database.CloseConnectionAsync();
+        // The script above intentionally stops at S4; apply later additive migrations
+        // before asserting parity against the current application model.
+        await migrator.MigrateAsync();
         (await db.Database.GetPendingMigrationsAsync()).Should().BeEmpty(); db.Database.HasPendingModelChanges().Should().BeFalse();
         var sentinel = await db.EvidenceRequirements.SingleAsync(x => x.Code == "sentinel"); sentinel.IsMandatory.Should().BeFalse(); sentinel.FollowUpStatus.Should().Be("NotStarted");
     }

@@ -1,0 +1,121 @@
+{
+  "stage": "S5",
+  "verifiedAtUtc": "2026-10-05T12:42:02.523282+00:00",
+  "status": "Technical implementation verified; four flags OFF; stop after S5",
+  "backend": {
+    "total": 883,
+    "passed": 883,
+    "failed": 0,
+    "skipped": 0,
+    "newS5SqlTests": 25,
+    "storageTests": 136,
+    "trxSha256": "6ec9bfdec999e25bbfb0dc8824c3467c6641aa3616a7625ca14983e822f49566",
+    "releaseBuildErrors": 0,
+    "releaseBuildWarnings": 0,
+    "releaseBuildLogSha256": "fa4171b5f5b09b74ef59185f20e37a64bf0a59658fa4259348c950f6a5919515"
+  },
+  "frontend": {
+    "unitTests": 55,
+    "browserTests": 50,
+    "desktopBrowserJourneys": 25,
+    "mobileBrowserJourneys": 25,
+    "s5BrowserJourneys": 10,
+    "apiMocked": true,
+    "realApiStarted": false,
+    "productionBuildPassed": true,
+    "s5ArabicEnglishKeys": 43,
+    "unitLogSha256": "4a1d09d75066bad65d297a2f15879c1e7361703fa8b9712627584f319f7e39bc",
+    "browserLogSha256": "4f58bac6d03d9df3675592efb7a4bf32430de188baa4dbe3ecba61f6c08171c2",
+    "existingWarnings": [
+      "visits-v2 CSS budget",
+      "dashboard-live CSS budget",
+      "3 PrimeNG selectors"
+    ]
+  },
+  "sql": {
+    "freshIsolatedLocalDbOnly": true,
+    "s5ScriptAppliedTwiceFromS4": true,
+    "legacySentinelRetained": true,
+    "pendingModelChanges": false,
+    "additiveOnly": true,
+    "originalDevelopmentMigrated": false,
+    "productionMigrated": false,
+    "migrationScriptSha256": "f34f09e5346ca49e55da3bcc477be7bc40186801c51e7e1c7416d7625b9a546b",
+    "immutableSnapshotsAndPreparedBytes": true,
+    "retainedOriginalArtifactAndVersions": true,
+    "destructiveRollback": false
+  },
+  "archive": {
+    "manualAndAutomaticApprovalVerified": true,
+    "pendingAndRejectedExcluded": true,
+    "approvalOutboxSnapshotAtomic": true,
+    "concurrentApprovalRowversionVerified": true,
+    "exclusiveLeaseAndExpiredInFlightUploadVerified": true,
+    "abandonedLeaseRecoveryVerified": true,
+    "uncertainDriveSuccessAndSqlFailureReconciled": true,
+    "lateOldWorkerCurrentGuardVerified": true,
+    "periodicAndReadMissingReconciliationVerified": true,
+    "authorizedRecreatePreservesOriginalVersion": true,
+    "currentVisitSchoolMembershipAndDelegationChecked": true,
+    "genericLibraryEvidenceIndexAndExportExcludeArchive": true,
+    "legacyTeacherBrowserDeniesExternallyMovedArchiveEvenWithStrippedProperties": true,
+    "nativeLibraryDiscoveryExcludesMovedArchiveAndNeverReclassifiesItsFolder": true,
+    "teacherArchiveAdministrationDenied": true,
+    "maxAttempts": 5,
+    "leaseSeconds": 120,
+    "heartbeatSeconds": 20,
+    "workerCycleSeconds": 15,
+    "reconciliationCycleMinutes": 15,
+    "pdfMaxBytes": 52428800,
+    "defaultArchiveFolder": "protected school archive folder"
+  },
+  "pdf": {
+    "actualApprovedReports": 2,
+    "pagesPerReport": 4,
+    "officialAndZipRenderedPageParity": true,
+    "embeddedAmiriAndGlyphBoundariesVerified": true,
+    "visualArabicRtlBrandingPaginationReviewed": true,
+    "signaturesAreAuthorizedSyntheticPngFixtures": true,
+    "arabicSearchCopyReliable": false,
+    "comparisonSha256": "7ab22fe1649ce7347c17f04410c3a7aa8a5ea044950b814d12745d52f1df4958"
+  },
+  "performance": {
+    "syntheticMetadataOperations": 5000,
+    "page": 100,
+    "pageSize": 25,
+    "samples": 10,
+    "medianMs": 32.4545,
+    "maxMs": 46.395,
+    "queriesPerRequest": 21,
+    "selectedReportBlobs": false,
+    "pdfGenerationAndFakeUploadMeasured": true,
+    "completedHistoryLiveLatencyMeasured": false,
+    "liveGoogleTimingMeasured": false
+  },
+  "flags": {
+    "AdministrationEnabled": false,
+    "ReadModelEnabled": false,
+    "ArchiveWorkerEnabled": false,
+    "ArchiveExternalWritesEnabled": false,
+    "approvalCaptureAfterMigrationWhileOff": true,
+    "generationOrExternalWritesWhileOff": false
+  },
+  "environment": {
+    "originalDevelopmentUntouched": true,
+    "credentialsAndDataProtectionKeysUntouched": true,
+    "realApiStarted": false,
+    "liveGoogleHttpRequests": 0,
+    "liveGoogleWrites": 0,
+    "oldApprovalBackfillExecuted": false,
+    "s6Started": false,
+    "cutoverActivated": false
+  },
+  "remainingGates": [
+    "S0 credential decryption/live authorized Google validation",
+    "owner parity and UI acceptance",
+    "operational migration window and retained SQL PDF storage/backups",
+    "current root/grant/identity/quota verification",
+    "explicit worker/external-write activation and monitored real approval sample"
+  ],
+  "rollback": "Disable all four gates; retain Approved visits/outbox/snapshots/prepared bytes/files/original versions/history; Down refuses deletion"
+}

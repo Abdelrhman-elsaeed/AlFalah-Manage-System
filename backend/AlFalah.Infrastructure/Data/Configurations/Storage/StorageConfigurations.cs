@@ -211,6 +211,15 @@ public sealed class VisitArchiveOperationConfiguration : IEntityTypeConfiguratio
         b.HasIndex(x => new { x.VisitId, x.ApprovalRevision }).IsUnique();
         b.HasIndex(x => new { x.Status, x.NextAttemptAtUtc });
         b.Property(x => x.LastErrorCode).HasMaxLength(100);
+        b.Property(x => x.ApprovalSource).HasMaxLength(32);
+        b.Property(x => x.SnapshotSHA256).HasMaxLength(64);
+        b.Property(x => x.PdfSHA256).HasMaxLength(64);
+        b.Property(x => x.ProviderItemId).HasMaxLength(256);
+        b.Property(x => x.UploadIdentity).HasMaxLength(100);
+        b.Property(x => x.DriveId).HasMaxLength(256);
+        b.Property(x => x.SchoolRootItemId).HasMaxLength(256);
+        b.Property(x => x.ArchiveFolderItemId).HasMaxLength(256);
+        b.HasIndex(x => new { x.SchoolId, x.ApprovedAtUtc, x.Id });
         b.HasOne<Visit>().WithMany().HasForeignKey(x => x.VisitId).OnDelete(DeleteBehavior.Restrict);
         b.ToTable("VisitArchiveOperations", t =>
         {
@@ -225,11 +234,14 @@ public sealed class VisitArchiveArtifactConfiguration : IEntityTypeConfiguration
     public void Configure(EntityTypeBuilder<VisitArchiveArtifact> b)
     {
         StorageConfiguration.Record(b, "VisitArchiveArtifacts");
+        b.ToTable(t => t.HasTrigger("TR_VisitArchiveArtifacts_History"));
         b.HasIndex(x => new { x.VisitId, x.ApprovalRevision }).IsUnique();
         b.HasIndex(x => x.VisitId, "UX_VisitArchiveArtifacts_Current").IsUnique().HasFilter("[IsCurrent] = 1");
         b.HasOne<VisitArchiveOperation>().WithMany().HasForeignKey(x => new { x.SchoolId, x.VisitId, x.ApprovalRevision, x.OperationId })
             .HasPrincipalKey(x => new { x.SchoolId, x.VisitId, x.ApprovalRevision, x.Id }).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<StoredFileVersion>().WithMany().HasForeignKey(x => new { x.SchoolId, x.StoredFileVersionId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<StoredFileVersion>().WithMany().HasForeignKey(x => new { x.SchoolId, x.OriginalStoredFileVersionId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
     }
 }

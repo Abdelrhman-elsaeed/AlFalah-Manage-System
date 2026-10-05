@@ -21,6 +21,8 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
     public bool LoseNextUploadResponse { get; set; }
     public bool FailNextUpload { get; set; }
     public bool RejectNextUpload { get; set; }
+    public Func<Task>? BeforeUpload { get; set; }
+    public Func<Task>? AfterUpload { get; set; }
     public Task<string> AllocateFileIdAsync(int schoolId, CancellationToken ct = default)
     {
         EnsureReachable(schoolId);
@@ -115,6 +117,7 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
     {
         EnsureReachable(schoolId);
         if (FailNextUpload) { FailNextUpload = false; throw new HttpRequestException("Network unavailable"); }
+        if (BeforeUpload != null) await BeforeUpload();
         if (RejectNextUpload) { RejectNextUpload = false; throw new AlFalah.Application.Storage.StorageProviderRejectedException("Quota exceeded"); }
         // The real API rejects an upload into a folder the credential cannot see; without this
         // a test could "succeed" writing into a folder that does not exist.
@@ -126,7 +129,9 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
         var id = request.PreGeneratedId ?? $"uploaded-{++_generatedIds}";
         if (_nodes.ContainsKey(id)) throw new InvalidOperationException("Duplicate provider ID");
         _nodes[id] = new Node(id, request.FileName, request.ContentType, request.ParentFolderId, buffer.ToArray());
+        _nodes[id].AppProperties = request.AppProperties;
         Uploads.Add(new(schoolId, id, request.FileName, request.ParentFolderId, request.SharedDriveId, buffer.Length));
+        if (AfterUpload != null) await AfterUpload();
         if (LoseNextUploadResponse) { LoseNextUploadResponse = false; throw new HttpRequestException("Response lost after commit"); }
         return _nodes[id].ToFile();
     }
@@ -185,11 +190,12 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
         public string? ParentId { get; set; }
         public byte[] Content { get; }
         public bool Trashed { get; set; }
+        public IReadOnlyDictionary<string, string>? AppProperties { get; set; }
         public bool IsFolder => MimeType == GoogleDriveFile.FolderMimeType;
 
         public GoogleDriveFile ToFile() => new(
             Id, Name, MimeType, IsFolder ? null : Content.Length, new DateTimeOffset(2026, 7, 1, 8, 0, 0, TimeSpan.Zero),
             "حساب المدرسة", $"https://drive.google.com/file/d/{Id}/view", "1",
-            ParentId is null ? [] : [ParentId], Trashed);
+            ParentId is null ? [] : [ParentId], Trashed, AppProperties);
     }
 }

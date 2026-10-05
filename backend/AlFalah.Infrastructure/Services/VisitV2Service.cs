@@ -4,6 +4,7 @@ using AlFalah.Application.Analysis;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Visits;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.Storage;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data.Seeders;
@@ -19,7 +20,8 @@ public sealed class VisitV2Service(
     IFeatureFlagService featureFlags,
     SchoolScopeGuard schoolScope,
     AuditLogWriter audit,
-    ILogger<VisitV2Service> logger) : IVisitV2Service
+    ILogger<VisitV2Service> logger,
+    IVisitArchiveCaptureService? archiveCapture = null) : IVisitV2Service
 {
     public VisitV2AvailabilityDto GetAvailability() =>
         new(featureFlags.IsVisitsV2Enabled(currentUser.ActiveSchoolId));
@@ -202,6 +204,8 @@ public sealed class VisitV2Service(
         var now = DateTimeOffset.UtcNow;
         var autoApprove = IsManager() && currentUser.HasPermission(PermissionNames.VisitApprove);
         var actorId = RequireCurrentUser();
+        var frozenAssets = autoApprove && archiveCapture != null
+            ? await archiveCapture.PrepareAsync(id, actorId, cancellationToken) : null;
 
         await repository.ExecuteInTransactionAsync(async ct =>
         {
@@ -268,11 +272,17 @@ public sealed class VisitV2Service(
                 newValues: new { result.TotalScore, result.OverallPercent, visit.Status, AutoApproved = autoApprove });
             if (autoApprove)
             {
+                visit.ApprovalRevision++;
                 audit.Write(visit.SchoolId, actorId, "VisitV2.AutoApprove", nameof(Visit), visit.Id.ToString(),
                     "اعتماد تلقائي لأن مُنهي الزيارة مدير مخول بالاعتماد.",
                     newValues: new { visit.Status, visit.ApprovedByUserId, visit.ApprovedAt });
             }
             await repository.SaveChangesAsync(ct);
+            if (autoApprove && archiveCapture != null)
+            {
+                await archiveCapture.CaptureAsync(MapDetail(visit), frozenAssets!, visit.ApprovalRevision, "Automatic", ct);
+                await repository.SaveChangesAsync(ct);
+            }
         }, cancellationToken);
 
         return await GetAsync(id, cancellationToken);
@@ -287,9 +297,12 @@ public sealed class VisitV2Service(
         var now = DateTimeOffset.UtcNow;
         var oldStatus = visit.Status;
 
+        var frozenAssets = archiveCapture != null ? await archiveCapture.PrepareAsync(id, userId, cancellationToken) : null;
+
         await repository.ExecuteInTransactionAsync(async ct =>
         {
             visit.Status = VisitStatus.Approved;
+            visit.ApprovalRevision++;
             visit.ApprovedByUserId = userId;
             visit.ApprovedAt = now;
             visit.RejectionReason = null;
@@ -300,6 +313,11 @@ public sealed class VisitV2Service(
             audit.Write(visit.SchoolId, userId, "VisitV2.Approve", nameof(Visit), visit.Id.ToString(), "اعتماد الزيارة",
                 new { Status = oldStatus }, new { visit.Status, visit.ApprovedByUserId, visit.ApprovedAt });
             await repository.SaveChangesAsync(ct);
+            if (archiveCapture != null)
+            {
+                await archiveCapture.CaptureAsync(MapDetail(visit), frozenAssets!, visit.ApprovalRevision, "Manual", ct);
+                await repository.SaveChangesAsync(ct);
+            }
         }, cancellationToken);
 
         return await GetAsync(id, cancellationToken);
@@ -352,6 +370,7 @@ public sealed class VisitV2Service(
         await repository.ExecuteInTransactionAsync(async ct =>
         {
             visit.Status = VisitStatus.Reopened;
+            if (archiveCapture != null) await archiveCapture.MarkHistoricalAsync(id, ct);
             visit.ReopenReason = reason;
             visit.ReopenedByUserId = userId;
             visit.ReopenedAt = now;
@@ -546,7 +565,9 @@ public sealed class VisitV2Service(
                 {
                     if (!assets.TryGetValue(visit.Id, out var visitAssets))
                         continue;
-                    var pdf = await documents.BuildPdfAsync(MapDetail(visit), visitAssets, cancellationToken);
+                    var snapshot = archiveCapture != null && visit.Status == VisitStatus.Approved
+                        ? await archiveCapture.SnapshotAsync(visit.SchoolId, visit.Id, visit.ApprovalRevision, cancellationToken) : null;
+                    var pdf = await documents.BuildPdfAsync(snapshot?.Report ?? MapDetail(visit), snapshot?.Assets ?? visitAssets, cancellationToken);
                     var entry = archive.CreateEntry($"visit-v2-{visit.Id}.pdf", CompressionLevel.Optimal);
                     await using var entryStream = entry.Open();
                     await entryStream.WriteAsync(pdf.Content, cancellationToken);
@@ -573,6 +594,12 @@ public sealed class VisitV2Service(
     public async Task<VisitV2PdfExportDto> ExportPdfAsync(int id, CancellationToken cancellationToken = default)
     {
         var visit = await GetAsync(id, cancellationToken);
+        if (archiveCapture != null && visit.Status == (int)VisitStatus.Approved)
+        {
+            var entity = await repository.GetAsync(id, false, cancellationToken);
+            var snapshot = await archiveCapture.SnapshotAsync(visit.SchoolId, id, entity!.ApprovalRevision, cancellationToken);
+            if (snapshot != null) return await documents.BuildPdfAsync(snapshot.Report, snapshot.Assets, cancellationToken);
+        }
         var assets = await repository.GetPdfAssetSourcesAsync(id, cancellationToken);
         return await documents.BuildPdfAsync(visit, assets, cancellationToken);
     }

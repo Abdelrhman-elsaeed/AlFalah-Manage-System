@@ -232,6 +232,10 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
     {
         var children = page.Files.Where(x => !x.Trashed && x.Parents.Contains(parent.DriveItemId)).ToList();
         var ids = children.Select(x => x.Id).ToList();
+        var archiveIds = (await VisitArchiveRepository.ProtectedProviderIdsQuery(db, ids).ToListAsync(ct)).ToHashSet(StringComparer.Ordinal);
+        children.RemoveAll(x => archiveIds.Contains(x.Id) ||
+            x.AppProperties?.ContainsKey("visitId") == true && x.AppProperties.ContainsKey("approvalRevision"));
+        ids = children.Select(x => x.Id).ToList();
         var folders = await db.StorageFolders.AsTracking().Where(x => x.SchoolId == parent.SchoolId && ids.Contains(x.DriveItemId)).ToListAsync(ct);
         foreach (var child in children.Where(x => x.IsFolder && folders.All(f => f.DriveItemId != x.Id)))
         {

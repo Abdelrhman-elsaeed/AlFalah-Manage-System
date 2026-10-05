@@ -20,7 +20,7 @@ namespace AlFalah.Infrastructure.Services;
 public sealed class GoogleDriveClient : IGoogleDriveClient
 {
     /// <summary>Everything the UI and the ledger need from a file, in one round trip.</summary>
-    private const string FileFields = "id,name,mimeType,size,modifiedTime,webViewLink,version,parents,trashed,lastModifyingUser(displayName)";
+    private const string FileFields = "id,name,mimeType,size,modifiedTime,webViewLink,version,parents,trashed,appProperties,lastModifyingUser(displayName)";
 
     private readonly IGoogleDriveTokenService _tokens;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -79,6 +79,8 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
             ["parents"] = new JsonArray(request.ParentFolderId)
         };
         if (request.PreGeneratedId is not null) metadata["id"] = request.PreGeneratedId;
+        if (request.AppProperties is not null)
+            metadata["appProperties"] = JsonSerializer.SerializeToNode(request.AppProperties);
 
         // Multipart/related is Drive's one-request upload: metadata part, then bytes.
         // Drive never overwrites on create, so a same-named file can only ever be an
@@ -293,7 +295,8 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
             node["webViewLink"]?.GetValue<string>(),
             node["version"]?.ToString(),
             parents,
-            node["trashed"]?.GetValue<bool>() ?? false);
+            node["trashed"]?.GetValue<bool>() ?? false,
+            node["appProperties"]?.Deserialize<Dictionary<string, string>>());
     }
 
     /// <summary>

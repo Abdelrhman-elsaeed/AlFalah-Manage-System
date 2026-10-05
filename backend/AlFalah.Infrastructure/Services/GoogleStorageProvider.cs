@@ -18,6 +18,9 @@ public sealed class GoogleStorageProvider(IGoogleDriveClient drive) : IStoragePr
     public Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct) => drive.CreateFolderAsync(schoolId, id, parent, name, ct);
     public Task<GoogleDriveFile> UploadAsync(int schoolId, string id, string parent, string name, string mime, Stream content, CancellationToken ct) =>
         drive.UploadAsync(schoolId, new(content, name, mime, parent, null, id), ct);
+    public Task<GoogleDriveFile> UploadArchiveAsync(int schoolId, string id, string parent, string name,
+        Stream content, IReadOnlyDictionary<string, string> identity, CancellationToken ct) =>
+        drive.UploadAsync(schoolId, new(content, name, "application/pdf", parent, null, id, identity), ct);
     public Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct) => drive.MoveAsync(schoolId, id, oldParent, newParent, ct);
     public Task<GoogleDriveFile> RenameAsync(int schoolId, string id, string name, CancellationToken ct) => drive.RenameAsync(schoolId, id, name, ct);
     public Task<bool> TrashAsync(int schoolId, string id, string driveId, CancellationToken ct) => drive.TrashAsync(schoolId, id, driveId, ct);

@@ -44,6 +44,8 @@ public sealed class VisitV2DashboardQueryTests
                 "SubmittedAt" TEXT NULL,
                 "ApprovedByUserId" TEXT NULL,
                 "ApprovedAt" TEXT NULL,
+                "ApprovalRevision" INTEGER NOT NULL DEFAULT 0,
+                "RowVersion" BLOB NOT NULL DEFAULT X'',
                 "RejectionReason" TEXT NULL,
                 "ReopenReason" TEXT NULL,
                 "ReopenedByUserId" TEXT NULL,

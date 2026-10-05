@@ -53,7 +53,7 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
         CancellationToken cancellationToken = default)
     {
         var logo = await imageLoader.TryLoadAsync(assets.LogoSource, cancellationToken: cancellationToken);
-        if (!logo.HasValue || logo.Value.IsEmpty)
+        if ((!logo.HasValue || logo.Value.IsEmpty) && !assets.Frozen)
         {
             var defaultLogoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Logo.png");
             logo = await imageLoader.TryLoadAsync(defaultLogoPath, cancellationToken: cancellationToken);
@@ -65,7 +65,7 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
             ? await imageLoader.TryLoadAsync(assets.ManagerSignatureSource, cancellationToken: cancellationToken) : null;
         PdfTheme.EnsureFonts();
         var brand = NormalizeColor(assets.PrimaryColor);
-        var generatedAt = DateTimeOffset.UtcNow;
+        var generatedAt = assets.GeneratedAtUtc ?? DateTimeOffset.UtcNow;
         var logoBytes = logo.HasValue && !logo.Value.IsEmpty ? logo.Value.Bytes : null;
         var safeHeaderText = SafeBrandText(assets.HeaderText, visit.SchoolName);
         var safeFooterText = SafeBrandText(assets.FooterText, $"{visit.SchoolName} • زيارة #{visit.Id}");

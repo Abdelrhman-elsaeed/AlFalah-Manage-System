@@ -8,6 +8,8 @@ public sealed class VisitArchiveArtifact : IStorageRecord
     public int ApprovalRevision { get; set; }
     public int OperationId { get; set; }
     public int StoredFileVersionId { get; set; }
+    public int? OriginalStoredFileVersionId { get; set; }
+    public DateTimeOffset? LastReconciledAtUtc { get; set; }
     public bool IsCurrent { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAtUtc { get; set; } = DateTimeOffset.UtcNow;

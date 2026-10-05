@@ -104,6 +104,8 @@ public class Visit
 
     /// <summary>Timestamp of the most recent approval (set on every approve, including re-approval after reopen).</summary>
     public DateTimeOffset? ApprovedAt { get; set; }
+    public int ApprovalRevision { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 
     /// <summary>
     /// Reason the School Manager returned the visit to the creator

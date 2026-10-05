@@ -52,7 +52,8 @@ public sealed class GoogleDriveBrowserService : IGoogleDriveBrowserService
             query.PageToken,
             string.IsNullOrWhiteSpace(mapping.DriveId) ? null : mapping.DriveId), cancellationToken);
 
-        var items = page.Files.Select(ToDto).ToList();
+        var excluded = await _guard.ExcludedArchiveIdsAsync(teacher.SchoolId, page.Files, cancellationToken);
+        var items = page.Files.Where(file => !excluded.Contains(file.Id)).Select(ToDto).ToList();
 
         // Overlay the review state so the teacher sees which of their files are still
         // pending, approved or rejected without leaving the page.
