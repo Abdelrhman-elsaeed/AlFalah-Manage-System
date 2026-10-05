@@ -20,6 +20,7 @@ export interface SchoolGoogleDriveSettings {
   rootFolderId?: string | null;
   rootFolderDisplayName?: string | null;
   hasStoredCredential: boolean;
+  hasStoredOAuthClientSecret?: boolean;
   connectedAtUtc?: string | null;
 }
 
@@ -51,4 +52,22 @@ export interface ConfigureSchoolGoogleDriveRequest {
   rootFolderId: string;
   rootFolderDisplayName: string;
   isEnabled: boolean;
+}
+
+export interface SchoolDriveBrowseItem {
+  itemId: string;
+  name: string;
+  isFolder: boolean;
+  size: number | null;
+  mimeType: string;
+  canSelect: boolean;
+}
+export interface SchoolDriveFolderPage {
+  currentFolderId: string;
+  currentFolderName: string;
+  isAccountRoot: boolean;
+  canSelectCurrent: boolean;
+  breadcrumbs: { itemId: string; name: string }[];
+  items: SchoolDriveBrowseItem[];
+  nextPageToken: string | null;
 }

@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-05",
+  "scope": "School Drive settings folder picker and local test-account preparation",
+  "backendRegression": {
+    "passed": 896,
+    "failed": 0,
+    "skipped": 0,
+    "database": "fresh isolated SQL",
+    "trxSha256": "d16666ff9e8ab472e93ee5d3ca2e8af323ac164046e3b7e47bf0e722e63b8799"
+  },
+  "finalBackendPickerRegression": {
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0,
+    "includesNewPendingConsentTest": true,
+    "trxSha256": "3589eb0ffe942a99d61ff411492c64f3189a867e7bcc9e66baba131b621c9371"
+  },
+  "angularUnitTests": {
+    "passed": 57,
+    "failed": 0
+  },
+  "browser": {
+    "passed": 12,
+    "failed": 0,
+    "projects": [
+      "desktop",
+      "mobile"
+    ],
+    "provider": "mocked API contracts"
+  },
+  "frontendProductionBuild": {
+    "passed": true,
+    "existingStyleWarnings": true
+  },
+  "pilotScript": {
+    "syntaxPassed": true,
+    "occupiedPortGuardPassed": true
+  },
+  "localInternalHttp": {
+    "settingsStatus": 200,
+    "schoolId": 18,
+    "configured": true,
+    "hasClientSecret": true,
+    "hasRefreshToken": false,
+    "enabled": false,
+    "hasRoot": false,
+    "authUrlStatus": 200,
+    "registeredLocalRedirectMatches": true,
+    "pendingConsentBrowseStatus": 400,
+    "secretsAbsentFromSettings": true
+  },
+  "pilot": {
+    "schoolId": 18,
+    "encryptedOAuthDraftSaved": true,
+    "refreshTokenPresent": false,
+    "rootSelected": false,
+    "enabled": false,
+    "googleConsentCompleted": false,
+    "googleRequests": 0,
+    "liveGoogleQaCompleted": false,
+    "originalApiRestarted": false,
+    "originalApiRestartBlockedByAutomaticReview": true,
+    "temporaryApiPort": 5265,
+    "temporaryApiStoppedAfterChecks": true,
+    "schemaMigrated": false,
+    "seeded": false,
+    "existingKeysChanged": false,
+    "appsettingsChanged": false,
+    "secretFilesCommitted": false
+  },
+  "storageFlags": {
+    "AdministrationEnabled": false,
+    "ReadModelEnabled": false,
+    "ArchiveWorkerEnabled": false,
+    "ArchiveExternalWritesEnabled": false
+  },
+  "s6": {
+    "historicalImporterImplemented": false,
+    "historicalBytesImported": false,
+    "cutoverExecuted": false,
+    "complete": false
+  },
+  "sourceCredentialScan": {
+    "passed": true,
+    "matches": 0
+  }
+}

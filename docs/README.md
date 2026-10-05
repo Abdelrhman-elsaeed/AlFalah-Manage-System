@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-10-04
+**Last updated:** 2026-10-05
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -62,12 +62,13 @@
 | 8 | [phases/PHASE-08-COMPLAINTS.md](phases/PHASE-08-COMPLAINTS.md) | COMPLETED ✅ |
 | 9 | [phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md](phases/PHASE-09-DASHBOARDS-AND-EXPORTS.md) | COMPLETED ✅ |
 | 10 | [phases/PHASE-10-HARDENING.md](phases/PHASE-10-HARDENING.md) | IN PROGRESS |
-| SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | S5 IMPLEMENTED — isolated SQL, simulated Drive and actual PDFs/RTL contracts verified; four flags OFF; live activation/cutover gates retained; S6 not started |
+| SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | S5 IMPLEMENTED; Drive picker/test-account preparation implemented; four flags OFF; live consent/QA and S6 historical import/cutover pending |
 | SA-1–SA-5 | Student Affairs Technical Specification Kit | BLUEPRINT LOCKED — implementation not started |
 
 ## Change-log
 | Date | Change | By |
 |------|--------|----|
+| 2026-10-05 | **Drive settings and test-account preparation:** OAuth draft can be saved before choosing a root; account file/folder browser replaces manual root input with breadcrumbs, search and paging. Live manager authorization and server root checks protect school/grant boundaries. The existing test school's OAuth client was encrypted locally without migrations, seeding, key changes or Google requests. [Verification and local consent instructions](specs/school-file-storage/verification/drive-settings-and-pilot.md), [D-99](14-DECISIONS-AND-DEVIATIONS.md). Historical S6 import, live Drive QA and cutover remain pending; four flags OFF. | Codex |
 | 2026-10-05 | **School File Storage S5 implemented:** atomic manual/automatic V2 approval revision, outbox and frozen official snapshot; gated renewable lease worker and SQL session exclusion, reserved Drive identity/hash and uncertain-success reconciliation, retained recreation/original/historical versions and current-pointer guards. Live visit/school authorization, protected archive download API, RTL archive filters/history/retry and V2 badge. Actual PDFs compared to official single/ZIP outputs. Additive migration on fresh isolated SQL only; four flags OFF, original Development/Google/keys untouched. [Evidence, limits, activation and rollback](specs/school-file-storage/verification/s5-approved-visit-pdf-archive.md), D-98; stop after S5, no S6/cutover. | Codex |
 | 2026-10-04 | **School File Storage S4 implemented:** immutable 4/11/36 templates and 145 reference fingerprints, scoped SQL readiness/gaps, independent manual judgments/history, audited assignments, RTL dashboard/standards/tracker/index/reports and actual Arabic CSV BOM/Excel/PDF verification. School comes from live server authorization; display filters retain the denominator and exports use the same filters. Additive SQL only on fresh isolated databases, flags OFF, original Development/credentials/keys untouched. Live Drive/owner acceptance/cutover gates remain; stop after S4, no S5/S6. [S4 evidence and rollback](specs/school-file-storage/verification/s4-self-evaluation-and-reports.md), D-97. | Codex |
 | 2026-10-04 | **School File Storage S3 implemented:** school/year catalog with exact EvidenceTask mapping and 4 domains/11 standards; independent evidence links/review, append-only decisions/audit, rowversion, retained change requests/versions, recoverable S2 candidate uploads, shared-writer provenance repair and approved-only matrix/Excel/PDF reader behind the existing disabled flag. RTL teacher/manager/delegate workflows, isolated SQL/backfill/export comparisons and desktop/mobile mocked journeys verified; live Google remains unavailable. Original Development, credentials and keys untouched; no cutover or S4 work. [Evidence, limitations and rollback](specs/school-file-storage/verification/s3-evidence-and-review.md). D-96. | Codex |

@@ -1,4 +1,23 @@
-# S0 — أدوات جرد وقياس قابلة للإعادة
+# أدوات الجرد والقياس وتجهيز تجربة Drive
+
+## تجهيز حساب مدرسة الاختبار
+
+`DrivePilotSetup` أداة offline مقيدة بـ LocalDB واسم مدرسة `Al-Falah E2E Test School` ومديرها الفعلي. لا migrations/seeding أو Google HTTP أو توليد مفاتيح، ولا استبدال اتصال نشط أو مجلد موجود. تعتمد مفاتيح Data Protection الحالية، ولا تطبع الأسرار. اقرأ [تقرير التجربة وحدودها](../verification/drive-settings-and-pilot.md).
+
+```powershell
+dotnet run --project docs/specs/school-file-storage/scripts/DrivePilotSetup -- --repository . --school-id 18 --client-file 'C:\private\oauth-web-client.json' --email 'pilot@example.com'
+# أضف --apply لحفظ draft مشفّر غير مفعّل بعد dry-run.
+```
+
+لبدء API محلي بعد إيقاف النسخة القديمة من طرفيتها:
+
+```powershell
+powershell -NoProfile -File docs/specs/school-file-storage/scripts/start-drive-pilot.ps1
+```
+
+يرفض السكربت المنفذ المستخدم ويترك عمليته كما هي. يضبط callback على 5264 وcompletion على Angular 4200 للعملية فقط، ويمنع startup migrations/seeding ويغلق رايات التخزين الأربع. إعداد الاتصال محفوظ في المدرسة؛ موافقة Google ثم اختيار المجلد تتمان من الواجهة. لا تُشغّل سكربت الجرد التالي باعتباره بديلًا لاختبار Google الحي.
+
+## أدوات S0 الأصلية
 
 تشغل من جذر المستودع. اقرأ [تقرير القيود والنتائج](../baseline/README.md) قبل استخدام الأرقام. لا تشغّل البروتوتايب أو API للحصول على هذه القياسات: بدء API قد يهاجر/يزرع SQL ويشغّل reconciliation.
 

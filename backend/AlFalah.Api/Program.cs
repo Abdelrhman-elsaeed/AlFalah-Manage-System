@@ -326,6 +326,11 @@ if (!isLocalFrontendEnvironment)
 
 // ─── Database Migration and Seeding ──────────────────────────────────────────
 
+// A local connection-settings pilot must not silently migrate or reseed the existing
+// Development database. Production and E2E retain their normal initialization policy.
+var initializeDatabase = !builder.Environment.IsDevelopment() ||
+    builder.Configuration.GetValue("Database:InitializeOnStartup", true);
+if (initializeDatabase)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AlFalahDbContext>();

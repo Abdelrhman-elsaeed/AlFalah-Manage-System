@@ -53,16 +53,22 @@ public sealed class GoogleDriveTokenService : IGoogleDriveTokenService
         _logger = logger;
     }
 
-    public async Task<string> GetAccessTokenAsync(int schoolId, CancellationToken cancellationToken = default)
-    {
-        if (_cache.TryGetValue(CacheKey(schoolId), out string? cached) && !string.IsNullOrEmpty(cached))
-            return cached;
+    public Task<string> GetAccessTokenAsync(int schoolId, CancellationToken cancellationToken = default) =>
+        GetTokenAsync(schoolId, false, cancellationToken);
 
+    public Task<string> GetSetupAccessTokenAsync(int schoolId, CancellationToken cancellationToken = default) =>
+        GetTokenAsync(schoolId, true, cancellationToken);
+
+    private async Task<string> GetTokenAsync(int schoolId, bool setup, CancellationToken cancellationToken)
+    {
         var drive = await _context.SchoolGoogleDrives.AsNoTracking()
-            .SingleOrDefaultAsync(x => x.SchoolId == schoolId && x.IsEnabled, cancellationToken)
+            .SingleOrDefaultAsync(x => x.SchoolId == schoolId && (setup || x.IsEnabled), cancellationToken)
             ?? throw new InvalidOperationException("لم يتم ربط حساب Google Drive الخاص بالمدرسة بعد.");
         if (string.IsNullOrWhiteSpace(drive.ProtectedCredential))
             throw new InvalidOperationException("بيانات اعتماد Google Drive الخاصة بالمدرسة غير مكتملة.");
+
+        if (_cache.TryGetValue(CacheKey(schoolId), out string? cached) && !string.IsNullOrEmpty(cached))
+            return cached;
 
         var secret = _protector.Unprotect(drive.ProtectedCredential);
         var content = drive.CredentialType switch

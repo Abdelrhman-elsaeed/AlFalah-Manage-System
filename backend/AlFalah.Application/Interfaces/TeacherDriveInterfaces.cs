@@ -11,6 +11,10 @@ public interface IGoogleDriveTokenService
 {
     Task<string> GetAccessTokenAsync(int schoolId, CancellationToken cancellationToken = default);
 
+    // Only the manager's read-only setup browser may use credentials before activation.
+    Task<string> GetSetupAccessTokenAsync(int schoolId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException();
+
     /// <summary>Drops the cached token so the next call re-authenticates. Called after a credential change.</summary>
     void InvalidateCachedToken(int schoolId);
 }

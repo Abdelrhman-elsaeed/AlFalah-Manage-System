@@ -214,6 +214,9 @@ public static class DependencyInjection
         services.AddScoped<TeacherDriveFolderGuard>();
         services.AddScoped<ITeacherDriveIdentityService, TeacherDriveIdentityService>();
         services.AddScoped<ISchoolGoogleDriveService, SchoolGoogleDriveService>();
+        services.AddScoped<AlFalah.Application.Storage.ISchoolDriveSetupRepository, SchoolDriveSetupRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IGoogleDriveSetupReader, GoogleDriveSetupReader>();
+        services.AddScoped<AlFalah.Application.Storage.ISchoolDriveFolderService, AlFalah.Application.Storage.SchoolDriveFolderService>();
         // Reuses the "GoogleOAuth" HttpClient below — the authorization-code exchange and the
         // refresh-token grant both post to the same Google token endpoint.
         services.AddScoped<IGoogleDriveOAuthService, GoogleDriveOAuthService>();

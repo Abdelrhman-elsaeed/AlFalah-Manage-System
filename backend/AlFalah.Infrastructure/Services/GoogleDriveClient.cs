@@ -20,7 +20,7 @@ namespace AlFalah.Infrastructure.Services;
 public sealed class GoogleDriveClient : IGoogleDriveClient
 {
     /// <summary>Everything the UI and the ledger need from a file, in one round trip.</summary>
-    private const string FileFields = "id,name,mimeType,size,modifiedTime,webViewLink,version,parents,trashed,appProperties,lastModifyingUser(displayName)";
+    private const string FileFields = "id,name,mimeType,size,modifiedTime,webViewLink,version,parents,trashed,appProperties,driveId,capabilities(canAddChildren),lastModifyingUser(displayName)";
 
     private readonly IGoogleDriveTokenService _tokens;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -296,7 +296,9 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
             node["version"]?.ToString(),
             parents,
             node["trashed"]?.GetValue<bool>() ?? false,
-            node["appProperties"]?.Deserialize<Dictionary<string, string>>());
+            node["appProperties"]?.Deserialize<Dictionary<string, string>>(),
+            node["driveId"]?.GetValue<string>(),
+            node["capabilities"]?["canAddChildren"]?.GetValue<bool>());
     }
 
     /// <summary>

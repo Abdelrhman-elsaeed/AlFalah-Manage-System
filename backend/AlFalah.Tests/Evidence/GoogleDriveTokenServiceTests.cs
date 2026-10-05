@@ -147,6 +147,18 @@ public sealed class GoogleDriveTokenServiceTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Setup_token_allows_read_only_preparation_but_does_not_activate_a_disabled_connection()
+    {
+        var handler = new CapturingHandler();
+        await using var harness = await CreateAsync(GoogleDriveCredentialType.OAuthRefreshToken, "1//refresh", handler,
+            oAuthClientId: "id", oAuthClientSecret: "secret", isEnabled: false);
+        (await harness.Service.GetSetupAccessTokenAsync(1)).Should().Be("granted-access-token");
+        await harness.Service.Invoking(x => x.GetAccessTokenAsync(1)).Should().ThrowAsync<InvalidOperationException>();
+        (await harness.Context.SchoolGoogleDrives.SingleAsync()).IsEnabled.Should().BeFalse();
+        handler.Calls.Should().Be(1);
+    }
+
+    [Fact]
     public async Task A_Corrupt_ServiceAccount_Key_Fails_With_A_Clear_Message()
     {
         var handler = new CapturingHandler();

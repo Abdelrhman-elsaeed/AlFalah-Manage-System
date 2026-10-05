@@ -2,6 +2,7 @@ using System.Text.Json;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.TeacherDrive;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.Storage;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data;
@@ -22,6 +23,8 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
     private readonly AuditLogWriter _audit;
     private readonly GoogleDriveCredentialProtector _protector;
     private readonly IGoogleDriveTokenService _tokens;
+    private readonly ISchoolDriveFolderService? _folders;
+    private readonly ISchoolDriveSetupRepository? _setup;
 
     public SchoolGoogleDriveService(
         AlFalahDbContext context,
@@ -29,7 +32,9 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         SchoolScopeGuard scopeGuard,
         AuditLogWriter audit,
         GoogleDriveCredentialProtector protector,
-        IGoogleDriveTokenService tokens)
+        IGoogleDriveTokenService tokens,
+        ISchoolDriveFolderService? folders = null,
+        ISchoolDriveSetupRepository? setup = null)
     {
         _context = context;
         _currentUser = currentUser;
@@ -37,12 +42,15 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         _audit = audit;
         _protector = protector;
         _tokens = tokens;
+        _folders = folders;
+        _setup = setup;
     }
 
     public async Task<SchoolGoogleDriveSettingsDto> GetForCurrentSchoolAsync(CancellationToken cancellationToken = default)
     {
         EnsureManager();
         var schoolId = ResolveSchoolId();
+        await EnsureCurrentManagerAsync(schoolId, cancellationToken);
         var drive = await _context.SchoolGoogleDrives.AsNoTracking().SingleOrDefaultAsync(x => x.SchoolId == schoolId, cancellationToken);
         return Map(schoolId, drive);
     }
@@ -52,11 +60,24 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
     {
         EnsureManager();
         var schoolId = ResolveSchoolId();
+        await EnsureCurrentManagerAsync(schoolId, cancellationToken);
         var drive = await _context.SchoolGoogleDrives.SingleOrDefaultAsync(x => x.SchoolId == schoolId, cancellationToken);
         var isNew = drive is null;
         Validate(request, drive);
 
+        SchoolDriveRootSelection? selection = null;
+        if (_folders is not null && (request.IsEnabled ||
+            !string.IsNullOrWhiteSpace(request.RootFolderId) && request.RootFolderId.Trim() != drive?.RootFolderId))
+        {
+            if (request.IsEnabled && (request.CredentialType != drive?.CredentialType ||
+                !string.IsNullOrWhiteSpace(request.ServiceAccountJson) || !string.IsNullOrWhiteSpace(request.OAuthClientSecret) ||
+                request.OAuthClientId?.Trim() != drive?.OAuthClientId))
+                throw new BusinessRuleException("احفظ بيانات الاتصال أولًا وأكمل الربط، ثم اختر المجلد وفعّل الملفات.");
+            selection = await _folders.ValidateRootAsync(request.RootFolderId.Trim(), cancellationToken);
+        }
+
         var before = drive is null ? null : Describe(drive);
+        var previousType = drive?.CredentialType;
         if (drive is null)
         {
             drive = new SchoolGoogleDrive { SchoolId = schoolId };
@@ -65,9 +86,9 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
 
         drive.CredentialType = request.CredentialType;
         drive.SchoolGoogleEmail = request.SchoolGoogleEmail.Trim();
-        drive.SharedDriveId = Clean(request.SharedDriveId);
-        drive.RootFolderId = request.RootFolderId.Trim();
-        drive.RootFolderDisplayName = request.RootFolderDisplayName.Trim();
+        drive.SharedDriveId = selection is not null ? selection.SharedDriveId : Clean(request.SharedDriveId);
+        drive.RootFolderId = selection?.ItemId ?? request.RootFolderId.Trim();
+        drive.RootFolderDisplayName = selection?.Name ?? request.RootFolderDisplayName.Trim();
         drive.IsEnabled = request.IsEnabled;
 
         if (request.CredentialType == GoogleDriveCredentialType.ServiceAccount)
@@ -84,7 +105,7 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         {
             drive.ImpersonatedUserEmail = null;
             var requestedClientId = Clean(request.OAuthClientId);
-            var oauthClientWasReplaced = drive.CredentialType != GoogleDriveCredentialType.OAuthRefreshToken
+            var oauthClientWasReplaced = previousType != GoogleDriveCredentialType.OAuthRefreshToken
                 || !string.Equals(drive.OAuthClientId, requestedClientId, StringComparison.Ordinal)
                 || !string.IsNullOrWhiteSpace(request.OAuthClientSecret);
 
@@ -101,6 +122,7 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         }
 
         if (isNew) drive.ConnectedAtUtc = DateTimeOffset.UtcNow;
+        await EnsureCurrentManagerAsync(schoolId, cancellationToken);
         drive.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         _audit.Write(schoolId, _currentUser.UserId, "SchoolGoogleDrive.Configured", "SchoolGoogleDrive",
@@ -114,12 +136,18 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
     }
 
     private int ResolveSchoolId() =>
-        _scopeGuard.ResolveAllowedSchoolId(null) ?? throw new UnauthorizedSchoolAccessException("اختر مدرسة قبل إعداد ملفات الإنجاز.");
+        _scopeGuard.ResolveAllowedSchoolId(_currentUser.ActiveSchoolId) ?? throw new UnauthorizedSchoolAccessException("اختر مدرسة قبل إعداد ملفات الإنجاز.");
 
     private void EnsureManager()
     {
         if (!_currentUser.IsGlobalAdmin() && !_currentUser.GetRoles().Contains(RoleNames.SchoolManager))
             throw new UnauthorizedSchoolAccessException("إعداد ملفات الإنجاز متاح لمدير المدرسة فقط.");
+    }
+
+    private async Task EnsureCurrentManagerAsync(int schoolId, CancellationToken ct)
+    {
+        if (_setup is not null && (_currentUser.UserId is null || !await _setup.CanConfigureAsync(_currentUser.UserId, schoolId, ct)))
+            throw new UnauthorizedSchoolAccessException("لم تعد تملك صلاحية إعداد حساب Google لهذه المدرسة.");
     }
 
     private static void Validate(ConfigureSchoolGoogleDriveRequest request, SchoolGoogleDrive? existing)
@@ -128,8 +156,10 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
             throw new InvalidOperationException("نوع بيانات اعتماد Google Drive غير مدعوم.");
         if (!System.Net.Mail.MailAddress.TryCreate(request.SchoolGoogleEmail, out _))
             throw new InvalidOperationException("بريد حساب Google الخاص بالمدرسة غير صالح.");
-        if (string.IsNullOrWhiteSpace(request.RootFolderId) || string.IsNullOrWhiteSpace(request.RootFolderDisplayName))
+        if (request.IsEnabled && (string.IsNullOrWhiteSpace(request.RootFolderId) || string.IsNullOrWhiteSpace(request.RootFolderDisplayName)))
             throw new InvalidOperationException("معرّف المجلد الرئيسي واسمه مطلوبان.");
+        if (request.RootFolderId is null || request.RootFolderDisplayName is null || request.RootFolderId.Length > 256 || request.RootFolderDisplayName.Length > 256)
+            throw new InvalidOperationException("بيانات المجلد الرئيسي غير صالحة.");
 
         // A credential is only optional on an update that keeps the SAME grant type; changing
         // type always needs fresh material, since the stored blob means something else.
@@ -227,5 +257,6 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         ? new(schoolId, false, false, null, null, null, null, null, null, null, false, null)
         : new(schoolId, true, drive.IsEnabled, drive.CredentialType, drive.SchoolGoogleEmail,
             drive.ImpersonatedUserEmail, drive.OAuthClientId, drive.SharedDriveId, drive.RootFolderId,
-            drive.RootFolderDisplayName, !string.IsNullOrWhiteSpace(drive.ProtectedCredential), drive.ConnectedAtUtc);
+            drive.RootFolderDisplayName, !string.IsNullOrWhiteSpace(drive.ProtectedCredential), drive.ConnectedAtUtc,
+            !string.IsNullOrWhiteSpace(drive.ProtectedOAuthClientSecret));
 }

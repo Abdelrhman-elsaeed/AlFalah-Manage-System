@@ -2,26 +2,34 @@
   <header class="page-header">
     <div>
       <h1>إعدادات ملفات الإنجاز</h1>
-      <p>اربط حساب Google Drive الخاص بالمدرسة، ثم امنح كل معلم مجلده الخاص من ملفه الشخصي.</p>
+      <p>اربط حساب Google، اختر مجلد المدرسة من ملفات الحساب، ثم امنح كل معلم مجلده الخاص.</p>
     </div>
   </header>
 
+  <p *ngIf="loading()" role="status">جارٍ تحميل إعدادات الاتصال…</p>
+  <p *ngIf="error()" class="error" role="alert">{{ error() }}</p>
   <form *ngIf="!loading()" [formGroup]="form" (ngSubmit)="save()" class="settings-card">
     <p class="notice">
       <i class="pi pi-shield"></i>
       المعلمون لا يحتاجون حساب Google ولا تسجيل دخول ثانٍ. يستخدم النظام حساب المدرسة فقط، ويتحكم بنفسه في المجلد
       الذي يراه كل معلم.
     </p>
-    <p class="status" [class.status--ready]="configured()">
-      {{ configured() ? 'تم ربط حساب Google Drive للمدرسة. يمكنك الآن منح المعلمين مجلداتهم.' : 'لم يتم ربط حساب Google Drive لهذه المدرسة بعد.' }}
+    <p class="status" [class.status--ready]="hasStoredCredential() && enabled()" role="status">
+      {{ hasStoredCredential() ? (enabled() ? 'الحساب مرتبط وملفات المدرسة مفعّلة.' : 'الحساب مرتبط. اختر مجلد المدرسة واحفظ الإعدادات للتفعيل.') : (configured() ? 'بيانات الاتصال محفوظة. أكمل ربط حساب Google.' : 'ابدأ بحفظ بيانات الاتصال، ثم اربط الحساب.') }}
     </p>
+
+    <ol class="setup-steps" aria-label="خطوات الإعداد">
+      <li [class.done]="configured()">حفظ الاتصال</li>
+      <li [class.done]="hasStoredCredential()">ربط الحساب</li>
+      <li [class.done]="enabled()">اختيار مجلد المدرسة</li>
+    </ol>
 
     <div class="grid">
       <label>
         طريقة الاتصال
         <select formControlName="credentialType" class="native-select">
-          <option [ngValue]="credentialTypes.ServiceAccount">حساب خدمة (Service Account) — موصى به</option>
           <option [ngValue]="credentialTypes.OAuthRefreshToken">حساب Google عادي (Refresh Token)</option>
+          <option [ngValue]="credentialTypes.ServiceAccount">حساب خدمة (Service Account)</option>
         </select>
       </label>
       <label>
@@ -54,6 +62,12 @@
 
     <!-- ── Refresh token ───────────────────────────────────────────────────── -->
     <div class="grid" *ngIf="!isServiceAccount()">
+      <label class="span-2 oauth-import">
+        استيراد بيانات OAuth من ملف JSON
+        <input type="file" accept=".json,application/json" (change)="importOAuthClient($event)" aria-label="ملف OAuth JSON" [disabled]="saving()" />
+        <small class="field-hint">اختر الملف الذي نزّلته من Google Cloud. تُقرأ بيانات الاتصال فقط ويُحفظ السر مشفّرًا عند الحفظ.</small>
+        <small *ngIf="importedFile()">{{ importedFile() }}</small>
+      </label>
       <label>
         OAuth Client ID
         <input pInputText dir="ltr" formControlName="oAuthClientId" placeholder="xxxxx.apps.googleusercontent.com" />
@@ -61,7 +75,7 @@
       <label>
         OAuth Client Secret
         <input pInputText dir="ltr" type="password" formControlName="oAuthClientSecret"
-               [placeholder]="hasStoredCredential() ? 'اتركه فارغاً للإبقاء على القيمة المحفوظة' : 'GOCSPX-…'" />
+               autocomplete="new-password" [placeholder]="hasStoredClientSecret() ? 'اتركه فارغاً للإبقاء على القيمة المحفوظة' : 'GOCSPX-…'" />
       </label>
       <!-- The refresh token is obtained through Google's consent screen, never typed. -->
       <div class="span-2 consent-row">
@@ -73,11 +87,11 @@
             <span class="consent-state consent-state--pending">لم يتم ربط حساب Google بعد.</span>
           </ng-template>
           <small class="field-hint">
-            احفظ Client ID و Client Secret أولاً، ثم اربط الحساب. ستُنقل إلى صفحة موافقة Google وتعود تلقائياً.
+            احفظ بيانات الاتصال أولًا دون الحاجة إلى معرّف مجلد. ثم أكمل موافقة Google وعد لاختيار المجلد.
           </small>
         </div>
         <button pButton type="button" class="p-button-outlined"
-                [disabled]="!canConnect() || connecting()"
+                [disabled]="!canConnect() || connecting() || saving()"
                 [label]="hasStoredCredential() ? 'إعادة ربط حساب Google' : 'ربط حساب Google'"
                 icon="pi pi-google" [loading]="connecting()" (click)="connect()"></button>
       </div>
@@ -87,22 +101,22 @@
       </label>
     </div>
 
+    <button pButton type="button" icon="pi pi-save" label="حفظ بيانات الاتصال" class="p-button-outlined"
+            [loading]="saving()" [disabled]="connecting()" (click)="saveConnection()"></button>
+    <p class="field-hint" *ngIf="connectionDirty()">هناك تغيير في بيانات الاتصال. احفظه قبل الربط أو استعراض الملفات.</p>
+
     <!-- ── Root folder ─────────────────────────────────────────────────────── -->
+    <div class="folder-selection">
+      <div>
+        <h2>مجلد المدرسة على Google Drive</h2>
+        <p class="selected-folder"><i class="pi pi-folder"></i> {{ form.controls.rootFolderDisplayName.value || 'لم يُحدد مجلد بعد' }}</p>
+        <small class="field-hint">اختر مجلدًا مخصصًا لهذه المدرسة. يُجلب اسمه تلقائيًا من الحساب.</small>
+      </div>
+      <button pButton type="button" icon="pi pi-folder-open" label="اختيار مجلد من الحساب" [disabled]="!canBrowse() || saving()" (click)="openPicker()"></button>
+    </div>
     <div class="grid">
-      <label>
-        معرّف المجلد الرئيسي لملفات الإنجاز
-        <input pInputText dir="ltr" formControlName="rootFolderId" placeholder="1AbCdEfGhIjKlMnOpQrStUvWxYz" />
-        <small class="field-hint">
-          افتح المجلد على Google Drive وانسخ الجزء الأخير من الرابط:
-          <span dir="ltr">drive.google.com/drive/folders/<b>&lt;المعرّف&gt;</b></span>
-        </small>
-      </label>
-      <label>
-        اسم المجلد الرئيسي
-        <input pInputText formControlName="rootFolderDisplayName" placeholder="ملفات الإنجاز" />
-      </label>
       <label class="toggle">
-        <p-inputSwitch formControlName="isEnabled" /> تفعيل ملفات الإنجاز للمدرسة
+        <p-inputSwitch formControlName="isEnabled" [disabled]="!hasStoredCredential()" /> تفعيل ملفات الإنجاز للمدرسة
       </label>
     </div>
 
@@ -115,6 +129,50 @@
       <b>استعراض وتنزيل</b> الملفات من مجلد على My Drive، لكن <b>الرفع</b> قد يرفضه Google برسالة
       <span dir="ltr">storageQuotaExceeded</span>.
     </p>
-    <button pButton type="submit" icon="pi pi-save" label="حفظ وتفعيل" [loading]="saving()"></button>
+    <button pButton type="submit" icon="pi pi-check" label="حفظ إعدادات المجلد" [loading]="saving()"
+            [disabled]="!canBrowse() || !form.controls.rootFolderId.value"></button>
   </form>
+
+  <p-dialog header="اختيار مجلد المدرسة" [visible]="pickerVisible()" (visibleChange)="!$event && closePicker()"
+            [modal]="true" [draggable]="false" [style]="{ width: '760px', maxWidth: '94vw' }">
+    <div class="drive-picker" dir="rtl" [attr.aria-busy]="browsing()">
+      <p class="field-hint">استعرض ملفات الحساب، وافتح المجلد الذي تريد تخصيصه للمدرسة ثم اختره. الملفات تظهر للتعرف على المحتوى فقط.</p>
+      <form class="picker-search" (submit)="$event.preventDefault(); browse(folderPage()?.currentFolderId, false, folderSearch.value)">
+        <input pInputText #folderSearch placeholder="بحث داخل المجلد" aria-label="بحث داخل المجلد" maxlength="200" />
+        <button pButton type="submit" icon="pi pi-search" label="بحث" [disabled]="browsing()"></button>
+        <button pButton type="button" class="p-button-text" label="ملفاتي" icon="pi pi-home" [disabled]="browsing()" (click)="folderSearch.value = ''; browse()"></button>
+      </form>
+      <p *ngIf="browsing()" role="status">جارٍ استعراض الملفات…</p>
+      <div *ngIf="browseError()" class="error" role="alert">
+        {{ browseError() }}
+        <button pButton type="button" class="p-button-text" label="إعادة المحاولة" (click)="browse()"></button>
+      </div>
+      <ng-container *ngIf="folderPage() as current">
+        <nav class="picker-breadcrumb" aria-label="مسار المجلد">
+          <button *ngFor="let crumb of current.breadcrumbs" type="button" [disabled]="browsing()"
+                  (click)="folderSearch.value = ''; browse(crumb.itemId)">{{ crumb.name }}</button>
+        </nav>
+        <div class="picker-current">
+          <strong>{{ current.currentFolderName }}</strong>
+          <button pButton type="button" label="اختيار هذا المجلد" icon="pi pi-check" [disabled]="!current.canSelectCurrent || browsing()"
+                  (click)="selectFolder(current.currentFolderId, current.currentFolderName)"></button>
+        </div>
+        <p *ngIf="current.isAccountRoot" class="field-hint">افتح مجلدًا مخصصًا للمدرسة بدل اختيار الحساب بالكامل.</p>
+        <ul class="picker-items">
+          <li *ngFor="let item of current.items" [class.is-file]="!item.isFolder">
+            <i [class]="item.isFolder ? 'pi pi-folder' : 'pi pi-file'"></i>
+            <button *ngIf="item.isFolder; else fileName" type="button" class="item-name" [disabled]="browsing()"
+                    (click)="folderSearch.value = ''; browse(item.itemId)">{{ item.name }}</button>
+            <ng-template #fileName><span class="item-name">{{ item.name }}</span></ng-template>
+            <small>{{ item.isFolder ? 'مجلد' : 'ملف — غير قابل للاختيار' }}</small>
+            <button *ngIf="item.isFolder" pButton type="button" class="p-button-outlined p-button-sm" label="اختيار" [disabled]="!item.canSelect || browsing()"
+                    [attr.aria-label]="'اختيار ' + item.name" (click)="selectFolder(item.itemId, item.name)"></button>
+          </li>
+        </ul>
+        <p *ngIf="!current.items.length" role="status">لا توجد ملفات أو مجلدات تطابق البحث.</p>
+        <button *ngIf="current.nextPageToken" pButton type="button" class="p-button-text" label="عرض المزيد" [loading]="browsing()"
+                (click)="browse(current.currentFolderId, true, folderSearch.value)"></button>
+      </ng-container>
+    </div>
+  </p-dialog>
 </section>

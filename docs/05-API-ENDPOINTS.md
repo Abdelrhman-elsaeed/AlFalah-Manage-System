@@ -459,3 +459,11 @@ Authenticated, rate-limited `/api/v1/storage/visits`, JSON ApiResponse<T>, serve
 No archive bytes/details/history are available through generic storage/files, evidence, digital index or readiness exports. Official V2 PDF/ZIP uses the frozen snapshot for new approvals even when archival waits; legacy approvals without snapshot retain existing V2 rendering. [Complete S5 contracts, security, tests and limitations](specs/school-file-storage/verification/s5-approved-visit-pdf-archive.md).
 
 Existing teacher-drive items/content/breadcrumb also deny archived IDs and filter them from items lists, including external relocation into the teacher's grant or stripped properties. No legacy endpoint or response contract changes; archive content must use its visit-authorized API.
+
+## School Drive setup: account-folder browser (2026-10-05, D-99)
+
+`GET /api/v1/school-google-drive/folders` accepts optional `ParentItemId`, `PageToken` and `Search`; it derives the school from authenticated `ActiveSchoolId` and revalidates live manager/global-admin assignment in SQL. It returns `ApiResponse<SchoolDriveFolderPage>` with current folder identity/name, account-root and selectability flags, breadcrumbs, file/folder metadata and next page token. Page size is 50; search stays within the current folder. Response caching is `private, no-store`; existing teacher-drive rate limiting applies.
+
+`PUT /api/v1/school-google-drive` now supports an inactive connection draft with empty root ID/name, enabling OAuth consent before root selection. Settings add `hasStoredOAuthClientSecret` as a boolean only. On root change or activation, the server validates real Drive folder metadata, write capability, other schools' roots and retained teacher/library/archive boundaries; name and shared drive ID come from validated metadata. Missing account consent is HTTP 400, forbidden scope/manager is 403, missing folder 404 and changed setup connection 409. Account browsing requires stored credentials but does not activate normal Drive access.
+
+The setup reader performs metadata/list GETs only. No new migrations or automatic storage rollout are introduced. [Contracts, verification and local pilot](specs/school-file-storage/verification/drive-settings-and-pilot.md).

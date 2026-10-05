@@ -18,7 +18,8 @@ public sealed record SchoolGoogleDriveSettingsDto(
     string? RootFolderId,
     string? RootFolderDisplayName,
     bool HasStoredCredential,
-    DateTimeOffset? ConnectedAtUtc);
+    DateTimeOffset? ConnectedAtUtc,
+    bool HasStoredOAuthClientSecret = false);
 
 /// <summary>
 /// Secret-bearing fields are nullable on purpose: sending null keeps whatever is already

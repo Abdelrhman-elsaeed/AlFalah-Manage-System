@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.TeacherDrive;
 using AlFalah.Application.Interfaces;
+using AlFalah.Application.Storage;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data;
@@ -66,6 +67,7 @@ public sealed class GoogleDriveOAuthService : IGoogleDriveOAuthService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleDriveOAuthService> _logger;
+    private readonly ISchoolDriveSetupRepository? _setup;
 
     public GoogleDriveOAuthService(
         AlFalahDbContext context,
@@ -77,7 +79,8 @@ public sealed class GoogleDriveOAuthService : IGoogleDriveOAuthService
         IGoogleDriveTokenService tokens,
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
-        ILogger<GoogleDriveOAuthService> logger)
+        ILogger<GoogleDriveOAuthService> logger,
+        ISchoolDriveSetupRepository? setup = null)
     {
         _context = context;
         _currentUser = currentUser;
@@ -89,12 +92,14 @@ public sealed class GoogleDriveOAuthService : IGoogleDriveOAuthService
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _logger = logger;
+        _setup = setup;
     }
 
     public async Task<GoogleAuthUrlDto> GetAuthUrlForCurrentSchoolAsync(CancellationToken cancellationToken = default)
     {
         EnsureManager();
         var schoolId = ResolveSchoolId();
+        await EnsureCurrentManagerAsync(_currentUser.UserId, schoolId, cancellationToken);
 
         var drive = await _context.SchoolGoogleDrives.AsNoTracking()
             .SingleOrDefaultAsync(x => x.SchoolId == schoolId, cancellationToken);
@@ -132,6 +137,7 @@ public sealed class GoogleDriveOAuthService : IGoogleDriveOAuthService
             ["access_type"] = "offline",
             ["prompt"] = "consent",
             ["include_granted_scopes"] = "true",
+            ["login_hint"] = drive!.SchoolGoogleEmail,
             ["state"] = state
         });
 
@@ -145,6 +151,7 @@ public sealed class GoogleDriveOAuthService : IGoogleDriveOAuthService
         // redirect, with no authenticated principal to consult. The unprotected state is the
         // sole authority on which school is being connected and who asked for it.
         var request = UnprotectState(state);
+        await EnsureCurrentManagerAsync(request.UserId, request.SchoolId, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(code))
             throw new InvalidOperationException("لم تُرجع Google رمز التفويض (code).");
@@ -162,6 +169,7 @@ public sealed class GoogleDriveOAuthService : IGoogleDriveOAuthService
             _protector.Unprotect(drive.ProtectedOAuthClientSecret!),
             cancellationToken);
 
+        await EnsureCurrentManagerAsync(request.UserId, request.SchoolId, cancellationToken);
         var before = Describe(drive);
         drive.CredentialType = GoogleDriveCredentialType.OAuthRefreshToken;
         drive.ProtectedCredential = _protector.Protect(refreshToken);
@@ -268,12 +276,18 @@ public sealed class GoogleDriveOAuthService : IGoogleDriveOAuthService
     }
 
     private int ResolveSchoolId() =>
-        _scopeGuard.ResolveAllowedSchoolId(null) ?? throw new UnauthorizedSchoolAccessException("اختر مدرسة قبل ربط حساب Google Drive.");
+        _scopeGuard.ResolveAllowedSchoolId(_currentUser.ActiveSchoolId) ?? throw new UnauthorizedSchoolAccessException("اختر مدرسة قبل ربط حساب Google Drive.");
 
     private void EnsureManager()
     {
         if (!_currentUser.IsGlobalAdmin() && !_currentUser.GetRoles().Contains(RoleNames.SchoolManager))
             throw new UnauthorizedSchoolAccessException("ربط حساب Google Drive متاح لمدير المدرسة فقط.");
+    }
+
+    private async Task EnsureCurrentManagerAsync(string? userId, int schoolId, CancellationToken ct)
+    {
+        if (_setup is not null && (userId is null || !await _setup.CanConfigureAsync(userId, schoolId, ct)))
+            throw new UnauthorizedSchoolAccessException("لم تعد تملك صلاحية ربط حساب Google بهذه المدرسة.");
     }
 
     private string AuthorizationEndpoint =>
