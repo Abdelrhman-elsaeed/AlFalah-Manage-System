@@ -1,6 +1,6 @@
 # S6 operating plan — school 18 — 2026-10-05
 
-Status: preparation and isolated rehearsal. **Operational cutover is not authorized or executed by this plan.** Four original storage flags remain OFF. Read the [S6 verification](verification/s6-import-and-rollout.md) for actual outcomes; historical S0–S5 reports describe their respective run dates.
+Current status 2026-10-06: the owner explicitly requested original local migrations, a library activation button and application restart. **Local library rollout is authorized and executed**: AdministrationEnabled/ReadModelEnabled ON, ArchiveWorkerEnabled/ArchiveExternalWritesEnabled OFF. Ten storage migrations applied on the original configured LocalDB; school 18 has one library root and 36 current-year requirements. Production deployment, historical-byte migration and live archive cutover are not executed. [Actual operation log and checks](verification/library-activation.md). Earlier S0–S6 reports retain their execution-date outcomes.
 
 ## Pilot identity and inputs
 
@@ -59,6 +59,11 @@ Rollback closes imports/UI/read surfaces and stops scheduling workers/external w
 | Owner requested S6 implementation and connected-account tests | Authorized task | Current request, 2026-10-05 |
 | Isolated migrations/backfill/restore | See verification artifacts | Recorded tool timestamps |
 | Synthetic school-18 live smoke | See verification artifacts | Recorded smoke timestamp |
-| Operational migration / flag activation / review cutover | **Not executed** | No approved executor/window; no fabricated timestamp |
+| Original LOCAL migration / library gates | **Executed by later explicit owner request** | Codex, 2026-10-06 15:23:35 →15:23:58 UTC migration; API restart15:28:58 UTC, administration/read ON, archive flags OFF |
+| Production deployment / archive cutover | **Not executed** | No live archive/production rollout claim |
 | Historical original-byte upload | **Not executed** | Originals absent |
 | Physical legacy retirement | **Outside S6** | No action |
+
+## Later owner authorization — 2026-10-06
+
+The explicit instruction to apply migrations, add the activation button and restart authorized the original LOCAL library rollout above. This overrides earlier no-original/flags-OFF prerequisites for that specific operation; it does not approve production deployment, historical bytes or live archive workers. The verified before/after checksum backups and fresh restore, ten migrations, scoped root/36 current-year requirements, persistent local configuration and two application restarts are recorded in [the operation log](verification/library-activation.md). Global local administration/read gates are ON; every school still needs its own valid credential/root/live permission, and school1 remains unavailable. Only the locally ignored Development activation file persists these values. The school activation button provisions/reuses a scoped root through existing service authorization; it never alters hosting-wide settings or executes schema updates. Rollback retains all writes/files and restores the OFF gates without Down/deletion.

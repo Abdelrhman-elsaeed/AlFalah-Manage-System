@@ -43,6 +43,8 @@ export class SchoolGoogleDriveSettingsComponent implements OnInit {
   readonly connectionDirty = signal(false);
   readonly enabled = signal(false);
   readonly libraryState = signal('Checking');
+  readonly canActivateLibrary = signal(false);
+  readonly activatingLibrary = signal(false);
   readonly error = signal('');
   readonly selectedType = signal<GoogleDriveCredentialType>(GoogleDriveCredentialType.OAuthRefreshToken);
   readonly isServiceAccount = computed(() => this.selectedType() === GoogleDriveCredentialType.ServiceAccount);
@@ -146,14 +148,22 @@ export class SchoolGoogleDriveSettingsComponent implements OnInit {
       rootFolderId: data.rootFolderId ?? '', rootFolderDisplayName: data.rootFolderDisplayName ?? '', isEnabled: data.isEnabled,
       serviceAccountJson: '', oAuthClientSecret: '' }, { emitEvent: false });
     this.selectedType.set(this.form.controls.credentialType.value!); this.savedConnection = this.connectionSignature(); this.connectionDirty.set(false); this.importedFile.set('');
-    this.libraryState.set('Checking');
+    this.libraryState.set('Checking'); this.canActivateLibrary.set(false);
     if (data.hasStoredCredential && data.isEnabled) {
       const revision = this.scopeRevision;
       this.storage.contextInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: context => { if (revision === this.scopeRevision) this.libraryState.set(context.connectionState || 'Unavailable'); },
+        next: context => { if (revision === this.scopeRevision) { this.libraryState.set(context.connectionState || 'Unavailable'); this.canActivateLibrary.set(context.canManage); } },
         error: () => { if (revision === this.scopeRevision) this.libraryState.set('Unavailable'); }
       });
     }
+  }
+  activateLibrary(): void {
+    if (this.libraryState() !== 'LibraryNotInitialized' || !this.canActivateLibrary() || this.activatingLibrary() || this.connectionDirty()) return;
+    const revision = this.scopeRevision; this.activatingLibrary.set(true); this.error.set('');
+    this.storage.activateLibrary().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => { if (revision !== this.scopeRevision) return; this.activatingLibrary.set(false); this.toast.success('تم تفعيل مكتبة المدرسة.'); this.loadSettings(); },
+      error: e => { if (revision !== this.scopeRevision) return; this.activatingLibrary.set(false); this.error.set(this.message(e, 'تعذر تفعيل المكتبة. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.')); }
+    });
   }
   private connectionSignature(): string {
     const v = this.form.getRawValue();
@@ -200,6 +210,7 @@ export class SchoolGoogleDriveSettingsComponent implements OnInit {
     if (closePicker) this.closePicker(); this.savedSettings = null; this.savedConnection = '';
     this.configured.set(false); this.hasStoredCredential.set(false); this.hasStoredClientSecret.set(false); this.enabled.set(false);
     this.libraryState.set('Checking');
+    this.canActivateLibrary.set(false); this.activatingLibrary.set(false);
     this.saving.set(false); this.connecting.set(false); this.error.set(''); this.importedFile.set('');
     this.selectedType.set(GoogleDriveCredentialType.OAuthRefreshToken);
     this.form.reset({ credentialType: GoogleDriveCredentialType.OAuthRefreshToken, isEnabled: false }, { emitEvent: false });

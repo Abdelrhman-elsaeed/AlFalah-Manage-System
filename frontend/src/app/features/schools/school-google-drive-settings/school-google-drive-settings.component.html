@@ -22,11 +22,13 @@
       <h2 id="library-guidance-title">رفع الملف وربطه ببند</h2>
       <p *ngIf="libraryState() === 'Checking'" role="status">جارٍ التحقق من حالة مكتبة المدرسة…</p>
       <p *ngIf="libraryState() === 'Disabled'" role="status"><strong>مكتبة المدرسة غير مفعّلة بعد.</strong> ربط Google مكتمل، لكن رفع الملفات وربط الشواهد يحتاج استكمال تشغيل المكتبة بواسطة مسؤول النظام. لا تحتاج إعادة ربط الحساب.</p>
-      <p *ngIf="libraryState() === 'LibraryNotInitialized'" role="status">الاتصال جاهز. افتح مكتبة المدرسة وابدأ بتهيئتها قبل رفع الملفات.</p>
+      <p *ngIf="libraryState() === 'LibraryNotInitialized'" role="status">الاتصال جاهز. اضغط «تفعيل المكتبة» لتجهيز مساحة ملفات المدرسة والبدء في رفع الملفات.</p>
+      <p *ngIf="libraryState() === 'Connected'" role="status">مكتبة المدرسة مفعّلة وجاهزة. افتح المكتبة لرفع الملفات وربطها بالشواهد.</p>
       <p *ngIf="libraryState() !== 'Checking' && libraryState() !== 'Disabled' && libraryState() !== 'LibraryNotInitialized' && libraryState() !== 'Connected'" role="status">راجع حالة الاتصال والصلاحيات داخل مكتبة المدرسة قبل رفع الملفات.</p>
       <p>هذه الصفحة لإعداد حساب التخزين ومجلده. بعد تشغيل المكتبة: ارفع الملف، ثم افتح تفاصيله واختر السنة والبند واربطه كشاهد، ثم أرسله للمراجعة.</p>
       <p class="field-hint">ملف OAuth JSON أدناه يخص بيانات اتصال Google؛ ملف الشاهد ترفعه من المكتبة.</p>
       <a class="library-link" routerLink="/school-manager/storage"><i class="pi pi-folder" aria-hidden="true"></i> فتح مكتبة المدرسة</a>
+      <button *ngIf="libraryState() === 'LibraryNotInitialized' && canActivateLibrary()" pButton type="button" label="تفعيل المكتبة" icon="pi pi-power-off" (click)="activateLibrary()" [loading]="activatingLibrary()" [disabled]="activatingLibrary() || connectionDirty()"></button>
     </section>
 
     <ol class="setup-steps" aria-label="خطوات الإعداد">

@@ -5,7 +5,7 @@ using AlFalah.Infrastructure.Repositories;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
-// This offline adapter never starts the API, migrates, seeds, decrypts credentials or registers Drive.
+// This adapter never starts the API, migrates, seeds, decrypts credentials or registers Drive.
 try
 {
     var apply = args.Contains("--apply", StringComparer.Ordinal);
@@ -25,9 +25,11 @@ try
     if (!connection.DataSource.StartsWith("(localdb)\\", StringComparison.OrdinalIgnoreCase) &&
         !string.Equals(connection.DataSource, "localhost", StringComparison.OrdinalIgnoreCase))
         throw new ArgumentException("This adapter accepts the configured local Development server only.");
-    if (string.Equals(database, connection.InitialCatalog, StringComparison.OrdinalIgnoreCase) ||
+    var configuredDevelopment = args.Contains("--authorized-configured-development", StringComparer.Ordinal);
+    var original = string.Equals(database, connection.InitialCatalog, StringComparison.OrdinalIgnoreCase);
+    if (configuredDevelopment ? !original : original ||
         !database.StartsWith("AlFalahS1Tests_", StringComparison.OrdinalIgnoreCase) && !database.StartsWith("AlFalahSFS_", StringComparison.OrdinalIgnoreCase))
-        throw new ArgumentException("Use a separately provisioned isolated AlFalahS1Tests_ or AlFalahSFS_ database; never the actual Development database.");
+        throw new ArgumentException("Isolated database required by default; an owner-authorized configured Development rollout requires its explicit switch and exact configured database.");
     connection.InitialCatalog = database;
     connection.ApplicationName = "SFS-S1-OfflineBackfill";
     await using var db = new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>().UseSqlServer(connection.ConnectionString).Options);

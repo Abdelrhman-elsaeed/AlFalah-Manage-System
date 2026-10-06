@@ -159,3 +159,16 @@ Normalized source example (also accepts actual source aliases):
 ```
 
 CSV uses the same column names, quoting commas/newlines. Use only actual existing requirement codes/SourceKeys; preview classifications and member suggestions require human review. Multipart preview includes school scope from the authenticated session plus academicYearId/templateVersion/sourceVersion. Review and commit each require latest rowVersion/digest/reason, and cannot silently remap committed rows. Original byte input is separate and must match the reviewed filename/extension/size; source completed never grants approval. A correction to immutable provenance needs a new source version/hash and reviewed batch, not direct SQL editing. Existing old source-only rows are displayed as legacy references.
+
+## Owner-authorized original LOCAL activation — D-102 / 2026-10-06
+
+The later owner request explicitly authorizes original local migrations/backfill/library activation; the earlier S6 commands and OFF reports remain dated rehearsal instructions. [Executed operation/verification](../verification/library-activation.md).
+
+StorageBackfill still refuses the configured original DB by default. Only `--authorized-configured-development` plus the **exact configured local database** permits a reviewed original operation, after verified backup/migrations. Use dry-run first, stop on issues, then apply and replay; no provider/credential/key/deletion operations occur. Do not expose this CLI as an HTTP migration button.
+
+```powershell
+# Read the exact database privately from local settings; never substitute an isolated example.
+dotnet --roll-forward Major docs/specs/school-file-storage/scripts/StorageBackfill/bin/Release/net8.0/StorageBackfill.dll --repository 'D:\AlFalah-Manage-System' --database '<configured-local-db>' --authorized-configured-development --dry-run --report '.audit/activation/backfill-dry.json'
+```
+
+Development-only `backend/AlFalah.Api/appsettings.StorageActivation.Development.json` is ignored locally and contains administration/read true, archive worker/external writes false, startup initialization false. It preserves original Development/credentials/keys. The API loads it only in Development; environment/CLI settings win, restart required after changes. Never copy the local activation file into a production release. Button provisioning is per-school, while administration/read gates remain application-wide and both compatibility surfaces use the shared review writer. Rollback sets local administration/read false, leaves archive flags false, restarts API and retains schema/metadata/Drive files; no Down or deletion.

@@ -485,3 +485,7 @@ All `/api/v1/storage/imports` operations require authenticated live SchoolScope 
 | POST | `/{id}/rows/{row}/reconcile` | Same retained reservation/identity; no blind retry duplication |
 
 Disabled `GET /api/v1/storage/context` returns minimal Disabled state for the actual current school manager without storage-schema/Google access; operational routes remain 404. Generic file content checks live access again after provider acquisition and persists Storage.ContentRead. [Detailed S6 contract rules](specs/school-file-storage/verification/s6-import-and-rollout.md).
+
+## Library activation button — D-102 / 2026-10-06
+
+No new global activation endpoint. Both settings and library use existing `POST /api/v1/storage/folders` with absent parentFolderId, empty displayName and fresh requestKey. Service determines current school/root/name server-side, checks live Storage.ManageSchool/manager or current direct delegation, reserves stable school-wide root identity, reuses/reconciles existing root and audits folder operations. Enabled administration/read hosting is an operational prerequisite; the button provisions the current school's library, never runs migrations or changes host flags. Existing connected school shows ready status instead of repeat activation controls.

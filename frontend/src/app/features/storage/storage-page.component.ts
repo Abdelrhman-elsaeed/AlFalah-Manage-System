@@ -174,7 +174,11 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     } else this.notice = this.translate.instant('STORAGE.RECONCILIATION');
   }
   reconcile() { if (this.operation) this.api.reconcile(this.operation.operationId).pipe(takeUntil(this.destroyed)).subscribe({ next: result => this.uploadResult(result), error: e => this.fail(e) }); }
-  initialize() { this.api.createFolder(undefined, '').pipe(takeUntil(this.destroyed)).subscribe({ next: () => this.refreshContext(), error: e => this.fail(e) }); }
+  initialize() {
+    if (this.busy) return;
+    this.busy = true;
+    this.api.activateLibrary().pipe(takeUntil(this.destroyed)).subscribe({ next: () => this.refreshContext(), error: e => { this.busy = false; this.fail(e); } });
+  }
   createFolder() {
     if (!this.currentFolder) return;
     this.api.createFolder(this.currentFolder.id, this.folderName).pipe(takeUntil(this.destroyed)).subscribe({

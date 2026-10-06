@@ -5,7 +5,7 @@ const file = { itemId: 'document', name: 'تقرير داخل الحساب.pdf',
 const root = { currentFolderId: 'account-root', currentFolderName: 'ملفاتي', isAccountRoot: true, canSelectCurrent: false,
   breadcrumbs: [{ itemId: 'account-root', name: 'ملفاتي' }], items: [folder('school-folder', 'ملفات المدرسة التجريبية'), folder('read-only', 'مجلد للقراءة فقط', false), file], nextPageToken: 'next-1' };
 
-async function setup(page: Page, connected = true, rootEnabled = false) {
+async function setup(page: Page, connected = true, rootEnabled = false, libraryState = 'Disabled', canManage = true) {
   const user = { userId: 'drive-manager', username: 'ui-test', fullName: 'مدير الاختبار', activeSchoolId: 18,
     activeSchoolName: 'Al-Falah E2E Test School', preferredLanguage: 'ar', roles: ['SchoolManager'], permissions: ['Settings.Manage'] };
   await page.addInitScript(user => {
@@ -19,7 +19,11 @@ async function setup(page: Page, connected = true, rootEnabled = false) {
     const request = route.request(); const url = new URL(request.url()); let data: unknown = {};
     if (url.pathname.endsWith('/auth/me')) data = user;
     else if (url.pathname.endsWith('/auth/schools')) data = [];
-    else if (url.pathname.endsWith('/storage/context')) data = { schoolId: 18, connectionState: 'Disabled', canManage: false, isTeacher: false };
+    else if (url.pathname.endsWith('/storage/context')) data = { schoolId: 18, connectionState: libraryState, canManage, isTeacher: false };
+    else if (url.pathname.endsWith('/storage/folders') && request.method() === 'POST') {
+      writes.push(request.postDataJSON()); libraryState = 'Connected';
+      data = { id: 12, displayName: 'مكتبة المدرسة', kind: 'SchoolLibrary', rowVersion: 'v1' };
+    }
     else if (url.pathname.endsWith('/school-google-drive/folders')) {
       browses.push(url);
       const parent = url.searchParams.get('parentItemId');
@@ -50,6 +54,22 @@ test('linked Google folder distinguishes disabled library and explains file link
   await expect(guidance).toContainText('رفع الملف وربطه ببند');
   await expect(guidance.getByRole('link', { name: 'فتح مكتبة المدرسة' })).toHaveAttribute('href', '/school-manager/storage');
   expect(writes).toHaveLength(0);
+});
+
+test('manager activates a prepared connection through scoped library provisioning', async ({ page }) => {
+  const { writes } = await setup(page, true, true, 'LibraryNotInitialized');
+  await page.getByRole('button', { name: 'تفعيل المكتبة', exact: true }).click();
+  await expect(page.locator('.library-guidance')).toContainText('مكتبة المدرسة مفعّلة وجاهزة');
+  await expect(page.getByRole('button', { name: 'تفعيل المكتبة', exact: true })).toHaveCount(0);
+  expect(writes).toHaveLength(1);
+  expect(writes[0]['requestKey']).toBeTruthy(); expect(writes[0]['parentFolderId']).toBeUndefined();
+  expect(writes[0]['rootFolderId']).toBeUndefined(); expect(writes[0]['oAuthClientSecret']).toBeUndefined();
+});
+
+test('read-only library context does not offer activation', async ({ page }) => {
+  await setup(page, true, true, 'LibraryNotInitialized', false);
+  await expect(page.locator('.library-guidance')).toContainText('الاتصال جاهز');
+  await expect(page.getByRole('button', { name: 'تفعيل المكتبة', exact: true })).toHaveCount(0);
 });
 
 test('OAuth JSON imports and saves a disabled connection without a manual folder ID', async ({ page }) => {

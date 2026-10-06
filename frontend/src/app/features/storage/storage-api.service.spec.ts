@@ -11,6 +11,15 @@ describe('Storage API transport', () => {
     api = TestBed.inject(StorageApiService); http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => http.verify());
+  it('activates through the existing scoped root provisioning endpoint without credentials or a provider ID', () => {
+    api.activateLibrary().subscribe();
+    const req = http.expectOne(r => r.url.endsWith('/storage/folders'));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body.parentFolderId).toBeUndefined();
+    expect(req.request.body.requestKey).toBeTruthy();
+    expect(Object.keys(req.request.body)).toEqual(['parentFolderId', 'displayName', 'requestKey']);
+    req.flush({ isSuccess: true, data: { id: 12, displayName: 'مكتبة المدرسة', rowVersion: 'v1' } });
+  });
   it('retains the caller key across retries and puts metadata before streamed file content', () => {
     const file = new File(['%PDF-1.7'], 'شاهد.pdf', { type: 'application/pdf' });
     for (let i = 0; i < 2; i++) {

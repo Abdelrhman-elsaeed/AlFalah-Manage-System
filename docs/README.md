@@ -242,3 +242,11 @@ S6 implementation, isolated QA/backfill/restore and one synthetic school-18 live
 |---|---|---|
 | 2026-10-05 | S6 reviewed JSON/CSV imports and original-byte recovery with S4/S2, 913 backend/34 frontend/70 browser, actual one-row backfill/repeat and retained-write restore, synthetic live Google hash verification, and real disabled manager sidebar fix. Four flags OFF; original Development/credentials/keys preserved; no historical-byte import or cutover; remaining gates recorded. | Codex |
 | 2026-10-05 | D-101: fixed misleading Google settings activation message; display actual library status and provide upload/link guidance and library navigation. Drive browser 14/14 and real desktop/mobile checks passed; frontend build passed. Original flags OFF, no configuration/schema/credential/Drive write or cutover. [Evidence](specs/school-file-storage/verification/drive-library-guidance.md). | Codex |
+
+## Local library activation — 2026-10-06 / D-102
+
+The owner's later instruction authorized original local migrations and library activation. Current runtime: administration/read ON; archive worker/external writes OFF. School18 library/upload and current-year36 requirements are ready, with activation buttons, safe replay, original encrypted credentials/keys and historical records retained. [Actual local rollout/backup/restart checks](specs/school-file-storage/verification/library-activation.md). Prior OFF/not-migrated entries remain dated history; production and live archive rollout are still pending.
+
+| Date | Change | Author |
+|---|---|---|
+| 2026-10-06 | D-102: owner-authorized10 original storage migrations, one-row backfill/replay, persisted local library flags, scoped activation buttons and API/Angular restart. Backend30/Angular4/browser30, actual desktop/mobile and checksum restore passed; archive workers OFF, no credential/key changes or Drive deletion. | Codex |

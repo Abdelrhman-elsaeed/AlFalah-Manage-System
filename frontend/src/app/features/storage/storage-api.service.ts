@@ -36,6 +36,7 @@ export class StorageApiService {
   createFolder(parentFolderId: number | undefined, displayName: string) {
     return this.http.post<ApiResponse<StorageFolder>>(`${this.base}/folders`, { parentFolderId, displayName, requestKey: crypto.randomUUID() }, { context: this.context() }).pipe(map(r => this.data(r)));
   }
+  activateLibrary() { return this.createFolder(undefined, ''); }
   moveFolder(folder: StorageFolder, parentFolderId: number) {
     return this.http.patch<ApiResponse<StorageFolder>>(`${this.base}/folders/${folder.id}/parent`, { parentFolderId, rowVersion: folder.rowVersion }, { context: this.context() }).pipe(map(r => this.data(r)));
   }

@@ -10,6 +10,7 @@ TestResults/
 
 # ASP.NET Core
 appsettings.Development.json
+appsettings.StorageActivation.Development.json
 appsettings.Production.json
 !appsettings.json
 

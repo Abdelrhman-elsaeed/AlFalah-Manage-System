@@ -3,6 +3,7 @@
 .notice{background:#eff6ff;color:#1e40af}
 .status{background:#fff7ed;color:#9a3412}
 .status--ready{background:#ecfdf5;color:#166534}
+.library-guidance button{margin-inline-start:.6rem;margin-top:.4rem}
 .library-guidance{padding:1rem;margin:0 0 1rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;line-height:1.8}.library-guidance h2{font-size:1.05rem;margin:0 0 .6rem}.library-guidance p{margin:.5rem 0}.library-link{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem .8rem;border-radius:6px;background:#15803d;color:#fff;text-decoration:none}.library-link:focus-visible{outline:3px solid #ca8a04;outline-offset:3px}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:1rem 0}
 label{display:grid;gap:.45rem;font-weight:600}

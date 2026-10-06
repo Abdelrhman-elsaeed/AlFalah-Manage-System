@@ -22,6 +22,15 @@ using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Explicit local rollout settings keep credentials and the original Development file intact.
+// Environment/command-line overrides still win; production never loads this local opt-in.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.StorageActivation.Development.json", optional: true, reloadOnChange: false)
+        .AddEnvironmentVariables();
+    if (args.Length > 0) builder.Configuration.AddCommandLine(args);
+}
+
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 builder.Services

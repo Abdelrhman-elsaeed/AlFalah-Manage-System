@@ -1,0 +1,154 @@
+{
+  "date": "2026-10-06",
+  "authorization": "Owner explicitly requested applying migrations, an activation button and application restart; supersedes earlier OFF/no-original-migration restriction for local library rollout only",
+  "migrations": {
+    "authorizedBy": "Owner request 2026-10-06",
+    "startedAtUtc": "2026-10-06T15:23:35.6036885+00:00",
+    "completedAtUtc": "2026-10-06T15:23:58.7375381+00:00",
+    "targetMigration": "20261005162718_SchoolFileStorageHistoricalImport",
+    "originalDatabaseMigrated": true,
+    "backupChecksumVerified": true,
+    "automaticStartupMigrations": false,
+    "downExecuted": false
+  },
+  "postflight": {
+    "verifiedAtUtc": "2026-10-06T15:34:20.3305109+00:00",
+    "originalDatabaseMigrated": true,
+    "previousMigrations": 45,
+    "currentMigrations": 55,
+    "appliedStorageMigrations": [
+      "20261003023752_SchoolFileStorageFoundation",
+      "20261003034907_SchoolFileStorageLibrary",
+      "20261003040217_SchoolFileStorageLibraryIntegrity",
+      "20261003231834_SchoolFileStorageEvidenceReview",
+      "20261003232149_SchoolFileStorageReviewIntegrity",
+      "20261003233803_SchoolFileStoragePreApprovalReplacement",
+      "20261003233933_SchoolFileStorageReviewerIdentity",
+      "20261004015709_SchoolFileStorageSelfEvaluation",
+      "20261005112201_SchoolFileStorageVisitArchive",
+      "20261005162718_SchoolFileStorageHistoricalImport"
+    ],
+    "credentialHashDifferences": 0,
+    "originalConfigurationAndKeyHashDifferences": 0,
+    "legacyRows": 1,
+    "school18LibraryRoots": 1,
+    "copyOnlyChecksumVerified": true,
+    "restoreDatabase": "AlFalahSFS_ActivationRestore_e20d6caf578640238837de7ea071bac1",
+    "checkDbPassed": true,
+    "counts": [
+      {
+        "entity": "TeacherEvidenceSubmissions",
+        "originalRows": 1,
+        "restoredRows": 1
+      },
+      {
+        "entity": "StoredFiles",
+        "originalRows": 1,
+        "restoredRows": 1
+      },
+      {
+        "entity": "StoredFileVersions",
+        "originalRows": 1,
+        "restoredRows": 1
+      },
+      {
+        "entity": "StorageFolders",
+        "originalRows": 2,
+        "restoredRows": 2
+      },
+      {
+        "entity": "EvidenceLinks",
+        "originalRows": 1,
+        "restoredRows": 1
+      },
+      {
+        "entity": "EvidenceReviewDecisions",
+        "originalRows": 1,
+        "restoredRows": 1
+      },
+      {
+        "entity": "EvidenceRequirements",
+        "originalRows": 37,
+        "restoredRows": 37
+      },
+      {
+        "entity": "SchoolEvaluationScopes",
+        "originalRows": 1,
+        "restoredRows": 1
+      },
+      {
+        "entity": "AuditLogs",
+        "originalRows": 256,
+        "restoredRows": 256
+      }
+    ],
+    "versionIdentityOrHashDifferences": 0,
+    "driveDeleted": false,
+    "downExecuted": false
+  },
+  "restart": {
+    "restartedAtUtc": "2026-10-06T15:28:58.6852095+00:00",
+    "port": 5264,
+    "originalDatabase": true,
+    "persistentLocalActivationFile": true,
+    "flags": {
+      "ArchiveExternalWritesEnabled": false,
+      "ReadModelEnabled": true,
+      "ArchiveWorkerEnabled": false,
+      "AdministrationEnabled": true
+    },
+    "initializationOnStartup": false
+  },
+  "frontendRestart": {
+    "restartedAtUtc": "2026-10-06T15:30:34.7688984+00:00",
+    "port": 4200,
+    "hiddenProcess": true
+  },
+  "liveBrowser": [
+    {
+      "viewport": "desktop",
+      "realApi": true,
+      "activationButtonClicked": false,
+      "connected": true,
+      "replaySameRoot": true,
+      "uploadControlsVisible": true,
+      "school": 18,
+      "academicYearId": 1,
+      "rootFolderId": 2
+    },
+    {
+      "viewport": "mobile",
+      "realApi": true,
+      "activationButtonClicked": false,
+      "connected": true,
+      "replaySameRoot": true,
+      "uploadControlsVisible": true,
+      "school": 18,
+      "academicYearId": 1,
+      "rootFolderId": 2
+    }
+  ],
+  "catalog": {
+    "school": 18,
+    "academicYearId": 1,
+    "templateVersion": 1,
+    "beforeRequirements": 0,
+    "afterRequirements": 36,
+    "repeatSameRequirementIds": true,
+    "reviewDecisionsInvented": false,
+    "responsibleUsersAutoAssigned": false,
+    "noHistoricalBytesUploaded": true
+  },
+  "tests": {
+    "backendBuildErrors": 0,
+    "backendBuildWarnings": 0,
+    "backendLibraryPassed": 30,
+    "angularTransportPassed": 4,
+    "browserLibraryAndDrivePassed": 30,
+    "productionFrontendBuild": "Passed with existing CSS/PrimeNG warnings"
+  },
+  "school1CredentialDecryptionRepaired": false,
+  "liveHistoricalOriginalUploads": false,
+  "liveArchiveWorkersActivated": false,
+  "productionDeploymentChanged": false
+}

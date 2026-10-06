@@ -1,0 +1,101 @@
+{
+  "dry": {
+    "backfill": {
+      "dryRun": true,
+      "sourceCount": 1,
+      "existingCount": 0,
+      "createdFiles": 1,
+      "createdVersions": 1,
+      "createdLinks": 1,
+      "createdDecisions": 1,
+      "needsLinkCount": 0,
+      "groups": [
+        {
+          "schoolId": 1,
+          "teacherId": 3,
+          "taskId": 1,
+          "academicYearId": 1,
+          "reviewStatus": 3,
+          "uploadStatus": 3,
+          "isDeleted": false,
+          "isMissingFromDrive": false,
+          "source": 1,
+          "existing": 0,
+          "plannedFiles": 1,
+          "plannedLinks": 1,
+          "plannedDecisions": 1,
+          "exceptions": 0
+        }
+      ],
+      "issues": []
+    },
+    "sharedWriterRepairTargets": 0,
+    "dryRun": true
+  },
+  "apply": {
+    "backfill": {
+      "dryRun": false,
+      "sourceCount": 1,
+      "existingCount": 0,
+      "createdFiles": 1,
+      "createdVersions": 1,
+      "createdLinks": 1,
+      "createdDecisions": 1,
+      "needsLinkCount": 0,
+      "groups": [
+        {
+          "schoolId": 1,
+          "teacherId": 3,
+          "taskId": 1,
+          "academicYearId": 1,
+          "reviewStatus": 3,
+          "uploadStatus": 3,
+          "isDeleted": false,
+          "isMissingFromDrive": false,
+          "source": 1,
+          "existing": 0,
+          "plannedFiles": 1,
+          "plannedLinks": 1,
+          "plannedDecisions": 1,
+          "exceptions": 0
+        }
+      ],
+      "issues": []
+    },
+    "sharedWriterRepairTargets": 0,
+    "dryRun": false
+  },
+  "repeat": {
+    "backfill": {
+      "dryRun": false,
+      "sourceCount": 1,
+      "existingCount": 1,
+      "createdFiles": 0,
+      "createdVersions": 0,
+      "createdLinks": 0,
+      "createdDecisions": 0,
+      "needsLinkCount": 0,
+      "groups": [
+        {
+          "schoolId": 1,
+          "teacherId": 3,
+          "taskId": 1,
+          "academicYearId": 1,
+          "reviewStatus": 3,
+          "uploadStatus": 3,
+          "isDeleted": false,
+          "isMissingFromDrive": false,
+          "source": 1,
+          "existing": 1,
+          "plannedFiles": 0,
+          "plannedLinks": 0,
+          "plannedDecisions": 0,
+          "exceptions": 0
+        }
+      ],
+      "issues": []
+    },
+    "sharedWriterRepairTargets": 0,
+    "dryRun": false
+  }
+}
