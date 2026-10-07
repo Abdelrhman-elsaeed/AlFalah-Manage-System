@@ -105,12 +105,16 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
             if (meta is null || !meta.IsFolder || meta.Trashed) throw new StorageUnavailableException();
             if (root is not null) await FolderAsync(root.Id, teacher, ct);
             var canManage = own && await scopes.HasPermissionAsync(user.UserId!, School, PermissionNames.StorageManageOwn, ct);
+            var canReviewEvidence = false;
             if (!own)
             {
                 try { await authorization.RequireSchoolPermissionAsync(School, PermissionNames.StorageManageSchool, ct); canManage = true; }
                 catch (UnauthorizedSchoolAccessException) { canManage = false; }
+                try { await authorization.RequireSchoolPermissionAsync(School, PermissionNames.StorageReviewEvidence, ct); canReviewEvidence = true; }
+                catch (UnauthorizedSchoolAccessException) { canReviewEvidence = false; }
             }
-            return context with { CanManage = canManage, IsTeacher = own, ConnectionState = root is null ? "LibraryNotInitialized" : "Connected", RootFolderId = root?.Id };
+            return context with { CanManage = canManage, CanReviewEvidence = canReviewEvidence, IsTeacher = own,
+                ConnectionState = root is null ? "LibraryNotInitialized" : "Connected", RootFolderId = root?.Id };
         }
         catch (KeyNotFoundException) when (own) { return context with { IsTeacher = true, ConnectionState = "FolderNotAssigned" }; }
         catch (InvalidOperationException) { return context with { IsTeacher = own, ConnectionState = "Unavailable" }; }
@@ -129,42 +133,92 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
         var access = await FolderAsync(parent, teacher, ct);
         var result = await repository.FoldersAsync(School, teacher?.Id, parent, page, pageSize, ct);
         var visible = new List<StorageFolderDto>();
-        foreach (var item in result.Items)
+        // Drive reads dominate this page. Keep the page bound and perform only four
+        // independent provider reads at a time; no DbContext work runs concurrently.
+        foreach (var batch in result.Items.Chunk(4))
         {
-            var folder = await repository.FindFolderAsync(School, item.Id, ct);
-            if (folder is null || !await provider.IsWithinAsync(School, access.AuthorizedRoot.RootItemId, folder.DriveItemId, ct)) continue;
-            var metadata = await provider.MetadataAsync(School, folder.DriveItemId, ct);
-            if (metadata is { IsFolder: true, Trashed: false }) visible.Add(item);
+            var checkedRows = await Task.WhenAll(batch.Select(async item =>
+            {
+                if (!await provider.IsWithinAsync(School, access.AuthorizedRoot.RootItemId, item.DriveItemId, ct)) return null;
+                var metadata = await provider.MetadataAsync(School, item.DriveItemId, ct);
+                return metadata is { IsFolder: true, Trashed: false } ? item.Dto : null;
+            }));
+            visible.AddRange(checkedRows.OfType<StorageFolderDto>());
         }
-        return result with { Items = visible };
+        return new(visible, result.Total, result.Page, result.PageSize);
+    }
+    public async Task<IReadOnlyList<StorageFolderDto>> FolderPathAsync(bool own, int folderId, CancellationToken ct = default)
+    {
+        var teacher = await ActorAsync(own, false, ct);
+        var root = await repository.FindRootAsync(School, teacher?.Id, ct)
+            ?? throw new KeyNotFoundException("لم تُهيّأ مكتبة المدرسة بعد.");
+        var path = new List<StorageFolderDto>();
+        var seen = new HashSet<int>();
+        int? current = folderId;
+        while (current is int id)
+        {
+            if (!seen.Add(id)) throw new StorageUnavailableException("مسار المجلد غير صالح.");
+            var access = await FolderAsync(id, teacher, ct);
+            path.Add(FolderDto(access.Folder));
+            if (id == root.Id)
+            {
+                path.Reverse();
+                return path;
+            }
+            current = access.Folder.ParentFolderId;
+        }
+        throw new KeyNotFoundException("المجلد خارج مساحة الملفات المصرح بها.");
     }
     public async Task<StoragePage<StorageFileListDto>> FilesAsync(bool own, StorageListRequest request, CancellationToken ct = default)
     {
         Page(request.Page, request.PageSize);
-        if (request.Sort is not ("name" or "size" or "date") || request.Search?.Length > 200) throw new ArgumentException("معايير البحث أو الفرز غير صالحة.");
+        if (request.Sort is not ("name" or "size" or "date") ||
+            request.Filter is not ("all" or "pdf" or "image" or "video" or "unlinked" or "protected") ||
+            request.Search?.Length > 200) throw new ArgumentException("معايير البحث أو الفرز غير صالحة.");
         var teacher = await ActorAsync(own, false, ct);
         var folder = await FolderAsync(request.FolderId, teacher, ct);
         request = request with { FolderId = folder.Folder.Id, Search = string.IsNullOrWhiteSpace(request.Search) ? null : request.Search.Trim() };
         var page = await repository.FilesAsync(School, teacher?.Id, request, ct);
         var items = new List<StorageFileListDto>();
-        foreach (var row in page.Items)
+        foreach (var batch in page.Items.Chunk(4))
         {
-            var meta = await provider.MetadataAsync(School, row.DriveItemId, ct);
-            if (meta is null || meta.Trashed)
+            var checkedRows = await Task.WhenAll(batch.Select(async row =>
             {
-                await SetAvailabilityAsync(row.Dto.StoredFileId, true, ct);
-                items.Add(row.Dto with { State = "MissingFromDrive" });
+                var meta = await provider.MetadataAsync(School, row.DriveItemId, ct);
+                if (meta is null || meta.Trashed) return (Row: row, Missing: true, Within: false);
+                return (Row: row, Missing: false,
+                    Within: await provider.IsWithinAsync(School, folder.AuthorizedRoot.RootItemId, meta.Id, ct));
+            }));
+            foreach (var checkedRow in checkedRows)
+            {
+                if (checkedRow.Missing)
+                {
+                    await SetAvailabilityAsync(checkedRow.Row.Dto.StoredFileId, true, ct);
+                    items.Add(checkedRow.Row.Dto with { State = "MissingFromDrive" });
+                }
+                else if (checkedRow.Within) items.Add(checkedRow.Row.Dto);
+                else await SetAvailabilityAsync(checkedRow.Row.Dto.StoredFileId, true, ct);
+                // A moved item outside the current root is never disclosed through list results.
             }
-            else if (await provider.IsWithinAsync(School, folder.AuthorizedRoot.RootItemId, meta.Id, ct)) items.Add(row.Dto);
-            else await SetAvailabilityAsync(row.Dto.StoredFileId, true, ct);
-            // A moved item outside the current root is never disclosed through list results.
         }
         return new(items, page.Total, page.Page, page.PageSize);
     }
-    public async Task<StorageFileDetailsDto> DetailsAsync(int id, CancellationToken ct = default)
+    public async Task<StorageFileDetailsDto> DetailsAsync(int id, CancellationToken ct = default,
+        int? academicYearId = null, int? folderId = null, bool? own = null)
     {
         Enabled();
         var access = await authorization.RequireFileAsync(School, id, ct: ct, metadataOnly: true);
+        if (own.HasValue && (own.Value
+            ? access.OwnerTeacherId is null || access.OwnerUserId != user.UserId || access.SourceKind != StoredFileSourceKind.TeacherUpload
+            : access.OwnerTeacherId is not null || access.SourceKind == StoredFileSourceKind.VisitArchive)) throw Denied();
+        if (academicYearId.HasValue)
+        {
+            var current = await repository.ContextAsync(School, ct);
+            if (current.AcademicYearId != academicYearId.Value)
+                throw new KeyNotFoundException("هذا الملف ليس ضمن السنة المحددة. افتح السنة الحالية أو الأرشيف المناسب.");
+        }
+        if (folderId.HasValue && access.FolderId != folderId.Value)
+            throw new KeyNotFoundException("الملف ليس ضمن المجلد المحدد.");
         var metadata = await provider.MetadataAsync(School, access.DriveItemId, ct);
         if (metadata is null || metadata.Trashed) await SetAvailabilityAsync(id, true, ct);
         else

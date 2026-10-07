@@ -69,12 +69,12 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         return new(repository, new(new StorageRepository(db), new StorageLibraryRepository(db), repository, provider), provider,
             new VisitV2DocumentService(new ImageAssetLoader()), Options.Create(flags ?? On), TimeProvider.System, NullLogger<VisitArchiveProcessor>.Instance);
     }
-    private VisitArchiveService Reader(AlFalahDbContext db, World world, ICurrentUserService? user = null)
+    private VisitArchiveService Reader(AlFalahDbContext db, World world, ICurrentUserService? user = null, StorageOptions? flags = null)
     {
         user ??= TeacherDriveHarness.Manager(world.School);
         var repository = new VisitArchiveRepository(db); var storage = new StorageRepository(db); var provider = new GoogleStorageProvider(world.Drive);
         return new(repository, storage, new StorageAuthorizationService(storage, user, new StorageDriveBoundary(new(world.Drive)), TimeProvider.System),
-            user, new Flags(), new(storage, new StorageLibraryRepository(db), repository, provider), provider, Options.Create(On), TimeProvider.System);
+            user, new Flags(), new(storage, new StorageLibraryRepository(db), repository, provider), provider, Options.Create(flags ?? On), TimeProvider.System);
     }
     private async Task<World> Setup(AlFalahDbContext db)
     {
@@ -116,6 +116,20 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
     { db.ChangeTracker.Clear(); return await db.Set<VisitArchiveOperation>().SingleAsync(o => o.VisitId == id && o.ApprovalRevision == revision); }
     private async Task Ready(AlFalahDbContext db, int id)
     { await db.Set<VisitArchiveOperation>().Where(o => o.VisitId == id && o.Status == VisitArchiveStatus.RetryScheduled).ExecuteUpdateAsync(s => s.SetProperty(o => o.NextAttemptAtUtc, DateTimeOffset.UtcNow.AddSeconds(-1))); db.ChangeTracker.Clear(); }
+
+    [StorageSqlFact]
+    public async Task Operations_status_is_authorized_and_reflects_worker_and_external_write_flags()
+    {
+        await using var db = fixture.Db(); var world = await Setup(db);
+        var stopped = await Reader(db, world, flags: new StorageOptions { AdministrationEnabled = true, ReadModelEnabled = true })
+            .OperationsStatusAsync();
+        stopped.Should().Be(new VisitArchiveOperationsDto(false, false, false));
+        var running = await Reader(db, world).OperationsStatusAsync();
+        running.Should().Be(new VisitArchiveOperationsDto(true, true, true));
+        var teacher = new TeacherDriveHarness.TestCurrentUser(RoleNames.Instructor, world.Teacher, world.School, true);
+        await FluentActions.Invoking(() => Reader(db, world, teacher).OperationsStatusAsync())
+            .Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+    }
 
     [StorageSqlTheory]
     [InlineData(false)] [InlineData(true)]

@@ -28,6 +28,8 @@ async function session(page:Page,zero=false) {
     else if(p.includes('/exports/'))return route.fulfill({contentType:p.endsWith('csv')?'text/csv':'application/pdf',body:'mock-export'});
     else if(p.endsWith('/storage/folders'))data={items:[],total:0,page:1,pageSize:25};
     else if(p.endsWith('/storage/files'))data={items:[],total:0,page:1,pageSize:25};
+    else if(p.endsWith('/storage/files/31'))data={file:{storedFileId:31,folderId:7,displayName:'شاهد المدرسة.pdf',size:100,mimeType:'application/pdf',uploadedAt:'2026-10-04T08:00:00Z',state:'Managed',isProtected:true,rowVersion:'AAAAAAAAAAE='},versions:[]};
+    else if(p.endsWith('/visits/operations-status'))data={workerEnabled:false,externalWritesEnabled:false,ready:false};
     else if(p.endsWith('/storage/requirement-catalog'))data=[{id:8,academicYearId:1,code:'S4-item-10-1',displayName:'توثيق شهادة السلامة',importance:'Critical',fulfillmentPolicy:'AnyApprovedLink',minimumApprovedLinks:1,rowVersion:'AAAAAAAAAAI='}];
     else if(p.endsWith('/storage/evidence-teachers'))data=[];
     else if(p.endsWith('/storage/evidence-counts'))data={files:0,links:0,approvedLinks:0,fulfilledRequirements:0,requirements:1};
@@ -47,6 +49,21 @@ test('critical-only and hide-completed change rows while the denominator and exp
 });
 test('gap completion opens S3 workspace with the requirement and historical year preserved',async({page})=>{
   await session(page);await page.goto('/school-manager/storage/gaps?academicYearId=2');await page.locator('.requirement-actions').getByRole('link',{name:'استكمال الشاهد'}).click();await expect(page).toHaveURL(/academicYearId=2/);await expect(page).toHaveURL(/requirement=8/);await expect(page.locator('.storage-page app-storage-evidence')).toBeVisible();
+  await page.goBack();await expect(page).toHaveURL(/storage\/gaps\?academicYearId=2/);
+});
+test('file deep link from an evaluation item opens authorized details and returns to the same item @mobile',async({page})=>{
+  const state=await session(page);await page.goto('/school-manager/storage/tracker?academicYearId=1&page=1');
+  await page.locator('article.requirement').filter({hasText:'محاضر لجنة التخطيط'}).getByRole('link',{name:'معاينة'}).click();
+  await expect(page).toHaveURL(/file=31/);
+  await expect(page).toHaveURL(/folder=7/);
+  await expect(page).toHaveURL(/academicYearId=1/);
+  await expect(page.getByRole('dialog',{name:'تفاصيل الملف'})).toContainText('شاهد المدرسة.pdf');
+  expect(state.requests.some(x=>x.pathname.endsWith('/storage/files/31'))).toBeTruthy();
+  await page.goBack();await expect(page).toHaveURL(/storage\/tracker\?/);
+  expect(new URL(page.url()).searchParams.get('academicYearId')).toBe('1');
+  expect(new URL(page.url()).searchParams.get('page')).toBe('1');
+  await expect(page.locator('article.requirement').filter({hasText:'محاضر لجنة التخطيط'})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBeFalsy();
 });
 test('manual judgment is stored separately and shows retained history without changing readiness',async({page})=>{
   const state=await session(page);await page.goto('/school-manager/storage/manual');await page.locator('input[name=judgment]').fill('حكم مهني');await page.locator('input[name=value]').fill('80');await page.locator('textarea[name=manualReason]').fill('ملاحظة مهنية مستقلة');await page.getByRole('button',{name:'حفظ',exact:true}).click();await expect(page.locator('.manual-panel article')).toContainText('حكم مهني');await expect(page.locator('.readiness-kpi small')).toContainText('1 / 36');

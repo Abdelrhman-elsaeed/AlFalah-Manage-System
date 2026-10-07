@@ -13,6 +13,7 @@ import { MessagingUnreadService } from '../../../core/services/messaging-unread.
 import { roleLandingFor } from '../../../core/utils/role-landing';
 import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 import { StorageApiService } from '../../../features/storage/storage-api.service';
+import { VisitArchiveApiService } from '../../../features/storage/visit-archive-api.service';
 
 interface NavItem {
   labelKey: string;
@@ -28,7 +29,7 @@ interface NavItem {
 }
 
 interface NavCategory {
-  id: 'student-affairs' | 'evaluation' | 'people' | 'administration' | 'intelligent-timetable' | 'reports' | 'settings';
+  id: 'storage' | 'student-affairs' | 'evaluation' | 'people' | 'administration' | 'intelligent-timetable' | 'reports' | 'settings';
   labelKey: string;
   icon: string;
   items: NavItem[];
@@ -380,6 +381,7 @@ export class ShellComponent implements OnInit {
   private readonly visitsV2 = inject(VisitsV2Service);
   private readonly messagingUnreadService = inject(MessagingUnreadService);
   private readonly storageApi = inject(StorageApiService);
+  private readonly storageArchiveApi = inject(VisitArchiveApiService);
   private readonly sidebarStorageKey = 'alfalah-shell-sidebar-collapsed';
 
   /** Stable references so `routerLinkActiveOptions` isn't a fresh object per CD pass. */
@@ -392,7 +394,12 @@ export class ShellComponent implements OnInit {
   readonly hasStudentAnalyzerAccess = signal(false);
   readonly visitsV2Enabled = signal(false);
   readonly hasSchoolStorageAccess = signal(false);
+  readonly storageAcademicYearName = signal<string | null>(null);
   readonly hasOwnStorageAccess = signal(false);
+  readonly canViewStorageArchive = signal(false);
+  readonly canManageSchoolStorage = signal(false);
+  readonly canReviewSchoolEvidence = signal(false);
+  readonly storageMoreOpen = signal(false);
   readonly ksaTime = signal<string>('');
   readonly guardianUnreadNotifications = this.guardianSelfService.unreadNotifications;
   readonly unreadMessages = this.messagingUnreadService.count;
@@ -415,8 +422,6 @@ export class ShellComponent implements OnInit {
       : [];
 
     const roles = this.authService.roles();
-    if (this.hasSchoolStorageAccess()) items.push({ labelKey: 'STORAGE.TITLE', icon: 'pi pi-folder', route: '/school-manager/storage' });
-    if (this.hasOwnStorageAccess()) items.push({ labelKey: 'STORAGE.OWN_TITLE', icon: 'pi pi-folder-open', route: '/instructor/my-files' });
     if (roles.includes('SchoolManager'))
       items.push(
         { labelKey: 'مصفوفة متابعة الأدلة', icon: 'pi pi-table', route: '/school-manager/evidence-matrix' }
@@ -452,8 +457,21 @@ export class ShellComponent implements OnInit {
   });
 
   readonly visibleCategories = computed<NavCategory[]>(() => {
-    if (this.isInstructorOnly()) return [];
-    return this.categories
+    const storageItems: NavItem[] = [];
+    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess()) storageItems.push(
+      { labelKey: 'نظرة عامة', icon: 'pi pi-th-large', route: '/school-manager/storage/overview', exact: true },
+      { labelKey: 'الملفات', icon: 'pi pi-folder', route: '/school-manager/storage', exact: true }
+    );
+    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canReviewSchoolEvidence()) storageItems.push(
+      { labelKey: 'الشواهد', icon: 'pi pi-check-circle', route: '/school-manager/storage/evidence', exact: true });
+    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess()) storageItems.push(
+      { labelKey: 'التقويم', icon: 'pi pi-chart-line', route: '/school-manager/storage/readiness' });
+    if (this.hasOwnStorageAccess()) storageItems.push({ labelKey: 'ملفاتي', icon: 'pi pi-folder-open', route: '/instructor/my-files' });
+    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canViewStorageArchive()) storageItems.push({ labelKey: 'الزيارات', icon: 'pi pi-clipboard', route: '/school-manager/storage/visits' });
+    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canManageSchoolStorage()) storageItems.push({ labelKey: 'الإدارة', icon: 'pi pi-cog', route: '/school-manager/storage/admin' });
+    const storage: NavCategory[] = storageItems.length ? [{ id: 'storage', labelKey: 'مساحة الملفات', icon: 'pi pi-folder-open', items: storageItems }] : [];
+    if (this.isInstructorOnly()) return storage;
+    return [...storage, ...this.categories]
       .map(category => ({
         ...category,
         items: category.items.filter(item => this.canSee(item))
@@ -477,11 +495,16 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.storageApi.contextInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.hasSchoolStorageAccess.set(true), error: () => this.hasSchoolStorageAccess.set(false)
+    if (!this.isInstructorOnly()) this.storageApi.contextInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: context => { this.hasSchoolStorageAccess.set(true); this.canManageSchoolStorage.set(context.canManage); this.canReviewSchoolEvidence.set(context.canReviewEvidence ?? context.canManage); this.storageAcademicYearName.set(context.academicYearName || null); },
+      error: () => { this.hasSchoolStorageAccess.set(false); this.canManageSchoolStorage.set(false); this.canReviewSchoolEvidence.set(false); }
     });
     if (this.authService.hasRole('Instructor')) this.storageApi.contextInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.hasOwnStorageAccess.set(true), error: () => this.hasOwnStorageAccess.set(false)
+      next: context => { this.hasOwnStorageAccess.set(true); if (!this.storageAcademicYearName()) this.storageAcademicYearName.set(context.academicYearName || null); }, error: () => this.hasOwnStorageAccess.set(false)
+    });
+    // This read enforces both Storage.ViewArchive and Visit.View on the server.
+    if (!this.isInstructorOnly()) this.storageArchiveApi.operationsStatus().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.canViewStorageArchive.set(true), error: () => this.canViewStorageArchive.set(false)
     });
     this.visitsV2.availability().subscribe({ next: response => this.visitsV2Enabled.set(!!response.data?.isEnabled) });
     this.updateKsaTime();
@@ -583,7 +606,33 @@ export class ShellComponent implements OnInit {
   }
 
   categoryContainsActiveRoute(category: NavCategory): boolean {
+    if (category.id === 'storage') return this.isStorageRoute();
     return category.items.some(item => this.routeMatches(item.route, this.router.url));
+  }
+
+  isStorageRoute(): boolean {
+    const path = this.router.url.split('?')[0];
+    return path === '/instructor/my-files' || path.startsWith('/school-manager/storage');
+  }
+  storageMobileItems(): NavItem[] {
+    const items = this.visibleCategories().find(category => category.id === 'storage')?.items || [];
+    return items.filter(item => ['نظرة عامة', 'الملفات', 'الشواهد', 'التقويم', 'ملفاتي'].includes(item.labelKey));
+  }
+  storageMoreItems(): NavItem[] {
+    const items = this.visibleCategories().find(category => category.id === 'storage')?.items || [];
+    return items.filter(item => ['الزيارات', 'الإدارة'].includes(item.labelKey));
+  }
+  storageMobileActive(item: NavItem): boolean {
+    const current = new URL(this.router.url, typeof window === 'undefined' ? 'http://localhost' : window.location.origin);
+    const path = current.pathname.replace(/\/$/, '');
+    const evidenceContext = path === '/school-manager/storage' && (current.searchParams.get('view') === 'review' || current.searchParams.has('requirement'));
+    if (item.labelKey === 'الملفات') return path === '/school-manager/storage' && !evidenceContext;
+    if (item.labelKey === 'الشواهد') return evidenceContext || this.routeMatches(item.route, this.router.url);
+    if (item.labelKey === 'الإدارة' && path === '/school-manager/storage/imports') return true;
+    return this.routeMatches(item.route, this.router.url);
+  }
+  sidebarItemActive(category: NavCategory, item: NavItem): boolean {
+    return category.id === 'storage' ? this.storageMobileActive(item) : this.routeMatches(item.route, this.router.url);
   }
 
   logout(): void {
@@ -628,6 +677,10 @@ export class ShellComponent implements OnInit {
   }
 
   private expandActiveCategory(url: string): void {
+    if (this.isStorageRoute()) {
+      this.expandedCategoryIds.update(current => new Set([...current, 'storage']));
+      return;
+    }
     const active = this.visibleCategories().find(category =>
       category.items.some(item => this.routeMatches(item.route, url)));
     if (!active) return;

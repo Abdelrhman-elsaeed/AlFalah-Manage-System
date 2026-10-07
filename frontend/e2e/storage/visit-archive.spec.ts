@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 const revision={approvalRevision:2,status:'RetryScheduled',approvalSource:'Manual',approvedAtUtc:'2026-10-05T08:00:00Z',attempts:2,lastAttemptAtUtc:'2026-10-05T08:10:00Z',nextAttemptAtUtc:'2026-10-05T08:20:00Z',errorCode:'ArchiveUnavailable',isCurrent:false,canRetry:true,versions:[]};
 const old={...revision,approvalRevision:1,status:'Completed',errorCode:null,completedAtUtc:'2026-10-04T10:00:00Z',canRetry:false,versions:[{versionId:8,versionNumber:1,uploadedAtUtc:'2026-10-04T10:00:00Z',availability:'Available',size:135000}]};
-async function mock(page:Page,state='rows') {
+async function mock(page:Page,state='rows',operations={workerEnabled:false,externalWritesEnabled:false,ready:false}) {
   const user={userId:'ui-test',username:'ui-test',fullName:'مستخدم الاختبار',activeSchoolId:1,activeSchoolName:'مدرسة الاختبار',preferredLanguage:'ar',roles:['Secretary'],permissions:['Storage.ViewArchive','Visit.View']};
   await page.addInitScript(user=>{const token=btoa(JSON.stringify({sub:'ui-test',exp:2000000000}));sessionStorage.setItem('alfalah_access_token',`e30.${token}.mock`);sessionStorage.setItem('alfalah_user',JSON.stringify(user));},user);
   const calls:{url:string;body:any}[]=[];let retried=false;
@@ -10,6 +10,7 @@ async function mock(page:Page,state='rows') {
     if(url.pathname.endsWith('/auth/me'))data=user;
     else if(url.pathname.endsWith('/auth/schools'))data=[];
     else if(url.pathname.endsWith('/storage/context'))data={schoolId:1,schoolName:'مدرسة',canManage:true,connectionState:'Connected'};
+    else if(url.pathname.endsWith('/visits/operations-status'))data=operations;
     else if(url.pathname.endsWith('/visits/teachers'))data=[{userId:'teacher',name:'معلم الاختبار'}];
     else if(url.pathname.endsWith('/archive/retry')){retried=true;data={visitId:4,revisions:[]};}
     else if(url.pathname.endsWith('/content'))return route.fulfill({status:200,contentType:'application/pdf',body:'%PDF-1.7\n%%EOF'});
@@ -33,3 +34,16 @@ test('revoked archive permission clears reports and teacher filters',async({page
   await mock(page);await page.goto('/school-manager/storage/visits');await expect(page.locator('.visit-row')).toBeVisible();await page.route('**/api/v1/storage/visits?**',route=>route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({isSuccess:false,message:'revoked'})}));await page.getByRole('button',{name:'تحديث',exact:true}).click();await expect(page.locator('.visit-row')).toHaveCount(0);await expect(page.locator('[role=alert]')).toContainText('سُحبت صلاحية');await expect(page.locator('.filters')).toHaveCount(0);
 });
 for(const state of ['empty','error'])test(`archive ${state} state is explicit`,async({page})=>{await mock(page,state);await page.goto('/school-manager/storage/visits');await expect(page.locator(state==='empty'?'.empty':'[role=alert]')).toBeVisible();await expect(page.locator('.visit-row')).toHaveCount(0);});
+
+test('archive deep link keeps filters on return and explains stopped worker on desktop and phone @mobile',async({page})=>{
+  await mock(page);
+  await page.goto('/school-manager/storage/visits?page=2&status=RetryScheduled');
+  await expect(page.getByText('العامل مغلق')).toBeVisible();
+  await expect(page.getByText('الكتابة الخارجية مغلقة')).toBeVisible();
+  await page.locator('.visit-heading a').click();
+  await expect(page).toHaveURL(/\/visits\?visitId=4/);
+  await page.goBack();
+  await expect(page).toHaveURL(/storage\/visits\?page=2&status=RetryScheduled/);
+  await expect(page.locator('.visit-row')).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBeFalsy();
+});

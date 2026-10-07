@@ -10,6 +10,9 @@ namespace AlFalah.Api.Controllers;
 [Route("api/v1/storage/visits")]
 public sealed class VisitArchiveController(IVisitArchiveService service) : ControllerBase
 {
+    [HttpGet("operations-status")]
+    public async Task<IActionResult> OperationsStatus(CancellationToken ct) =>
+        Ok(ApiResponse<VisitArchiveOperationsDto>.Success(await service.OperationsStatusAsync(ct)));
     [HttpGet("teachers")]
     public async Task<IActionResult> Teachers(CancellationToken ct) =>
         Ok(ApiResponse<IReadOnlyList<VisitArchiveTeacherDto>>.Success(await service.TeachersAsync(ct)));

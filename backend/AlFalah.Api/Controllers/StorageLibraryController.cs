@@ -21,6 +21,9 @@ public sealed class StorageLibraryController(IStorageLibraryService service) : C
     public async Task<IActionResult> Folders([FromQuery] bool own, [FromQuery] int? parentFolderId,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default) =>
         Ok(ApiResponse<StoragePage<StorageFolderDto>>.Success(await service.FoldersAsync(own, parentFolderId, page, pageSize, ct)));
+    [HttpGet("folders/{id:int}/path")]
+    public async Task<IActionResult> FolderPath(int id, [FromQuery] bool own, CancellationToken ct) =>
+        Ok(ApiResponse<IReadOnlyList<StorageFolderDto>>.Success(await service.FolderPathAsync(own, id, ct)));
     [HttpPost("folders")]
     public async Task<IActionResult> CreateFolder(CreateStorageFolderRequest request, CancellationToken ct) =>
         Ok(ApiResponse<StorageFolderDto>.Success(await service.CreateFolderAsync(request, ct)));
@@ -37,8 +40,9 @@ public sealed class StorageLibraryController(IStorageLibraryService service) : C
     public async Task<IActionResult> OwnFiles([FromQuery] StorageListRequest request, CancellationToken ct) =>
         Ok(ApiResponse<StoragePage<StorageFileListDto>>.Success(await service.FilesAsync(true, request, ct)));
     [HttpGet("files/{id:int}")]
-    public async Task<IActionResult> Details(int id, CancellationToken ct) =>
-        Ok(ApiResponse<StorageFileDetailsDto>.Success(await service.DetailsAsync(id, ct)));
+    public async Task<IActionResult> Details(int id, [FromQuery] int? academicYearId,
+        [FromQuery] int? folderId, [FromQuery] bool? own, CancellationToken ct) =>
+        Ok(ApiResponse<StorageFileDetailsDto>.Success(await service.DetailsAsync(id, ct, academicYearId, folderId, own)));
     [HttpGet("files/{id:int}/content")]
     public async Task<IActionResult> Content(int id, [FromQuery] bool preview, CancellationToken ct)
     {

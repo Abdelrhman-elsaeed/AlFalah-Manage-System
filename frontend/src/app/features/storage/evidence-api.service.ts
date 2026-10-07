@@ -28,9 +28,10 @@ export class StorageEvidenceApiService {
   link(file: number, requirementId: number, academicYearId: number) { return this.post<EvidenceLink>(`files/${file}/links`, { requirementId, academicYearId }); }
   submit(link: EvidenceLink) { return this.post<EvidenceLink>(`links/${link.id}/submit`, { rowVersion: link.rowVersion }); }
   review(link: EvidenceLink, approve: boolean, note: string) { return this.post<EvidenceLink>(`links/${link.id}/review`, { decision: approve ? 3 : 4, note: note || null, rowVersion: link.rowVersion }); }
-  queue(year: number, page: number, requirement?: number, teacher?: number, standard?: string, status?: number) {
+  queue(year: number, page: number, requirement?: number, teacher?: number, standard?: string, status?: number, decided = false) {
     let params = new HttpParams().set('academicYearId', year).set('page', page).set('pageSize', 25);
     for (const [key, value] of Object.entries({requirementId: requirement, teacherId: teacher, standardCode: standard, status})) if (value != null && value !== '') params = params.set(key, value);
+    if (decided) params = params.set('decided', true);
     return this.http.get<ApiResponse<StoragePage<EvidenceLink>>>(`${this.base}/review-queue`, { params, context: this.context() }).pipe(map(r => this.data(r)));
   }
   counts(year: number, own: boolean) { return this.get<EvidenceCounts>('evidence-counts', { academicYearId: year, own }); }

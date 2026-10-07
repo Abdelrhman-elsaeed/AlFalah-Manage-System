@@ -1,12 +1,16 @@
 <section class="storage-page" dir="rtl" [attr.aria-busy]="busy">
   <header class="page-header">
-    <div><span class="eyebrow">{{ 'STORAGE.WORKSPACE' | translate }}</span><h1>{{ (own ? 'STORAGE.OWN_TITLE' : 'STORAGE.TITLE') | translate }}</h1>
-      <p>{{ context?.schoolName }} <span *ngIf="context?.academicYearName"> · {{ context?.academicYearName }}</span></p></div>
-    <button pButton type="button" icon="pi pi-refresh" [label]="'STORAGE.REFRESH' | translate" (click)="refreshContext()" [disabled]="busy || uploading"></button>
-  <a *ngIf="!own" routerLink="/school-manager/storage/visits">{{ 'S5.TITLE' | translate }}</a><a *ngIf="!own && !disabled && context?.canManage" routerLink="/school-manager/storage/imports">الاستيراد التاريخي</a></header>
-  <nav *ngIf="!own && context" class="toolbar"><a routerLink="/school-manager/storage/readiness" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.readiness' | translate }}</a><a routerLink="/school-manager/storage/tracker" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.tracker' | translate }}</a><a routerLink="/school-manager/storage/gaps" [queryParams]="{academicYearId:evaluationYear}">{{ 'S4.gaps' | translate }}</a></nav>
+    <div class="header-copy"><span class="eyebrow">{{ own ? 'ملفاتي' : activeView === 'review' ? 'الشواهد' : 'مساحة الملفات' }}</span><h1>{{ activeView === 'review' ? 'بانتظار قراري' : (own ? 'ملفاتي' : 'مكتبة المدرسة') }}</h1>
+      <p *ngIf="context && activeView === 'library'">{{ folderTotal }} مجلداً فرعياً · {{ total }} ملفاً هنا مباشرة <span *ngIf="context.academicYearName">· {{ context.academicYearName }}</span></p></div>
+    <div class="header-actions" *ngIf="connected && activeView === 'library' && !historicalYear">
+      <label *ngIf="!own && context?.canManage" class="choose-file" tabindex="0" (keydown.enter)="headerPicker.click()" (keydown.space)="$event.preventDefault(); headerPicker.click()"><i class="pi pi-upload" aria-hidden="true"></i> رفع ملف<input #headerPicker type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.mp4,.mov,.webp,.heic" (change)="choose($event)" [disabled]="uploading"></label>
+      <button *ngIf="!own && context?.canManage" type="button" class="outline-action" (click)="folderDialog=true"><i class="pi pi-folder" aria-hidden="true"></i> مجلد جديد</button>
+      <button type="button" class="outline-action" (click)="copyCurrentLink()"><i class="pi pi-share-alt" aria-hidden="true"></i> مشاركة</button>
+    </div>
+  </header>
   <p *ngIf="error" class="error" role="alert">{{ error }}</p>
   <p *ngIf="notice" class="notice" role="status">{{ notice }}</p>
+  <div *ngIf="historicalYear" class="empty" role="status"><i class="pi pi-lock"></i><h2>هذه السنة للقراءة فقط</h2><p>لا تُعرض ملفات السنة الحالية تحت سنة تاريخية. استخدم التقويم أو الأرشيف لعرض السجلات المحفوظة للسنة المختارة.</p></div>
   <div *ngIf="disabled" class="empty"><i class="pi pi-lock"></i><h2>{{ 'STORAGE.DISABLED' | translate }}</h2><p>حساب Drive ومساحة الملفات لهما تفعيل منفصل. تُفتح المساحة بعد تحقق خطة التشغيل.</p><a *ngIf="!own" routerLink="/school-manager/evidence-settings">إعدادات Google Drive</a></div>
   <div *ngIf="!disabled && context && !connected" class="empty" role="status">
     <i class="pi pi-cloud"></i><h2>{{ ('STORAGE.STATE_' + context.connectionState) | translate }}</h2>
@@ -14,66 +18,88 @@
     <button *ngIf="!own && context.connectionState === 'LibraryNotInitialized' && context.canManage" pButton type="button" label="تفعيل المكتبة" [disabled]="busy" (click)="initialize()"></button>
   </div>
   <p-progressBar *ngIf="busy" mode="indeterminate" [style]="{ height: '4px' }" [attr.aria-label]="'STORAGE.LOADING' | translate"></p-progressBar>
-  <div *ngIf="connected" class="workspace">
-    <aside class="folder-panel"><h2>{{ 'STORAGE.FOLDERS' | translate }}</h2>
-      <p-tree [value]="tree" selectionMode="single" (onNodeSelect)="selectNode($event.node)" (onNodeExpand)="loadChildren($event.node)" [ariaLabel]="'STORAGE.FOLDERS' | translate"></p-tree>
+  <div *ngIf="connected && own" class="intro-card">
+    <div class="intro-icon"><i [class]="own ? 'pi pi-user' : 'pi pi-sitemap'" aria-hidden="true"></i></div>
+    <div><strong>{{ own ? 'مساحتك الخاصة بالملفات' : 'نظّم ملفات المدرسة وشواهدها' }}</strong>
+      <p>{{ own ? 'هذه مكتبتك الخاصة. ارفع الملف داخل مجلدك، ثم افتح تفاصيله لربطه بمتطلب وإرساله للمراجعة. لرفع دليل مرتبط بمهمة مباشرة استخدم صفحة ملفات الإنجاز.' : 'هذه المكتبة تعرض ملفات المدرسة فقط. مجلدات المعلمين منفصلة وتُمنح من ملف كل معلم. بعد ربط الملف بمتطلب، انتقل إلى مراجعة الشواهد.' }}</p>
+      <a *ngIf="own" class="intro-link" routerLink="/instructor/evidence-files">الانتقال إلى رفع أدلة المهام <i class="pi pi-arrow-left" aria-hidden="true"></i></a></div>
+  </div>
+  <div *ngIf="connected && activeView === 'review' && !own" class="review-panel">
+    <app-storage-evidence [year]="evaluationYear" [initialRequirement]="initialRequirement" [initialLink]="+(route.snapshot.queryParamMap.get('link') || 0) || undefined" [canManage]="!!context?.canManage && !historicalYear" [canReview]="canReviewEvidence" (openFile)="openDetails($event)" (denied)="evidenceDenied()"></app-storage-evidence>
+  </div>
+  <div *ngIf="connected && activeView === 'library' && !historicalYear" class="workspace" [class.teacher-workspace]="own">
+    <aside *ngIf="own" class="teacher-flow" aria-label="رفع ملف وربطه بمتطلب">
+      <div class="teacher-step"><span class="step-number">1</span><h2>اختر المتطلب أو المهمة</h2></div>
+      <p *ngIf="teacherRequirementsLoading" role="status">جار تحميل المتطلبات…</p>
+      <p *ngIf="teacherRequirementsError" class="error" role="alert">{{ teacherRequirementsError }}</p>
+      <div *ngIf="teacherRequirements.length" class="requirement-options" role="group" aria-label="المتطلبات">
+        <button *ngFor="let requirement of teacherRequirements" type="button" [attr.aria-pressed]="teacherRequirementId === requirement.id" (click)="selectTeacherRequirement(teacherRequirementId === requirement.id ? undefined : requirement.id)"><span dir="ltr">{{ requirement.code }}</span> {{ requirement.displayName }} <i [class]="teacherRequirementId === requirement.id ? 'pi pi-check' : 'pi pi-plus'" aria-hidden="true"></i></button>
+      </div>
+      <p *ngIf="!teacherRequirementsLoading && !teacherRequirementsError && !teacherRequirements.length" class="teacher-hint">لا توجد متطلبات متاحة في هذه السنة. يمكنك رفع الملف الآن وربطه لاحقًا.</p>
+      <p class="teacher-hint">يُحفظ الملف أولًا. اختيار متطلب ينشئ رابطًا كمسودة، ثم ترسله للمراجعة من تفاصيل الملف.</p>
+      <div class="teacher-step"><span class="step-number">2</span><h2>ارفع الملف</h2></div>
+      <label class="teacher-drop" (dragover)="$event.preventDefault()" (drop)="drop($event)" tabindex="0" (keydown.enter)="teacherPicker.click()" (keydown.space)="$event.preventDefault(); teacherPicker.click()"><i class="pi pi-cloud-upload" aria-hidden="true"></i><strong>اسحب الملف هنا أو اضغط للاختيار</strong><small>PDF · JPG · PNG · MP4 · DOCX — حتى 250 MiB</small><input #teacherPicker type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.mp4,.mov,.webp,.heic" (change)="choose($event)" [disabled]="uploading || !context?.canManage"></label>
+      <div *ngIf="selectedFile" class="upload-queue" role="status"><span>{{ selectedFile.name }} · {{ selectedFile.size / 1048576 | number:'1.1-1' }} MiB</span><button pButton type="button" [label]="'STORAGE.SEND' | translate" (click)="upload()" [disabled]="uploading"></button><button pButton type="button" [label]="'STORAGE.CANCEL' | translate" (click)="cancelQueued()" [disabled]="uploading"></button><p-progressBar *ngIf="uploading || progress" [value]="progress" [attr.aria-label]="'STORAGE.PROGRESS' | translate"></p-progressBar></div>
+      <div *ngIf="operation && operation.status !== 'Completed'" class="notice"><p>{{ 'STORAGE.RECONCILIATION' | translate }}</p><button pButton type="button" [label]="'STORAGE.RECONCILE' | translate" (click)="reconcile()"></button></div>
+      <button *ngIf="teacherCreatedLink" type="button" class="teacher-next" (click)="openDetails(teacherCreatedLink)">فتح الرابط وإرساله للمراجعة <i class="pi pi-arrow-left" aria-hidden="true"></i></button>
+      <button *ngIf="teacherCreatedFileId && !teacherCreatedLink" type="button" class="teacher-next" (click)="openDetails(teacherCreatedFileId)">فتح الملف وربطه يدويًا <i class="pi pi-arrow-left" aria-hidden="true"></i></button>
     </aside>
-    <main>
-      <nav class="breadcrumbs" [attr.aria-label]="'STORAGE.BREADCRUMBS' | translate"><ng-container *ngFor="let crumb of crumbs; let index = index; let last = last">
-        <button type="button" (click)="breadcrumb(index)" [attr.aria-current]="last ? 'page' : null">{{ crumb.displayName }}</button><span *ngIf="!last" aria-hidden="true"> / </span>
-      </ng-container></nav>
-      <form class="toolbar" (ngSubmit)="searchSubmit()">
+    <main class="library-panel" (dragover)="$event.preventDefault()" (drop)="drop($event)">
+      <div class="panel-heading" *ngIf="crumbs.length > 1"><div><span class="section-kicker">المجلد الحالي</span><h2>{{ currentFolder?.displayName }}</h2></div><span class="file-total">{{ total }} ملف</span></div>
+      <nav class="breadcrumbs" [attr.aria-label]="'STORAGE.BREADCRUMBS' | translate">
+        <button *ngIf="crumbs.length > 1" type="button" class="folder-back" (click)="backFolder()"><i class="pi pi-arrow-right" aria-hidden="true"></i> المجلد السابق</button>
+        <ng-container *ngFor="let crumb of crumbs; let index = index; let last = last">
+          <button type="button" (click)="breadcrumb(index)" [attr.aria-current]="last ? 'page' : null" [disabled]="last">{{ crumb.displayName }}</button><span *ngIf="!last" aria-hidden="true"> / </span>
+        </ng-container>
+      </nav>
+      <form class="toolbar file-toolbar" (ngSubmit)="searchSubmit()">
         <label class="search"><span class="sr-only">{{ 'STORAGE.SEARCH' | translate }}</span><i class="pi pi-search" aria-hidden="true"></i><input name="search" [(ngModel)]="search" maxlength="200" [placeholder]="'STORAGE.SEARCH' | translate"></label>
-        <label><input type="checkbox" name="global" [(ngModel)]="global"> {{ 'STORAGE.GLOBAL' | translate }}</label>
+        <label class="search-scope"><input type="checkbox" name="global" [(ngModel)]="global" (change)="searchSubmit()" aria-label="البحث في جميع الملفات"><span class="scope-here">هنا فقط</span><span class="scope-all">الكل</span></label>
         <button pButton type="submit" [label]="'STORAGE.SEARCH' | translate" [disabled]="busy"></button>
-        <button pButton type="button" [label]="'STORAGE.SORT_NAME' | translate" (click)="sort='name'; searchSubmit()" [class.active]="sort === 'name'"></button>
-        <button pButton type="button" [label]="'STORAGE.SORT_DATE' | translate" (click)="sort='date'; searchSubmit()" [class.active]="sort === 'date'"></button>
-        <button pButton type="button" [label]="'STORAGE.SORT_SIZE' | translate" (click)="sort='size'; searchSubmit()" [class.active]="sort === 'size'"></button>
+        <label class="sort-select"><span class="sr-only">ترتيب الملفات</span><select name="sort" [(ngModel)]="sort" (change)="searchSubmit()" aria-label="ترتيب الملفات"><option value="name">الاسم</option><option value="date">التاريخ</option><option value="size">الحجم</option></select></label>
         <button pButton type="button" icon="pi pi-sort-alt" [attr.aria-label]="'STORAGE.DIRECTION' | translate" (click)="descending=!descending; searchSubmit()"></button>
         <button pButton type="button" [icon]="cards ? 'pi pi-list' : 'pi pi-th-large'" [attr.aria-label]="'STORAGE.VIEW' | translate" (click)="cards=!cards"></button>
+        <div class="file-filter-chips" role="group" aria-label="تصفية الملفات"><button *ngFor="let option of fileFilters" type="button" [attr.aria-pressed]="filter === option.value" (click)="setFilter(option.value)">{{ option.label }}</button></div>
       </form>
-      <div *ngIf="context?.canManage" class="upload-zone" (dragover)="$event.preventDefault()" (drop)="drop($event)">
-        <i class="pi pi-cloud-upload" aria-hidden="true"></i><div><strong>{{ 'STORAGE.DROP' | translate }}</strong><small>{{ 'STORAGE.UPLOAD_HINT' | translate }}</small></div>
-        <label class="choose-file" tabindex="0" (keydown.enter)="picker.click()" (keydown.space)="$event.preventDefault(); picker.click()">{{ 'STORAGE.CHOOSE' | translate }}<input #picker type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.mp4,.mov,.webp,.heic" (change)="choose($event)" [disabled]="uploading"></label>
-        <button *ngIf="!own" pButton type="button" icon="pi pi-folder" [label]="'STORAGE.NEW_FOLDER' | translate" (click)="folderDialog=true" [disabled]="uploading"></button>
-      </div>
-      <div *ngIf="selectedFile" class="upload-queue" role="status"><span>{{ selectedFile.name }} · {{ selectedFile.size / 1048576 | number:'1.1-1' }} MiB</span>
+      <div *ngIf="!own && selectedFile" class="upload-queue" role="status"><span>{{ selectedFile.name }} · {{ selectedFile.size / 1048576 | number:'1.1-1' }} MiB</span>
         <button pButton type="button" [label]="'STORAGE.SEND' | translate" (click)="upload()" [disabled]="uploading"></button>
         <button pButton type="button" [label]="'STORAGE.CANCEL' | translate" (click)="cancelQueued()" [disabled]="uploading"></button>
         <p-progressBar *ngIf="uploading || progress" [value]="progress" [attr.aria-label]="'STORAGE.PROGRESS' | translate"></p-progressBar>
       </div>
-      <div *ngIf="operation && operation.status !== 'Completed'" class="notice"><p>{{ 'STORAGE.RECONCILIATION' | translate }}</p><button pButton type="button" [label]="'STORAGE.RECONCILE' | translate" (click)="reconcile()"></button></div>
+      <div *ngIf="!own && operation && operation.status !== 'Completed'" class="notice"><p>{{ 'STORAGE.RECONCILIATION' | translate }}</p><button pButton type="button" [label]="'STORAGE.RECONCILE' | translate" (click)="reconcile()"></button></div>
+      <section *ngIf="folders.length" class="folder-list"><div class="list-heading"><h3><i class="pi pi-folder" aria-hidden="true"></i> المجلدات</h3><span>{{ folders.length }} من {{ folderTotal }} مجلد</span></div><div class="folder-grid"><div *ngFor="let folder of folders" class="folder-entry"><button type="button" class="folder-tile" [disabled]="busy" (click)="openFolder(folder)"><span class="folder-tile-icon"><i class="pi pi-folder" aria-hidden="true"></i></span><span>{{ folder.displayName }}</span><i class="pi pi-angle-left" aria-hidden="true"></i></button><button *ngIf="!own && context?.canManage" type="button" class="folder-move" [attr.aria-label]="'نقل ' + folder.displayName" (click)="openMoveDialog(folder)"><i class="pi pi-arrows-alt" aria-hidden="true"></i></button></div></div><button *ngIf="folders.length < folderTotal" pButton type="button" class="folder-more p-button-outlined" label="عرض المزيد من المجلدات" [disabled]="folderLoading || busy" (click)="loadMoreFolders()"></button></section>
+      <div class="list-heading files-heading"><h3><i class="pi pi-file" aria-hidden="true"></i> الملفات</h3><span>{{ total }} ملف</span></div>
+      <div class="file-column-head"><span>الاسم</span><span>الحالة</span><span>الحجم</span><span>آخر تعديل</span><span></span></div>
       <div *ngIf="!busy && !files.length" class="empty"><i class="pi pi-folder-open"></i><h2>{{ 'STORAGE.EMPTY' | translate }}</h2><p>{{ 'STORAGE.EMPTY_HINT' | translate }}</p></div>
       <div class="file-grid" [class.cards]="cards">
         <article *ngFor="let file of files" class="file-row">
           <i [class]="file.mimeType?.startsWith('image/') ? 'pi pi-image' : 'pi pi-file'" aria-hidden="true"></i>
           <div class="file-name"><button type="button" (click)="openDetails(file.storedFileId)">{{ file.displayName }}</button><small>{{ file.uploadedAt | date:'mediumDate' }} · {{ file.size / 1048576 | number:'1.1-1' }} MiB</small></div>
-          <span class="state" [class.missing]="file.state === 'MissingFromDrive'">{{ ('STORAGE.STATE_' + file.state) | translate }}</span>
-          <span *ngIf="file.isProtected" class="protected"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'STORAGE.PROTECTED' | translate }}</span>
+          <div class="file-status"><span class="state" [class.missing]="file.state === 'MissingFromDrive'">{{ ('STORAGE.STATE_' + file.state) | translate }}</span><span *ngIf="file.isProtected" class="protected"><i class="pi pi-lock" aria-hidden="true"></i> {{ 'STORAGE.PROTECTED' | translate }}</span></div>
+          <span class="file-size" dir="ltr">{{ file.size / 1048576 | number:'1.1-1' }} MiB</span>
+          <span class="file-date">{{ file.uploadedAt | date:'mediumDate' }}</span>
           <div class="file-actions"><button pButton type="button" icon="pi pi-download" [attr.aria-label]="('STORAGE.DOWNLOAD' | translate) + ' ' + file.displayName" (click)="download(file)" [disabled]="file.state === 'MissingFromDrive'"></button><button pButton type="button" icon="pi pi-link" [attr.aria-label]="'STORAGE.COPY_LINK' | translate" (click)="copy(file)"></button></div>
         </article>
       </div>
-      <p-paginator [rows]="25" [first]="(page-1)*25" [totalRecords]="total" (onPageChange)="paginate($event.first || 0)"></p-paginator>
+      <p-paginator *ngIf="total > 25" [rows]="25" [first]="(page-1)*25" [totalRecords]="total" (onPageChange)="paginate($event.first || 0)"></p-paginator>
       <p class="count" aria-live="polite">{{ 'STORAGE.COUNT' | translate:{ count: total } }}</p>
-      <app-storage-evidence *ngIf="!own" [year]="evaluationYear" [initialRequirement]="initialRequirement" [canManage]="context?.canManage || false" (openFile)="openDetails($event)" (denied)="evidenceDenied()"></app-storage-evidence>
       <section class="discovery"><button pButton type="button" [label]="'STORAGE.DISCOVER' | translate" (click)="discover()"></button>
         <div *ngIf="discovery"><h2>{{ 'STORAGE.DISCOVERY' | translate }}</h2><p>{{ 'STORAGE.DISCOVERY_HINT' | translate }}</p>
           <div *ngFor="let item of discovery.items" class="file-row"><span>{{ item.displayName }}</span><span class="state">{{ ('STORAGE.STATE_' + item.state) | translate }}</span><button *ngIf="item.storedFileId" type="button" (click)="openDetails(item.storedFileId)">{{ 'STORAGE.DETAILS' | translate }}</button></div>
           <button *ngIf="discovery.nextPageToken" pButton type="button" [label]="'STORAGE.NEXT' | translate" (click)="discover(true)"></button>
         </div>
       </section>
-      <section *ngIf="!own && context?.canManage && folders.length" class="folder-actions"><h2>{{ 'STORAGE.MOVE_FOLDER' | translate }}</h2><button *ngFor="let folder of folders" type="button" (click)="moveSource=folder; moveDialog=true">{{ folder.displayName }} <i class="pi pi-arrows-alt" aria-hidden="true"></i></button></section>
     </main>
   </div>
 </section>
-<p-dialog [(visible)]="detailOpen" [header]="'STORAGE.DETAILS' | translate" [modal]="true" [style]="{width:'min(95vw, 650px)'}" (onHide)="deleteConfirmed=false">
+<p-dialog [(visible)]="detailOpen" [header]="'STORAGE.DETAILS' | translate" [modal]="true" position="right" [style]="{width:'min(100vw, 560px)', maxHeight:'100vh'}" [contentStyle]="{overflowY:'auto'}" (onHide)="closeDetails()">
   <p *ngIf="!details">{{ 'STORAGE.LOADING' | translate }}</p>
-  <div *ngIf="details" dir="rtl" class="details"><h2>{{ details.file.displayName }}</h2><p>{{ details.file.mimeType }} · {{ details.file.size / 1048576 | number:'1.1-1' }} MiB</p>
-    <div class="dialog-actions"><button pButton type="button" [label]="'STORAGE.DOWNLOAD' | translate" (click)="download(details.file)" [disabled]="details.file.state === 'MissingFromDrive' || details.file.state === 'Withdrawn'"></button><button *ngIf="previewable" pButton type="button" [label]="'STORAGE.PREVIEW' | translate" (click)="preview()" [disabled]="details.file.state === 'MissingFromDrive' || details.file.state === 'Withdrawn'"></button></div>
+  <div *ngIf="details" dir="rtl" class="details"><div class="details-summary"><i [class]="details.file.mimeType?.startsWith('image/') ? 'pi pi-image' : 'pi pi-file'" aria-hidden="true"></i><div><h2>{{ details.file.displayName }}</h2><p>{{ details.file.mimeType }} · {{ details.file.size / 1048576 | number:'1.1-1' }} MiB</p><span class="state" [class.missing]="details.file.state === 'MissingFromDrive'">{{ ('STORAGE.STATE_' + details.file.state) | translate }}</span></div></div>
+    <div class="dialog-actions"><button pButton type="button" [label]="'STORAGE.DOWNLOAD' | translate" icon="pi pi-download" (click)="download(details.file)" [disabled]="details.file.state === 'MissingFromDrive' || details.file.state === 'Withdrawn'"></button><button *ngIf="previewable" pButton type="button" [label]="'STORAGE.PREVIEW' | translate" icon="pi pi-eye" (click)="preview()" [disabled]="details.file.state === 'MissingFromDrive' || details.file.state === 'Withdrawn'"></button><button pButton type="button" [label]="'STORAGE.COPY_LINK' | translate" icon="pi pi-link" class="p-button-outlined" (click)="copy(details.file)"></button></div>
     <p *ngIf="!previewable">{{ 'STORAGE.PREVIEW_FALLBACK' | translate }}</p>
     <h3>{{ 'STORAGE.VERSIONS' | translate }}</h3><ul><li *ngFor="let version of details.versions">{{ 'STORAGE.VERSION' | translate:{ number: version.versionNumber } }} · {{ version.uploadedAt | date:'medium' }} · {{ ('STORAGE.AVAILABILITY_' + version.availability) | translate }} <button type="button" (click)="downloadVersion(version.versionId)">{{ 'STORAGE.DOWNLOAD' | translate }}</button></li></ul>
     <p *ngIf="details.file.isProtected" class="notice">{{ 'STORAGE.PROTECTED_HINT' | translate }}</p>
-    <app-storage-evidence [file]="details.file" [year]="evaluationYear" [initialRequirement]="initialRequirement" [own]="own" [canManage]="!!context?.canManage && details.file.state !== 'Withdrawn'" (changed)="evidenceChanged()" (denied)="evidenceDenied()"></app-storage-evidence>
+    <app-storage-evidence [file]="details.file" [year]="evaluationYear" [initialRequirement]="initialRequirement" [initialLink]="+(route.snapshot.queryParamMap.get('link') || 0) || undefined" [own]="own" [canManage]="!!context?.canManage && !historicalYear && details.file.state !== 'Withdrawn'" [canReview]="canReviewEvidence && details.file.state !== 'Withdrawn'" (changed)="evidenceChanged()" (denied)="evidenceDenied()"></app-storage-evidence>
     <div *ngIf="!details.file.isProtected && context?.canManage && details.file.state !== 'Withdrawn'"><label>{{ 'STORAGE.RENAME' | translate }}<input [(ngModel)]="renameName" maxlength="255"></label><button pButton type="button" [label]="'STORAGE.SAVE' | translate" (click)="rename()"></button>
       <label class="delete-confirm"><input type="checkbox" [(ngModel)]="deleteConfirmed">{{ 'STORAGE.DELETE_CONFIRM' | translate }}</label><button pButton type="button" class="p-button-danger" [label]="'STORAGE.DELETE' | translate" [disabled]="!deleteConfirmed" (click)="delete()"></button>
     </div>

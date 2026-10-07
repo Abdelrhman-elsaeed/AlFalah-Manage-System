@@ -28,6 +28,14 @@ public sealed class VisitArchiveService(IVisitArchiveRepository repository, ISto
         await authorization.RequireSchoolPermissionAsync(School, PermissionNames.StorageViewArchive, ct);
         if (!await storage.HasPermissionAsync(scope.UserId, School, PermissionNames.VisitView, ct)) throw Denied();
     }
+    public async Task<VisitArchiveOperationsDto> OperationsStatusAsync(CancellationToken ct = default)
+    {
+        Enabled();
+        await RequireManagementAsync(ct);
+        var flags = options.Value;
+        return new(flags.ArchiveWorkerEnabled, flags.ArchiveExternalWritesEnabled,
+            flags.AdministrationEnabled && flags.ReadModelEnabled && flags.ArchiveWorkerEnabled && flags.ArchiveExternalWritesEnabled);
+    }
     private async Task<bool> AuthorizeAsync(ArchiveVisitScope visit, bool management, CancellationToken ct)
     {
         var scope = await authorization.RequireScopeAsync(School, ct);

@@ -1,6 +1,6 @@
 export interface StorageContext {
   schoolId: number; schoolName: string; academicYearId?: number; academicYearName?: string;
-  canManage: boolean; isTeacher: boolean; connectionState: string; rootFolderId?: number;
+  canManage: boolean; canReviewEvidence?: boolean; isTeacher: boolean; connectionState: string; rootFolderId?: number;
 }
 export interface StorageFolder { id: number; parentFolderId?: number; displayName: string; kind: string; rowVersion: string; }
 export interface StorageFile {

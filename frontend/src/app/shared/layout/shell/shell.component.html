@@ -1,4 +1,4 @@
-<div class="shell" dir="rtl">
+<div class="shell" dir="rtl" [class.shell--storage]="isStorageRoute()">
   <header class="shell-topbar">
     <!-- Right Section: Framed User Profile + Saudi Digital Clock -->
     <div class="shell-topbar__right-group">
@@ -42,6 +42,7 @@
         <span class="shell-topbar__school-title" *ngIf="activeSchoolName() as school; else generalAppName">
           {{ school }}
         </span>
+        <small *ngIf="isStorageRoute() && storageAcademicYearName()" class="storage-year">{{ storageAcademicYearName() }}</small>
         <ng-template #generalAppName>
           <span class="shell-topbar__school-title">{{ 'APP.NAME' | translate }}</span>
         </ng-template>
@@ -66,6 +67,7 @@
 
   <div class="shell-body" [class.is-sidebar-collapsed]="isSidebarCollapsed()">
     <aside class="shell-sidebar" [class.is-collapsed]="isSidebarCollapsed()">
+      <div *ngIf="isStorageRoute()" class="storage-brand"><span class="storage-brand-logo"><img src="assets/Logo.png" alt=""></span><span><strong>مساحة الملفات</strong><small>{{ activeSchoolName() || 'مدارس الفلاح' }}</small></span></div>
       <div class="shell-sidebar__controls">
         <span class="shell-sidebar__menu-title">
           <i class="pi pi-th-large" aria-hidden="true"></i>
@@ -133,8 +135,8 @@
             <li *ngFor="let item of category.items">
               <a
                 [routerLink]="item.route"
-                routerLinkActive="is-active"
-                [routerLinkActiveOptions]="item.exact ? exactMatchOptions : prefixMatchOptions"
+                [class.is-active]="sidebarItemActive(category, item)"
+                [attr.aria-current]="sidebarItemActive(category, item) ? 'page' : null"
                 class="shell-sidebar__link shell-sidebar__link--nested"
                 [pTooltip]="(item.tooltipKey || item.labelKey) | translate"
                 tooltipPosition="left">
@@ -146,10 +148,20 @@
           </ul>
         </div>
       </nav>
+      <div *ngIf="isStorageRoute() && currentUser() as user" class="storage-sidebar-user"><span class="storage-user-avatar">{{ userInitials() || 'ف' }}</span><span><strong>{{ user.fullName }}</strong><small>{{ primaryRoleKey() | roleDisplayName }}</small></span></div>
     </aside>
 
     <main class="shell-content">
       <router-outlet></router-outlet>
     </main>
   </div>
+  <nav *ngIf="isStorageRoute()" class="storage-mobile-nav" aria-label="أقسام مساحة الملفات">
+    <a *ngFor="let item of storageMobileItems()" [routerLink]="item.route" [class.is-active]="storageMobileActive(item)" [attr.aria-current]="storageMobileActive(item) ? 'page' : null" (click)="storageMoreOpen.set(false)">
+      <i [class]="item.icon" aria-hidden="true"></i><span>{{ item.labelKey }}</span>
+    </a>
+    <button *ngIf="storageMoreItems().length" type="button" [attr.aria-expanded]="storageMoreOpen()" (click)="storageMoreOpen.set(!storageMoreOpen())"><i class="pi pi-ellipsis-h" aria-hidden="true"></i><span>المزيد</span></button>
+    <div *ngIf="storageMoreOpen()" class="storage-mobile-more">
+      <a *ngFor="let item of storageMoreItems()" [routerLink]="item.route" (click)="storageMoreOpen.set(false)"><i [class]="item.icon" aria-hidden="true"></i>{{ item.labelKey }}</a>
+    </div>
+  </nav>
 </div>

@@ -110,6 +110,23 @@ public sealed class EvidenceWorkflowSqlTests(EvidenceWorkflowSqlFixture fixture,
         return (upload, a, b);
     }
     [StorageSqlFact]
+    public async Task Change_queue_returns_pending_requests_without_a_query_translation_error()
+    {
+        await using var db = fixture.Db(); var w = await Setup(db);
+        var manager = Build(db, w);
+        var page = await manager.Changes.QueueAsync(w.Year);
+        page.Total.Should().Be(0);
+        page.Items.Should().BeEmpty();
+        var (upload, _, _) = await Pair(db, w);
+        var teacher = Build(db, w, true);
+        var details = await teacher.Library.DetailsAsync(upload.StoredFileId!.Value);
+        await teacher.Changes.CreateAsync(upload.StoredFileId.Value, new("Replace", "نسخة أحدث", details.File.RowVersion));
+        page = await manager.Changes.QueueAsync(w.Year);
+        page.Total.Should().Be(1);
+        page.Items.Single().StoredFileId.Should().Be(upload.StoredFileId.Value);
+        (await manager.Changes.QueueAsync(w.Year, status: "Approved")).Items.Should().BeEmpty();
+    }
+    [StorageSqlFact]
     public async Task Idempotent_S3_SQL_script_applies_and_reapplies_on_a_fresh_S2_database()
     {
         var connection = new SqlConnectionStringBuilder(fixture.Connection);

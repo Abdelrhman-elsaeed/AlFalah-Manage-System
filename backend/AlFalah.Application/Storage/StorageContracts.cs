@@ -22,7 +22,7 @@ public sealed record StorageActorScope(string UserId, int SchoolId, string? Mana
 // Internal authorization result; raw provider IDs never form an API response.
 public sealed record StorageFileAccess(int Id, int SchoolId, int? OwnerTeacherId, string? OwnerUserId,
     bool OwnerIsActiveInSchool, string DriveId, string DriveItemId, StoredFileSourceKind SourceKind,
-    StoredFileAvailability Availability, bool IsDeleted);
+    StoredFileAvailability Availability, bool IsDeleted, int FolderId = 0);
 public sealed record StorageDriveRoot(string DriveId, string RootItemId);
 
 public interface IStorageRepository

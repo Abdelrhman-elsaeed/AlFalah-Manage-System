@@ -23,12 +23,23 @@ export class StorageApiService {
     if (parentFolderId != null) params = params.set('parentFolderId', parentFolderId);
     return this.http.get<ApiResponse<StoragePage<StorageFolder>>>(`${this.base}/folders`, { params, context: this.context() }).pipe(map(r => this.data(r)));
   }
-  files(own: boolean, folderId: number, search: string, global: boolean, sort: string, descending: boolean, page: number) {
-    return this.http.get<ApiResponse<StoragePage<StorageFile>>>(`${this.base}/${own ? 'me/' : ''}files`, {
-      params: { folderId, search, global, sort, descending, page, pageSize: 25 }, context: this.context()
+  folderPath(own: boolean, id: number) {
+    return this.http.get<ApiResponse<StorageFolder[]>>(`${this.base}/folders/${id}/path`, {
+      params: { own }, context: this.context()
     }).pipe(map(r => this.data(r)));
   }
-  details(id: number) { return this.http.get<ApiResponse<StorageDetails>>(`${this.base}/files/${id}`, { context: this.context() }).pipe(map(r => this.data(r))); }
+  files(own: boolean, folderId: number, search: string, global: boolean, sort: string, descending: boolean, page: number, filter = 'all') {
+    return this.http.get<ApiResponse<StoragePage<StorageFile>>>(`${this.base}/${own ? 'me/' : ''}files`, {
+      params: { folderId, search, global, sort, descending, page, pageSize: 25, filter }, context: this.context()
+    }).pipe(map(r => this.data(r)));
+  }
+  details(id: number, academicYearId?: number, folderId?: number, own?: boolean) {
+    let params = new HttpParams();
+    if (academicYearId != null) params = params.set('academicYearId', academicYearId);
+    if (folderId != null) params = params.set('folderId', folderId);
+    if (own != null) params = params.set('own', own);
+    return this.http.get<ApiResponse<StorageDetails>>(`${this.base}/files/${id}`, { params, context: this.context() }).pipe(map(r => this.data(r)));
+  }
   discover(own: boolean, id: number, pageToken = '') {
     return this.http.get<ApiResponse<StorageDiscovery>>(`${this.base}/folders/${id}/drive-items`, { params: { own, pageToken }, context: this.context() }).pipe(map(r => this.data(r)));
   }

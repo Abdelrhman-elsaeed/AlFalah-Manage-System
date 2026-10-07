@@ -5,7 +5,7 @@ using AlFalah.Domain.Enums;
 namespace AlFalah.Application.Storage;
 
 public sealed record StorageListRequest(int? FolderId = null, string? Search = null, bool Global = false,
-    string Sort = "name", bool Descending = false, int Page = 1, int PageSize = 25);
+    string Sort = "name", bool Descending = false, int Page = 1, int PageSize = 25, string Filter = "all");
 public sealed record StoragePage<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);
 public sealed record StorageFolderDto(int Id, int? ParentFolderId, string DisplayName, string Kind, string RowVersion);
 public sealed record StorageDiscoveryItemDto(int? FolderId, int? StoredFileId, string DisplayName, bool IsFolder, long? Size, string? MimeType, string State);
@@ -18,7 +18,7 @@ public sealed record StorageFileDetailsDto(StorageFileListDto File, IReadOnlyLis
 public sealed record StorageUploadDto(int OperationId, int? StoredFileId, int? VersionId, string Status,
     string DisplayName, long Size, string MimeType, DateTimeOffset UploadedAt, string? ErrorCode);
 public sealed record StorageContextDto(int SchoolId, string SchoolName, int? AcademicYearId, string? AcademicYearName,
-    bool CanManage, bool IsTeacher, string ConnectionState, int? RootFolderId);
+    bool CanManage, bool IsTeacher, string ConnectionState, int? RootFolderId, bool CanReviewEvidence = false);
 public sealed record CreateStorageFolderRequest(int? ParentFolderId, string DisplayName, string RequestKey);
 public sealed record MoveStorageFolderRequest(int ParentFolderId, string RowVersion);
 public sealed record RenameStorageFileRequest(string DisplayName, string RowVersion);
@@ -28,6 +28,7 @@ public sealed record StorageUploadRequest(Stream Content, string FileName, long 
 // Provider IDs are confined to these internal projections.
 public sealed record StorageFolderAccess(StorageFolder Folder, StorageDriveRoot SchoolRoot, StorageDriveRoot AuthorizedRoot);
 public sealed record StorageReadRow(StorageFileListDto Dto, string DriveItemId, StoredFileSourceKind SourceKind);
+public sealed record StorageFolderReadRow(StorageFolderDto Dto, string DriveItemId);
 public sealed record StorageMutationTarget(StoredFile File, StoredFileVersion Version, bool Protected);
 public sealed record StorageTeacher(int Id, string UserId, StorageDriveRoot Root, string DisplayName);
 
@@ -42,7 +43,7 @@ public interface IStorageLibraryRepository
     Task<StorageFolder?> FindRootAsync(int schoolId, int? teacherId, CancellationToken ct);
     Task<StorageFolder> AddFolderAsync(StorageFolder folder, CancellationToken ct);
     Task SaveFolderAsync(StorageFolder folder, byte[] expectedVersion, CancellationToken ct);
-    Task<StoragePage<StorageFolderDto>> FoldersAsync(int schoolId, int? owner, int? parent, int page, int pageSize, CancellationToken ct);
+    Task<StoragePage<StorageFolderReadRow>> FoldersAsync(int schoolId, int? owner, int? parent, int page, int pageSize, CancellationToken ct);
     Task<StoragePage<StorageReadRow>> FilesAsync(int schoolId, int? owner, StorageListRequest request, CancellationToken ct);
     Task<StorageFileDetailsDto?> DetailsAsync(int schoolId, int id, CancellationToken ct);
     Task<StorageMutationTarget?> MutationTargetAsync(int schoolId, int id, CancellationToken ct);
@@ -80,9 +81,11 @@ public interface IStorageLibraryService
 {
     Task<StorageContextDto> ContextAsync(bool own, CancellationToken ct = default);
     Task<StoragePage<StorageFolderDto>> FoldersAsync(bool own, int? parent, int page, int pageSize, CancellationToken ct = default);
+    Task<IReadOnlyList<StorageFolderDto>> FolderPathAsync(bool own, int folderId, CancellationToken ct = default);
     Task<StoragePage<StorageFileListDto>> FilesAsync(bool own, StorageListRequest request, CancellationToken ct = default);
     Task<StorageDiscoveryPageDto> DiscoverAsync(bool own, int folderId, string? token, CancellationToken ct = default);
-    Task<StorageFileDetailsDto> DetailsAsync(int id, CancellationToken ct = default);
+    Task<StorageFileDetailsDto> DetailsAsync(int id, CancellationToken ct = default,
+        int? academicYearId = null, int? folderId = null, bool? own = null);
     Task<DriveFileContentDto> ContentAsync(int id, CancellationToken ct = default);
     Task<StorageFolderDto> CreateFolderAsync(CreateStorageFolderRequest request, CancellationToken ct = default);
     Task<StorageFolderDto> MoveFolderAsync(int id, MoveStorageFolderRequest request, CancellationToken ct = default);

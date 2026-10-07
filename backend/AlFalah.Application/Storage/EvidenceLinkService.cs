@@ -45,7 +45,9 @@ public sealed class EvidenceLinkService(IEvidenceRepository repository, IStorage
     public async Task<StoragePage<EvidenceLinkDto>> QueueAsync(EvidenceQueueRequest request, CancellationToken ct = default)
     {
         await context.ReviewAsync(ct); await context.YearAsync(request.AcademicYearId, ct);
-        if (request.Page is < 1 or > 100000 || request.PageSize is < 1 or > 100 || request.Status != null && !Enum.IsDefined(request.Status.Value)) throw new ArgumentException("الفلاتر غير صالحة.");
+        if (request.Page is < 1 or > 100000 || request.PageSize is < 1 or > 100 ||
+            request.Status != null && !Enum.IsDefined(request.Status.Value) || request.Decided && request.Status != null)
+            throw new ArgumentException("الفلاتر غير صالحة.");
         var page = await repository.LinkIdsAsync(context.School, request, ct);
         var rows = await repository.LinkDtosAsync(context.School, page.Items, ct);
         return new(rows, page.Total, page.Page, page.PageSize);

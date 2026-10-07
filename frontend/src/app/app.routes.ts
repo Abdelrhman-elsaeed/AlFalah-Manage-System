@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { ResolveFn, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { storageGuard } from './features/storage/storage.guard';
+import { storageGuard, visitWorkspaceGuard } from './features/storage/storage.guard';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
@@ -81,12 +81,27 @@ export const routes: Routes = [
 
       // Live storage permission/delegation guard, outside the manager role subtree.
       {
-        path: 'school-manager/storage/imports', canActivate: [storageGuard], data: {own: false},
+        path: 'school-manager/storage/overview', canActivate: [storageGuard], data: {own: false},
+        loadComponent: () => import('./features/storage/storage-overview-page.component').then(m => m.StorageOverviewPageComponent),
+        title: 'مساحة الملفات — نظرة عامة'
+      },
+      {
+        path: 'school-manager/storage/evidence', canActivate: [storageGuard], data: {own: false, view: 'review'},
+        loadComponent: () => import('./features/storage/storage-page.component').then(m => m.StoragePageComponent),
+        title: 'الشواهد'
+      },
+      {
+        path: 'school-manager/storage/admin', canActivate: [storageGuard], data: {own: false, manage: true},
+        loadComponent: () => import('./features/storage/storage-admin-page.component').then(m => m.StorageAdminPageComponent),
+        title: 'إعدادات مساحة الملفات'
+      },
+      {
+        path: 'school-manager/storage/imports', canActivate: [storageGuard], data: {own: false, manage: true},
         loadComponent: () => import('./features/storage/import-page.component').then(m => m.ImportPageComponent),
         title: 'الاستيراد التاريخي'
       },
       {
-        path:'school-manager/storage/visits',
+        path:'school-manager/storage/visits', canActivate:[storageGuard], data:{own:false,archive:true},
         loadComponent:()=>import('./features/storage/visit-archive-page.component').then(m=>m.VisitArchivePageComponent),
         title:translatedTitle('S5.TITLE')
       },
@@ -472,7 +487,7 @@ export const routes: Routes = [
       },
       {
         path: 'visits',
-        canActivate: [roleGuard],
+        canActivate: [visitWorkspaceGuard],
         canDeactivate: [visitV2UnsavedGuard],
         data: { roles: ['SchoolManager', 'Moderator', 'MainManager', 'SuperAdmin', 'Instructor'] },
         loadComponent: () => import('./features/visits-v2/visit-workspace/visit-workspace.component')

@@ -81,7 +81,7 @@ public sealed class StorageRepository(AlFalahDbContext db) : IStorageRepository
          where file.SchoolId == schoolId && file.Id == id
          select new StorageFileAccess(file.Id, file.SchoolId, file.OwnerTeacherId, teacher == null ? null : teacher.UserId,
              teacher != null && teacher.IsActive && teacher.SchoolId == schoolId && teacher.User.IsActive,
-             version.DriveId, version.DriveItemId, file.SourceKind, version.Availability, file.IsDeleted)).SingleOrDefaultAsync(ct);
+             version.DriveId, version.DriveItemId, file.SourceKind, version.Availability, file.IsDeleted, file.FolderId)).SingleOrDefaultAsync(ct);
 
     public Task<StorageDriveRoot?> GetSchoolDriveRootAsync(int schoolId, CancellationToken ct) =>
         db.SchoolGoogleDrives.AsNoTracking().Where(x => x.SchoolId == schoolId && x.IsEnabled)

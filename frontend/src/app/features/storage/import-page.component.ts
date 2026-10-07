@@ -11,8 +11,9 @@ import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { SUPPRESS_ERROR_TOAST, SUPPRESS_FORBIDDEN_REDIRECT } from '../../core/http/http-context.tokens';
 import { ImportApiService, ImportBatch, ImportRow } from './import-api.service';
+import { StorageWorkspaceNavComponent } from './storage-workspace-nav.component';
 
-@Component({selector: 'app-import-page', standalone: true, imports: [CommonModule, FormsModule, RouterLink, DropdownModule, PaginatorModule],
+@Component({selector: 'app-import-page', standalone: true, imports: [CommonModule, FormsModule, RouterLink, DropdownModule, PaginatorModule, StorageWorkspaceNavComponent],
   templateUrl: './import-page.component.html', styleUrls: ['./import-page.component.css']})
 export class ImportPageComponent implements OnInit {
   private readonly api = inject(ImportApiService); private readonly http = inject(HttpClient);

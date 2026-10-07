@@ -69,6 +69,105 @@ public sealed class StorageLibraryTests
         json.Should().NotContain("DriveItemId").And.NotContain("RootItemId").And.NotContain("drive.google");
     }
     [Fact]
+    public async Task Contextual_file_details_reject_wrong_year_folder_and_own_scope()
+    {
+        await using var h = await Setup();
+        var manager = Service(h, TeacherDriveHarness.Manager());
+        var root = await manager.CreateFolderAsync(new(null, "", "context-root"));
+        var schoolFile = await Upload(manager, false, "context-school", root.Id);
+        var teacherFile = await Upload(Service(h, TeacherDriveHarness.TeacherA()), true, "context-teacher");
+        var year = (await manager.ContextAsync(false)).AcademicYearId!.Value;
+
+        (await manager.DetailsAsync(schoolFile.StoredFileId!.Value, academicYearId: year,
+            folderId: root.Id, own: false)).File.StoredFileId.Should().Be(schoolFile.StoredFileId.Value);
+        await manager.Invoking(x => x.DetailsAsync(schoolFile.StoredFileId!.Value,
+            academicYearId: year + 1, folderId: root.Id, own: false)).Should().ThrowAsync<KeyNotFoundException>();
+        await manager.Invoking(x => x.DetailsAsync(schoolFile.StoredFileId!.Value,
+            academicYearId: year, folderId: root.Id + 100, own: false)).Should().ThrowAsync<KeyNotFoundException>();
+        await manager.Invoking(x => x.DetailsAsync(teacherFile.StoredFileId!.Value,
+            academicYearId: year, own: false)).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+        await manager.Invoking(x => x.DetailsAsync(schoolFile.StoredFileId!.Value,
+            academicYearId: year, own: true)).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+    }
+    [Fact]
+    public async Task Context_reports_review_permission_separately_from_library_management()
+    {
+        await using var h = await Setup();
+        await Service(h, TeacherDriveHarness.Manager()).CreateFolderAsync(new(null, "", "review-capability-root"));
+        var reviewGrant = await h.Context.RolePermissions.SingleAsync(x => x.RoleId == "storage-manager" &&
+            x.Permission.Name == PermissionNames.StorageReviewEvidence);
+        h.Context.RolePermissions.Remove(reviewGrant);
+        await h.Context.SaveChangesAsync();
+
+        var context = await Service(h, TeacherDriveHarness.Manager()).ContextAsync(false);
+        context.CanManage.Should().BeTrue();
+        context.CanReviewEvidence.Should().BeFalse();
+
+        var manageGrant = await h.Context.RolePermissions.SingleAsync(x => x.RoleId == "storage-manager" &&
+            x.Permission.Name == PermissionNames.StorageManageSchool);
+        h.Context.RolePermissions.Remove(manageGrant);
+        h.Context.RolePermissions.Add(new RolePermission { RoleId = "storage-manager", PermissionId = reviewGrant.PermissionId });
+        await h.Context.SaveChangesAsync();
+
+        var reviewerContext = await Service(h, TeacherDriveHarness.Manager()).ContextAsync(false);
+        reviewerContext.CanManage.Should().BeFalse();
+        reviewerContext.CanReviewEvidence.Should().BeTrue();
+    }
+    [Fact]
+    public async Task File_filters_are_applied_before_server_pagination_and_count()
+    {
+        await using var h = await Setup();
+        var service = Service(h, TeacherDriveHarness.Manager());
+        await service.CreateFolderAsync(new(null, "", "filter-root"));
+        var first = await Upload(service, false, "filter-first");
+        using var imageBytes = new MemoryStream([137, 80, 78, 71, 13, 10, 26, 10, 1]);
+        var second = await service.UploadAsync(new(imageBytes, "filter.png", imageBytes.Length, null, "filter-second", false));
+
+        var pdf = await service.FilesAsync(false, new(PageSize: 1, Filter: "pdf"));
+        pdf.Total.Should().Be(1);
+        pdf.Items.Single().StoredFileId.Should().Be(first.StoredFileId);
+        var image = await service.FilesAsync(false, new(PageSize: 1, Filter: "image"));
+        image.Total.Should().Be(1);
+        image.Items.Single().StoredFileId.Should().Be(second.StoredFileId);
+        (await service.FilesAsync(false, new(Filter: "protected"))).Total.Should().Be(0);
+        await service.Invoking(x => x.FilesAsync(false, new(Filter: "unexpected"))).Should().ThrowAsync<ArgumentException>();
+    }
+    [Fact]
+    public async Task Review_history_pages_only_decided_links_and_keeps_accurate_total()
+    {
+        await using var h = await Setup();
+        var service = Service(h, TeacherDriveHarness.Manager());
+        await service.CreateFolderAsync(new(null, "", "history-root"));
+        var uploaded = await Upload(service, false, "history-file");
+        var fileId = uploaded.StoredFileId!.Value;
+        var versionId = (await h.Context.StoredFiles.SingleAsync(x => x.Id == fileId)).CurrentVersionId!.Value;
+        var requirements = new[] { "pending", "approved", "rejected" }.Select((code, index) =>
+            new EvidenceRequirement { SchoolId = 1, AcademicYearId = 1, Code = code,
+                DisplayName = code, SortOrder = index }).ToArray();
+        h.Context.EvidenceRequirements.AddRange(requirements);
+        await h.Context.SaveChangesAsync();
+        h.Context.EvidenceLinks.AddRange(requirements.Select((requirement, index) => new EvidenceLink
+        {
+            SchoolId = 1, AcademicYearId = 1, StoredFileId = fileId, VersionId = versionId,
+            RequirementId = requirement.Id, Status = index switch
+            {
+                1 => EvidenceLinkStatus.Approved, 2 => EvidenceLinkStatus.Rejected,
+                _ => EvidenceLinkStatus.PendingReview
+            }
+        }));
+        await h.Context.SaveChangesAsync();
+
+        var repository = new EvidenceRepository(h.Context);
+        var pending = await repository.LinkIdsAsync(1, new EvidenceQueueRequest(1), default);
+        pending.Total.Should().Be(1);
+        var decided = await repository.LinkIdsAsync(1, new EvidenceQueueRequest(1, PageSize: 1, Decided: true), default);
+        decided.Total.Should().Be(2);
+        decided.Items.Should().HaveCount(1);
+        var nextPage = await repository.LinkIdsAsync(1, new EvidenceQueueRequest(1, Page: 2, PageSize: 1, Decided: true), default);
+        nextPage.Total.Should().Be(2);
+        nextPage.Items.Should().HaveCount(1).And.NotContain(decided.Items.Single());
+    }
+    [Fact]
     public async Task Repeated_key_returns_same_asset_and_changed_bytes_conflict()
     {
         await using var h = await Setup();
@@ -219,6 +318,23 @@ public sealed class StorageLibraryTests
         await service.Invoking(x => x.MoveFolderAsync(root.Id, new(a.Id, root.RowVersion))).Should().ThrowAsync<ArgumentException>();
         await service.Invoking(x => x.MoveFolderAsync(a.Id, new(999, a.RowVersion))).Should().ThrowAsync<KeyNotFoundException>();
         (await service.MoveFolderAsync(b.Id, new(root.Id, b.RowVersion))).ParentFolderId.Should().Be(root.Id);
+    }
+    [Fact]
+    public async Task Folder_path_returns_authorized_ancestors_after_move_and_rejects_teacher_access()
+    {
+        await using var h = await Setup();
+        var school = Service(h, TeacherDriveHarness.Manager());
+        var root = await school.CreateFolderAsync(new(null, "", "path-root"));
+        var parent = await school.CreateFolderAsync(new(root.Id, "أ", "path-parent"));
+        var child = await school.CreateFolderAsync(new(parent.Id, "ب", "path-child"));
+        (await school.FolderPathAsync(false, child.Id)).Select(x => x.Id).Should().Equal(root.Id, parent.Id, child.Id);
+        await school.MoveFolderAsync(child.Id, new(root.Id, child.RowVersion));
+        (await school.FolderPathAsync(false, child.Id)).Select(x => x.Id).Should().Equal(root.Id, child.Id);
+        await school.Invoking(x => x.FolderPathAsync(false, 999)).Should().ThrowAsync<KeyNotFoundException>();
+        var own = Service(h, TeacherDriveHarness.TeacherA());
+        await Upload(own, true, "teacher-path-root");
+        await own.Invoking(x => x.FolderPathAsync(true, child.Id))
+            .Should().ThrowAsync<UnauthorizedSchoolAccessException>();
     }
     [Fact]
     public async Task Approved_legacy_and_historical_files_are_immutable_even_before_S3()

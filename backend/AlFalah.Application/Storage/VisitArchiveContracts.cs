@@ -18,6 +18,7 @@ public sealed record VisitArchiveRevisionDto(int ApprovalRevision, string Status
     IReadOnlyList<VisitArchiveVersionDto> Versions);
 public sealed record VisitArchiveDto(int VisitId, string InstructorName, int ApprovalRevision,
     bool IsApproved, bool CanManage, IReadOnlyList<VisitArchiveRevisionDto> Revisions);
+public sealed record VisitArchiveOperationsDto(bool WorkerEnabled, bool ExternalWritesEnabled, bool Ready);
 // Internal repository projections. Provider IDs and snapshots never cross HTTP.
 public sealed record ArchiveVisitScope
 {
@@ -76,6 +77,7 @@ public interface IVisitArchiveRepository
 }
 public interface IVisitArchiveService
 {
+    Task<VisitArchiveOperationsDto> OperationsStatusAsync(CancellationToken ct = default);
     Task<IReadOnlyList<VisitArchiveTeacherDto>> TeachersAsync(CancellationToken ct = default);
     Task<StoragePage<VisitArchiveDto>> ListAsync(VisitArchiveQuery query, CancellationToken ct = default);
     Task<VisitArchiveDto> GetAsync(int visitId, CancellationToken ct = default);

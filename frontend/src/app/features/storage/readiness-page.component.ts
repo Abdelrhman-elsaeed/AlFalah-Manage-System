@@ -13,15 +13,17 @@ import { ClearableSelectComponent } from '../../shared/components/clearable-sele
 import { ReadinessApiService } from './readiness-api.service';
 import { StorageApiService } from './storage-api.service';
 import { StorageEvidenceApiService } from './evidence-api.service';
+import { StorageWorkspaceNavComponent } from './storage-workspace-nav.component';
 import { EvaluationFilter, EvaluationTemplate, ReadinessSummary, EvaluationRequirement, ManualEvaluation, EvaluationMember, EvaluationVersion, DigitalIndexFile } from './readiness.models';
 
-@Component({selector:'app-storage-readiness',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,ButtonModule,CalendarModule,DialogModule,PaginatorModule,ProgressBarModule,ClearableSelectComponent],templateUrl:'./readiness-page.component.html',styleUrls:['./readiness-page.component.css']})
+@Component({selector:'app-storage-readiness',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,ButtonModule,CalendarModule,DialogModule,PaginatorModule,ProgressBarModule,ClearableSelectComponent,StorageWorkspaceNavComponent],templateUrl:'./readiness-page.component.html',styleUrls:['./readiness-page.component.css']})
 export class ReadinessPageComponent implements OnInit,OnDestroy {
   private readonly api=inject(ReadinessApiService);private readonly storage=inject(StorageApiService);private readonly evidence=inject(StorageEvidenceApiService);
   private readonly route=inject(ActivatedRoute);private readonly router=inject(Router);private readonly translate=inject(TranslateService);
   private readonly destroyed=new Subject<void>();private load?:Subscription;
   readonly mode=this.route.snapshot.data['mode'] as string || 'readiness';
-  readonly navigation=['readiness','gaps','tracker','reports','digital-index','manual'];
+  readonly navigation=['readiness','tracker','gaps','reports'];
+  get returnToUrl() { return this.router.url; }
   filter:EvaluationFilter={academicYearId:0,templateVersion:1,criticalOnly:false,hideCompleted:false,gapsOnly:this.mode==='gaps',trackerOnly:this.mode==='tracker',page:1,pageSize:25};
   template?:EvaluationTemplate;summary?:ReadinessSummary;rows:EvaluationRequirement[]=[];critical:EvaluationRequirement[]=[];files:DigitalIndexFile[]=[];
   years:{id:number;nameAr:string}[]=[];members:EvaluationMember[]=[];versions:EvaluationVersion[]=[];manuals:ManualEvaluation[]=[];

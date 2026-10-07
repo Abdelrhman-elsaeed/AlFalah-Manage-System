@@ -15,7 +15,7 @@ public sealed record CreateEvidenceLinkRequest(int RequirementId, int AcademicYe
 public sealed record SubmitEvidenceLinkRequest(string RowVersion);
 public sealed record ReviewEvidenceLinkRequest(EvidenceReviewStatus Decision, string? Note, string RowVersion);
 public sealed record EvidenceQueueRequest(int AcademicYearId, int? RequirementId = null, int? TeacherId = null,
-    string? StandardCode = null, EvidenceLinkStatus? Status = null, int Page = 1, int PageSize = 25);
+    string? StandardCode = null, EvidenceLinkStatus? Status = null, int Page = 1, int PageSize = 25, bool Decided = false);
 public sealed record EvidenceDecisionDto(int Id, int VersionId, string Decision, string? ReviewedByUserId, string? Note, DateTimeOffset? ReviewedAtUtc, string ReviewerName);
 public sealed record EvidenceLinkDto(int Id, int StoredFileId, int RequirementId, int AcademicYearId, int? TeacherId,
     int VersionId, string FileName, string RequirementName, string TeacherName, string Status, string Availability,

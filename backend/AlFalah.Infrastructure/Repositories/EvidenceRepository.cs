@@ -56,7 +56,8 @@ public sealed class EvidenceRepository(AlFalahDbContext db) : IEvidenceRepositor
         var q = Links(school).AsNoTracking().Where(x => x.IsActive && x.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive && x.StoredFile.SourceKind != StoredFileSourceKind.HistoricalImport && x.AcademicYearId == r.AcademicYearId &&
             (r.RequirementId == null || x.RequirementId == r.RequirementId) && (r.TeacherId == null || x.TeacherId == r.TeacherId) &&
             (r.StandardCode == null || x.Requirement.StandardCode == r.StandardCode) &&
-            (r.Status == null ? x.Status == EvidenceLinkStatus.PendingReview || x.Status == EvidenceLinkStatus.Resubmitted : x.Status == r.Status));
+            (r.Decided ? x.Status == EvidenceLinkStatus.Approved || x.Status == EvidenceLinkStatus.Rejected :
+                r.Status == null ? x.Status == EvidenceLinkStatus.PendingReview || x.Status == EvidenceLinkStatus.Resubmitted : x.Status == r.Status));
         var total = await q.CountAsync(ct);
         var ids = await q.OrderBy(x => x.SubmittedAtUtc).ThenBy(x => x.Id).Skip((r.Page - 1) * r.PageSize).Take(r.PageSize).Select(x => x.Id).ToListAsync(ct);
         return new(ids, total, r.Page, r.PageSize);
@@ -102,9 +103,10 @@ public sealed class EvidenceRepository(AlFalahDbContext db) : IEvidenceRepositor
                 where c.SchoolId == school && f.SchoolId == school && (status == null || c.Status == status) &&
                     f.SourceKind != StoredFileSourceKind.VisitArchive && f.SourceKind != StoredFileSourceKind.HistoricalImport &&
                     (!db.EvidenceLinks.Any(l => l.StoredFileId == f.Id) || db.EvidenceLinks.Any(l => l.StoredFileId == f.Id && l.AcademicYearId == year))
-                select new ChangeQueueItemDto(c.Id, f.Id, f.DisplayName, c.Kind, c.Status, c.Reason);
+                select new { ChangeId = c.Id, FileId = f.Id, f.DisplayName, c.Kind, c.Status, c.Reason };
         var total = await q.CountAsync(ct);
-        return new(await q.OrderBy(x => x.Id).Skip((page - 1) * 25).Take(25).ToListAsync(ct), total, page, 25);
+        var rows = await q.OrderBy(x => x.ChangeId).Skip((page - 1) * 25).Take(25).ToListAsync(ct);
+        return new(rows.Select(x => new ChangeQueueItemDto(x.ChangeId, x.FileId, x.DisplayName, x.Kind, x.Status, x.Reason)).ToArray(), total, page, 25);
     }
     public async Task<StorageFileDetailsDto?> HistoryAsync(int school, int file, CancellationToken ct)
     {

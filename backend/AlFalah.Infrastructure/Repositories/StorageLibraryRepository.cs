@@ -63,14 +63,15 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
             Action = "Storage.FolderMoved", EntityName = "StorageFolder", EntityId = folder.Id.ToString() });
         await SaveAsync(ct);
     }
-    public async Task<StoragePage<StorageFolderDto>> FoldersAsync(int schoolId, int? owner, int? parent, int page, int pageSize, CancellationToken ct)
+    public async Task<StoragePage<StorageFolderReadRow>> FoldersAsync(int schoolId, int? owner, int? parent, int page, int pageSize, CancellationToken ct)
     {
         var q = db.StorageFolders.AsNoTracking().Where(x => x.SchoolId == schoolId && x.IsActive &&
             x.OwnerTeacherId == owner && x.ParentFolderId == parent && x.Kind != StorageFolderKind.VisitArchive);
         var total = await q.CountAsync(ct);
         var rows = await q.OrderBy(x => x.DisplayName).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new { x.Id, x.ParentFolderId, x.DisplayName, x.Kind, x.RowVersion }).ToListAsync(ct);
-        return new(rows.Select(x => new StorageFolderDto(x.Id, x.ParentFolderId, x.DisplayName, x.Kind.ToString(), Convert.ToBase64String(x.RowVersion))).ToList(), total, page, pageSize);
+            .Select(x => new { x.Id, x.ParentFolderId, x.DisplayName, x.Kind, x.RowVersion, x.DriveItemId }).ToListAsync(ct);
+        return new(rows.Select(x => new StorageFolderReadRow(new StorageFolderDto(x.Id, x.ParentFolderId, x.DisplayName,
+            x.Kind.ToString(), Convert.ToBase64String(x.RowVersion)), x.DriveItemId)).ToList(), total, page, pageSize);
     }
 
     public async Task<StoragePage<StorageReadRow>> FilesAsync(int schoolId, int? owner, StorageListRequest request, CancellationToken ct)
@@ -79,11 +80,20 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
             (owner == null ? x.OwnerTeacherId == null : x.OwnerTeacherId == owner) &&
             (request.Global || x.FolderId == request.FolderId) &&
             (request.Search == null || x.DisplayName.Contains(request.Search)));
-        var total = await q.CountAsync(ct);
         var protectedIds = Files(schoolId).Where(Protected).Select(x => x.Id);
         var joined = from f in q
                      join v in db.StoredFileVersions.AsNoTracking() on f.CurrentVersionId equals v.Id
                      select new { File = f, Version = v, Protected = protectedIds.Contains(f.Id) };
+        joined = request.Filter switch
+        {
+            "pdf" => joined.Where(x => x.Version.MimeType == "application/pdf"),
+            "image" => joined.Where(x => x.Version.MimeType != null && x.Version.MimeType.StartsWith("image/")),
+            "video" => joined.Where(x => x.Version.MimeType != null && x.Version.MimeType.StartsWith("video/")),
+            "unlinked" => joined.Where(x => !db.EvidenceLinks.Any(l => l.SchoolId == schoolId && l.StoredFileId == x.File.Id && l.IsActive)),
+            "protected" => joined.Where(x => x.Protected),
+            _ => joined
+        };
+        var total = await joined.CountAsync(ct);
         var sorted = request.Sort switch
         {
             "size" => request.Descending ? joined.OrderByDescending(x => x.Version.SizeInBytes) : joined.OrderBy(x => x.Version.SizeInBytes),

@@ -1,5 +1,13 @@
 <section class="archive-page" dir="rtl" [attr.aria-busy]="busy">
-  <header><div><span class="eyebrow">{{ 'S5.WORKSPACE' | translate }}</span><h1>{{ 'S5.TITLE' | translate }}</h1><p>{{ 'S5.HELP' | translate }}</p></div><a routerLink="/school-manager/storage">{{ 'S4.LIBRARY' | translate }}</a><button pButton type="button" icon="pi pi-refresh" [label]="'S5.REFRESH' | translate" (click)="reload()" [disabled]="busy || saving"></button></header>
+  <header><div><span class="eyebrow">{{ 'S5.WORKSPACE' | translate }}</span><h1>{{ 'S5.TITLE' | translate }}</h1><p>{{ 'S5.HELP' | translate }}</p></div><button pButton type="button" icon="pi pi-refresh" [label]="'S5.REFRESH' | translate" (click)="reload()" [disabled]="busy || saving"></button></header>
+  <div *ngIf="operations as status" class="archive-explainer" role="status">
+    <i class="pi pi-info-circle" aria-hidden="true"></i><div><strong>حالة تشغيل الأرشيف</strong>
+      <p *ngIf="status.ready">العامل والكتابة الخارجية مفعّلان؛ تابع حالة كل تقرير أدناه.</p>
+      <p *ngIf="!status.ready">الأرشفة متوقفة حاليًا: {{ status.workerEnabled ? 'العامل مفعّل' : 'العامل مغلق' }}، {{ status.externalWritesEnabled ? 'الكتابة الخارجية مفعّلة' : 'الكتابة الخارجية مغلقة' }}. سيبقى التقرير بانتظار التشغيل حتى تُفعّل الرايات وفق خطة التشغيل.</p>
+    </div>
+  </div>
+  <p *ngIf="operationsError" role="alert" class="error">{{ operationsError }} <button type="button" (click)="loadOperations()">إعادة المحاولة</button></p>
+  <div class="archive-explainer"><i class="pi pi-info-circle" aria-hidden="true"></i><div><strong>متى يظهر تقرير الزيارة في Google Drive؟</strong><p>بعد اعتماد زيارة V2، تُنشأ مهمة الأرشفة ويُرفع تقرير PDF عند تشغيل عامل الأرشفة والكتابة الخارجية. إنشاء زيارة أو حفظها فقط لا يرفع تقريراً. تابع حالة كل اعتماد أدناه.</p></div></div>
   <p *ngIf="error" role="alert" class="error">{{ error }}</p><p *ngIf="notice" role="status" class="notice">{{ notice }}</p>
   <p-progressBar *ngIf="busy" mode="indeterminate" [style]="{height:'4px'}" [attr.aria-label]="'S5.LOADING' | translate"></p-progressBar>
   <form class="filters" *ngIf="!disabled" (ngSubmit)="apply()">
@@ -11,7 +19,7 @@
   </form>
   <p *ngIf="!busy && !error && !rows.length" class="empty">{{ 'S5.EMPTY' | translate }}</p>
   <article *ngFor="let visit of rows; let index=index" class="visit-row">
-    <div class="visit-heading"><strong>{{ (filter.page-1)*filter.pageSize+index+1 }}. {{ visit.instructorName }}</strong><a routerLink="/school-manager/visits" [queryParams]="{visitId:visit.visitId}">{{ 'S5.VISIT' | translate }} #{{ visit.visitId }}</a></div>
+    <div class="visit-heading"><strong>{{ (filter.page-1)*filter.pageSize+index+1 }}. {{ visit.instructorName }}</strong><a routerLink="/visits" [queryParams]="{visitId:visit.visitId}">{{ 'S5.VISIT' | translate }} #{{ visit.visitId }}</a></div>
     <p *ngIf="!visit.isApproved" class="historical">{{ 'S5.REOPENED' | translate }}</p>
     <p *ngIf="visit.isApproved && !visit.revisions[0]?.isCurrent" class="historical">{{ 'S5.AWAITING_CURRENT' | translate }}</p>
     <div *ngIf="visit.revisions[0] as revision" class="revision">
