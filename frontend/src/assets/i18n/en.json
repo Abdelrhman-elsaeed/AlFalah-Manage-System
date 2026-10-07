@@ -32,7 +32,7 @@
     "RECONCILE": "Check upload operation",
     "EMPTY": "No matching files",
     "EMPTY_HINT": "Choose a folder, change the search or upload a file. Unindexed files do not count as evidence.",
-    "STATE_Managed": "Managed",
+    "STATE_Managed": "Available",
     "STATE_Unindexed": "Unindexed",
     "STATE_MissingFromDrive": "Missing from Drive",
     "PROTECTED": "Protected",

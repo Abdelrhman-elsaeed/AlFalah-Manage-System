@@ -32,7 +32,7 @@
     "RECONCILE": "التحقق من عملية الرفع",
     "EMPTY": "لا توجد ملفات مطابقة",
     "EMPTY_HINT": "اختر مجلدًا أو غيّر البحث أو ارفع ملفًا. الملفات غير المفهرسة لا تُحتسب شواهد.",
-    "STATE_Managed": "ملف مفهرس",
+    "STATE_Managed": "متاح",
     "STATE_Unindexed": "غير مفهرس",
     "STATE_MissingFromDrive": "مفقود من Drive",
     "PROTECTED": "محمي",

@@ -19,6 +19,7 @@ public sealed record StorageUploadDto(int OperationId, int? StoredFileId, int? V
     string DisplayName, long Size, string MimeType, DateTimeOffset UploadedAt, string? ErrorCode);
 public sealed record StorageContextDto(int SchoolId, string SchoolName, int? AcademicYearId, string? AcademicYearName,
     bool CanManage, bool IsTeacher, string ConnectionState, int? RootFolderId, bool CanReviewEvidence = false);
+public sealed record StorageAccessDto(bool CanManage, bool CanReviewEvidence);
 public sealed record CreateStorageFolderRequest(int? ParentFolderId, string DisplayName, string RequestKey);
 public sealed record MoveStorageFolderRequest(int ParentFolderId, string RowVersion);
 public sealed record RenameStorageFileRequest(string DisplayName, string RowVersion);
@@ -79,6 +80,8 @@ public interface IStorageProvider
 
 public interface IStorageLibraryService
 {
+    Task<StorageAccessDto> AccessAsync(bool own, CancellationToken ct = default);
+    Task<StorageContextDto> ContextSummaryAsync(bool own, CancellationToken ct = default);
     Task<StorageContextDto> ContextAsync(bool own, CancellationToken ct = default);
     Task<StoragePage<StorageFolderDto>> FoldersAsync(bool own, int? parent, int page, int pageSize, CancellationToken ct = default);
     Task<IReadOnlyList<StorageFolderDto>> FolderPathAsync(bool own, int folderId, CancellationToken ct = default);

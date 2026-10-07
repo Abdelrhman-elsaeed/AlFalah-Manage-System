@@ -9,6 +9,7 @@ async function mock(page:Page,state='rows',operations={workerEnabled:false,exter
     const request=route.request();const url=new URL(request.url());calls.push({url:request.url(),body:request.postDataJSON()});let data:any={};
     if(url.pathname.endsWith('/auth/me'))data=user;
     else if(url.pathname.endsWith('/auth/schools'))data=[];
+    else if(url.pathname.endsWith('/storage/access'))data={canManage:true,canReviewEvidence:true};
     else if(url.pathname.endsWith('/storage/context'))data={schoolId:1,schoolName:'مدرسة',canManage:true,connectionState:'Connected'};
     else if(url.pathname.endsWith('/visits/operations-status'))data=operations;
     else if(url.pathname.endsWith('/visits/teachers'))data=[{userId:'teacher',name:'معلم الاختبار'}];

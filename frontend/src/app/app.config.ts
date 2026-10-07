@@ -1,11 +1,11 @@
-import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, Injectable, inject, importProvidersFrom } from '@angular/core';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { PreloadingStrategy, Route, provideRouter, withPreloading } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
-import { firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom, of } from 'rxjs';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { AuthService } from './core/services/auth.service';
@@ -29,9 +29,18 @@ function initAuthSession(auth: AuthService) {
   return (): Promise<void> => firstValueFrom(auth.bootstrapSession());
 }
 
+@Injectable({ providedIn: 'root' })
+export class StoragePreloadingStrategy implements PreloadingStrategy {
+  private readonly auth = inject(AuthService);
+  preload(route: Route, load: () => Observable<unknown>): Observable<unknown> {
+    return this.auth.isAuthenticated() && (route.path?.startsWith('school-manager/storage') || route.path === 'my-files')
+      ? load() : of(null);
+  }
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(StoragePreloadingStrategy)),
     provideHttpClient(withInterceptors([authInterceptor])),
     MessageService,
     importProvidersFrom(BrowserAnimationsModule),

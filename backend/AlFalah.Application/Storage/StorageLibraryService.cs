@@ -81,6 +81,25 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
                 throw new UnauthorizedSchoolAccessException("توجد منحة معلم متداخلة مع المكتبة أو خارج جذر المدرسة. يلزم مراجعة المنح قبل التفعيل.");
         }
     }
+    public async Task<StorageAccessDto> AccessAsync(bool own, CancellationToken ct = default)
+        => await authorization.AccessAsync(School, own, !options.Value.ReadModelEnabled, ct);
+
+    public async Task<StorageContextDto> ContextSummaryAsync(bool own, CancellationToken ct = default)
+    {
+        // Teacher grant setup can create its local root; keep that existing flow intact.
+        if (own) return await ContextAsync(true, ct);
+        var access = await authorization.AccessAsync(School, false, !options.Value.ReadModelEnabled, ct);
+        if (!options.Value.ReadModelEnabled)
+            return new(School, "", null, null, false, false, "Disabled", null);
+        var context = await repository.ContextAsync(School, ct);
+        var root = await repository.FindRootAsync(School, null, ct);
+        var schoolRoot = await scopes.GetSchoolDriveRootAsync(School, ct);
+        var ready = root is not null && schoolRoot is not null && root.DriveId == schoolRoot.DriveId;
+        return context with { CanManage = access.CanManage, CanReviewEvidence = access.CanReviewEvidence,
+            IsTeacher = false, ConnectionState = schoolRoot is null || root is not null && !ready
+                ? "Unavailable" : ready ? "Connected" : "LibraryNotInitialized", RootFolderId = ready ? root!.Id : null };
+    }
+
     public async Task<StorageContextDto> ContextAsync(bool own, CancellationToken ct = default)
     {
         var actorScope = await authorization.RequireScopeAsync(School, ct);
@@ -225,7 +244,9 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
         {
             await EnsureLiveFileBoundaryAsync(access, ct);
             if (access.Availability == StoredFileAvailability.Missing) await SetAvailabilityAsync(id, false, ct);
-            await authorization.RequireFileAsync(School, id, ct: ct);
+            // The live boundary was just checked above. Recheck SQL grants without
+            // repeating the Drive ancestor walk on the detail read.
+            await authorization.RequireFileAsync(School, id, ct: ct, metadataOnly: true);
         }
         return await repository.DetailsAsync(School, id, ct) ?? throw new KeyNotFoundException("الملف غير متاح.");
     }

@@ -42,7 +42,6 @@
         <span class="shell-topbar__school-title" *ngIf="activeSchoolName() as school; else generalAppName">
           {{ school }}
         </span>
-        <small *ngIf="isStorageRoute() && storageAcademicYearName()" class="storage-year">{{ storageAcademicYearName() }}</small>
         <ng-template #generalAppName>
           <span class="shell-topbar__school-title">{{ 'APP.NAME' | translate }}</span>
         </ng-template>
@@ -67,7 +66,6 @@
 
   <div class="shell-body" [class.is-sidebar-collapsed]="isSidebarCollapsed()">
     <aside class="shell-sidebar" [class.is-collapsed]="isSidebarCollapsed()">
-      <div *ngIf="isStorageRoute()" class="storage-brand"><span class="storage-brand-logo"><img src="assets/Logo.png" alt=""></span><span><strong>مساحة الملفات</strong><small>{{ activeSchoolName() || 'مدارس الفلاح' }}</small></span></div>
       <div class="shell-sidebar__controls">
         <span class="shell-sidebar__menu-title">
           <i class="pi pi-th-large" aria-hidden="true"></i>
@@ -148,7 +146,6 @@
           </ul>
         </div>
       </nav>
-      <div *ngIf="isStorageRoute() && currentUser() as user" class="storage-sidebar-user"><span class="storage-user-avatar">{{ userInitials() || 'ف' }}</span><span><strong>{{ user.fullName }}</strong><small>{{ primaryRoleKey() | roleDisplayName }}</small></span></div>
     </aside>
 
     <main class="shell-content">

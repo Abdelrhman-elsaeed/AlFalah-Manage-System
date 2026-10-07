@@ -8,6 +8,27 @@ public sealed class StorageAuthorizationService(
     IStorageRepository repository, ICurrentUserService currentUser, IStorageDriveBoundary driveBoundary,
     TimeProvider time) : IStorageAuthorizationService
 {
+    public async Task<StorageAccessDto> AccessAsync(int schoolId, bool own, bool allowManagerWithoutView,
+        CancellationToken ct = default)
+    {
+        var scope = await RequireScopeAsync(schoolId, ct);
+        if (own)
+        {
+            var ownPermissions = await repository.GrantedPermissionsAsync(scope.UserId, schoolId,
+                [PermissionNames.StorageViewOwn, PermissionNames.StorageManageOwn], ct);
+            if (!ownPermissions.Contains(PermissionNames.StorageViewOwn)) throw Denied();
+            return new(ownPermissions.Contains(PermissionNames.StorageManageOwn), false);
+        }
+
+        var permissions = await repository.GrantedPermissionsAsync(scope.UserId, schoolId,
+            [PermissionNames.StorageViewSchool, PermissionNames.StorageManageSchool, PermissionNames.StorageReviewEvidence], ct);
+        var delegated = await repository.HasDelegationAsync(scope.UserId, schoolId, time.GetUtcNow(), ct);
+        var isManager = scope.ManagerUserId == scope.UserId;
+        if (!(allowManagerWithoutView && isManager) && !delegated &&
+            !(isManager && permissions.Contains(PermissionNames.StorageViewSchool))) throw Denied();
+        return new(delegated || isManager && permissions.Contains(PermissionNames.StorageManageSchool),
+            delegated || isManager && permissions.Contains(PermissionNames.StorageReviewEvidence));
+    }
     private static readonly HashSet<string> OperationalPermissions =
     [PermissionNames.StorageViewSchool, PermissionNames.StorageManageSchool, PermissionNames.StorageReviewEvidence,
      PermissionNames.StorageViewArchive, PermissionNames.StorageRetryArchive];

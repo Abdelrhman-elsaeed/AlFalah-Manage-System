@@ -7,7 +7,6 @@ import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
 import { PaginatorModule } from 'primeng/paginator';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { Subject, Subscription, combineLatest, forkJoin, takeUntil, Observable } from 'rxjs';
 import { ClearableSelectComponent } from '../../shared/components/clearable-select/clearable-select.component';
 import { ReadinessApiService } from './readiness-api.service';
@@ -16,7 +15,7 @@ import { StorageEvidenceApiService } from './evidence-api.service';
 import { StorageWorkspaceNavComponent } from './storage-workspace-nav.component';
 import { EvaluationFilter, EvaluationTemplate, ReadinessSummary, EvaluationRequirement, ManualEvaluation, EvaluationMember, EvaluationVersion, DigitalIndexFile } from './readiness.models';
 
-@Component({selector:'app-storage-readiness',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,ButtonModule,CalendarModule,DialogModule,PaginatorModule,ProgressBarModule,ClearableSelectComponent,StorageWorkspaceNavComponent],templateUrl:'./readiness-page.component.html',styleUrls:['./readiness-page.component.css']})
+@Component({selector:'app-storage-readiness',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,ButtonModule,CalendarModule,DialogModule,PaginatorModule,ClearableSelectComponent,StorageWorkspaceNavComponent],templateUrl:'./readiness-page.component.html',styleUrls:['./readiness-page.component.css']})
 export class ReadinessPageComponent implements OnInit,OnDestroy {
   private readonly api=inject(ReadinessApiService);private readonly storage=inject(StorageApiService);private readonly evidence=inject(StorageEvidenceApiService);
   private readonly route=inject(ActivatedRoute);private readonly router=inject(Router);private readonly translate=inject(TranslateService);

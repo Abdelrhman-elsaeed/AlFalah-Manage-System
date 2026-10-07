@@ -52,6 +52,19 @@ public sealed class StorageLibraryTests
         return await service.UploadAsync(new(content, "شاهد.pdf", content.Length, folder, key, own));
     }
     [Fact]
+    public async Task File_details_reuse_the_live_boundary_result_instead_of_walking_Drive_twice()
+    {
+        await using var h = await Setup();
+        var manager = Service(h, TeacherDriveHarness.Manager());
+        await manager.CreateFolderAsync(new(null, "", "detail-root"));
+        var uploaded = await Upload(manager, false);
+        var detailsService = Service(h, TeacherDriveHarness.Manager());
+        var before = h.Drive.GetFileCalls;
+        (await detailsService.DetailsAsync(uploaded.StoredFileId!.Value)).File.DisplayName.Should().Be("شاهد.pdf");
+        // File, library folder, school root: one walk of the actual three-node path.
+        (h.Drive.GetFileCalls - before).Should().Be(3);
+    }
+    [Fact]
     public async Task School_library_and_teacher_uploads_have_one_asset_and_version_and_no_evidence_link()
     {
         await using var h = await Setup();
@@ -90,6 +103,32 @@ public sealed class StorageLibraryTests
             academicYearId: year, own: true)).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
     }
     [Fact]
+    public async Task Access_check_does_not_require_a_live_library_or_drive_metadata()
+    {
+        await using var h = await Setup();
+        var access = await Service(h, TeacherDriveHarness.Manager()).AccessAsync(false);
+        access.CanManage.Should().BeTrue();
+        access.CanReviewEvidence.Should().BeTrue();
+        (await h.Context.StorageFolders.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Context_summary_uses_configured_root_without_waiting_for_Drive_health()
+    {
+        await using var h = await Setup();
+        var service = Service(h, TeacherDriveHarness.Manager());
+        var root = await service.CreateFolderAsync(new(null, "", "summary-root"));
+        h.Drive.UnreachableSchools.Add(1);
+
+        var summary = await service.ContextSummaryAsync(false);
+
+        summary.RootFolderId.Should().Be(root.Id);
+        summary.ConnectionState.Should().Be("Connected");
+        summary.CanManage.Should().BeTrue();
+        (await service.ContextAsync(false)).ConnectionState.Should().Be("Unavailable");
+    }
+
+    [Fact]
     public async Task Context_reports_review_permission_separately_from_library_management()
     {
         await using var h = await Setup();
@@ -102,6 +141,9 @@ public sealed class StorageLibraryTests
         var context = await Service(h, TeacherDriveHarness.Manager()).ContextAsync(false);
         context.CanManage.Should().BeTrue();
         context.CanReviewEvidence.Should().BeFalse();
+        var access = await Service(h, TeacherDriveHarness.Manager()).AccessAsync(false);
+        access.CanManage.Should().BeTrue();
+        access.CanReviewEvidence.Should().BeFalse();
 
         var manageGrant = await h.Context.RolePermissions.SingleAsync(x => x.RoleId == "storage-manager" &&
             x.Permission.Name == PermissionNames.StorageManageSchool);
@@ -112,6 +154,9 @@ public sealed class StorageLibraryTests
         var reviewerContext = await Service(h, TeacherDriveHarness.Manager()).ContextAsync(false);
         reviewerContext.CanManage.Should().BeFalse();
         reviewerContext.CanReviewEvidence.Should().BeTrue();
+        var reviewerAccess = await Service(h, TeacherDriveHarness.Manager()).AccessAsync(false);
+        reviewerAccess.CanManage.Should().BeFalse();
+        reviewerAccess.CanReviewEvidence.Should().BeTrue();
     }
     [Fact]
     public async Task File_filters_are_applied_before_server_pagination_and_count()

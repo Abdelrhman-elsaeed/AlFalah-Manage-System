@@ -26,6 +26,7 @@ export class EvidenceWorkspaceComponent implements OnChanges, OnInit, OnDestroy 
   private load?: Subscription;
   private changeLoad?: Subscription;
   @Input() file?: StorageFile;
+  @Input() fileMode: 'all' | 'links' | 'changes' = 'all';
   @Input() year?: number;
   @Input() own = false;
   @Input() canManage = false;
@@ -33,6 +34,7 @@ export class EvidenceWorkspaceComponent implements OnChanges, OnInit, OnDestroy 
   @Input() initialRequirement?: number;
   @Input() initialLink?: number;
   get hasInitialRequirementLink() { return this.links.some(link => link.requirementId === this.initialRequirement); }
+  get hasPendingChange() { return this.changes.some(change => change.status === 'Pending'); }
   selectedReviewId?: number;
   get selectedReviewLink() { return this.links.find(link => link.id === this.selectedReviewId) || this.links[0]; }
   reviewTab: 'queue' | 'changes' | 'history' = 'queue';
@@ -90,18 +92,22 @@ export class EvidenceWorkspaceComponent implements OnChanges, OnInit, OnDestroy 
     this.busy = true; if (!preserveError) this.error = '';
     this.links = []; this.changes = []; this.changeQueue = []; this.counts = undefined;
     this.catalogLoaded = false; this.metadataError = ''; this.countsError = ''; this.changesError = '';
-    const rows: Observable<EvidenceLink[] | StoragePage<EvidenceLink>> = this.file ? this.api.links(this.file.storedFileId, this.own) : this.api.queue(this.year, this.page, this.selectedRequirement, this.teacher, this.standard, this.status, this.reviewTab === 'history');
+    const loadLinks = !this.file || this.fileMode !== 'changes';
+    const loadFileChanges = !this.file || this.fileMode !== 'links';
     // Teachers use the file panel; the school queue uses current backend delegation on every request.
     if (!this.file && this.own) { this.busy = false; return; }
-    this.load.add(rows.pipe(takeUntil(this.destroyed)).subscribe({next: result => {
-      this.busy = false;
-      this.links = Array.isArray(result) ? result : result.items;
-      this.total = Array.isArray(result) ? result.length : result.total;
-      if (!this.file && !this.links.some(link => link.id === this.selectedReviewId)) this.selectedReviewId = this.initialLink || this.links[0]?.id;
-    }, error: e => { this.busy = false; this.fail(e, 'تعذر تحميل الشواهد. حاول مرة أخرى.'); }}));
-    this.loadMetadata();
-    this.loadCounts();
-    this.loadChanges();
+    if (loadLinks) {
+      const rows: Observable<EvidenceLink[] | StoragePage<EvidenceLink>> = this.file ? this.api.links(this.file.storedFileId, this.own) : this.api.queue(this.year, this.page, this.selectedRequirement, this.teacher, this.standard, this.status, this.reviewTab === 'history');
+      this.load.add(rows.pipe(takeUntil(this.destroyed)).subscribe({next: result => {
+        this.busy = false;
+        this.links = Array.isArray(result) ? result : result.items;
+        this.total = Array.isArray(result) ? result.length : result.total;
+        if (!this.file && !this.links.some(link => link.id === this.selectedReviewId)) this.selectedReviewId = this.initialLink || this.links[0]?.id;
+      }, error: e => { this.busy = false; this.fail(e, 'تعذر تحميل الشواهد. حاول مرة أخرى.'); }}));
+      this.loadMetadata();
+    } else this.busy = false;
+    if (!this.file) this.loadCounts();
+    if (loadFileChanges) this.loadChanges();
   }
   loadMetadata() {
     if (!this.year) return;

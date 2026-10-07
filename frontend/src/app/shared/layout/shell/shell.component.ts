@@ -393,12 +393,12 @@ export class ShellComponent implements OnInit {
   readonly isSidebarCollapsed = signal(this.getInitialSidebarState());
   readonly hasStudentAnalyzerAccess = signal(false);
   readonly visitsV2Enabled = signal(false);
-  readonly hasSchoolStorageAccess = signal(false);
+  readonly hasSchoolStorageAccess = signal(this.authService.hasPermission('Storage.ViewSchool'));
   readonly storageAcademicYearName = signal<string | null>(null);
-  readonly hasOwnStorageAccess = signal(false);
-  readonly canViewStorageArchive = signal(false);
-  readonly canManageSchoolStorage = signal(false);
-  readonly canReviewSchoolEvidence = signal(false);
+  readonly hasOwnStorageAccess = signal(this.authService.hasPermission('Storage.ViewOwn'));
+  readonly canViewStorageArchive = signal(this.authService.hasAllPermissions(['Storage.ViewArchive', 'Visit.View']));
+  readonly canManageSchoolStorage = signal(this.authService.hasPermission('Storage.ManageSchool'));
+  readonly canReviewSchoolEvidence = signal(this.authService.hasPermission('Storage.ReviewEvidence'));
   readonly storageMoreOpen = signal(false);
   readonly ksaTime = signal<string>('');
   readonly guardianUnreadNotifications = this.guardianSelfService.unreadNotifications;
@@ -495,12 +495,18 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (!this.isInstructorOnly()) this.storageApi.accessInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: access => { this.hasSchoolStorageAccess.set(true); this.canManageSchoolStorage.set(access.canManage); this.canReviewSchoolEvidence.set(access.canReviewEvidence); },
+      error: error => { if (error?.status === 401 || error?.status === 403) { this.hasSchoolStorageAccess.set(false); this.canManageSchoolStorage.set(false); this.canReviewSchoolEvidence.set(false); } }
+    });
     if (!this.isInstructorOnly()) this.storageApi.contextInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: context => { this.hasSchoolStorageAccess.set(true); this.canManageSchoolStorage.set(context.canManage); this.canReviewSchoolEvidence.set(context.canReviewEvidence ?? context.canManage); this.storageAcademicYearName.set(context.academicYearName || null); },
-      error: () => { this.hasSchoolStorageAccess.set(false); this.canManageSchoolStorage.set(false); this.canReviewSchoolEvidence.set(false); }
+      next: context => this.storageAcademicYearName.set(context.academicYearName || null), error: () => {}
+    });
+    if (this.authService.hasRole('Instructor')) this.storageApi.accessInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.hasOwnStorageAccess.set(true), error: error => { if (error?.status === 401 || error?.status === 403) this.hasOwnStorageAccess.set(false); }
     });
     if (this.authService.hasRole('Instructor')) this.storageApi.contextInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: context => { this.hasOwnStorageAccess.set(true); if (!this.storageAcademicYearName()) this.storageAcademicYearName.set(context.academicYearName || null); }, error: () => this.hasOwnStorageAccess.set(false)
+      next: context => { if (!this.storageAcademicYearName()) this.storageAcademicYearName.set(context.academicYearName || null); }, error: () => {}
     });
     // This read enforces both Storage.ViewArchive and Visit.View on the server.
     if (!this.isInstructorOnly()) this.storageArchiveApi.operationsStatus().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({

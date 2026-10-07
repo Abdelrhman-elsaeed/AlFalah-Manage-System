@@ -14,10 +14,10 @@ export const storageGuard: CanActivateFn = (route, state) => {
   const url = new URL(state.url, 'http://localhost');
   const review = route.data['view'] === 'review' || (!route.data['own'] && url.pathname === '/school-manager/storage' &&
     (url.searchParams.get('view') === 'review' || url.searchParams.has('requirement') && !url.searchParams.has('file')));
-  return inject(StorageApiService).contextInfo(route.data['own'] === true).pipe(
-    switchMap(context => route.data['manage'] === true && !context.canManage
+  return inject(StorageApiService).accessInfo(route.data['own'] === true).pipe(
+    switchMap(access => route.data['manage'] === true && !access.canManage
       ? of(router.createUrlTree(['/unauthorized']))
-      : review && !(context.canReviewEvidence ?? context.canManage)
+      : review && !access.canReviewEvidence
         ? of(router.createUrlTree(['/unauthorized']))
       : route.data['archive'] === true ? archive.operationsStatus().pipe(map(() => true)) : of(true)),
     catchError(error => of(error.status === 401 || error.status === 403

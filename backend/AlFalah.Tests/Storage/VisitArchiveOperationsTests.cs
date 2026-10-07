@@ -46,6 +46,8 @@ public sealed class VisitArchiveOperationsTests
     private sealed class ArchiveAuthorization : IStorageAuthorizationService
     {
         public bool AllowArchive { get; set; } = true;
+        public Task<StorageAccessDto> AccessAsync(int schoolId, bool own, bool allowManagerWithoutView, CancellationToken ct = default) =>
+            throw new NotSupportedException();
         public Task<StorageActorScope> RequireScopeAsync(int schoolId, CancellationToken ct = default) =>
             Task.FromResult(new StorageActorScope(TeacherDriveHarness.ManagerUserId, schoolId, TeacherDriveHarness.ManagerUserId, true));
         public Task<StorageActorScope> RequireManagerAsync(int schoolId, CancellationToken ct = default) => RequireScopeAsync(schoolId, ct);

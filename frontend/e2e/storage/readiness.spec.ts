@@ -12,6 +12,7 @@ async function session(page:Page,zero=false) {
     const r=route.request(),u=new URL(r.url()),p=u.pathname;requests.push(u);let data:any={};
     if(p.endsWith('/auth/me'))data=user;
     else if(p.endsWith('/auth/schools'))data=[];
+    else if(p.endsWith('/storage/access'))data={canManage:true,canReviewEvidence:true};
     else if(p.endsWith('/storage/context'))data={schoolId:1,schoolName:'مدرسة التحقق',academicYearId:1,academicYearName:'السنة الدراسية',canManage:true,isTeacher:false,connectionState:'Connected',rootFolderId:7};
     else if(p.endsWith('/storage/academic-years'))data=[{id:1,nameAr:'السنة الدراسية'},{id:2,nameAr:'السنة السابقة'}];
     else if(p.endsWith('/storage/evaluation-members'))data=[{userId:'member',name:'مسؤول التحقق'}];

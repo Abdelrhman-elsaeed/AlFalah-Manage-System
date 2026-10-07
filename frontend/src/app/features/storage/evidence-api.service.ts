@@ -39,8 +39,11 @@ export class StorageEvidenceApiService {
   requestChange(file: number, kind: string, reason: string, rowVersion: string, replaceBeforeReview = false) { return this.post<FileChange>(`files/${file}/change-requests`, { kind, reason, rowVersion, replaceBeforeReview }); }
   decideChange(change: FileChange, approve: boolean, note: string) { return this.post<FileChange>(`change-requests/${change.id}/review`, { approve, note, rowVersion: change.rowVersion }); }
   uploadVersion(change: FileChange, file: File, key: string) {
-    const body = new FormData(); body.append('length', String(file.size)); body.append('file', file);
-    return this.http.post<ApiResponse<StorageUpload>>(`${this.base}/change-requests/${change.id}/version`, body, { headers: new HttpHeaders({'Idempotency-Key': key}), reportProgress: true, observe: 'events', context: this.context() });
+    const params = new HttpParams().set('length', file.size).set('fileName', file.name);
+    return this.http.post<ApiResponse<StorageUpload>>(`${this.base}/change-requests/${change.id}/version`, file, {
+      params, headers: new HttpHeaders({ 'Idempotency-Key': key, 'Content-Type': 'application/octet-stream' }),
+      reportProgress: true, observe: 'events', context: this.context()
+    });
   }
   versionContent(file: number, version: number) { return this.http.get(`${this.base}/files/${file}/versions/${version}/content`, { responseType: 'blob', context: this.context() }); }
 }

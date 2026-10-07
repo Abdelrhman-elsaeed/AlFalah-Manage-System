@@ -19,6 +19,7 @@ async function setup(page: Page, connected = true, rootEnabled = false, libraryS
     const request = route.request(); const url = new URL(request.url()); let data: unknown = {};
     if (url.pathname.endsWith('/auth/me')) data = user;
     else if (url.pathname.endsWith('/auth/schools')) data = [];
+    else if (url.pathname.endsWith('/storage/access')) data = { canManage, canReviewEvidence: canManage };
     else if (url.pathname.endsWith('/storage/context')) data = { schoolId: 18, connectionState: libraryState, canManage, isTeacher: false };
     else if (url.pathname.endsWith('/storage/folders') && request.method() === 'POST') {
       writes.push(request.postDataJSON()); libraryState = 'Connected';

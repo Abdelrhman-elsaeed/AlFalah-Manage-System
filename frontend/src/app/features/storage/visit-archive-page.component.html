@@ -9,7 +9,7 @@
   <p *ngIf="operationsError" role="alert" class="error">{{ operationsError }} <button type="button" (click)="loadOperations()">إعادة المحاولة</button></p>
   <div class="archive-explainer"><i class="pi pi-info-circle" aria-hidden="true"></i><div><strong>متى يظهر تقرير الزيارة في Google Drive؟</strong><p>بعد اعتماد زيارة V2، تُنشأ مهمة الأرشفة ويُرفع تقرير PDF عند تشغيل عامل الأرشفة والكتابة الخارجية. إنشاء زيارة أو حفظها فقط لا يرفع تقريراً. تابع حالة كل اعتماد أدناه.</p></div></div>
   <p *ngIf="error" role="alert" class="error">{{ error }}</p><p *ngIf="notice" role="status" class="notice">{{ notice }}</p>
-  <p-progressBar *ngIf="busy" mode="indeterminate" [style]="{height:'4px'}" [attr.aria-label]="'S5.LOADING' | translate"></p-progressBar>
+  <div *ngIf="busy" class="storage-loading" role="status" [attr.aria-label]="'S5.LOADING' | translate"><span></span><span></span></div>
   <form class="filters" *ngIf="!disabled" (ngSubmit)="apply()">
     <label>{{ 'S5.FROM' | translate }}<p-calendar name="from" [(ngModel)]="from" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" appendTo="body"></p-calendar></label>
     <label>{{ 'S5.TO' | translate }}<p-calendar name="to" [(ngModel)]="to" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" appendTo="body"></p-calendar></label>

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
 import { EvidenceWorkspaceComponent } from './evidence-workspace.component';
@@ -18,7 +19,7 @@ describe('Evidence workflow safety', () => {
     api.links.and.returnValue(of([link])); api.changes.and.returnValue(of([])); api.counts.and.returnValue(of({files:1,links:2,approvedLinks:0,fulfilledRequirements:0,requirements:11}));
     api.queue.and.returnValue(of({items:[link],total:1,page:1,pageSize:25})); api.changeQueue.and.returnValue(of({items:[],total:0,page:1,pageSize:25}));
     library=jasmine.createSpyObj('StorageApiService',['reconcile']);
-    TestBed.configureTestingModule({providers:[{provide:StorageEvidenceApiService,useValue:api},{provide:StorageApiService,useValue:library}]});
+    TestBed.configureTestingModule({providers:[provideRouter([]),{provide:StorageEvidenceApiService,useValue:api},{provide:StorageApiService,useValue:library}]});
     page=TestBed.runInInjectionContext(()=>new EvidenceWorkspaceComponent());page.year=1;page.own=true;page.canManage=true;
     page.file={storedFileId:31,folderId:1,displayName:'شاهد.pdf',size:10,mimeType:'application/pdf',uploadedAt:'',state:'Managed',isProtected:true,rowVersion:'AAAAAAAAAAI='};
   });
@@ -33,8 +34,16 @@ describe('Evidence workflow safety', () => {
     spyOn(page.denied,'emit');api.links.and.returnValue(throwError(()=>({status:403,error:{message:'تم سحب التفويض'}})));page.reload();
     expect(page.links).toEqual([]);expect(page.counts).toBeUndefined();expect(page.denied.emit).toHaveBeenCalled();
   });
-  it('shows file and link and requirement counts independently',()=>{
-    page.ngOnChanges();expect(page.counts?.files).toBe(1);expect(page.counts?.links).toBe(2);expect(page.counts?.fulfilledRequirements).toBe(0);
+  it('loads school counts for the review queue without adding a count request to file details',()=>{
+    page.ngOnChanges();expect(api.counts).not.toHaveBeenCalled();
+    page.file=undefined;page.own=false;page.ngOnChanges();
+    expect(page.counts?.files).toBe(1);expect(page.counts?.links).toBe(2);expect(page.counts?.fulfilledRequirements).toBe(0);
+  });
+  it('loads only the data needed by each file tab',()=>{
+    page.fileMode='links';page.ngOnChanges();
+    expect(api.links).toHaveBeenCalledTimes(1);expect(api.changes).not.toHaveBeenCalled();
+    page.fileMode='changes';page.ngOnChanges();
+    expect(api.links).toHaveBeenCalledTimes(1);expect(api.changes).toHaveBeenCalledTimes(1);
   });
   it('preserves the candidate idempotency key after a lost response and until Completed',()=>{
     const file=new File(['%PDF-1.7'],'شاهد.pdf',{lastModified:123});const input={target:{files:[file],value:''}} as unknown as Event;
@@ -51,6 +60,6 @@ describe('Evidence workflow safety', () => {
   });
   it('uses server pages and selected year in the manager queue',()=>{
     page.file=undefined;page.own=false;page.page=3;page.standard='2.1';page.teacher=5;page.status=5;page.reload();
-    expect(api.queue).toHaveBeenCalledWith(1,3,undefined,5,'2.1',5);expect(api.changeQueue).toHaveBeenCalledWith(1,1,'Pending');
+    expect(api.queue).toHaveBeenCalledWith(1,3,undefined,5,'2.1',5,false);expect(api.changeQueue).toHaveBeenCalledWith(1,1,'Pending');
   });
 });

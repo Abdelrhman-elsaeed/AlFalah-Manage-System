@@ -6,7 +6,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
 import { PaginatorModule } from 'primeng/paginator';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { DialogModule } from 'primeng/dialog';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 import { ClearableSelectComponent } from '../../shared/components/clearable-select/clearable-select.component';
@@ -14,7 +13,7 @@ import { downloadBlob } from '../../core/utils/browser-download';
 import { ArchiveFilter, ArchiveOperations, ArchiveRevision, VisitArchive, VisitArchiveApiService } from './visit-archive-api.service';
 import { StorageWorkspaceNavComponent } from './storage-workspace-nav.component';
 
-@Component({selector:'app-visit-archive-page',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,ButtonModule,CalendarModule,PaginatorModule,ProgressBarModule,DialogModule,ClearableSelectComponent,StorageWorkspaceNavComponent],templateUrl:'./visit-archive-page.component.html',styleUrls:['./visit-archive-page.component.css']})
+@Component({selector:'app-visit-archive-page',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,ButtonModule,CalendarModule,PaginatorModule,DialogModule,ClearableSelectComponent,StorageWorkspaceNavComponent],templateUrl:'./visit-archive-page.component.html',styleUrls:['./visit-archive-page.component.css']})
 export class VisitArchivePageComponent implements OnInit,OnDestroy {
   private readonly api=inject(VisitArchiveApiService);private readonly route=inject(ActivatedRoute);private readonly router=inject(Router);private readonly translate=inject(TranslateService);
   private readonly destroyed=new Subject<void>();private load?:Subscription;

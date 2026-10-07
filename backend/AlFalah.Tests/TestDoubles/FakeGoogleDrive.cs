@@ -18,6 +18,8 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
 {
     private readonly Dictionary<string, Node> _nodes = new(StringComparer.Ordinal);
     private int _generatedIds;
+    private int _getFileCalls;
+    public int GetFileCalls => Volatile.Read(ref _getFileCalls);
     public bool LoseNextUploadResponse { get; set; }
     public bool FailNextUpload { get; set; }
     public bool RejectNextUpload { get; set; }
@@ -89,6 +91,7 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
 
     public Task<GoogleDriveFile?> GetFileAsync(int schoolId, string fileId, CancellationToken cancellationToken = default)
     {
+        Interlocked.Increment(ref _getFileCalls);
         EnsureReachable(schoolId);
         return Task.FromResult(_nodes.TryGetValue(fileId, out var node) ? node.ToFile() : null);
     }

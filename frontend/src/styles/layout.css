@@ -99,6 +99,30 @@
 .table-card { padding: 0.65rem; border-top: 3px solid var(--gold); box-shadow: var(--shadow-sm); }
 .table-card .p-datatable { overflow: hidden; border-radius: var(--radius-md); }
 
+/* Storage pages keep their layout visible while a page of data is loading. */
+.shell--storage .storage-loading {
+  display: grid;
+  gap: 9px;
+  min-height: 64px;
+  margin: 0 0 var(--space-4);
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.shell--storage .storage-loading span {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--bg-surface-2), var(--border), var(--bg-surface-2));
+  background-size: 200% 100%;
+  animation: storage-loading-shimmer 1.4s ease-in-out infinite;
+}
+.shell--storage .storage-loading span:last-child { width: 48%; }
+@keyframes storage-loading-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .shell--storage .storage-loading span { animation: none; }
+}
+
 /* Shared empty and loading messages remain legible across every list page. */
 .empty,
 .empty-state,

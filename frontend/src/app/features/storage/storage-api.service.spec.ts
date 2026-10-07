@@ -20,15 +20,17 @@ describe('Storage API transport', () => {
     expect(Object.keys(req.request.body)).toEqual(['parentFolderId', 'displayName', 'requestKey']);
     req.flush({ isSuccess: true, data: { id: 12, displayName: 'مكتبة المدرسة', rowVersion: 'v1' } });
   });
-  it('retains the caller key across retries and puts metadata before streamed file content', () => {
+  it('retains the caller key across retries and sends bytes without multipart parsing', () => {
     const file = new File(['%PDF-1.7'], 'شاهد.pdf', { type: 'application/pdf' });
     for (let i = 0; i < 2; i++) {
       api.upload(true, 17, file, 'stable-retry-key').subscribe();
       const request = http.expectOne(r => r.url.endsWith('/storage/me/files'));
       expect(request.request.headers.get('Idempotency-Key')).toBe('stable-retry-key');
-      const keys: string[] = [];
-      (request.request.body as FormData).forEach((_value, key) => keys.push(key));
-      expect(keys).toEqual(['parentFolderId', 'length', 'file']);
+      expect(request.request.headers.get('Content-Type')).toBe('application/octet-stream');
+      expect(request.request.params.get('parentFolderId')).toBe('17');
+      expect(request.request.params.get('length')).toBe(String(file.size));
+      expect(request.request.params.get('fileName')).toBe('شاهد.pdf');
+      expect(request.request.body).toBe(file);
       request.flush({ isSuccess: true, data: { operationId: 1, status: 'Completed' } });
     }
   });

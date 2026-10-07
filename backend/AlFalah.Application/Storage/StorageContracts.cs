@@ -29,6 +29,7 @@ public interface IStorageRepository
 {
     Task<StorageActorScope?> GetActorScopeAsync(string userId, int schoolId, CancellationToken ct);
     Task<bool> HasPermissionAsync(string userId, int schoolId, string permission, CancellationToken ct);
+    Task<IReadOnlyList<string>> GrantedPermissionsAsync(string userId, int schoolId, IReadOnlyList<string> permissions, CancellationToken ct);
     Task<bool> HasDelegationAsync(string userId, int schoolId, DateTimeOffset now, CancellationToken ct);
     Task<bool> HasOverlappingDelegationAsync(int schoolId, string userId, DateTimeOffset start, DateTimeOffset? end, CancellationToken ct);
     Task<IReadOnlyList<StorageDelegation>> GetDelegationsAsync(int schoolId, CancellationToken ct);
@@ -48,6 +49,7 @@ public interface IStorageDriveBoundary
 
 public interface IStorageAuthorizationService
 {
+    Task<StorageAccessDto> AccessAsync(int schoolId, bool own, bool allowManagerWithoutView, CancellationToken ct = default);
     Task<StorageActorScope> RequireScopeAsync(int schoolId, CancellationToken ct = default);
     Task<StorageActorScope> RequireManagerAsync(int schoolId, CancellationToken ct = default);
     Task RequireSchoolPermissionAsync(int schoolId, string permission, CancellationToken ct = default);

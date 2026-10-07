@@ -27,6 +27,14 @@ public sealed class StorageRepository(AlFalahDbContext db) : IStorageRepository
          where assignment.UserId == userId && assignment.SchoolId == schoolId && assignment.IsActive && assignment.Role.IsActive && rolePermission.Permission.Name == permission
          select rolePermission.Id).AnyAsync(ct);
 
+    public async Task<IReadOnlyList<string>> GrantedPermissionsAsync(string userId, int schoolId,
+        IReadOnlyList<string> permissions, CancellationToken ct) =>
+        await (from assignment in db.UserSchoolRoles.AsNoTracking()
+               join rolePermission in db.RolePermissions.AsNoTracking() on assignment.RoleId equals rolePermission.RoleId
+               where assignment.UserId == userId && assignment.SchoolId == schoolId && assignment.IsActive &&
+                   assignment.Role.IsActive && permissions.Contains(rolePermission.Permission.Name)
+               select rolePermission.Permission.Name).Distinct().ToListAsync(ct);
+
     public Task<bool> HasDelegationAsync(string userId, int schoolId, DateTimeOffset now, CancellationToken ct) =>
         db.StorageDelegations.AsNoTracking().AnyAsync(x => x.SchoolId == schoolId && x.GranteeUserId == userId &&
             x.RevokedAt == null && x.StartsAt <= now && (x.ExpiresAt == null || x.ExpiresAt > now), ct);

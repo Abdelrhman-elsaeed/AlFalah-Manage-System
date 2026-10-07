@@ -14,9 +14,13 @@ namespace AlFalah.Api.Controllers;
 [EnableRateLimiting("teacher-drive")]
 public sealed class StorageLibraryController(IStorageLibraryService service) : ControllerBase
 {
+    [HttpGet("access")]
+    public async Task<IActionResult> Access([FromQuery] bool own, CancellationToken ct) =>
+        Ok(ApiResponse<StorageAccessDto>.Success(await service.AccessAsync(own, ct)));
     [HttpGet("context")]
-    public async Task<IActionResult> Context([FromQuery] bool own, CancellationToken ct) =>
-        Ok(ApiResponse<StorageContextDto>.Success(await service.ContextAsync(own, ct)));
+    public async Task<IActionResult> Context([FromQuery] bool own, [FromQuery] bool fast, CancellationToken ct) =>
+        Ok(ApiResponse<StorageContextDto>.Success(fast
+            ? await service.ContextSummaryAsync(own, ct) : await service.ContextAsync(own, ct)));
     [HttpGet("folders")]
     public async Task<IActionResult> Folders([FromQuery] bool own, [FromQuery] int? parentFolderId,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default) =>
@@ -69,10 +73,29 @@ public sealed class StorageLibraryController(IStorageLibraryService service) : C
     private async Task<IActionResult> ReadUploadAsync(bool own, CancellationToken ct, int? changeRequestId = null)
     {
         if (!MediaTypeHeaderValue.TryParse(Request.ContentType, out var type) ||
-            !type.MediaType.Equals("multipart/form-data", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("طلب الرفع غير صالح.");
+            !type.MediaType.HasValue) throw new ArgumentException("طلب الرفع غير صالح.");
+        var key = Request.Headers["Idempotency-Key"].ToString();
+        if (type.MediaType.Equals("application/octet-stream", StringComparison.OrdinalIgnoreCase))
+        {
+            var name = Request.Query["fileName"].ToString();
+            if (!long.TryParse(Request.Query["length"], out var length) || length <= 0 ||
+                Request.ContentLength is long contentLength && contentLength != length)
+                throw new ArgumentException("حجم الملف غير صالح.");
+            int? parentFolderId = null;
+            if (Request.Query.TryGetValue("parentFolderId", out var folderValue))
+            {
+                if (!int.TryParse(folderValue, out var parsedFolderId) || parsedFolderId <= 0)
+                    throw new ArgumentException("المجلد غير صالح.");
+                parentFolderId = parsedFolderId;
+            }
+            var uploaded = await service.UploadAsync(new(Request.Body, name, length, parentFolderId, key, own,
+                ChangeRequestId: changeRequestId), ct);
+            return UploadResponse(uploaded);
+        }
+        if (!type.MediaType.Equals("multipart/form-data", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("طلب الرفع غير صالح.");
         var boundary = HeaderUtilities.RemoveQuotes(type.Boundary).Value;
         if (string.IsNullOrWhiteSpace(boundary) || boundary.Length > 128) throw new ArgumentException("حدود طلب الرفع غير صالحة.");
-        var key = Request.Headers["Idempotency-Key"].ToString();
         var reader = new MultipartReader(boundary, Request.Body) { BodyLengthLimit = ValidatedStorageUpload.MaxFileBytes };
         int? folderId = null;
         long size = 0;
@@ -88,9 +111,7 @@ public sealed class StorageLibraryController(IStorageLibraryService service) : C
             {
                 if (field != "file" || size <= 0) throw new ArgumentException("حجم الملف مطلوب قبل المحتوى.");
                 var result = await service.UploadAsync(new(section.Body, name, size, folderId, key, own, ChangeRequestId: changeRequestId), ct);
-                return result.Status == "Completed"
-                    ? Ok(ApiResponse<StorageUploadDto>.Success(result, "تم رفع الملف."))
-                    : Accepted(ApiResponse<StorageUploadDto>.Success(result, "عملية الرفع تنتظر المصالحة."));
+                return UploadResponse(result);
             }
             var value = new byte[65];
             var length = 0;
@@ -107,6 +128,9 @@ public sealed class StorageLibraryController(IStorageLibraryService service) : C
         }
         throw new ArgumentException("لم يتم اختيار ملف.");
     }
+    private IActionResult UploadResponse(StorageUploadDto result) => result.Status == "Completed"
+        ? Ok(ApiResponse<StorageUploadDto>.Success(result, "تم رفع الملف."))
+        : Accepted(ApiResponse<StorageUploadDto>.Success(result, "عملية الرفع تنتظر المصالحة."));
     [HttpPost("operations/{id:int}/reconcile")]
     public async Task<IActionResult> Reconcile(int id, CancellationToken ct) =>
         Ok(ApiResponse<StorageUploadDto>.Success(await service.ReconcileAsync(id, ct)));

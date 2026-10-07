@@ -13,6 +13,7 @@ async function session(page:Page,own:boolean,canManage=true,canReviewEvidence=!o
     const r=route.request(),u=new URL(r.url()),p=u.pathname;let data:any={};requests.push(u);
     if(p.endsWith('/auth/me'))data=user;
     else if(p.endsWith('/auth/schools'))data=[];
+    else if(p.endsWith('/storage/access'))data={canManage,canReviewEvidence};
     else if(p.endsWith('/storage/context'))data={schoolId:1,schoolName:'مدرسة الاختبار',academicYearId:1,academicYearName:'السنة الدراسية',canManage,canReviewEvidence,isTeacher:own,connectionState:'Connected',rootFolderId:7};
     else if(p.endsWith('/storage/academic-years'))data=[{id:1,nameAr:'السنة الدراسية'}];
     else if(p.endsWith('/storage/evidence-teachers'))data=[{id:5,displayName:'المعلم أ'}];
@@ -39,12 +40,18 @@ async function session(page:Page,own:boolean,canManage=true,canReviewEvidence=!o
 
 test('teacher sees independent badges, rejection reason, submits one link and retains previous decision',async({page})=>{
   const state=await session(page,true);await page.goto('/instructor/my-files');await page.locator('.file-name button').click();
+  await page.getByRole('dialog',{name:'تفاصيل الملف'}).getByRole('tab',{name:'روابط الشواهد'}).click();
   const panel=page.locator('.p-dialog app-storage-evidence');await expect(panel.getByText('ملف واحد مرتبط بـ 2 متطلبات')).toBeVisible();
+  const yearBox=await panel.locator('.filters>label').first().boundingBox();
+  const requirementBox=await panel.locator('.filters>label').nth(1).boundingBox();
+  expect(yearBox && requirementBox && (yearBox.x + yearBox.width <= requirementBox.x || requirementBox.x + requirementBox.width <= yearBox.x || yearBox.y + yearBox.height <= requirementBox.y)).toBeTruthy();
   const rejected=panel.locator('article.link').filter({hasText:'خطة التدريس'});await rejected.locator('summary').click();await expect(rejected.getByText('أضف شرحًا واضحًا').first()).toBeVisible();
   await rejected.getByRole('button',{name:'تقديم للمراجعة'}).click();await expect(panel.locator('.badge[data-status=Resubmitted]')).toBeVisible();
   await expect(panel.locator('.badge[data-status=PendingReview]')).toHaveCount(1);expect(state.bodies.at(-1)).toEqual({rowVersion:'AAAAAAAAAAE='});
   await panel.locator('article.link').first().scrollIntoViewIfNeeded();
-  const body=page.locator('.p-dialog-content').first();expect(await body.evaluate(el=>el.scrollWidth>el.clientWidth+1)).toBeFalsy();
+  const body=page.locator('.storage-detail-dialog .p-dialog-content');
+  const overflow=await body.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,offenders:[...el.querySelectorAll('*')].filter(node=>node.getBoundingClientRect().left<el.getBoundingClientRect().left-2 || node.getBoundingClientRect().right>el.getBoundingClientRect().right+2).slice(0,8).map(node=>({tag:node.tagName,className:node.className}))}));
+  expect(overflow.scrollWidth<=overflow.clientWidth+1,JSON.stringify(overflow)).toBeTruthy();
   await page.screenshot({path:`test-results/storage/evidence-teacher-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
 });
 test('delegate approves one link and rejects another with required reason and authorized preview @mobile',async({page})=>{
@@ -55,7 +62,7 @@ test('delegate approves one link and rejects another with required reason and au
   await first.click();await detail.getByRole('button',{name:'اعتماد الرابط'}).click();await expect(queue.locator('.queue-items .badge[data-status=Approved]')).toHaveCount(1);await expect(queue.locator('.queue-items .badge[data-status=PendingReview]')).toHaveCount(1);
   const second=queue.locator('article.link').filter({hasText:'بناء خبرات التعلم'});await second.click();await expect(detail.getByRole('button',{name:'رفض مع السبب'})).toBeDisabled();
   await detail.locator('textarea').fill('الشرح غير كاف');await detail.getByRole('button',{name:'رفض مع السبب'}).click();await expect(queue.locator('.queue-items .badge[data-status=Rejected]')).toHaveCount(1);
-  expect(state.bodies.map(x=>x.decision)).toEqual([3,4]);await first.click();await detail.getByRole('button',{name:'تفاصيل الملف ومعاينته'}).click();await page.locator('.details>.dialog-actions').getByRole('button',{name:'معاينة',exact:true}).click();await expect(page.locator('iframe')).toHaveAttribute('src',/^blob:/);
+  expect(state.bodies.map(x=>x.decision)).toEqual([3,4]);await first.click();await detail.getByRole('button',{name:'تفاصيل الملف ومعاينته'}).click();await page.getByRole('dialog',{name:'تفاصيل الملف'}).getByRole('tab',{name:'المعلومات الأساسية'}).click();await page.locator('.inspector-main .dialog-actions').getByRole('button',{name:'معاينة',exact:true}).click();await expect(page.locator('iframe')).toHaveAttribute('src',/^blob:/);
   await expect(page.locator('iframe')).toBeVisible();
   await page.screenshot({path:`test-results/storage/evidence-manager-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
 });
@@ -73,7 +80,7 @@ test('reviewer without library management can decide links but cannot create one
   await expect(filePanel.getByRole('button',{name:'ربط بمتطلب'})).toHaveCount(0);
 });
 test('approved file change uses a request and retries candidate upload with the same key',async({page})=>{
-  const state=await session(page,true);await page.goto('/instructor/my-files');await page.locator('.file-name button').click();const panel=page.locator('.p-dialog app-storage-evidence');
+  const state=await session(page,true);await page.goto('/instructor/my-files');await page.locator('.file-name button').click();await page.getByRole('dialog',{name:'تفاصيل الملف'}).getByRole('tab',{name:'تعديل الملف'}).click();const panel=page.locator('#file-modify-panel app-storage-evidence');
   await panel.locator('textarea[name=reason]').fill('نسخة محدثة');await panel.getByRole('button',{name:'تقديم طلب التغيير'}).click();
   await expect(panel.getByText('ينتظر القرار',{exact:false}).first()).toBeVisible();expect(state.bodies[0].replaceBeforeReview).toBe(false);
   const candidate=panel.locator('article.link').filter({hasText:'نسخة محدثة'});await candidate.locator('input[type=file]').setInputFiles({name:'نسخة.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7\nNew')});await candidate.getByRole('button',{name:'رفع / إعادة المحاولة'}).click();
@@ -92,7 +99,7 @@ test('revoked reviewer access clears queue and file preview data',async({page})=
 });
 
 test('teacher links the existing asset without another upload and sees Draft',async({page})=>{
-  const state=await session(page,true);await page.goto('/instructor/my-files');await page.locator('.file-name button').click();const panel=page.locator('.p-dialog app-storage-evidence');
+  const state=await session(page,true);await page.goto('/instructor/my-files');await page.locator('.file-name button').click();await page.getByRole('dialog',{name:'تفاصيل الملف'}).getByRole('tab',{name:'روابط الشواهد'}).click();const panel=page.locator('#file-evidence-panel app-storage-evidence');
   await panel.locator('.filters>label').filter({hasText:'المتطلب'}).locator('.p-dropdown-trigger').click();
   await page.locator('.p-dropdown-item').filter({hasText:'بناء خبرات التعلم'}).click();
   await panel.getByRole('button',{name:'ربط الملف',exact:true}).click();await expect(panel.locator('.badge[data-status=Draft]')).toHaveCount(1);

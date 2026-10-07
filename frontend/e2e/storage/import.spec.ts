@@ -8,6 +8,7 @@ async function session(page:Page,role='SchoolManager',disabled=false) {
     const path=new URL(route.request().url()).pathname;calls.push(path);let data:any={};let status=200;
     if(path.endsWith('/auth/me'))data=user;
     else if(path.endsWith('/auth/schools'))data=[];
+    else if(path.endsWith('/storage/access'))data={canManage:true,canReviewEvidence:true};
     else if(path.endsWith('/storage/context'))data={schoolId:18,schoolName:'مدرسة التجربة',connectionState:disabled?'Disabled':'Connected',canManage:true,rootFolderId:7};
     else if(path.endsWith('/storage/academic-years'))data=[{id:1,nameAr:'سنة اختبار'}];
     else if(path.endsWith('/storage/templates'))data=[{version:1,name:'قالب S4'}];

@@ -7,7 +7,6 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { PaginatorModule } from 'primeng/paginator';
 import { TreeModule } from 'primeng/tree';
 import { TreeNode } from 'primeng/api';
@@ -20,14 +19,14 @@ import { EvidenceWorkspaceComponent } from './evidence-workspace.component';
 
 @Component({
   selector: 'app-storage-page', standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslateModule, ButtonModule, DialogModule, ProgressBarModule, PaginatorModule, TreeModule, EvidenceWorkspaceComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslateModule, ButtonModule, DialogModule, PaginatorModule, TreeModule, EvidenceWorkspaceComponent],
   templateUrl: './storage-page.component.html', styleUrls: ['./storage-page.component.css']
 })
 export class StoragePageComponent implements OnInit, OnDestroy {
   private readonly api = inject(StorageApiService);
   private readonly evidenceApi = inject(StorageEvidenceApiService);
   readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly translate = inject(TranslateService);
   private readonly destroyed = new Subject<void>();
@@ -38,6 +37,7 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   private contentLoad?: Subscription;
   private objectUrl?: string;
   private readonly folderPages = new Map<number, number>();
+  private readonly folderPaths = new Map<number, StorageFolder[]>();
   private listKey = '';
   private openedFileId?: number;
   readonly own = this.route.snapshot.data['own'] === true;
@@ -61,21 +61,43 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     {value:'video',label:'فيديو'},{value:'unlinked',label:'غير مربوط'},{value:'protected',label:'محمي'}];
   activeView: 'library' | 'review' = 'library';
   busy = false; uploading = false; previewBusy = false; error = ''; notice = ''; disabled = false;
+  uploadDialog = false; uploadError = '';
   selectedFile?: File;
   uploadKey = ''; progress = 0; operation?: StorageUpload;
   details?: StorageDetails;
+  detailPreviewFile?: StorageFile;
+  detailPreviewName = '';
+  detailTab: 'info' | 'evidence' | 'modify' = 'info';
+  detailEvidenceVisited = false;
+  detailModifyVisited = false;
+  private detailSelectedId?: number;
   previewUrl?: SafeResourceUrl;
   rawPreviewUrl?: string;
   detailOpen = false; previewOpen = false;
   renameName = ''; folderName = ''; folderDialog = false; moveDialog = false;
   moveSource?: StorageFolder; moveDestination?: number;
   get currentFolder() { return this.crumbs.at(-1); }
+  get detailFile() { return this.details?.file ?? this.detailPreviewFile; }
   get connected() { return this.context?.connectionState === 'Connected'; }
   get canReviewEvidence() { return !!(this.context?.canReviewEvidence ?? this.context?.canManage) && !this.historicalYear; }
   get historicalYear() { return !!this.evaluationYear && !!this.context?.academicYearId && this.evaluationYear !== this.context.academicYearId; }
   get previewable() {
-    return !!this.details && this.details.file.size <= 20 * 1024 * 1024 &&
-      ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'video/mp4'].includes(this.details.file.mimeType || '');
+    return !!this.detailFile && this.detailFile.size <= 20 * 1024 * 1024 &&
+      ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'video/mp4'].includes(this.detailFile.mimeType || '');
+  }
+  fileExtension(file: StorageFile) { return file.displayName.split('.').pop()?.toUpperCase().slice(0, 5) || 'FILE'; }
+  fileKind(file: StorageFile) {
+    const ext = this.fileExtension(file);
+    if (ext === 'PDF') return 'pdf';
+    if (['JPG', 'JPEG', 'PNG', 'WEBP', 'HEIC'].includes(ext)) return 'image';
+    if (['MP4', 'MOV'].includes(ext)) return 'video';
+    if (['XLS', 'XLSX'].includes(ext)) return 'sheet';
+    if (['DOC', 'DOCX'].includes(ext)) return 'document';
+    return 'other';
+  }
+  fileIcon(file: StorageFile) {
+    const kind = this.fileKind(file);
+    return kind === 'image' ? 'pi pi-image' : kind === 'video' ? 'pi pi-video' : kind === 'sheet' ? 'pi pi-table' : 'pi pi-file';
   }
   ngOnInit() {
     this.route.queryParamMap.pipe(takeUntil(this.destroyed)).subscribe(() => this.applyRoute());
@@ -99,7 +121,11 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     const key = [folder, this.search, this.global, this.sort, this.descending, this.filter, this.page, this.activeView].join('|');
     if (this.activeView === 'library' && !this.historicalYear && key !== this.listKey) {
       this.listKey = key;
-      if (folder !== this.currentFolder?.id) this.navigateFolder(folder);
+      if (folder !== this.currentFolder?.id) {
+        const knownPath = this.folderPaths.get(folder);
+        if (knownPath) { this.crumbs = [...knownPath]; this.reload(); }
+        else this.navigateFolder(folder);
+      }
       else this.reload();
     }
     if (file !== this.openedFileId) {
@@ -117,7 +143,8 @@ export class StoragePageComponent implements OnInit, OnDestroy {
         this.disabled = context.connectionState === 'Disabled';
         if (context.connectionState === 'Connected' && context.rootFolderId != null) {
           const root: StorageFolder = { id: context.rootFolderId, displayName: this.translate.instant(this.own ? 'STORAGE.OWN_TITLE' : 'STORAGE.TITLE'), kind: '', rowVersion: '' };
-          this.crumbs = [root]; this.tree = [{ key: String(root.id), label: root.displayName, data: root, expanded: true, leaf: false }];
+          this.crumbs = [root]; this.folderPaths.clear(); this.folderPaths.set(root.id, [root]);
+          this.tree = [{ key: String(root.id), label: root.displayName, data: root, expanded: true, leaf: false }];
           this.listKey = '';
           this.applyRoute();
           if (this.own && context.academicYearId) this.loadTeacherRequirements(context.academicYearId);
@@ -171,7 +198,8 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   breadcrumb(index: number) { const id = this.crumbs[index]?.id; if (id && id !== this.currentFolder?.id) this.selectFolder(id); }
   backFolder() { if (this.crumbs.length > 1) this.breadcrumb(this.crumbs.length - 2); }
   openFolder(folder: StorageFolder) {
-    if (this.busy || folder.parentFolderId !== this.currentFolder?.id || this.crumbs.some(item => item.id === folder.id)) return;
+    if (folder.parentFolderId !== this.currentFolder?.id || this.crumbs.some(item => item.id === folder.id)) return;
+    this.folderPaths.set(folder.id, [...this.crumbs, folder]);
     this.selectFolder(folder.id);
   }
   private selectFolder(id: number) {
@@ -181,7 +209,11 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   private navigateFolder(id: number) {
     this.pathLoad?.unsubscribe(); this.load?.unsubscribe(); this.busy = true; this.error = '';
     this.pathLoad = this.api.folderPath(this.own, id).pipe(takeUntil(this.destroyed)).subscribe({
-      next: path => { this.crumbs = path; this.reload(); },
+      next: path => {
+        this.crumbs = path;
+        path.forEach((part, index) => this.folderPaths.set(part.id, path.slice(0, index + 1)));
+        this.reload();
+      },
       error: error => { this.busy = false; this.fail(error); }
     });
   }
@@ -192,10 +224,15 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   reload() {
     if (!this.currentFolder) return;
     this.load?.unsubscribe(); this.folderLoad?.unsubscribe(); this.folderLoading = false; this.folderPage = 1;
-    this.busy = true; this.error = ''; this.files = []; this.folders = []; this.folderTotal = 0; this.discovery = undefined;
-    this.load = forkJoin({ files: this.api.files(this.own, this.currentFolder.id, this.search, this.global, this.sort, this.descending, this.page, this.filter),
+    const folderId = this.currentFolder.id;
+    const { search, global, sort, descending, page, filter } = this;
+    const cached = this.api.peekLibrary(this.own, folderId, search, global, sort, descending, page, filter);
+    this.busy = true; this.error = ''; this.files = cached?.files.items ?? []; this.total = cached?.files.total ?? 0;
+    this.folders = cached?.folders.items ?? []; this.folderTotal = cached?.folders.total ?? 0; this.discovery = undefined;
+    this.load = forkJoin({ files: this.api.files(this.own, folderId, search, global, sort, descending, page, filter),
       folders: this.api.folders(this.own, this.currentFolder.id) }).pipe(takeUntil(this.destroyed)).subscribe({
-      next: result => { this.busy = false; this.files = result.files.items; this.total = result.files.total; this.folders = result.folders.items; this.folderTotal = result.folders.total; },
+      next: result => { this.api.rememberLibrary(this.own, folderId, search, global, sort, descending, page, filter, result.files, result.folders);
+        this.busy = false; this.files = result.files.items; this.total = result.files.total; this.folders = result.folders.items; this.folderTotal = result.folders.total; },
       error: error => { this.busy = false; this.fail(error); }
     });
   }
@@ -230,9 +267,13 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   drop(event: DragEvent) { event.preventDefault(); if (event.dataTransfer?.files[0] && this.connected && this.context?.canManage && !this.historicalYear) this.queue(event.dataTransfer.files[0]); }
   queue(file: File) {
     if (this.uploading || !this.context?.canManage || this.historicalYear) return;
-    if (!file.size || file.size > 262144000) { this.error = this.translate.instant('STORAGE.SIZE_ERROR'); return; }
+    this.selectedFile = undefined;
+    if (!/\.(pdf|doc|docx|ppt|pptx|xls|xlsx|jpg|jpeg|png|mp4|mov|webp|heic)$/i.test(file.name)) {
+      this.uploadError = 'نوع الملف غير مدعوم. اختر PDF أو Office أو صورة أو فيديو مدعومًا.'; return;
+    }
+    if (!file.size || file.size > 262144000) { this.uploadError = this.translate.instant('STORAGE.SIZE_ERROR'); return; }
     this.teacherCreatedLink = undefined; this.teacherCreatedFileId = undefined;
-    this.selectedFile = file; this.operation = undefined; this.progress = 0;
+    this.selectedFile = file; this.operation = undefined; this.progress = 0; this.uploadError = '';
     const fingerprint = `${this.context?.schoolId}:${this.currentFolder?.id}:${file.name}:${file.size}:${file.lastModified}`;
     const saved = sessionStorage.getItem('alfalah-storage-upload');
     let pending: { fingerprint: string; key: string } | undefined;
@@ -240,10 +281,11 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     this.uploadKey = pending?.fingerprint === fingerprint ? pending.key : crypto.randomUUID();
     sessionStorage.setItem('alfalah-storage-upload', JSON.stringify({ fingerprint, key: this.uploadKey }));
   }
-  cancelQueued() { if (!this.uploading) this.selectedFile = undefined; }
+  cancelQueued() { if (!this.uploading) { this.selectedFile = undefined; this.uploadError = ''; this.progress = 0; } }
+  closeUploadDialog() { if (!this.uploading) { this.uploadError = ''; this.progress = 0; this.selectedFile = undefined; } }
   upload() {
     if (!this.selectedFile || !this.currentFolder || this.uploading) return;
-    this.uploading = true; this.error = ''; this.notice = '';
+    this.uploading = true; this.uploadError = ''; this.notice = ''; this.progress = 0;
     this.api.upload(this.own, this.currentFolder.id, this.selectedFile, this.uploadKey).pipe(takeUntil(this.destroyed)).subscribe({
       next: event => {
         if (event.type === HttpEventType.UploadProgress) this.progress = Math.min(99, Math.round(100 * event.loaded / (event.total || this.selectedFile!.size)));
@@ -251,13 +293,18 @@ export class StoragePageComponent implements OnInit, OnDestroy {
           this.uploading = false;
           if (event.body?.data) this.uploadResult(event.body.data);
         }
-      }, error: error => { this.uploading = false; this.fail(error); }
+      }, error: error => {
+        this.uploading = false; this.progress = 0;
+        this.uploadError = error?.status >= 500 ? 'تعذر حفظ الملف على الخادم. أعد المحاولة بنفس الملف.'
+          : error?.error?.message || error?.message || 'تعذر رفع الملف. أعد المحاولة.';
+      }
     });
   }
   private uploadResult(result: StorageUpload) {
     this.operation = result;
     if (result.status === 'Completed') {
-      this.progress = 100; this.selectedFile = undefined; sessionStorage.removeItem('alfalah-storage-upload');
+      this.progress = 100; this.selectedFile = undefined; this.uploadDialog = false; this.uploadError = '';
+      sessionStorage.removeItem('alfalah-storage-upload');
       this.teacherCreatedFileId = result.storedFileId;
       this.teacherCreatedLink = undefined;
       this.notice = this.translate.instant('STORAGE.UPLOADED'); this.reload();
@@ -291,14 +338,37 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   openDetails(item: number | EvidenceLink) {
     const link = typeof item === 'number' ? undefined : item;
     const id = link?.storedFileId ?? item as number;
+    if (this.detailSelectedId !== id) {
+      this.details = undefined;
+      this.detailEvidenceVisited = false;
+      this.detailModifyVisited = false;
+    }
+    this.detailSelectedId = id;
+    this.detailPreviewFile = this.files.find(file => file.storedFileId === id);
+    this.detailPreviewName = link?.fileName || this.detailPreviewFile?.displayName || '';
+    this.selectDetailTab(link || this.initialRequirement ? 'evidence' : 'info');
+    this.detailOpen = true;
     this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: {
       file: id, link: link?.id ?? null, requirement: link?.requirementId ?? this.initialRequirement ?? null,
       folder: this.activeView === 'review' ? null : this.currentFolder?.id
     } });
   }
   private loadDetails(id: number) {
-    this.details = undefined; this.detailOpen = true;
     const requestedFolder = Number(this.route.snapshot.queryParamMap.get('folder')) || undefined;
+    if (this.detailSelectedId !== id) {
+      this.details = undefined;
+      this.detailPreviewName = '';
+      this.detailEvidenceVisited = false;
+      this.detailModifyVisited = false;
+      this.selectDetailTab(this.initialRequirement || this.route.snapshot.queryParamMap.get('link') ? 'evidence' : 'info');
+    }
+    this.detailSelectedId = id;
+    this.detailPreviewFile = this.files.find(file => file.storedFileId === id) ??
+      (this.detailPreviewFile?.storedFileId === id ? this.detailPreviewFile : undefined);
+    this.detailPreviewName = this.detailPreviewFile?.displayName || this.detailPreviewName;
+    this.details = this.api.peekDetails(id, this.evaluationYear, requestedFolder, this.own) ??
+      (this.details?.file.storedFileId === id ? this.details : undefined);
+    this.detailOpen = true;
     this.detailsLoad = this.api.details(id, this.evaluationYear, requestedFolder, this.own)
       .pipe(takeUntil(this.destroyed)).subscribe({ next: data => {
       const linkId = Number(this.route.snapshot.queryParamMap.get('link')) || undefined;
@@ -321,6 +391,9 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   }
   closeDetails() {
     this.deleteConfirmed = false;
+    this.detailSelectedId = undefined;
+    this.detailPreviewFile = undefined; this.detailPreviewName = '';
+    this.detailTab = 'info'; this.detailEvidenceVisited = false; this.detailModifyVisited = false;
     if (!this.route.snapshot.queryParamMap.has('file')) return;
     const returnTo = this.route.snapshot.queryParamMap.get('returnTo');
     if (returnTo && /^\/school-manager\/storage\/(readiness|gaps|tracker|reports|standards|digital-index|manual)(\/|\?|$)/.test(returnTo)) {
@@ -330,13 +403,18 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     this.router.navigate([], { relativeTo: this.route, replaceUrl: true, queryParamsHandling: 'merge',
       queryParams: this.own || this.canReviewEvidence ? { file: null } : { file: null, link: null, requirement: null, view: null } });
   }
-  rename() { if (this.details) this.api.rename(this.details.file, this.renameName).pipe(takeUntil(this.destroyed)).subscribe({ next: () => { this.detailOpen = false; this.reload(); }, error: e => this.fail(e) }); }
+  selectDetailTab(tab: 'info' | 'evidence' | 'modify') {
+    this.detailTab = tab;
+    if (tab === 'evidence') this.detailEvidenceVisited = true;
+    if (tab === 'modify') this.detailModifyVisited = true;
+  }
+  rename() { if (this.details) this.api.rename(this.details.file, this.renameName).pipe(takeUntil(this.destroyed)).subscribe({ next: () => { this.api.invalidateDetails(); this.detailOpen = false; this.reload(); }, error: e => this.fail(e) }); }
   deleteConfirmed = false;
-  delete() { if (this.details && this.deleteConfirmed) this.api.delete(this.details.file).pipe(takeUntil(this.destroyed)).subscribe({ next: () => { this.detailOpen = false; this.deleteConfirmed = false; this.reload(); }, error: e => this.fail(e) }); }
+  delete() { if (this.details && this.deleteConfirmed) this.api.delete(this.details.file).pipe(takeUntil(this.destroyed)).subscribe({ next: () => { this.api.invalidateDetails(); this.detailOpen = false; this.deleteConfirmed = false; this.reload(); }, error: e => this.fail(e) }); }
   preview() {
-    if (!this.details || !this.previewable) return;
+    if (!this.detailFile || !this.previewable) return;
     this.closePreview(); this.previewOpen = true; this.previewBusy = true;
-    this.contentLoad = this.api.content(this.details.file.storedFileId, true).pipe(takeUntil(this.destroyed)).subscribe({
+    this.contentLoad = this.api.content(this.detailFile.storedFileId, true).pipe(takeUntil(this.destroyed)).subscribe({
       next: blob => { this.previewBusy = false; this.objectUrl = URL.createObjectURL(blob); this.rawPreviewUrl = this.objectUrl; this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.objectUrl); },
       error: e => { this.previewBusy = false; this.previewOpen = false; this.fail(e); }
     });
@@ -370,9 +448,10 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   }
   private fail(error: any) {
     this.error = error?.error?.message || error?.message || this.translate.instant('STORAGE.ERROR');
-    if (error?.status === 403) { this.files = []; this.folders = []; this.tree = []; this.details = undefined; this.detailOpen = false; this.previewOpen = false; this.closePreview(); this.context = undefined; }
+    if (error?.status === 403) { this.api.invalidateContext(); this.files = []; this.folders = []; this.tree = []; this.details = undefined; this.detailOpen = false; this.previewOpen = false; this.closePreview(); this.context = undefined; }
   }
   evidenceChanged() {
+    this.api.invalidateDetails();
     if (this.details) this.loadDetails(this.details.file.storedFileId);
     if (this.activeView === 'library') this.reload();
   }

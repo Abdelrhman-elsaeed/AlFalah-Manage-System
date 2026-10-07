@@ -2,6 +2,7 @@ export interface StorageContext {
   schoolId: number; schoolName: string; academicYearId?: number; academicYearName?: string;
   canManage: boolean; canReviewEvidence?: boolean; isTeacher: boolean; connectionState: string; rootFolderId?: number;
 }
+export interface StorageAccess { canManage: boolean; canReviewEvidence: boolean; }
 export interface StorageFolder { id: number; parentFolderId?: number; displayName: string; kind: string; rowVersion: string; }
 export interface StorageFile {
   storedFileId: number; folderId: number; displayName: string; size: number; mimeType?: string;

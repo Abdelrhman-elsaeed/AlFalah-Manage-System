@@ -3,7 +3,7 @@
     <button pButton type="button" icon="pi pi-refresh" [label]="'S4.REFRESH' | translate" (click)="reload()" [disabled]="busy || saving"></button></header>
   <nav class="workspace-nav" [attr.aria-label]="'S4.NAV' | translate"><a *ngFor="let item of navigation" [routerLink]="navigate(item)" [queryParams]="filter" [class.active]="mode === item">{{ ('S4.'+item) | translate }}</a></nav>
   <p *ngIf="error" role="alert" class="error">{{ error }}</p><p *ngIf="notice" role="status" class="notice">{{ notice }}</p>
-  <p-progressBar *ngIf="busy" mode="indeterminate" [style]="{height:'4px'}" [attr.aria-label]="'S4.LOADING' | translate"></p-progressBar>
+  <div *ngIf="busy" class="storage-loading" role="status" [attr.aria-label]="'S4.LOADING' | translate"><span></span><span></span></div>
   <div *ngIf="disabled" class="empty"><i class="pi pi-lock"></i><h2>{{ 'S4.DISABLED' | translate }}</h2></div>
   <form *ngIf="!disabled && initialized" class="filters" (ngSubmit)="filtersChanged()">
     <label>{{ 'S4.YEAR' | translate }}<app-clearable-select name="year" [(ngModel)]="filter.academicYearId" [options]="years" optionLabel="nameAr" optionValue="id" [clearable]="false" (ngModelChange)="filtersChanged()"></app-clearable-select></label>

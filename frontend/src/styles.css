@@ -1,9 +1,9 @@
 /* Al-Falah Schools Evaluation System — global UI entry point.
    Keep this file import-only; edit the focused modules in /styles. */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Reem+Kufi:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import './styles/design-tokens.css';
 @import './styles/base.css';
 @import './styles/layout.css';
+@import './styles/storage-detail.css';
 @import './styles/primeng.css';
 @import './styles/motion.css';
 @import './styles/responsive.css';
