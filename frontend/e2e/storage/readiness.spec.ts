@@ -19,7 +19,7 @@ async function session(page:Page,zero=false) {
     else if(p.endsWith('/storage/templates'))data=[{version:1,name:'الإصدار الأول',sha256:'hash'}];
     else if(p.endsWith('/storage/templates/1'))data={version:1,name:'الإصدار الأول',rounding:'DecimalTwoPlacesAwayFromZero',sourceName:'source',sourceSha256:'hash',domains:['الإدارة المدرسية','التعليم والتعلم','نواتج التعلم','البيئة المدرسية'].map((name,i)=>({code:String(i+1),name,sortOrder:i+1})),standards:standards.map(([code,name],i)=>({code,name,sortOrder:i+1})),items:[],matrixReferences:[]};
     else if(p.endsWith('/storage/readiness'))data={schoolId:1,schoolName:'مدرسة التحقق',academicYearId:Number(u.searchParams.get('academicYearId')),academicYearName:'السنة الدراسية',templateVersion:1,templateName:'الإصدار الأول',templateSHA256:'hash',rounding:'DecimalTwoPlacesAwayFromZero',calculatedAtUtc:'2026-10-04T08:00:00Z',filters:Object.fromEntries(u.searchParams),overall:metric('school','مدرسة التحقق',zero?0:1,zero?0:36),domains:['الإدارة المدرسية','التعليم والتعلم','نواتج التعلم','البيئة المدرسية'].map((name,i)=>metric(String(i+1),name,0,0)),standards:standards.map(([code,name])=>metric(code,name,0,0))};
-    else if(p.endsWith('/storage/requirements') || p.endsWith('/storage/gaps')){let shown=zero?[]:rows.filter(x=>(!u.searchParams.get('standardCode')||x.standardCode===u.searchParams.get('standardCode'))&&(!u.searchParams.get('search')||x.name.includes(u.searchParams.get('search')!))&&(u.searchParams.get('criticalOnly')!=='true'||x.importance==='Critical')&&(u.searchParams.get('hideCompleted')!=='true'||!x.fulfilled)&&(!p.endsWith('/gaps')||!x.fulfilled));data={items:shown,total:shown.length,page:Number(u.searchParams.get('page')||1),pageSize:25};}
+    else if(p.endsWith('/storage/requirements') || p.endsWith('/storage/gaps')){let shown=zero?[]:rows.filter(x=>(!u.searchParams.get('domainCode')||x.domainCode===u.searchParams.get('domainCode'))&&(!u.searchParams.get('standardCode')||x.standardCode===u.searchParams.get('standardCode'))&&(!u.searchParams.get('search')||x.name.includes(u.searchParams.get('search')!))&&(u.searchParams.get('criticalOnly')!=='true'||x.importance==='Critical')&&(u.searchParams.get('hideCompleted')!=='true'||!x.fulfilled)&&(!p.endsWith('/gaps')||!x.fulfilled));data={items:shown,total:shown.length,page:Number(u.searchParams.get('page')||1),pageSize:25};}
     else if(p.endsWith('/storage/digital-index'))data={items:zero?[]:[{fileId:31,name:'شاهد المدرسة.pdf',mimeType:'application/pdf',size:100,links:2,approvedLinks:1}],total:zero?0:1,page:1,pageSize:25};
     else if(p.endsWith('/storage/manual-evaluations')&&r.method()==='GET')data=manuals;
     else if(p.endsWith('/storage/manual-evaluations')&&r.method()==='POST'){const body=r.postDataJSON();commands.push(body);manuals=[{id:1,scopeCode:body.scopeCode,judgment:body.judgment,value:body.value,reason:body.reason,evaluatorName:'مقيّم التحقق',evaluatedAtUtc:'2026-10-04T08:00:00Z',revision:1,rowVersion:'AAAAAAAAAAM='}];data=manuals[0];}
@@ -38,22 +38,98 @@ async function session(page:Page,zero=false) {
     return route.fulfill({contentType:'application/json',body:JSON.stringify({isSuccess:true,data})});
   });return {requests,commands};
 }
-test('readiness shows live server counts and eleven navigable standards with RTL desktop/mobile layout',async({page})=>{
-  await session(page);await page.goto('/school-manager/storage/readiness');await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');await expect(page.locator('.readiness-kpi small')).toContainText('1 / 36');await expect(page.locator('.standards a')).toHaveCount(11);await expect(page.locator('.evaluation-page')).toHaveAttribute('dir','rtl');
+test('readiness shows live server counts and navigable table standards with RTL desktop/mobile layout @mobile',async({page})=>{
+  await session(page);await page.goto('/school-manager/storage/readiness');await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');await expect(page.locator('.readiness-kpi small')).toContainText('1 / 36');await expect(page.locator('.standards')).toHaveCount(0);await expect(page.locator('.standard-group-title a')).toHaveCount(2);await expect(page.locator('.evaluation-page')).toHaveAttribute('dir','rtl');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBeFalsy();await page.screenshot({path:`test-results/storage/readiness-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
-  await page.locator('.standards a').filter({hasText:'1.5'}).click();await expect(page).toHaveURL(/standards\/1.5/);await expect(page.locator('.requirements-panel .empty')).toBeVisible();
+  await page.locator('.requirements-panel').screenshot({path:'test-results/storage/evaluation-requirements.png',animations:'disabled'});
+  await page.locator('.standard-group-title a').filter({hasText:'1.1'}).click();await expect(page).toHaveURL(/standards\/1.1/);await expect(page.locator('article.requirement')).toHaveCount(1);
+});
+
+test('readiness graphics stay mounted during a delayed refresh after tab navigation',async({page})=>{
+  await session(page);
+  await page.goto('/school-manager/storage/readiness');
+  await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');
+  await page.locator('.workspace-nav a').filter({hasText:'متابعة'}).first().click();
+  await expect(page).toHaveURL(/storage\/tracker/);
+  let release!:()=>void;
+  const pending=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/storage/readiness?**',async route=>{await pending;await route.fallback();});
+  try {
+    await page.locator('.workspace-nav a').filter({hasText:'الجاهزية'}).first().click();
+    await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');
+    await expect(page.locator('.storage-loading')).toHaveCount(0);
+  } finally { release(); }
+});
+test('choosing a domain only updates its requirements and keeps the dashboard mounted',async({page})=>{
+  const state=await session(page);
+  await page.goto('/school-manager/storage/readiness');
+  await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');
+  const dashboard=await page.locator('.readiness-hero').elementHandle();
+  const summaries=state.requests.filter(x=>x.pathname.endsWith('/storage/readiness')).length;
+  let release!:()=>void;
+  const pending=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/storage/requirements?**',async route=>{if(new URL(route.request().url()).searchParams.get('domainCode')==='1')await pending;await route.fallback();});
+  try {
+    await page.locator('.domain-card').filter({hasText:'الإدارة المدرسية'}).click();
+    await expect(page).toHaveURL(/domainCode=1/);
+    await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');
+    expect(await dashboard!.evaluate(node=>node.isConnected)).toBeTruthy();
+    await expect(page.locator('.domain-card')).toHaveCount(4);
+    expect(state.requests.filter(x=>x.pathname.endsWith('/storage/readiness')).length).toBe(summaries);
+  } finally {release();}
+  await expect(page.locator('article.requirement')).toHaveCount(1);
+  await expect(page.locator('.section-title small')).toContainText('الإدارة المدرسية');
+});
+test('requirement search applies as the user types without submitting the filter form',async({page})=>{
+  await session(page);await page.goto('/school-manager/storage/readiness');
+  await expect(page.locator('article.requirement')).toHaveCount(2);
+  await page.locator('.quick-search input').fill('شهادة السلامة');
+  await expect(page.locator('article.requirement')).toHaveCount(1);
+  await expect(page.locator('article.requirement')).toContainText('توثيق شهادة السلامة');
+});
+test('readiness summary appears while secondary evaluation requests are still pending',async({page})=>{
+  await session(page);
+  let release!:()=>void;
+  const pending=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/storage/digital-index?**',async route=>{await pending;await route.fallback();});
+  await page.route('**/api/v1/storage/manual-evaluations?**',async route=>{await pending;await route.fallback();});
+  try {
+    await page.goto('/school-manager/storage/readiness');
+    await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');
+    await expect(page.locator('article.requirement')).toHaveCount(2);
+  } finally { release(); }
+});
+test('switching to an unvisited evaluation tab keeps the last confirmed figures while refreshing',async({page})=>{
+  await session(page);
+  await page.goto('/school-manager/storage/readiness');
+  await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');
+  let release!:()=>void;
+  const pending=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/storage/readiness?**',async route=>{await pending;await route.fallback();});
+  try {
+    await page.locator('.workspace-nav a').filter({hasText:'متابعة البنود'}).click();
+    await expect(page).toHaveURL(/storage\/tracker/);
+    await expect(page.locator('.readiness-kpi strong')).toHaveText('2.78%');
+    await expect(page.locator('.evaluation-placeholder')).toHaveCount(0);
+  } finally { release(); }
+  await page.locator('.workspace-nav a').filter({hasText:'التقارير وخطة الاستكمال'}).click();
+  await expect(page).toHaveURL(/storage\/reports/);
+  expect(new URL(page.url()).searchParams.get('trackerOnly')).toBe('false');
 });
 test('critical-only and hide-completed change rows while the denominator and export filters stay the same',async({page})=>{
-  const state=await session(page);await page.goto('/school-manager/storage/tracker');await expect(page.locator('article.requirement')).toHaveCount(2);await page.locator('input[name=critical]').check();await expect(page.locator('article.requirement')).toHaveCount(1);await expect(page.locator('.readiness-kpi small')).toContainText('1 / 36');
+  const state=await session(page);await page.goto('/school-manager/storage/tracker');await expect(page.locator('article.requirement')).toHaveCount(2);await page.getByRole('button',{name:'فلاتر إضافية'}).click();await page.locator('input[name=critical]').check();await expect(page.locator('article.requirement')).toHaveCount(1);await expect(page.locator('.readiness-kpi small')).toContainText('1 / 36');
   const download=page.waitForEvent('download');await page.getByRole('button',{name:'تصدير CSV',exact:true}).click();await download;const request=state.requests.find(x=>x.pathname.endsWith('/exports/csv'))!;expect(request.searchParams.get('criticalOnly')).toBe('true');expect(request.searchParams.get('trackerOnly')).toBe('true');expect(request.searchParams.has('schoolId')).toBe(false);
-  await page.getByRole('button',{name:'حسب المسؤول',exact:true}).click();await expect(page.locator('.group')).toHaveCount(1);await page.reload();await expect(page.locator('.group')).toHaveCount(1);
+  const rowRequests=state.requests.filter(x=>x.pathname.endsWith('/storage/requirements')).length;
+  await page.getByRole('button',{name:'حسب المسؤول',exact:true}).click();await expect(page.locator('.group')).toHaveCount(1);expect(state.requests.filter(x=>x.pathname.endsWith('/storage/requirements')).length).toBe(rowRequests);await page.reload();await expect(page.locator('.group')).toHaveCount(1);
 });
-test('gap completion opens S3 workspace with the requirement and historical year preserved',async({page})=>{
-  await session(page);await page.goto('/school-manager/storage/gaps?academicYearId=2');await page.locator('.requirement-actions').getByRole('link',{name:'استكمال الشاهد'}).click();await expect(page).toHaveURL(/academicYearId=2/);await expect(page).toHaveURL(/requirement=8/);await expect(page.locator('.storage-page app-storage-evidence')).toBeVisible();
+test('gap completion opens S3 workspace with the requirement and historical year preserved @mobile',async({page})=>{
+  await session(page);await page.goto('/school-manager/storage/gaps?academicYearId=2');await expect(page.locator('.completion-item')).toHaveCount(1);await expect(page.locator('.completion-item')).toContainText('الخطوة التالية');await expect(page.locator('.completion-group-title a')).toHaveAttribute('href',/standards\/4\.2/);await page.locator('.requirements-panel').screenshot({path:`test-results/storage/completion-plan-${test.info().project.name}.png`,animations:'disabled'});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBeFalsy();await page.locator('.requirement-actions').getByRole('link',{name:'استكمال الشاهد'}).click();await expect(page).toHaveURL(/academicYearId=2/);await expect(page).toHaveURL(/requirement=8/);await expect(page.locator('.storage-page app-storage-evidence')).toBeVisible();
   await page.goBack();await expect(page).toHaveURL(/storage\/gaps\?academicYearId=2/);
 });
 test('file deep link from an evaluation item opens authorized details and returns to the same item @mobile',async({page})=>{
   const state=await session(page);await page.goto('/school-manager/storage/tracker?academicYearId=1&page=1');
+  const row=page.locator('article.requirement').filter({hasText:'محاضر لجنة التخطيط'});
+  await row.locator('.requirement-main').click();await expect(row.locator('.requirement-main')).toHaveAttribute('aria-expanded','true');
   await page.locator('article.requirement').filter({hasText:'محاضر لجنة التخطيط'}).getByRole('link',{name:'معاينة'}).click();
   await expect(page).toHaveURL(/file=31/);
   await expect(page).toHaveURL(/folder=7/);
@@ -67,11 +143,11 @@ test('file deep link from an evaluation item opens authorized details and return
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBeFalsy();
 });
 test('manual judgment is stored separately and shows retained history without changing readiness',async({page})=>{
-  const state=await session(page);await page.goto('/school-manager/storage/manual');await page.locator('input[name=judgment]').fill('حكم مهني');await page.locator('input[name=value]').fill('80');await page.locator('textarea[name=manualReason]').fill('ملاحظة مهنية مستقلة');await page.getByRole('button',{name:'حفظ',exact:true}).click();await expect(page.locator('.manual-panel article')).toContainText('حكم مهني');await expect(page.locator('.readiness-kpi small')).toContainText('1 / 36');
+  const state=await session(page);await page.goto('/school-manager/storage/manual');await page.locator('input[name=judgment]').fill('حكم مهني');await page.locator('input[name=value]').fill('80');await page.locator('textarea[name=manualReason]').fill('ملاحظة مهنية مستقلة');await page.getByRole('button',{name:'حفظ',exact:true}).click();await expect(page.locator('.manual-panel article')).toContainText('حكم مهني');await expect(page.locator('.workspace-nav').getByRole('link',{name:'التقويم اليدوي'})).toHaveClass(/active/);await expect(page.locator('.readiness-kpi')).toHaveCount(0);
   await page.locator('.manual-panel article').getByRole('button',{name:'تاريخ التعديلات'}).click();await expect(page.locator('.history-item')).toContainText('ملاحظة مهنية مستقلة');expect(state.commands[0].rowVersion).toBeNull();expect(state.commands[0].schoolId).toBeUndefined();
 });
 test('follow-up assignments carry a concurrency token and an audited reason',async({page})=>{
-  const state=await session(page);await page.goto('/school-manager/storage/tracker');await page.locator('article.requirement').filter({hasText:'توثيق شهادة السلامة'}).getByRole('button',{name:'إعداد المتابعة والتكليف'}).click();await page.locator('.edit-form textarea[name=reason]').fill('تعيين مسؤول');await page.locator('.edit-form').getByRole('button',{name:'حفظ',exact:true}).click();await expect(page.locator('.edit-form')).toHaveCount(0);expect(state.commands[0]).toMatchObject({rowVersion:'AAAAAAAAAAI=',reason:'تعيين مسؤول',isMandatory:true});
+  const state=await session(page);await page.goto('/school-manager/storage/tracker');const row=page.locator('article.requirement').filter({hasText:'توثيق شهادة السلامة'});await row.locator('.requirement-main').focus();await page.keyboard.press('Enter');await expect(row.locator('.requirement-main')).toHaveAttribute('aria-expanded','true');await row.getByRole('button',{name:'إعداد المتابعة والتكليف'}).click();await page.locator('.edit-form textarea[name=reason]').fill('تعيين مسؤول');await page.locator('.edit-form').getByRole('button',{name:'حفظ',exact:true}).click();await expect(page.locator('.edit-form')).toHaveCount(0);expect(state.commands[0]).toMatchObject({rowVersion:'AAAAAAAAAAI=',reason:'تعيين مسؤول',isMandatory:true});
 });
 test('revoked access clears readiness rows and manual data',async({page})=>{
   await session(page);await page.goto('/school-manager/storage/readiness');await expect(page.locator('.kpis')).toBeVisible();await page.route('**/api/v1/storage/readiness?**',route=>route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({isSuccess:false,message:'تم سحب التفويض'})}));await page.locator('.page-header').getByRole('button',{name:'تحديث',exact:true}).click();await expect(page.locator('.kpis')).toHaveCount(0);await expect(page.locator('article.requirement')).toHaveCount(0);await expect(page.locator('[role=alert]')).toHaveText('تم سحب التفويض');

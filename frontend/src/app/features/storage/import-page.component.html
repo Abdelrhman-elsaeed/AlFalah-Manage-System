@@ -1,27 +1,28 @@
-<section dir="rtl" class="import-page" [attr.aria-busy]="busy">
-  <header><h1>الاستيراد التاريخي</h1></header>
-  <p>المعاينة تحفظ المراجع فقط. أسماء المصدر وحالة «مكتمل» لا تمنح صلاحية أو اعتمادًا. مسار المصدر للتوثيق؛ فتح الأصل يتم بالمعاينة أو التنزيل المصرح به بعد رفعه.</p>
+<section dir="rtl" class="import-page" [class.embedded]="embedded" [attr.aria-busy]="busy">
+  <header *ngIf="!embedded"><span class="eyebrow">مساحة الملفات</span><h1>الاستيراد التاريخي</h1></header>
+  <div class="import-guidance"><span class="guidance-icon"><i class="pi pi-info-circle" aria-hidden="true"></i></span><div><strong>راجع البيانات قبل اعتماد الاستيراد</strong><p>المعاينة تحفظ المراجع فقط. أسماء المصدر وحالة «مكتمل» لا تمنح صلاحية أو اعتمادًا. مسار المصدر للتوثيق؛ فتح الأصل يتم بالمعاينة أو التنزيل المصرح به بعد رفعه.</p></div></div>
   <p *ngIf="error" role="alert" class="error">{{error}}</p>
   <p *ngIf="disabled">الاستيراد ينتظر تفعيل مساحة التخزين وخطة التشغيل. <a routerLink="/school-manager/evidence-settings">إعدادات Google Drive</a></p>
   <form *ngIf="!disabled" (ngSubmit)="preview()" class="source-form">
+    <div class="form-heading"><div><span class="eyebrow">الخطوة الأولى</span><h2>اختر ملف المصدر</h2><p>صيغة JSON أو CSV، وبحد أقصى 16 MiB.</p></div><i class="pi pi-upload" aria-hidden="true"></i></div>
     <label>السنة الدراسية<p-dropdown name="year" [options]="years" optionLabel="nameAr" optionValue="id" [(ngModel)]="year" placeholder="اختر السنة"></p-dropdown></label>
     <label>نسخة القالب<p-dropdown name="template" [options]="templates" optionLabel="name" optionValue="version" [(ngModel)]="version"></p-dropdown></label>
     <label>نسخة المصدر<input name="sourceVersion" [(ngModel)]="sourceVersion" maxlength="64" required></label>
-    <label>مصدر JSON أو CSV — 16 MiB<input type="file" accept=".json,.csv" (change)="choose($event)" [disabled]="busy"></label>
-    <span>{{file?.name}}</span><button type="submit" [disabled]="busy || !file || !year">معاينة المصدر</button>
+    <label class="file-picker-label">مصدر JSON أو CSV — 16 MiB<input class="file-input" type="file" accept=".json,.csv" (change)="choose($event)" [disabled]="busy"><span class="file-picker"><i class="pi pi-file-import" aria-hidden="true"></i>{{ file?.name || 'اختر ملفًا من جهازك' }}</span></label>
+    <div class="source-actions"><span>{{ file ? 'الملف جاهز للمعاينة' : 'اختر الملف والسنة الدراسية للمتابعة' }}</span><button type="submit" [disabled]="busy || !file || !year"><i class="pi pi-eye" aria-hidden="true"></i> معاينة المصدر</button></div>
   </form>
-  <nav aria-label="دفعات سابقة"><button *ngFor="let b of batches" (click)="open(b.id)" [disabled]="busy">#{{b.id}} {{b.sourceName}}</button></nav>
+  <nav *ngIf="batches.length" class="batch-nav" aria-label="دفعات سابقة"><span>دفعات سابقة</span><button *ngFor="let b of batches" (click)="open(b.id)" [disabled]="busy" [class.selected]="batch?.id===b.id">#{{b.id}} {{b.sourceName}}</button></nav>
   <ng-container *ngIf="batch as b">
-    <h2>{{b.sourceName}} · {{b.sourceVersion}}</h2><code class="hash">SHA256 {{b.sourceSHA256}}</code>
-    <div class="summary"><span>الصفوف {{b.rows}}</span><span>مطابق {{b.matched}}</span><span>ناقص / جديد {{b.missing}}</span><span>متعارض {{b.conflicts}}</span><span>مرجع فقط {{b.referenceOnly}}</span><span>أصول مرفوعة {{b.importedFiles}}</span></div>
-    <p>أرقام المراجع منفصلة عن الملفات الحية والروابط والشواهد المعتمدة. اعتماد الدفعة يحتفظ بالاستثناءات ولا يعدّل قالبًا منشورًا.</p>
+    <div class="batch-heading"><div><span class="eyebrow">الخطوة الثانية · نتائج المعاينة</span><h2>{{b.sourceName}} · {{b.sourceVersion}}</h2><code class="hash">SHA256 {{b.sourceSHA256}}</code></div><span class="batch-status">{{ b.committedAtUtc ? 'دفعة معتمدة' : 'بانتظار المراجعة' }}</span></div>
+    <div class="summary"><span><small>الصفوف</small><strong>{{b.rows}}</strong></span><span><small>مطابق</small><strong>{{b.matched}}</strong></span><span><small>ناقص / جديد</small><strong>{{b.missing}}</strong></span><span><small>متعارض</small><strong>{{b.conflicts}}</strong></span><span><small>مرجع فقط</small><strong>{{b.referenceOnly}}</strong></span><span><small>أصول مرفوعة</small><strong>{{b.importedFiles}}</strong></span></div>
+    <div class="review-panel"><p>أرقام المراجع منفصلة عن الملفات الحية والروابط والشواهد المعتمدة. اعتماد الدفعة يحتفظ بالاستثناءات ولا يعدّل قالبًا منشورًا.</p>
     <label>سبب المراجعة أو التصحيح<input [(ngModel)]="reason" maxlength="1000" placeholder="وثّق قرارك"></label>
-    <label *ngIf="!b.committedAtUtc"><input type="checkbox" [(ngModel)]="acknowledged">راجعت نتائج المطابقة والاستثناءات في هذه الدفعة</label>
+    <label class="acknowledgment" *ngIf="!b.committedAtUtc"><input type="checkbox" [(ngModel)]="acknowledged">راجعت نتائج المطابقة والاستثناءات في هذه الدفعة</label>
     <div class="actions"><button *ngIf="!b.committedAtUtc" (click)="decide(false)" [disabled]="busy || !acknowledged || !reason.trim()">تسجيل المراجعة</button>
       <button *ngIf="!b.committedAtUtc" (click)="decide(true)" [disabled]="busy || !acknowledged || !reason.trim() || b.digest !== b.reviewedDigest">اعتماد الاستيراد</button>
-      <button (click)="export()" [disabled]="busy">تصدير النتائج والاستثناءات</button></div>
+      <button (click)="export()" [disabled]="busy" class="secondary">تصدير النتائج والاستثناءات</button></div></div>
     <p *ngIf="b.committedAtUtc" role="status">تم اعتماد المراجع. استيراد الأصل إجراء منفصل؛ الربط الجديد مسودة ولا يحتسب جاهزية قبل المراجعة. تصحيح مصدر معتمد يحتاج مصدرًا مصححًا ودفعة جديدة.</p>
-    <label>تصنيف الصفوف<p-dropdown [options]="filters" optionLabel="label" optionValue="value" [(ngModel)]="filter" (onChange)="page=1;loadRows()"></p-dropdown></label>
+    <div class="rows-heading"><div><span class="eyebrow">تفاصيل المطابقة</span><h2>الصفوف المستوردة</h2></div><label>تصنيف الصفوف<p-dropdown [options]="filters" optionLabel="label" optionValue="value" [(ngModel)]="filter" (onChange)="page=1;loadRows()"></p-dropdown></label></div>
     <article *ngFor="let row of rows" class="row">
       <h3>{{row.source.name}}</h3><p>{{label(row.classification)}} · {{label(row.status)}}</p><p>{{row.reason}}</p>
       <details><summary>مرجع المصدر</summary><p class="reference">{{row.source.referencePath}}</p><p>المسؤول في المصدر: {{row.source.responsibleName || 'غير مسجل'}}</p><p>حالة المصدر: {{row.source.sourceStatus || 'غير مسجلة'}} — ليست قرار مراجعة</p></details>

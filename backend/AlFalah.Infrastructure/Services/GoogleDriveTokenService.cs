@@ -1,8 +1,10 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AlFalah.Application.Interfaces;
+using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +38,8 @@ public sealed class GoogleDriveTokenService : IGoogleDriveTokenService
     private readonly IMemoryCache _cache;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleDriveTokenService> _logger;
+    private readonly SemaphoreSlim _requestGate = new(1, 1);
+    private readonly ConcurrentDictionary<(int SchoolId, bool Setup), SchoolGoogleDrive> _driveForRequest = new();
 
     public GoogleDriveTokenService(
         AlFalahDbContext context,
@@ -61,9 +65,29 @@ public sealed class GoogleDriveTokenService : IGoogleDriveTokenService
 
     private async Task<string> GetTokenAsync(int schoolId, bool setup, CancellationToken cancellationToken)
     {
-        var drive = await _context.SchoolGoogleDrives.AsNoTracking()
-            .SingleOrDefaultAsync(x => x.SchoolId == schoolId && (setup || x.IsEnabled), cancellationToken)
-            ?? throw new InvalidOperationException("لم يتم ربط حساب Google Drive الخاص بالمدرسة بعد.");
+        // A file-list request checks several Drive items concurrently. All checks share this
+        // scoped service and DbContext, so only one may read the school connection or refresh
+        // its token at a time. The connection is constant for the lifetime of this request.
+        await _requestGate.WaitAsync(cancellationToken);
+        try
+        {
+            return await GetTokenCoreAsync(schoolId, setup, cancellationToken);
+        }
+        finally
+        {
+            _requestGate.Release();
+        }
+    }
+
+    private async Task<string> GetTokenCoreAsync(int schoolId, bool setup, CancellationToken cancellationToken)
+    {
+        if (!_driveForRequest.TryGetValue((schoolId, setup), out var drive))
+        {
+            drive = await _context.SchoolGoogleDrives.AsNoTracking()
+                .SingleOrDefaultAsync(x => x.SchoolId == schoolId && (setup || x.IsEnabled), cancellationToken)
+                ?? throw new InvalidOperationException("لم يتم ربط حساب Google Drive الخاص بالمدرسة بعد.");
+            _driveForRequest[(schoolId, setup)] = drive;
+        }
         if (string.IsNullOrWhiteSpace(drive.ProtectedCredential))
             throw new InvalidOperationException("بيانات اعتماد Google Drive الخاصة بالمدرسة غير مكتملة.");
 
@@ -88,7 +112,12 @@ public sealed class GoogleDriveTokenService : IGoogleDriveTokenService
         return token;
     }
 
-    public void InvalidateCachedToken(int schoolId) => _cache.Remove(CacheKey(schoolId));
+    public void InvalidateCachedToken(int schoolId)
+    {
+        _cache.Remove(CacheKey(schoolId));
+        _driveForRequest.TryRemove((schoolId, false), out _);
+        _driveForRequest.TryRemove((schoolId, true), out _);
+    }
 
     private static string CacheKey(int schoolId) => $"google-drive-token:{schoolId}";
 

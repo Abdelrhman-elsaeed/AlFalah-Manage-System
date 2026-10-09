@@ -152,6 +152,20 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddRateLimiter(options =>
 {
+    // A rejected rate-limited request is not a storage outage. Return a distinct
+    // response so clients can retry without showing a misleading 503 error.
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan delay)
+            ? Math.Max(1, (int)Math.Ceiling(delay.TotalSeconds))
+            : 60;
+        context.HttpContext.Response.Headers["Retry-After"] = retryAfter.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new { message = "طلبات كثيرة خلال وقت قصير. انتظر قليلًا ثم أعد المحاولة." },
+            cancellationToken);
+    };
     // Partitioned per user, NOT global. AddFixedWindowLimiter would give the whole school a
     // single shared budget, so a handful of teachers browsing at once would 429 each other —
     // and every file view is now an API request, because the bytes are proxied through us
@@ -167,7 +181,10 @@ builder.Services.AddRateLimiter(options =>
                 ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 120,
+                // Each workspace tab loads several independent panels, and file
+                // previews also use this policy. Keep a per-user safety limit
+                // without rejecting ordinary navigation between tabs.
+                PermitLimit = 600,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
                 AutoReplenishment = true

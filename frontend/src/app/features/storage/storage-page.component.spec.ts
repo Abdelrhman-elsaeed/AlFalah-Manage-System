@@ -39,7 +39,7 @@ describe('Storage page safety', () => {
   });
   it('clears file data and preview access after a revoked authorization response', () => {
     api.files.and.returnValue(throwError(() => ({ status: 403, error: { message: 'Access revoked' } })));
-    page.reload(); expect(page.files).toEqual([]); expect(page.context).toBeUndefined(); expect(page.previewUrl).toBeUndefined();
+    page.reload(); expect(page.files).toEqual([]); expect(page.context).toBeUndefined(); expect(page.pdfPageUrl).toBeUndefined();
   });
   it('does not preview unsupported formats or files above the preview memory bound', () => {
     page.details = { file: { storedFileId: 1, folderId: 7, displayName: 'office.docx', size: 100, mimeType: 'application/msword', uploadedAt: '', state: 'Managed', isProtected: false, rowVersion: '' }, versions: [] };

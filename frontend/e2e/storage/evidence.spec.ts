@@ -1,5 +1,22 @@
 import { test, expect, Page } from '@playwright/test';
 
+function samplePdf(): Buffer {
+  const stream='BT /F1 18 Tf 72 720 Td (Evidence preview) Tj ET';
+  const objects=[
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+    `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'
+  ];
+  let pdf='%PDF-1.4\n';const offsets=[0];
+  for(let index=0;index<objects.length;index++){offsets.push(Buffer.byteLength(pdf));pdf+=`${index+1} 0 obj\n${objects[index]}\nendobj\n`;}
+  const xref=Buffer.byteLength(pdf);pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;
+  for(const offset of offsets.slice(1))pdf+=`${String(offset).padStart(10,'0')} 00000 n \n`;
+  pdf+=`trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(pdf);
+}
+
 const file = {storedFileId:31,folderId:7,displayName:'شاهد المدرسة.pdf',size:100,mimeType:'application/pdf',uploadedAt:'2026-10-04T08:00:00Z',state:'Managed',isProtected:true,rowVersion:'AAAAAAAAAAE='};
 async function session(page:Page,own:boolean,canManage=true,canReviewEvidence=!own) {
   const user={userId:'actor',username:'actor',fullName:'مستخدم الاختبار',activeSchoolId:1,activeSchoolName:'مدرسة الاختبار',preferredLanguage:'ar',roles:[own?'Instructor':'Secretary'],permissions:['Storage.ViewSchool','Storage.ManageSchool','Storage.ViewOwn','Storage.ManageOwn']};
@@ -20,7 +37,7 @@ async function session(page:Page,own:boolean,canManage=true,canReviewEvidence=!o
     else if(p.endsWith('/storage/folders'))data={items:[],total:0,page:1,pageSize:25};
     else if(p.endsWith('/storage/files') || p.endsWith('/storage/me/files'))data={items:[file],total:1,page:1,pageSize:25};
     else if(p.endsWith('/storage/files/31'))data={file,versions:[{versionId:4,versionNumber:1,size:100,mimeType:'application/pdf',uploadedAt:file.uploadedAt,availability:'Available'}]};
-    else if(p.endsWith('/storage/files/31/content') || p.endsWith('/versions/4/content'))return route.fulfill({contentType:'application/pdf',body:'%PDF-1.7\nTest'});
+    else if(p.endsWith('/storage/files/31/content') || p.endsWith('/versions/4/content'))return route.fulfill({contentType:'application/pdf',body:samplePdf()});
     else if(p.endsWith('/storage/requirement-catalog'))data=catalog;
     else if(p.endsWith('/storage/requirements/2') && r.method()==='PATCH'){bodies.push(r.postDataJSON());data=catalog[0];}
     else if(p.endsWith('/storage/evidence-counts'))data={files:1,links:links.length,approvedLinks:links.filter(x=>x.status==='Approved').length,fulfilledRequirements:links.filter(x=>x.status==='Approved').length,requirements:2};
@@ -62,8 +79,8 @@ test('delegate approves one link and rejects another with required reason and au
   await first.click();await detail.getByRole('button',{name:'اعتماد الرابط'}).click();await expect(queue.locator('.queue-items .badge[data-status=Approved]')).toHaveCount(1);await expect(queue.locator('.queue-items .badge[data-status=PendingReview]')).toHaveCount(1);
   const second=queue.locator('article.link').filter({hasText:'بناء خبرات التعلم'});await second.click();await expect(detail.getByRole('button',{name:'رفض مع السبب'})).toBeDisabled();
   await detail.locator('textarea').fill('الشرح غير كاف');await detail.getByRole('button',{name:'رفض مع السبب'}).click();await expect(queue.locator('.queue-items .badge[data-status=Rejected]')).toHaveCount(1);
-  expect(state.bodies.map(x=>x.decision)).toEqual([3,4]);await first.click();await detail.getByRole('button',{name:'تفاصيل الملف ومعاينته'}).click();await page.getByRole('dialog',{name:'تفاصيل الملف'}).getByRole('tab',{name:'المعلومات الأساسية'}).click();await page.locator('.inspector-main .dialog-actions').getByRole('button',{name:'معاينة',exact:true}).click();await expect(page.locator('iframe')).toHaveAttribute('src',/^blob:/);
-  await expect(page.locator('iframe')).toBeVisible();
+  expect(state.bodies.map(x=>x.decision)).toEqual([3,4]);await first.click();await detail.getByRole('button',{name:'تفاصيل الملف ومعاينته'}).click();await page.getByRole('dialog',{name:'تفاصيل الملف'}).getByRole('tab',{name:'المعلومات الأساسية'}).click();await page.locator('.inspector-main .dialog-actions').getByRole('button',{name:'معاينة',exact:true}).click();await expect(page.locator('.pdf-page-image')).toHaveAttribute('src',/^blob:/);
+  await expect(page.locator('.pdf-page-image')).toBeVisible();
   await page.screenshot({path:`test-results/storage/evidence-manager-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
 });
 test('reviewer without library management can decide links but cannot create one',async({page})=>{
@@ -139,9 +156,46 @@ test('review selection and decided history survive URL reload without loading li
   await expect(page.locator('.queue-items article.link.selected-link')).toHaveCount(1);
   await page.getByRole('tab',{name:'سجل القرارات'}).click();
   await expect(page).toHaveURL(/evidenceTab=history/);
-  await expect(page.getByRole('tab',{name:'بانتظار القرار',exact:true})).toBeVisible();
+  await expect(page.getByRole('tab',{name:/بانتظار القرار/})).toBeVisible();
   expect(state.requests.some(x=>x.pathname.endsWith('/storage/review-queue') && x.searchParams.get('decided')==='true')).toBeTruthy();
   expect(state.requests.some(x=>x.pathname.endsWith('/storage/folders') || x.pathname.endsWith('/storage/files'))).toBeFalsy();
+});
+
+test('review queue remains visible while returning to the tab refreshes data',async({page})=>{
+  await session(page,false);
+  await page.goto('/school-manager/storage/evidence');
+  await expect(page.locator('.review-panel article.link')).toHaveCount(2);
+  const storageNav=page.locator('.shell-sidebar__category').filter({hasText:'مساحة الملفات'});
+  await storageNav.locator('a[href="/school-manager/storage"]').click();
+  await expect(page).toHaveURL(/school-manager\/storage$/);
+  let release!:()=>void;
+  const pending=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/storage/review-queue?**',async route=>{await pending;await route.fallback();});
+  try {
+    await storageNav.locator('a[href="/school-manager/storage/evidence"]').click();
+    await expect(page.locator('.review-panel article.link')).toHaveCount(2);
+    await expect(page.locator('.review-panel .counts')).toBeVisible();
+  } finally { release(); }
+});
+
+test('review tabs retain their last confirmed content during background refresh',async({page})=>{
+  await session(page,false);
+  await page.goto('/school-manager/storage/evidence');
+  const panel=page.locator('.review-panel app-storage-evidence');
+  await expect(panel.locator('.queue-items article.link')).toHaveCount(2);
+  await panel.getByRole('tab',{name:'طلبات التعديل'}).click();
+  await expect(panel.locator('.change-queue .review-empty')).toBeVisible();
+  await panel.getByRole('tab',{name:/بانتظار القرار/}).click();
+  await expect(panel.locator('.queue-items article.link')).toHaveCount(2);
+  let release!:()=>void;
+  const pending=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/storage/change-queue?**',async route=>{await pending;await route.fallback();});
+  try {
+    await panel.getByRole('tab',{name:'طلبات التعديل'}).click();
+    await expect(panel.locator('.change-queue .review-empty')).toBeVisible();
+    await expect(panel.locator('.change-queue .review-pending')).toHaveCount(0);
+    await expect(panel.locator('.counts')).toBeVisible();
+  } finally { release(); }
 });
 
 test('review filters stay compact until opened and a filtered deep link restores them',async({page})=>{
@@ -196,5 +250,6 @@ test('a failed evidence count leaves review decisions available',async({page})=>
   const panel=page.locator('.review-panel');
   await expect(panel.locator('article.link')).toHaveCount(2);
   await expect(panel.getByRole('alert')).toContainText('تعذر تحميل عدادات الشواهد');
-  await expect(panel.locator('.counts')).toHaveCount(0);
+  await expect(panel.locator('.counts')).toBeVisible();
+  await expect(panel.locator('.counts b')).toHaveText(['—','—','— / —']);
 });

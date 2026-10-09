@@ -17,7 +17,8 @@ public sealed record VisitArchiveRevisionDto(int ApprovalRevision, string Status
     DateTimeOffset? NextAttemptAtUtc, string? ErrorCode, bool IsCurrent, bool CanRetry,
     IReadOnlyList<VisitArchiveVersionDto> Versions);
 public sealed record VisitArchiveDto(int VisitId, string InstructorName, int ApprovalRevision,
-    bool IsApproved, bool CanManage, IReadOnlyList<VisitArchiveRevisionDto> Revisions);
+    bool IsApproved, bool CanManage, IReadOnlyList<VisitArchiveRevisionDto> Revisions,
+    string? Subject = null, DateTimeOffset? VisitDate = null, VisitCategory? Category = null);
 public sealed record VisitArchiveOperationsDto(bool WorkerEnabled, bool ExternalWritesEnabled, bool Ready);
 // Internal repository projections. Provider IDs and snapshots never cross HTTP.
 public sealed record ArchiveVisitScope
@@ -26,6 +27,9 @@ public sealed record ArchiveVisitScope
     public int SchoolId { get; init; }
     public string InstructorId { get; init; } = "";
     public string InstructorName { get; init; } = "";
+    public string? Subject { get; init; }
+    public DateTimeOffset VisitDate { get; init; }
+    public VisitCategory Category { get; init; }
     public string CreatorId { get; init; } = "";
     public VisitStatus Status { get; init; }
     public int ApprovalRevision { get; init; }

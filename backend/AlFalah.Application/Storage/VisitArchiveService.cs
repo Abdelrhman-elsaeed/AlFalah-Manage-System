@@ -104,7 +104,8 @@ public sealed class VisitArchiveService(IVisitArchiveRepository repository, ISto
                 manage && (missing || operation.Status is VisitArchiveStatus.NeedsAttention or VisitArchiveStatus.RetryScheduled),
                 manage ? versions : versions.Take(1).ToList()));
         }
-        return new(visit.VisitId, visit.InstructorName, visit.ApprovalRevision, visit.Status == VisitStatus.Approved, manage, revisions);
+        return new(visit.VisitId, visit.InstructorName, visit.ApprovalRevision, visit.Status == VisitStatus.Approved,
+            manage, revisions, visit.Subject, visit.VisitDate, visit.Category);
     }
     public async Task<VisitArchiveDto> RetryAsync(int visitId, RetryVisitArchiveRequest request, CancellationToken ct = default)
     {

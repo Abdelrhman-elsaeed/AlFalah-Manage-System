@@ -23,25 +23,40 @@ async function mock(page:Page,state='rows',operations={workerEnabled:false,exter
   });return calls;
 }
 test('delegated archive shows RTL pagination, filters, safe errors, retry and history',async({page})=>{
-  const calls=await mock(page);await page.goto('/school-manager/storage/visits');await expect(page.locator('h1')).toHaveText('أرشيف الزيارات');await expect(page.locator('.archive-page')).toHaveAttribute('dir','rtl');await expect(page.locator('.visit-row')).toContainText('محاولة مجدولة');await page.locator('summary').click();await expect(page.getByRole('button',{name:'تنزيل النسخة المؤرشفة'})).toBeVisible();
+  const calls=await mock(page);await page.goto('/school-manager/storage/visits');await expect(page.locator('h1')).toHaveText('تقارير الزيارات وأرشفتها');await expect(page.locator('.archive-page')).toHaveAttribute('dir','rtl');await expect(page.locator('.visit-row')).toContainText('محاولة مجدولة');await page.locator('summary').click();await expect(page.getByRole('button',{name:'تنزيل PDF'})).toBeVisible();
   await page.getByRole('button',{name:'إعادة المحاولة',exact:true}).click();await expect(page.locator('.visit-row')).toContainText('بانتظار الأرشفة');expect(calls.find(c=>c.url.includes('/archive/retry'))?.body.approvalRevision).toBe(2);
   await page.locator('.p-paginator-next').click();await expect.poll(()=>calls.some(c=>c.url.includes('page=2'))).toBeTruthy();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBeFalsy();await page.screenshot({path:`test-results/storage/s5-${test.info().project.name}.png`,fullPage:true});
 });
 test('missing report recreation needs a reason and preserves the approval revision',async({page})=>{
-  const calls=await mock(page,'missing');await page.goto('/school-manager/storage/visits');await page.getByRole('button',{name:'استعادة التقرير المفقود',exact:true}).click();const dialog=page.getByRole('dialog');await expect(dialog.getByRole('button',{name:'استعادة التقرير المفقود'})).toBeDisabled();await dialog.locator('textarea').fill('استعادة النسخة الأصلية');await dialog.getByRole('button',{name:'استعادة التقرير المفقود'}).click();await expect.poll(()=>calls.some(c=>c.body?.recreateMissing===true && c.body.approvalRevision===2)).toBeTruthy();
+  const calls=await mock(page,'missing');await page.goto('/school-manager/storage/visits');await page.getByRole('button',{name:'إعادة الإنشاء',exact:true}).click();const dialog=page.getByRole('dialog');await expect(dialog.getByRole('button',{name:'استعادة التقرير المفقود'})).toBeDisabled();await dialog.locator('textarea').fill('استعادة النسخة الأصلية');await dialog.getByRole('button',{name:'استعادة التقرير المفقود'}).click();await expect.poll(()=>calls.some(c=>c.body?.recreateMissing===true && c.body.approvalRevision===2)).toBeTruthy();
 });
 test('revoked archive permission clears reports and teacher filters',async({page})=>{
   await mock(page);await page.goto('/school-manager/storage/visits');await expect(page.locator('.visit-row')).toBeVisible();await page.route('**/api/v1/storage/visits?**',route=>route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({isSuccess:false,message:'revoked'})}));await page.getByRole('button',{name:'تحديث',exact:true}).click();await expect(page.locator('.visit-row')).toHaveCount(0);await expect(page.locator('[role=alert]')).toContainText('سُحبت صلاحية');await expect(page.locator('.filters')).toHaveCount(0);
 });
-for(const state of ['empty','error'])test(`archive ${state} state is explicit`,async({page})=>{await mock(page,state);await page.goto('/school-manager/storage/visits');await expect(page.locator(state==='empty'?'.empty':'[role=alert]')).toBeVisible();await expect(page.locator('.visit-row')).toHaveCount(0);});
+test('archive refresh keeps the current report visible while the response is pending',async({page})=>{
+  await mock(page);await page.goto('/school-manager/storage/visits');await expect(page.locator('.visit-row')).toBeVisible();
+  const before=await page.locator('.archive-table').boundingBox();
+  let release!:()=>void;const pending=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/storage/visits?**',async route=>{await pending;await route.fallback();});
+  try{
+    await page.getByRole('button',{name:'تحديث',exact:true}).click();
+    await expect(page.locator('.archive-table')).toHaveClass(/is-refreshing/);
+    await expect(page.locator('.visit-row')).toBeVisible();
+    await expect(page.locator('.table-pending')).toHaveCount(0);
+    const during=await page.locator('.archive-table').boundingBox();
+    expect(before&&during&&Math.abs(before.height-during.height)<2).toBeTruthy();
+  }finally{release();}
+  await expect(page.locator('.archive-table')).not.toHaveClass(/is-refreshing/);
+});
+for(const state of ['empty','error'])test(`archive ${state} state is explicit`,async({page})=>{await mock(page,state);await page.goto('/school-manager/storage/visits');await expect(page.locator(state==='empty'?'.table-empty':'[role=alert]')).toBeVisible();await expect(page.locator('.visit-row')).toHaveCount(0);});
 
 test('archive deep link keeps filters on return and explains stopped worker on desktop and phone @mobile',async({page})=>{
   await mock(page);
   await page.goto('/school-manager/storage/visits?page=2&status=RetryScheduled');
-  await expect(page.getByText('العامل مغلق')).toBeVisible();
-  await expect(page.getByText('الكتابة الخارجية مغلقة')).toBeVisible();
-  await page.locator('.visit-heading a').click();
+  await expect(page.getByText('معالج الأرشفة متوقف')).toBeVisible();
+  await expect(page.getByText('الكتابة إلى Drive متوقفة')).toBeVisible();
+  await page.locator('.row-actions a').click();
   await expect(page).toHaveURL(/\/visits\?visitId=4/);
   await page.goBack();
   await expect(page).toHaveURL(/storage\/visits\?page=2&status=RetryScheduled/);

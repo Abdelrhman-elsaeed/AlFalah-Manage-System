@@ -14,7 +14,7 @@ export class StorageApiService {
   private readonly base = `${environment.apiUrl}/api/v1/storage`;
   private readonly contextCache = new Map<string, { key: string; until: number; request: Observable<StorageContext> }>();
   private readonly accessCache = new Map<boolean, { key: string; until: number; request: Observable<StorageAccess> }>();
-  private readonly libraryCache = new Map<string, { until: number; files: StoragePage<StorageFile>; folders: StoragePage<StorageFolder> }>();
+  private readonly libraryCache = new Map<string, { files: StoragePage<StorageFile>; folders: StoragePage<StorageFolder> }>();
   private readonly detailsCache = new Map<string, { until: number; details: StorageDetails }>();
   private libraryKey(own: boolean, folderId: number, search: string, global: boolean, sort: string, descending: boolean, page: number, filter: string) {
     const actor = this.auth.currentUser();
@@ -63,12 +63,14 @@ export class StorageApiService {
   }
   invalidateDetails() { this.detailsCache.clear(); }
   peekLibrary(own: boolean, folderId: number, search: string, global: boolean, sort: string, descending: boolean, page: number, filter: string) {
-    const cached = this.libraryCache.get(this.libraryKey(own, folderId, search, global, sort, descending, page, filter));
-    return cached && cached.until > Date.now() ? cached : undefined;
+    return this.libraryCache.get(this.libraryKey(own, folderId, search, global, sort, descending, page, filter));
   }
   rememberLibrary(own: boolean, folderId: number, search: string, global: boolean, sort: string, descending: boolean, page: number, filter: string,
     files: StoragePage<StorageFile>, folders: StoragePage<StorageFolder>) {
-    this.libraryCache.set(this.libraryKey(own, folderId, search, global, sort, descending, page, filter), { until: Date.now() + 120_000, files, folders });
+    const key = this.libraryKey(own, folderId, search, global, sort, descending, page, filter);
+    this.libraryCache.delete(key);
+    this.libraryCache.set(key, { files, folders });
+    if (this.libraryCache.size > 30) this.libraryCache.delete(this.libraryCache.keys().next().value!);
   }
   folders(own: boolean, parentFolderId?: number, page = 1) {
     let params = new HttpParams().set('own', own).set('page', page).set('pageSize', 25);

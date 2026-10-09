@@ -7,7 +7,7 @@ import { VisitArchivePageComponent } from './visit-archive-page.component';
 describe('Visit archive page safety',()=>{
   let page:VisitArchivePageComponent;let api:jasmine.SpyObj<VisitArchiveApiService>;
   beforeEach(()=>{
-    api=jasmine.createSpyObj('archive',['list','teachers','get','retry','content']);api.list.and.returnValue(of({items:[],total:0,page:1,pageSize:25}));api.teachers.and.returnValue(of([]));
+    api=jasmine.createSpyObj('archive',['list','teachers','get','retry','content','operationsStatus','peekList','forgetList']);api.list.and.returnValue(of({items:[],total:0,page:1,pageSize:25}));api.teachers.and.returnValue(of([]));api.operationsStatus.and.returnValue(of({workerEnabled:true,externalWritesEnabled:true,ready:true}));
     TestBed.configureTestingModule({imports:[TranslateModule.forRoot()],providers:[{provide:VisitArchiveApiService,useValue:api},{provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({}))}},{provide:Router,useValue:{navigate:jasmine.createSpy('navigate')}}]});
     page=TestBed.runInInjectionContext(()=>new VisitArchivePageComponent());page.ngOnInit();
   });

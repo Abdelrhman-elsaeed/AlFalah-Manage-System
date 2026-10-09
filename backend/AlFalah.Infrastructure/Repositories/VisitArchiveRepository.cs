@@ -17,7 +17,9 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
     private IQueryable<ArchiveVisitScope> Visits => db.Visits.AsNoTracking()
         .Where(v => v.ExperienceVersion == ExperienceVersion.PrototypeV2)
         .Select(v => new ArchiveVisitScope { VisitId=v.Id, SchoolId=v.SchoolId, InstructorId=v.InstructorId,
-            InstructorName=v.Instructor.FirstName + " " + v.Instructor.LastName, CreatorId=v.CreatedByUserId, Status=v.Status, ApprovalRevision=v.ApprovalRevision });
+            InstructorName=v.Instructor.FirstName + " " + v.Instructor.LastName, Subject=v.Subject,
+            VisitDate=v.VisitDate, Category=v.VisitCategory, CreatorId=v.CreatedByUserId,
+            Status=v.Status, ApprovalRevision=v.ApprovalRevision });
 
     public async Task<VisitV2PdfAssetSources> ApprovalAssetsAsync(int visitId, string approverId, CancellationToken ct)
     {

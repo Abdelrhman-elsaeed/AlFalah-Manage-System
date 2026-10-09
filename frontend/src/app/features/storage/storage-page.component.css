@@ -169,11 +169,6 @@ button:focus-visible, input:focus-visible, .choose-file:focus-visible { outline:
 .file-row:hover .file-actions,.file-row:focus-within .file-actions { opacity:1; }
 .file-actions .row-action { display:grid; place-items:center; width:31px; height:31px; padding:0; border:1px solid var(--storage-line); border-radius:8px; background:var(--storage-card); color:var(--storage-green); cursor:pointer; }
 .file-actions .row-action:disabled { opacity:.4; cursor:not-allowed; }
-.file-grid-loading { display:block; }
-.file-loading-row { display:grid; grid-template-columns:42px 1fr 130px; align-items:center; gap:14px; min-height:67px; padding:10px 14px; border-bottom:1px solid var(--storage-line); }
-.file-loading-row span { height:14px; border-radius:6px; background:#eae6dd; }
-.file-loading-row span:first-child { width:40px; height:40px; border-radius:9px; }
-.file-loading-row span:last-child { width:75%; }
 .library-panel>.empty { min-height:250px; background:var(--storage-card); }
 .library-panel>.empty>i { display:grid; place-items:center; width:62px; height:62px; margin:0 auto; border:1px solid var(--storage-line); border-radius:14px; background:#f0ede3; color:var(--storage-green); font-size:26px; }
 .library-panel>.empty h2 { margin-top:16px; font-size:18px; }
@@ -214,4 +209,10 @@ button:focus-visible, input:focus-visible, .choose-file:focus-visible { outline:
 .teacher-upload-actions button:disabled { opacity:.5; cursor:not-allowed; }
 @media(max-width:1150px) { .folder-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .file-toolbar { flex-wrap:wrap; } .search-group { flex-basis:100%; } }
 @media(max-width:900px) { .file-column-head { display:none; } .file-row { grid-template-columns:42px minmax(0,1fr) auto; } .file-row .file-actions { opacity:1; } .file-name small { display:block; } }
-@media(max-width:620px) { .storage-page { padding:22px 14px 90px; } .breadcrumbs { margin-bottom:12px; max-width:100%; overflow:auto; } .page-header { align-items:stretch; } .header-actions { gap:6px; } .header-actions .choose-file,.header-actions .outline-action { min-height:40px; padding:0 10px; font-size:12px; } .header-actions .outline-action { font-size:12px; } .folder-grid { grid-template-columns:1fr 1fr; } .file-toolbar { gap:8px; } .file-toolbar .file-filter-chips { width:100%; overflow:auto; } .file-row { padding:10px; } .file-loading-row { grid-template-columns:40px 1fr 45px; } }
+@media(max-width:620px) { .storage-page { padding:22px 14px 90px; } .breadcrumbs { margin-bottom:12px; max-width:100%; overflow:auto; } .page-header { align-items:stretch; } .header-actions { gap:6px; } .header-actions .choose-file,.header-actions .outline-action { min-height:40px; padding:0 10px; font-size:12px; } .header-actions .outline-action { font-size:12px; } .folder-grid { grid-template-columns:1fr 1fr; } .file-toolbar { gap:8px; } .file-toolbar .file-filter-chips { width:100%; overflow:auto; } .file-row { padding:10px; } }
+.file-column-head,.file-row { grid-template-columns:44px minmax(0,1fr) 145px 95px 125px 120px; }
+.library-panel>.file-pending{order:7;display:grid;place-items:center;min-height:250px;border:1px solid var(--storage-line);border-top:0;border-radius:0 0 16px 16px;background:var(--storage-card);color:var(--storage-muted);font-size:13px}
+.library-panel>.file-grid{min-height:250px;box-sizing:border-box}
+.file-refresh-indicator{color:var(--storage-green);font-size:11px;white-space:nowrap}
+.file-actions,.file-row:hover .file-actions,.file-row:focus-within .file-actions { opacity:1; }
+@media(max-width:900px) { .file-row { grid-template-columns:42px minmax(0,1fr) auto; } }

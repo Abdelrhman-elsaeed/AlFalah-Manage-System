@@ -1,14 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { PaginatorModule } from 'primeng/paginator';
-import { TreeModule } from 'primeng/tree';
 import { TreeNode } from 'primeng/api';
 import { Subject, Subscription, forkJoin, takeUntil } from 'rxjs';
 import { StorageEvidenceApiService } from './evidence-api.service';
@@ -19,15 +18,15 @@ import { EvidenceWorkspaceComponent } from './evidence-workspace.component';
 
 @Component({
   selector: 'app-storage-page', standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslateModule, ButtonModule, DialogModule, PaginatorModule, TreeModule, EvidenceWorkspaceComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslateModule, ButtonModule, DialogModule, PaginatorModule, EvidenceWorkspaceComponent],
   templateUrl: './storage-page.component.html', styleUrls: ['./storage-page.component.css']
 })
 export class StoragePageComponent implements OnInit, OnDestroy {
+  @ViewChild('previewStage') private previewStage?: ElementRef<HTMLElement>;
   private readonly api = inject(StorageApiService);
   private readonly evidenceApi = inject(StorageEvidenceApiService);
   readonly route = inject(ActivatedRoute);
   readonly router = inject(Router);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly translate = inject(TranslateService);
   private readonly destroyed = new Subject<void>();
   private load?: Subscription;
@@ -35,10 +34,21 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   private detailsLoad?: Subscription;
   private folderLoad?: Subscription;
   private contentLoad?: Subscription;
+  private moveLoad?: Subscription;
   private objectUrl?: string;
+  private pdfPageObjectUrl?: string;
+  private pdfDocument?: PDFDocumentProxy;
+  private pdfLoadingTask?: PDFDocumentLoadingTask;
+  private previewRequestId = 0;
+  private searchTimer?: ReturnType<typeof setTimeout>;
+  private pendingSearchText: string | null = null;
+  private previewResizeObserver?: ResizeObserver;
+  private previewNaturalWidth = 0;
+  private previewNaturalHeight = 0;
   private readonly folderPages = new Map<number, number>();
   private readonly folderPaths = new Map<number, StorageFolder[]>();
   private listKey = '';
+  private displayedFolderId?: number;
   private openedFileId?: number;
   readonly own = this.route.snapshot.data['own'] === true;
   context?: StorageContext;
@@ -56,7 +66,7 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   tree: TreeNode<StorageFolder>[] = [];
   crumbs: StorageFolder[] = [];
   files: StorageFile[] = [];
-  total = 0; page = 1; search = ''; global = false; sort = 'name'; descending = false; filter = 'all'; cards = false;
+  total = 0; page = 1; search = ''; searchInput = ''; global = false; sort = 'name'; descending = false; filter = 'all'; cards = false;
   readonly fileFilters = [{value:'all',label:'الكل'},{value:'pdf',label:'PDF'},{value:'image',label:'صور'},
     {value:'video',label:'فيديو'},{value:'unlinked',label:'غير مربوط'},{value:'protected',label:'محمي'}];
   activeView: 'library' | 'review' = 'library';
@@ -71,19 +81,40 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   detailEvidenceVisited = false;
   detailModifyVisited = false;
   private detailSelectedId?: number;
-  previewUrl?: SafeResourceUrl;
   rawPreviewUrl?: string;
-  detailOpen = false; previewOpen = false;
+  pdfPageUrl?: string;
+  pdfPageNumber = 1;
+  pdfPageCount = 0;
+  previewFile?: StorageFile;
+  previewError = '';
+  detailOpen = false; previewOpen = false; previewMaximized = false;
+  previewZoom = 100;
+  previewFitWidth = 0;
+  previewFitHeight = 0;
+  get previewCanZoom() { return !!this.previewFile && (this.previewFile.mimeType === 'application/pdf' || !!this.previewFile.mimeType?.startsWith('image/')); }
+  get previewDisplayWidth() { return Math.round(this.previewFitWidth * this.previewZoom / 100); }
+  get previewDisplayHeight() { return Math.round(this.previewFitHeight * this.previewZoom / 100); }
   renameName = ''; folderName = ''; folderDialog = false; moveDialog = false;
   moveSource?: StorageFolder; moveDestination?: number;
+  moveDestinationName = '';
+  moveBrowsePath: StorageFolder[] = [];
+  moveChoices: StorageFolder[] = [];
+  moveChoicesLoading = false;
+  moveChoicesError = '';
+  moveChoicesPage = 1;
+  moveChoicesTotal = 0;
+  moveBusy = false;
   get currentFolder() { return this.crumbs.at(-1); }
+  get moveBrowseFolder() { return this.moveBrowsePath.at(-1); }
   get detailFile() { return this.details?.file ?? this.detailPreviewFile; }
   get connected() { return this.context?.connectionState === 'Connected'; }
   get canReviewEvidence() { return !!(this.context?.canReviewEvidence ?? this.context?.canManage) && !this.historicalYear; }
   get historicalYear() { return !!this.evaluationYear && !!this.context?.academicYearId && this.evaluationYear !== this.context.academicYearId; }
-  get previewable() {
-    return !!this.detailFile && this.detailFile.size <= 20 * 1024 * 1024 &&
-      ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'video/mp4'].includes(this.detailFile.mimeType || '');
+  get previewable() { return !!this.detailFile && this.canPreview(this.detailFile); }
+  canPreview(file: StorageFile) {
+    return file.size <= 20 * 1024 * 1024 &&
+      ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'video/mp4'].includes(file.mimeType || '') &&
+      file.state !== 'MissingFromDrive' && file.state !== 'Withdrawn';
   }
   fileExtension(file: StorageFile) { return file.displayName.split('.').pop()?.toUpperCase().slice(0, 5) || 'FILE'; }
   fileKind(file: StorageFile) {
@@ -112,6 +143,10 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     const file = Number(params.get('file')) || undefined;
     this.activeView = !this.own && (this.route.snapshot.data['view'] === 'review' || params.get('view') === 'review' || !!this.initialRequirement && !file) ? 'review' : 'library';
     this.search = params.get('search') || '';
+    if (this.pendingSearchText === null || this.pendingSearchText === this.search) {
+      this.searchInput = this.search;
+      this.pendingSearchText = null;
+    }
     this.global = params.get('global') === 'true';
     this.sort = ['name', 'size', 'date'].includes(params.get('sort') || '') ? params.get('sort')! : 'name';
     this.descending = params.get('descending') === 'true';
@@ -205,7 +240,51 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   private selectFolder(id: number) {
     this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { folder: id, page: 1, file: null } });
   }
-  openMoveDialog(folder: StorageFolder) { this.moveSource = folder; this.moveDialog = true; this.loadChildren(this.tree[0]); }
+  openMoveDialog(folder: StorageFolder) {
+    this.moveSource = folder;
+    this.moveDestination = undefined;
+    this.moveDestinationName = '';
+    this.moveChoicesError = '';
+    this.moveBrowsePath = this.crumbs.slice(0, -1);
+    this.moveDialog = true;
+    this.loadMoveChoices();
+  }
+  closeMoveDialog() { this.moveLoad?.unsubscribe(); }
+  loadMoveChoices(page = 1) {
+    const folder = this.moveBrowseFolder;
+    if (!folder) return;
+    this.moveLoad?.unsubscribe();
+    if (page === 1) this.moveChoices = [];
+    this.moveChoicesLoading = true;
+    this.moveChoicesError = '';
+    this.moveLoad = this.api.folders(this.own, folder.id, page).pipe(takeUntil(this.destroyed)).subscribe({
+      next: result => {
+        this.moveChoices = page === 1 ? result.items : [...this.moveChoices, ...result.items];
+        this.moveChoicesTotal = result.total;
+        this.moveChoicesPage = page;
+        this.moveChoicesLoading = false;
+      },
+      error: e => {
+        this.moveChoicesLoading = false;
+        this.moveChoicesError = e?.error?.message || 'تعذر تحميل المجلدات. حاول مرة أخرى.';
+      }
+    });
+  }
+  browseMoveFolder(folder: StorageFolder) {
+    if (folder.id === this.moveSource?.id) return;
+    this.moveBrowsePath = [...this.moveBrowsePath, folder];
+    this.loadMoveChoices();
+  }
+  browseMoveCrumb(index: number) {
+    if (index === this.moveBrowsePath.length - 1) return;
+    this.moveBrowsePath = this.moveBrowsePath.slice(0, index + 1);
+    this.loadMoveChoices();
+  }
+  selectMoveDestination(folder: StorageFolder) {
+    if (folder.id === this.moveSource?.id || folder.id === this.moveSource?.parentFolderId) return;
+    this.moveDestination = folder.id;
+    this.moveDestinationName = folder.displayName;
+  }
   private navigateFolder(id: number) {
     this.pathLoad?.unsubscribe(); this.load?.unsubscribe(); this.busy = true; this.error = '';
     this.pathLoad = this.api.folderPath(this.own, id).pipe(takeUntil(this.destroyed)).subscribe({
@@ -227,12 +306,20 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     const folderId = this.currentFolder.id;
     const { search, global, sort, descending, page, filter } = this;
     const cached = this.api.peekLibrary(this.own, folderId, search, global, sort, descending, page, filter);
-    this.busy = true; this.error = ''; this.files = cached?.files.items ?? []; this.total = cached?.files.total ?? 0;
-    this.folders = cached?.folders.items ?? []; this.folderTotal = cached?.folders.total ?? 0; this.discovery = undefined;
+    this.busy = true; this.error = '';
+    if (cached) {
+      this.files = cached.files.items; this.total = cached.files.total;
+      this.folders = cached.folders.items; this.folderTotal = cached.folders.total;
+      this.displayedFolderId = folderId;
+    } else if (this.displayedFolderId !== folderId) {
+      this.files = []; this.total = 0; this.folders = []; this.folderTotal = 0;
+      this.displayedFolderId = folderId;
+    }
+    this.discovery = undefined;
     this.load = forkJoin({ files: this.api.files(this.own, folderId, search, global, sort, descending, page, filter),
       folders: this.api.folders(this.own, this.currentFolder.id) }).pipe(takeUntil(this.destroyed)).subscribe({
       next: result => { this.api.rememberLibrary(this.own, folderId, search, global, sort, descending, page, filter, result.files, result.folders);
-        this.busy = false; this.files = result.files.items; this.total = result.files.total; this.folders = result.folders.items; this.folderTotal = result.folders.total; },
+        this.busy = false; this.files = result.files.items; this.total = result.files.total; this.folders = result.folders.items; this.folderTotal = result.folders.total; this.displayedFolderId = folderId; },
       error: error => { this.busy = false; this.fail(error); }
     });
   }
@@ -251,11 +338,25 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     });
   }
   setFilter(filter: string) { this.router.navigate([], {relativeTo:this.route,queryParamsHandling:'merge',queryParams:{filter:filter === 'all' ? null : filter,page:1}}); }
-  searchSubmit() { const key = [this.currentFolder?.id, this.search, this.global, this.sort, this.descending, this.filter, 1, this.activeView].join('|');
+  queueSearch(value: string) {
+    this.searchInput = value;
+    this.pendingSearchText = value;
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => { this.searchTimer = undefined; this.searchSubmit(); }, 300);
+  }
+  searchSubmit() {
+    clearTimeout(this.searchTimer); this.searchTimer = undefined;
+    const submittedSearch = this.searchInput;
+    this.pendingSearchText = submittedSearch;
+    const key = [this.currentFolder?.id, submittedSearch, this.global, this.sort, this.descending, this.filter, 1, this.activeView].join('|');
     const refreshCurrent = key === this.listKey;
     this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: {
-    search: this.search || null, global: this.global || null, sort: this.sort, descending: this.descending || null, page: 1
-  } }).then(() => { if (refreshCurrent) this.reload(); }); }
+    search: submittedSearch || null, global: this.global || null, sort: this.sort, descending: this.descending || null, page: 1
+  } }).then(navigated => {
+      if (navigated && refreshCurrent) this.reload();
+      if (!navigated && this.pendingSearchText === submittedSearch) { this.pendingSearchText = null; this.searchInput = this.search; }
+    });
+  }
   discover(next = false) {
     if (!this.currentFolder) return;
     this.api.discover(this.own, this.currentFolder.id, next ? this.discovery?.nextPageToken : undefined).pipe(takeUntil(this.destroyed)).subscribe({
@@ -330,9 +431,20 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     });
   }
   moveFolder() {
-    if (!this.moveSource || !this.moveDestination) return;
+    if (!this.moveSource || !this.moveDestination || this.moveBusy) return;
+    this.moveBusy = true;
+    this.moveChoicesError = '';
     this.api.moveFolder(this.moveSource, this.moveDestination).pipe(takeUntil(this.destroyed)).subscribe({
-      next: () => { this.moveDialog = false; this.refreshContext(); }, error: e => this.fail(e)
+      next: () => {
+        this.moveBusy = false;
+        this.moveDialog = false;
+        this.api.invalidateContext();
+        this.refreshContext();
+      },
+      error: e => {
+        this.moveBusy = false;
+        this.moveChoicesError = e?.error?.message || 'تعذر نقل المجلد. تحقق من الوجهة وحاول مرة أخرى.';
+      }
     });
   }
   openDetails(item: number | EvidenceLink) {
@@ -411,13 +523,118 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   rename() { if (this.details) this.api.rename(this.details.file, this.renameName).pipe(takeUntil(this.destroyed)).subscribe({ next: () => { this.api.invalidateDetails(); this.detailOpen = false; this.reload(); }, error: e => this.fail(e) }); }
   deleteConfirmed = false;
   delete() { if (this.details && this.deleteConfirmed) this.api.delete(this.details.file).pipe(takeUntil(this.destroyed)).subscribe({ next: () => { this.api.invalidateDetails(); this.detailOpen = false; this.deleteConfirmed = false; this.reload(); }, error: e => this.fail(e) }); }
-  preview() {
-    if (!this.detailFile || !this.previewable) return;
-    this.closePreview(); this.previewOpen = true; this.previewBusy = true;
-    this.contentLoad = this.api.content(this.detailFile.storedFileId, true).pipe(takeUntil(this.destroyed)).subscribe({
-      next: blob => { this.previewBusy = false; this.objectUrl = URL.createObjectURL(blob); this.rawPreviewUrl = this.objectUrl; this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.objectUrl); },
-      error: e => { this.previewBusy = false; this.previewOpen = false; this.fail(e); }
+  preview(file?: StorageFile) {
+    const selected = file ?? this.detailFile;
+    if (!selected || !this.canPreview(selected)) return;
+    this.closePreview();
+    this.previewFile = selected;
+    this.previewOpen = true;
+    this.previewBusy = true;
+    const requestId = this.previewRequestId;
+    this.contentLoad = this.api.content(selected.storedFileId, true).pipe(takeUntil(this.destroyed)).subscribe({
+      next: blob => {
+        if (selected.mimeType === 'application/pdf') {
+          void this.loadPdfPreview(blob, requestId);
+          return;
+        }
+        this.objectUrl = URL.createObjectURL(blob);
+        this.rawPreviewUrl = this.objectUrl;
+      },
+      error: e => {
+        this.previewBusy = false;
+        this.previewError = e?.error?.message || 'تعذر تحميل المعاينة. يمكنك تنزيل الملف وفتحه على جهازك.';
+      }
     });
+  }
+  private async loadPdfPreview(blob: Blob, requestId: number) {
+    try {
+      const { GlobalWorkerOptions, getDocument } = await import('pdfjs-dist');
+      if (requestId !== this.previewRequestId) return;
+      GlobalWorkerOptions.workerSrc = new URL('assets/pdfjs/pdf.worker.min.mjs', document.baseURI).toString();
+      const task = getDocument({ data: new Uint8Array(await blob.arrayBuffer()) });
+      this.pdfLoadingTask = task;
+      const pdf = await task.promise;
+      if (requestId !== this.previewRequestId) { await pdf.destroy(); return; }
+      this.pdfDocument = pdf;
+      this.pdfPageCount = pdf.numPages;
+      await this.renderPdfPage(1, requestId);
+    } catch {
+      if (requestId !== this.previewRequestId) return;
+      this.previewBusy = false;
+      this.previewError = 'تعذر قراءة صفحات PDF. يمكنك تنزيل الملف وفتحه على جهازك.';
+    }
+  }
+  async changePdfPage(delta: number) {
+    const next = this.pdfPageNumber + delta;
+    if (!this.pdfDocument || this.previewBusy || next < 1 || next > this.pdfPageCount) return;
+    await this.renderPdfPage(next, this.previewRequestId);
+  }
+  togglePreviewSize() {
+    this.previewMaximized = !this.previewMaximized;
+    requestAnimationFrame(() => this.updatePreviewFit());
+  }
+  changePreviewZoom(delta: number) {
+    this.previewZoom = Math.max(25, Math.min(300, this.previewZoom + delta));
+  }
+  fitPreview() { this.previewZoom = 100; }
+  previewImageLoaded(event: Event) {
+    const image = event.target as HTMLImageElement;
+    this.previewNaturalWidth = image.naturalWidth;
+    this.previewNaturalHeight = image.naturalHeight;
+    const stage = this.previewStage?.nativeElement;
+    if (stage && !this.previewResizeObserver) {
+      this.previewResizeObserver = new ResizeObserver(() => this.updatePreviewFit());
+      this.previewResizeObserver.observe(stage);
+    }
+    this.updatePreviewFit();
+    this.previewLoaded();
+  }
+  private updatePreviewFit() {
+    const stage = this.previewStage?.nativeElement;
+    if (!stage || !this.previewNaturalWidth || !this.previewNaturalHeight) return;
+    const availableWidth = Math.max(1, stage.clientWidth - 34);
+    const availableHeight = Math.max(1, stage.clientHeight - 34);
+    const scale = Math.min(1, availableWidth / this.previewNaturalWidth, availableHeight / this.previewNaturalHeight);
+    this.previewFitWidth = Math.max(1, Math.floor(this.previewNaturalWidth * scale));
+    this.previewFitHeight = Math.max(1, Math.floor(this.previewNaturalHeight * scale));
+  }
+  private async renderPdfPage(pageNumber: number, requestId: number) {
+    const pdf = this.pdfDocument;
+    if (!pdf) return;
+    this.previewBusy = true;
+    try {
+      const page = await pdf.getPage(pageNumber);
+      const natural = page.getViewport({ scale: 1 });
+      const displayWidth = this.previewMaximized ? window.innerWidth - 64 : Math.min(900, window.innerWidth - 90);
+      const viewport = page.getViewport({ scale: Math.min(this.previewMaximized ? 2 : 1.6,
+        Math.max(300, displayWidth) / natural.width) });
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2,
+        Math.sqrt(8_000_000 / (viewport.width * viewport.height)));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(viewport.width * pixelRatio);
+      canvas.height = Math.ceil(viewport.height * pixelRatio);
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas unavailable');
+      await page.render({ canvasContext: context, viewport,
+        transform: [pixelRatio, 0, 0, pixelRatio, 0, 0] }).promise;
+      const image = await new Promise<Blob>((resolve, reject) => canvas.toBlob(blob =>
+        blob ? resolve(blob) : reject(new Error('Canvas export failed')), 'image/png'));
+      if (requestId !== this.previewRequestId) return;
+      if (this.pdfPageObjectUrl) URL.revokeObjectURL(this.pdfPageObjectUrl);
+      this.pdfPageObjectUrl = URL.createObjectURL(image);
+      this.pdfPageUrl = this.pdfPageObjectUrl;
+      this.pdfPageNumber = pageNumber;
+      this.previewBusy = false;
+    } catch {
+      if (requestId !== this.previewRequestId) return;
+      this.previewBusy = false;
+      this.previewError = 'تعذر عرض صفحة PDF. يمكنك تنزيل الملف وفتحه على جهازك.';
+    }
+  }
+  previewLoaded() { this.previewBusy = false; }
+  previewFailed() {
+    this.previewBusy = false;
+    this.previewError = 'تعذر عرض المعاينة. يمكنك تنزيل الملف وفتحه على جهازك.';
   }
   download(file: StorageFile) {
     this.api.content(file.storedFileId).pipe(takeUntil(this.destroyed)).subscribe({ next: blob => {
@@ -443,8 +660,20 @@ export class StoragePageComponent implements OnInit, OnDestroy {
       .catch(() => this.error = this.translate.instant('STORAGE.COPY_ERROR'));
   }
   closePreview() {
+    this.previewRequestId++;
     this.contentLoad?.unsubscribe(); if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
-    this.objectUrl = undefined; this.previewUrl = undefined; this.rawPreviewUrl = undefined;
+    if (this.pdfPageObjectUrl) URL.revokeObjectURL(this.pdfPageObjectUrl);
+    if (this.pdfDocument) void this.pdfDocument.destroy();
+    else if (this.pdfLoadingTask) void this.pdfLoadingTask.destroy();
+    this.objectUrl = undefined; this.rawPreviewUrl = undefined;
+    this.pdfPageObjectUrl = undefined; this.pdfPageUrl = undefined;
+    this.pdfDocument = undefined; this.pdfLoadingTask = undefined;
+    this.pdfPageNumber = 1; this.pdfPageCount = 0;
+    this.previewResizeObserver?.disconnect(); this.previewResizeObserver = undefined;
+    this.previewNaturalWidth = 0; this.previewNaturalHeight = 0;
+    this.previewFitWidth = 0; this.previewFitHeight = 0; this.previewZoom = 100;
+    this.previewMaximized = false;
+    this.previewFile = undefined; this.previewBusy = false; this.previewError = '';
   }
   private fail(error: any) {
     this.error = error?.error?.message || error?.message || this.translate.instant('STORAGE.ERROR');
@@ -456,5 +685,5 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     if (this.activeView === 'library') this.reload();
   }
   evidenceDenied() { this.fail({status:403, message:this.translate.instant('STORAGE.ERROR')}); }
-  ngOnDestroy() { this.destroyed.next(); this.destroyed.complete(); this.load?.unsubscribe(); this.pathLoad?.unsubscribe(); this.detailsLoad?.unsubscribe(); this.folderLoad?.unsubscribe(); this.closePreview(); }
+  ngOnDestroy() { clearTimeout(this.searchTimer); this.destroyed.next(); this.destroyed.complete(); this.load?.unsubscribe(); this.pathLoad?.unsubscribe(); this.detailsLoad?.unsubscribe(); this.folderLoad?.unsubscribe(); this.moveLoad?.unsubscribe(); this.closePreview(); }
 }

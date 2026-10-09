@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -16,6 +16,7 @@ import { StorageWorkspaceNavComponent } from './storage-workspace-nav.component'
 @Component({selector: 'app-import-page', standalone: true, imports: [CommonModule, FormsModule, RouterLink, DropdownModule, PaginatorModule, StorageWorkspaceNavComponent],
   templateUrl: './import-page.component.html', styleUrls: ['./import-page.component.css']})
 export class ImportPageComponent implements OnInit {
+  @Input() embedded = false;
   private readonly api = inject(ImportApiService); private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef); private readonly route = inject(ActivatedRoute); private readonly router = inject(Router);
   batch?: ImportBatch; batches: ImportBatch[] = []; rows: ImportRow[] = []; total = 0; page = 1;
@@ -36,7 +37,7 @@ export class ImportPageComponent implements OnInit {
   preview() { if (this.file && this.year && this.sourceVersion.trim()) this.run(this.api.preview(this.file, this.year, this.version, this.sourceVersion), b => {this.batches=[b,...this.batches.filter(x=>x.id!==b.id)]; this.accept(b);}); }
   open(id: number) { this.run(this.api.get(id), b => this.accept(b)); }
   private accept(batch: ImportBatch) { this.batch=batch; this.year=batch.academicYearId; this.version=batch.templateVersion; this.acknowledged=false; this.page=1;
-    this.router.navigate([], {relativeTo: this.route, replaceUrl:true, queryParams:{batch:batch.id}}); this.loadRows(); this.loadRequirements(); }
+    this.router.navigate([], {relativeTo: this.route, replaceUrl:true, queryParams:{batch:batch.id}, queryParamsHandling:'merge'}); this.loadRows(); this.loadRequirements(); }
   private loadRequirements() { if (!this.year) return; const context=new HttpContext().set(SUPPRESS_FORBIDDEN_REDIRECT,true).set(SUPPRESS_ERROR_TOAST,true);
     this.http.get<ApiResponse<typeof this.requirements>>(`${environment.apiUrl}/api/v1/storage/requirement-catalog`, {params:{academicYearId:this.year},context}).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:r=>this.requirements=r.data||[],error:e=>this.fail(e)}); }
   loadRows() { if(this.batch) this.run(this.api.rows(this.batch.id,this.page,this.filter),r=>{this.rows=r.items;this.total=r.total;}); }

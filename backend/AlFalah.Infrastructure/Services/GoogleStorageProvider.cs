@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using AlFalah.Application.DTOs.TeacherDrive;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.Storage;
@@ -6,14 +7,20 @@ namespace AlFalah.Infrastructure.Services;
 
 public sealed class GoogleStorageProvider(IGoogleDriveClient drive) : IStorageProvider
 {
-    private readonly Dictionary<string, GoogleDriveFile?> metadata = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, Lazy<Task<GoogleDriveFile?>>> metadata = new(StringComparer.Ordinal);
     public void ResetRequestCache() => metadata.Clear();
     public Task<string> AllocateIdAsync(int schoolId, CancellationToken ct) => drive.AllocateFileIdAsync(schoolId, ct);
     public async Task<GoogleDriveFile?> MetadataAsync(int schoolId, string id, CancellationToken ct)
     {
         var key = schoolId + ":" + id;
-        if (metadata.TryGetValue(key, out var cached)) return cached;
-        return metadata[key] = await drive.GetFileAsync(schoolId, id, ct);
+        var pending = metadata.GetOrAdd(key, _ => new Lazy<Task<GoogleDriveFile?>>(
+            () => drive.GetFileAsync(schoolId, id, ct), LazyThreadSafetyMode.ExecutionAndPublication));
+        try { return await pending.Value; }
+        catch
+        {
+            metadata.TryRemove(new KeyValuePair<string, Lazy<Task<GoogleDriveFile?>>>(key, pending));
+            throw;
+        }
     }
     public Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct) => drive.CreateFolderAsync(schoolId, id, parent, name, ct);
     public Task<GoogleDriveFile> UploadAsync(int schoolId, string id, string parent, string name, string mime, Stream content, CancellationToken ct) =>

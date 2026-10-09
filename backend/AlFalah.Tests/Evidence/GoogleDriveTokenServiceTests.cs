@@ -30,6 +30,20 @@ public sealed class GoogleDriveTokenServiceTests : IAsyncDisposable
     private readonly ServiceProvider _dataProtection = new ServiceCollection().AddDataProtection().Services.BuildServiceProvider();
 
     [Fact]
+    public async Task Parallel_File_Checks_Use_One_Token_Request_Per_Scoped_Service()
+    {
+        using var rsa = RSA.Create(2048);
+        var handler = new CapturingHandler { Delay = TimeSpan.FromMilliseconds(100) };
+        await using var harness = await CreateAsync(GoogleDriveCredentialType.ServiceAccount, ServiceAccountJson(rsa), handler);
+
+        var tokens = await Task.WhenAll(Enumerable.Range(0, 4)
+            .Select(_ => harness.Service.GetAccessTokenAsync(1)));
+
+        tokens.Should().OnlyContain(token => token == "granted-access-token");
+        handler.Calls.Should().Be(1, "one file-list request fans out into four Drive reads using the same scoped token service");
+    }
+
+    [Fact]
     public async Task ServiceAccount_Assertion_Is_A_Valid_RS256_Jwt_With_The_Drive_Scope()
     {
         using var rsa = RSA.Create(2048);
@@ -256,6 +270,7 @@ public sealed class GoogleDriveTokenServiceTests : IAsyncDisposable
     private sealed class CapturingHandler : HttpMessageHandler
     {
         public int Calls { get; private set; }
+        public TimeSpan Delay { get; init; }
         public Dictionary<string, string>? LastForm { get; private set; }
         public HttpStatusCode StatusCode { get; init; } = HttpStatusCode.OK;
         public int ExpiresIn { get; init; } = 3599;
@@ -264,6 +279,7 @@ public sealed class GoogleDriveTokenServiceTests : IAsyncDisposable
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Calls++;
+            if (Delay > TimeSpan.Zero) await Task.Delay(Delay, cancellationToken);
             var raw = await request.Content!.ReadAsStringAsync(cancellationToken);
             LastForm = raw.Split('&')
                 .Select(pair => pair.Split('=', 2))
