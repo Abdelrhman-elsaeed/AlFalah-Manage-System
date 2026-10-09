@@ -78,6 +78,9 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
 
         var before = drive is null ? null : Describe(drive);
         var previousType = drive?.CredentialType;
+        var previousRoot = drive?.RootFolderId;
+        var previousSharedDrive = drive?.SharedDriveId;
+        var previousSchoolEmail = drive?.SchoolGoogleEmail;
         if (drive is null)
         {
             drive = new SchoolGoogleDrive { SchoolId = schoolId };
@@ -90,6 +93,10 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         drive.RootFolderId = selection?.ItemId ?? request.RootFolderId.Trim();
         drive.RootFolderDisplayName = selection?.Name ?? request.RootFolderDisplayName.Trim();
         drive.IsEnabled = request.IsEnabled;
+        if (!request.IsEnabled || previousRoot != null &&
+            (previousRoot != drive.RootFolderId || previousSharedDrive != drive.SharedDriveId ||
+             previousType != drive.CredentialType || previousSchoolEmail != drive.SchoolGoogleEmail))
+            drive.VisitArchiveEnabled = false;
 
         if (request.CredentialType == GoogleDriveCredentialType.ServiceAccount)
         {

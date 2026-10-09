@@ -54,7 +54,8 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
 {
     private sealed record World(int School, string Teacher, string Moderator, string Root, FakeGoogleDrive Drive);
     private sealed class Flags : IFeatureFlagService { public bool IsVisitsV2Enabled(int? schoolId = null) => true; }
-    private static readonly StorageOptions On = new() { ReadModelEnabled = true, AdministrationEnabled = true, ArchiveWorkerEnabled = true, ArchiveExternalWritesEnabled = true };
+    // The school activation controls external archive work even with legacy archive flags off.
+    private static readonly StorageOptions On = new() { ReadModelEnabled = true, AdministrationEnabled = true };
     private static AuditLogWriter Audit(AlFalahDbContext db) => new(db, new HttpContextAccessor(), NullLogger<AuditLogWriter>.Instance);
     private VisitV2Service Visits(AlFalahDbContext db, World world, bool moderator = false, IVisitArchiveAssetFreezer? freezer = null)
     {
@@ -66,7 +67,8 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
     private VisitArchiveProcessor Processor(AlFalahDbContext db, World world, StorageOptions? flags = null)
     {
         var repository = new VisitArchiveRepository(db); var provider = new GoogleStorageProvider(world.Drive);
-        return new(repository, new(new StorageRepository(db), new StorageLibraryRepository(db), repository, provider), provider,
+        return new(repository, new(new StorageRepository(db), new StorageLibraryRepository(db), repository,
+                new StorageSetupRepository(db), provider), provider,
             new VisitV2DocumentService(new ImageAssetLoader()), Options.Create(flags ?? On), TimeProvider.System, NullLogger<VisitArchiveProcessor>.Instance);
     }
     private VisitArchiveService Reader(AlFalahDbContext db, World world, ICurrentUserService? user = null, StorageOptions? flags = null)
@@ -74,7 +76,8 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         user ??= TeacherDriveHarness.Manager(world.School);
         var repository = new VisitArchiveRepository(db); var storage = new StorageRepository(db); var provider = new GoogleStorageProvider(world.Drive);
         return new(repository, storage, new StorageAuthorizationService(storage, user, new StorageDriveBoundary(new(world.Drive)), TimeProvider.System),
-            user, new Flags(), new(storage, new StorageLibraryRepository(db), repository, provider), provider, Options.Create(flags ?? On), TimeProvider.System);
+            user, new Flags(), new(storage, new StorageLibraryRepository(db), repository,
+                new StorageSetupRepository(db), provider), provider, Options.Create(flags ?? On), TimeProvider.System);
     }
     private async Task<World> Setup(AlFalahDbContext db)
     {
@@ -93,7 +96,7 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         db.UserSchoolRoles.AddRange(new() { SchoolId = school.Id, UserId = TeacherDriveHarness.ManagerUserId, RoleId = "manager" },
             new() { SchoolId = school.Id, UserId = teacher.Id, RoleId = "teacher" }, new() { SchoolId = school.Id, UserId = moderator.Id, RoleId = "s5-moderator" });
         var root = "s5-root-" + key;
-        db.SchoolGoogleDrives.Add(new() { SchoolId = school.Id, RootFolderId = root, ProtectedCredential = "s5-unchanged-sentinel", IsEnabled = true });
+        db.SchoolGoogleDrives.Add(new() { SchoolId = school.Id, RootFolderId = root, ProtectedCredential = "s5-unchanged-sentinel", IsEnabled = true, VisitArchiveEnabled = true });
         db.SchoolReportSettings.Add(new() { SchoolId = school.Id, ReportHeaderText = "مدارس الفلاح — مدرسة التحقق", ReportFooterText = "وثيقة اعتماد مدرسية", PrimaryColor = "#0F7132" });
         await db.SaveChangesAsync();
         db.TeacherDriveFolders.Add(new() { SchoolId = school.Id, TeacherId = profile.Id, DriveId = "", RootItemId = root + "-teacher", FolderDisplayName = "المعلم" });
@@ -123,9 +126,12 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         await using var db = fixture.Db(); var world = await Setup(db);
         var stopped = await Reader(db, world, flags: new StorageOptions { AdministrationEnabled = true, ReadModelEnabled = true })
             .OperationsStatusAsync();
-        stopped.Should().Be(new VisitArchiveOperationsDto(false, false, false));
+        stopped.Should().Be(new VisitArchiveOperationsDto(true, true, true, true));
         var running = await Reader(db, world).OperationsStatusAsync();
-        running.Should().Be(new VisitArchiveOperationsDto(true, true, true));
+        running.Should().Be(new VisitArchiveOperationsDto(true, true, true, true));
+        await db.SchoolGoogleDrives.Where(d => d.SchoolId == world.School)
+            .ExecuteUpdateAsync(s => s.SetProperty(d => d.VisitArchiveEnabled, false));
+        (await Reader(db, world).OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(true, false, false));
         var teacher = new TeacherDriveHarness.TestCurrentUser(RoleNames.Instructor, world.Teacher, world.School, true);
         await FluentActions.Invoking(() => Reader(db, world, teacher).OperationsStatusAsync())
             .Should().ThrowAsync<UnauthorizedSchoolAccessException>();
@@ -155,6 +161,9 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         await FluentActions.Invoking(() => Visits(db, world).ApproveAsync(id)).Should().ThrowAsync<BusinessRuleException>();
         await Processor(db, world).ProcessBatchAsync();
         operation = await Operation(db, id); operation.Status.Should().Be(VisitArchiveStatus.Completed);
+        var teacherArchive = await db.StorageFolders.SingleAsync(f => f.Id == operation.ArchiveFolderId);
+        teacherArchive.DisplayName.Should().Be("معلم الاختبار");
+        (await db.StorageFolders.SingleAsync(f => f.Id == teacherArchive.ParentFolderId)).Kind.Should().Be(StorageFolderKind.VisitArchive);
         (await db.Set<VisitArchiveOperation>().CountAsync(o => o.VisitId == id)).Should().Be(1);
         world.Drive.Uploads.Should().ContainSingle();
         var pdf = await Visits(db, world).ExportPdfAsync(id);

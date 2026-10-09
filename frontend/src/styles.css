@@ -14,3 +14,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* School library interactions live here to keep the feature CSS within its bundle budget. */
+app-storage-page .storage-page button:not(:disabled),app-storage-page .storage-page .choose-file,app-storage-page .storage-page .intro-link{transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease}
+app-storage-page .storage-page button:not(:disabled):hover,app-storage-page .storage-page .choose-file:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(17,94,54,.12)}
+app-storage-page .storage-page .header-actions .choose-file:hover{background:#075f3b;border-color:#075f3b}
+app-storage-page .storage-page button:active:not(:disabled),app-storage-page .storage-page .choose-file:active{transform:translateY(0);box-shadow:none}
+app-storage-page .storage-page .intro-link:hover{color:#22bd81;text-decoration:underline;text-underline-offset:4px}
+@media(prefers-reduced-motion:reduce){app-storage-page .storage-page button,app-storage-page .storage-page .choose-file,app-storage-page .storage-page .intro-link{transition:none!important;transform:none!important}}

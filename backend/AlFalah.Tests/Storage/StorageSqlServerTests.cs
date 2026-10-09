@@ -87,8 +87,10 @@ public sealed class StorageSqlFixture : IAsyncLifetime
             ReviewedByUserId = TeacherDriveHarness.ManagerUserId, ReviewedAtUtc = DateTimeOffset.Parse("2026-10-02T10:00:00Z"),
             ReviewNote = "مراجعة أصلية", UploadedAtUtc = DateTimeOffset.Parse("2026-10-01T10:00:00Z")
         });
-        db.SchoolGoogleDrives.Add(new SchoolGoogleDrive { SchoolId = school.Id, ProtectedCredential = "ciphertext-sentinel", RootFolderId = "root" });
         await db.SaveChangesAsync();
+        // This fixture starts at a historical migration. Insert using its historical schema,
+        // then let the latest migration add new school settings with their safe defaults.
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO SchoolGoogleDrives (SchoolId, CredentialType, SchoolGoogleEmail, ProtectedCredential, RootFolderId, RootFolderDisplayName, IsEnabled, ConnectedAtUtc, UpdatedAtUtc) VALUES ({school.Id}, {(int)GoogleDriveCredentialType.ServiceAccount}, {""}, {"ciphertext-sentinel"}, {"root"}, {""}, {true}, {DateTimeOffset.UtcNow}, {DateTimeOffset.UtcNow})");
         var rowBefore = await db.TeacherEvidenceSubmissions.AsNoTracking().SingleAsync();
         var credentialBefore = await db.SchoolGoogleDrives.Select(x => x.ProtectedCredential).SingleAsync();
         await db.Database.MigrateAsync();

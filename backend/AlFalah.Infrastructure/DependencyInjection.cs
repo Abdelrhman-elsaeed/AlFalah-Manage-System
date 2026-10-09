@@ -96,6 +96,8 @@ public static class DependencyInjection
         services.Configure<AlFalah.Application.Storage.StorageOptions>(configuration.GetSection(AlFalah.Application.Storage.StorageOptions.SectionName));
         services.AddScoped<AlFalah.Application.Storage.IStorageRepository, StorageRepository>();
         services.AddScoped<AlFalah.Application.Storage.IStorageLibraryRepository, StorageLibraryRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageSetupRepository, StorageSetupRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageSetupService, AlFalah.Application.Storage.StorageSetupService>();
         services.AddScoped<AlFalah.Application.Storage.IPrototypeImportRepository, PrototypeImportRepository>();
         services.AddScoped<AlFalah.Application.Storage.IPrototypeImportService, AlFalah.Application.Storage.PrototypeImportService>();
         services.AddScoped<AlFalah.Application.Storage.IEvidenceRepository, EvidenceRepository>();

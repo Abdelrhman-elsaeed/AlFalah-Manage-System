@@ -17,13 +17,17 @@ public sealed class VisitArchiveOperationsTests
     {
         var storage = DispatchProxy.Create<IStorageRepository, PermissionRepository>();
         var permissions = (PermissionRepository)storage;
+        var archive = DispatchProxy.Create<IVisitArchiveRepository, ArchiveSettingsRepository>();
+        var settings = (ArchiveSettingsRepository)archive;
         var authorization = new ArchiveAuthorization();
-        var stopped = Service(storage, authorization, new StorageOptions { AdministrationEnabled = true, ReadModelEnabled = true });
-        (await stopped.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(false, false, false));
+        var stopped = Service(archive, storage, authorization, new StorageOptions { AdministrationEnabled = true, ReadModelEnabled = true });
+        (await stopped.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(true, false, false));
 
-        var running = Service(storage, authorization, new StorageOptions {
+        var running = Service(archive, storage, authorization, new StorageOptions {
             AdministrationEnabled = true, ReadModelEnabled = true, ArchiveWorkerEnabled = true, ArchiveExternalWritesEnabled = true });
-        (await running.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(true, true, true));
+        (await running.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(true, false, false));
+        settings.SchoolEnabled = true;
+        (await running.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(true, true, true, true));
 
         permissions.VisitView = false;
         await FluentActions.Invoking(() => running.OperationsStatusAsync()).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
@@ -32,8 +36,15 @@ public sealed class VisitArchiveOperationsTests
         await FluentActions.Invoking(() => running.OperationsStatusAsync()).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
     }
 
-    private static VisitArchiveService Service(IStorageRepository storage, IStorageAuthorizationService authorization, StorageOptions flags) =>
-        new(null!, storage, authorization, TeacherDriveHarness.Manager(1), new VisitsEnabled(), null!, null!, Options.Create(flags), TimeProvider.System);
+    private static VisitArchiveService Service(IVisitArchiveRepository archive, IStorageRepository storage, IStorageAuthorizationService authorization, StorageOptions flags) =>
+        new(archive, storage, authorization, TeacherDriveHarness.Manager(1), new VisitsEnabled(), null!, null!, Options.Create(flags), TimeProvider.System);
+
+    public class ArchiveSettingsRepository : DispatchProxy
+    {
+        public bool SchoolEnabled { get; set; }
+        protected override object? Invoke(MethodInfo? method, object?[]? args) => method?.Name == nameof(IVisitArchiveRepository.SchoolEnabledAsync)
+            ? Task.FromResult(SchoolEnabled) : throw new NotSupportedException(method?.Name);
+    }
 
     public class PermissionRepository : DispatchProxy
     {

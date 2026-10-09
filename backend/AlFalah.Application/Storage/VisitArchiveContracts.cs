@@ -19,7 +19,7 @@ public sealed record VisitArchiveRevisionDto(int ApprovalRevision, string Status
 public sealed record VisitArchiveDto(int VisitId, string InstructorName, int ApprovalRevision,
     bool IsApproved, bool CanManage, IReadOnlyList<VisitArchiveRevisionDto> Revisions,
     string? Subject = null, DateTimeOffset? VisitDate = null, VisitCategory? Category = null);
-public sealed record VisitArchiveOperationsDto(bool WorkerEnabled, bool ExternalWritesEnabled, bool Ready);
+public sealed record VisitArchiveOperationsDto(bool WorkerEnabled, bool ExternalWritesEnabled, bool Ready, bool SchoolEnabled = false);
 // Internal repository projections. Provider IDs and snapshots never cross HTTP.
 public sealed record ArchiveVisitScope
 {
@@ -67,13 +67,17 @@ public interface IVisitArchiveRepository
     Task<IReadOnlyList<VisitArchiveTeacherDto>> TeachersAsync(int schoolId, CancellationToken ct);
     Task<IReadOnlyList<string>> ProtectedProviderIdsAsync(int schoolId, IReadOnlyList<string> itemIds, CancellationToken ct);
     Task<IReadOnlyList<int>> DueAsync(DateTimeOffset now, int limit, CancellationToken ct);
+    Task<bool> SchoolEnabledAsync(int schoolId, CancellationToken ct);
     Task<bool> ExclusiveAsync(string resource, Func<CancellationToken, Task> action, CancellationToken ct);
     Task<VisitArchiveOperation?> ClaimAsync(int id, DateTimeOffset now, Guid token, CancellationToken ct);
     Task RenewAsync(int id, Guid token, DateTimeOffset now, CancellationToken ct);
     Task SaveAsync(VisitArchiveOperation operation, string action, CancellationToken ct);
     Task FailAsync(int id, Guid token, string code, DateTimeOffset now, CancellationToken ct);
     Task<StorageFolder?> ArchiveFolderAsync(int schoolId, CancellationToken ct);
+    Task<int?> TeacherProfileIdAsync(int schoolId, string userId, CancellationToken ct);
+    Task<StorageFolder?> ArchiveTeacherFolderAsync(int schoolId, int archiveFolderId, int teacherId, CancellationToken ct);
     Task AddArchiveFolderAsync(StorageFolder folder, CancellationToken ct);
+    Task RebindArchiveFolderAsync(StorageFolder folder, string itemId, string name, CancellationToken ct);
     Task CompleteAsync(VisitArchiveOperation operation, CancellationToken ct);
     Task SetAvailabilityAsync(ArchiveArtifactRow row, bool missing, DateTimeOffset now, CancellationToken ct);
     Task RetryAsync(int schoolId, int visitId, RetryVisitArchiveRequest request, string actor, CancellationToken ct);

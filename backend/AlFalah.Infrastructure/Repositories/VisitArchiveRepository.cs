@@ -118,9 +118,13 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
     }
     public async Task<IReadOnlyList<int>> DueAsync(DateTimeOffset now, int limit, CancellationToken ct) =>
         await Ops.AsNoTracking().Where(o => o.SnapshotJson != null &&
+            db.SchoolGoogleDrives.Any(d => d.SchoolId == o.SchoolId && d.IsEnabled && d.VisitArchiveEnabled) &&
             (o.Status == VisitArchiveStatus.Pending || o.Status == VisitArchiveStatus.RetryScheduled && o.NextAttemptAtUtc <= now ||
              o.Status == VisitArchiveStatus.Processing && o.LeaseExpiresAtUtc <= now))
             .OrderBy(o => o.CreatedAtUtc).ThenBy(o => o.Id).Take(limit).Select(o => o.Id).ToListAsync(ct);
+
+    public Task<bool> SchoolEnabledAsync(int schoolId, CancellationToken ct) =>
+        db.SchoolGoogleDrives.AsNoTracking().AnyAsync(d => d.SchoolId == schoolId && d.IsEnabled && d.VisitArchiveEnabled, ct);
 
     public async Task<IReadOnlyList<string>> ProtectedProviderIdsAsync(int schoolId, IReadOnlyList<string> itemIds, CancellationToken ct)
         => await ProtectedProviderIdsQuery(db, itemIds).ToListAsync(ct);
@@ -142,6 +146,7 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
     // against an upload finishing remotely after SQL connectivity was lost.
     public async Task<bool> ExclusiveAsync(string resource, Func<CancellationToken, Task> action, CancellationToken ct)
     {
+        if (!db.Database.IsRelational()) { await action(ct); return true; }
         await db.Database.OpenConnectionAsync(ct);
         try
         {
@@ -162,6 +167,7 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
     {
         db.ChangeTracker.Clear();
         var changed = await db.Set<VisitArchiveOperation>().Where(o => o.Id == id &&
+            db.SchoolGoogleDrives.Any(d => d.SchoolId == o.SchoolId && d.IsEnabled && d.VisitArchiveEnabled) &&
             (o.Status == VisitArchiveStatus.Pending || o.Status == VisitArchiveStatus.RetryScheduled && o.NextAttemptAtUtc <= now ||
              o.Status == VisitArchiveStatus.Processing && o.LeaseExpiresAtUtc <= now))
             .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, VisitArchiveStatus.Processing)
@@ -193,8 +199,26 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
     }
     public Task<StorageFolder?> ArchiveFolderAsync(int schoolId, CancellationToken ct) =>
         db.StorageFolders.AsTracking().SingleOrDefaultAsync(f => f.SchoolId == schoolId && f.Kind == StorageFolderKind.VisitArchive && f.ParentFolderId == null && f.IsActive, ct);
+    public Task<int?> TeacherProfileIdAsync(int schoolId, string userId, CancellationToken ct) =>
+        db.InstructorProfiles.AsNoTracking().Where(t => t.SchoolId == schoolId && t.UserId == userId && !t.IsDeleted)
+            .Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);
+    public Task<StorageFolder?> ArchiveTeacherFolderAsync(int schoolId, int archiveFolderId, int teacherId, CancellationToken ct) =>
+        db.StorageFolders.AsTracking().SingleOrDefaultAsync(f => f.SchoolId == schoolId && f.Kind == StorageFolderKind.VisitArchive &&
+            f.ParentFolderId == archiveFolderId && f.OwnerTeacherId == teacherId && f.IsActive, ct);
     public async Task AddArchiveFolderAsync(StorageFolder folder, CancellationToken ct)
     { db.StorageFolders.Add(folder); await db.SaveChangesAsync(ct); }
+    public async Task RebindArchiveFolderAsync(StorageFolder folder, string itemId, string name, CancellationToken ct)
+    {
+        var previous = folder.DriveItemId;
+        folder.DriveItemId = itemId;
+        folder.DisplayName = name;
+        folder.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new() { SchoolId = folder.SchoolId, Action = "Storage.VisitArchiveFolderRebound",
+            EntityName = nameof(StorageFolder), EntityId = folder.Id.ToString(),
+            OldValues = JsonSerializer.Serialize(new { DriveItemId = previous }),
+            NewValues = JsonSerializer.Serialize(new { DriveItemId = itemId }) });
+        await db.SaveChangesAsync(ct);
+    }
     public async Task FailAsync(int id, Guid token, string code, DateTimeOffset now, CancellationToken ct)
     {
         db.ChangeTracker.Clear();

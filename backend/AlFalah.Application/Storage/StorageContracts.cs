@@ -9,6 +9,8 @@ public sealed class StorageOptions
     public bool AdministrationEnabled { get; set; } = false;
     // Activate only after schema/backfill/live Drive gates; defaults deliberately remain OFF.
     public bool ReadModelEnabled { get; set; } = false;
+    // Retained for compatibility with older deployment settings. Archive writes are now
+    // controlled per school by SchoolGoogleDrive.VisitArchiveEnabled after Drive validation.
     public bool ArchiveWorkerEnabled { get; set; } = false;
     public bool ArchiveExternalWritesEnabled { get; set; } = false;
 }

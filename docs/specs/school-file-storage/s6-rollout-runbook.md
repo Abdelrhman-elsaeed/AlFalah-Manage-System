@@ -2,6 +2,8 @@
 
 Current status 2026-10-06: the owner explicitly requested original local migrations, a library activation button and application restart. **Local library rollout is authorized and executed**: AdministrationEnabled/ReadModelEnabled ON, ArchiveWorkerEnabled/ArchiveExternalWritesEnabled OFF. Ten storage migrations applied on the original configured LocalDB; school 18 has one library root and 36 current-year requirements. Production deployment, historical-byte migration and live archive cutover are not executed. [Actual operation log and checks](verification/library-activation.md). Earlier S0–S6 reports retain their execution-date outcomes.
 
+2026-10-09 implementation update: after the new `VisitArchiveEnabled` school migration is deployed, the manager's Storage Admin button controls archive processing and Drive writes per school. It checks write access and creates or adopts the archive folder before enabling. Disabling only needs database access, so it still works while Drive is unavailable. The old `ArchiveWorkerEnabled` and `ArchiveExternalWritesEnabled` configuration keys remain accepted for compatibility but no longer gate archive work. The main `AdministrationEnabled` and `ReadModelEnabled` flags still gate the storage feature as a whole in every environment. Older activation notes below describe the previous release.
+
 ## Pilot identity and inputs
 
 The designated test school is **18 / Al-Falah E2E Test School**; its existing manager is **admin.test**. Backend resolves the actual manager, current membership and DB permissions. Additional operators need an explicit current direct delegation from that manager; there is no inferred permission from responsible names. Do not grant anyone during a rehearsal without an actual school decision.

@@ -95,6 +95,13 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
         var root = await repository.FindRootAsync(School, null, ct);
         var schoolRoot = await scopes.GetSchoolDriveRootAsync(School, ct);
         var ready = root is not null && schoolRoot is not null && root.DriveId == schoolRoot.DriveId;
+        if (ready)
+        {
+            provider.ResetRequestCache();
+            var libraryFolder = await provider.MetadataAsync(School, root!.DriveItemId, ct);
+            ready = libraryFolder is { IsFolder: true, Trashed: false } &&
+                await provider.IsWithinAsync(School, schoolRoot!.RootItemId, root.DriveItemId, ct);
+        }
         return context with { CanManage = access.CanManage, CanReviewEvidence = access.CanReviewEvidence,
             IsTeacher = false, ConnectionState = schoolRoot is null || root is not null && !ready
                 ? "Unavailable" : ready ? "Connected" : "LibraryNotInitialized", RootFolderId = ready ? root!.Id : null };

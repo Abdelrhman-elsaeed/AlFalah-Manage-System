@@ -22,6 +22,7 @@
   <div *ngIf="!disabled && context && !connected" class="empty" role="status">
     <i class="pi pi-cloud"></i><h2>{{ ('STORAGE.STATE_' + context.connectionState) | translate }}</h2>
     <p>{{ 'STORAGE.CONNECTION_HELP' | translate }}</p>
+    <a *ngIf="!own && context.canManage && context.connectionState === 'Unavailable'" routerLink="/school-manager/storage/admin" [queryParams]="{tab:'setup'}" class="outline-action">فحص المكتبة وإصلاح الربط <i class="pi pi-arrow-left" aria-hidden="true"></i></a>
     <button *ngIf="!own && context.connectionState === 'LibraryNotInitialized' && context.canManage" pButton type="button" label="تفعيل المكتبة" [disabled]="busy" (click)="initialize()"></button>
   </div>
   <div *ngIf="busy && activeView === 'review'" class="storage-loading" role="status" [attr.aria-label]="'STORAGE.LOADING' | translate"><span></span><span></span></div>

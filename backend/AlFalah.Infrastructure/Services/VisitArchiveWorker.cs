@@ -15,7 +15,7 @@ public sealed class VisitArchiveWorker(IServiceScopeFactory scopes, IOptionsMoni
         while (!stoppingToken.IsCancellationRequested)
         {
             var flags = options.CurrentValue;
-            if (flags.AdministrationEnabled && flags.ReadModelEnabled && flags.ArchiveWorkerEnabled && flags.ArchiveExternalWritesEnabled)
+            if (flags.AdministrationEnabled && flags.ReadModelEnabled)
             {
                 try
                 {

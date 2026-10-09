@@ -6,7 +6,7 @@ namespace AlFalah.Application.Storage;
 
 // Shared live root/grant/content checks for workers and authorized readers.
 public sealed class VisitArchiveDriveService(IStorageRepository storage, IStorageLibraryRepository library,
-    IVisitArchiveRepository archives, IStorageProvider provider)
+    IVisitArchiveRepository archives, IStorageSetupRepository setup, IStorageProvider provider)
 {
     private readonly Dictionary<int, (StorageDriveRoot Root, IReadOnlyList<StorageDriveRoot> Grants)> roots = [];
     public void Reset() { roots.Clear(); provider.ResetRequestCache(); }
@@ -46,6 +46,7 @@ public sealed class VisitArchiveDriveService(IStorageRepository storage, IStorag
         {
             var root = await RootAsync(schoolId, null, token);
             folder = await archives.ArchiveFolderAsync(schoolId, token);
+            var newlyReserved = folder == null;
             if (folder == null)
             {
                 folder = new StorageFolder { SchoolId = schoolId, Kind = Domain.Enums.StorageFolderKind.VisitArchive,
@@ -55,10 +56,95 @@ public sealed class VisitArchiveDriveService(IStorageRepository storage, IStorag
             if (folder.DriveId != root.DriveId) throw new StorageUnavailableException();
             provider.ResetRequestCache();
             var metadata = await provider.MetadataAsync(schoolId, folder.DriveItemId, token);
-            if (metadata == null)
-                await provider.CreateFolderAsync(schoolId, folder.DriveItemId, root.RootItemId, folder.DisplayName, token);
-            else if (metadata.Trashed || !metadata.IsFolder) throw new StorageUnavailableException();
+            if (metadata is null or { Trashed: true })
+            {
+                if (await setup.HasProtectedDataAsync(schoolId, folder.Id, token))
+                    throw new StorageUnavailableException("أرشيف الزيارات القديم مفقود وله تقارير؛ راجعه من إنشاء المكتبة قبل الاستمرار.");
+                var matching = new List<GoogleDriveFile>();
+                string? page = null;
+                do
+                {
+                    var children = await provider.ChildrenAsync(schoolId, root.RootItemId, root.DriveId, page, token);
+                    matching.AddRange(children.Files.Where(f => !f.Trashed && f.Name == folder.DisplayName && f.Parents.Contains(root.RootItemId)));
+                    page = children.NextPageToken;
+                } while (page != null);
+                if (matching.Count > 1 || matching.Count == 1 && !matching[0].IsFolder)
+                    throw new StorageUnavailableException("اسم أرشيف الزيارات مكرر على Drive؛ يحتاج مراجعة.");
+                var itemId = matching.Count == 1 ? matching[0].Id : newlyReserved ? folder.DriveItemId :
+                    await provider.AllocateIdAsync(schoolId, token);
+                if (itemId != folder.DriveItemId)
+                    await archives.RebindArchiveFolderAsync(folder, itemId, folder.DisplayName, token);
+                if (matching.Count == 0)
+                { await provider.CreateFolderAsync(schoolId, folder.DriveItemId, root.RootItemId, folder.DisplayName, token); provider.ResetRequestCache(); }
+            }
+            else if (!metadata.IsFolder || !metadata.Parents.Contains(root.RootItemId)) throw new StorageUnavailableException();
             await RootAsync(schoolId, folder.DriveItemId, token);
+        }, ct)) throw new StorageUnavailableException();
+        return folder!;
+    }
+    public async Task<StorageFolder> TeacherFolderAsync(int schoolId, StorageFolder archive, string teacherUserId,
+        string instructorName, CancellationToken ct)
+    {
+        var teacherId = await archives.TeacherProfileIdAsync(schoolId, teacherUserId, ct)
+            ?? throw new StorageUnavailableException("تعذّر تحديد ملف المعلم الذي تخصه الزيارة.");
+        var teachers = await setup.TeachersAsync(schoolId, ct);
+        var teacher = teachers.FirstOrDefault(t => t.Id == teacherId) ?? new SetupTeacher(teacherId, instructorName, null);
+        var name = StorageSetupService.TeacherName(teacher, teachers);
+        StorageFolder? folder = null;
+        if (!await archives.ExclusiveAsync($"folder:{schoolId}", async token =>
+        {
+            var root = await RootAsync(schoolId, archive.DriveItemId, token);
+            folder = await archives.ArchiveTeacherFolderAsync(schoolId, archive.Id, teacherId, token);
+            var current = folder is null ? null : await provider.MetadataAsync(schoolId, folder.DriveItemId, token);
+            if (current is { IsFolder: true, Trashed: false } && current.Parents.Contains(archive.DriveItemId))
+            {
+                if (current.Name != name)
+                {
+                    string? siblingPage = null;
+                    do
+                    {
+                        var siblings = await provider.ChildrenAsync(schoolId, archive.DriveItemId, root.DriveId, siblingPage, token);
+                        if (siblings.Files.Any(f => !f.Trashed && f.Name == name && f.Id != current.Id))
+                            throw new StorageUnavailableException("اسم المعلم مكرر في أرشيف الزيارات؛ يحتاج مراجعة.");
+                        siblingPage = siblings.NextPageToken;
+                    } while (siblingPage != null);
+                    await provider.RenameAsync(schoolId, current.Id, name, token);
+                    await archives.RebindArchiveFolderAsync(folder!, current.Id, name, token);
+                    provider.ResetRequestCache();
+                }
+                return;
+            }
+            if (current is { Trashed: false })
+                throw new StorageUnavailableException("مجلد زيارات المعلم نُقل من مكانه؛ راجعه قبل متابعة الأرشفة.");
+            if (folder != null && await setup.HasProtectedDataAsync(schoolId, folder.Id, token))
+                throw new StorageUnavailableException("مجلد زيارات المعلم محذوف وله تقارير محفوظة؛ يلزم مراجعته من إعداد المكتبة.");
+            var matches = new List<GoogleDriveFile>();
+            string? page = null;
+            do
+            {
+                var children = await provider.ChildrenAsync(schoolId, archive.DriveItemId, root.DriveId, page, token);
+                matches.AddRange(children.Files.Where(f => !f.Trashed && f.Name == name && f.Parents.Contains(archive.DriveItemId)));
+                page = children.NextPageToken;
+            } while (page != null);
+            if (matches.Count > 1 || matches.Count == 1 && !matches[0].IsFolder)
+                throw new StorageUnavailableException("يوجد أكثر من مجلد مطابق لاسم المعلم داخل الزيارات؛ راجعه يدويًا.");
+            var itemId = matches.Count == 1 ? matches[0].Id : await provider.AllocateIdAsync(schoolId, token);
+            if (folder == null)
+            {
+                folder = new StorageFolder { SchoolId = schoolId, ParentFolderId = archive.Id, OwnerTeacherId = teacherId,
+                    Kind = Domain.Enums.StorageFolderKind.VisitArchive, DisplayName = name, DriveId = root.DriveId, DriveItemId = itemId };
+                await archives.AddArchiveFolderAsync(folder, token);
+            }
+            else if (folder.DriveItemId != itemId)
+                await archives.RebindArchiveFolderAsync(folder, itemId, name, token);
+            if (matches.Count == 0)
+            {
+                await provider.CreateFolderAsync(schoolId, itemId, archive.DriveItemId, name, token);
+                provider.ResetRequestCache();
+            }
+            var verified = await provider.MetadataAsync(schoolId, folder.DriveItemId, token);
+            if (verified is not { IsFolder: true, Trashed: false } || !verified.Parents.Contains(archive.DriveItemId))
+                throw new StorageUnavailableException("تعذّر التحقق من مجلد زيارات المعلم على Drive.");
         }, ct)) throw new StorageUnavailableException();
         return folder!;
     }

@@ -57,6 +57,8 @@ public sealed class SchoolGoogleDrive
 
     public string RootFolderDisplayName { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = true;
+    // A school opts in only after its archive folder and Drive write capability are ready.
+    public bool VisitArchiveEnabled { get; set; }
     public DateTimeOffset ConnectedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 

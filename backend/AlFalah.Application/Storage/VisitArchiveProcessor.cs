@@ -22,8 +22,7 @@ public sealed class VisitArchiveProcessor(IVisitArchiveRepository repository, Vi
     private static readonly Histogram<double> Generation = Meter.CreateHistogram<double>("archive.pdf.ms");
     private static readonly Histogram<double> Upload = Meter.CreateHistogram<double>("archive.upload.ms");
     private static readonly Histogram<double> Lag = Meter.CreateHistogram<double>("archive.pending.seconds");
-    private bool Enabled => options.Value.AdministrationEnabled && options.Value.ReadModelEnabled &&
-        options.Value.ArchiveWorkerEnabled && options.Value.ArchiveExternalWritesEnabled;
+    private bool Enabled => options.Value.AdministrationEnabled && options.Value.ReadModelEnabled;
 
     public async Task<int> ProcessBatchAsync(CancellationToken ct = default)
     {
@@ -37,6 +36,7 @@ public sealed class VisitArchiveProcessor(IVisitArchiveRepository repository, Vi
                 var lease = Guid.NewGuid();
                 var operation = await repository.ClaimAsync(id, time.GetUtcNow(), lease, token);
                 if (operation == null) return;
+                if (!await repository.SchoolEnabledAsync(operation.SchoolId, token)) return;
                 Claims.Add(1); Lag.Record((time.GetUtcNow() - operation.CreatedAtUtc).TotalSeconds);
                 if (operation.LastErrorCode == "ExpiredLease") Expired.Add(1);
                 using var workCancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -95,7 +95,11 @@ public sealed class VisitArchiveProcessor(IVisitArchiveRepository repository, Vi
         }
         if (operation.ProviderItemId == null)
         {
-            var folder = await drive.FolderAsync(operation.SchoolId, ct);
+            var archive = await drive.FolderAsync(operation.SchoolId, ct);
+            var visit = await repository.VisitAsync(operation.SchoolId, operation.VisitId, ct)
+                ?? throw new StorageUnavailableException("الزيارة المرتبطة بالتقرير غير متاحة.");
+            var folder = await drive.TeacherFolderAsync(operation.SchoolId, archive, visit.InstructorId,
+                visit.InstructorName, ct);
             var root = await drive.RootAsync(operation.SchoolId, folder.DriveItemId, ct);
             operation.ProviderItemId = await provider.AllocateIdAsync(operation.SchoolId, ct);
             operation.UploadIdentity = $"{operation.SchoolId}:{operation.VisitId}:{operation.ApprovalRevision}:{operation.RecoveryGeneration}";
@@ -105,13 +109,27 @@ public sealed class VisitArchiveProcessor(IVisitArchiveRepository repository, Vi
         }
         if (await drive.VerifyAsync(operation, operation.ProviderItemId, operation.PdfSHA256!, operation.PdfBytes.LongLength, ct))
         { await repository.CompleteAsync(operation, ct); return; }
+        // Reservations made before teacher folders were introduced may still point at
+        // the archive root. Preserve the provider ID, but place an unuploaded PDF in
+        // its teacher's folder. A file already uploaded in the old root completed above.
+        var archiveRoot = await repository.ArchiveFolderAsync(operation.SchoolId, ct);
+        if (archiveRoot != null && operation.ArchiveFolderId == archiveRoot.Id)
+        {
+            var visit = await repository.VisitAsync(operation.SchoolId, operation.VisitId, ct)
+                ?? throw new StorageUnavailableException("الزيارة المرتبطة بالتقرير غير متاحة.");
+            var teacherFolder = await drive.TeacherFolderAsync(operation.SchoolId, archiveRoot,
+                visit.InstructorId, visit.InstructorName, ct);
+            operation.ArchiveFolderId = teacherFolder.Id;
+            operation.ArchiveFolderItemId = teacherFolder.DriveItemId;
+            await repository.SaveAsync(operation, "TeacherFolderSelected", ct);
+        }
         // Inspect the saved ID before each attempt. A retry uses exactly the same ID:
         // even a delayed remote create can only conflict, never create a second file.
         drive.Reset();
         await drive.RootAsync(operation.SchoolId, operation.ArchiveFolderItemId, ct);
         operation.UploadStarted = true;
         await repository.SaveAsync(operation, "UploadStarted", ct);
-        if (!Enabled) throw new StorageUnavailableException();
+        if (!Enabled || !await repository.SchoolEnabledAsync(operation.SchoolId, ct)) throw new StorageUnavailableException();
         var startedUpload = Stopwatch.GetTimestamp();
         using var bytes = new MemoryStream(operation.PdfBytes, writable: false);
         await provider.UploadArchiveAsync(operation.SchoolId, operation.ProviderItemId, operation.ArchiveFolderItemId!,

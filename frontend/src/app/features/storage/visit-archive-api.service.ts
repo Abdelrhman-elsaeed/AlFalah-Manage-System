@@ -10,7 +10,7 @@ export interface ArchiveVersion { versionId:number;versionNumber:number;uploaded
 export interface ArchiveRevision { approvalRevision:number;status:string;approvalSource:string;approvedAtUtc:string;attempts:number;lastAttemptAtUtc?:string;completedAtUtc?:string;nextAttemptAtUtc?:string;errorCode?:string;isCurrent:boolean;canRetry:boolean;versions:ArchiveVersion[]; }
 export interface VisitArchive { visitId:number;instructorName:string;approvalRevision:number;isApproved:boolean;canManage:boolean;revisions:ArchiveRevision[];subject?:string;visitDate?:string;category?:string; }
 export interface ArchivePage { items:VisitArchive[];total:number;page:number;pageSize:number; }
-export interface ArchiveOperations { workerEnabled:boolean;externalWritesEnabled:boolean;ready:boolean; }
+export interface ArchiveOperations { workerEnabled:boolean;externalWritesEnabled:boolean;schoolEnabled:boolean;ready:boolean; }
 export interface ArchiveFilter { from?:string;to?:string;teacherId?:string;status?:string;page:number;pageSize:number; }
 @Injectable({providedIn:'root'})
 export class VisitArchiveApiService {
