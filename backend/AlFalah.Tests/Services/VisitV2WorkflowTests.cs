@@ -118,6 +118,41 @@ public sealed class VisitV2WorkflowTests
         db.AuditLogs.Should().Contain(a => a.Action == "VisitV2.AutoApprove");
     }
 
+    [Fact]
+    public async Task Feedback_notes_are_saved_and_returned_with_their_standard()
+    {
+        await using var db = Database();
+        var visit = Visit(VisitStatus.Draft, ExperienceVersion.PrototypeV2, 7);
+        var service = Service(new WorkflowRepository(visit, db), db, new CurrentUser(7));
+        var request = new UpdateVisitV2RequestDto(
+            (int)visit.VisitCategory, (int)visit.VisitSequence, visit.VisitDate,
+            1, "رياضيات", "2/أ", "درس", 20, 1, null,
+            new[] { new VisitV2ScoreInputDto(21, 3, null, Array.Empty<int>())
+            {
+                StrengthNotes = ["  تميز في تنويع الأنشطة  ", "تفاعل واضح مع الطلاب"],
+                ImprovementNotes = ["تحسين التقويم البنائي", "تنويع الأسئلة"]
+            } });
+
+        var result = await service.UpdateAsync(visit.Id, request);
+
+        visit.Scores.Single().StrengthNote.Should().Be("تميز في تنويع الأنشطة");
+        result.Domains.Single().Standards.Single().StrengthNotes.Should().Equal("تميز في تنويع الأنشطة", "تفاعل واضح مع الطلاب");
+        result.Domains.Single().Standards.Single().ImprovementNotes.Should().Equal("تحسين التقويم البنائي", "تنويع الأسئلة");
+    }
+
+    [Fact]
+    public async Task Existing_single_feedback_note_is_returned_as_the_first_list_item()
+    {
+        await using var db = Database();
+        var visit = Visit(VisitStatus.Draft, ExperienceVersion.PrototypeV2, 7);
+        visit.Scores.Single().StrengthNote = "نقطة محفوظة قبل التحديث";
+        var service = Service(new WorkflowRepository(visit, db), db, new CurrentUser(7));
+
+        var result = await service.GetAsync(visit.Id);
+
+        result.Domains.Single().Standards.Single().StrengthNotes.Should().Equal("نقطة محفوظة قبل التحديث");
+    }
+
     private static VisitV2Service Service(
         IVisitV2Repository repository,
         AlFalahDbContext db,
@@ -230,7 +265,8 @@ public sealed class VisitV2WorkflowTests
         public Task<bool> IsActiveInstructorAsync(string userId, int schoolId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<string> GetEvaluatorRoleAsync(string userId, int schoolId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task AddAsync(Visit item, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Dictionary<int, List<RubricIndicator>>> GetIndicatorsByStandardAsync(int rubricVersionId, IReadOnlyCollection<int> standardIds, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<Dictionary<int, List<RubricIndicator>>> GetIndicatorsByStandardAsync(int rubricVersionId, IReadOnlyCollection<int> standardIds, CancellationToken cancellationToken = default) =>
+            Task.FromResult(standardIds.ToDictionary(id => id, _ => new List<RubricIndicator>()));
         public Task<PagedResult<VisitV2ArchiveItemDto>> ListAsync(VisitV2ArchiveQuery query, int? schoolId, string? creatorUserId, string? instructorUserId, bool approvedOnly, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyList<VisitV2EvaluatorFilterDto>> ListEvaluatorsAsync(int? schoolId, string? creatorUserId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyList<Visit>> ListForExportAsync(VisitV2ArchiveQuery query, int? schoolId, string? creatorUserId, string? instructorUserId, bool approvedOnly, CancellationToken cancellationToken = default)

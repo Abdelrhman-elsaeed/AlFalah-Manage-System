@@ -123,6 +123,11 @@ public sealed class VisitV2Service(
             throw new ArgumentException("يجب إرسال درجة واحدة لكل معيار من نسخة أداة الزيارة دون تكرار.");
         if (request.Scores.Any(s => s.Score is < 1 or > 4))
             throw new ArgumentException("درجات الزيارة V2 يجب أن تكون بين 1 و4.");
+        foreach (var input in request.Scores)
+        {
+            ValidateFeedback(input.StrengthNotes, input.StrengthNote);
+            ValidateFeedback(input.ImprovementNotes, input.ImprovementNote);
+        }
 
         var indicatorsByStandard = await repository.GetIndicatorsByStandardAsync(
             visit.RubricVersionId, expectedIds, cancellationToken);
@@ -156,6 +161,12 @@ public sealed class VisitV2Service(
                 var score = visit.Scores.Single(s => s.RubricStandardId == input.RubricStandardId);
                 score.Score = input.Score;
                 score.EvidenceNote = NullIfWhiteSpace(input.EvidenceNote);
+                var strengths = NormalizeFeedback(input.StrengthNotes, input.StrengthNote);
+                var improvements = NormalizeFeedback(input.ImprovementNotes, input.ImprovementNote);
+                score.StrengthNotesJson = JsonSerializer.Serialize(strengths);
+                score.ImprovementNotesJson = JsonSerializer.Serialize(improvements);
+                score.StrengthNote = strengths.FirstOrDefault();
+                score.ImprovementNote = improvements.FirstOrDefault();
                 score.UpdatedAt = DateTimeOffset.UtcNow;
                 var selected = input.ObservedIndicatorIds.ToHashSet();
                 foreach (var existing in score.ObservedIndicators)
@@ -712,6 +723,30 @@ public sealed class VisitV2Service(
 
     private static string? NullIfWhiteSpace(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+    private static string[] NormalizeFeedback(IReadOnlyList<string>? notes, string? legacy)
+    {
+        var values = notes ?? (string.IsNullOrWhiteSpace(legacy) ? [] : [legacy]);
+        return values.Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim()).Distinct(StringComparer.Ordinal).ToArray();
+    }
+
+    private static void ValidateFeedback(IReadOnlyList<string>? notes, string? legacy)
+    {
+        var values = notes ?? (string.IsNullOrWhiteSpace(legacy) ? [] : [legacy]);
+        if (values.Count > 20 || values.Any(x => x?.Trim().Length > 1000))
+            throw new ArgumentException("يمكن تسجيل حتى 20 نقطة لكل جانب، وبحد أقصى 1000 حرف للنقطة الواحدة.");
+    }
+
+    private static IReadOnlyList<string> ReadFeedback(string? json, string? legacy)
+    {
+        if (!string.IsNullOrWhiteSpace(json))
+        {
+            try { return JsonSerializer.Deserialize<string[]>(json) ?? []; }
+            catch (JsonException) { /* Preserve older plain-text visits. */ }
+        }
+        return string.IsNullOrWhiteSpace(legacy) ? [] : [legacy];
+    }
+
     private static VisitV2DetailDto MapDetail(Visit visit)
     {
         var scores = visit.Scores.OrderBy(s => s.RubricStandard.Domain.SortOrder).ThenBy(s => s.RubricStandard.SortOrder).ToList();
@@ -722,7 +757,13 @@ public sealed class VisitV2Service(
                     s.RubricStandard.SortOrder, s.Score ?? 1, s.EvidenceNote,
                     s.RubricStandard.Indicators.OrderBy(i => i.SortOrder)
                         .Select(i => new VisitV2IndicatorDto(i.Id, i.Code, i.TextAr, i.SortOrder,
-                            s.ObservedIndicators.Any(o => !o.IsDeleted && o.RubricIndicatorId == i.Id))).ToList())).ToList()))
+                            s.ObservedIndicators.Any(o => !o.IsDeleted && o.RubricIndicatorId == i.Id))).ToList())
+                {
+                    StrengthNote = s.StrengthNote,
+                    ImprovementNote = s.ImprovementNote,
+                    StrengthNotes = ReadFeedback(s.StrengthNotesJson, s.StrengthNote),
+                    ImprovementNotes = ReadFeedback(s.ImprovementNotesJson, s.ImprovementNote)
+                }).ToList()))
             .OrderBy(d => d.SortOrder).ToList();
 
         VisitV2AnalysisDto? analysis = null;

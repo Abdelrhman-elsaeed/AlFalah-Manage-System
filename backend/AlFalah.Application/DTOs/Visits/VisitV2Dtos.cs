@@ -13,7 +13,13 @@ public sealed record VisitV2StandardDto(
     int SortOrder,
     int Score,
     string? EvidenceNote,
-    IReadOnlyList<VisitV2IndicatorDto> Indicators);
+    IReadOnlyList<VisitV2IndicatorDto> Indicators)
+{
+    public string? StrengthNote { get; init; }
+    public string? ImprovementNote { get; init; }
+    public IReadOnlyList<string> StrengthNotes { get; init; } = [];
+    public IReadOnlyList<string> ImprovementNotes { get; init; } = [];
+}
 
 public sealed record VisitV2DomainDto(
     int Id,
@@ -47,7 +53,16 @@ public sealed record VisitV2ScoreInputDto(
     int RubricStandardId,
     int Score,
     string? EvidenceNote,
-    IReadOnlyList<int> ObservedIndicatorIds);
+    IReadOnlyList<int> ObservedIndicatorIds)
+{
+    public string? StrengthNote { get; init; }
+    public string? ImprovementNote { get; init; }
+    public IReadOnlyList<string>? StrengthNotes { get; init; }
+    public IReadOnlyList<string>? ImprovementNotes { get; init; }
+}
+
+public sealed record VisitFeedbackTemplateDto(int Id, int Kind, string Text);
+public sealed record SaveVisitFeedbackTemplateDto(int Kind, string Text);
 
 public sealed record UpdateVisitV2RequestDto(
     int VisitCategory,

@@ -157,7 +157,15 @@ public sealed class VisitV2DocumentServiceTests
                         "مؤشر ملاحظ وموثق في أثناء الحصة.", 1, true),
                     new VisitV2IndicatorDto(id * 100 + index * 2 + 1, $"I-{seed}-{index}-2",
                         "مؤشر إضافي لم يظهر بصورة مكتملة.", 2, false)
-                })).ToArray());
+                })
+            {
+                StrengthNote = standard.Score >= 3 ? "تميّز المعلم في إشراك المتعلمين بفاعلية." : null,
+                ImprovementNote = standard.Score <= 2 ? "يُوصى بتنويع أدوات التقويم البنائي." : null,
+                StrengthNotes = standard.Score >= 3
+                    ? ["تميّز المعلم في إشراك المتعلمين بفاعلية.", "استثمر وقت الحصة في أنشطة التعلم."] : [],
+                ImprovementNotes = standard.Score <= 2
+                    ? ["يُوصى بتنويع أدوات التقويم البنائي.", "تخصيص فرص أكثر للتغذية الراجعة."] : []
+            }).ToArray());
 
     private static IReadOnlyList<string> ParseCsv(string line)
     {

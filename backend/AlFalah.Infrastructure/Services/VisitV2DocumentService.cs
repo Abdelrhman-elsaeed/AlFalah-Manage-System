@@ -121,7 +121,6 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
                     PdfTheme.White, PdfTheme.White, PdfTheme.CardRadius));
             }), brand, brand, PdfTheme.PillRadius));
 
-            outer.Item().Height(3).Background(PdfTheme.Gold);
             outer.Item().PaddingTop(5).Row(row =>
             {
                 row.RelativeItem().AlignLeft().Text($"#{visit.Id.ToString(CultureInfo.InvariantCulture)}")
@@ -170,9 +169,12 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
 
             if (visit.Domains.Count > 0)
             {
-                col.Item().Element(c => PdfTheme.SectionHeading(c, "تفاصيل بطاقة الملاحظة", brand));
-                foreach (var domain in visit.Domains)
-                    col.Item().Element(c => ComposeDomainDetails(c, domain, visit.Analysis, brand));
+                for (var domainIndex = 0; domainIndex < visit.Domains.Count; domainIndex++)
+                {
+                    var domain = visit.Domains[domainIndex];
+                    var isFirstDomain = domainIndex == 0;
+                    col.Item().Element(c => ComposeDomainDetails(c, domain, visit.Analysis, brand, isFirstDomain));
+                }
             }
 
             var orderedTreatments = visit.Treatments.OrderBy(x => x.SortOrder).ToArray();
@@ -182,13 +184,10 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
                 col.Item().Element(c => ComposeTreatments(
                     c, orderedTreatments.Take(leadingTreatmentCount).ToArray(), brand));
 
-            // Keep one or two reasonably-sized treatment cards with the
-            // signatures. This balances the final sheet instead of leaving an
-            // almost-empty signature page, without forcing unbounded text into
-            // a ShowEntire block.
+            // Keep the final treatment cards, notes, and signatures together.
             col.Item().ShowEntire().Column(approval =>
             {
-                approval.Spacing(7);
+                approval.Spacing(3);
                 if (approvalTreatmentCount > 0)
                     approval.Item().Element(c => ComposeTreatments(
                         c,
@@ -314,14 +313,15 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
         IContainer container,
         VisitV2DomainDto domain,
         VisitV2AnalysisDto? analysis,
-        string brand)
+        string brand,
+        bool showSectionHeading)
     {
         var domainResult = analysis?.Domains.FirstOrDefault(x =>
             x.RubricDomainId == domain.Id || string.Equals(x.DomainCode, domain.Code, StringComparison.OrdinalIgnoreCase));
 
         container.Column(col =>
         {
-            col.Item().Element(c => PdfTheme.RoundedPanel(c, content => content
+            void Header(IContainer target) => PdfTheme.RoundedPanel(target, content => content
                 .PaddingVertical(4).PaddingHorizontal(8).Row(header =>
                 {
                     header.ConstantItem(58).Element(score => PdfTheme.RoundedPanel(score,
@@ -332,54 +332,96 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
                     header.ConstantItem(8);
                     header.RelativeItem().AlignRight().Text($"{domain.Code}  |  {domain.NameAr}")
                         .Bold().FontSize(11).FontColor(brand);
-                }), "#F5F9F7", PdfTheme.Border, PdfTheme.CardRadius));
+                }), "#F5F9F7", PdfTheme.Border, PdfTheme.CardRadius);
 
-            col.Item().Table(table =>
+            if (domain.Standards.Count > 0 && StandardTextLength(domain.Standards[0]) < 1200)
             {
-                table.ColumnsDefinition(columns =>
+                var first = domain.Standards[0];
+                col.Item().ShowEntire().Column(group =>
                 {
-                    columns.ConstantColumn(48);
-                    columns.RelativeColumn();
-                    columns.ConstantColumn(52);
+                    if (showSectionHeading)
+                        group.Item().Element(c => PdfTheme.SectionHeading(c, "تفاصيل بطاقة الملاحظة", brand));
+                    group.Item().PaddingTop(showSectionHeading ? 5 : 0).Element(Header);
+                    group.Item().PaddingTop(5).Element(c => ComposeStandardCard(c, first, brand));
                 });
-                table.Header(header =>
+            }
+            else
+                col.Item().ShowEntire().Column(group =>
                 {
-                    PdfTheme.HeaderCell(header.Cell(), "الدرجة", PdfTheme.CellAlign.Center);
-                    PdfTheme.HeaderCell(header.Cell(), "المعيار والشواهد المرصودة");
-                    PdfTheme.HeaderCell(header.Cell(), "الرمز", PdfTheme.CellAlign.Center);
+                    if (showSectionHeading)
+                        group.Item().Element(c => PdfTheme.SectionHeading(c, "تفاصيل بطاقة الملاحظة", brand));
+                    group.Item().PaddingTop(showSectionHeading ? 5 : 0).Element(Header);
                 });
 
-                var index = 0;
-                foreach (var standard in domain.Standards)
-                {
-                    var observed = standard.Indicators.Where(i => i.IsObserved).Select(i => $"✓ {i.TextAr}").ToArray();
-                    var details = standard.TextAr;
-                    if (observed.Length > 0)
-                        details += "\n" + string.Join("\n", observed);
-                    if (!string.IsNullOrWhiteSpace(standard.EvidenceNote))
-                        details += $"\nشاهد المقيم: {standard.EvidenceNote}";
-
-                    ComposeScoreCell(table.Cell(), standard.Score, index % 2 == 1);
-                    PdfTheme.BodyCell(table.Cell(), details, zebra: index % 2 == 1);
-                    PdfTheme.BodyCell(table.Cell(), standard.Code, PdfTheme.CellAlign.Center, index % 2 == 1, true, brand);
-                    index++;
-                }
-
-                if (domain.Standards.Count == 0)
-                    PdfTheme.EmptyRow(table, 3, "لا توجد معايير مسجلة لهذا المجال.");
-            });
+            if (domain.Standards.Count == 0)
+                col.Item().PaddingTop(5).Text("لا توجد معايير مسجلة لهذا المجال.").FontSize(8).FontColor(PdfTheme.Muted);
+            foreach (var standard in domain.Standards.Skip(domain.Standards.Count > 0 && StandardTextLength(domain.Standards[0]) < 1200 ? 1 : 0))
+            {
+                // Keep ordinary cards intact. Very long free-text notes may flow to
+                // another page rather than making an entire card too tall for A4.
+                var item = col.Item().PaddingTop(5);
+                if (StandardTextLength(standard) < 1200) item = item.ShowEntire();
+                item.Element(c => ComposeStandardCard(c, standard, brand));
+            }
         });
     }
 
-    private static void ComposeScoreCell(IContainer container, int score, bool zebra)
+    private static int StandardTextLength(VisitV2StandardDto standard) =>
+        standard.TextAr.Length + FeedbackNotes(standard, true).Sum(x => x.Length)
+        + FeedbackNotes(standard, false).Sum(x => x.Length) + (standard.EvidenceNote?.Length ?? 0)
+        + standard.Indicators.Where(i => i.IsObserved).Sum(i => i.TextAr.Length);
+
+    private static IReadOnlyList<string> FeedbackNotes(VisitV2StandardDto standard, bool strength)
     {
-        container.Background(zebra ? PdfTheme.ZebraRow : PdfTheme.White)
-            .BorderBottom(PdfTheme.BorderWidth).BorderRight(PdfTheme.BorderWidth).BorderColor(PdfTheme.Border)
-            .PaddingVertical(3).PaddingHorizontal(4).AlignMiddle().AlignCenter().Text(text =>
+        var notes = strength ? standard.StrengthNotes : standard.ImprovementNotes;
+        if (notes.Count > 0) return notes;
+        var legacy = strength ? standard.StrengthNote : standard.ImprovementNote;
+        return string.IsNullOrWhiteSpace(legacy) ? [] : [legacy];
+    }
+
+    private static void ComposeStandardCard(IContainer container, VisitV2StandardDto standard, string brand)
+    {
+        PdfTheme.RoundedPanel(container, content => content.Padding(9).Column(card =>
+        {
+            card.Item().Row(row =>
             {
-                text.Span(score.ToString(CultureInfo.InvariantCulture)).Bold().FontSize(11).FontColor(ScoreColor(score * 25));
-                text.Span(" من 4").FontSize(7.5f).FontColor(PdfTheme.Muted);
+                row.ConstantItem(58).Element(c => PdfTheme.RoundedPanel(c,
+                    inner => inner.PaddingVertical(4).AlignCenter().Text($"{standard.Score} من 4")
+                        .Bold().FontSize(9).FontColor(ScoreColor(standard.Score * 25)),
+                    "#F5F9F7", PdfTheme.Border, PdfTheme.CardRadius));
+                row.ConstantItem(9);
+                row.RelativeItem().AlignRight().AlignMiddle().Text(standard.TextAr)
+                    .Bold().FontSize(9.5f).FontColor(PdfTheme.Text);
+                row.ConstantItem(9);
+                row.ConstantItem(52).AlignRight().AlignMiddle().Text(standard.Code)
+                    .Bold().FontSize(9).FontColor(brand);
             });
+
+            var observed = standard.Indicators.Where(i => i.IsObserved).ToArray();
+            if (observed.Length > 0)
+                card.Item().PaddingTop(6).Column(indicators =>
+                {
+                    foreach (var indicator in observed)
+                        indicators.Item().AlignRight().Text($"✓ {indicator.TextAr}")
+                            .FontSize(8).FontColor(PdfTheme.Muted);
+                });
+            foreach (var note in FeedbackNotes(standard, true))
+                card.Item().PaddingTop(6).Element(c => ComposeFeedbackNote(c, "نقطة تميز", note, "#EFF8F1", PdfTheme.Brand));
+            foreach (var note in FeedbackNotes(standard, false))
+                card.Item().PaddingTop(5).Element(c => ComposeFeedbackNote(c, "نقطة تحسين", note, "#FFF5ED", "#A65326"));
+            if (!string.IsNullOrWhiteSpace(standard.EvidenceNote))
+                card.Item().PaddingTop(6).AlignRight().Text($"شاهد المقيم: {standard.EvidenceNote}")
+                    .FontSize(8).FontColor(PdfTheme.Muted);
+        }), PdfTheme.White, PdfTheme.Border, PdfTheme.CardRadius);
+    }
+
+    private static void ComposeFeedbackNote(IContainer container, string title, string note, string background, string accent)
+    {
+        PdfTheme.RoundedPanel(container, content => content.PaddingVertical(5).PaddingHorizontal(8).Column(col =>
+        {
+            col.Item().AlignRight().Text(title).Bold().FontSize(8).FontColor(accent);
+            col.Item().PaddingTop(2).AlignRight().Text(note).FontSize(8).FontColor(PdfTheme.Text);
+        }), background, background, PdfTheme.CardRadius);
     }
 
     private static void ComposeTreatments(
@@ -435,8 +477,6 @@ public sealed class VisitV2DocumentService(ImageAssetLoader imageLoader) : IVisi
         static int TextLength(VisitV2TreatmentDto item) =>
             item.DomainNameAr.Length + item.Goal.Length + item.Actions.Length + item.SuccessIndicators.Length;
 
-        if (treatments.Count >= 2 && treatments.TakeLast(2).Sum(TextLength) <= 1800)
-            return 2;
         if (treatments.Count >= 1 && TextLength(treatments[^1]) <= 1000)
             return 1;
         return 0;

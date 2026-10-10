@@ -21,6 +21,13 @@ public class VisitScore
     /// <summary>Free-form evidence note (Arabic, optional).</summary>
     public string? EvidenceNote { get; set; }
 
+    /// <summary>Evaluator-selected or edited feedback, snapshotted for this visit.</summary>
+    public string? StrengthNote { get; set; }
+    public string? ImprovementNote { get; set; }
+    /// <summary>Ordered feedback snapshots. Legacy single-note columns remain readable.</summary>
+    public string? StrengthNotesJson { get; set; }
+    public string? ImprovementNotesJson { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 

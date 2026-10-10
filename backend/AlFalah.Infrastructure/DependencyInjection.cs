@@ -138,6 +138,8 @@ public static class DependencyInjection
         services.AddScoped<IUserSchoolRoleService, UserSchoolRoleService>();
         services.AddScoped<IRubricService, RubricService>();
         services.AddScoped<IVisitV2Repository, VisitV2Repository>();
+        services.AddScoped<IVisitFeedbackBankRepository, VisitFeedbackBankRepository>();
+        services.AddScoped<IVisitFeedbackBankService, VisitFeedbackBankService>();
         services.AddScoped<IVisitV2DocumentService, VisitV2DocumentService>();
         services.AddScoped<IVisitV2Service, VisitV2Service>();
         services.AddScoped<IVisitWorkflowDispatcher, VisitWorkflowDispatcher>();

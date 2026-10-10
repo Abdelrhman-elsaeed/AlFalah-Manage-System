@@ -6,7 +6,8 @@ import { ApiResponse } from '../models/api-response.model';
 import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 import {
   CreateVisitV2Request, UpdateVisitV2Request, VisitV2ArchiveQuery, VisitV2ArchiveResult,
-  VisitV2Availability, VisitV2Dashboard, VisitV2Detail, VisitV2ObservationCard, VisitV2Treatment
+  VisitV2Availability, VisitV2Dashboard, VisitV2Detail, VisitV2ObservationCard, VisitV2Treatment,
+  VisitFeedbackTemplate
 } from '../models/visit-v2.models';
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +26,18 @@ export class VisitsV2Service {
   reopen(id: number, reason: string): Observable<ApiResponse<VisitV2Detail>> { return this.http.post<ApiResponse<VisitV2Detail>>(`${this.base}/${id}/reopen`, { reason }); }
   softDelete(id: number): Observable<ApiResponse<void>> { return this.http.delete<ApiResponse<void>>(`${this.base}/${id}`); }
   dashboard(): Observable<ApiResponse<VisitV2Dashboard>> { return this.http.get<ApiResponse<VisitV2Dashboard>>(`${this.base}/dashboard`); }
+  feedbackBank(): Observable<ApiResponse<VisitFeedbackTemplate[]>> {
+    return this.http.get<ApiResponse<VisitFeedbackTemplate[]>>(`${this.base}/feedback-bank`);
+  }
+  createFeedback(kind: 1 | 2, text: string): Observable<ApiResponse<VisitFeedbackTemplate>> {
+    return this.http.post<ApiResponse<VisitFeedbackTemplate>>(`${this.base}/feedback-bank`, { kind, text });
+  }
+  updateFeedback(id: number, kind: 1 | 2, text: string): Observable<ApiResponse<VisitFeedbackTemplate>> {
+    return this.http.put<ApiResponse<VisitFeedbackTemplate>>(`${this.base}/feedback-bank/${id}`, { kind, text });
+  }
+  deleteFeedback(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.base}/feedback-bank/${id}`);
+  }
 
   list(query: VisitV2ArchiveQuery = {}): Observable<ApiResponse<VisitV2ArchiveResult>> {
     return this.http.get<ApiResponse<VisitV2ArchiveResult>>(this.base, { params: this.params(query) });

@@ -11,6 +11,10 @@ public class VisitScoreConfiguration : IEntityTypeConfiguration<VisitScore>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.EvidenceNote).HasMaxLength(2000).IsUnicode(true).UseCollation("Arabic_CI_AS");
+        builder.Property(x => x.StrengthNote).HasMaxLength(1000).IsUnicode(true).UseCollation("Arabic_CI_AS");
+        builder.Property(x => x.ImprovementNote).HasMaxLength(1000).IsUnicode(true).UseCollation("Arabic_CI_AS");
+        builder.Property(x => x.StrengthNotesJson).IsUnicode(true);
+        builder.Property(x => x.ImprovementNotesJson).IsUnicode(true);
         builder.Property(x => x.DeletedByUserId).HasMaxLength(450);
 
         // FK relationships already declared on Visit (HasMany). Just map Score/EvidenceNote.

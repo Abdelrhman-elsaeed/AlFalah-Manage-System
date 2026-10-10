@@ -6,7 +6,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import {
   CreateVisitV2Request, UpdateVisitV2Request, VisitV2ArchiveItem, VisitV2ArchiveQuery,
-  VisitV2Dashboard, VisitV2Detail, VisitV2Domain, VisitV2ObservationCard, VisitV2Standard
+  VisitV2Dashboard, VisitV2Detail, VisitV2Domain, VisitV2ObservationCard, VisitV2Standard,
+  VisitFeedbackTemplate
 } from '../../../core/models/visit-v2.models';
 import { VISIT_CATEGORIES, VISIT_SEQUENCES } from '../../../core/models/visit.models';
 import { AuthService } from '../../../core/services/auth.service';
@@ -19,7 +20,8 @@ import { downloadBlob, fileNameFromResponse } from '../../../core/utils/browser-
 import { applyQuickScore, liveTotals, suggestedScore } from '../visit-v2-calculator';
 import { VisitArchiveBadgeComponent } from '../../storage/visit-archive-badge.component';
 
-type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report';
+type FeedbackKind = 'strength' | 'improvement';
+type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report' | 'bank';
 
 @Component({
   selector: 'app-visit-v2-workspace',
@@ -59,6 +61,10 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
   readonly archiveTotal = signal(0);
   readonly evaluators = signal<{ userId: string; displayName: string }[]>([]);
   readonly dashboard = signal<VisitV2Dashboard | null>(null);
+  readonly feedbackBank = signal<VisitFeedbackTemplate[]>([]);
+  readonly bankLoaded = signal(false);
+  readonly bankBusy = signal(false);
+  readonly bankError = signal(false);
   readonly cardError = signal(false);
   readonly archiveError = signal(false);
   readonly dashboardError = signal(false);
@@ -88,6 +94,11 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
   readonly pdfDownloadingId = signal<number | null>(null);
   complaintSubject = '';
   complaintBody = '';
+  bankDraftText = '';
+  bankDraftKind: 1 | 2 = 1;
+  editingTemplateId: number | null = null;
+  editingTemplateText = '';
+  customFeedback: Record<string, string> = {};
 
   private cardRequestVersion = 0;
   private archiveRequestVersion = 0;
@@ -116,6 +127,7 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
         } else {
           this.loadCard();
           this.loadTeachers();
+          this.loadFeedbackBank();
         }
       },
       error: () => this.enabled.set(false)
@@ -185,6 +197,62 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
     this.tab.set(tab);
     if (tab === 'archive' && !this.archiveLoaded() && !this.archiveLoading()) this.loadArchive();
     if (tab === 'dashboard' && this.canManage() && !this.dashboardLoaded() && !this.dashboardLoading()) this.loadDashboard();
+    if (tab === 'bank' && !this.bankLoaded() && !this.bankBusy()) this.loadFeedbackBank();
+  }
+
+  loadFeedbackBank(): void {
+    this.bankBusy.set(true);
+    this.bankError.set(false);
+    this.visits.feedbackBank().pipe(finalize(() => this.bankBusy.set(false))).subscribe({
+      next: response => { this.feedbackBank.set(response.data ?? []); this.bankLoaded.set(true); },
+      error: () => this.bankError.set(true)
+    });
+  }
+
+  bankItems(kind: FeedbackKind): VisitFeedbackTemplate[] {
+    return this.feedbackBank().filter(item => item.kind === (kind === 'strength' ? 1 : 2));
+  }
+
+  createBankItem(): void {
+    const value = this.bankDraftText.trim();
+    if (!value || this.bankBusy()) return;
+    this.bankBusy.set(true);
+    this.visits.createFeedback(this.bankDraftKind, value).pipe(finalize(() => this.bankBusy.set(false))).subscribe({
+      next: response => {
+        if (!response.data) return;
+        this.feedbackBank.update(items => [...items, response.data!]);
+        this.bankDraftText = '';
+      },
+      error: () => this.toast.error('تعذر إضافة العبارة إلى البنك.')
+    });
+  }
+
+  startBankEdit(item: VisitFeedbackTemplate): void {
+    this.editingTemplateId = item.id;
+    this.editingTemplateText = item.text;
+  }
+
+  saveBankEdit(item: VisitFeedbackTemplate): void {
+    const value = this.editingTemplateText.trim();
+    if (!value || this.bankBusy()) return;
+    this.bankBusy.set(true);
+    this.visits.updateFeedback(item.id, item.kind, value).pipe(finalize(() => this.bankBusy.set(false))).subscribe({
+      next: response => {
+        if (!response.data) return;
+        this.feedbackBank.update(items => items.map(existing => existing.id === item.id ? response.data! : existing));
+        this.editingTemplateId = null;
+      },
+      error: () => this.toast.error('تعذر تعديل العبارة.')
+    });
+  }
+
+  deleteBankItem(item: VisitFeedbackTemplate): void {
+    if (this.bankBusy() || !window.confirm('حذف العبارة من البنك؟ ستظل موجودة في الزيارات المحفوظة.')) return;
+    this.bankBusy.set(true);
+    this.visits.deleteFeedback(item.id).pipe(finalize(() => this.bankBusy.set(false))).subscribe({
+      next: () => this.feedbackBank.update(items => items.filter(existing => existing.id !== item.id)),
+      error: () => this.toast.error('تعذر حذف العبارة.')
+    });
   }
 
   loadCard(): void {
@@ -260,7 +328,47 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   hasEvidence(standard: VisitV2Standard): boolean {
-    return !!standard.evidenceNote?.trim();
+    return !!(standard.evidenceNote?.trim() || this.feedbackItems(standard, 'strength').length
+      || this.feedbackItems(standard, 'improvement').length);
+  }
+
+  feedbackItems(standard: VisitV2Standard, kind: FeedbackKind): string[] {
+    return kind === 'strength' ? standard.strengthNotes ?? [] : standard.improvementNotes ?? [];
+  }
+
+  addFeedback(standard: VisitV2Standard, kind: FeedbackKind, value: string): boolean {
+    const note = value.trim();
+    const items = this.feedbackItems(standard, kind);
+    if (!note || items.includes(note) || items.length >= 20 || note.length > 1000) return false;
+    if (kind === 'strength') standard.strengthNotes = [...items, note];
+    else standard.improvementNotes = [...items, note];
+    this.markDirty();
+    return true;
+  }
+
+  addCustomFeedback(standard: VisitV2Standard, kind: FeedbackKind): void {
+    const key = `${standard.id}:${kind}`;
+    if (this.addFeedback(standard, kind, this.customFeedback[key] ?? '')) this.customFeedback[key] = '';
+  }
+
+  editFeedback(standard: VisitV2Standard, kind: FeedbackKind, index: number, value: string): void {
+    const items = [...this.feedbackItems(standard, kind)];
+    items[index] = value;
+    if (kind === 'strength') standard.strengthNotes = items;
+    else standard.improvementNotes = items;
+    this.markDirty();
+  }
+
+  removeFeedback(standard: VisitV2Standard, kind: FeedbackKind, index: number): void {
+    const items = this.feedbackItems(standard, kind).filter((_, i) => i !== index);
+    if (kind === 'strength') standard.strengthNotes = items;
+    else standard.improvementNotes = items;
+    this.markDirty();
+  }
+
+  recordedFeedback(domains: VisitV2Domain[], kind: FeedbackKind): { code: string; text: string }[] {
+    return domains.flatMap(domain => domain.standards.flatMap(standard =>
+      this.feedbackItems(standard, kind).filter(text => text.trim()).map(text => ({ code: standard.code, text: text.trim() }))));
   }
 
   toggleEvidence(standard: VisitV2Standard): void {
@@ -550,6 +658,8 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
         rubricStandardId: standard.id,
         score: standard.score,
         evidenceNote: standard.evidenceNote,
+        strengthNotes: this.feedbackItems(standard, 'strength').map(text => text.trim()).filter(Boolean),
+        improvementNotes: this.feedbackItems(standard, 'improvement').map(text => text.trim()).filter(Boolean),
         observedIndicatorIds: standard.indicators.filter(x => x.isObserved).map(x => x.id)
       })))
     };
@@ -569,7 +679,10 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
 
   private cloneDomains(domains: VisitV2Domain[]): VisitV2Domain[] {
     return domains.map(domain => ({ ...domain, standards: domain.standards.map(standard => ({
-      ...standard, indicators: standard.indicators.map(indicator => ({ ...indicator }))
+      ...standard,
+      strengthNotes: [...(standard.strengthNotes ?? (standard.strengthNote ? [standard.strengthNote] : []))],
+      improvementNotes: [...(standard.improvementNotes ?? (standard.improvementNote ? [standard.improvementNote] : []))],
+      indicators: standard.indicators.map(indicator => ({ ...indicator }))
     })) }));
   }
 

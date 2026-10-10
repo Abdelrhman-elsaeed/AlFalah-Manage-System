@@ -52,11 +52,15 @@ describe('VisitWorkspaceComponent interaction stability', () => {
     visits = jasmine.createSpyObj<VisitsV2Service>('VisitsV2Service', [
       'availability', 'observationCard', 'list', 'dashboard', 'get', 'create', 'update',
       'finalize', 'approve', 'reject', 'reopen', 'softDelete', 'updateTreatments',
-      'exportCsv', 'exportZip', 'exportPdf'
+      'exportCsv', 'exportZip', 'exportPdf', 'feedbackBank', 'createFeedback', 'updateFeedback', 'deleteFeedback'
     ]);
     visits.availability.and.returnValue(of({ data: { isEnabled: true } } as any));
     visits.observationCard.and.returnValue(of({ data: card } as any));
     visits.list.and.returnValue(of(archiveResponse));
+    visits.feedbackBank.and.returnValue(of({ data: [
+      { id: 1, kind: 1, text: 'تميز في الشرح' }, { id: 2, kind: 1, text: 'تميز في المشاركة' },
+      { id: 3, kind: 2, text: 'تحسين التقويم' }
+    ] } as any));
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'warn', 'error']);
 
     await TestBed.configureTestingModule({
@@ -126,6 +130,31 @@ describe('VisitWorkspaceComponent interaction stability', () => {
 
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     expect(fixture.nativeElement.querySelector('.evidence-field textarea')).not.toBeNull();
+  });
+
+  it('offers two feedback banks and includes selected phrases in the visit payload', () => {
+    component.cardStep.set(2);
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.evidence-toggle') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const selects = fixture.nativeElement.querySelectorAll('.feedback-field select') as NodeListOf<HTMLSelectElement>;
+    expect(selects.length).toBe(2);
+    expect(selects[0].options.length).toBe(3);
+    expect(selects[1].options.length).toBe(2);
+    selects[0].value = selects[0].options[1].value;
+    selects[0].dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    selects[0].value = selects[0].options[2].value;
+    selects[0].dispatchEvent(new Event('change'));
+    selects[1].value = selects[1].options[1].value;
+    selects[1].dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const score = (component as any).updateRequest().scores[0];
+    expect(score.strengthNotes).toEqual(['تميز في الشرح', 'تميز في المشاركة']);
+    expect(score.improvementNotes).toEqual(['تحسين التقويم']);
+    expect(component.dirty()).toBeTrue();
   });
 
   it('shows a compact saved-evidence state while an existing note is collapsed', () => {

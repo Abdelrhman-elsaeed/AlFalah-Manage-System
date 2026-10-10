@@ -5,7 +5,9 @@ export interface VisitV2ScoreLabel { score: number; labelAr: string; }
 export interface VisitV2Indicator { id: number; code: string; textAr: string; sortOrder: number; isObserved: boolean; }
 export interface VisitV2Standard {
   id: number; code: string; textAr: string; sortOrder: number; score: number;
-  evidenceNote?: string | null; indicators: VisitV2Indicator[];
+  evidenceNote?: string | null; strengthNote?: string | null; improvementNote?: string | null;
+  strengthNotes?: string[]; improvementNotes?: string[];
+  indicators: VisitV2Indicator[];
 }
 export interface VisitV2Domain {
   id: number; code: string; nameAr: string; sortOrder: number; standards: VisitV2Standard[];
@@ -19,8 +21,10 @@ export interface CreateVisitV2Request {
   presentCount: number; absentCount: number; notes?: string | null;
 }
 export interface VisitV2ScoreInput {
-  rubricStandardId: number; score: number; evidenceNote?: string | null; observedIndicatorIds: number[];
+  rubricStandardId: number; score: number; evidenceNote?: string | null;
+  strengthNotes: string[]; improvementNotes: string[]; observedIndicatorIds: number[];
 }
+export interface VisitFeedbackTemplate { id: number; kind: 1 | 2; text: string; }
 export interface UpdateVisitV2Request extends Omit<CreateVisitV2Request, 'instructorId'> { scores: VisitV2ScoreInput[]; }
 export interface VisitV2DomainAnalysis {
   rubricDomainId: number; domainCode: string; domainNameAr: string; sum: number; maximumScore: number;

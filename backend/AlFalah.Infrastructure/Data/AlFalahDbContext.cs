@@ -73,6 +73,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     // Visits (Phase 4 + Phase 2 V2)
     public DbSet<Visit> Visits => Set<Visit>();
     public DbSet<VisitScore> VisitScores => Set<VisitScore>();
+    public DbSet<VisitFeedbackTemplate> VisitFeedbackTemplates => Set<VisitFeedbackTemplate>();
     public DbSet<VisitAnalysis> VisitAnalyses => Set<VisitAnalysis>();
     public DbSet<VisitDomainAverage> VisitDomainAverages => Set<VisitDomainAverage>();
     public DbSet<VisitObservedIndicator> VisitObservedIndicators => Set<VisitObservedIndicator>();  // Phase 2 (Visits V2)

@@ -4,6 +4,7 @@ using AlFalah.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AlFalah.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AlFalahDbContext))]
-    partial class AlFalahDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261010093544_AddVisitFeedbackNotes")]
+    partial class AddVisitFeedbackNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -9936,43 +9939,6 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("VisitDomainAverages");
                 });
 
-            modelBuilder.Entity("AlFalah.Domain.Entities.VisitFeedbackTemplate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SchoolId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .IsUnicode(true)
-                        .HasColumnType("nvarchar(1000)")
-                        .UseCollation("Arabic_CI_AS");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SchoolId", "Kind", "IsDeleted");
-
-                    b.ToTable("VisitFeedbackTemplates");
-                });
-
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitObservedIndicator", b =>
                 {
                     b.Property<int>("Id")
@@ -10053,10 +10019,6 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(1000)")
                         .UseCollation("Arabic_CI_AS");
 
-                    b.Property<string>("ImprovementNotesJson")
-                        .IsUnicode(true)
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -10071,10 +10033,6 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(1000)")
                         .UseCollation("Arabic_CI_AS");
-
-                    b.Property<string>("StrengthNotesJson")
-                        .IsUnicode(true)
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -13959,17 +13917,6 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("RubricDomain");
 
                     b.Navigation("VisitAnalysis");
-                });
-
-            modelBuilder.Entity("AlFalah.Domain.Entities.VisitFeedbackTemplate", b =>
-                {
-                    b.HasOne("AlFalah.Domain.Entities.School", "School")
-                        .WithMany()
-                        .HasForeignKey("SchoolId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("School");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.VisitObservedIndicator", b =>
