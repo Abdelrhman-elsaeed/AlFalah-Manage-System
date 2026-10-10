@@ -744,3 +744,16 @@ h1 .pi, h2 .pi, h3 .pi, h4 .pi { font-size: 1.1rem; }
   .p-paginator { justify-content: center; padding: 0.45rem !important; }
   .p-paginator .p-paginator-current { width: 100%; order: -1; }
 }
+.delegation-candidate-panel{direction:rtl;max-width:min(460px,calc(100vw - 24px));border:1px solid #dfdfd0;border-radius:12px;box-shadow:0 14px 36px #163c262e;overflow:hidden}
+.delegation-candidate-panel .p-dropdown-header{padding:10px;background:#f9faf6;border-bottom:1px solid #e8eadf}
+.delegation-candidate-panel .p-dropdown-filter{width:100%;border-radius:8px;text-align:right;font-size:.85rem}
+.delegation-candidate-panel .p-dropdown-items-wrapper{max-height:320px}
+.delegation-candidate-panel .p-dropdown-item-group{padding:0;background:#f1f5ef;position:sticky;top:0;z-index:1}
+.delegation-candidate-panel .candidate-group{display:flex;align-items:center;gap:8px;padding:9px 13px;color:#326249;font-size:.78rem;font-weight:800}
+.delegation-candidate-panel .candidate-group i{color:#158654}
+.delegation-candidate-panel .candidate-group small{margin-inline-start:auto;display:grid;place-items:center;min-width:22px;height:22px;border-radius:20px;background:#e0ebe1;color:#447057;font-size:.7rem}
+.delegation-candidate-panel .p-dropdown-item{padding:0;border-bottom:1px solid #f2f0e9}
+.delegation-candidate-panel .candidate-option{display:grid;gap:2px;padding:10px 15px;text-align:right}
+.delegation-candidate-panel .candidate-option strong{color:#21392a;font-size:.84rem;font-weight:700}
+.delegation-candidate-panel .candidate-option small{color:#839084;font-size:.72rem;direction:ltr;text-align:right}
+.delegation-candidate-panel .p-dropdown-item:hover .candidate-option{background:#edf7ef}

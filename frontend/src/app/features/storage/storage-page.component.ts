@@ -48,6 +48,7 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   private readonly folderPages = new Map<number, number>();
   private readonly folderPaths = new Map<number, StorageFolder[]>();
   private listKey = '';
+  private lastTeacherRequirementParam?: number;
   private displayedFolderId?: number;
   private openedFileId?: number;
   readonly own = this.route.snapshot.data['own'] === true;
@@ -58,6 +59,9 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   teacherRequirementsLoading = false;
   teacherRequirementsError = '';
   teacherRequirementId?: number;
+  teacherTab: 'files' | 'upload' = 'files';
+  teacherRequirementCategory: 'standards' | 'tasks' = 'standards';
+  teacherRequirementSearch = '';
   teacherCreatedLink?: EvidenceLink;
   teacherCreatedFileId?: number;
   discovery?: StorageDiscovery;
@@ -108,6 +112,24 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   get moveBrowseFolder() { return this.moveBrowsePath.at(-1); }
   get detailFile() { return this.details?.file ?? this.detailPreviewFile; }
   get connected() { return this.context?.connectionState === 'Connected'; }
+  get selectedTeacherRequirement() { return this.teacherRequirements.find(item => item.id === this.teacherRequirementId); }
+  get visibleTeacherRequirements() {
+    const query = this.teacherRequirementSearch.trim().toLocaleLowerCase();
+    return this.teacherRequirements.filter(item =>
+      (this.teacherRequirementCategory === 'tasks' ? item.originalTaskId != null : item.originalTaskId == null) &&
+      (!query || `${item.code} ${item.displayName} ${item.standardCode ?? ''}`.toLocaleLowerCase().includes(query)));
+  }
+  teacherRequirementCount(category: 'standards' | 'tasks') {
+    return this.teacherRequirements.filter(item => category === 'tasks' ? item.originalTaskId != null : item.originalTaskId == null).length;
+  }
+  showTeacherTab(tab: 'files' | 'upload') { this.teacherTab = tab; }
+  setTeacherRequirementCategory(category: 'standards' | 'tasks') {
+    if (this.teacherRequirementCategory === category) return;
+    this.teacherRequirementCategory = category;
+    this.teacherRequirementSearch = '';
+    if (this.selectedTeacherRequirement && (category === 'tasks') !== (this.selectedTeacherRequirement.originalTaskId != null))
+      this.selectTeacherRequirement(undefined);
+  }
   get canReviewEvidence() { return !!(this.context?.canReviewEvidence ?? this.context?.canManage) && !this.historicalYear; }
   get historicalYear() { return !!this.evaluationYear && !!this.context?.academicYearId && this.evaluationYear !== this.context.academicYearId; }
   get previewable() { return !!this.detailFile && this.canPreview(this.detailFile); }
@@ -138,7 +160,15 @@ export class StoragePageComponent implements OnInit, OnDestroy {
     if (!this.connected || !this.context?.rootFolderId) return;
     const params = this.route.snapshot.queryParamMap;
     this.initialRequirement = Number(params.get('requirement')) || undefined;
-    if (this.own) this.teacherRequirementId = this.initialRequirement;
+    if (this.own) {
+      this.teacherRequirementId = this.initialRequirement;
+      if (this.initialRequirement && this.initialRequirement !== this.lastTeacherRequirementParam) {
+        this.teacherTab = 'upload';
+        const selected = this.selectedTeacherRequirement;
+        if (selected) this.teacherRequirementCategory = selected.originalTaskId != null ? 'tasks' : 'standards';
+      }
+      this.lastTeacherRequirementParam = this.initialRequirement;
+    }
     this.evaluationYear = Number(params.get('academicYearId')) || this.context.academicYearId;
     const file = Number(params.get('file')) || undefined;
     this.activeView = !this.own && (this.route.snapshot.data['view'] === 'review' || params.get('view') === 'review' || !!this.initialRequirement && !file) ? 'review' : 'library';
@@ -190,7 +220,11 @@ export class StoragePageComponent implements OnInit, OnDestroy {
   private loadTeacherRequirements(year: number) {
     this.teacherRequirementsLoading = true; this.teacherRequirementsError = '';
     this.evidenceApi.catalog(year).pipe(takeUntil(this.destroyed)).subscribe({
-      next: items => { this.teacherRequirementsLoading = false; this.teacherRequirements = items; },
+      next: items => {
+        this.teacherRequirementsLoading = false; this.teacherRequirements = items;
+        const selected = this.selectedTeacherRequirement;
+        if (selected) this.teacherRequirementCategory = selected.originalTaskId != null ? 'tasks' : 'standards';
+      },
       error: e => { this.teacherRequirementsLoading = false; this.teacherRequirementsError = e?.error?.message || 'تعذر تحميل المتطلبات. يمكنك رفع الملف وربطه لاحقًا من تفاصيله.'; }
     });
   }

@@ -46,6 +46,28 @@ public sealed class StorageRepository(AlFalahDbContext db) : IStorageRepository
     public async Task<IReadOnlyList<StorageDelegation>> GetDelegationsAsync(int schoolId, CancellationToken ct) =>
         await db.StorageDelegations.AsNoTracking().Where(x => x.SchoolId == schoolId).OrderByDescending(x => x.StartsAt).ToListAsync(ct);
 
+    public async Task<IReadOnlyList<StorageDelegationCandidateDto>> GetDelegationCandidatesAsync(int schoolId,
+        string managerUserId, CancellationToken ct)
+    {
+        var rows = await db.UserSchoolRoles.AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && x.IsActive && !x.IsDeleted && x.User.IsActive &&
+                !x.User.IsDeleted && x.Role.IsActive && x.UserId != managerUserId)
+            .Select(x => new { x.UserId, x.User.FirstName, x.User.LastName, x.User.UserName, Role = x.Role.Name })
+            .ToListAsync(ct);
+        return rows.GroupBy(x => x.UserId, StringComparer.Ordinal)
+            .Select(group =>
+            {
+                var user = group.First();
+                var username = user.UserName ?? "";
+                var name = (user.FirstName + " " + user.LastName).Trim();
+                return new StorageDelegationCandidateDto(group.Key, name.Length == 0 ? username : name, username,
+                    group.Select(x => x.Role ?? "").Where(role => role.Length > 0)
+                        .Distinct(StringComparer.Ordinal).OrderBy(role => role, StringComparer.Ordinal).ToArray());
+            })
+            .OrderBy(x => x.FullName, StringComparer.OrdinalIgnoreCase).ThenBy(x => x.Username, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
     public Task<StorageDelegation?> GetDelegationAsync(int schoolId, int id, CancellationToken ct) =>
         db.StorageDelegations.AsTracking().SingleOrDefaultAsync(x => x.SchoolId == schoolId && x.Id == id, ct);
 

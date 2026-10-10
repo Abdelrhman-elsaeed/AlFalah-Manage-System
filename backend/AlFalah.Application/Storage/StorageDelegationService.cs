@@ -15,6 +15,13 @@ public sealed class StorageDelegationService(IStorageRepository repository, ISto
         return (await repository.GetDelegationsAsync(schoolId, ct)).Select(Map).ToArray();
     }
 
+    public async Task<IReadOnlyList<StorageDelegationCandidateDto>> CandidatesAsync(CancellationToken ct = default)
+    {
+        var schoolId = School();
+        var manager = await authorization.RequireManagerAsync(schoolId, ct);
+        return await repository.GetDelegationCandidatesAsync(schoolId, manager.UserId, ct);
+    }
+
     public Task<StorageDelegationDto> GrantAsync(GrantStorageDelegationRequest request, CancellationToken ct = default)
     {
         var schoolId = School();

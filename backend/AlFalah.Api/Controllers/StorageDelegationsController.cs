@@ -14,6 +14,10 @@ public sealed class StorageDelegationsController(IStorageDelegationService servi
     public async Task<IActionResult> List(CancellationToken ct) =>
         Ok(ApiResponse<IReadOnlyList<StorageDelegationDto>>.Success(await service.ListAsync(ct)));
 
+    [HttpGet("candidates")]
+    public async Task<IActionResult> Candidates(CancellationToken ct) =>
+        Ok(ApiResponse<IReadOnlyList<StorageDelegationCandidateDto>>.Success(await service.CandidatesAsync(ct)));
+
     [HttpPost]
     public async Task<IActionResult> Grant(GrantStorageDelegationRequest request, CancellationToken ct) =>
         Ok(ApiResponse<StorageDelegationDto>.Success(await service.GrantAsync(request, ct), "تم منح التفويض."));

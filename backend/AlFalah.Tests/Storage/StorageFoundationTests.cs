@@ -188,6 +188,27 @@ public sealed class StorageFoundationTests
     }
 
     [Fact]
+    public async Task Delegation_candidates_are_active_school_members_grouped_by_their_school_roles()
+    {
+        await using var h = await Setup();
+        var manager = Delegations(h, TeacherDriveHarness.Manager());
+        var candidates = await manager.CandidatesAsync();
+        candidates.Select(x => x.UserId).Should().BeEquivalentTo(
+            TeacherDriveHarness.TeacherAUserId, TeacherDriveHarness.TeacherBUserId);
+        candidates.Should().OnlyContain(x => x.Roles.Contains(RoleNames.Instructor));
+
+        (await h.Context.Users.SingleAsync(x => x.Id == TeacherDriveHarness.TeacherAUserId)).IsActive = false;
+        (await h.Context.UserSchoolRoles.SingleAsync(x => x.UserId == TeacherDriveHarness.TeacherBUserId)).SchoolId = 2;
+        await h.Context.SaveChangesAsync();
+        (await manager.CandidatesAsync()).Should().BeEmpty();
+
+        var forged = new TeacherDriveHarness.TestCurrentUser(RoleNames.SchoolManager,
+            TeacherDriveHarness.TeacherAUserId, 1, true);
+        await Delegations(h, forged).Invoking(x => x.CandidatesAsync())
+            .Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+    }
+
+    [Fact]
     public async Task Delegation_revocation_expiration_and_membership_removal_revoke_operational_access()
     {
         await using var h = await Setup();

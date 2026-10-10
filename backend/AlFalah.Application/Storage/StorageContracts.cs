@@ -20,6 +20,8 @@ public sealed record RevokeStorageDelegationRequest(string Reason, string RowVer
 public sealed record StorageDelegationDto(int Id, string GranteeUserId, string GrantedByManagerUserId,
     DateTimeOffset StartsAt, DateTimeOffset? ExpiresAt, DateTimeOffset? RevokedAt, string Reason,
     string? RevocationReason, string? RevokedByManagerUserId, string RowVersion);
+public sealed record StorageDelegationCandidateDto(string UserId, string FullName, string Username,
+    IReadOnlyList<string> Roles);
 public sealed record StorageActorScope(string UserId, int SchoolId, string? ManagerUserId, bool IsMember);
 // Internal authorization result; raw provider IDs never form an API response.
 public sealed record StorageFileAccess(int Id, int SchoolId, int? OwnerTeacherId, string? OwnerUserId,
@@ -35,6 +37,7 @@ public interface IStorageRepository
     Task<bool> HasDelegationAsync(string userId, int schoolId, DateTimeOffset now, CancellationToken ct);
     Task<bool> HasOverlappingDelegationAsync(int schoolId, string userId, DateTimeOffset start, DateTimeOffset? end, CancellationToken ct);
     Task<IReadOnlyList<StorageDelegation>> GetDelegationsAsync(int schoolId, CancellationToken ct);
+    Task<IReadOnlyList<StorageDelegationCandidateDto>> GetDelegationCandidatesAsync(int schoolId, string managerUserId, CancellationToken ct);
     Task<StorageDelegation?> GetDelegationAsync(int schoolId, int id, CancellationToken ct);
     Task AddDelegationAsync(StorageDelegation delegation, CancellationToken ct);
     Task RevokeDelegationAsync(StorageDelegation delegation, byte[] expectedVersion, CancellationToken ct);
@@ -61,6 +64,7 @@ public interface IStorageAuthorizationService
 public interface IStorageDelegationService
 {
     Task<IReadOnlyList<StorageDelegationDto>> ListAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<StorageDelegationCandidateDto>> CandidatesAsync(CancellationToken ct = default);
     Task<StorageDelegationDto> GrantAsync(GrantStorageDelegationRequest request, CancellationToken ct = default);
     Task<StorageDelegationDto> RevokeAsync(int id, RevokeStorageDelegationRequest request, CancellationToken ct = default);
 }

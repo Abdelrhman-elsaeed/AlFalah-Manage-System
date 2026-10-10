@@ -26,34 +26,45 @@
     <button *ngIf="!own && context.connectionState === 'LibraryNotInitialized' && context.canManage" pButton type="button" label="تفعيل المكتبة" [disabled]="busy" (click)="initialize()"></button>
   </div>
   <div *ngIf="busy && activeView === 'review'" class="storage-loading" role="status" [attr.aria-label]="'STORAGE.LOADING' | translate"><span></span><span></span></div>
-  <div *ngIf="connected && own" class="intro-card">
-    <div class="intro-icon"><i [class]="own ? 'pi pi-user' : 'pi pi-sitemap'" aria-hidden="true"></i></div>
-    <div><strong>{{ own ? 'مساحتك الخاصة بالملفات' : 'نظّم ملفات المدرسة وشواهدها' }}</strong>
-      <p>{{ own ? 'هذه مكتبتك الخاصة. ارفع الملف داخل مجلدك، ثم افتح تفاصيله لربطه بمتطلب وإرساله للمراجعة. لرفع دليل مرتبط بمهمة مباشرة استخدم صفحة ملفات الإنجاز.' : 'هذه المكتبة تعرض ملفات المدرسة فقط. مجلدات المعلمين منفصلة وتُمنح من ملف كل معلم. بعد ربط الملف بمتطلب، انتقل إلى مراجعة الشواهد.' }}</p>
-      <a *ngIf="own" class="intro-link" routerLink="/instructor/evidence-files">الانتقال إلى رفع أدلة المهام <i class="pi pi-arrow-left" aria-hidden="true"></i></a></div>
+  <div *ngIf="connected && own && activeView === 'library'" class="teacher-navigation">
+    <div class="teacher-navigation-copy"><span class="eyebrow">مساحة المعلم</span><strong>{{ teacherTab === 'files' ? 'ملفاتك في مكان واحد' : 'ارفع ملفًا واربطه بما يثبت إنجازك' }}</strong><p>{{ teacherTab === 'files' ? 'تصفّح ملفاتك وافتح أي ملف لمراجعة روابطه وحالة اعتماده.' : 'اختر متطلبًا أو مهمة من القائمة، ثم ارفع الملف. يمكنك إرساله للمراجعة من تفاصيله.' }}</p></div>
+    <div class="teacher-tabs" role="tablist" aria-label="أقسام ملفاتي">
+      <button id="teacher-files-tab" role="tab" type="button" [attr.aria-selected]="teacherTab === 'files'" aria-controls="teacher-files-panel" (click)="showTeacherTab('files')"><i class="pi pi-folder-open" aria-hidden="true"></i> ملفاتي <span>{{ total }}</span></button>
+      <button id="teacher-upload-tab" role="tab" type="button" [attr.aria-selected]="teacherTab === 'upload'" aria-controls="teacher-upload-panel" (click)="showTeacherTab('upload')"><i class="pi pi-cloud-upload" aria-hidden="true"></i> رفع وربط ملف</button>
+    </div>
   </div>
   <div *ngIf="connected && activeView === 'review' && !own" class="review-panel">
     <app-storage-evidence [year]="evaluationYear" [initialRequirement]="initialRequirement" [initialLink]="+(route.snapshot.queryParamMap.get('link') || 0) || undefined" [canManage]="!!context?.canManage && !historicalYear" [canReview]="canReviewEvidence" (openFile)="openDetails($event)" (denied)="evidenceDenied()"></app-storage-evidence>
   </div>
   <div *ngIf="(connected || busy) && activeView === 'library' && !historicalYear" class="workspace" [class.teacher-workspace]="own">
-    <aside *ngIf="connected && own" class="teacher-flow" aria-label="رفع ملف وربطه بمتطلب">
-      <div class="teacher-step"><span class="step-number">1</span><h2>اختر المتطلب أو المهمة</h2></div>
-      <p *ngIf="teacherRequirementsLoading" role="status">جار تحميل المتطلبات…</p>
-      <p *ngIf="teacherRequirementsError" class="error" role="alert">{{ teacherRequirementsError }}</p>
-      <div *ngIf="teacherRequirements.length" class="requirement-options" role="group" aria-label="المتطلبات">
-        <button *ngFor="let requirement of teacherRequirements" type="button" [attr.aria-pressed]="teacherRequirementId === requirement.id" (click)="selectTeacherRequirement(teacherRequirementId === requirement.id ? undefined : requirement.id)"><span dir="ltr">{{ requirement.code }}</span> {{ requirement.displayName }} <i [class]="teacherRequirementId === requirement.id ? 'pi pi-check' : 'pi pi-plus'" aria-hidden="true"></i></button>
+    <aside *ngIf="connected && own" id="teacher-upload-panel" class="teacher-flow" role="tabpanel" aria-labelledby="teacher-upload-tab" [hidden]="teacherTab !== 'upload'" aria-label="رفع ملف وربطه بمتطلب">
+      <div class="teacher-flow-header"><span class="teacher-flow-icon"><i class="pi pi-sitemap" aria-hidden="true"></i></span><div><span class="eyebrow">الخطوة الأولى</span><h2>حدّد وجهة الملف</h2><p>اختر من المتطلبات أو المهام المتاحة لك. ويمكنك رفع الملف دون اختيار وربطه لاحقًا.</p></div></div>
+      <div class="teacher-requirement-tabs" role="tablist" aria-label="نوع الربط">
+        <button type="button" role="tab" [attr.aria-selected]="teacherRequirementCategory === 'standards'" (click)="setTeacherRequirementCategory('standards')"><i class="pi pi-check-square" aria-hidden="true"></i> متطلبات التقويم <span>{{ teacherRequirementCount('standards') }}</span></button>
+        <button type="button" role="tab" [attr.aria-selected]="teacherRequirementCategory === 'tasks'" (click)="setTeacherRequirementCategory('tasks')"><i class="pi pi-list-check" aria-hidden="true"></i> مهام الإنجاز <span>{{ teacherRequirementCount('tasks') }}</span></button>
       </div>
-      <p *ngIf="!teacherRequirementsLoading && !teacherRequirementsError && !teacherRequirements.length" class="teacher-hint">لا توجد متطلبات متاحة في هذه السنة. يمكنك رفع الملف الآن وربطه لاحقًا.</p>
-      <p class="teacher-hint">يُحفظ الملف أولًا. اختيار متطلب ينشئ رابطًا كمسودة، ثم ترسله للمراجعة من تفاصيل الملف.</p>
-      <div class="teacher-step"><span class="step-number">2</span><h2>ارفع الملف</h2></div>
+      <div class="teacher-requirement-picker">
+        <label for="teacher-requirement-search">ابحث واختر {{ teacherRequirementCategory === 'tasks' ? 'المهمة' : 'المتطلب' }}</label>
+        <div class="teacher-requirement-search"><i class="pi pi-search" aria-hidden="true"></i><input id="teacher-requirement-search" type="search" [(ngModel)]="teacherRequirementSearch" [placeholder]="teacherRequirementCategory === 'tasks' ? 'اسم المهمة أو رمزها' : 'اسم المتطلب أو رمزه'" [disabled]="teacherRequirementsLoading"></div>
+        <p *ngIf="teacherRequirementsLoading" class="teacher-hint" role="status">جار تحميل المتطلبات…</p>
+        <p *ngIf="teacherRequirementsError" class="error" role="alert">{{ teacherRequirementsError }}</p>
+        <div *ngIf="!teacherRequirementsLoading && !teacherRequirementsError" class="teacher-requirement-list" role="group" aria-label="نتائج البحث">
+          <button *ngFor="let requirement of visibleTeacherRequirements" type="button" [attr.aria-pressed]="teacherRequirementId === requirement.id" (click)="selectTeacherRequirement(teacherRequirementId === requirement.id ? undefined : requirement.id)"><span class="teacher-requirement-code" dir="ltr">{{ requirement.code }}</span><span class="teacher-requirement-name">{{ requirement.displayName }}</span><i [class]="teacherRequirementId === requirement.id ? 'pi pi-check-circle' : 'pi pi-plus-circle'" aria-hidden="true"></i></button>
+          <p *ngIf="!visibleTeacherRequirements.length" class="teacher-requirement-empty">{{ teacherRequirementSearch ? 'لا توجد نتائج مطابقة. جرّب كلمة أخرى.' : 'لا توجد عناصر متاحة في هذا القسم.' }}</p>
+        </div>
+        <div *ngIf="selectedTeacherRequirement" class="teacher-selected-requirement"><i class="pi pi-check-circle" aria-hidden="true"></i><span>سيُربط الملف بعد رفعه بـ<strong>{{ selectedTeacherRequirement.displayName }}</strong></span><button type="button" (click)="selectTeacherRequirement(undefined)" aria-label="إلغاء اختيار المتطلب"><i class="pi pi-times" aria-hidden="true"></i></button></div>
+      </div>
+      <div class="teacher-flow-header teacher-upload-heading"><span class="teacher-flow-icon"><i class="pi pi-cloud-upload" aria-hidden="true"></i></span><div><span class="eyebrow">الخطوة الثانية</span><h2>ارفع الملف</h2><p>سيُحفظ في مجلدك الحالي: <strong>{{ currentFolder?.displayName }}</strong></p></div></div>
       <label class="teacher-drop" (dragover)="$event.preventDefault()" (drop)="drop($event)" tabindex="0" (keydown.enter)="teacherPicker.click()" (keydown.space)="$event.preventDefault(); teacherPicker.click()"><i class="pi pi-cloud-upload" aria-hidden="true"></i><strong>اسحب الملف هنا أو اضغط للاختيار</strong><small>PDF · JPG · PNG · MP4 · DOCX — حتى 250 MiB</small><input #teacherPicker type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.mp4,.mov,.webp,.heic" (change)="choose($event)" [disabled]="uploading || !context?.canManage"></label>
       <p *ngIf="uploadError && !selectedFile" class="upload-error" role="alert">{{ uploadError }}</p>
       <div *ngIf="selectedFile" class="teacher-upload-card" role="status"><div class="upload-selection"><span class="upload-file-icon"><i class="pi pi-file" aria-hidden="true"></i></span><div><strong>{{ selectedFile.name }}</strong><small>{{ selectedFile.size / 1048576 | number:'1.1-1' }} MiB</small></div></div><p *ngIf="uploadError" class="upload-error" role="alert">{{ uploadError }}</p><div *ngIf="uploading" class="upload-transfer"><div><strong>{{ progress < 99 ? 'جار إرسال الملف' : 'جار حفظ الملف والتحقق منه' }}</strong><span *ngIf="progress < 99">{{ progress }}%</span></div><div class="upload-meter"><span [style.width.%]="progress"></span></div></div><div class="teacher-upload-actions"><button type="button" class="upload-primary" (click)="upload()" [disabled]="uploading">{{ 'STORAGE.SEND' | translate }}</button><button type="button" class="upload-secondary" (click)="cancelQueued()" [disabled]="uploading">{{ 'STORAGE.CANCEL' | translate }}</button></div></div>
       <div *ngIf="operation && operation.status !== 'Completed'" class="notice"><p>{{ 'STORAGE.RECONCILIATION' | translate }}</p><button pButton type="button" [label]="'STORAGE.RECONCILE' | translate" (click)="reconcile()"></button></div>
       <button *ngIf="teacherCreatedLink" type="button" class="teacher-next" (click)="openDetails(teacherCreatedLink)">فتح الرابط وإرساله للمراجعة <i class="pi pi-arrow-left" aria-hidden="true"></i></button>
       <button *ngIf="teacherCreatedFileId && !teacherCreatedLink" type="button" class="teacher-next" (click)="openDetails(teacherCreatedFileId)">فتح الملف وربطه يدويًا <i class="pi pi-arrow-left" aria-hidden="true"></i></button>
+      <p class="teacher-flow-note"><i class="pi pi-info-circle" aria-hidden="true"></i> الربط هنا يبدأ كمسودة، ولا يُحتسب المتطلب حتى ترسله للمراجعة ويُعتمد.</p>
+      <details class="teacher-flow-explain"><summary>ما الفرق بين هذه المساحة وملفات الإنجاز؟</summary><p>صفحة ملفات الإنجاز ترفع الدليل مباشرة إلى مهمة في مصفوفة المتابعة. هنا تحفظ الملف في مكتبتك، ثم تربطه بمتطلب أو مهمة وتُرسل الرابط للمراجعة. يمكن أن يظهر الملف نفسه في المسارين، لكن حالة المهمة وحالة رابط المتطلب تُداران بشكل منفصل.</p><a routerLink="/instructor/evidence-files">فتح ملفات الإنجاز <i class="pi pi-arrow-left" aria-hidden="true"></i></a></details>
     </aside>
-    <main class="library-panel" (dragover)="$event.preventDefault()" (drop)="drop($event)">
+    <main class="library-panel" [attr.id]="own ? 'teacher-files-panel' : null" [attr.role]="own ? 'tabpanel' : null" [attr.aria-labelledby]="own ? 'teacher-files-tab' : null" [hidden]="own && teacherTab !== 'files'" (dragover)="$event.preventDefault()" (drop)="drop($event)">
       <form class="toolbar file-toolbar" (ngSubmit)="searchSubmit()">
         <div class="search-group"><label class="search"><span class="sr-only">{{ 'STORAGE.SEARCH' | translate }}</span><input name="search" [ngModel]="searchInput" (ngModelChange)="queueSearch($event)" maxlength="200" [placeholder]="'ابحث في «' + (currentFolder?.displayName || 'مكتبة المدرسة') + '»'"><button type="submit" class="search-submit" aria-label="بحث" [disabled]="busy"><i class="pi pi-search" aria-hidden="true"></i></button></label>
           <label class="search-scope"><input type="checkbox" name="global" [(ngModel)]="global" (change)="searchSubmit()" aria-label="البحث في جميع الملفات"><span class="scope-here">هنا فقط</span><span class="scope-all">الكل</span></label></div>
@@ -65,7 +76,7 @@
       <div class="list-heading files-heading"><h3><i class="pi pi-file" aria-hidden="true"></i> الملفات</h3><span>{{ total }} ملف</span></div>
       <div class="file-column-head"><span>الاسم</span><span>الحالة</span><span>الحجم</span><span>آخر تعديل</span><span><small *ngIf="busy && files.length" class="file-refresh-indicator" role="status">جار تحديث النتائج</small></span></div>
       <div *ngIf="busy && !files.length" class="file-pending" role="status">جار تحديث الملفات…</div>
-      <div *ngIf="!busy && !files.length && !error" class="empty"><i class="pi pi-folder-open"></i><h2>{{ 'STORAGE.EMPTY' | translate }}</h2><p>{{ 'STORAGE.EMPTY_HINT' | translate }}</p></div>
+      <div *ngIf="!busy && !files.length && !error" class="empty"><i class="pi pi-folder-open"></i><h2>{{ 'STORAGE.EMPTY' | translate }}</h2><p>{{ 'STORAGE.EMPTY_HINT' | translate }}</p><button *ngIf="own && !search && filter === 'all'" type="button" class="teacher-empty-action" (click)="showTeacherTab('upload')"><i class="pi pi-plus" aria-hidden="true"></i> رفع أول ملف</button></div>
       <div class="file-grid" [class.cards]="cards" *ngIf="files.length">
         <article *ngFor="let file of files" class="file-row">
           <span class="file-type" [attr.data-kind]="fileKind(file)"><i [class]="fileIcon(file)" aria-hidden="true"></i><small>{{ fileExtension(file) }}</small></span>

@@ -325,6 +325,39 @@ test('file dialog keeps its tabs usable without horizontal overflow @mobile', as
   await page.screenshot({ path: `test-results/storage/file-dialog-tabs-${test.info().project.name}.png`, animations: 'disabled' });
 });
 
+test('file details and sizes fit their RTL columns without horizontal scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 1269, height: 875 });
+  await mockSession(page, 'Instructor');
+  await page.goto('/instructor/my-files?sort=name&page=1&folder=1005');
+  await page.locator('.file-name button').click();
+  const dialog = page.getByRole('dialog', { name: 'تفاصيل الملف' });
+  await expect(dialog.locator('.inspector-version')).toHaveCount(1);
+  const geometry = await dialog.evaluate(element => {
+    const content = element.querySelector('.p-dialog-content')!;
+    const cards = Array.from(element.querySelectorAll('.inspector-side .inspector-card'));
+    const main = element.querySelector('.inspector-main')!;
+    const size = element.querySelector('.inspector-facts > div:nth-child(2) strong')!;
+    const bounds = content.getBoundingClientRect();
+    return {
+      overflow: content.scrollWidth - content.clientWidth,
+      cardsWithinContent: cards.every(card => {
+        const rect = card.getBoundingClientRect();
+        return rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1;
+      }),
+      mainWithinContent: main.getBoundingClientRect().right <= bounds.right + 1,
+      detailSizeAlignedRight: getComputedStyle(size).textAlign === 'right',
+    };
+  });
+  expect(geometry.overflow).toBeLessThanOrEqual(1);
+  expect(geometry.cardsWithinContent).toBeTruthy();
+  expect(geometry.mainWithinContent).toBeTruthy();
+  expect(geometry.detailSizeAlignedRight).toBeTruthy();
+  expect(await page.locator('.file-size').first().evaluate(element => getComputedStyle(element).textAlign)).toBe('right');
+  const box = await dialog.boundingBox();
+  expect(box && box.height < 750 && box.x >= 0 && box.x + box.width <= 1269).toBeTruthy();
+  await dialog.screenshot({ path: 'test-results/storage/file-details-rtl.png', animations: 'disabled' });
+});
+
 test('library entry requests only the visible folder and file pages', async ({ page }) => {
   const requests = await mockSession(page);
   await page.goto('/school-manager/storage');
@@ -760,12 +793,36 @@ test('teacher keeps existing visit workspace access without archive management p
   await expect(page).toHaveURL(/\/visits$/);
 });
 
+test('teacher workspace keeps the sidebar flush with the viewport without page overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 900 });
+  await mockSession(page, 'Instructor');
+  await page.goto('/instructor/my-files');
+  await page.getByRole('tab', { name: 'رفع وربط ملف' }).click();
+  await page.locator('.shell-content').evaluate(element => { element.scrollTop = element.scrollHeight; });
+  await expect.poll(() => page.evaluate(() => {
+    const sidebar = document.querySelector('.shell-sidebar')!.getBoundingClientRect();
+    const content = document.querySelector('.shell-content')!;
+    return {
+      overflow: document.documentElement.scrollWidth - innerWidth,
+      contentOverflow: content.scrollWidth - content.clientWidth,
+      outerScroll: document.documentElement.scrollHeight - innerHeight,
+      sidebarGap: Math.round(innerWidth - sidebar.right),
+      sidebarBottomGap: Math.round(innerHeight - sidebar.bottom),
+    };
+  })).toEqual({ overflow: 0, contentOverflow: 0, outerScroll: 0, sidebarGap: 0, sidebarBottomGap: 0 });
+  await expect.poll(() => page.locator('.shell-content').evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.storage-mobile-nav')).toBeVisible();
+  await expect(page.locator('.teacher-drop')).toBeVisible();
+});
+
 test('teacher only uses own file endpoints and cancels queued upload before sending', async ({ page }) => {
   const requests = await mockSession(page, 'Instructor');
   await page.goto('/instructor/my-files'); await expect(page.locator('h1')).toHaveText('ملفاتي');
   await expect(page.locator('.shell-sidebar__category').filter({ hasText: 'مساحة الملفات' }).locator('a').filter({ hasText: 'ملفاتي' })).toHaveCount(1);
   await expect(page.locator('.shell-sidebar__category').filter({ hasText: 'مساحة الملفات' }).locator('a').filter({ hasText: 'الإدارة' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'مجلد جديد' })).toHaveCount(0);
+  await page.getByRole('tab', { name: 'رفع وربط ملف' }).click();
   await page.locator('input[type=file]').setInputFiles({ name: 'شاهد.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.7\nTest') });
   await page.getByRole('button', { name: 'إلغاء قبل الإرسال' }).click();
   expect(requests.filter(r => r.key).length).toBe(0);
@@ -782,7 +839,8 @@ test('teacher selects a real requirement, uploads to own files, and gets a draft
   await page.route('**/api/v1/storage/requirement-catalog?**', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ isSuccess:true, data:[{id:42,academicYearId:1,code:'1.1.1',displayName:'خطة المدرسة',importance:'High',fulfillmentPolicy:'Evidence',minimumApprovedLinks:1,rowVersion:'AAAAAAAAAAE='}] }) }));
   await page.route('**/api/v1/storage/files/31/links', route => { linkedBody = route.request().postData() || ''; return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ isSuccess:true, data:{id:55,storedFileId:31,requirementId:42,academicYearId:1,versionId:1,fileName:'شاهد.pdf',requirementName:'خطة المدرسة',teacherName:'مستخدم الاختبار',status:'Draft',availability:'Available',rowVersion:'AAAAAAAAAAE=',decisions:[]} }) }); });
   await page.goto('/instructor/my-files');
-  const requirement = page.getByRole('group', { name:'المتطلبات' }).getByRole('button', { name:/خطة المدرسة/ });
+  await page.getByRole('tab', { name: 'رفع وربط ملف' }).click();
+  const requirement = page.getByRole('group', { name:'نتائج البحث' }).getByRole('button', { name:/خطة المدرسة/ });
   await expect(requirement).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBeFalsy();
   await page.screenshot({ path:`test-results/storage/teacher-flow-${test.info().project.name}.png`, fullPage:true, animations:'disabled' });

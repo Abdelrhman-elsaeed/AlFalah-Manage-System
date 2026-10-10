@@ -4,6 +4,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { DropdownModule } from 'primeng/dropdown';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { SUPPRESS_ERROR_TOAST, SUPPRESS_FORBIDDEN_REDIRECT } from '../../core/http/http-context.tokens';
 import { environment } from '../../../environments/environment';
@@ -13,6 +14,8 @@ import { StorageContext } from './storage.models';
 import { ArchiveOperations, VisitArchiveApiService } from './visit-archive-api.service';
 
 interface Delegation { id:number; granteeUserId:string; startsAt:string; expiresAt?:string; revokedAt?:string; reason:string; rowVersion:string; }
+interface DelegationCandidate { userId:string; fullName:string; username:string; roles:string[]; roleLabel?:string; }
+interface DelegationCandidateGroup { label:string; icon:string; items:DelegationCandidate[]; }
 interface SetupFolder { key:string; name:string; parentKey:string; state:string; note?:string; }
 interface SetupTeacher { teacherId:number; name:string; state:string; note?:string; }
 interface SetupRecoveryIssue { key:string; name:string; folderCount:number; fileCount:number; operationCount:number; warning:string; }
@@ -22,7 +25,7 @@ interface SetupProgress { stage:string; label:string; completed:number; total:nu
 type SetupStreamMessage = { kind:'progress'; progress:SetupProgress } | { kind:'result'; result:SetupResult } | { kind:'error'; message:string };
 interface ArchiveActivation { enabled:boolean; }
 
-@Component({selector:'app-storage-admin',standalone:true,imports:[CommonModule,FormsModule,RouterLink,ImportPageComponent],templateUrl:'./storage-admin-page.component.html',styleUrls:['./storage-admin-page.component.css']})
+@Component({selector:'app-storage-admin',standalone:true,imports:[CommonModule,FormsModule,RouterLink,ImportPageComponent,DropdownModule],templateUrl:'./storage-admin-page.component.html',styleUrls:['./storage-admin-page.component.css']})
 export class StorageAdminPageComponent implements OnInit,OnDestroy {
   private readonly api=inject(StorageApiService); private readonly archive=inject(VisitArchiveApiService); private readonly http=inject(HttpClient);
   private readonly route=inject(ActivatedRoute); private readonly router=inject(Router); private readonly destroyed=new Subject<void>();
@@ -37,7 +40,18 @@ export class StorageAdminPageComponent implements OnInit,OnDestroy {
   readonly setupStages=[{id:'scan',label:'فحص Drive',hint:'التحقق من اتصال المدرسة والمجلدات المرتبطة',icon:'pi-cloud'},{id:'folders',label:'بنية المكتبة',hint:'إنشاء الناقص وربط المجلدات الموجودة',icon:'pi-folder-open'},{id:'teachers',label:'ملفات المعلمين',hint:'فحص وربط ملف كل معلم',icon:'pi-users'},{id:'verify',label:'التحقق النهائي',hint:'مراجعة النتيجة وحفظ الربط',icon:'pi-check-circle'}];
   private lastSetupSelection={folders:true,teachers:true,recoveryKeys:[] as string[]};
   archiveStatus?:boolean; archiveStatusLoading=false; archiveStatusError='';
-  delegations:Delegation[]=[]; delegationsError=''; delegationsLoading=false; delegationsLoaded=false; canDelegate=false; saving=false; granteeUserId=''; expiresAt=''; reason=''; revokeTarget?:Delegation; revokeReason='';
+  delegations:Delegation[]=[]; delegationsError=''; delegationsLoading=false; delegationsLoaded=false; canDelegate=false; saving=false; granteeUserId:string|null=null; expiresAt=''; reason=''; revokeTarget?:Delegation; revokeReason='';
+  delegationCandidates:DelegationCandidate[]=[]; candidateGroups:DelegationCandidateGroup[]=[]; candidatesLoading=false; candidatesLoaded=false; candidatesError='';
+  readonly delegationRoles=[
+    {id:'SchoolManager',label:'مديرو المدارس',icon:'pi-briefcase'},
+    {id:'Moderator',label:'المشرفون',icon:'pi-star'},
+    {id:'Secretary',label:'السكرتارية',icon:'pi-file'},
+    {id:'StudentAffairsOfficer',label:'شؤون الطلاب',icon:'pi-users'},
+    {id:'SocialWorker',label:'الأخصائيون الاجتماعيون',icon:'pi-heart'},
+    {id:'Instructor',label:'المعلمون',icon:'pi-book'},
+    {id:'SecurityGuard',label:'الأمن',icon:'pi-shield'},
+    {id:'Guardian',label:'أولياء الأمور',icon:'pi-home'}
+  ];
   get connectionText(){return this.context?.connectionState==='Connected'?'المكتبة متصلة بحساب المدرسة وفق صلاحية الخادم.':'تحتاج مكتبة المدرسة إلى متابعة حالة الاتصال أو التهيئة.';}
   ngOnInit(){this.route.queryParamMap.pipe(takeUntil(this.destroyed)).subscribe(params=>{const value=params.get('tab');this.tab=this.tabs.some(item=>item.id===value)?value!:'drive';this.openedTabs.add(this.tab);if(this.tab==='delegations'&&!this.delegationsLoaded)this.loadDelegations();});this.load();}
   load(refresh=false){this.error='';this.loading=!this.context;this.api.contextInfo(false,refresh,false).pipe(takeUntil(this.destroyed)).subscribe({next:context=>{this.loading=false;this.context=context;if(!context.canManage){this.router.navigateByUrl('/unauthorized');return;}this.loadOperations();this.loadSetup();this.loadArchiveStatus();},error:e=>{this.loading=false;this.error=e?.error?.message||'تعذّر تحميل إعدادات المساحة.';}});}
@@ -112,8 +126,30 @@ export class StorageAdminPageComponent implements OnInit,OnDestroy {
   get missingFolderCount(){return this.setup?.folders.filter(x=>x.state==='Missing'||x.state==='ParentPending'||x.state==='NeedsConfirmation').length||0;}
   get existingFolderCount(){return this.setup?.folders.filter(x=>x.state==='Exists').length||0;}
   get missingTeacherCount(){return this.setup?.teachers.filter(x=>x.state==='Missing'||x.state==='Exists'||x.state==='NeedsConfirmation'||x.state==='InvalidGrant'||x.state==='NeedsMove').length||0;}
-  loadDelegations(refresh=false){if(this.delegationsLoaded&&!refresh)return;this.delegationsLoading=true;this.delegationsError='';this.http.get<ApiResponse<Delegation[]>>(this.delegationUrl(),this.options()).pipe(takeUntil(this.destroyed)).subscribe({next:response=>{this.delegationsLoading=false;this.delegationsLoaded=true;this.delegations=response.data||[];this.canDelegate=true;},error:e=>{this.delegationsLoading=false;if(e?.status===401||e?.status===403){this.delegations=[];this.canDelegate=false;this.delegationsLoaded=false;}this.delegationsError=e?.status===403?'إدارة التفويضات متاحة لمدير المدرسة المخوّل فقط.':e?.error?.message||'تعذّر قراءة التفويضات.';}});}
-  grant(){if(this.saving||!this.granteeUserId.trim()||!this.reason.trim())return;this.saving=true;this.delegationsError='';const body={granteeUserId:this.granteeUserId.trim(),startsAt:new Date().toISOString(),expiresAt:this.expiresAt?new Date(this.expiresAt).toISOString():null,reason:this.reason.trim()};this.http.post<ApiResponse<Delegation>>(this.delegationUrl(),body,this.options()).pipe(takeUntil(this.destroyed)).subscribe({next:()=>{this.saving=false;this.granteeUserId='';this.expiresAt='';this.reason='';this.loadDelegations(true);},error:e=>{this.saving=false;this.delegationsError=e?.error?.message||'تعذّر منح التفويض.';}});}
+  loadDelegations(refresh=false){if(this.delegationsLoaded&&!refresh)return;this.loadDelegationCandidates(refresh);this.delegationsLoading=true;this.delegationsError='';this.http.get<ApiResponse<Delegation[]>>(this.delegationUrl(),this.options()).pipe(takeUntil(this.destroyed)).subscribe({next:response=>{this.delegationsLoading=false;this.delegationsLoaded=true;this.delegations=response.data||[];this.canDelegate=true;},error:e=>{this.delegationsLoading=false;if(e?.status===401||e?.status===403){this.delegations=[];this.canDelegate=false;this.delegationsLoaded=false;}this.delegationsError=e?.status===403?'إدارة التفويضات متاحة لمدير المدرسة المخوّل فقط.':e?.error?.message||'تعذّر قراءة التفويضات.';}});}
+  loadDelegationCandidates(refresh=false){
+    if(this.candidatesLoading || this.candidatesLoaded&&!refresh)return;
+    this.candidatesLoading=true;this.candidatesError='';
+    this.http.get<ApiResponse<DelegationCandidate[]>>(this.delegationUrl()+'/candidates',this.options())
+      .pipe(takeUntil(this.destroyed)).subscribe({next:response=>{
+        this.candidatesLoading=false;this.candidatesLoaded=true;
+        this.delegationCandidates=response.data??[];
+        const groups=new Map<string,DelegationCandidateGroup>();
+        for(const candidate of this.delegationCandidates){
+          const role=this.delegationRoles.find(option=>candidate.roles.includes(option.id));
+          const key=role?.id??'Other';
+          if(!groups.has(key))groups.set(key,{label:role?.label??'أدوار أخرى',icon:role?.icon??'pi-user',items:[]});
+          groups.get(key)!.items.push({...candidate,roleLabel:role?.label??candidate.roles.join('، ')});
+        }
+        this.candidateGroups=[...this.delegationRoles.map(role=>groups.get(role.id)).filter((group):group is DelegationCandidateGroup=>!!group),
+          ...[groups.get('Other')].filter((group):group is DelegationCandidateGroup=>!!group)];
+        if(this.granteeUserId&&!this.delegationCandidates.some(candidate=>candidate.userId===this.granteeUserId))this.granteeUserId=null;
+      },error:e=>{this.candidatesLoading=false;this.candidatesError=e?.error?.message||'تعذّر تحميل مستخدمي المدرسة.';}});
+  }
+  get selectedCandidate(){return this.delegationCandidates.find(candidate=>candidate.userId===this.granteeUserId);}
+  get selectedCandidateRoles(){return (this.selectedCandidate?.roles??[]).map(role=>this.delegationRoles.find(option=>option.id===role)?.label??role).join('، ');}
+  candidateName(userId:string){return this.delegationCandidates.find(candidate=>candidate.userId===userId)?.fullName??userId;}
+  grant(){const selected=this.selectedCandidate;if(this.saving||!selected||!this.reason.trim())return;this.saving=true;this.delegationsError='';const body={granteeUserId:selected.userId,startsAt:new Date().toISOString(),expiresAt:this.expiresAt?new Date(this.expiresAt).toISOString():null,reason:this.reason.trim()};this.http.post<ApiResponse<Delegation>>(this.delegationUrl(),body,this.options()).pipe(takeUntil(this.destroyed)).subscribe({next:()=>{this.saving=false;this.granteeUserId=null;this.expiresAt='';this.reason='';this.loadDelegations(true);},error:e=>{this.saving=false;this.delegationsError=e?.error?.message||'تعذّر منح التفويض.';}});}
   revoke(){const item=this.revokeTarget;if(!item||!this.revokeReason.trim()||this.saving)return;this.saving=true;this.delegationsError='';this.http.request<ApiResponse<Delegation>>('DELETE',`${this.delegationUrl()}/${item.id}`,{body:{reason:this.revokeReason.trim(),rowVersion:item.rowVersion},...this.options()}).pipe(takeUntil(this.destroyed)).subscribe({next:()=>{this.saving=false;this.revokeTarget=undefined;this.revokeReason='';this.loadDelegations(true);},error:e=>{this.saving=false;this.delegationsError=e?.error?.message||'تعذّر سحب التفويض.';}});}
   ngOnDestroy(){this.destroyed.next();this.destroyed.complete();}
 }
