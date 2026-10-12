@@ -190,6 +190,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("ProtectedPassword")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 

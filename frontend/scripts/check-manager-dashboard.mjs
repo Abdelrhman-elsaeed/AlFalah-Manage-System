@@ -112,6 +112,7 @@ try {
   assert(!geometry.overflow, 'Desktop has horizontal overflow');
   assert(geometry.artwork > 0, 'Original Figma artwork is missing');
   assert.equal(await page.locator('.manager-tool').count(), 10);
+  assert.equal(await page.locator('.sm-analytics-grid, .manager-analytics-card, .manager-ranking-card').count(), 0, 'Removed manager analytics must stay absent');
   assert.equal(operationsRequests, 1, 'Overview must use one operations request');
   assert.match(await page.locator('.current-period').innerText(), /الحصة الثالثة/);
   await page.screenshot({ path: resolve(results, 'manager-dashboard-desktop.png') });

@@ -1,18 +1,20 @@
 param(
-    [int]$Port = 5264
+    [int]$Port = 5264,
+    [ValidateSet('Debug', 'Release')]
+    [string]$Configuration = 'Release'
 )
 
 $ErrorActionPreference = 'Stop'
 $restartRoot = $PSScriptRoot
 $restartProject = Join-Path $restartRoot 'backend\AlFalah.Api\AlFalah.Api.csproj'
 $restartApiDirectory = (Resolve-Path -LiteralPath (Join-Path $restartRoot 'backend\AlFalah.Api')).Path
-$restartDll = Join-Path $restartApiDirectory 'bin\Debug\net8.0\AlFalah.Api.dll'
+$restartDll = Join-Path $restartApiDirectory "bin\$Configuration\net8.0\AlFalah.Api.dll"
 $restartLog = Join-Path $restartRoot 'backend\dashboard-restart.log'
 $restartErrorLog = Join-Path $restartRoot 'backend\dashboard-restart.err.log'
 $restartDotnet = (Get-Command dotnet -ErrorAction Stop).Source
 
 Write-Host 'Building the current API...'
-& $restartDotnet build $restartProject --no-restore -c Debug -v quiet
+& $restartDotnet build $restartProject --no-restore -c $Configuration -v quiet
 if ($LASTEXITCODE -ne 0) {
     throw 'Build failed. The existing API has been left running.'
 }

@@ -42,6 +42,9 @@ public class AccountService : IAccountService
         if (user == null)
             return ApiResponse<bool>.Fail("User not found");
 
+        if (string.IsNullOrWhiteSpace(dto.SignatureDrawnData))
+            return ApiResponse<bool>.Fail("ارسم توقيعك قبل الحفظ.");
+
         if (!string.IsNullOrEmpty(dto.SignatureDrawnData))
         {
             // Validate size cap (e.g. 500KB max base64) to prevent DOS
@@ -51,6 +54,23 @@ public class AccountService : IAccountService
             // Validate PNG data URL
             if (!dto.SignatureDrawnData.StartsWith("data:image/png;base64,"))
                 return ApiResponse<bool>.Fail("Only PNG data URLs are allowed.");
+
+            try
+            {
+                var bytes = Convert.FromBase64String(dto.SignatureDrawnData[22..]);
+                byte[] magic = [137, 80, 78, 71, 13, 10, 26, 10];
+                if (bytes.Length < 33 || !bytes.AsSpan(0, 8).SequenceEqual(magic)
+                    || !bytes.AsSpan(12, 4).SequenceEqual("IHDR"u8))
+                    return ApiResponse<bool>.Fail("صورة التوقيع غير صالحة.");
+                var width = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(16, 4));
+                var height = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(20, 4));
+                if (width is < 30 or > 4096 || height is < 20 or > 2048)
+                    return ApiResponse<bool>.Fail("أبعاد صورة التوقيع غير صالحة.");
+            }
+            catch (FormatException)
+            {
+                return ApiResponse<bool>.Fail("صورة التوقيع غير صالحة.");
+            }
         }
 
         var signature = await _context.Set<UserSignature>()

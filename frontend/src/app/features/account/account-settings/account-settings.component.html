@@ -1,51 +1,10 @@
 <div class="page page--account" dir="rtl">
   <header class="page-header">
     <div class="page-header__titles">
-      <h1 class="page-header__title">{{ 'ACCOUNT.TITLE' | translate }}</h1>
-      <p class="page-header__subtitle">{{ 'ACCOUNT.SIGNATURE.LABEL' | translate }}</p>
+      <h1 class="page-header__title">{{ 'ACCOUNT.SETTINGS_TITLE' | translate }}</h1>
+      <p class="page-header__subtitle">{{ 'ACCOUNT.PASSWORD.DESCRIPTION' | translate }}</p>
     </div>
   </header>
-
-  <section class="surface-card signature-card">
-    <p class="signature-card__hint">{{ 'ACCOUNT.SIGNATURE.DESCRIPTION' | translate }}</p>
-
-    <div class="signature-card__preview" *ngIf="existingSignatureDataUrl">
-      <div class="signature-card__preview-label">
-        <i class="pi pi-image"></i>
-        <span>{{ 'ACCOUNT.SIGNATURE.CURRENT_TITLE' | translate }}</span>
-      </div>
-      <img [src]="existingSignatureDataUrl" alt="signature preview" class="signature-card__preview-img" />
-      <p class="signature-card__preview-hint">{{ 'ACCOUNT.SIGNATURE.CURRENT_HINT' | translate }}</p>
-    </div>
-
-    <div class="signature-card__pad-wrap">
-      <canvas #signaturePad
-              class="signature-card__canvas"
-              width="600"
-              height="200"
-              style="touch-action: none;">
-      </canvas>
-    </div>
-
-    <div class="signature-card__actions">
-      <button pButton
-              type="button"
-              icon="pi pi-eraser"
-              [label]="'ACCOUNT.SIGNATURE.CLEAR' | translate"
-              severity="secondary"
-              [outlined]="true"
-              (click)="clearSignature()">
-      </button>
-      <button pButton
-              type="button"
-              icon="pi pi-save"
-              [label]="'ACCOUNT.SIGNATURE.SAVE' | translate"
-              [disabled]="isSaving"
-              [loading]="isSaving"
-              (click)="saveSignature()">
-      </button>
-    </div>
-  </section>
 
   <section class="surface-card password-card">
     <header class="teaching-card__header">

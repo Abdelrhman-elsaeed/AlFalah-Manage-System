@@ -1,3 +1,4 @@
+import { SCHOOL_PEOPLE_ROLES } from '../../../core/models/school-people';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -38,6 +39,7 @@ export class UserFormComponent implements OnInit {
   readonly userId = signal<string | null>(null);
   readonly isInstructor = signal(false);
   readonly isSecretary = signal(false);
+  readonly schoolRequired = signal(false);
   readonly isSchoolManager = computed(() =>
     this.auth.hasRole('SchoolManager')
     && !this.auth.hasRole('SuperAdmin')
@@ -63,7 +65,8 @@ export class UserFormComponent implements OnInit {
     ...(this.isSchoolManager() ? [] : [{ label: this.translate.instant('USERS.ROLE_SCHOOL_MANAGER'), value: 'SchoolManager' as PhaseTwoRole }]),
     { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
-    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' }
+    { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' },
+    ...SCHOOL_PEOPLE_ROLES.map(role => ({ label: this.translate.instant(role.labelKey), value: role.role }))
   ]);
   readonly stageOptions: { label: string; value: SchoolStage }[] = [
     { label: this.translate.instant('SCHOOLS.STAGE.PRIMARY'), value: 'Primary' },
@@ -117,6 +120,10 @@ export class UserFormComponent implements OnInit {
   }
 
   applyForm(user: UserDetail): void {
+    const requestedRole = this.route.snapshot.queryParamMap.get('role');
+    const activeSchool = user.schools.find(school => school.schoolId === this.auth.activeSchoolId());
+    const assignment = activeSchool ?? user.schools.find(school => school.role === requestedRole) ?? user.schools[0];
+    const role = (assignment?.role ?? user.roles[0] ?? 'Moderator') as PhaseTwoRole;
     this.form.patchValue({
       username: user.username,
       fullName: user.fullName,
@@ -125,13 +132,13 @@ export class UserFormComponent implements OnInit {
       email: user.email ?? '',
       phoneNumber: user.phoneNumber ?? '',
       preferredLanguage: user.preferredLanguage ?? 'ar',
-      role: (user.roles[0] as PhaseTwoRole) ?? 'Moderator',
-      schoolId: user.schools[0]?.schoolId ?? null,
+      role,
+      schoolId: assignment?.schoolId ?? null,
       employeeNumber: user.employeeNumber ?? '',
       subject: user.subject ?? '',
       stage: this.normalizeStage(user.stage)
     });
-    this.setRoleMode((user.roles[0] as PhaseTwoRole) ?? 'Moderator');
+    this.setRoleMode(role);
   }
 
   loadSchools(): void {
@@ -179,7 +186,7 @@ export class UserFormComponent implements OnInit {
       }).subscribe({
         next: response => {
           if (response.isSuccess) {
-            const password = String(value.password ?? '').trim();
+            const password = String(value.password ?? '');
             if (password) {
               this.usersService.changePassword(this.userId()!, password).subscribe({
                 next: passwordResponse => {
@@ -256,6 +263,10 @@ export class UserFormComponent implements OnInit {
   private setRoleMode(role: PhaseTwoRole): void {
     this.setInstructorMode(role === 'Instructor');
     this.setSecretaryMode(role === 'Secretary');
+    const schoolRequired = this.isSchoolManager() || ['Instructor', 'Secretary', 'StudentAffairsOfficer', 'SocialWorker', 'SecurityGuard', 'Guardian'].includes(role);
+    this.schoolRequired.set(schoolRequired);
+    this.form.controls['schoolId'].setValidators(schoolRequired ? [Validators.required] : []);
+    this.form.controls['schoolId'].updateValueAndValidity({ emitEvent: false });
   }
 
   private syncNameParts(): void {

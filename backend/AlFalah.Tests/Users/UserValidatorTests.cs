@@ -7,6 +7,25 @@ namespace AlFalah.Tests.Users;
 
 public sealed class UserValidatorTests
 {
+    [Theory]
+    [InlineData(RoleNames.StudentAffairsOfficer)]
+    [InlineData(RoleNames.SocialWorker)]
+    [InlineData(RoleNames.SecurityGuard)]
+    [InlineData(RoleNames.Secretary)]
+    [InlineData(RoleNames.Guardian)]
+    public void Additional_staff_roles_require_a_school_and_can_be_created_and_updated(string role)
+    {
+        var request = new UserCreateRequestDto { Username = "staff-member", Password = "Example@Secret2026",
+            FirstName = "First", LastName = "Last", Role = role, SchoolId = 1 };
+        var validator = new UserCreateRequestValidator();
+        Assert.True(validator.Validate(request).IsValid);
+        request.SchoolId = null;
+        Assert.Contains(validator.Validate(request).Errors, x => x.PropertyName == nameof(request.SchoolId));
+        Assert.True(new UserUpdateRequestValidator().Validate(new UserUpdateRequestDto {
+            FirstName = "First", LastName = "Last", Role = role, SchoolId = 1
+        }).IsValid);
+    }
+
     [Fact]
     public void Instructor_create_requires_its_own_password()
     {

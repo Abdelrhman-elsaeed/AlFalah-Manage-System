@@ -10,7 +10,7 @@ The implementation uses the supplied screenshots and the exported Make source. T
 - Preserve the existing ten tool cards and their routes; use category colors, clear boundaries and hover/focus feedback instead of white cards with accent strips. Four oversight/audit tools remain available through an expandable section.
 - Student and staff attendance appear in two equal columns, using matching summaries, recording completeness, tables and historical charts.
 - Recent activity, guardian summons and the school day appear in three equal columns in one row.
-- Recent classroom visits and existing evaluation/plan analytics remain available below the overview. Smaller viewports stack the new panels.
+- Recent classroom visits remain available below the overview. The manager's visits-status chart, subject-performance chart, plan analytics and moderator ranking have been removed following the revised request. Smaller viewports stack the new panels.
 
 ## Data and access
 

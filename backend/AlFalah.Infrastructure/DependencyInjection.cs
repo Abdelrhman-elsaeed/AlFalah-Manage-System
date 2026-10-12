@@ -73,6 +73,11 @@ public static class DependencyInjection
         .AddEntityFrameworkStores<AlFalahDbContext>()
         .AddDefaultTokenProviders();
 
+        services.AddScoped<UserPasswordProtector>();
+        services.AddScoped<IPasswordHasher<ApplicationUser>, ManagedPasswordHasher>();
+        services.AddScoped<IAccountAccessRepository, AccountAccessRepository>();
+        services.AddScoped<IAccountAccessService, AccountAccessService>();
+
         // ─── QuestPDF Community license (Phase 6 Stage 1) ────────────────────
         // QuestPDF 2024.x switched to a community license that requires explicit
         // acknowledgment. Without this, the library throws an exception when

@@ -3,6 +3,8 @@ import { ResolveFn, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { storageGuard, visitWorkspaceGuard } from './features/storage/storage.guard';
 import { authGuard } from './core/guards/auth.guard';
+import { signatureEnrollmentGuard } from './core/guards/signature-enrollment.guard';
+import { SCHOOL_PEOPLE_ROLES } from './core/models/school-people';
 import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { studentAnalyzerGuard } from './core/guards/student-analyzer.guard';
@@ -27,6 +29,13 @@ export const routes: Routes = [
   {
     path: 'auth',
     children: [
+      {
+        path: 'signature',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/auth/signature-onboarding/signature-onboarding.component')
+          .then(m => m.SignatureOnboardingComponent),
+        title: translatedTitle('ACCOUNT.SIGNATURE.TITLE')
+      },
       {
         path: 'school-login',
         loadComponent: () => import('./features/auth/school-login/school-login.component')
@@ -54,6 +63,7 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
+    canActivateChild: [signatureEnrollmentGuard],
     loadComponent: () => import('./shared/layout/shell/shell.component')
       .then(m => m.ShellComponent),
     children: [
@@ -405,6 +415,12 @@ export const routes: Routes = [
           // The "الأشخاص" sidebar category is split into one sub-tab per role so
           // each list only ever shows the people named in its title. Same
           // component — `scopedRole` pins its role filter and hides the dropdown.
+          ...SCHOOL_PEOPLE_ROLES.map(role => ({
+            path: role.path,
+            data: { scopedRole: role.role },
+            loadComponent: () => import('./features/users/users-list/users-list.component').then(m => m.UsersListComponent),
+            title: translatedTitle(role.labelKey)
+          })),
           {
             path: 'school-managers',
             data: { scopedRole: 'SchoolManager' },
@@ -992,6 +1008,11 @@ export const routes: Routes = [
       {
         path: 'account',
         children: [
+          {
+            path: 'signature',
+            loadComponent: () => import('./features/account/signature/signature.component').then(m => m.SignatureComponent),
+            title: translatedTitle('ACCOUNT.SIGNATURE.TITLE')
+          },
           {
             path: 'settings',
             loadComponent: () => import('./features/account/account-settings/account-settings.component')

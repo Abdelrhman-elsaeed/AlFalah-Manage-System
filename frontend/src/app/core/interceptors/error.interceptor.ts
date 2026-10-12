@@ -75,6 +75,10 @@ export class ErrorInterceptor implements HttpInterceptor {
 
         // ── 403 ────────────────────────────────────────────────────────────────
         if (error.status === 403) {
+          if (error.headers.get('X-Signature-Required') === 'true' && this.authService.isAuthenticated()) {
+            this.router.navigate(['/auth/signature'], { queryParams: { returnUrl: this.router.url } });
+            return throwError(() => error);
+          }
           if (!silent && !req.context.get(SUPPRESS_FORBIDDEN_REDIRECT)) {
             this.router.navigate(['/unauthorized']);
           }

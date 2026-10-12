@@ -20,6 +20,10 @@ public class ApplicationUser : IdentityUser
     /// </summary>
     public string PreferredLanguage { get; set; } = "ar";
 
+    /// <summary>Data Protection ciphertext; never included in user list/detail DTOs.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? ProtectedPassword { get; set; }
+
     public bool IsActive { get; set; } = true;
     public DateTimeOffset? LastLoginAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

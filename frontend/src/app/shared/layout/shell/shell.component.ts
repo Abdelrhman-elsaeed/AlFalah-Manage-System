@@ -1,3 +1,4 @@
+import { SCHOOL_PEOPLE_ROLES } from '../../../core/models/school-people';
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -110,6 +111,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
       { labelKey: 'NAV.MODERATORS', icon: 'pi pi-user-edit', route: '/users/moderators', permissions: ['User.View'] },
       { labelKey: 'NAV.SECRETARIES', icon: 'pi pi-inbox', route: '/users/secretaries', permissions: ['User.View'] },
       // Exact match: otherwise /users/moderators would light this up too.
+      ...SCHOOL_PEOPLE_ROLES.map(role => ({ labelKey: role.labelKey, icon: 'pi ' + role.icon, route: '/users/' + role.path, permissions: ['User.View'] })),
       { labelKey: 'NAV.ALL_PEOPLE', icon: 'pi pi-users', route: '/users', permissions: ['User.View'], exact: true },
       { labelKey: 'NAV.USER_SCHOOL_ROLES', icon: 'pi pi-sitemap', route: '/user-school-roles', permissions: ['User.Edit'] }
     ]
@@ -360,7 +362,8 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         permissions: ['StudentAffairsSettings.View']
       },
       { labelKey: 'إعدادات ملفات الإنجاز', icon: 'pi pi-folder-open', route: '/school-manager/evidence-settings', roles: ['SchoolManager'], permissions: ['Settings.Manage'] },
-      { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
+      { labelKey: 'ACCOUNT.SIGNATURE.TITLE', icon: 'pi pi-pen-to-square', route: '/account/signature' },
+      { labelKey: 'ACCOUNT.SETTINGS_TITLE', icon: 'pi pi-cog', route: '/account/settings' }
     ]
   }
 ];
@@ -442,7 +445,8 @@ export class ShellComponent implements OnInit {
         { labelKey: 'NAV.COMPLAINTS', icon: 'pi pi-flag', route: '/complaints', permissions: ['Complaint.View'] },
         { labelKey: 'الساعات المكتبية', icon: 'pi pi-clock', route: '/student-affairs/office-hours', permissions: ['OfficeHours.ManageOwn'] },
         { labelKey: 'الرسائل', icon: 'pi pi-comments', route: '/student-affairs/messages', permissions: ['Messaging.ViewOwn'] },
-        { labelKey: 'ACCOUNT.TITLE', icon: 'pi pi-pen-to-square', route: '/account/settings' }
+        { labelKey: 'ACCOUNT.SIGNATURE.TITLE', icon: 'pi pi-pen-to-square', route: '/account/signature' },
+      { labelKey: 'ACCOUNT.SETTINGS_TITLE', icon: 'pi pi-cog', route: '/account/settings' }
       );
     }
     if (this.hasStudentAnalyzerAccess()) {
@@ -638,6 +642,7 @@ export class ShellComponent implements OnInit {
     return this.routeMatches(item.route, this.router.url);
   }
   sidebarItemActive(category: NavCategory, item: NavItem): boolean {
+    if (item.route === '/users') return this.router.url.split('?')[0].split('#')[0] === '/users';
     return category.id === 'storage' ? this.storageMobileActive(item) : this.routeMatches(item.route, this.router.url);
   }
 

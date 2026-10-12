@@ -17,12 +17,16 @@ public class UserSchoolRoleCreateRequestValidator : AbstractValidator<UserSchool
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("الدور مطلوب.")
             .Must(BeInPhaseTwoScope)
-            .WithMessage("الدور يجب أن يكون أحد: SchoolManager أو Secretary أو Moderator أو Instructor.");
+            .WithMessage("اختر دورًا مدرسيًا مسموحًا لهذا الحساب.");
     }
 
     private static bool BeInPhaseTwoScope(string role) =>
         role == RoleNames.SchoolManager
         || role == RoleNames.Secretary
         || role == RoleNames.Moderator
-        || role == RoleNames.Instructor;
+        || role == RoleNames.Instructor
+        || role == RoleNames.StudentAffairsOfficer
+        || role == RoleNames.SocialWorker
+        || role == RoleNames.SecurityGuard
+        || role == RoleNames.Guardian;
 }

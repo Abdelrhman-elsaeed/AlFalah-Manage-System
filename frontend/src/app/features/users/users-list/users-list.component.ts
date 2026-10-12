@@ -1,3 +1,5 @@
+import { UserPasswordCellComponent } from '../../../shared/components/user-password-cell/user-password-cell.component';
+import { SCHOOL_PEOPLE_ROLES, canRevealUserPasswords } from '../../../core/models/school-people';
 import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -35,14 +37,15 @@ const ROLE_LABEL_KEYS: Readonly<Record<string, string>> = {
   SchoolManager: 'USERS.ROLE_SCHOOL_MANAGER',
   Secretary: 'USERS.ROLE_SECRETARY',
   Moderator: 'USERS.ROLE_MODERATOR',
-  Instructor: 'USERS.ROLE_INSTRUCTOR'
+  Instructor: 'USERS.ROLE_INSTRUCTOR',
+  ...Object.fromEntries(SCHOOL_PEOPLE_ROLES.map(role => [role.role, role.labelKey]))
 };
 
 @Component({
   selector: 'app-users-list',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
+    UserPasswordCellComponent, CommonModule, FormsModule, ReactiveFormsModule, TranslateModule,
     TableModule, ButtonModule, InputTextModule, InputGroupModule, InputGroupAddonModule, InputNumberModule, ClearableSelectComponent,
     TagModule, TooltipModule, ConfirmDialogModule, DialogModule,
     ListPageHeaderComponent, ListToolbarComponent, ListToolbarFieldComponent
@@ -52,6 +55,7 @@ const ROLE_LABEL_KEYS: Readonly<Record<string, string>> = {
   styleUrls: ['./users-list.component.css']
 })
 export class UsersListComponent implements OnInit {
+  readonly canRevealPasswords = computed(() => canRevealUserPasswords(this.auth.roles(), this.auth.permissions()));
   private readonly usersService = inject(UsersService);
   private readonly userSchoolRolesService = inject(UserSchoolRolesService);
   private readonly schoolsService = inject(SchoolsService);
@@ -93,9 +97,9 @@ export class UsersListComponent implements OnInit {
    * hides the button instead of letting the POST come back 403.
    */
   readonly canCreate = computed(() =>
-    this.scopedRole() !== 'SchoolManager'
+    this.auth.hasPermission('User.Create') && (this.scopedRole() !== 'SchoolManager'
     || this.auth.hasRole('MainManager')
-    || this.auth.hasRole('SuperAdmin'));
+    || this.auth.hasRole('SuperAdmin')));
 
   // Assign-to-school dialog
   assignDialogVisible = signal(false);
@@ -116,10 +120,7 @@ export class UsersListComponent implements OnInit {
     { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' as PhaseTwoRole },
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
     { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' },
-    { label: 'مسؤول شؤون الطلاب', value: 'StudentAffairsOfficer' },
-    { label: 'الأخصائي الاجتماعي', value: 'SocialWorker' },
-    { label: 'حارس الأمن', value: 'SecurityGuard' },
-    { label: 'ولي أمر', value: 'Guardian' }
+    ...SCHOOL_PEOPLE_ROLES.map(role => ({ label: this.translate.instant(role.labelKey), value: role.role }))
   ]);
 
   /** The "everyone" tab filters across every staff role, Secretary included. */
@@ -128,10 +129,7 @@ export class UsersListComponent implements OnInit {
     { label: this.translate.instant('USERS.ROLE_MODERATOR'), value: 'Moderator' },
     { label: this.translate.instant('USERS.ROLE_SECRETARY'), value: 'Secretary' },
     { label: this.translate.instant('USERS.ROLE_INSTRUCTOR'), value: 'Instructor' },
-    { label: 'مسؤول شؤون الطلاب', value: 'StudentAffairsOfficer' },
-    { label: 'الأخصائي الاجتماعي', value: 'SocialWorker' },
-    { label: 'حارس الأمن', value: 'SecurityGuard' },
-    { label: 'ولي أمر', value: 'Guardian' }
+    ...SCHOOL_PEOPLE_ROLES.map(role => ({ label: this.translate.instant(role.labelKey), value: role.role }))
   ];
 
   readonly isActiveOptions = [
@@ -179,7 +177,10 @@ export class UsersListComponent implements OnInit {
     const role = this.scopedRole();
     this.router.navigate(['/users/new'], role ? { queryParams: { role } } : {});
   }
-  goToEdit(user: UserListItem): void { this.router.navigate(['/users', user.userId, 'edit']); }
+  goToEdit(user: UserListItem): void {
+    const role = this.scopedRole();
+    this.router.navigate(['/users', user.userId, 'edit'], role ? { queryParams: { role } } : {});
+  }
 
   confirmDeactivate(user: UserListItem, event: Event): void {
     this.confirm.confirm({

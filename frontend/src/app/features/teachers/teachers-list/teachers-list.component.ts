@@ -1,3 +1,5 @@
+import { UserPasswordCellComponent } from '../../../shared/components/user-password-cell/user-password-cell.component';
+import { canRevealUserPasswords } from '../../../core/models/school-people';
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -24,7 +26,7 @@ import { TeacherListItem } from '../../../core/models/teacher.models';
   selector: 'app-teachers-list',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, TranslateModule,
+    UserPasswordCellComponent, CommonModule, FormsModule, TranslateModule,
     TableModule, ButtonModule, InputTextModule, InputGroupModule,
     TagModule, TooltipModule, ConfirmDialogModule,
     ListPageHeaderComponent, ListToolbarComponent, ListToolbarFieldComponent
@@ -34,6 +36,7 @@ import { TeacherListItem } from '../../../core/models/teacher.models';
   styleUrls: ['./teachers-list.component.css']
 })
 export class TeachersListComponent implements OnInit {
+  readonly canRevealPasswords = computed(() => canRevealUserPasswords(this.auth.roles(), this.auth.permissions()));
   private readonly teachersService = inject(TeachersService);
   private readonly usersService = inject(UsersService);
   private readonly auth = inject(AuthService);
@@ -97,7 +100,7 @@ export class TeachersListComponent implements OnInit {
   }
 
   goToCreate(): void { this.router.navigate(['/users/new'], { queryParams: { role: 'Instructor' } }); }
-  goToEdit(t: TeacherListItem): void { this.router.navigate(['/users', t.userId, 'edit']); }
+  goToEdit(t: TeacherListItem): void { this.router.navigate(['/users', t.userId, 'edit'], { queryParams: { role: 'Instructor' } }); }
   goToProfile(t: TeacherListItem): void { this.router.navigate(['/teachers', t.userId]); }
 
   confirmDeactivate(t: TeacherListItem, event: Event): void {

@@ -226,6 +226,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
+            .WithExposedHeaders("Content-Disposition", "X-Signature-Required")
             .AllowAnyMethod()
             .AllowCredentials();
     });
@@ -342,6 +343,7 @@ if (!isLocalFrontendEnvironment)
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<SignatureEnrollmentMiddleware>();
 app.UseRateLimiter();
 
 app.MapControllers();

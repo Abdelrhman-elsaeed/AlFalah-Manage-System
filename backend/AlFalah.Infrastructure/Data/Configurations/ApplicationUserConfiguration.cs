@@ -14,6 +14,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(x => x.FirstName).IsRequired().HasMaxLength(100).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.LastName).IsRequired().HasMaxLength(100).IsUnicode(true).UseCollation("Arabic_CI_AS");
         builder.Property(x => x.PreferredLanguage).HasMaxLength(10);
+        builder.Property(x => x.ProtectedPassword).HasMaxLength(4096);
 
         // Soft delete FK — NoAction to avoid cascade cycle with UserSchoolRoles.
         builder.HasOne(x => x.DeletedByUser)

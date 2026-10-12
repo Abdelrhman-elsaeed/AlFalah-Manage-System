@@ -47,6 +47,10 @@ export class UsersService {
     return this.http.post<ApiResponse<void>>(`${this.base}/${id}/password`, { newPassword });
   }
 
+  revealPassword(id: string): Observable<ApiResponse<{ available: boolean; password: string | null }>> {
+    return this.http.post<ApiResponse<{ available: boolean; password: string | null }>>(`${this.base}/${encodeURIComponent(id)}/password/reveal`, {});
+  }
+
   deactivate(id: string): Observable<ApiResponse<void>> {
     return this.http.post<ApiResponse<void>>(`${this.base}/${id}/deactivate`, {});
   }

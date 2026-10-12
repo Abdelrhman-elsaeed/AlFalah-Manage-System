@@ -38,7 +38,7 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("الدور مطلوب.")
             .Must(BeInPhaseTwoScope)
-            .WithMessage("الدور يجب أن يكون أحد: SchoolManager أو Secretary أو Moderator أو Instructor.");
+            .WithMessage("اختر دورًا مدرسيًا مسموحًا لهذا الحساب.");
 
         RuleFor(x => x.SchoolId)
             .GreaterThan(0).When(x => x.SchoolId.HasValue)
@@ -69,21 +69,24 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
         // When role=Instructor the school is REQUIRED (we need to know where the
         // teacher teaches before we can store EmployeeNumber / Subject / Classes).
         RuleFor(x => x.SchoolId)
-            .NotNull().When(r => r.Role == RoleNames.Instructor)
+            .NotNull().When(r => r.Role == RoleNames.Instructor, ApplyConditionTo.CurrentValidator)
             .WithMessage("المدرسة مطلوبة للمعلم.")
-            .GreaterThan(0).When(r => r.Role == RoleNames.Instructor && r.SchoolId.HasValue)
+            .GreaterThan(0).When(r => r.Role == RoleNames.Instructor && r.SchoolId.HasValue, ApplyConditionTo.CurrentValidator)
             .WithMessage("معرّف المدرسة غير صالح.");
 
         RuleFor(x => x.SchoolId)
-            .NotNull().When(r => r.Role == RoleNames.Secretary)
+            .NotNull().When(r => r.Role == RoleNames.Secretary, ApplyConditionTo.CurrentValidator)
             .WithMessage("المدرسة مطلوبة للسكرتير.")
-            .GreaterThan(0).When(r => r.Role == RoleNames.Secretary && r.SchoolId.HasValue)
+            .GreaterThan(0).When(r => r.Role == RoleNames.Secretary && r.SchoolId.HasValue, ApplyConditionTo.CurrentValidator)
             .WithMessage("معرّف المدرسة غير صالح.");
 
         // Stage enum is optional (null is fine — the service falls back to the school's stage).
+        RuleFor(x => x.SchoolId).NotNull().GreaterThan(0)
+            .When(x => x.Role is RoleNames.StudentAffairsOfficer or RoleNames.SocialWorker or RoleNames.SecurityGuard or RoleNames.Guardian)
+            .WithMessage("اختيار المدرسة مطلوب لهذا الدور.");
 
         RuleFor(x => x.Stage)
-            .NotNull().When(r => r.Role == RoleNames.Instructor)
+            .NotNull().When(r => r.Role == RoleNames.Instructor, ApplyConditionTo.CurrentValidator)
             .WithMessage("المرحلة الدراسية مطلوبة للمعلم.");
 
         // Class labels: max length each; trim; cap the count so a single
@@ -101,7 +104,8 @@ public class UserCreateRequestValidator : AbstractValidator<UserCreateRequestDto
 
     private static bool BeInPhaseTwoScope(string role) =>
         role is RoleNames.SchoolManager or RoleNames.Secretary
-             or RoleNames.Moderator     or RoleNames.Instructor;
+             or RoleNames.Moderator or RoleNames.Instructor
+             or RoleNames.StudentAffairsOfficer or RoleNames.SocialWorker or RoleNames.SecurityGuard or RoleNames.Guardian;
 }
 
 public class UserUpdateRequestValidator : AbstractValidator<UserUpdateRequestDto>
@@ -127,8 +131,9 @@ public class UserUpdateRequestValidator : AbstractValidator<UserUpdateRequestDto
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("الدور مطلوب.")
             .Must(r => r is RoleNames.SchoolManager or RoleNames.Secretary
-                          or RoleNames.Moderator     or RoleNames.Instructor)
-            .WithMessage("الدور يجب أن يكون أحد: SchoolManager أو Secretary أو Moderator أو Instructor.");
+                          or RoleNames.Moderator or RoleNames.Instructor or RoleNames.Guardian
+                          or RoleNames.StudentAffairsOfficer or RoleNames.SocialWorker or RoleNames.SecurityGuard)
+            .WithMessage("اختر دورًا مدرسيًا مسموحًا لهذا الحساب.");
 
         RuleFor(x => x.SchoolId)
             .GreaterThan(0).When(x => x.SchoolId.HasValue)
@@ -156,13 +161,13 @@ public class UserUpdateRequestValidator : AbstractValidator<UserUpdateRequestDto
         RuleFor(x => x.SchoolId)
             .NotNull().When(r => r.Role == RoleNames.Instructor)
             .WithMessage("المدرسة مطلوبة للمعلم.")
-            .GreaterThan(0).When(r => r.Role == RoleNames.Instructor && r.SchoolId.HasValue)
+            .GreaterThan(0).When(r => r.Role == RoleNames.Instructor && r.SchoolId.HasValue, ApplyConditionTo.CurrentValidator)
             .WithMessage("معرّف المدرسة غير صالح.");
 
         RuleFor(x => x.SchoolId)
-            .NotNull().When(r => r.Role == RoleNames.Secretary)
+            .NotNull().When(r => r.Role == RoleNames.Secretary, ApplyConditionTo.CurrentValidator)
             .WithMessage("المدرسة مطلوبة للسكرتير.")
-            .GreaterThan(0).When(r => r.Role == RoleNames.Secretary && r.SchoolId.HasValue)
+            .GreaterThan(0).When(r => r.Role == RoleNames.Secretary && r.SchoolId.HasValue, ApplyConditionTo.CurrentValidator)
             .WithMessage("معرّف المدرسة غير صالح.");
 
         RuleFor(x => x.Stage)
