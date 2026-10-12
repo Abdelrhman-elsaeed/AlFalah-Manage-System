@@ -879,7 +879,8 @@
   box-shadow: 0 12px 34px rgba(25, 55, 39, 0.05);
 }
 
-.sm-analytics-grid .chart-card { min-height: 280px; }
+.sm-analytics-grid .chart-card { min-height: 280px; min-width: 0; }
+.sm-analytics-grid .section-heading > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 .sm-analytics-grid .chart-wrap:not(.chart-wrap--doughnut) { height: 170px; }
 .chart-card:hover,
 .analytics-card:hover,

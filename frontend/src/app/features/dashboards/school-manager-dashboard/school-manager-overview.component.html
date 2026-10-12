@@ -1,0 +1,117 @@
+<div class="school-overview" [attr.dir]="t('rtl', 'ltr')">
+  <section class="pulse-hero" aria-labelledby="pulse-heading">
+    <div class="pulse-copy">
+      <span class="eyebrow"><span></span>{{ t('نبض المدرسة · كل التفاصيل بين يديك', 'School pulse · Your school at a glance') }}</span>
+      <h2 id="pulse-heading">{{ data()?.schoolName }}</h2>
+      <p>{{ t('مدرستك في نظرة واحدة، وقراراتك في المكان الصحيح.', 'One clear view of your school and the decisions that matter.') }}</p>
+      <div class="hero-brief">
+        <span *ngIf="operations()?.students?.counts?.attendanceRate != null"><b>{{ operations()?.students?.counts?.attendanceRate }}%</b> {{ t('حضور الطلاب', 'student attendance') }}</span>
+        <span><b>{{ data()?.evaluationsPendingApprovalCount ?? 0 }}</b> {{ t('زيارات تنتظر اعتمادك', 'visits awaiting approval') }}</span>
+        <span *ngIf="operations()?.summons as summons"><b>{{ summons.pending }}</b> {{ t('استدعاءات معلقة', 'pending summons') }}</span>
+      </div>
+      <div class="hero-zones" [attr.aria-label]="t('أقسام نبض المدرسة', 'School pulse sections')">
+        <button *ngFor="let zone of zones" type="button" [class.selected]="selectedZone() === zone.id" [attr.aria-pressed]="selectedZone() === zone.id" (click)="selectZone(zone.id)">
+          <span class="zone-dot" [style.background]="zone.color"></span>
+          <span><strong>{{ t(zone.ar, zone.en) }}</strong><small>{{ t(zone.hintAr, zone.hintEn) }}</small></span>
+          <i class="pi pi-arrow-up-left" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+    <div class="pulse-art" aria-hidden="true"><img src="assets/dashboard/school-pulse.svg" width="540" height="330" alt="" /></div>
+  </section>
+
+  <section class="tool-section" aria-labelledby="manager-tools-title">
+    <div class="section-head"><div><span class="kicker">{{ t('وصول مباشر', 'Quick access') }}</span><h2 id="manager-tools-title">{{ t('أدوات إدارة المدرسة', 'School management tools') }}</h2></div><span class="quiet">{{ t('اختر الأداة وابدأ العمل', 'Choose a tool to get started') }}</span></div>
+    <div class="manager-tools">
+      <button *ngFor="let tool of tools()" type="button" class="manager-tool" [ngClass]="'tool-' + tool.color" (click)="navigate.emit(tool.route)">
+        <span class="tool-top"><span class="tool-icon"><i class="pi" [ngClass]="tool.icon" aria-hidden="true"></i></span><span *ngIf="tool.badge > 0" class="tool-badge" [title]="tool.badgeLabel">{{ tool.badge }} {{ tool.badgeLabel }}</span><i class="pi pi-arrow-up-left tool-arrow" aria-hidden="true"></i></span>
+        <strong class="tool-title">{{ tool.label }}</strong>
+        <span class="tool-bottom"><span><b>{{ tool.stat }}</b> <small>{{ tool.statLabel }}</small></span><span class="tool-open">{{ t('فتح الأداة', 'Open tool') }} <i class="pi pi-arrow-left" aria-hidden="true"></i></span></span>
+      </button>
+    </div>
+    <button type="button" class="more-tools" (click)="expandedTools.set(!expandedTools())" [attr.aria-expanded]="expandedTools()" aria-controls="manager-operation-tools"><i class="pi pi-th-large" aria-hidden="true"></i>{{ t('أدوات الإشراف والتدقيق', 'Oversight and audit tools') }}<i class="pi" [ngClass]="expandedTools() ? 'pi-chevron-up' : 'pi-chevron-down'" aria-hidden="true"></i></button>
+    <div id="manager-operation-tools" class="operation-tools" *ngIf="expandedTools()">
+      <button type="button" *ngFor="let tool of operationTools()" (click)="navigate.emit(tool.route)"><i class="pi" [ngClass]="tool.icon" aria-hidden="true"></i><strong>{{ tool.label }}</strong><small>{{ tool.description }}</small><span><b>{{ tool.value }}</b> {{ tool.meta }}</span></button>
+    </div>
+  </section>
+
+  <div class="overview-status" *ngIf="refreshing() || failed()">
+    <span><i class="pi" [ngClass]="refreshing() ? 'pi-spin pi-spinner' : 'pi-exclamation-circle'" aria-hidden="true"></i>{{ refreshing() ? t('جارٍ تحديث بيانات التشغيل…', 'Updating operations…') : t('تعذر تحديث بيانات التشغيل. آخر بيانات متاحة معروضة.', 'Operations could not be refreshed. Showing the latest available data.') }}</span>
+    <button *ngIf="failed() && !refreshing()" type="button" class="subtle-button" (click)="refresh.emit()">{{ t('إعادة المحاولة', 'Retry') }}</button>
+  </div>
+
+  <section class="focus-row">
+    <article class="overview-panel priority-panel">
+      <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-shield" aria-hidden="true"></i></span><span><h2>{{ t('قرارات تحتاج انتباهك', 'Decisions needing attention') }}</h2><small>{{ t('متابعة المدرسة تبدأ من هنا', 'Your next decisions') }}</small></span></span></header>
+      <div class="priority-items" *ngIf="priorities().length; else noPriorities">
+        <button type="button" *ngFor="let item of priorities()" (click)="navigate.emit(item.route)" [ngClass]="'priority-' + item.tone"><span class="priority-icon"><i class="pi" [ngClass]="item.icon" aria-hidden="true"></i></span><strong>{{ t(item.ar, item.en) }}</strong><b>{{ item.count }}</b><i class="pi pi-arrow-left" aria-hidden="true"></i></button>
+      </div>
+      <ng-template #noPriorities><p class="empty-state"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ t('لا توجد قرارات عاجلة حاليًا', 'No urgent decisions right now') }}</p></ng-template>
+    </article>
+    <article class="overview-panel achievement-panel">
+      <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-trophy" aria-hidden="true"></i></span><span><h2>{{ t('إنجازات المدرسة', 'School achievements') }}</h2><small>{{ t('كل خطوة تُحدث فرقًا', 'Every step makes a difference') }}</small></span></span></header>
+      <div class="achievement-metrics"><span><b>{{ data()?.visitsThisMonthCount ?? 0 }}</b><small>{{ t('زيارة هذا الشهر', 'visits this month') }}</small></span><span><b>{{ data()?.improvementPlans?.totalCompleted ?? 0 }}</b><small>{{ t('خطة مكتملة', 'completed plans') }}</small></span><span><b>{{ data()?.improvementPlans?.totalFollowUps ?? 0 }}</b><small>{{ t('متابعة موثقة', 'documented follow-ups') }}</small></span></div>
+    </article>
+  </section>
+
+  <section id="manager-attendance" class="attendance-row" [attr.aria-label]="t('حضور الطلاب والموظفين', 'Student and staff attendance')">
+    <article class="overview-panel attendance-panel">
+      <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-graduation-cap" aria-hidden="true"></i></span><span><h2>{{ t('حضور وانصراف الطلاب', 'Student attendance') }}</h2><small>{{ t('بيانات اليوم', 'Today') }} <span *ngIf="operations() as snapshot">· {{ date(snapshot.date + 'T12:00:00Z') }}</span></small></span></span><button type="button" class="subtle-button" (click)="navigate.emit('/student-affairs/oversight')">{{ t('عرض الكل', 'View all') }}</button></header>
+      <ng-container *ngIf="operations()?.students as students; else attendanceUnavailable">
+        <div class="attendance-counts"><div *ngFor="let count of breakdown(students.counts)" [ngClass]="'count-' + count.tone"><small><span></span>{{ count.label }}</small><strong>{{ count.value }}</strong></div></div>
+        <div class="attendance-rates"><span [title]="t('الحاضرون ÷ الطلاب المرصود حضورهم', 'Present / recorded students')"><small>{{ t('نسبة الحضور', 'Attendance rate') }}</small><b>{{ students.counts.attendanceRate == null ? '—' : students.counts.attendanceRate + '%' }}</b></span><span [title]="t('الطلاب المرصودون ÷ الطلاب المقيدون حاليًا', 'Recorded / currently enrolled students')"><small>{{ t('اكتمال الرصد', 'Recording completeness') }}</small><b>{{ students.counts.recordingRate == null ? '—' : students.counts.recordingRate + '%' }}</b></span><div class="attendance-stack" role="img" [attr.aria-label]="t('توزيع حضور الطلاب، الأرقام موضحة أعلاه', 'Student attendance distribution, counts listed above')"><span *ngFor="let count of breakdown(students.counts)" [ngClass]="'stack-' + count.tone" [style.width.%]="share(count.value, students.counts.total)"></span></div></div>
+        <div class="attendance-table"><table><caption>{{ t('حضور الفصول اليوم', 'Classroom attendance today') }}</caption><thead><tr><th>{{ t('الفصل', 'Classroom') }}</th><th>{{ t('حاضر', 'Present') }}</th><th>{{ t('غائب', 'Absent') }}</th><th>{{ t('بعذر', 'Excused') }}</th><th>{{ t('لم يرصد', 'Unrecorded') }}</th></tr></thead><tbody><tr *ngFor="let classroom of students.classrooms"><td><strong>{{ classroom.label }}</strong></td><td>{{ classroom.present }}</td><td class="danger-text">{{ classroom.absent }}</td><td>{{ classroom.excused }}</td><td>{{ classroom.total - classroom.present - classroom.absent - classroom.excused }}</td></tr></tbody></table><p *ngIf="!students.classrooms.length" class="empty-state">{{ t('لا توجد فصول مقيدة للفترة الحالية', 'No enrolled classrooms in the current term') }}</p></div>
+        <div class="attendance-trend"><h3>{{ t('اتجاه الحضور', 'Attendance trend') }}<small>{{ t('آخر 14 يوم رصد متاح', 'Last 14 recorded days') }}</small></h3><p-chart *ngIf="studentChart() as chart; else noTrend" type="line" [data]="chart" [options]="chartOptions" height="145px"></p-chart></div>
+        <footer class="attendance-footer"><span>{{ students.counts.recorded }} / {{ students.counts.total }} {{ t('طالبًا مرصودًا', 'students recorded') }}</span><button type="button" (click)="navigate.emit('/student-affairs/oversight')">{{ t('متابعة الغياب', 'Follow up absence') }}<i class="pi pi-arrow-left" aria-hidden="true"></i></button></footer>
+      </ng-container>
+    </article>
+    <article id="manager-staff" class="overview-panel attendance-panel">
+      <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-users" aria-hidden="true"></i></span><span><h2>{{ t('حضور وانصراف الموظفين', 'Staff attendance') }}</h2><small>{{ t('بيانات اليوم', 'Today') }} <span *ngIf="operations() as snapshot">· {{ date(snapshot.date + 'T12:00:00Z') }}</span></small></span></span><button *ngIf="canOpenStaff()" type="button" class="subtle-button" (click)="navigate.emit('/attendance')">{{ t('عرض الكل', 'View all') }}</button></header>
+      <ng-container *ngIf="operations()?.staff as staff; else attendanceUnavailable">
+        <div class="attendance-counts"><div *ngFor="let count of breakdown(staff.counts)" [ngClass]="'count-' + count.tone"><small><span></span>{{ count.label }}</small><strong>{{ count.value }}</strong></div></div>
+        <div class="attendance-rates"><span [title]="t('الحاضرون ÷ الموظفين المرصود حضورهم', 'Present / recorded staff')"><small>{{ t('نسبة الحضور', 'Attendance rate') }}</small><b>{{ staff.counts.attendanceRate == null ? '—' : staff.counts.attendanceRate + '%' }}</b></span><span [title]="t('الموظفون المرصودون ÷ الموظفين النشطين', 'Recorded / active staff')"><small>{{ t('اكتمال الرصد', 'Recording completeness') }}</small><b>{{ staff.counts.recordingRate == null ? '—' : staff.counts.recordingRate + '%' }}</b></span><div class="attendance-stack" role="img" [attr.aria-label]="t('توزيع حضور الموظفين، الأرقام موضحة أعلاه', 'Staff attendance distribution, counts listed above')"><span *ngFor="let count of breakdown(staff.counts)" [ngClass]="'stack-' + count.tone" [style.width.%]="share(count.value, staff.counts.total)"></span></div></div>
+        <div class="attendance-table"><table><caption>{{ t('الموظفون الغائبون اليوم', 'Absent staff today') }}</caption><thead><tr><th>{{ t('الموظف', 'Employee') }}</th><th>{{ t('الدور', 'Role') }}</th><th>{{ t('الحالة', 'Status') }}</th></tr></thead><tbody><tr *ngFor="let employee of staff.absences"><td><strong>{{ employee.name }}</strong></td><td>{{ roleLabel(employee.role) }}</td><td><span class="status-chip" [class.danger-chip]="employee.status === 2">{{ employee.status === 2 ? t('غائب', 'Absent') : t('غائب بعذر', 'Excused') }}</span></td></tr></tbody></table><p *ngIf="!staff.absences.length" class="empty-state"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ staff.counts.recorded ? t('لا يوجد غياب مسجل اليوم', 'No absence recorded today') : t('لم يبدأ رصد الحضور اليوم', 'Attendance has not been recorded today') }}</p></div>
+        <div class="attendance-trend"><h3>{{ t('اتجاه الحضور', 'Attendance trend') }}<small>{{ t('آخر 14 يوم رصد متاح', 'Last 14 recorded days') }}</small></h3><p-chart *ngIf="staffChart() as chart; else noTrend" type="line" [data]="chart" [options]="chartOptions" height="145px"></p-chart></div>
+        <footer class="attendance-footer"><span>{{ staff.counts.recorded }} / {{ staff.counts.total }} {{ t('موظفًا مرصودًا', 'staff recorded') }}</span><button type="button" (click)="navigate.emit('/intelligent-timetable/substitutions')">{{ t('مراجعة الاحتياطي', 'Review substitutions') }}<i class="pi pi-arrow-left" aria-hidden="true"></i></button></footer>
+      </ng-container>
+    </article>
+  </section>
+  <ng-template #attendanceUnavailable><p class="empty-state">{{ refreshing() ? t('جارٍ تحميل ملخص الحضور…', 'Loading attendance…') : t('ملخص الحضور غير متاح حاليًا', 'Attendance summary is currently unavailable') }}</p></ng-template>
+  <ng-template #noTrend><p class="trend-empty">{{ t('لا توجد بيانات تاريخية كافية لعرض الاتجاه', 'Not enough historical records to display a trend') }}</p></ng-template>
+
+  <section id="manager-school-pulse" class="school-pulse-row">
+    <article class="overview-panel compact-panel activity-panel">
+      <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-chart-line" aria-hidden="true"></i></span><span><h2>{{ t('آخر النشاطات', 'Recent activity') }}</h2><small>{{ t('آخر تحديثات سجلات المدرسة', 'Latest school record updates') }}</small></span></span></header>
+      <div class="activity-list"><button type="button" *ngFor="let activity of operations()?.activities" (click)="navigate.emit(activity.route)"><span class="activity-mark"></span><div><span class="activity-meta"><span class="status-chip">{{ activityLabel(activity.category) }}</span><time [attr.datetime]="activity.at">{{ date(activity.at) }} · {{ time(activity.at) }}</time></span><strong>{{ activity.title }}</strong></div><i class="pi pi-arrow-up-left" aria-hidden="true"></i></button></div>
+      <p *ngIf="!operations()?.activities?.length" class="empty-state">{{ operations() ? t('لا توجد نشاطات مسجلة بعد', 'No activity recorded yet') : t('النشاطات غير متاحة حاليًا', 'Activity is currently unavailable') }}</p>
+      <footer class="compact-footer"><i class="pi pi-history" aria-hidden="true"></i>{{ t('ملخص آخر التحديثات', 'Latest updates summary') }}</footer>
+    </article>
+    <article class="overview-panel compact-panel summons-panel">
+      <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-calendar-plus" aria-hidden="true"></i></span><span><h2>{{ t('استدعاءات أولياء الأمور', 'Guardian summons') }}</h2><small>{{ t('ملخص للاطلاع · يديرها الموجه الطلابي', 'Read-only summary · Managed by student counselor') }}</small></span></span></header>
+      <ng-container *ngIf="operations()?.summons as summons; else summonsUnavailable">
+        <div class="summon-summary"><span class="summon-pending"><b>{{ summons.pending }}</b><small>{{ t('معلق', 'Pending') }}</small></span><span><b>{{ summons.attended }}</b><small>{{ t('حضر', 'Attended') }}</small></span><span><b>{{ summons.underObservation }}</b><small>{{ t('تحت الملاحظة', 'Under observation') }}</small></span><span><b>{{ summons.improved }}</b><small>{{ t('تحسن', 'Improved') }}</small></span></div>
+        <h3 class="list-title">{{ t('مواعيد اليوم والقادمة', 'Today and upcoming appointments') }}</h3>
+        <div class="appointment-list"><div *ngFor="let appointment of summons.appointments"><span class="appointment-time"><small>{{ date(appointment.scheduledAt) }}</small><b>{{ time(appointment.scheduledAt) }}</b></span><strong>{{ appointment.studentName }}</strong><span class="status-chip" [class.danger-chip]="appointment.priority === 3">{{ appointment.priority === 3 ? t('عاجلة', 'Critical') : appointment.priority === 2 ? t('عالية', 'High') : t('عادية', 'Normal') }}</span></div></div>
+        <p *ngIf="!summons.appointments.length" class="empty-state">{{ summons.pending ? t('لا توجد مواعيد قادمة مجدولة', 'No upcoming appointments scheduled') : t('لا توجد استدعاءات معلقة', 'No pending summons') }}</p>
+        <footer class="compact-footer"><button type="button" (click)="navigate.emit(canOpenSummons() ? '/student-affairs/summons' : '/student-affairs/oversight')">{{ t('عرض الملخص', 'View summary') }}<i class="pi pi-arrow-left" aria-hidden="true"></i></button></footer>
+      </ng-container>
+      <ng-template #summonsUnavailable><p class="empty-state">{{ t('ملخص الاستدعاءات غير متاح حاليًا', 'Summons summary is currently unavailable') }}</p></ng-template>
+    </article>
+    <article class="overview-panel compact-panel day-panel">
+      <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-clock" aria-hidden="true"></i></span><span><h2>{{ t('اليوم الدراسي', 'School day') }}</h2><small>{{ operations()?.schoolDay?.name ?? t('مواعيد الجدول المنشور', 'Published timetable') }}</small></span></span><span *ngIf="operations()?.schoolDay" class="status-chip">{{ t('منشور', 'Published') }}</span></header>
+      <ng-container *ngIf="operations()?.schoolDay as day; else noSchoolDay">
+        <div class="current-period"><small>{{ t('الآن', 'Now') }}</small><strong>{{ currentSlot()?.label ?? (day.slots.length ? t('خارج أوقات الحصص', 'Outside scheduled periods') : t('ليس يومًا دراسيًا', 'Not a study day')) }}</strong><b *ngIf="currentSlot()">{{ remaining() }}</b><span *ngIf="currentSlot()" class="period-progress"><span [style.width.%]="slotProgress()"></span></span></div>
+        <div class="school-day-list"><div *ngFor="let slot of day.slots" [class.current]="slot === currentSlot()"><span><i *ngIf="slot.kind === 'Break'" class="pi pi-sun" aria-hidden="true"></i>{{ slot.label }}</span><time>{{ slot.startsAt.slice(0, 5) }}–{{ slot.endsAt.slice(0, 5) }}</time></div></div>
+        <footer class="compact-footer"><button type="button" (click)="navigate.emit('/timetable')">{{ t('عرض الجدول', 'View timetable') }}<i class="pi pi-arrow-left" aria-hidden="true"></i></button><button type="button" (click)="navigate.emit('/intelligent-timetable/substitutions')">{{ t('الاحتياطي', 'Substitutions') }}</button></footer>
+      </ng-container>
+      <ng-template #noSchoolDay><p class="empty-state">{{ t('لا يوجد جدول منشور محدد للفترة الحالية', 'No unambiguous published timetable for the current term') }}</p><footer class="compact-footer"><button type="button" (click)="navigate.emit('/timetable')">{{ t('عرض الجدول', 'View timetable') }}<i class="pi pi-arrow-left" aria-hidden="true"></i></button></footer></ng-template>
+    </article>
+  </section>
+
+  <section id="manager-recent-visits" class="overview-panel recent-visits">
+    <header class="panel-head"><span class="panel-heading"><span class="heading-icon"><i class="pi pi-clipboard" aria-hidden="true"></i></span><span><h2>{{ t('آخر الزيارات', 'Recent classroom visits') }}</h2><small>{{ t('متابعة التقييم والجودة التعليمية', 'Evaluation and educational quality') }}</small></span></span><button type="button" class="subtle-button" (click)="navigate.emit('/visits')">{{ t('عرض الكل', 'View all') }}</button></header>
+    <div class="recent-table"><table><thead><tr><th>{{ t('المعلم', 'Teacher') }}</th><th>{{ t('المقيم', 'Evaluator') }}</th><th>{{ t('المادة', 'Subject') }}</th><th>{{ t('التاريخ', 'Date') }}</th><th>{{ t('الحالة', 'Status') }}</th><th>{{ t('النتيجة', 'Score') }}</th></tr></thead><tbody><tr *ngFor="let visit of operations()?.recentVisits"><td><strong>{{ visit.teacher }}</strong></td><td>{{ visit.evaluator }}</td><td>{{ visit.subject ?? '—' }}</td><td>{{ date(visit.date) }}</td><td><span class="status-chip" [class.warning-chip]="visit.status === 3">{{ visitStatus(visit.status) }}</span></td><td>{{ visit.score == null ? '—' : (visit.score | publishedScore:'withMax') }}</td></tr></tbody></table></div>
+    <p *ngIf="!operations()?.recentVisits?.length" class="empty-state">{{ operations() ? t('لا توجد زيارات مسجلة بعد', 'No classroom visits recorded yet') : t('الزيارات الأخيرة غير متاحة حاليًا', 'Recent visits are currently unavailable') }}</p>
+  </section>
+  <div class="snapshot-note" *ngIf="operations() as snapshot"><i class="pi pi-refresh" aria-hidden="true"></i>{{ t('آخر تحديث لبيانات التشغيل', 'Operations last updated') }}: {{ date(snapshot.generatedAt) }} · {{ time(snapshot.generatedAt) }}<button type="button" (click)="refresh.emit()" [disabled]="refreshing()">{{ t('تحديث', 'Refresh') }}</button></div>
+</div>

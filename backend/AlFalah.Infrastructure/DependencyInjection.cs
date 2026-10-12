@@ -199,6 +199,8 @@ public static class DependencyInjection
         services.AddScoped<IStudentAnalyzerAiClient, StudentAnalyzerAiClient>();
         services.AddScoped<IStudentAnalyzerService, StudentAnalyzerService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<ISchoolManagerOperationsRepository, SchoolManagerOperationsRepository>();
+        services.AddScoped<ISchoolManagerOperationsService, SchoolManagerOperationsService>();
         services.AddScoped<IImprovementPlanService, ImprovementPlanService>();
         services.AddScoped<IPdfReportService, PdfReportService>();
         // D-41 / Task 6 — bulk ZIP export of visits (uses System.IO.Compression.ZipArchive;

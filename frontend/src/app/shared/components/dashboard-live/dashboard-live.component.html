@@ -24,7 +24,7 @@
         class="p-button-outlined"
         [label]="'DASHBOARD.REFRESH' | translate"
         [loading]="loading()"
-        (click)="load()">
+        (click)="refreshDashboard()">
       </button>
       <button
         pButton
@@ -58,180 +58,16 @@
     <!-- SCHOOL MANAGER: New Executive Dashboard Layout            -->
     <!-- ═══════════════════════════════════════════════════════════ -->
     <ng-container *ngIf="role === 'school-manager'">
-      <ng-container *ngIf="managerSummary() as summary">
-        <!-- ── Executive command hero ── -->
-        <section class="manager-hero" aria-live="polite">
-          <div class="manager-hero__content">
-            <span class="manager-hero__eyebrow">
-              <i class="pi pi-sparkles"></i>
-              {{ 'DASHBOARD.MANAGER.COMMAND_CENTER' | translate }}
-            </span>
-            <h2>{{ summary.schoolName }}</h2>
-            <p>{{ 'DASHBOARD.MANAGER.HERO_DESC' | translate }}</p>
+      <app-school-manager-overview
+        [data]="managerData()"
+        [operations]="managerOperations()"
+        [tools]="schoolManagerTools()"
+        [operationTools]="managerStudentAffairsTools()"
+        [refreshing]="managerOperationsLoading()"
+        [failed]="managerOperationsFailed()"
+        (refresh)="loadManagerOperations()"
+        (navigate)="navigateTo($event)" />
 
-            <div class="manager-hero__stats">
-              <div>
-                <span>{{ 'DASHBOARD.METRIC.MONTH_VISITS' | translate }}</span>
-                <strong>{{ summary.monthVisits }}</strong>
-              </div>
-              <div>
-                <span>{{ 'DASHBOARD.MANAGER.APPROVED_VISITS' | translate }}</span>
-                <strong>{{ summary.approvedVisits }}</strong>
-              </div>
-              <div>
-                <span>{{ 'DASHBOARD.METRIC.INSTRUCTORS' | translate }}</span>
-                <strong>{{ summary.instructors }}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="manager-hero__score">
-            <div class="approval-ring" [style.--progress]="summary.approvalRate + '%'">
-              <div class="approval-ring__inner">
-                <strong>{{ summary.approvalRate }}<small>%</small></strong>
-                <span>{{ 'DASHBOARD.HIGHLIGHT.APPROVAL_RATE' | translate }}</span>
-              </div>
-            </div>
-            <div class="manager-hero__score-note">
-              <i class="pi pi-verified"></i>
-              <span>
-                <small>{{ 'DASHBOARD.MANAGER.TOTAL_VISITS' | translate }}</small>
-                <strong>{{ summary.totalVisits }}</strong>
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <!-- ── Decision priorities and achievements ── -->
-        <section class="manager-focus-grid">
-          <article class="manager-panel priorities-panel">
-            <header class="manager-panel__header">
-              <div>
-                <span class="manager-panel__kicker">{{ 'DASHBOARD.MANAGER.TODAY_FOCUS' | translate }}</span>
-                <h2>{{ 'DASHBOARD.MANAGER.DECISIONS_TITLE' | translate }}</h2>
-              </div>
-              <span class="manager-panel__count" [class.manager-panel__count--clear]="!urgentActions().length">
-                {{ urgentActions().length ? summary.attentionCount : 0 }}
-              </span>
-            </header>
-
-            <div *ngIf="urgentActions().length; else allClear" class="priority-list">
-              <button
-                *ngFor="let action of urgentActions(); let i = index"
-                class="priority-item"
-                [class.priority-item--danger]="action.tone === 'danger'"
-                [style.animation-delay.ms]="i * 70"
-                (click)="navigateTo(action.route)">
-                <span class="priority-item__icon"><i class="pi" [ngClass]="action.icon"></i></span>
-                <span class="priority-item__content">
-                  <strong>{{ action.label }}</strong>
-                  <small>{{ 'DASHBOARD.MANAGER.REQUIRES_ACTION' | translate }}</small>
-                </span>
-                <span class="priority-item__count">{{ action.count }}</span>
-                <i class="pi pi-arrow-left priority-item__arrow"></i>
-              </button>
-            </div>
-            <ng-template #allClear>
-              <div class="all-clear">
-                <span><i class="pi pi-check"></i></span>
-                <div>
-                  <strong>{{ 'DASHBOARD.MANAGER.ALL_CLEAR_TITLE' | translate }}</strong>
-                  <p>{{ 'DASHBOARD.MANAGER.ALL_CLEAR_DESC' | translate }}</p>
-                </div>
-              </div>
-            </ng-template>
-          </article>
-
-          <article class="manager-panel achievements-panel">
-            <header class="manager-panel__header">
-              <div>
-                <span class="manager-panel__kicker">{{ 'DASHBOARD.MANAGER.ACHIEVEMENTS_KICKER' | translate }}</span>
-                <h2>{{ 'DASHBOARD.MANAGER.ACHIEVEMENTS_TITLE' | translate }}</h2>
-              </div>
-              <span class="achievement-crown"><i class="pi pi-trophy"></i></span>
-            </header>
-            <div class="achievement-list">
-              <div *ngFor="let achievement of managerAchievements(); let i = index" class="achievement-item">
-                <span class="achievement-item__rank">0{{ i + 1 }}</span>
-                <span class="achievement-item__icon"><i class="pi" [ngClass]="achievement.icon"></i></span>
-                <span class="achievement-item__content">
-                  <strong>{{ achievement.value }}</strong>
-                  <small>{{ achievement.labelKey | translate }}</small>
-                </span>
-              </div>
-            </div>
-          </article>
-        </section>
-      </ng-container>
-
-      <section class="student-affairs-command" aria-labelledby="student-affairs-command-title">
-        <div class="student-affairs-command__header">
-          <div>
-            <span class="section-kicker"><i class="pi pi-shield"></i>تشغيل المدرسة اليومي</span>
-            <h2 id="student-affairs-command-title">مركز عمليات شؤون الطلاب</h2>
-            <p>الإشراف والتدقيق والقرارات الإدارية الجديدة في مساحة واحدة، مع مؤشرات حية وروابط مباشرة.</p>
-          </div>
-          <button type="button" class="student-affairs-command__refresh" [disabled]="managerOperationsLoading()" (click)="loadManagerOperations()">
-            <i class="pi" [ngClass]="managerOperationsLoading() ? 'pi-spin pi-spinner' : 'pi-refresh'"></i>
-            تحديث المؤشرات
-          </button>
-        </div>
-        <div class="student-affairs-command__grid">
-          <button
-            type="button"
-            *ngFor="let tool of managerStudentAffairsTools(); let i = index"
-            class="operations-card"
-            [ngClass]="'operations-card--' + tool.tone"
-            [style.animation-delay.ms]="i * 70"
-            (click)="navigateTo(tool.route)">
-            <span class="operations-card__top"><span class="operations-card__icon"><i class="pi" [ngClass]="tool.icon"></i></span><i class="pi pi-arrow-up-left operations-card__arrow"></i></span>
-            <span class="operations-card__copy"><strong>{{ tool.label }}</strong><small>{{ tool.description }}</small></span>
-            <span class="operations-card__metric"><strong>{{ tool.value }}</strong><small>{{ tool.meta }}</small></span>
-          </button>
-        </div>
-      </section>
-
-      <!-- ── Interactive Tools Hub ── -->
-      <section class="tools-hub">
-        <div class="tools-hub__header">
-          <div class="tools-hub__header-text">
-            <span class="section-kicker">{{ 'DASHBOARD.MANAGER.QUICK_ACCESS' | translate }}</span>
-            <h2>{{ 'DASHBOARD.MANAGER.TOOLS_TITLE' | translate }}</h2>
-            <p>{{ 'DASHBOARD.MANAGER.TOOLS_DESC' | translate }}</p>
-          </div>
-          <span class="tools-hub__icon-circle"><i class="pi pi-th-large"></i></span>
-        </div>
-        <div class="tools-grid">
-          <button
-            *ngFor="let tool of schoolManagerTools(); let i = index"
-            class="tool-card"
-            [class]="'tool-card tool-card--' + tool.color"
-            [style.animation-delay.ms]="i * 60"
-            (click)="navigateTo(tool.route)"
-            [attr.aria-label]="tool.label">
-            <span *ngIf="tool.badge > 0" class="tool-card__bell"
-              [pTooltip]="tool.badge + ' ' + tool.badgeLabel"
-              tooltipPosition="top"
-              tooltipAppendTo="body">
-              <i class="pi pi-bell"></i>
-              <span class="tool-card__bell-count">{{ tool.badge }}</span>
-            </span>
-            <span class="tool-card__icon-wrap">
-              <i class="pi" [ngClass]="tool.icon"></i>
-            </span>
-            <span class="tool-card__label">{{ tool.label }}</span>
-            <span class="tool-card__stat">
-              <strong>{{ tool.stat }}</strong>
-              <small>{{ tool.statLabel }}</small>
-            </span>
-            <span class="tool-card__go">
-              <i class="pi pi-arrow-left"></i>
-            </span>
-          </button>
-        </div>
-      </section>
-
-      <!-- ── Analytics Grid (Charts + Plan Stats) ── -->
       <section class="sm-analytics-grid">
         <!-- Visits by Status Doughnut -->
         <article *ngIf="statusChartData() as statusChart" class="surface-card chart-card">

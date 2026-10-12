@@ -10,6 +10,7 @@ import {
 } from '../models/dashboard.models';
 import { filenameFromContentDisposition } from './visits.service';
 import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
+import { SchoolManagerOperations } from '../models/school-manager-operations.models';
 
 /**
  * Phase 9 — role-based dashboard aggregator. All methods are thin pass-throughs
@@ -35,6 +36,12 @@ export class DashboardService {
   getSchoolManager(filter: DashboardFilter = {}): Observable<ApiResponse<SchoolManagerDashboard>> {
     return this.http.get<ApiResponse<SchoolManagerDashboard>>(`${this.base}/school-manager`, {
       params: this.toParams(filter)
+    });
+  }
+
+  getSchoolManagerOperations(): Observable<ApiResponse<SchoolManagerOperations>> {
+    return this.http.get<ApiResponse<SchoolManagerOperations>>(`${this.base}/school-manager/operations`, {
+      context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true)
     });
   }
 
