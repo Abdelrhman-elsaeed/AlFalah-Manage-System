@@ -10,9 +10,19 @@ public static class SubjectSchedulingPolicy
         second.Sequence == first.Sequence + 1 && first.EndLocalTime == second.StartLocalTime;
 
     // A preference changes ranking only. It must never remove a candidate or fail feasibility.
+    // Early and Late use the same configured window; the label describes the intent,
+    // while the two bounds define the acceptable soft-preference range.
     public static int PreferencePenalty(SubjectRulesRequest rules, int sequence) =>
-        rules.TimePreference == "None" ? 0 : Math.Max(0, (rules.EarliestPeriodSequence ?? sequence) - sequence)
-            + Math.Max(0, sequence - (rules.LatestPreferredPeriodSequence ?? sequence));
+        PreferencePenalty(rules.TimePreference, rules.EarliestPeriodSequence, rules.LatestPreferredPeriodSequence, sequence);
+
+    public static int PreferencePenalty(string? timePreference, int? earliestPeriodSequence,
+        int? latestPreferredPeriodSequence, int sequence) =>
+        timePreference is null or "None" ? 0 : Math.Max(0, (earliestPeriodSequence ?? 1) - sequence)
+            + Math.Max(0, sequence - (latestPreferredPeriodSequence ?? 3));
+
+    public static bool PreferenceMissed(string? timePreference, int? earliestPeriodSequence,
+        int? latestPreferredPeriodSequence, int sequence) =>
+        PreferencePenalty(timePreference, earliestPeriodSequence, latestPreferredPeriodSequence, sequence) > 0;
 
     public static void Validate(SubjectRulesRequest rules, BellScheduleDto schedule)
     {

@@ -222,12 +222,9 @@ public sealed class TimetableGenerationEngine
         var old = context.Timetable.Entries.Where(x => !x.IsDeleted && x.ClassSubjectRequirementId == block.Requirement.Id)
             .Select(x => new Slot((int)x.Day, x.Period)).ToHashSet();
         var retained = list.Count(period => old.Contains(new(day, period)));
-        var preference = list.Sum(period => block.Requirement.TimePreference switch
-        {
-            "Early" => Math.Max(0, period - (block.Requirement.LatestPreferredPeriodSequence ?? period)),
-            "Late" => Math.Max(0, (block.Requirement.EarliestPeriodSequence ?? period) - period),
-            _ => 0
-        });
+        var preference = list.Sum(period => SubjectSchedulingPolicy.PreferencePenalty(
+            block.Requirement.TimePreference, block.Requirement.EarliestPeriodSequence,
+            block.Requirement.LatestPreferredPeriodSequence, period));
         return preference * 10 - retained * 100;
     }
 

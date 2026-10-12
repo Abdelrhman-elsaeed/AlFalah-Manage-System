@@ -60,6 +60,26 @@ public sealed class SchoolTimetableServiceTests
     }
 
     [Fact]
+    public async Task Catalog_maps_teacher_print_profile_for_the_selected_timetable_setup()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var setup = await harness.Context.Set<TimetableSetupProfile>().SingleAsync();
+        var profile = await harness.Context.TeacherTimetableProfiles.SingleAsync(x => x.InstructorProfileId == 1);
+        profile.ShortDisplayName = "أحمد مختصر";
+        profile.HideFromPrint = true;
+        await harness.Context.SaveChangesAsync();
+
+        var catalog = await harness.Service(harness.Manager())
+            .GetCatalogAsync(null, timetableSetupProfileId: setup.Id, personalOnly: false);
+
+        var teacher = catalog.Teachers.Single(x => x.InstructorProfileId == 1);
+        teacher.ShortDisplayName.Should().Be("أحمد مختصر");
+        teacher.HideFromPrint.Should().BeTrue();
+        teacher.PrintableName.Should().Be("أحمد مختصر");
+    }
+
+    [Fact]
     public async Task Save_rejects_class_conflict_but_allows_parallel_standby()
     {
         await using var harness = await TimetableHarness.CreateAsync();
@@ -294,6 +314,8 @@ public sealed class SchoolTimetableServiceTests
         private readonly AlFalahDbContext _context;
 
         private TimetableHarness(AlFalahDbContext context) => _context = context;
+
+        public AlFalahDbContext Context => _context;
 
         public static async Task<TimetableHarness> CreateAsync()
         {

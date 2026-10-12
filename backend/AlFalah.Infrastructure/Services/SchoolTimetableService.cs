@@ -43,7 +43,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     public async Task<TimetableCatalogDto> GetCatalogAsync(
         int? schoolId,
         CancellationToken cancellationToken = default,
-        bool personalOnly = true)
+        bool personalOnly = true,
+        int? timetableSetupProfileId = null)
     {
         var resolvedSchoolId = ResolveSchoolId(schoolId);
         var school = await _repository.GetSchools()
@@ -87,14 +88,25 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 Classes = x.Classes.OrderBy(c => c.SortOrder).Select(c => c.ClassLabel).ToList()
             })
             .ToListAsync(cancellationToken);
-        var teachers = teacherRows.Select(x => new TimetableTeacherDto(
-            x.Id,
-            x.UserId,
-            x.FullName.Trim(),
-            x.EmployeeNumber,
-            x.SubjectSpecialization,
-            x.Classes,
-            x.UserId == _currentUser.UserId)).ToList();
+        var printProfiles = timetableSetupProfileId is int setupId
+            ? await _repository.GetTeacherTimetableProfiles(resolvedSchoolId, setupId)
+                .Select(x => new { x.InstructorProfileId, x.ShortDisplayName, x.HideFromPrint })
+                .ToDictionaryAsync(x => x.InstructorProfileId, x => (x.ShortDisplayName, x.HideFromPrint), cancellationToken)
+            : new Dictionary<int, (string ShortDisplayName, bool HideFromPrint)>();
+        var teachers = teacherRows.Select(x =>
+        {
+            printProfiles.TryGetValue(x.Id, out var profile);
+            return new TimetableTeacherDto(
+                x.Id,
+                x.UserId,
+                x.FullName.Trim(),
+                x.EmployeeNumber,
+                x.SubjectSpecialization,
+                x.Classes,
+                x.UserId == _currentUser.UserId,
+                profile.ShortDisplayName,
+                profile.HideFromPrint);
+        }).ToList();
 
         var moderators = capabilities.CanDelegate
             ? await BuildModeratorsAsync(resolvedSchoolId, cancellationToken)
@@ -380,7 +392,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         if (!Enum.IsDefined(colorMode))
             throw new ArgumentException("نمط ألوان ملف PDF غير صالح.", nameof(colorMode));
         var timetable = await GetByIdAsync(timetableId, cancellationToken, personalOnly);
-        var catalog = await GetCatalogAsync(timetable.SchoolId, cancellationToken, personalOnly);
+        var catalog = await GetCatalogAsync(timetable.SchoolId, cancellationToken, personalOnly, timetable.TimetableSetupProfileId);
         return _documents.BuildPdf(timetable, catalog, colorMode);
     }
 

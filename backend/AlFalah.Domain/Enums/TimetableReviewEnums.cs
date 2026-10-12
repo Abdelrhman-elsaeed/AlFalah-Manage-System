@@ -6,6 +6,6 @@ public enum ViolationRuleCode
     TeacherDoubleBooking = 1, ClassroomDoubleBooking, RoomDoubleBooking, UnavailableSlot,
     NonStudyDayPlacement, MissingAssignment, ScheduleCountMismatch, BrokenPairedBlock,
     DisallowedDay, ViolatedFixedSlot, ExcessiveConsecutive, UnfairLastPeriods,
-    ExcessiveGaps, SubjectConcentration, EarlyPreferenceMissed, SubjectClusterImbalance
+    ExcessiveGaps, SubjectConcentration, EarlyPreferenceMissed, SubjectClusterImbalance, LatePreferenceMissed
 }
 public enum RepairProposalKind { SwapEntries = 1, MoveEntry = 2, ReassignTeacher = 3 }

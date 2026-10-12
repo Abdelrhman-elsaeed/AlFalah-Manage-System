@@ -1,0 +1,2527 @@
+{
+  "source": "Read-only configuration dependency inventory",
+  "pages": [
+    {
+      "key": "workdays",
+      "requestedPath": "/pro/pro_dashboard/workdays/",
+      "finalPath": "/pro/pro_dashboard/workdays/",
+      "status": 200,
+      "dom": {
+        "headings": [
+          "[redacted dynamic headings]"
+        ],
+        "tabs": [
+          {
+            "text": "السبت",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          },
+          {
+            "text": "الأحد [n]",
+            "href": null,
+            "target": null,
+            "active": true,
+            "visible": false
+          },
+          {
+            "text": "الاثنين [n]",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          },
+          {
+            "text": "الثلاثاء [n]",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          },
+          {
+            "text": "الأربعاء [n]",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          },
+          {
+            "text": "الخميس [n]",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          },
+          {
+            "text": "الجمعة",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          }
+        ],
+        "labels": [
+          "اسم توقيت الحصص الأساسي",
+          "يوم الإجازة*",
+          "يوم الإجازة [n]*",
+          "عدد الحصص",
+          "وقت البدء",
+          "وقت الانتهاء",
+          "الاسم",
+          "بعد الحصة",
+          "قائمة الجداول:"
+        ],
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "",
+            "name": "language",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 4,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "submit",
+            "id": "",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "default-special-name-class-base",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "id_off_day_[id]",
+            "name": "off_day_[id]",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 8,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "id_off_day_[id]",
+            "name": "off_day_[id]",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 8,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "id": "id_number_of_classes",
+            "name": "number_of_classes",
+            "min": "[n]",
+            "max": "[n]",
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "time",
+            "id": "",
+            "name": "start_time",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "time",
+            "id": "",
+            "name": "end_time",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "",
+            "name": "name",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": true,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "id": "",
+            "name": "after_class",
+            "min": "[n]",
+            "max": "[n]",
+            "step": null,
+            "required": true,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "time",
+            "id": "",
+            "name": "start_time",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": true,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "time",
+            "id": "",
+            "name": "end_time",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": true,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "table-select",
+            "name": "table_id",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 1,
+            "multiple": false
+          }
+        ],
+        "headers": [],
+        "tableCount": 0,
+        "rowCounts": [],
+        "controls": [
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "نفس التوقيت لجميع الأيام",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص يومي",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تطبيق إعدادات اليوم الحالي على الأيام المحددة",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "إضافة توقيت جديد",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حفظ جميع التعديلات",
+            "href": null,
+            "id": "btn-save-all",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "احفظ التغييرات",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          }
+        ],
+        "forms": [
+          {
+            "method": "post",
+            "path": "/i18n/setlang/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/workdays/"
+          }
+        ],
+        "modalIds": [
+          {
+            "id": "subscriptionModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "breakTimesModal",
+            "visible": false,
+            "fieldCount": 4
+          },
+          {
+            "id": "confirmSaveModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "wdConfirmModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "changeTableModal",
+            "visible": false,
+            "fieldCount": 2
+          }
+        ]
+      },
+      "inlineScriptMeta": [
+        {
+          "ordinal": 2,
+          "sha256": "8755b7dcd88cd14c2d547c7df2a4730b4354d91bb6d8b5d85fe05d0f71fb659e",
+          "lineCount": 30,
+          "matchedLineCount": 3,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 4,
+          "sha256": "e486369d85b214390f44a4b977c57d35e8155122408f082994dc0a5ae0e896dc",
+          "lineCount": 131,
+          "matchedLineCount": 1,
+          "samplePaths": [
+            "/pro/pro_dashboard/check-subscription/"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "sha256": "ec9702d1be67e6a59ffe4fa7b1d0ba39365d315a0f1fb1d25329c311371bef3a",
+          "lineCount": 60,
+          "matchedLineCount": 1,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 6,
+          "sha256": "92e1e6d1cc35a19dbe5d780bc56f92fabaa046d075b797fb33e8900abc28ac4c",
+          "lineCount": 1795,
+          "matchedLineCount": 187,
+          "samplePaths": [
+            "/pro/pro_dashboard/bulk-break-time-update/"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "sha256": "5a5818ae6d119e90895392959a730e370651392bbbebe4b7abbf8d347c3fb0a2",
+          "lineCount": 248,
+          "matchedLineCount": 17,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_dashboard/api/task-progress/"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "sha256": "8d0739e1ccad67d70d517c49c4ec5da293c4235f91c9682b5ff5353017b8676b",
+          "lineCount": 162,
+          "matchedLineCount": 8,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_smart_table/api/import-task-progress/TASK_PLACEHOLDER/"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "teachers",
+      "requestedPath": "/pro/pro_dashboard/teachers/",
+      "finalPath": "/pro/pro_dashboard/teachers/",
+      "status": 200,
+      "dom": {
+        "headings": [
+          "[redacted dynamic headings]"
+        ],
+        "tabs": [
+          {
+            "text": "أضف معلم",
+            "href": "#add-teacher-tab",
+            "target": null,
+            "active": true,
+            "visible": true
+          },
+          {
+            "text": "استيراد من Excel",
+            "href": "#import-excel-tab",
+            "target": null,
+            "active": false,
+            "visible": true
+          },
+          {
+            "text": "الرمز التعريفي لتطبيق المعلم",
+            "href": "#mobile-app-tab",
+            "target": null,
+            "active": false,
+            "visible": true
+          },
+          {
+            "text": "إعدادات إضافية",
+            "href": "#additional-settings-tab",
+            "target": null,
+            "active": false,
+            "visible": true
+          }
+        ],
+        "labels": [
+          "الاسم*",
+          "الهاتف",
+          "المجموعة",
+          "الحد الأقصى الافتراضي لعدد الحصص لكل معلم",
+          "إظهار:",
+          "ترتيب حسب:",
+          "تحديد الكل (هذه الصفحة)"
+        ],
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "",
+            "name": "language",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 4,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "submit",
+            "id": "",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "id_name",
+            "name": "name",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": true,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "id_phone_number",
+            "name": "phone_number",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "id_group",
+            "name": "group",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "file",
+            "id": "docpicker",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "csv-name",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "csv-phone",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "id": "max-classes",
+            "name": "max_classes",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "teacher-search-input",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "per-page-select",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 4,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "sort-dropdown",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 3,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "id": "select-all-checkbox",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "id": "",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "",
+            "name": "name",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "",
+            "name": "phone_number",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "",
+            "name": "group",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          }
+        ],
+        "headers": [],
+        "tableCount": 0,
+        "rowCounts": [],
+        "controls": [
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "أضف معلم",
+            "href": "#add-teacher-tab",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "استيراد من Excel",
+            "href": "#import-excel-tab",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "استيراد البيانات",
+            "href": null,
+            "id": "btn-load-csv",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "إرسال الرمز التعريفي لتطبيق الجوال عبر الواتس اب",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "احفظ",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حفظ جميع التعديلات",
+            "href": null,
+            "id": "btn-edit-all",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حذف المحدد ([n])",
+            "href": null,
+            "id": "bulk-delete-btn",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "احذف",
+            "href": "#",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "احفظ",
+            "href": null,
+            "id": "",
+            "disabled": true,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حذف الكل",
+            "href": null,
+            "id": "confirmBulkDeleteBtn",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "احذف",
+            "href": null,
+            "id": "confirmDeleteBtn",
+            "disabled": false,
+            "visible": false
+          }
+        ],
+        "forms": [
+          {
+            "method": "post",
+            "path": "/i18n/setlang/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teachers/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/school_max_classes_update/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher_max_classes_reset/"
+          }
+        ],
+        "modalIds": [
+          {
+            "id": "subscriptionModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "confirmSaveModal",
+            "visible": false,
+            "fieldCount": 1
+          },
+          {
+            "id": "updateModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "teacherMobileControlModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "confirmModal",
+            "visible": false,
+            "fieldCount": 0
+          }
+        ]
+      },
+      "inlineScriptMeta": [
+        {
+          "ordinal": 2,
+          "sha256": "8755b7dcd88cd14c2d547c7df2a4730b4354d91bb6d8b5d85fe05d0f71fb659e",
+          "lineCount": 30,
+          "matchedLineCount": 3,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 4,
+          "sha256": "e486369d85b214390f44a4b977c57d35e8155122408f082994dc0a5ae0e896dc",
+          "lineCount": 131,
+          "matchedLineCount": 1,
+          "samplePaths": [
+            "/pro/pro_dashboard/check-subscription/"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "sha256": "90e62c95a8a9a4b6bc456d7b1a54a3b4b6ae8d5790de95d9f7fc7b2af2b6f343",
+          "lineCount": 60,
+          "matchedLineCount": 1,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 6,
+          "sha256": "489cc6088a62a4dd9208447d9ed6d5b9eb90f22f037893085cb95accee46bda3",
+          "lineCount": 1445,
+          "matchedLineCount": 170,
+          "samplePaths": [
+            "/pro/pro_dashboard/teachers-sort/xxxxx/yyyyy/",
+            "/pro/pro_dashboard/teacher/bulk-update/",
+            "/pro/pro_dashboard/teacher/delete/xxxxx/",
+            "/pro/pro_dashboard/teacher-customize/xxxxx/",
+            "/pro/pro_dashboard/teachers-sort-by-group/",
+            "/pro/pro_dashboard/teachers-sort-by-alphabetic/",
+            "/pro/pro_dashboard/teacher/update-excel/",
+            "/pro/pro_dashboard/teachers/"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "sha256": "5a5818ae6d119e90895392959a730e370651392bbbebe4b7abbf8d347c3fb0a2",
+          "lineCount": 248,
+          "matchedLineCount": 17,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_dashboard/api/task-progress/"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "sha256": "8d0739e1ccad67d70d517c49c4ec5da293c4235f91c9682b5ff5353017b8676b",
+          "lineCount": 162,
+          "matchedLineCount": 8,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_smart_table/api/import-task-progress/TASK_PLACEHOLDER/"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "sha256": "fb89dfa63cf39999e51b07d28ef525c6340dacbb6547a348ce93ded5f85b4123",
+          "lineCount": 991,
+          "matchedLineCount": 204,
+          "samplePaths": [
+            "/pro/pro_dashboard/teachers/phone-validate/",
+            "/pro/pro_dashboard/teacher/delete/xxxxx/",
+            "/pro/pro_dashboard/teachers-sort/xxxxx/yyyyy/",
+            "/pro/pro_dashboard/teacher/bulk-update/",
+            "/pro/pro_dashboard/teacher-customize/xxxxx/"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "courses",
+      "requestedPath": "/pro/pro_dashboard/courses/",
+      "finalPath": "/pro/pro_dashboard/courses/",
+      "status": 200,
+      "dom": {
+        "headings": [
+          "[redacted dynamic headings]"
+        ],
+        "tabs": [],
+        "labels": [
+          "قائمة الجداول:",
+          "إضافة مكان خاص جديد"
+        ],
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "",
+            "name": "language",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 4,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "submit",
+            "id": "",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "crs-classroom-search",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "",
+            "name": "target-classroom",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 12,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "id": "id_odd_classes",
+            "name": "odd_classes",
+            "min": "[n]",
+            "max": null,
+            "step": "[n]",
+            "required": true,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "id": "id_even_classes",
+            "name": "even_classes",
+            "min": "[n]",
+            "max": null,
+            "step": "[n]",
+            "required": true,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "id": "id_early_class",
+            "name": "early_class",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 1,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "table-select",
+            "name": "table_id",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 1,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "new-sp-input",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "id": "new-sp-max",
+            "name": "",
+            "min": "[n]",
+            "max": null,
+            "step": "[n]",
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          }
+        ],
+        "headers": [
+          "المادة",
+          "المعلم",
+          "الحصص الفردية (مفردة)",
+          "الحصص الزوجية (متتالية)",
+          "عدد الحصص الأسبوعي",
+          "حصة مبكرة",
+          "مكان خاص",
+          "تخصيص"
+        ],
+        "tableCount": 12,
+        "rowCounts": [
+          11
+        ],
+        "controls": [
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية -",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تطبيق التغييرات",
+            "href": null,
+            "id": "bulkApplyBtn",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "استيراد بيانات الحصص من فصل",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/أ",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "استيراد بيانات الحصص من فصل",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/ب",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/أ",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/ب",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/أ",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/ب",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/أ",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/ب",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/أ",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/ب",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/أ",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحديث",
+            "href": "/pro/pro_dashboard/courses/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تحقق من توزيع الحصص",
+            "href": "/pro/pro_dashboard/courses-check/[id]/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تخصيص الأيام الدراسية - [n]/ب",
+            "href": null,
+            "id": "classroom-workdays-btn-[n]",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "نعم، تحديث",
+            "href": null,
+            "id": "bulkReconcileOk",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "احذف",
+            "href": null,
+            "id": "sp-delete-confirm-btn",
+            "disabled": false,
+            "visible": false
+          }
+        ],
+        "forms": [
+          {
+            "method": "post",
+            "path": "/i18n/setlang/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/courses/"
+          },
+          {
+            "method": "get",
+            "path": "/pro/pro_dashboard/courses/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/dashboard/reset-oee-classes/[id]/"
+          }
+        ],
+        "modalIds": [
+          {
+            "id": "subscriptionModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "updateModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "bulkReconcileModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "bulkAlertModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "changeTableModal",
+            "visible": false,
+            "fieldCount": 2
+          },
+          {
+            "id": "spModal",
+            "visible": false,
+            "fieldCount": 2
+          },
+          {
+            "id": "spDeleteModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "confirmModal",
+            "visible": false,
+            "fieldCount": 0
+          }
+        ]
+      },
+      "inlineScriptMeta": [
+        {
+          "ordinal": 1,
+          "sha256": "316a497fd1884351260609385af4e2fa6c509901eb23a947406a3b2b632fee1f",
+          "lineCount": 37,
+          "matchedLineCount": 2,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 3,
+          "sha256": "8755b7dcd88cd14c2d547c7df2a4730b4354d91bb6d8b5d85fe05d0f71fb659e",
+          "lineCount": 30,
+          "matchedLineCount": 3,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 5,
+          "sha256": "e486369d85b214390f44a4b977c57d35e8155122408f082994dc0a5ae0e896dc",
+          "lineCount": 131,
+          "matchedLineCount": 1,
+          "samplePaths": [
+            "/pro/pro_dashboard/check-subscription/"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "sha256": "ac65ead3fc552ee76d5654a3bd5cd28a18a05cb93c15aa5c49381b45b942c889",
+          "lineCount": 60,
+          "matchedLineCount": 1,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 7,
+          "sha256": "5a5818ae6d119e90895392959a730e370651392bbbebe4b7abbf8d347c3fb0a2",
+          "lineCount": 248,
+          "matchedLineCount": 17,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_dashboard/api/task-progress/"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "sha256": "8d0739e1ccad67d70d517c49c4ec5da293c4235f91c9682b5ff5353017b8676b",
+          "lineCount": 162,
+          "matchedLineCount": 8,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_smart_table/api/import-task-progress/TASK_PLACEHOLDER/"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "sha256": "781ccfb310b7e8273bc8bdbbe632f46674b4192c2a4cf63fc658192be20158e2",
+          "lineCount": 747,
+          "matchedLineCount": 108,
+          "samplePaths": [
+            "/pro/pro_dashboard/setup-workdays-bulk/",
+            "/pro/pro_dashboard/auto-setup-working-days-all-classrooms/?from=dashboard-courses",
+            "/pro/pro_dashboard/course-customize/xxxxx/",
+            "/pro/pro_dashboard/courses-add/xxxxx/",
+            "/pro/pro_dashboard/courses/",
+            "/pro/pro_dashboard/teacher-customize/xxxxx/",
+            "/pro/pro_dashboard/course-advance-update/classroomID/courseID/",
+            "/pro/pro_dashboard/courses-check/CLASSROOM_ID/",
+            "/pro/pro_dashboard/load-oee-from-class/classroomID/targetClassroomID/",
+            "/pro/pro_dashboard/courses/xxxxx/",
+            "/pro/pro_dashboard/course-customize/courseID/"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "sha256": "f8cc300d542a11ffc4e0e28c43bad6f3f9ae69bbb56e7a0578b60adf1da59339",
+          "lineCount": 341,
+          "matchedLineCount": 57,
+          "samplePaths": [
+            "/pro/pro_dashboard/special-place/",
+            "/pro/pro_dashboard/special-place-bulk-update/",
+            "/pro/pro_dashboard/courses/bulk-update/"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "assignments",
+      "requestedPath": "/pro/pro_dashboard/assignments/",
+      "finalPath": "/pro/pro_dashboard/assignments/",
+      "status": 200,
+      "dom": {
+        "headings": [
+          "[redacted dynamic headings]"
+        ],
+        "tabs": [
+          {
+            "text": "مضغوط",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          },
+          {
+            "text": "الكل",
+            "href": null,
+            "target": null,
+            "active": false,
+            "visible": false
+          }
+        ],
+        "labels": [
+          "تصفية حسب المادة:",
+          "إظهار:",
+          "الفصل:",
+          "الموضوع:",
+          "قائمة الجداول:",
+          "جميع إسنادات هذا المعلم",
+          "المواد المختارة فقط",
+          "عرض جميع المعلمين بدون تقييد التخصص",
+          "جميع الإسنادات"
+        ],
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "",
+            "name": "language",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 4,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "submit",
+            "id": "",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "subject-filter",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 12,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "asg-teacher-search",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "per-page-select",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 5,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "subject-filter-matrix",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 12,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "asg-teacher-search-matrix",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "per-page-select-matrix",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 5,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "mat-filter-classroom",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 13,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "mat-filter-subject",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 12,
+            "multiple": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "id": "table-select",
+            "name": "table_id",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": 1,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "radio",
+            "id": "",
+            "name": "reassign-mode",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "id": "reassign-show-all-teachers",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "reassign-teacher-search",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "id": "swap-search",
+            "name": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "radio",
+            "id": "",
+            "name": "swap-mode",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "optionCount": null,
+            "multiple": false
+          }
+        ],
+        "headers": [
+          "#",
+          "المعلم",
+          "عدد الحصص",
+          "إسنادات",
+          "الفصل",
+          "التربية البدنية",
+          "التربية الفنية",
+          "الدراسات الإسلامية",
+          "الدراسات الاجتماعية",
+          "الرياضيات",
+          "العلوم",
+          "اللغة الإنجليزية",
+          "اللغة العربية",
+          "المهارات الرقمية",
+          "النشاط",
+          "مهارات حياتية",
+          "المادة",
+          "موزع إلى",
+          "حصص"
+        ],
+        "tableCount": 3,
+        "rowCounts": [
+          28,
+          12,
+          0
+        ],
+        "controls": [
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "A",
+            "text": "المعلمين",
+            "href": "/pro/pro_dashboard/teachers/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "تخصيص المواد",
+            "href": "/pro/pro_dashboard/courses/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "طباعة إسنادات المعلمين",
+            "href": "/pro/pro_dashboard/print-teacher-assignments/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "A",
+            "text": "تصدير المعلمين حسب الفصل",
+            "href": "/pro/pro_dashboard/export-teachers-by-classroom/",
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تحديث",
+            "href": null,
+            "id": "btn-reload-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حذف جميع الإسنادات",
+            "href": null,
+            "id": "btn-delete-all",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "نقل الإسنادات",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تبديل الإسنادات",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حذف وإعادة توزيع الإسنادات",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حذف الإسنادات",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تعيين الإسنادات ([n])",
+            "href": null,
+            "id": "asign-[n]",
+            "disabled": false,
+            "visible": true
+          },
+          {
+            "tag": "BUTTON",
+            "text": "احفظ التغييرات",
+            "href": null,
+            "id": "asg-btn-save",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "التركيز على حصص المعلم الخروج من وضع التركيز",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "حذف الإسنادات",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "احفظ التغييرات",
+            "href": null,
+            "id": "asg-btn-save-top",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "نعم، احذف جميع الإسنادات",
+            "href": null,
+            "id": "",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تطبيق الحل",
+            "href": null,
+            "id": "reassign-btn-apply",
+            "disabled": false,
+            "visible": false
+          },
+          {
+            "tag": "BUTTON",
+            "text": "تبديل الإسنادات",
+            "href": null,
+            "id": "swap-confirm",
+            "disabled": true,
+            "visible": false
+          }
+        ],
+        "forms": [
+          {
+            "method": "post",
+            "path": "/i18n/setlang/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/teacher-clear-assignments/[id]/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/assignments/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_dashboard/table-clear-assignments/"
+          }
+        ],
+        "modalIds": [
+          {
+            "id": "subscriptionModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "changeTableModal",
+            "visible": false,
+            "fieldCount": 2
+          },
+          {
+            "id": "deleteAllModal",
+            "visible": false,
+            "fieldCount": 1
+          },
+          {
+            "id": "reassignModal",
+            "visible": false,
+            "fieldCount": 4
+          },
+          {
+            "id": "clearWithoutModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "infoAlertModal",
+            "visible": false,
+            "fieldCount": 0
+          },
+          {
+            "id": "swapModal",
+            "visible": false,
+            "fieldCount": 3
+          }
+        ]
+      },
+      "inlineScriptMeta": [
+        {
+          "ordinal": 2,
+          "sha256": "8755b7dcd88cd14c2d547c7df2a4730b4354d91bb6d8b5d85fe05d0f71fb659e",
+          "lineCount": 30,
+          "matchedLineCount": 3,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 4,
+          "sha256": "e486369d85b214390f44a4b977c57d35e8155122408f082994dc0a5ae0e896dc",
+          "lineCount": 131,
+          "matchedLineCount": 1,
+          "samplePaths": [
+            "/pro/pro_dashboard/check-subscription/"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "sha256": "65dbe02348975acdd8cacc740eb4eb36dc8d877140d535a967da4817a75c7527",
+          "lineCount": 60,
+          "matchedLineCount": 1,
+          "samplePaths": []
+        },
+        {
+          "ordinal": 7,
+          "sha256": "eb70668deda8550e23436ad3ea2b01c40558691f439848464ce780488e4f17a7",
+          "lineCount": 1809,
+          "matchedLineCount": 356,
+          "samplePaths": [
+            "/pro/pro_dashboard/teacher-assignments/xxxxx/",
+            "/pro/pro_dashboard/teacher-customize/xxxxx/",
+            "/pro/pro_dashboard/assignments/assign-ajax/",
+            "/pro/pro_dashboard/assignments/unassign-ajax/",
+            "/pro/pro_dashboard/api/assignments/stack/add/",
+            "/pro/pro_dashboard/api/assignments/stack/remove/",
+            "/pro/pro_dashboard/assignments/",
+            "/pro/pro_dashboard/teacher-reassign-data/xxxxx/",
+            "/pro/pro_dashboard/teacher-reassign-solve/xxxxx/",
+            "/pro/pro_dashboard/teacher-reassign-apply/xxxxx/",
+            "/pro/pro_dashboard/api/assignments/split/",
+            "/pro/pro_dashboard/api/assignments/merge/"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "sha256": "ab138a073650230a0394016c563f67ba340de2dd193ae8f4d38f46f0136e7fb4",
+          "lineCount": 461,
+          "matchedLineCount": 71,
+          "samplePaths": [
+            "/pro/pro_dashboard/assignments/transfer/swap-candidates/0/",
+            "/pro/pro_dashboard/assignments/transfer/teacher-courses/0/",
+            "/pro/pro_dashboard/assignments/transfer/swap/",
+            "/pro/pro_dashboard/assignments/transfer/repair/",
+            "/pro/pro_dashboard/assignments/transfer/status/TASKID/",
+            "/pro/pro_dashboard/assignments/transfer/report/0/"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "sha256": "5a5818ae6d119e90895392959a730e370651392bbbebe4b7abbf8d347c3fb0a2",
+          "lineCount": 248,
+          "matchedLineCount": 17,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_dashboard/api/task-progress/"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "sha256": "8d0739e1ccad67d70d517c49c4ec5da293c4235f91c9682b5ff5353017b8676b",
+          "lineCount": 162,
+          "matchedLineCount": 8,
+          "samplePaths": [
+            "/pro/pro_smart_table/table-preview/",
+            "/pro/pro_smart_table/api/import-task-progress/TASK_PLACEHOLDER/"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockedNonReadRequests": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    },
+    {
+      "method": "POST",
+      "path": "/visitor/v2/smartble/livevisitors/[opaque-id]/triggers"
+    }
+  ],
+  "privacy": "No table values, names, phone numbers, option labels, configured times, or account data retained.",
+  "limitations": [
+    "Controls and client-declared paths do not prove server validation or save semantics.",
+    "No per-record values, select option labels, names, phones, account text, or configuration times retained.",
+    "No save/import/copy/bulk action executed."
+  ]
+}

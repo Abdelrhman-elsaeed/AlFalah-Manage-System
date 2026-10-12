@@ -5,7 +5,7 @@ namespace AlFalah.Application.Interfaces;
 
 public interface ISchoolTimetableService
 {
-    Task<TimetableCatalogDto> GetCatalogAsync(int? schoolId, CancellationToken cancellationToken = default, bool personalOnly = true);
+    Task<TimetableCatalogDto> GetCatalogAsync(int? schoolId, CancellationToken cancellationToken = default, bool personalOnly = true, int? timetableSetupProfileId = null);
     Task<SchoolTimetableDto?> GetCurrentAsync(int academicYearId, TimetableSemester semester, int? schoolId, CancellationToken cancellationToken = default, bool personalOnly = true);
     Task<SchoolTimetableDto> GetByIdAsync(int timetableId, CancellationToken cancellationToken = default, bool personalOnly = true);
     Task<SchoolTimetableDto> CreateAsync(CreateSchoolTimetableRequest request, int? schoolId, CancellationToken cancellationToken = default);

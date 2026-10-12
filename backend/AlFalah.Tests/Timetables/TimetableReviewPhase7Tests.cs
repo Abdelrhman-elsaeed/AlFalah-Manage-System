@@ -84,6 +84,19 @@ public sealed class TimetableReviewPhase7Tests
         Has(c, ViolationRuleCode.SubjectClusterImbalance).Should().BeTrue();
     }
 
+    [Fact] public void Late_preference_is_reported_as_a_soft_warning_when_outside_the_window()
+    {
+        var c = Context();
+        c.Requirements[0].TimePreference = "Late";
+        c.Requirements[0].EarliestPeriodSequence = 5;
+        c.Requirements[0].LatestPreferredPeriodSequence = 6;
+        c.Timetable.Entries.First().Period = 2;
+
+        Engine.Evaluate(c).Should().Contain(x => x.RuleCode == ViolationRuleCode.LatePreferenceMissed &&
+            x.Severity == ViolationSeverity.Warning);
+        Engine.Evaluate(c, includeSoft: false).Should().NotContain(x => x.RuleCode == ViolationRuleCode.LatePreferenceMissed);
+    }
+
     [Fact] public void Preferred_and_alternative_rooms_are_both_valid_review_targets()
     {
         var c = Context();

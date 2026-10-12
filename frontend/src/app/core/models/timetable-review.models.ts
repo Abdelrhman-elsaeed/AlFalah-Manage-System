@@ -3,7 +3,7 @@ export enum ViolationRuleCode {
   TeacherDoubleBooking = 1, ClassroomDoubleBooking, RoomDoubleBooking, UnavailableSlot,
   NonStudyDayPlacement, MissingAssignment, ScheduleCountMismatch, BrokenPairedBlock,
   DisallowedDay, ViolatedFixedSlot, ExcessiveConsecutive, UnfairLastPeriods, ExcessiveGaps,
-  SubjectConcentration, EarlyPreferenceMissed, SubjectClusterImbalance
+  SubjectConcentration, EarlyPreferenceMissed, SubjectClusterImbalance, LatePreferenceMissed
 }
 export interface ReviewOption { id: number; name: string; }
 export interface ReviewTimetableOption { id: number; title: string; revision: number; isPublished: boolean; }

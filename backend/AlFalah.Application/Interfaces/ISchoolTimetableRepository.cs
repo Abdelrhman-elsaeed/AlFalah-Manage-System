@@ -9,6 +9,7 @@ public interface ISchoolTimetableRepository
     IQueryable<SchoolTimetable> GetAll();
     IQueryable<SchoolTimetableVersion> GetVersions(int timetableId);
     IQueryable<InstructorProfile> GetTeachers(int schoolId);
+    IQueryable<TeacherTimetableProfile> GetTeacherTimetableProfiles(int schoolId, int setupId);
     IQueryable<AcademicTerm> GetAcademicTerms(int schoolId);
     IQueryable<School> GetSchools();
     IQueryable<ApplicationUser> GetModerators(int schoolId);

@@ -1,0 +1,30 @@
+{
+  "source": "Static inline JavaScript on table-analysis; no handler executed",
+  "excerpts": [
+    {
+      "ordinal": 8,
+      "sha256": "2ef077e086d680007944099385e48b4e2a2c7d331c5237183e3cb92a87e6255b",
+      "start": 38,
+      "end": 53,
+      "text": "    })\n \n    function highlightCourse(btn) {\n        // Scope everything to THIS table card only\n        const block = btn.closest('.analysis-block') || document\n        const courseID = btn.getAttribute('data-course-id[private literal omitted]active')\n \n        // Clear all pills + cells inside this table first\n        block.querySelectorAll('.course-info-btn.active[private literal omitted]active'))\n        block.querySelectorAll('.has-course-id.course-highlight[private literal omitted]course-highlight[private literal omitted]has-highlight')\n \n        // If it was already active, we just cleared it -> done (toggle off)\n        if (isActive) return\n "
+    },
+    {
+      "ordinal": 8,
+      "sha256": "2ef077e086d680007944099385e48b4e2a2c7d331c5237183e3cb92a87e6255b",
+      "start": 159,
+      "end": 174,
+      "text": "        return cookie[name];\n    }\n \n    (function(){\n    const $p=$('#filterPrimary'),$s=$([private literal omitted]),$st=$('#filterStatus');\n    const shownEl=document.getElementById('shownCount');\n    function apply(){\n        const prim=$p.val()||[], subs=$s.val()||[], stat=$st.val()||[];\n        let shown=0;\n        document.querySelectorAll('.analysis-block[private literal omitted][private literal omitted]').split('|').filter(Boolean);\n            let ok=true;\n            if(prim.length && !prim.includes(id))ok=false;\n            if(ok && subs.length && !subs.some(x=>blockSubs.includes(x)))ok=false;\n            if(ok && stat.length){"
+    },
+    {
+      "ordinal": 8,
+      "sha256": "2ef077e086d680007944099385e48b4e2a2c7d331c5237183e3cb92a87e6255b",
+      "start": 164,
+      "end": 179,
+      "text": "    const shownEl=document.getElementById('shownCount');\n    function apply(){\n        const prim=$p.val()||[], subs=$s.val()||[], stat=$st.val()||[];\n        let shown=0;\n        document.querySelectorAll('.analysis-block[private literal omitted][private literal omitted]').split('|').filter(Boolean);\n            let ok=true;\n            if(prim.length && !prim.includes(id))ok=false;\n            if(ok && subs.length && !subs.some(x=>blockSubs.includes(x)))ok=false;\n            if(ok && stat.length){\n                const off=!!block.querySelector('.off-cell');\n                const conflict=!!block.querySelector('.conflict-cell');\n                const wrong=!!block.querySelector('.wrong-course') && !conflict;\n                const clean=!off && !wrong && !conflict;\n                ok=(stat.includes('off')&&off)||(stat.includes('wrong')&&wrong)||(stat.includes('conflict')&&conflict)||(stat.includes('clean')&&clean);"
+    }
+  ],
+  "limitations": [
+    "Filter code was read statically; no selection changed.",
+    "Raw records and private literals omitted."
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "action": "Deep Check only; Generate/acknowledgment/save/restore blocked",
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/pro/pro_dashboard/api/auto-gen-preflight/deep/",
+      "status": 500
+    }
+  ],
+  "blockedNonReadOrNonDeepPosts": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    },
+    {
+      "method": "POST",
+      "path": "/visitor/v2/smartble/livevisitors/[opaque-id]/triggers"
+    },
+    {
+      "method": "POST",
+      "path": "/tr/"
+    }
+  ],
+  "navigation": {
+    "status": 200,
+    "finalPath": "/pro/pro_dashboard/auto-gen-preflight/"
+  },
+  "initial": {
+    "heading": [
+      "لم نجد أي مشكلات"
+    ],
+    "deepButtonPresent": true,
+    "deepButtonVisible": true,
+    "deepButtonDisabled": false,
+    "generatePresent": true
+  },
+  "afterClick": {
+    "buttonText": "إعادة تشغيل الفحص العميق",
+    "buttonDisabled": false,
+    "resultText": "انتهى وقت الفحص العميق دون إجابة قاطعة. قد يترك التوليد بعض الخلايا فارغة."
+  },
+  "final": {
+    "buttonText": "إعادة تشغيل الفحص العميق",
+    "buttonDisabled": false,
+    "resultText": "انتهى وقت الفحص العميق دون إجابة قاطعة. قد يترك التوليد بعض الخلايا فارغة.",
+    "generateDisabled": false
+  },
+  "pollCount": 1,
+  "limitedPollTrace": [],
+  "rea": {
+    "targetId": "F391DE35B0E02DB7782FB948D8540610",
+    "sourceEvidenceId": "ev_b5c79f3068b3df209159fc2408ca04b27aacb4dad4356a93d0ae4ec2fa06ca72",
+    "networkRecordCount": 0,
+    "limitations": [
+      "REA attached after the Deep Check request; prior network activity is unavailable.",
+      "Raw response body was not retained. Playwright recorded the request status and sanitized UI result."
+    ]
+  }
+}

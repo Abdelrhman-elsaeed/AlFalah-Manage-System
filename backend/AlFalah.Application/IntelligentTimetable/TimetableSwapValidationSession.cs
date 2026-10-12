@@ -34,6 +34,7 @@ internal sealed class TimetableSwapValidationSession
     private const string ExcessiveGaps = "أكثر من حصتي انتظار في اليوم للمعلم.";
     private const string SubjectConcentration = "تكرار المادة في اليوم؛ الحد حصة فردية واحدة باستثناء الحصص المزدوجة.";
     private const string EarlyPreference = "لم تتحقق أفضلية الحصة المبكرة.";
+    private const string LatePreference = "لم تتحقق أفضلية الحصة المتأخرة.";
     private const string ClusterImbalance = "حصص المادة متمركزة في أول اليوم أو آخره؛ راجع التوزيع.";
 
     private readonly TimetableValidationContext context;
@@ -265,8 +266,9 @@ internal sealed class TimetableSwapValidationSession
                      (affectedEntries.Contains(x.Id) || affectedTeachers.Contains(x.InstructorProfileId))))
         {
             if (requirements.TryGetValue(entry.ClassSubjectRequirementId ?? 0, out var requirement) &&
-                requirement.TimePreference == "Early" && entry.Period > (requirement.LatestPreferredPeriodSequence ?? 3))
-                found.Add(EarlyPreference);
+                SubjectSchedulingPolicy.PreferenceMissed(requirement.TimePreference, requirement.EarliestPeriodSequence,
+                    requirement.LatestPreferredPeriodSequence, entry.Period))
+                found.Add(requirement.TimePreference == "Late" ? LatePreference : EarlyPreference);
         }
 
         foreach (var teacherId in affectedTeachers.Order())

@@ -48,6 +48,16 @@ public sealed class SubjectPhase5Tests
         var act = () => SubjectSchedulingPolicy.Validate(pair.Rules, adjacent);
         act.Should().NotThrow();
     }
+
+    [Fact]
+    public void Early_and_late_preferences_use_the_same_soft_window()
+    {
+        var rules = Rules(1) with { TimePreference = "Early", EarliestPeriodSequence = 3, LatestPreferredPeriodSequence = 5 };
+        SubjectSchedulingPolicy.PreferencePenalty(rules, 2).Should().Be(1);
+        SubjectSchedulingPolicy.PreferencePenalty(rules, 4).Should().Be(0);
+        SubjectSchedulingPolicy.PreferencePenalty(rules with { TimePreference = "Late" }, 6).Should().Be(1);
+        SubjectSchedulingPolicy.PreferencePenalty(rules with { TimePreference = "Late" }, 4).Should().Be(0);
+    }
     [Fact]
     public async Task Rejects_foreign_scope_invalid_counts_days_rooms_and_fixed_slots_without_partial_writes()
     {

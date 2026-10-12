@@ -1,0 +1,57 @@
+{
+  "source": "Read-only GET of linked table violations page",
+  "blockedNonReadRequests": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    }
+  ],
+  "privacy": "No table values, names, times, option values, or account metadata retained.",
+  "navigation": {
+    "status": 200,
+    "finalPath": "/pro/pro_dashboard/table-violations/"
+  },
+  "dom": {
+    "heading": [],
+    "labels": [],
+    "fields": [
+      {
+        "tag": "SELECT",
+        "type": "select-one",
+        "id": "",
+        "name": "language",
+        "min": null,
+        "max": null,
+        "optionCount": 4
+      },
+      {
+        "tag": "INPUT",
+        "type": "submit",
+        "id": "",
+        "name": "",
+        "min": null,
+        "max": null,
+        "optionCount": null
+      }
+    ],
+    "headers": [],
+    "rowCounts": [],
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "text": "إصلاح تلقائي",
+        "href": null,
+        "id": "auto-fix-confirm-btn",
+        "disabled": false,
+        "visible": false
+      }
+    ],
+    "forms": [
+      {
+        "method": "post",
+        "path": "/i18n/setlang/"
+      }
+    ],
+    "sections": []
+  }
+}

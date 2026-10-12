@@ -1,0 +1,134 @@
+{
+  "source": "Read-only Review/Analysis workflow inspection",
+  "blockedNonReadRequests": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    }
+  ],
+  "privacy": "No table values, names, times, option values, or account metadata retained.",
+  "navigation": {
+    "status": 200,
+    "finalPath": "/pro/pro_dashboard/table-analysis/"
+  },
+  "dom": {
+    "heading": [],
+    "filters": [
+      {
+        "id": "",
+        "name": "language",
+        "type": "select-one",
+        "optionCount": 4,
+        "multiple": false
+      },
+      {
+        "id": "filterPrimary",
+        "name": "",
+        "type": "select-multiple",
+        "optionCount": 12,
+        "multiple": true
+      },
+      {
+        "id": "filterSubject",
+        "name": "",
+        "type": "select-multiple",
+        "optionCount": 11,
+        "multiple": true
+      },
+      {
+        "id": "filterStatus",
+        "name": "",
+        "type": "select-multiple",
+        "optionCount": 3,
+        "multiple": true
+      }
+    ],
+    "filterLabels": [
+      "الفصول",
+      "المادة",
+      "الحالة"
+    ],
+    "tableHeaders": [
+      "يوم / الفصل",
+      "1 [time] : [time]",
+      "2 [time] : [time]",
+      "3 [time] : [time]",
+      "4 [time] : [time]",
+      "5 [time] : [time]",
+      "6 [time] : [time]",
+      "7 [time] : [time]"
+    ],
+    "tableCount": 12,
+    "rowCounts": [
+      5
+    ],
+    "relevantLinks": [
+      {
+        "tag": "A",
+        "text": "إصلاح الجدول",
+        "href": "/pro/pro_dashboard/table-violations/",
+        "id": "table-violations-btn",
+        "disabled": false,
+        "visible": true
+      }
+    ],
+    "forms": [
+      {
+        "method": "post",
+        "path": "/i18n/setlang/"
+      }
+    ],
+    "modals": [
+      {
+        "id": "subscriptionModal",
+        "visible": false,
+        "controlCount": 2
+      },
+      {
+        "id": "updateModal",
+        "visible": false,
+        "controlCount": 0
+      }
+    ]
+  },
+  "inlineScripts": [
+    {
+      "ordinal": 4,
+      "sha256": "e486369d85b214390f44a4b977c57d35e8155122408f082994dc0a5ae0e896dc",
+      "lineCount": 131,
+      "matchedLineCount": 1,
+      "sampleLines": [
+        "fetch('/pro/pro_dashboard/check-subscription/')"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "sha256": "5a5818ae6d119e90895392959a730e370651392bbbebe4b7abbf8d347c3fb0a2",
+      "lineCount": 248,
+      "matchedLineCount": 1,
+      "sampleLines": [
+        "fetch('/pro/pro_dashboard/api/task-progress/' + taskId + '/')"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "sha256": "8d0739e1ccad67d70d517c49c4ec5da293c4235f91c9682b5ff5353017b8676b",
+      "lineCount": 162,
+      "matchedLineCount": 1,
+      "sampleLines": [
+        "fetch(IMPORT_PROGRESS_URL.replace('TASK_PLACEHOLDER', taskId))"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "sha256": "2ef077e086d680007944099385e48b4e2a2c7d331c5237183e3cb92a87e6255b",
+      "lineCount": 192,
+      "matchedLineCount": 3,
+      "sampleLines": [
+        "const block = btn.closest('.analysis-block') || document",
+        "const $p=$('#filterPrimary'),$s=$('#filterSubject'),$st=$('#filterStatus');",
+        "document.querySelectorAll('.analysis-block').forEach(block=>{"
+      ]
+    }
+  ]
+}

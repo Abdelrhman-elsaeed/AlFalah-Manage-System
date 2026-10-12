@@ -24,6 +24,10 @@ public sealed class SchoolTimetableRepository : ISchoolTimetableRepository
             .Where(x => x.SchoolId == schoolId && x.IsActive && x.User.IsActive)
             .OrderBy(x => x.User.FirstName).ThenBy(x => x.User.LastName);
 
+    public IQueryable<TeacherTimetableProfile> GetTeacherTimetableProfiles(int schoolId, int setupId) =>
+        _context.TeacherTimetableProfiles.AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && x.TimetableSetupProfileId == setupId);
+
     public IQueryable<AcademicTerm> GetAcademicTerms(int schoolId) =>
         _context.AcademicTerms.AsNoTracking()
             .Where(term => term.SchoolId == schoolId && !term.IsDeleted);

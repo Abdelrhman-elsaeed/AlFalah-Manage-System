@@ -1,0 +1,181 @@
+{
+  "source": "Playwright connected exact investigation target; no snapshot or restore writes",
+  "path": "/pro/pro_dashboard/table-history/",
+  "status": 200,
+  "finalPath": "/pro/pro_dashboard/table-history/",
+  "controls": {
+    "fields": [
+      {
+        "tag": "BUTTON",
+        "id": "tchSavePoint",
+        "type": "button",
+        "name": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "tag": "SELECT",
+        "id": "tchTable",
+        "type": "select-one",
+        "name": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "tag": "SELECT",
+        "id": "tchSince",
+        "type": "select-one",
+        "name": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "tag": "SELECT",
+        "id": "tchAction",
+        "type": "select-one",
+        "name": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "tag": "INPUT",
+        "id": "tchOnlyRestorable",
+        "type": "checkbox",
+        "name": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tchRefresh",
+        "type": "button",
+        "name": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tchCancel",
+        "type": "button",
+        "name": "",
+        "visible": false,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tchConfirm",
+        "type": "button",
+        "name": "",
+        "visible": false,
+        "disabled": false
+      }
+    ],
+    "restoreModeCopy": [
+      {
+        "value": "new_table",
+        "label": "بناء جدول جديد منه يبقى جدولك الحالي كما هو تماماً. يمكنك المقارنة بينهما والتبديل عندما تكون مستعداً."
+      },
+      {
+        "value": "in_place",
+        "label": "استبدال الجدول الحالي سيتم التراجع عن كل ما بعد هذه النقطة. يتم حفظ نسخة احتياطية من الحالة الحالية أولاً، بحيث يمكنك التراجع عن هذا أيضاً."
+      }
+    ],
+    "dialogIds": [
+      "tchModal"
+    ]
+  },
+  "script": {
+    "ordinal": 8,
+    "sourceSha256": "764e1c6885c7682646d2801ded294591dcc07092a73182ba604a3bfebbb6758e",
+    "staticAnchors": [
+      {
+        "line": 7,
+        "text": "restore:  \"/pro/pro_dashboard/table-history/restore/\","
+      },
+      {
+        "line": 10,
+        "text": "// and detects a dead worker. The restore task writes progress in the"
+      },
+      {
+        "line": 15,
+        "text": "restoreBtn: \"استعادة\","
+      },
+      {
+        "line": 18,
+        "text": "emptyBody:  \"ستظهر هنا التعديلات على المقررات والمعلمين والفصول الدراسية والجدول نفسه.\","
+      },
+      {
+        "line": 42,
+        "text": "mixed: \"fa-pen\", restore: \"fa-undo\", generate: \"fa-magic\","
+      },
+      {
+        "line": 62,
+        "text": "var action = e.restorable"
+      },
+      {
+        "line": 63,
+        "text": "? '<button type=\"button\" class=\"tch-btn tch-btn-sm tch-restore\" ' +"
+      },
+      {
+        "line": 66,
+        "text": "'<i class=\"fas fa-undo\"></i> ' + TXT.restoreBtn + '</button>'"
+      },
+      {
+        "line": 152,
+        "text": "if (document.getElementById(\"tchOnlyRestorable\").checked) p.set(\"only\", \"restorable\");"
+      },
+      {
+        "line": 159,
+        "text": "fetch(URLS.data + \"?\" + query({ page: page }), {"
+      },
+      {
+        "line": 173,
+        "text": "[\"tchTable\", \"tchSince\", \"tchAction\", \"tchOnlyRestorable\"].forEach(function (id) {"
+      },
+      {
+        "line": 180,
+        "text": "// -- restore -----------------------------------------------------------"
+      },
+      {
+        "line": 182,
+        "text": "var btn = ev.target.closest(\".tch-restore\");"
+      },
+      {
+        "line": 208,
+        "text": "fetch(URLS.restore, {"
+      },
+      {
+        "line": 209,
+        "text": "method: \"POST\","
+      },
+      {
+        "line": 214,
+        "text": "body: body.toString()"
+      },
+      {
+        "line": 224,
+        "text": "btn.textContent = TXT.restoreBtn;"
+      },
+      {
+        "line": 233,
+        "text": "fetch(url).then(function (r) { return r.json(); }).then(function (d) {"
+      },
+      {
+        "line": 252,
+        "text": "// -- manual restore point ---------------------------------------------"
+      },
+      {
+        "line": 256,
+        "text": "fetch(URLS.savePoint, {"
+      },
+      {
+        "line": 257,
+        "text": "method: \"POST\","
+      },
+      {
+        "line": 259,
+        "text": "body: b.toString()"
+      }
+    ]
+  }
+}

@@ -116,8 +116,13 @@ public sealed class TimetableValidationEngine
                 Add(ViolationRuleCode.DisallowedDay, "المادة موضوعة في يوم غير مسموح.", e);
             if (r.Rooms.Count > 0 && (!e.RoomId.HasValue || !r.Rooms.Any(x => x.RoomId == e.RoomId)))
                 Add(ViolationRuleCode.MissingAssignment, "الحصة تحتاج إلى قاعة متخصصة من القاعات المحددة.", e, detail: "required-room");
-            if (r.TimePreference == "Early" && e.Period > (r.LatestPreferredPeriodSequence ?? 3))
-                Add(ViolationRuleCode.EarlyPreferenceMissed, "لم تتحقق أفضلية الحصة المبكرة.", e);
+            if (SubjectSchedulingPolicy.PreferenceMissed(r.TimePreference, r.EarliestPeriodSequence,
+                    r.LatestPreferredPeriodSequence, e.Period))
+            {
+                var code = r.TimePreference == "Late" ? ViolationRuleCode.LatePreferenceMissed : ViolationRuleCode.EarlyPreferenceMissed;
+                var message = r.TimePreference == "Late" ? "لم تتحقق أفضلية الحصة المتأخرة." : "لم تتحقق أفضلية الحصة المبكرة.";
+                Add(code, message, e);
+            }
         }
         foreach (var teacher in c.Teachers)
         {

@@ -252,6 +252,22 @@ describe('School timetable empty grid', () => {
     expect(toast.error).toHaveBeenCalled();
   });
 
+  it('uses the generation error code to explain a search-limit failure', () => {
+    (component as any).applyTimetable(generatedTimetable());
+    timetableApi.regenerate.and.returnValue(throwError(() => ({ error: {
+      errorCode: 'SearchLimitReached',
+      message: 'انتهى حد البحث قبل الوصول إلى نتيجة قاطعة.'
+    } })));
+    component.openRegenerate();
+
+    component.regenerate();
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'انتهى وقت البحث عن جدول',
+      'انتهى حد البحث قبل الوصول إلى نتيجة قاطعة.'
+    );
+  });
+
   it('ignores a duplicate regenerate action while the first request is running', () => {
     (component as any).applyTimetable(generatedTimetable());
     timetableApi.regenerate.and.returnValue(NEVER);

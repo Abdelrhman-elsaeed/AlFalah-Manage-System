@@ -100,6 +100,19 @@ public sealed class TimetableGenerationTests
     }
 
     [Fact]
+    public void Generator_ranks_late_preference_by_the_configured_window()
+    {
+        var context = TimetableReviewPhase7Tests.Context();
+        var requirement = context.Requirements[0];
+        requirement.TimePreference = "Late";
+        requirement.EarliestPeriodSequence = 7;
+        requirement.LatestPreferredPeriodSequence = 8;
+        context.Timetable.Entries.Clear();
+
+        _engine.Generate(context, default).Should().OnlyContain(x => x.Period >= 7);
+    }
+
+    [Fact]
     public void Generator_places_all_co_teachers_in_the_same_occurrence()
     {
         var context = TimetableReviewPhase7Tests.Context();

@@ -10,12 +10,12 @@
 
 المشروع فيه Smart Timetable متقدم بالفعل، مش مجرد شاشات: إعداد سنة وفصل دراسي، ملفات إعداد، توقيتات واستراحات، إتاحة معلمين، قواعد مواد وغرف، teaching assignments، توليد تلقائي، مراجعة وإصلاح، نشر، versions، Excel import وPDF، وعمليات swap وdaily substitution.
 
-فحص الكود اتدعم بتشغيل مجموعة `AlFalah.Tests.Timetables`: **190 passed / 0 failed / 0 skipped**. ده دليل على السيناريوهات اللي اختبرتها المجموعة، مش إثبات إن كل UI workflow اشتغل end-to-end على database منشورة، ولا إن التطبيق مطابق لـSmartble.
+فحص الكود اتدعم بتشغيل مجموعة `AlFalah.Tests.Timetables`: **198 passed / 0 failed / 0 skipped**. ده دليل على السيناريوهات اللي اختبرتها المجموعة، مش إثبات إن كل UI workflow اشتغل end-to-end على database منشورة، ولا إن التطبيق مطابق لـSmartble.
 
 أبرز نتائج baseline:
 
 - مسار `/intelligent-timetable/print` لسه placeholder، رغم إن PDF فعلي موجود في `/timetable`؛ المطلوب تحسين الوصول لنفس capability بدل تنفيذها مرتين.
-- إعداد `HideFromPrint` بيتحفظ في TeacherTimetableProfile، لكن مسار PDF الحالي بيقرأ catalog المعلمين من غير الإعداد ده. نفس مسار catalog بيستخدم الاسم الكامل بدل `ShortDisplayName`. غياب الربط مؤكد من الكود؛ تأكيد الأثر البصري محتاج تجربة PDF ببيانات synthetic.
+- إعداد `HideFromPrint` و`ShortDisplayName` بقى مربوطًا بالـcatalog والـPDF؛ D-06 اتنفذ واختباره الأساسي نجح. التأكد البصري الكامل ببيانات PDF فعلية يظل smoke task اختياريًا.
 - الـsolver بيقف عند `SearchLimit = 2_000_000`، وبيستخدم نفس نتيجة الفشل ورسالة عدم تحقيق القيود سواء البحث خلص أو وصل للحد. التفريق بين search exhaustion وinfeasibility تحسين مؤكد في دقة الـfeedback.
 - تجربة synthetic جديدة على محركات المشروع أكدت رفض/استبعاد الغرفة المفضلة عند وجود غرفة بديلة؛ D-01 أصلح الاتساق بين التوليد والمراجعة والإسناد اليدوي. [النتيجة الأصلية](evidence/preferred-room-probe-result.json).
 - D-02 أضاف `errorCode` typed لنتائج `Infeasible` و`SearchLimitReached`، مع عناوين مختلفة في شاشة إعادة التوليد.
@@ -43,7 +43,7 @@
 | General settings | `/intelligent-timetable/settings` | AcademicYear/AcademicTerm، SetupProfile، readiness محسوبة من البيانات، permissions، unsaved guard | IMPLEMENTED في الكود؛ runtime UI لم يُختبر هنا |
 | Timings | `/intelligent-timetable/timings` | BellScheduleTemplate، immutable revisions، default/per-day periods، timezone، revalidation | IMPLEMENTED |
 | Breaks | `/intelligent-timetable/breaks` | نفس timings component مع tab، break editor وBackend operations | DIFFERENT BY DESIGN: دمج مناسب يحافظ على سياق التوقيت |
-| Teachers | `/intelligent-timetable/teachers` | Availability matrix، weekly maximum، visiting flag، short name، HideFromPrint، مراجعة تغيير التوقيت | IMPLEMENTED؛ خيارات الطباعة تحتاج ربط |
+| Teachers | `/intelligent-timetable/teachers` | Availability matrix، weekly maximum، visiting flag، short name، HideFromPrint، مراجعة تغيير التوقيت | IMPLEMENTED؛ خيارات الطباعة مربوطة |
 | Subjects | `/intelligent-timetable/subjects` | Individual/paired periods، allowed days، fixed slots، rooms، preferences، bulk allocation | IMPLEMENTED |
 | Subject rules | `/intelligent-timetable/subject-rules` | Redirect إلى Subjects | DIFFERENT BY DESIGN؛ مفيش داعي لتبويب مكرر |
 | Teaching assignments | `/intelligent-timetable/assignments` | الإسناد وحصص الأعضاء، SplitQuota وCoTeaching | IMPLEMENTED |
@@ -100,7 +100,7 @@
 | Daily substitution | Public absence reassignment فقط | Date-specific cover مع candidate validation | IMPLEMENTED locally؛ equivalence UNKNOWN | مشاهدة workflow المرجع أولًا | P1 investigation |
 | Weekly standby generation | Public advertised capability؛ algorithm/access UNKNOWN | Lesson-only generator مفحوص؛ standby/manual cover موجودين | UNKNOWN at whole-project level | تحديد هل distribution feature موجودة في مكان آخر، ثم requirement مستقلة | P1 candidate |
 | Print navigation | المرجع لم يُشاهد | Placeholder route + existing PDF endpoint | PARTIALLY IMPLEMENTED navigation | وصل المسار بقدرة PDF الحالية | P2 |
-| HideFromPrint / short name | المرجع لم يُشاهد | إعدادات محفوظة، PDF catalog لا ينقلها | PARTIALLY IMPLEMENTED integration | Synthetic PDF reproduction ثم ربط settings بالrenderer | P1 |
+| HideFromPrint / short name | المرجع لم يُشاهد | إعدادات محفوظة ومربوطة بالـPDF catalog/renderer | IMPLEMENTED locally؛ Smartble behavior UNKNOWN | الحفاظ على الاختبار وتأكيد policy عند الحاجة | P1 done |
 | Inline editing/swaps | المرجع لم يُشاهد | شبكة تفاعلية وSameDay/WholeTimetable | DIFFERENT BY DESIGN، مقارنة UX لم تكتمل | الحفاظ عليها وعلى شاشة daily cover المنفصلة | P2 verification |
 | Premium features | لم يُلاحظ restriction من الحساب | تختلف حسب feature | UNKNOWN؛ لا نصنف PREMIUM UNVERIFIED بلا دليل premium | استكمال inventory بعد الدخول | Pending |
 
@@ -125,7 +125,7 @@
 - نحافظ على دمج Breaks مع Timings وعلى Subject Rules داخل Subjects؛ redirect أو tab مش نقص لو نفس capability موجودة بوضوح.
 - نحافظ على inline swap، candidate colors، review before execution وstale refresh؛ دي قرارات موثقة في تصميم المشروع.
 - نخلي Print entry point يوصّل لنفس PDF الموجود بدل placeholder يوحي إن الطباعة غير متاحة.
-- نختبر short name وHideFromPrint في exported PDF؛ control محفوظ من غير أثر يربك المستخدم.
+- نراجع short name وHideFromPrint في exported PDF عند smoke بصري؛ الربط البرمجي والاختبار الأساسي مكتملان.
 - لو وصل solver لحد البحث، نوضح الحالة للمستخدم بدل الجزم إن القيود مستحيلة.
 - أي tab إضافية من المرجع محتاجة تبرير: capability غير موجودة في مكان آخر، تكرار استخدامها، وتكلفة زيادة الملاحة.
 
@@ -283,36 +283,36 @@ Browser/CDP والـauthentication متاحون الآن. الحدود الحا�
 
 ## 12. Prioritized implementation roadmap — current status
 
-الـroadmap الحالية في [D-01 إلى D-05](deep-scheduling-investigation.md#11-roadmap-وحالة-التنفيذ): D-01 وD-02 منفذان، D-03 preference semantics، D-04 Preflight UX، وD-05 shared-place capacity مؤجلة. **مفيش P0 مؤكد في الفحص الحالي.** ده ليس نفيًا لوجود مشاكل أخرى.
+الـroadmap الحالية في [D-01 إلى D-08](deep-scheduling-investigation.md#11-roadmap-وحالة-التنفيذ): D-01 وD-02 وD-03 وD-06 منفذة؛ D-04 Preflight UX، D-05 shared-place، D-07 snapshot clone، وD-08 weekly standby investigation مؤجلة. **مفيش P0 مؤكد في الفحص الحالي.** ده ليس نفيًا لوجود مشاكل أخرى.
 
 | ID / priority | Description and reason | Benefit | Existing files / frontend | Backend / database | Dependencies | Complexity / confidence | Acceptance criteria |
 |---|---|---|---|---|---|---|---|
-| L-01 / P1 | ربط HideFromPrint وShortDisplayName بمخرجات PDF بعد reproduction | Settings ليها أثر واضح في المستند | teacher-settings؛ تأكيد معنى الخيار في UI | SchoolTimetableService، TimetableDtos، SchoolTimetableDocumentService؛ غالبًا لا migration لأن fields موجودة | Synthetic PDF fixture؛ قرار هل الإخفاء خاص بجدول المدرسة فقط | Medium؛ high confidence في فجوة الربط، semantics تحتاج تأكيد | teacher hidden مش ظاهر في school PDF؛ personal-only permission filtering سليم؛ short name يُستخدم وفق policy؛ باقي timetable data لا يتغير |
+| L-01 / P1 — **منفذ عبر D-06** | ربط HideFromPrint وShortDisplayName بمخرجات PDF | profile fields تنتقل للـcatalog والـrenderer | SchoolTimetableService، TimetableDtos، SchoolTimetableDocumentService؛ لا migration | catalog mapping test + full timetable suite | profile hidden يستبعد من PDF؛ short name printable؛ باقي PDF data لا يتغير |
 | L-02 / P1 | تمييز budget exhaustion عن exhausted search | رسالة دقيقة وخطوة إصلاح قابلة للفهم | school-timetable regenerate error presentation | TimetableGenerationEngine/Service، API error mapping؛ لا DB change | الاتفاق على result/error contract | Small–Medium؛ high confidence في code finding | fixtures تميز infeasible/exhausted/cancelled؛ no partial save؛ لا تُعرض infeasibility كحقيقة عند budget stop |
 | L-03 / P2 | توصيل print route بالـPDF الحالي | تقليل الالتباس والوصول السريع | app.routes، module-placeholder أو navigation shortcut؛ reuse existing actions | existing PDF endpoint؛ لا database change | اختيار link/redirect/panel يناسب layout الحالي | Small؛ high confidence | Print entry يتيح color/monochrome حسب الصلاحيات، من غير duplicate renderer أو layout replacement |
-| I-01 / investigation status | Read-only inventory والـselected scheduling investigation اتعملوا؛ generate/save/deep POST لم تُنفذ | Evidence-based comparison | docs فقط حاليًا | لا application writes | أي controlled generation لاحق يحتاج إذن محدد وبيانات آمنة | Read-only scope documented؛ server behavior partial | راجع checklist والأدلة في deep report بدل ادعاء completion لكل server rules |
+| I-01 / investigation status | Read-only inventory والـselected scheduling investigation اتعملوا؛ Deep Check POST واحد رجع 500؛ Generate/Save لم تُنفذ | Evidence-based comparison | docs فقط حاليًا | لا application writes | أي controlled generation لاحق يحتاج إذن محدد وبيانات آمنة | Read-only scope documented؛ server behavior partial | راجع checklist والأدلة في deep report بدل ادعاء completion لكل server rules |
 | I-02 / P1 investigation | فحص standby distribution مقابل daily cover الموجود | منع خلط capability مختلفة أو تنفيذها مرتين | docs + scoped code trace أولًا | لا implementation قبل requirements وapproval | feature access؛ فحص أي local alternate generator | Medium؛ low confidence في السلوك المرجعي | نفرق weekly allocation/daily suggestion/execute؛ كل rule عليها evidence أو مستقلة مقترحة |
 | U-01 / P2 optional | تقدير configuration readiness وnavigation flow بعد مقارنة المرجع | اكتشاف missing configuration من غير tabs مكررة | settings/timings/subjects UI | حسب متطلب مؤكد لاحقًا | authenticated UI inventory | Unknown complexity؛ suggestion فقط | كل tab مقترحة لها benefit واضح ومفيش equivalent موجود بالفعل |
 | X-01 / P3 optional | تقييم Noor/aSc/Madrasati adapters لو مطلوبين فعليًا | تكامل مفيد عند احتياج المدرسة | import/export UX حسب format موثق | dedicated adapters/services؛ DB changes only if justified | public formats، selected requirements، separate scope | Unknown؛ not verified | supported-format fixtures، preview/validation، no import persistent effect before permission |
 
-الموافقة الحالية شملت D-01 وD-02 فقط. أي task لاحق يحتاج موافقة منفصلة؛ الموافقة على المستندات/REA لا تشمل D-03 إلى D-05.
+الموافقة الحالية شملت D-01 وD-02 فقط. أي task لاحق يحتاج موافقة منفصلة؛ الموافقة على المستندات/REA لا تشمل D-03 إلى D-08.
 
 ## 13. Recommended next steps
 
-1. مراجعة [نتائج التحقيق المختار](deep-scheduling-investigation.md): D-01 وD-02 منفذان ومختبران.
+1. مراجعة [نتائج التحقيق المختار](deep-scheduling-investigation.md): D-01 وD-02 وD-03 وD-06 منفذة ومختبرة، وباقي الفجوات مصنفة في D-04 وD-05 وD-07 وD-08.
 2. الحفاظ على layout الحالي، integrated timing/breaks وsubject rules، inline swaps، وسياسة hard blockers وsoft overrides.
 3. حسم دلالة Early/Late قبل تنفيذ أي تغيير، وتقييم Preflight كامتداد للـreadiness/validators الموجودة.
 4. إذا احتجنا إثبات solver المرجعي، يلزم concrete controlled experiment على بيانات آمنة وإذن للأفعال المحفوظة. لا نفترض أن HTTP GET دائمًا بلا persistence.
 5. التنفيذ يبقى بعد explicit approval على tasks محددة؛ investigation/docs approval لا يجيز application changes.
 
-**مكتمل:** التحليل المحلي، authentication/CDP، inventory، selected read-only deep investigation، client API traces، preferred-room synthetic reproduction، current roadmap. **جزئي/غير محسوم:** runtime generation/deep check، الخوارزمية المرجعية، full server validation، أسباب قيود الاشتراك، والمجالات التي لم يختَر المستخدم التحقيق العميق فيها.
+**مكتمل:** التحليل المحلي، authentication/CDP، inventory، configuration/review/history/print read-only passes، client API traces، preferred-room synthetic reproduction، D-01/D-02/D-06، current roadmap. **جزئي/غير محسوم:** Deep Check رجع 500، Generate/Restore/Save لم تُنفذ، الخوارزمية المرجعية، full server validation، أسباب قيود الاشتراك، وweekly standby distribution.
 
 ## Evidence and validation register
 
 | ID | Observation → hypothesis → validation → result | Classification / confidence | Remaining uncertainty |
 |---|---|---|---|
 | C-01 | UI routes تشير لشاشات حقيقية → implementation كبيرة → تتبع HTTP services/controllers/services/repos → backed features مؤكدة | CONFIRMED / high within source scope | Live UI/production database behavior |
-| C-02 | Test suite موجودة → covered rules قابلة للتحقق → run namespace filter → 190 passed | CONFIRMED / high for tested cases | Uncovered cases، relational deployment وE2E UI |
+| C-02 | Test suite موجودة → covered rules قابلة للتحقق → run namespace filter → 198 passed | CONFIRMED / high for tested cases | Uncovered cases، relational deployment وE2E UI |
 | C-03 | print route placeholder → printing navigation incomplete → route + component + PDF endpoint inspection → confirmed | CONFIRMED / high | أفضل مكان للملاحة من تجربة المستخدم |
 | C-04 | Teacher fields محفوظة → يمكن إنها غير مستخدمة في PDF → trace DTO/catalog/BuildPdf → path ignores print profile fields | CONFIRMED code path / high؛ visual effect INFERRED | Synthetic PDF reproduction وexpected personal-print semantics |
 | C-05 | Search limit يرجع false → رسائل فشل conflated → engine + caller inspection → same failure result/message | CONFIRMED code path / high | Controlled budget-exhaustion reproduction |

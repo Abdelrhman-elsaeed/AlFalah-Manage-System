@@ -2,12 +2,13 @@
 
 **التاريخ:** 2026-10-12 — Africa/Cairo.  
 **اختيار المستخدم:** البدء بقواعد الجدولة → التوليد → المراجعة.  
-**الحالة:** التحقيق المرجعي اكتمل ضمن النطاق، وتم تنفيذ D-01 وD-02 محليًا بعد موافقة المستخدم. Smartble generation/deep-check POST لم تُنفذ؛ تنفيذ خوارزمية Smartble على المدخلات والتحقق من نتائجها ما زال UNKNOWN.
+**Status:** Investigation scope complete. D-01, D-02, D-03, and D-06 are implemented locally; Smartble generation/deep-check POST remains unexecuted and its server algorithm is UNKNOWN.
 
 ## 1. أهم النتائج
 
 - **D-01 منفذ:** الغرفة المفضلة تُرتب أولًا مع إبقاء كل الغرف المسموحة مرشحة، والمراجعة تقبل المفضلة والبدائل وترفض الغرفة غير المسموحة. دي مشكلة integration في المشروع، مستقلة عن المطابقة مع Smartble.
 - **D-02 منفذ:** فشل التوليد المحلي يرجع `errorCode` typed يميز `Infeasible` عن `SearchLimitReached`، والواجهة تعرض عنوانًا مختلفًا لكل حالة. الإلغاء ما زال `OperationCanceledException` منفصلًا.
+- **D-03 implemented:** Early and Late use one configured preference window across ranking, generation, review, and swap warnings; the preference remains soft and Late has its own warning code.
 - Smartble لديه **Preflight قبل التوليد**، إضافةً إلى صفحة تحليل جدول موجود. واجهة الفحص قبل التوليد اتفتحت فعلًا، وطلبا GET الخاصان بالفحص رجعا 200. لا ندعي تحقق تفاصيل checks الخادم من مجرد شكل الواجهة.
 - قواعد العدد الفردي/الزوجي والتوقيت والغرف والإسناد والمراجعة موجودة بالفعل محليًا. لا توجد حجة لإعادة بناء الموديول أو إضافة صفحات مكررة.
 - **لا P0 مؤكد في نطاق التحقيق ده.** العيوب والحدود الأخرى المحتملة ما زالت تحتاج evidence خاصًا بها.
@@ -132,15 +133,19 @@ REA 6.4.0 اتستخدم أولًا عبر local stdio MCP؛ لاحقًا ظهر
 
 [Reproducible probe source and assembly hashes](evidence/preferred-room-probe-description.json)، [Actual result](evidence/preferred-room-probe-result.json).
 
-## 9. توقيت Early/Late — مرشح يحتاج حسم الدلالة
+## 9. Early/Late preference - unified and tested
+The local UI exposes a from/to window. `SubjectSchedulingPolicy.PreferencePenalty` now shares the same lower/upper-window semantics with generation, review, and swap validation; leaving the window produces a soft warning only.
+Synthetic tests cover in-window and out-of-window penalties, Late generation ranking, and Late review warnings. Preferences never become hard constraints.
 
-UI المحلي يتيح من/إلى. `SubjectSchedulingPolicy.PreferencePenalty` يحسب خروج sequence عن النافذة من الناحيتين، لكن production generator لا يستدعيه: Early يقيس تجاوز upper bound فقط، وLate يقيس النزول تحت lower bound فقط. Review يحذر من Early فقط، ولا يوجد Late warning rule في enum المفحوص.
-
-ده **source-backed inconsistency candidate** بين النافذة والـranking والـreview، وليس Smartble gap مثبتًا. قبل implementation لازم نحسم: هل الحدود نافذة تفضيل لكلا النوعين، أم عتبة directional؟ ثم نتأكد من cases synthetic. لا نقلب soft preference إلى hard constraint.
+The prior source-backed inconsistency is closed locally: one shared preference-window helper now drives ranking, generation, review, and swap validation. The preference remains soft and synthetic cases pass.
 
 ### المكان المشترك مقابل غرفة حصرية
 
 `TimetableRoom` الحالي و`RoomDto/CreateRoomRequest` يحملان identity/name من غير capacity. Generator/review يتعاملان مع room slot كحجز حصري. Smartble client يعرض capacity لفصول متزامنة في مكان واحد. **Confirmed difference في configuration model المفحوص، وليس server behavior equivalence.** لو المدرسة محتاجة ملعبًا أو قاعة كبيرة تسمح بفصلين، يمكن تصميم shared teaching resource مستقلة؛ لا نسمح تلقائيًا باستخدام معمل حصري بأكثر من فصل، ولا نخلط عدد الطلاب مع عدد الفصول، ولا ننفذ requirement قبل اختيارها.
+
+## 10. Local print wiring
+
+D-06 passes `ShortDisplayName` and `HideFromPrint` from `TeacherTimetableProfile` into `TimetableTeacherDto` and `SchoolTimetableDocumentService`: hidden teachers are excluded from PDF and the short name is printed. No migration was needed; the catalog mapping test and 198-test timetable suite pass.
 
 ## 10. Flow وpseudocode
 
@@ -186,11 +191,11 @@ LOCAL_PROPOSED_OUTCOME_CONTRACT():  // independent recommendation
 |---|---|---|---|---|---|
 | D-01 / P1 — **منفذ** | توحيد allowed rooms وpreferred ranking بين اليدوي والتوليد والمراجعة؛ إزالة رفض غرفة مسموحة | الواجهة الحالية محفوظة | GenerationEngine وValidationEngine؛ لا migration | 53 اختبارًا مستهدفًا + full timetable suite؛ high | المفضلة والبدائل مرشحة؛ المراجعة تقبل الاثنين؛ occupancy/co-teaching محفوظان |
 | D-02 / P1 — **منفذ** | فصل limit/infeasible/cancelled feedback؛ منع رسالة استحالة غير مثبتة | `school-timetable.component` يعرض عنوانًا حسب `errorCode` | GenerationEngine، GlobalExceptionMiddleware، ApiResponse؛ لا DB change | 198 اختبار backend ناجحًا ضمن النطاق؛ high | `Infeasible` و`SearchLimitReached` مستقلان؛ errorCode يصل للواجهة؛ لا partial save؛ cancellation منفصل |
-| D-03 / P2 investigation | توحيد دلالة Early/Late window ومراجعة Late؛ كفاءة ومصداقية controls | subject-settings.models/UI بعد حسم الدلالة | SubjectSchedulingPolicy، GenerationEngine، ValidationEngine وربما rule enum؛ persistence migration فقط إن policy محتاجة تخزين جديد | قرار directional vs window + synthetic cases؛ Small–Medium؛ medium للمتطلب | نفس المدخلات لها ranking/review متفقان؛ soft دائمًا؛ warnings متسقة؛ دون إفساد fixed slots |
+| D-03 / P2 - **implemented** | Unify Early/Late window semantics across ranking and review; keep preferences soft | SubjectSchedulingPolicy, TimetableGenerationEngine, TimetableValidationEngine, TimetableSwapValidationSession, and rule code | No migration; added a Late warning while preserving existing enum values | 198 timetable tests with synthetic window/generation/review coverage; high | The same window drives ranking, validation, and swap warnings; Early/Late never block generation |
 | D-04 / P2 optional | عرض تقرير استعداد/feasibility قبل regenerate؛ تجميع أسباب قابل للإصلاح | reuse Settings/readiness وreview + modal الحالي؛ لا tabs مكررة | existing validators/readiness؛ endpoint read-only بوضوح إذا لازم؛ لا DB متوقع | D-01/D-02 أولًا؛ Medium؛ high للـUX observed، medium للتصميم المقترح | أسباب actionable مع روابط للإعداد؛ scope/revision محفوظ؛ لا mutation عند الفحص؛ calculation error ظاهر كـunknown لا clean؛ التوليد يؤكد الحالة مجددًا |
 | D-05 / P3 optional | Shared-place capacity عند احتياج فعلي لفصول متزامنة؛ فرق config مرصود | Subject/room settings بنفس layout | Resource capacity policy متسقة في generation/review/manual/swap/repair؛ migration محتملة مع default=1 | حسم physical rooms vs shared place + actual school need؛ Medium–Large؛ high للـclient config، server enforcement UNKNOWN | default يحافظ على exclusivity؛ capacity counts logical class occurrences لا co-teacher rows؛ تداخل زمني فعلي؛ max+1 مرفوض؛ حفظ/swap/repair نفس السياسة |
 
-Baseline print tasks باقية في [README roadmap](README.md): PDF fields P1 وprint navigation P2. ليست ضمن إثبات server rules المرجعية هنا. بعد تنفيذ D-01 وD-02، الأولوية التالية هي D-03 إذا حُسمت دلالة Early/Late؛ D-04 وD-05 اختياريان.
+Baseline print tasks remain in the README roadmap. After D-01, D-02, D-03, and D-06, the next optional work is D-04 and D-05.
 
 ## 12. Finding ledger والأدلة
 
@@ -201,7 +206,7 @@ Baseline print tasks باقية في [README roadmap](README.md): PDF fields P1 
 | S-03 Deep statuses | Delivered JS → three outcomes are represented → trace `renderDeep` → three branches | CONFIRMED client code؛ runtime behavior UNKNOWN |
 | S-04 Preferred room | UI/repository/manual differ from generator/review → integration bug → actual production-engine probe → preferred excluded/rejected | CONFIRMED source+synthetic runtime؛ high |
 | S-05 Solver limit | budget false + no-solution false → feedback conflated → trace public exception/caller → shared message | CONFIRMED source؛ high؛ exhaustion scenario not reproduced |
-| S-06 Early/Late | range UI/shared penalty differ from engine/review → semantics may disagree → scoped source comparison → inconsistency candidate | CONFIRMED source differences؛ requirement interpretation medium |
+| S-06 Early/Late | Shared window helper now drives generation, review, and swap validation; synthetic cases pass | IMPLEMENTED locally; high confidence for local behavior | Smartble server semantics remain UNKNOWN |
 | S-07 Frontend tech | CP-SAT/OR-Tools comments → server may use them → no solver POST/runtime proof → unverified | INFERRED only؛ internal algorithm UNKNOWN |
 | S-08 Shared place | Special-place input → capacity meaning غير واضح أولًا → static title/payload trace → simultaneous classrooms معلنة صراحة | CONFIRMED client config؛ server enforcement UNKNOWN؛ local capacity absent in scoped model |
 
@@ -225,6 +230,6 @@ Additional static evidence: [Generation handler](evidence/generation-client-sour
 | ماذا يحصل قبل Confirm؟ | PARTIALLY ANSWERED: GET traffic + client decisions | validation cases وتأثير reconcile الفعلي |
 | ما algorithm الخادم وهل جودة النتائج أفضل؟ | UNRESOLVED | generation authorized على test data، ثم output comparisons؛ لا claims حاليًا |
 | هل premium restrictions تمنع generation/deep check؟ | UNKNOWN | وجود button/200 لصفحة لا يثبت POST access؛ لم نشتَر أو نتجاوز |
-| ما الإصلاح الأعلى قيمة محليًا؟ | ANSWERED | D-01 وD-02 منفذان ومختبران؛ D-03 إلى D-05 مؤجلة |
+| Highest-value local fix | ANSWERED | D-01, D-02, D-03, and D-06 are implemented and tested; D-04, D-05, D-07, and D-08 remain deferred |
 
 مجموعة اختبارات timetable الحالية **198 passed / 0 failed / 0 skipped** بعد التغييرات، منها 53 في generation/review وmiddleware. frontend bundle اتولد بنجاح قبل أن يفشل build بسبب CSS budgets قائمة في storage وvisits؛ frontend test command لم يبدأ بسبب أخطاء TypeScript قديمة في اختبارات غير مرتبطة. **تغيّرت ملفات التطبيق والاختبارات الخاصة بالإصلاحين فقط؛ لم تتغير production data.**

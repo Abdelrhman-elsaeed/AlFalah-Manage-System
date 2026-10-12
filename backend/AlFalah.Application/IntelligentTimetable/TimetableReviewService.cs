@@ -203,5 +203,5 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
         ViolationRuleCode.DisallowedDay => "يوم غير مسموح", ViolationRuleCode.ViolatedFixedSlot => "موعد ثابت غير محقق",
         ViolationRuleCode.ExcessiveConsecutive => "حصص متتالية زائدة", ViolationRuleCode.UnfairLastPeriods => "عدم عدالة الحصص الأخيرة",
         ViolationRuleCode.ExcessiveGaps => "فترات انتظار زائدة", ViolationRuleCode.SubjectConcentration => "تكرار المادة في اليوم",
-        ViolationRuleCode.EarlyPreferenceMissed => "أفضلية مبكرة غير محققة", _ => "عدم توازن توزيع المادة" };
+        ViolationRuleCode.EarlyPreferenceMissed => "أفضلية مبكرة غير محققة", ViolationRuleCode.LatePreferenceMissed => "أفضلية متأخرة غير محققة", _ => "عدم توازن توزيع المادة" };
 }

@@ -18,7 +18,12 @@ public sealed record TimetableTeacherDto(
     string? EmployeeNumber,
     string? Subject,
     IReadOnlyList<string> Classes,
-    bool IsCurrentUser);
+    bool IsCurrentUser,
+    string? ShortDisplayName = null,
+    bool HideFromPrint = false)
+{
+    public string PrintableName => string.IsNullOrWhiteSpace(ShortDisplayName) ? FullName : ShortDisplayName.Trim();
+}
 public sealed record TimetableModeratorDto(string UserId, string FullName, bool IsGranted);
 public sealed record TimetableCapabilitiesDto(bool CanManage, bool CanDelegate, bool CanViewVersions);
 

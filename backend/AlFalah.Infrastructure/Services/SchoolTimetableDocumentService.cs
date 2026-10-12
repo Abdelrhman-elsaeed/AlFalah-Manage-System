@@ -36,7 +36,12 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
             page.DefaultTextStyle(style => style.FontFamily(PdfTheme.Font).FontSize(4.5f)
                 .DirectionFromRightToLeft().FontColor(palette.BodyText));
             page.Header().Height(30).Element(header => ComposeHeader(header, timetable, catalog, logo, palette));
-            page.Content().PaddingTop(2).Element(content => ComposeGrid(content, catalog.Teachers, entries, palette, slots));
+            page.Content().PaddingTop(2).Element(content => ComposeGrid(
+                content,
+                catalog.Teachers.Where(teacher => !teacher.HideFromPrint).ToArray(),
+                entries,
+                palette,
+                slots));
             page.Footer().Height(9).AlignCenter().Text(
                 $"نسخة رقم {timetable.Revision} • آخر تحديث {timetable.UpdatedAt:yyyy-MM-dd HH:mm} • A4 أفقي • {palette.Label}")
                 .FontSize(3.6f).FontColor(palette.Muted);
@@ -256,7 +261,7 @@ public sealed class SchoolTimetableDocumentService : ISchoolTimetableDocumentSer
                     else
                         BodyCell(table.Cell(), string.Empty, false, rowIndex, palette);
                 }
-                BodyCell(table.Cell(), teacher.FullName, false, rowIndex, palette, true, true);
+                BodyCell(table.Cell(), teacher.PrintableName, false, rowIndex, palette, true, true);
                 rowIndex++;
             }
         });
