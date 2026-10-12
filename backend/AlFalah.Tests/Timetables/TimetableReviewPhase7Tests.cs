@@ -83,6 +83,29 @@ public sealed class TimetableReviewPhase7Tests
         c.Requirements[0].TimePreference = "None"; c.Timetable.Entries.Add(Entry(2, day: 3, period: 8));
         Has(c, ViolationRuleCode.SubjectClusterImbalance).Should().BeTrue();
     }
+
+    [Fact] public void Preferred_and_alternative_rooms_are_both_valid_review_targets()
+    {
+        var c = Context();
+        c.Requirements[0].Rooms =
+        [
+            new() { Id = 1, SchoolId = 1, ClassSubjectRequirementId = 1, RoomId = 1, IsPreferred = true },
+            new() { Id = 2, SchoolId = 1, ClassSubjectRequirementId = 1, RoomId = 2 }
+        ];
+        c = c with
+        {
+            Rooms =
+            [
+                new() { Id = 1, SchoolId = 1, Name = "Preferred" },
+                new() { Id = 2, SchoolId = 1, Name = "Alternative" }
+            ]
+        };
+
+        c.Timetable.Entries.Single().RoomId = 1;
+        Engine.Evaluate(c).Should().NotContain(x => x.Detail == "required-room");
+        c.Timetable.Entries.Single().RoomId = 2;
+        Engine.Evaluate(c).Should().NotContain(x => x.Detail == "required-room");
+    }
     [Fact] public void Overlapping_real_time_windows_conflict_even_with_different_sequences()
     {
         var c = Context(); c.Schedule!.Days.First().Periods.Single(x => x.Sequence == 2).StartLocalTime = new(7, 50);

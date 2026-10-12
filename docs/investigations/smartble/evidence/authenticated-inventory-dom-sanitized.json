@@ -1,0 +1,4100 @@
+{
+  "source": "Playwright read-only navigation and DOM projection; not REA evidence",
+  "date": "2026-10-12",
+  "tableRowsInputValuesAndSelectOptionsOmitted": true,
+  "pages": [
+    {
+      "path": "/pro/pro_dashboard/workdays/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/workdays/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "default-special-name-class-base",
+            "label": "اسم توقيت الحصص الأساسي",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "off_day_1",
+            "id": "id_off_day_1",
+            "label": "يوم الإجازة*",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "off_day_2",
+            "id": "id_off_day_2",
+            "label": "يوم الإجازة 2*",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "number",
+            "name": "number_of_classes",
+            "id": "id_number_of_classes",
+            "label": "عدد الحصص",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "start_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "time",
+            "name": "end_time",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الأساسي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "أوقات الراحة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "نفس التوقيت لجميع الأيام",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص يومي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "السبت",
+            "type": "button",
+            "disabled": true
+          },
+          {
+            "label": "الأحد [configured count]",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الاثنين [configured count]",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الثلاثاء [configured count]",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الأربعاء [configured count]",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الخميس [configured count]",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الجمعة",
+            "type": "button",
+            "disabled": true
+          },
+          {
+            "label": "تحديد كل الأيام",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تطبيق إعدادات اليوم الحالي على الأيام المحددة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "ازالة الفلتر",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إضافة توقيت جديد",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تجاهل",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حفظ جميع التعديلات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "أضف",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إغلاق",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "احفظ التغييرات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تأكيد",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تأكيد",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "اختر الجدول",
+            "type": "submit",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_dashboard/teachers/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/teachers/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "الاسم*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "id_phone_number",
+            "label": "الهاتف",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "id_group",
+            "label": "المجموعة",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "file",
+            "name": "",
+            "id": "docpicker",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "csv-name",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "csv-phone",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "number",
+            "name": "max_classes",
+            "id": "max-classes",
+            "label": "الحد الأقصى الافتراضي لعدد الحصص لكل معلم",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "teacher-search-input",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "per-page-select",
+            "label": "إظهار:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "sort-dropdown",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "select-all-checkbox",
+            "label": "تحديد الكل (هذه الصفحة)",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "أضف",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "اختر ملف (لم يتم إختيار ملف)",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "استيراد البيانات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "إرسال الرمز التعريفي لتطبيق الجوال عبر الواتس اب",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "حفظ جميع التعديلات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "حذف المحدد (0)",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "مخصص",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تأكيد",
+            "type": "submit",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_dashboard/classrooms/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/classrooms/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "cls-classroom-search",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "label": "",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-select",
+            "label": "قائمة الجداول:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "new-place-input",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "bulk-place-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "new-level-input",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "bulk-level-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "bt-level-break-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "التحكم في أماكن الفصول",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إدارة المراحل الدراسية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "التحكم بالمواد",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "مجموعات المواد",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "ضبط الأيام الدراسية تلقائياً",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "إعداد الأيام الدراسية لكل الفصول",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص المواد ([class])",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احذف ([class])",
+            "type": "submit",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_dashboard/assignments/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/assignments/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "subject-filter",
+            "label": "تصفية حسب المادة:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "asg-teacher-search",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "per-page-select",
+            "label": "إظهار:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "subject-filter-matrix",
+            "label": "تصفية حسب المادة:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "asg-teacher-search-matrix",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "per-page-select-matrix",
+            "label": "إظهار:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "mat-filter-classroom",
+            "label": "الفصل:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "mat-filter-subject",
+            "label": "الموضوع:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-select",
+            "label": "قائمة الجداول:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "reassign-show-all-teachers",
+            "label": "عرض جميع المعلمين بدون تقييد التخصص",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "reassign-teacher-search",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "swap-search",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تحديث",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "حذف جميع الإسنادات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "عرض كقائمة (أسلوب بسيط)",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "عرض كمصفوفة (أسلوب متقدم)",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ التغييرات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تجاهل",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "التركيز على حصص المعلم الخروج من وضع التركيز",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تبديل الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف وإعادة توزيع الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "التركيز على حصص المعلم الخروج من وضع التركيز",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تبديل الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف وإعادة توزيع الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "التركيز على حصص المعلم الخروج من وضع التركيز",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تبديل الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف وإعادة توزيع الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "التركيز على حصص المعلم الخروج من وضع التركيز",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تبديل الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف وإعادة توزيع الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "التركيز على حصص المعلم الخروج من وضع التركيز",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تبديل الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف وإعادة توزيع الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "التركيز على حصص المعلم الخروج من وضع التركيز",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تبديل الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف وإعادة توزيع الإسنادات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف الإسنادات",
+            "type": "button",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [
+          "#",
+          "المعلم",
+          "عدد الحصص",
+          "إسنادات",
+          "الفصل",
+          "التربية البدنية",
+          "التربية الفنية",
+          "الدراسات الإسلامية",
+          "الدراسات الاجتماعية",
+          "الرياضيات",
+          "العلوم",
+          "اللغة الإنجليزية",
+          "اللغة العربية",
+          "المهارات الرقمية",
+          "النشاط",
+          "مهارات حياتية",
+          "المادة",
+          "موزع إلى",
+          "حصص"
+        ],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_dashboard/courses/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/courses/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "crs-classroom-search",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-select",
+            "label": "قائمة الجداول:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "new-sp-input",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "number",
+            "name": "",
+            "id": "new-sp-max",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إعداد أماكن خاصة للمواد",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "ضبط الأيام الدراسية تلقائياً",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "إعداد الأيام الدراسية لكل الفصول",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تخصيص الأيام الدراسية -",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تجاهل",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تطبيق التغييرات",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الرياضيات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "اللغة العربية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الدراسات الإسلامية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "العلوم",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "اللغة الإنجليزية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الدراسات الاجتماعية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "التربية الفنية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "التربية البدنية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "المهارات الرقمية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "مهارات حياتية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "النشاط",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الرياضيات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "اللغة العربية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الدراسات الإسلامية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "العلوم",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "اللغة الإنجليزية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الدراسات الاجتماعية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "التربية الفنية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "التربية البدنية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "المهارات الرقمية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "مهارات حياتية",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "النشاط",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الرياضيات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "اللغة العربية",
+            "type": "submit",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [
+          "المادة",
+          "المعلم",
+          "الحصص الفردية (مفردة)",
+          "الحصص الزوجية (متتالية)",
+          "عدد الحصص الأسبوعي",
+          "حصة مبكرة",
+          "مكان خاص",
+          "تخصيص"
+        ],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_smart_table/table-preview/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_smart_table/table-preview/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "file",
+            "name": "",
+            "id": "importTableExcelFileHidden",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-select",
+            "label": "قائمة الجداول:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "tableName",
+            "label": "اسم الجدول *",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table-copy-id",
+            "id": "tableSelect",
+            "label": "نسخ من جدول آخر",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-active",
+            "label": "قائمة الجداول:",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "radio",
+            "name": "importMode",
+            "id": "importModeExisting",
+            "label": "الجدول الحالي (الجدول الأساسي)",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "radio",
+            "name": "importMode",
+            "id": "importModeNew",
+            "label": "إنشاء جدول جديد والاستيراد إليه",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "importTableName",
+            "label": "اسم الجدول *",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "importTableCopyId",
+            "label": "نسخ من جدول آخر",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "file",
+            "name": "",
+            "id": "importExcelFileModal",
+            "label": "ملف Excel *",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "tbp-cell-search",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "radio",
+            "name": "tbp-density",
+            "id": "",
+            "label": "مضغوط",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "radio",
+            "name": "tbp-density",
+            "id": "",
+            "label": "عادي",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "radio",
+            "name": "tbp-density",
+            "id": "",
+            "label": "واسع",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "tbp-color-coding",
+            "label": "ألوان المواد",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "id",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "ev",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "dl",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "rl",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "if",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "ts",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "iw",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "sw",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "sh",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "v",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "r",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "ec",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "o",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "aems",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "fbp",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "ler",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "cdl",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "pmd[title]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "pmd[locale]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "pmd[description]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "plt",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "iss",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "ss",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "imft",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "tz",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "it",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "coo",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[0]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[1]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[2]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[3]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[4]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[5]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[6]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[7]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[8]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[9]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[10]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[11]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[12]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[13]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[14]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[15]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[16]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[17]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[18]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[19]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "expv2[20]",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "بدء التوليد الآلي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تعديل الجدول",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إدارة الجداول",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "طباعة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تأكيد",
+            "type": "button",
+            "disabled": true
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "اختر الجدول",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "أنشأ الجدول",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تنشيط الجدول",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استيراد",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "احفظ التغييرات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الأحد",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الاثنين",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الثلاثاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الأربعاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "الخميس",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [
+          "الفصل/الفصل",
+          "الحصة 1 [time] – [time]",
+          "الحصة 2 [time] – [time]",
+          "الحصة 3 [time] – [time]",
+          "الحصة 4 [time] – [time]",
+          "الحصة 5 [time] – [time]",
+          "الحصة 6 [time] – [time]",
+          "الحصة 7 [time] – [time]"
+        ],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_waiting_classes/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": true,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_editor/list/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_editor/list/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [
+          "#",
+          "الاسم",
+          "الإجراءات"
+        ],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_dashboard/advanced/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/advanced/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "confirmTableName",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "double-teachers",
+            "id": "double-teachers-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "classes-time-options",
+            "id": "classes-time-options-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "date-system",
+            "id": "date-system-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "sms-provider",
+            "id": "sms-provider-select",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "sms-token-input",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "id": "sms-sender-input",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "wc_text_en",
+            "id": "id_wc_text_en",
+            "label": "Waiting Class Notification Text*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "task_text_en",
+            "id": "id_task_text_en",
+            "label": "New Task Notification Text*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "exam_monitoring_text_en",
+            "id": "id_exam_monitoring_text_en",
+            "label": "Exam Monitoring Notification Text*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "wc_text_ar",
+            "id": "id_wc_text_ar",
+            "label": "نص إشعار حصة الانتظار*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "task_text_ar",
+            "id": "id_task_text_ar",
+            "label": "نص إشعار مهمة جديدة*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "exam_monitoring_text_ar",
+            "id": "id_exam_monitoring_text_ar",
+            "label": "نص إشعار مراقبة الإختبار*",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "notif_reminder_time",
+            "id": "id_notif_reminder_time",
+            "label": "الإشعار التلقائي*",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "is_teacher_time_active",
+            "id": "id_is_teacher_time_active",
+            "label": "إظهار توقيت الحصة التالية (يرجى التأكد من ضبط مواعيد الحصص من صفحة الأيام الدراسية)",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "hide_wcstg",
+            "id": "id_hide_wcstg",
+            "label": "إخفاء حصص الانتظار من الجدول ( نظام ثابت حسب الحصة )",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "hide_wcstg_priority",
+            "id": "id_hide_wcstg_priority",
+            "label": "إخفاء أولويات حصص الانتظار من الجدول ( نظام ثابت حسب الحصة )",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "name",
+            "id": "tableName",
+            "label": "اسم الجدول *",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "table-copy-id",
+            "id": "tableSelect",
+            "label": "نسخ من جدول آخر",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "teacher",
+            "id": "select-teacher-mu",
+            "label": "",
+            "required": true,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "مسح البيانات التجريبية",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حذف الجدول",
+            "type": "submit",
+            "disabled": true
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "احفظ التغييرات",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "نعم، تحديد كحالي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "تحديث الرصيد",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "حفظ الرمز",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "احفظ",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "أنشأ الجدول",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "أضف",
+            "type": "submit",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [
+          "#",
+          "اسم المستخدم",
+          "رمز التطبيق",
+          "المالك",
+          "تفعيل",
+          "تفعيل المتابع الإداري"
+        ],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": true,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    },
+    {
+      "path": "/pro/pro_dashboard/table-history/",
+      "httpStatus": 200,
+      "finalPath": "/pro/pro_dashboard/table-history/",
+      "ui": {
+        "controls": [
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "tchTable",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "tchSince",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "select",
+            "type": "select-one",
+            "name": "",
+            "id": "tchAction",
+            "label": "",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "checkbox",
+            "name": "",
+            "id": "tchOnlyRestorable",
+            "label": "قابلة للاستعادة فقط",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "radio",
+            "name": "tchMode",
+            "id": "",
+            "label": "بناء جدول جديد منه يبقى جدولك الحالي كما هو تماماً. يمكنك المقارنة بينهما والتبديل عندما تكون مستعداً.",
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "input",
+            "type": "radio",
+            "name": "tchMode",
+            "id": "",
+            "label": "استبدال الجدول الحالي سيتم التراجع عن كل ما بعد هذه النقطة. يتم حفظ نسخة احتياطية من الحالة الحالية أولاً، بحيث يمكنك التراجع عن هذا أيضاً.",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "buttons": [
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "Go",
+            "type": "submit",
+            "disabled": false
+          },
+          {
+            "label": "الجدول الذكي",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "×",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "حفظ نقطة استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "تحديث",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "إلغاء",
+            "type": "button",
+            "disabled": false
+          },
+          {
+            "label": "استعادة",
+            "type": "button",
+            "disabled": false
+          }
+        ],
+        "tableHeaders": [],
+        "visibleModal": [],
+        "subscriptionFlags": {
+          "noActive": false,
+          "upgrade": false,
+          "expired": false,
+          "mustSubscribe": false
+        },
+        "login": 0
+      }
+    }
+  ]
+}

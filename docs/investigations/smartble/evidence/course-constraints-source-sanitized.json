@@ -1,0 +1,171 @@
+{
+  "source": "Delivered course-rules DOM and JavaScript; sanitized static projection",
+  "pagePath": "/pro/pro_dashboard/courses/",
+  "status": 200,
+  "staticConstraints": {
+    "fieldAttributes": [
+      {
+        "id": "id_odd_classes",
+        "type": "number",
+        "min": "0",
+        "step": "1",
+        "required": true,
+        "adjacentLabel": null
+      },
+      {
+        "id": "id_even_classes",
+        "type": "number",
+        "min": "0",
+        "step": "1",
+        "required": true,
+        "adjacentLabel": null
+      },
+      {
+        "id": "id_early_class",
+        "type": "checkbox",
+        "min": null,
+        "step": null,
+        "required": false,
+        "adjacentLabel": null
+      },
+      {
+        "id": "new-sp-max",
+        "type": "number",
+        "min": "1",
+        "step": "1",
+        "required": false,
+        "adjacentLabel": null
+      }
+    ],
+    "dialogs": [
+      {
+        "id": "bulkReconcileModal",
+        "labels": []
+      },
+      {
+        "id": "spModal",
+        "labels": [
+          "إضافة مكان خاص جديد"
+        ]
+      }
+    ]
+  },
+  "scriptExcerpts": [
+    {
+      "ordinal": 10,
+      "originalSourceSha256": "781ccfb310b7e8273bc8bdbbe632f46674b4192c2a4cf63fc658192be20158e2",
+      "excerpts": [
+        {
+          "sourceLineStart": 384,
+          "sourceLineEnd": 392,
+          "text": "            // Extract Data From Form\n            const trID_elem = document.querySelector(`#${trID}`)\n            const teacherID = trID_elem.getAttribute('data-teacher-id')\n            const oddClasses = document.querySelector(`#${trID} input[id='id_odd_classes']`).value\n            const evenClasses = document.querySelector(`#${trID} input[id='id_even_classes']`).value\n            const earlyClass = document.querySelector(`#${trID} input[id='id_early_class']`).checked\n            console.log(oddClasses)\n            console.log(evenClasses)\n            console.log(earlyClass)"
+        },
+        {
+          "sourceLineStart": 385,
+          "sourceLineEnd": 393,
+          "text": "            const trID_elem = document.querySelector(`#${trID}`)\n            const teacherID = trID_elem.getAttribute('data-teacher-id')\n            const oddClasses = document.querySelector(`#${trID} input[id='id_odd_classes']`).value\n            const evenClasses = document.querySelector(`#${trID} input[id='id_even_classes']`).value\n            const earlyClass = document.querySelector(`#${trID} input[id='id_early_class']`).checked\n            console.log(oddClasses)\n            console.log(evenClasses)\n            console.log(earlyClass)\n "
+        },
+        {
+          "sourceLineStart": 386,
+          "sourceLineEnd": 394,
+          "text": "            const teacherID = trID_elem.getAttribute('data-teacher-id')\n            const oddClasses = document.querySelector(`#${trID} input[id='id_odd_classes']`).value\n            const evenClasses = document.querySelector(`#${trID} input[id='id_even_classes']`).value\n            const earlyClass = document.querySelector(`#${trID} input[id='id_early_class']`).checked\n            console.log(oddClasses)\n            console.log(evenClasses)\n            console.log(earlyClass)\n \n            // Fetch Logic"
+        },
+        {
+          "sourceLineStart": 406,
+          "sourceLineEnd": 414,
+          "text": "                },\n                body: JSON.stringify({\n                    'teacher':teacherID,\n                    'odd_classes':oddClasses,\n                    'even_classes':evenClasses,\n                    'early_class':earlyClass,\n                })\n            };\n "
+        },
+        {
+          "sourceLineStart": 407,
+          "sourceLineEnd": 415,
+          "text": "                body: JSON.stringify({\n                    'teacher':teacherID,\n                    'odd_classes':oddClasses,\n                    'even_classes':evenClasses,\n                    'early_class':earlyClass,\n                })\n            };\n \n            fetch(url_, requestOptions)"
+        },
+        {
+          "sourceLineStart": 408,
+          "sourceLineEnd": 416,
+          "text": "                    'teacher':teacherID,\n                    'odd_classes':oddClasses,\n                    'even_classes':evenClasses,\n                    'early_class':earlyClass,\n                })\n            };\n \n            fetch(url_, requestOptions)\n            .then(response => response.json())"
+        },
+        {
+          "sourceLineStart": 468,
+          "sourceLineEnd": 476,
+          "text": "            })\n            .finally(() => {\n                // Calculate Total Weekly Classes\n                const oddClasses = parseInt(document.querySelector(`#${trID} input[id='id_odd_classes']`).value) || 0\n                const evenClasses = parseInt(document.querySelector(`#${trID} input[id='id_even_classes']`).value) || 0\n                const totalWeeklyClasses = oddClasses + (evenClasses * 2)\n                document.querySelector(`#${trID} .total-weekly-classes`).innerHTML = totalWeeklyClasses\n            })\n            .catch(error => {"
+        },
+        {
+          "sourceLineStart": 469,
+          "sourceLineEnd": 477,
+          "text": "            .finally(() => {\n                // Calculate Total Weekly Classes\n                const oddClasses = parseInt(document.querySelector(`#${trID} input[id='id_odd_classes']`).value) || 0\n                const evenClasses = parseInt(document.querySelector(`#${trID} input[id='id_even_classes']`).value) || 0\n                const totalWeeklyClasses = oddClasses + (evenClasses * 2)\n                document.querySelector(`#${trID} .total-weekly-classes`).innerHTML = totalWeeklyClasses\n            })\n            .catch(error => {\n                document.querySelector('#updateModal .modal-content').innerHTML = `"
+        }
+      ]
+    },
+    {
+      "ordinal": 11,
+      "originalSourceSha256": "f8cc300d542a11ffc4e0e28c43bad6f3f9ae69bbb56e7a0578b60adf1da59339",
+      "excerpts": [
+        {
+          "sourceLineStart": 49,
+          "sourceLineEnd": 57,
+          "text": "\n            async add() {\n                const input = document.getElementById('new-sp-input');\n                const maxInput = document.getElementById('new-sp-max');\n                const name = input.value.trim();\n                if (!name) { input.focus(); return; }\n\n                const maxRooms = Math.max(1, parseInt(maxInput.value, 10) || 1);\n"
+        },
+        {
+          "sourceLineStart": 239,
+          "sourceLineEnd": 247,
+          "text": "\n            // Snapshot the originals once so we can tell what actually changed.\n            rows.forEach(function (tr) {\n                var o = inp(tr, 'id_odd_classes'),\n                    e = inp(tr, 'id_even_classes'),\n                    c = inp(tr, 'id_early_class'),\n                    s = sp(tr);\n                tr.dataset.origOdd          = o ? o.value : '';\n                tr.dataset.origEven         = e ? e.value : '';"
+        },
+        {
+          "sourceLineStart": 240,
+          "sourceLineEnd": 248,
+          "text": "            // Snapshot the originals once so we can tell what actually changed.\n            rows.forEach(function (tr) {\n                var o = inp(tr, 'id_odd_classes'),\n                    e = inp(tr, 'id_even_classes'),\n                    c = inp(tr, 'id_early_class'),\n                    s = sp(tr);\n                tr.dataset.origOdd          = o ? o.value : '';\n                tr.dataset.origEven         = e ? e.value : '';\n                tr.dataset.origEarly        = c ? String(c.checked) : '';"
+        },
+        {
+          "sourceLineStart": 241,
+          "sourceLineEnd": 249,
+          "text": "            rows.forEach(function (tr) {\n                var o = inp(tr, 'id_odd_classes'),\n                    e = inp(tr, 'id_even_classes'),\n                    c = inp(tr, 'id_early_class'),\n                    s = sp(tr);\n                tr.dataset.origOdd          = o ? o.value : '';\n                tr.dataset.origEven         = e ? e.value : '';\n                tr.dataset.origEarly        = c ? String(c.checked) : '';\n                tr.dataset.origSpecialPlace = s ? s.value : '';"
+        },
+        {
+          "sourceLineStart": 250,
+          "sourceLineEnd": 258,
+          "text": "            });\n\n            function rowDirty(tr) {\n                var o = inp(tr, 'id_odd_classes'),\n                    e = inp(tr, 'id_even_classes'),\n                    c = inp(tr, 'id_early_class'),\n                    s = sp(tr);\n                return (o && o.value !== tr.dataset.origOdd)\n                    || (e && e.value !== tr.dataset.origEven)"
+        },
+        {
+          "sourceLineStart": 251,
+          "sourceLineEnd": 259,
+          "text": "\n            function rowDirty(tr) {\n                var o = inp(tr, 'id_odd_classes'),\n                    e = inp(tr, 'id_even_classes'),\n                    c = inp(tr, 'id_early_class'),\n                    s = sp(tr);\n                return (o && o.value !== tr.dataset.origOdd)\n                    || (e && e.value !== tr.dataset.origEven)\n                    || (c && String(c.checked) !== tr.dataset.origEarly)"
+        },
+        {
+          "sourceLineStart": 252,
+          "sourceLineEnd": 260,
+          "text": "            function rowDirty(tr) {\n                var o = inp(tr, 'id_odd_classes'),\n                    e = inp(tr, 'id_even_classes'),\n                    c = inp(tr, 'id_early_class'),\n                    s = sp(tr);\n                return (o && o.value !== tr.dataset.origOdd)\n                    || (e && e.value !== tr.dataset.origEven)\n                    || (c && String(c.checked) !== tr.dataset.origEarly)\n                    || (s && s.value !== tr.dataset.origSpecialPlace);"
+        },
+        {
+          "sourceLineStart": 262,
+          "sourceLineEnd": 270,
+          "text": "            function dirtyRows() { return rows.filter(rowDirty); }\n\n            function recomputeTotal(tr) {\n                var o = parseInt((inp(tr, 'id_odd_classes') || {}).value, 10) || 0;\n                var e = parseInt((inp(tr, 'id_even_classes') || {}).value, 10) || 0;\n                var cell = tr.querySelector('.total-weekly-classes');\n                if (cell) cell.innerHTML = o + e * 2;\n            }\n"
+        },
+        {
+          "sourceLineStart": 263,
+          "sourceLineEnd": 271,
+          "text": "\n            function recomputeTotal(tr) {\n                var o = parseInt((inp(tr, 'id_odd_classes') || {}).value, 10) || 0;\n                var e = parseInt((inp(tr, 'id_even_classes') || {}).value, 10) || 0;\n                var cell = tr.querySelector('.total-weekly-classes');\n                if (cell) cell.innerHTML = o + e * 2;\n            }\n\n            function refresh() {"
+        },
+        {
+          "sourceLineStart": 305,
+          "sourceLineEnd": 313,
+          "text": "            okBtn.addEventListener('click', function () {\n                $('#bulkReconcileModal').modal('hide');\n                var changes = dirtyRows().map(function (tr) {\n                    var o = inp(tr, 'id_odd_classes'),\n                        e = inp(tr, 'id_even_classes'),\n                        c = inp(tr, 'id_early_class'),\n                        s = sp(tr);\n                    return {\n                        course_id:        tr.getAttribute('data-course-id'),"
+        },
+        {
+          "sourceLineStart": 306,
+          "sourceLineEnd": 314,
+          "text": "                $('#bulkReconcileModal').modal('hide');\n                var changes = dirtyRows().map(function (tr) {\n                    var o = inp(tr, 'id_odd_classes'),\n                        e = inp(tr, 'id_even_classes'),\n                        c = inp(tr, 'id_early_class'),\n                        s = sp(tr);\n                    return {\n                        course_id:        tr.getAttribute('data-course-id'),\n                        odd_classes:      o ? o.value : null,"
+        },
+        {
+          "sourceLineStart": 307,
+          "sourceLineEnd": 315,
+          "text": "                var changes = dirtyRows().map(function (tr) {\n                    var o = inp(tr, 'id_odd_classes'),\n                        e = inp(tr, 'id_even_classes'),\n                        c = inp(tr, 'id_early_class'),\n                        s = sp(tr);\n                    return {\n                        course_id:        tr.getAttribute('data-course-id'),\n                        odd_classes:      o ? o.value : null,\n                        even_classes:     e ? e.value : null,"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "No input values or select options read. No change/save executed.",
+    "Client schema and constraints do not establish server rules."
+  ]
+}

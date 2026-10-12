@@ -4,6 +4,7 @@ export interface ApiResponse<T = void> {
   readonly message: string;
   readonly data?: T | null;
   readonly errors: readonly string[];
+  readonly errorCode?: string | null;
 }
 
 /** Exact camel-cased shape emitted by AlFalah.Shared.Models.PagedResult<T>. */

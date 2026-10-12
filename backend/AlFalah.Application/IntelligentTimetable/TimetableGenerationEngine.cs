@@ -10,7 +10,14 @@ namespace AlFalah.Application.IntelligentTimetable;
 /// </summary>
 public sealed class TimetableGenerationEngine
 {
-    private const int SearchLimit = 2_000_000;
+    private const int DefaultSearchLimit = 2_000_000;
+    private readonly int _searchLimit;
+
+    public TimetableGenerationEngine(int searchLimit = DefaultSearchLimit)
+    {
+        if (searchLimit < 0) throw new ArgumentOutOfRangeException(nameof(searchLimit));
+        _searchLimit = searchLimit;
+    }
 
     public IReadOnlyList<TimetableEntryDto> Generate(TimetableValidationContext context, CancellationToken cancellationToken)
     {
@@ -58,9 +65,18 @@ public sealed class TimetableGenerationEngine
                 throw new ArgumentException($"لا يوجد موعد صالح لمادة {block.Requirement.Subject.Name} في الفصل {block.Requirement.Classroom.ClassLabel}.");
         }
 
-        var state = new SearchState(context, blocks);
+        var state = new SearchState(context, blocks, _searchLimit);
         if (!Search(state, cancellationToken))
-            throw new ArgumentException("تعذر إنشاء جدول يحقق جميع القيود الإلزامية. راجع التثبيتات، إتاحة المعلمين، الغرف وأنصبة المواد.");
+        {
+            if (state.SearchLimitReached)
+                throw new TimetableGenerationFailureException(
+                    TimetableGenerationFailureCode.SearchLimitReached,
+                    "انتهى حد البحث قبل الوصول إلى نتيجة قاطعة. خفّف القيود أو قسّم التوليد ثم أعد المحاولة.");
+
+            throw new TimetableGenerationFailureException(
+                TimetableGenerationFailureCode.Infeasible,
+                "لا يوجد جدول يحقق القيود الإلزامية الحالية. راجع التثبيتات وإتاحة المعلمين والغرف وأنصبة المواد.");
+        }
 
         return blocks.OrderBy(x => x.Requirement.ClassroomId).ThenBy(x => x.Requirement.Id).ThenBy(x => x.Id)
             .SelectMany(block => state.Placements[block.Id].Periods.SelectMany(period => block.TeacherIds.Select(teacherId =>
@@ -138,8 +154,7 @@ public sealed class TimetableGenerationEngine
         var allowedDays = block.Requirement.AllowedDays.Count == 0
             ? null : block.Requirement.AllowedDays.Select(x => x.Day).ToHashSet();
         var allFixed = block.Requirement.FixedSlots.Select(x => new Slot(x.Day, x.Period)).ToHashSet();
-        var rooms = block.Requirement.Rooms.Where(x => !x.IsPreferred).Select(x => (int?)x.RoomId).Order().ToArray();
-        if (rooms.Length == 0) rooms = block.Requirement.Rooms.OrderByDescending(x => x.IsPreferred).ThenBy(x => x.RoomId)
+        var rooms = block.Requirement.Rooms.OrderByDescending(x => x.IsPreferred).ThenBy(x => x.RoomId)
             .Select(x => (int?)x.RoomId).ToArray();
         if (rooms.Length == 0) rooms = [null];
 
@@ -166,7 +181,11 @@ public sealed class TimetableGenerationEngine
     private static bool Search(SearchState state, CancellationToken cancellationToken)
     {
         if (state.Placements.Count == state.Blocks.Count) return true;
-        if (++state.Visited > SearchLimit) return false;
+        if (++state.Visited > state.SearchLimit)
+        {
+            state.SearchLimitReached = true;
+            return false;
+        }
         if ((state.Visited & 1023) == 0) cancellationToken.ThrowIfCancellationRequested();
 
         Block? selected = null; List<Candidate>? candidates = null;
@@ -228,11 +247,18 @@ public sealed class TimetableGenerationEngine
         private readonly HashSet<(int Resource, int Day, int Period)> _teachers = [];
         private readonly HashSet<(int Resource, int Day, int Period)> _rooms = [];
         private readonly Dictionary<(int Requirement, int Day), int> _requirementDays = [];
-        public SearchState(TimetableValidationContext context, IReadOnlyList<Block> blocks) { Context = context; Blocks = blocks; }
+        public SearchState(TimetableValidationContext context, IReadOnlyList<Block> blocks, int searchLimit)
+        {
+            Context = context;
+            Blocks = blocks;
+            SearchLimit = searchLimit;
+        }
         public TimetableValidationContext Context { get; }
         public IReadOnlyList<Block> Blocks { get; }
+        public int SearchLimit { get; }
         public Dictionary<int, Candidate> Placements { get; } = [];
         public int Visited { get; set; }
+        public bool SearchLimitReached { get; set; }
 
         public bool CanPlace(Block block, Candidate candidate)
         {

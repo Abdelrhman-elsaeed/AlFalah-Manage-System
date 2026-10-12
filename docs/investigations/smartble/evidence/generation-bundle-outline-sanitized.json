@@ -1,0 +1,71 @@
+{
+  "source": "REA analyze_web_bundle; sanitized derivative",
+  "sourceEvidenceId": "ev_54c67295bfc287af0acaee633d1774660ea8c7090e7b5a7a5bb178a20f7bcd85",
+  "normalizedKeys": [
+    "capture",
+    "observations",
+    "inferences",
+    "unknowns",
+    "completeness",
+    "limitations"
+  ],
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
+    "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
+    "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool."
+  ],
+  "outline": {
+    "capture": {
+      "target_url": "str",
+      "scripts_observed": "int",
+      "scripts_analyzed": "int",
+      "source_artifacts": {
+        "count": 19,
+        "first": "dict"
+      }
+    },
+    "observations": {
+      "chunks": {
+        "nodes": "list",
+        "edges": "list"
+      },
+      "routes": {
+        "count": 0,
+        "first": null
+      },
+      "endpoints": {
+        "count": 6,
+        "first": "dict"
+      },
+      "webmcp_declarations": {
+        "count": 0,
+        "first": null
+      },
+      "source_maps": {
+        "status": "str",
+        "requested": "int",
+        "processed": "int",
+        "items": "list"
+      }
+    },
+    "inferences": {
+      "count": 0,
+      "first": null
+    },
+    "unknowns": {
+      "count": 0,
+      "first": null
+    },
+    "completeness": {
+      "status": "str",
+      "parsed_scripts": "int",
+      "parse_failures": "int",
+      "visited_ast_nodes": "int"
+    },
+    "limitations": {
+      "count": 3,
+      "first": "str"
+    }
+  }
+}

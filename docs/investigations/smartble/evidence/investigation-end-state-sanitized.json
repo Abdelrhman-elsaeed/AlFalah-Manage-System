@@ -1,0 +1,7 @@
+{
+  "purpose": "Leave investigation tab at reference preview; original dashboard preserved",
+  "blockedNonReadRequests": [],
+  "status": 200,
+  "finalPath": "/pro/pro_smart_table/table-preview/",
+  "originalDashboardPresent": true
+}

@@ -1,0 +1,57 @@
+{
+  "source": "Playwright delivered static code and non-saving teacher settings tab",
+  "pages": [
+    {
+      "requestedPath": "/pro/pro_dashboard/teachers/",
+      "finalPath": "/pro/pro_dashboard/teachers/",
+      "status": 200
+    }
+  ],
+  "blockedNonReadRequests": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    }
+  ],
+  "specialPlaceStatic": {
+    "originalSourceSha256": "f8cc300d542a11ffc4e0e28c43bad6f3f9ae69bbb56e7a0578b60adf1da59339",
+    "excerpts": [
+      {
+        "sourceLineStart": 21,
+        "sourceLineEnd": 35,
+        "text": "                        id=\"sp-item-${p.id}\"\n                        style=\"background:white; border:1.5px solid #eee; border-radius:9px; font-size:0.85rem; padding:8px 10px;\">\n                        <span id=\"sp-name-${p.id}\" style=\"font-weight:600; color:#2d3436; flex:1; min-width:0;\">\n                            <i class=\"fas fa-map-marker-alt mr-1\" style=\"color:#17a2b8; font-size:0.8rem;\"></i>${p.name}\n                        </span>\n\n                        <div style=\"display:flex; align-items:center; gap:5px; margin-inline-end:8px;\">\n                            <i class=\"fas fa-school\" style=\"color:#17a2b8; font-size:0.75rem;\"\n                            title=\"Classrooms allowed at the same time\"></i>\n                            <input type=\"number\" id=\"sp-max-${p.id}\" min=\"1\" step=\"1\"\n                                value=\"${p.max_classrooms || 1}\"\n                                onchange=\"spManager.saveMax(${p.id})\"\n                                title=\"Classrooms allowed at the same time\"\n                                style=\"width:62px; text-align:center; border:1.5px solid #17a2b8; border-radius:6px; padding:0.15rem 0.3rem; font-size:0.8rem; font-weight:700; color:#17a2b8; outline:none;\">\n                        </div>"
+      },
+      {
+        "sourceLineStart": 50,
+        "sourceLineEnd": 90,
+        "text": "            async add() {\n                const input = document.getElementById('new-sp-input');\n                const maxInput = document.getElementById('new-sp-max');\n                const name = input.value.trim();\n                if (!name) { input.focus(); return; }\n\n                const maxRooms = Math.max(1, parseInt(maxInput.value, 10) || 1);\n\n                const body = new FormData();\n[authentication reference omitted]\n                body.append('special-place-name', name);\n                body.append('max_classrooms', maxRooms);\n\n                const resp = await fetch(\"/pro/pro_dashboard/special-place/\", {\n                    method: 'POST',\n                    headers: {\n[authentication reference omitted]\n                        'X-Requested-With': 'XMLHttpRequest'\n                    },\n                    body: body\n                });\n\n                if (!resp.ok) { alert(\"لقد حدثت مشكلة\"); return; }\n\n                const data = await resp.json();\n                    if (data.status === 'created') {\n                        this.places.push({ id: data.id, name: data.name,\n                                        max_classrooms: data.max_classrooms || maxRooms });\n                        this.renderList();\n                        this.populateCourseSelects();\n                        this.renderBulkCoursesSection();\n                        input.value = '';\n                        maxInput.value = 1;\n                        input.focus();\n                    } else if (data.status === 'exists') {\n                        alert(\"لقد حدثت مشكلة\");\n                    }\n                },\n\n            startEdit(id) {\n                const place = this.places.find(p => p.id === id);"
+      }
+    ],
+    "meaning": "Client title explicitly says Classrooms allowed at the same time; form key max_classrooms."
+  },
+  "additionalTab": {
+    "count": 1,
+    "selector": "#additional-settings-tab",
+    "dom": {
+      "visible": true,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "name": "max_classes",
+          "id": "max-classes",
+          "min": null,
+          "max": null,
+          "required": false
+        }
+      ],
+      "labels": [
+        "الحد الأقصى الافتراضي لعدد الحصص لكل معلم"
+      ]
+    }
+  },
+  "limitations": [
+    "Special-place simultaneous capacity is client configuration evidence; server enforcement and save untested.",
+    "Teacher additional tab clicked without editing or saving fields. No input values/options/table records retained."
+  ]
+}

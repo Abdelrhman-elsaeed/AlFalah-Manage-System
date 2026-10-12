@@ -1,0 +1,19 @@
+{
+  "source": "Local documentation/evidence validation after selected read-only investigation",
+  "jsonFilesParsedBeforeThisRecord": 23,
+  "jsonErrors": [],
+  "localLinksChecked": 64,
+  "missingLinks": [],
+  "privacyEncodingPatternHits": [],
+  "limitations": [
+    "Pattern checks are bounded checks, not proof that arbitrary content contains no private data.",
+    "Production-source no-change verification is git diff --exit-code -- frontend backend, run separately.",
+    "No broad test-suite repetition; targeted production-engine room probe provided new coverage."
+  ],
+  "reportSha256": {
+    "authenticated-feature-inventory.md": "0ebebb496c10dd7ab66aa7f6ee71c0a030a1fd332fa33eab7e5c7a80eb3f70e6",
+    "deep-scheduling-investigation.md": "3d06058c9e01156e17f90bccfe07c9eb50313c0fa258d39bd7f2c931c9df2a88",
+    "environment-and-continuation.md": "581f6902501e5ae5b710a627c94c5eb322cb586ca141672dcf7560a96907cbfd",
+    "README.md": "80108769a15aded78fed5c3fb5a511889d842fab8822609746eda6b66da8c8e9"
+  }
+}

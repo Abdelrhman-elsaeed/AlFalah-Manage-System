@@ -1,0 +1,254 @@
+{
+  "source": "Normal authenticated GET navigation to client-declared generation pages; sanitized DOM only",
+  "pages": [
+    {
+      "requestedPath": "/pro/pro_dashboard/auto-gen-table-setup/",
+      "finalPath": "/pro/pro_smart_table/table-preview/",
+      "status": 200,
+      "dom": {
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "file",
+            "name": "",
+            "id": "importTableExcelFileHidden",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-select",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "name",
+            "id": "tableName",
+            "min": null,
+            "max": null,
+            "required": true
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "table-copy-id",
+            "id": "tableSelect",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-active",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "radio",
+            "name": "importMode",
+            "id": "importModeExisting",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "radio",
+            "name": "importMode",
+            "id": "importModeNew",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "",
+            "id": "importTableName",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "",
+            "id": "importTableCopyId",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "file",
+            "name": "",
+            "id": "importExcelFileModal",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "",
+            "id": "tbp-cell-search",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "radio",
+            "name": "tbp-density",
+            "id": "",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "name": "",
+            "id": "tbp-color-coding",
+            "min": null,
+            "max": null,
+            "required": false
+          }
+        ],
+        "labels": [
+          "استيراد من ملف الجدول الذكي",
+          "قائمة الجداول:",
+          "اسم الجدول *",
+          "نسخ من جدول آخر",
+          "قائمة الجداول:",
+          "استيراد إلى:",
+          "الجدول الحالي (الجدول الأساسي)",
+          "إنشاء جدول جديد والاستيراد إليه",
+          "اسم الجدول *",
+          "نسخ من جدول آخر",
+          "ملف Excel *",
+          "مضغوط",
+          "عادي",
+          "واسع",
+          "ألوان المواد",
+          "قائمة الجداول:"
+        ],
+        "tableHeaders": [
+          "الفصل/الفصل",
+          "[numeric header omitted]"
+        ],
+        "forms": [
+          {
+            "method": "post",
+            "path": "/pro/pro_smart_table/table-preview/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_smart_table/add_new_table/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_smart_table/set_active_table/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_smart_table/table-preview/"
+          },
+          {
+            "method": "post",
+            "path": "/pro/pro_smart_table/table-preview/"
+          }
+        ],
+        "bodyTerms": [
+          "استبعاد",
+          "مزدوج",
+          "متتالي",
+          "وقت",
+          "تحذير",
+          "قيود",
+          "توليد",
+          "جاهز",
+          "تحقق"
+        ]
+      }
+    },
+    {
+      "requestedPath": "/pro/pro_dashboard/auto-gen-preflight/",
+      "finalPath": "/pro/pro_dashboard/auto-gen-preflight/",
+      "status": 200,
+      "dom": {
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "submit",
+            "name": "",
+            "id": "",
+            "min": null,
+            "max": null,
+            "required": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "name": "",
+            "id": "pf-ack",
+            "min": null,
+            "max": null,
+            "required": false
+          }
+        ],
+        "labels": [
+          "قرأت ما سبق وأوافق عليه"
+        ],
+        "tableHeaders": [],
+        "forms": [],
+        "bodyTerms": [
+          "وقت",
+          "توليد"
+        ]
+      }
+    }
+  ],
+  "blockedNonReadRequests": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    },
+    {
+      "method": "POST",
+      "path": "/visitor/v2/smartble/livevisitors/[opaque-id]/triggers"
+    }
+  ],
+  "limitations": [
+    "Routes are declared in authenticated client code, not guessed. No API manually invoked.",
+    "No generation/save/acknowledgment performed. DOM presence alone is not rule execution proof."
+  ]
+}

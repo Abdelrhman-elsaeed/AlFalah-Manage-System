@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-12",
+  "timezone": "Africa/Cairo",
+  "baselineCommit": "1c5d79939e6bda27edccf0ea6c5769b378769fb3",
+  "sourceEvidence": [
+    {
+      "path": "frontend/package.json",
+      "sha256": "77a62e4cfeccd8f89667b07926dd4dcd3e947d306a324f6ea666f5b885678a3d"
+    },
+    {
+      "path": "frontend/src/app/app.routes.ts",
+      "sha256": "19399b1c1f061a16f528c147da059d9ac1aff0cc08844aa8583a3b612c294a46"
+    },
+    {
+      "path": "frontend/src/app/features/timetables/school-timetable.component.ts",
+      "sha256": "acec3fe3f78b4fc4c5929f7d0b075e93928f83c568676dbcb85cf920e5d2d605"
+    },
+    {
+      "path": "frontend/src/app/core/services/timetable.service.ts",
+      "sha256": "69616dfdee33e863758fc5b3bcec50f1dd61a46d07c156c4305b03cb93fe2b01"
+    },
+    {
+      "path": "frontend/src/app/features/intelligent-timetable/module-placeholder/timetable-module-placeholder.component.ts",
+      "sha256": "36af3bb195d978b734834d20372dde59bc42e5473758374f3ab202334581cfa5"
+    },
+    {
+      "path": "backend/AlFalah.Api/Controllers/SchoolTimetablesController.cs",
+      "sha256": "f50c28fd4413914c412f253730f768846fc1d283e727543586ea8680c85d124c"
+    },
+    {
+      "path": "backend/AlFalah.Infrastructure/Services/SchoolTimetableService.cs",
+      "sha256": "a71ce75899e0c07881d9cc564ae0421561443c3d542a8bb8f3e41469d08cc464"
+    },
+    {
+      "path": "backend/AlFalah.Infrastructure/Services/SchoolTimetableDocumentService.cs",
+      "sha256": "2e743ce0f1f9e74058ce5f88451ba920a872670f11636403ad8869fcb7a85d05"
+    },
+    {
+      "path": "backend/AlFalah.Application/IntelligentTimetable/TimetableGenerationEngine.cs",
+      "sha256": "41fb57268d4b29f4fb944fc7e93ba2d9bc2ae668cd1ab2d8e05621cfb0ef865d"
+    },
+    {
+      "path": "backend/AlFalah.Application/IntelligentTimetable/TimetableValidationEngine.cs",
+      "sha256": "7e72b4ca9cc040620a40d81458fc3dee58505e2ad5b08268201f8593599d2a39"
+    },
+    {
+      "path": "backend/AlFalah.Application/IntelligentTimetable/TimetableReviewService.cs",
+      "sha256": "174ced2d1bf447cbb7ad8fc54bb178d081a2896cc80959ac9dd1f60cc98ff1ad"
+    },
+    {
+      "path": "backend/AlFalah.Application/IntelligentTimetable/TimetableSubstitutionService.cs",
+      "sha256": "dc1e976713193afd10495133cc01d09e868910aa409c9c90651105c23efac4a5"
+    },
+    {
+      "path": "backend/AlFalah.Application/IntelligentTimetable/SubjectAssignmentService.cs",
+      "sha256": "2939b1a4607aa29a3885d7c3d9db61164c331fcdbdd38064fb00d533b7c776fd"
+    },
+    {
+      "path": "backend/AlFalah.Domain/Entities/TeacherTimetableProfile.cs",
+      "sha256": "fe9f95f8d5642b5800198c9a77f1136e33c912d22cc007bf52c733d0c1e2c773"
+    },
+    {
+      "path": "backend/AlFalah.Tests/Timetables/TimetableGenerationTests.cs",
+      "sha256": "3a60603f42a4f0107b1c140e063b072d8ec19aeba3a894d155e1b8fb96156360"
+    }
+  ],
+  "validation": {
+    "command": "dotnet test backend/AlFalah.Tests/AlFalah.Tests.csproj --no-restore --filter FullyQualifiedName~AlFalah.Tests.Timetables --verbosity quiet",
+    "result": {
+      "passed": 190,
+      "failed": 0,
+      "skipped": 0,
+      "total": 190,
+      "reportedTestDurationSeconds": 18
+    },
+    "scope": "Selected backend timetable test namespace; not UI E2E or Smartble equivalence"
+  },
+  "applicationSourceChanged": false,
+  "smartbleAuthenticatedEvidenceCollected": false
+}

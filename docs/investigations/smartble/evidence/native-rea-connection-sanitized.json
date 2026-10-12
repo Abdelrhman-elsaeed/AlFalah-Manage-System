@@ -1,0 +1,35 @@
+{
+  "source": "Native Codex REA tools available and callable",
+  "toolCount": 170,
+  "binarySessionResultKeys": [
+    "open",
+    "capabilities",
+    "analysis_provider_binding",
+    "analysis_provider_candidates",
+    "analysis_run",
+    "analysis_activity",
+    "provider_operation_health",
+    "tool_availability",
+    "client_features",
+    "server_identity"
+  ],
+  "browserSourceEvidenceId": "ev_dadb304ba838309467eaa6fe0216cf9f84e7fffe39ba3125ee0af07569a7c33c",
+  "browser": {
+    "product": "Chrome/154.0.8037.98"
+  },
+  "targets": [
+    {
+      "targetId": "B61ACA7EE943AD2BEF710835D02AE93D",
+      "path": "/pro/pro_dashboard/"
+    },
+    {
+      "targetId": "F391DE35B0E02DB7782FB948D8540610",
+      "path": "/pro/pro_dashboard/courses/"
+    }
+  ],
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Only page targets whose current URL matches an explicitly requested exact origin are listed.",
+    "Browser host platform and architecture were not observed."
+  ]
+}

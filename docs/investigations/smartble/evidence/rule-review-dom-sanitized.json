@@ -1,0 +1,491 @@
+{
+  "source": "Playwright read-only GET navigation and static DOM projection",
+  "pages": [
+    {
+      "requestedPath": "/pro/pro_dashboard/table-analysis/",
+      "finalPath": "/pro/pro_dashboard/table-analysis/",
+      "status": 200,
+      "dom": {
+        "headers": [
+          "يوم / الفصل",
+          "[period timing]"
+        ],
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-multiple",
+            "name": "",
+            "id": "filterPrimary",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-multiple",
+            "name": "",
+            "id": "filterSubject",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-multiple",
+            "name": "",
+            "id": "filterStatus",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "labels": [
+          "الفصول",
+          "المادة",
+          "الحالة"
+        ],
+        "staticTextTerms": [
+          "نقص",
+          "الانتظار",
+          "إسناد"
+        ],
+        "namedDialogs": [
+          {
+            "id": "subscriptionModal",
+            "fields": []
+          },
+          {
+            "id": "updateModal",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "requestedPath": "/pro/pro_dashboard/courses/",
+      "finalPath": "/pro/pro_dashboard/courses/",
+      "status": 200,
+      "dom": {
+        "headers": [
+          "المادة",
+          "المعلم",
+          "الحصص الفردية [group]",
+          "الحصص الزوجية [group]",
+          "عدد الحصص الأسبوعي",
+          "حصة مبكرة",
+          "مكان خاص",
+          "تخصيص"
+        ],
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "",
+            "id": "crs-classroom-search",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "target-classroom",
+            "id": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "name": "odd_classes",
+            "id": "id_odd_classes",
+            "min": "0",
+            "max": null,
+            "step": "1",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "name": "even_classes",
+            "id": "id_even_classes",
+            "min": "0",
+            "max": null,
+            "step": "1",
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "name": "early_class",
+            "id": "id_early_class",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "table_id",
+            "id": "table-select",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "",
+            "id": "new-sp-input",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "name": "",
+            "id": "new-sp-max",
+            "min": "1",
+            "max": null,
+            "step": "1",
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "labels": [
+          "قائمة الجداول:",
+          "إضافة مكان خاص جديد"
+        ],
+        "staticTextTerms": [
+          "متتالية",
+          "الانتظار",
+          "أول",
+          "آخر",
+          "فردية",
+          "مبكر",
+          "نصاب"
+        ],
+        "namedDialogs": [
+          {
+            "id": "subscriptionModal",
+            "fields": []
+          },
+          {
+            "id": "updateModal",
+            "fields": []
+          },
+          {
+            "id": "bulkReconcileModal",
+            "fields": []
+          },
+          {
+            "id": "bulkAlertModal",
+            "fields": []
+          },
+          {
+            "id": "changeTableModal",
+            "fields": [
+              {
+                "name": "table_id",
+                "type": "select-one",
+                "min": null,
+                "max": null
+              }
+            ]
+          },
+          {
+            "id": "spModal",
+            "fields": [
+              {
+                "name": "",
+                "type": "text",
+                "min": null,
+                "max": null
+              },
+              {
+                "name": "",
+                "type": "number",
+                "min": "1",
+                "max": null
+              }
+            ]
+          },
+          {
+            "id": "spDeleteModal",
+            "fields": []
+          },
+          {
+            "id": "confirmModal",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
+      "requestedPath": "/pro/pro_dashboard/teachers/",
+      "finalPath": "/pro/pro_dashboard/teachers/",
+      "status": 200,
+      "dom": {
+        "headers": [],
+        "fields": [
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "language",
+            "id": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "name",
+            "id": "id_name",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": true,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "phone_number",
+            "id": "id_phone_number",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "group",
+            "id": "id_group",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "file",
+            "name": "",
+            "id": "docpicker",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "",
+            "id": "csv-name",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "",
+            "id": "csv-phone",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "number",
+            "name": "max_classes",
+            "id": "max-classes",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "",
+            "id": "teacher-search-input",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "",
+            "id": "per-page-select",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "SELECT",
+            "type": "select-one",
+            "name": "",
+            "id": "sort-dropdown",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "checkbox",
+            "name": "",
+            "id": "select-all-checkbox",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "name",
+            "id": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "phone_number",
+            "id": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          },
+          {
+            "tag": "INPUT",
+            "type": "text",
+            "name": "group",
+            "id": "",
+            "min": null,
+            "max": null,
+            "step": null,
+            "required": false,
+            "disabled": false
+          }
+        ],
+        "labels": [
+          "الاسم*",
+          "الهاتف",
+          "المجموعة",
+          "الحد الأقصى الافتراضي لعدد الحصص لكل معلم",
+          "إظهار:",
+          "ترتيب حسب:",
+          "تحديد الكل (هذه الصفحة)"
+        ],
+        "staticTextTerms": [
+          "الانتظار",
+          "أول",
+          "آخر",
+          "إسناد",
+          "حفظ"
+        ],
+        "namedDialogs": [
+          {
+            "id": "subscriptionModal",
+            "fields": []
+          },
+          {
+            "id": "confirmSaveModal",
+            "fields": []
+          },
+          {
+            "id": "updateModal",
+            "fields": []
+          },
+          {
+            "id": "teacherMobileControlModal",
+            "fields": []
+          },
+          {
+            "id": "confirmModal",
+            "fields": []
+          }
+        ]
+      }
+    }
+  ],
+  "blockedNonReadRequests": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    },
+    {
+      "method": "POST",
+      "path": "/visitor/v2/smartble/livevisitors/[opaque-id]/triggers"
+    }
+  ],
+  "privacy": "No input values, options, table body records, or account details retained."
+}

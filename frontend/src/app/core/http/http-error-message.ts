@@ -61,6 +61,13 @@ export function extractHttpErrorMessage(error: unknown): string | null {
   return messageFrom((error as HttpErrorResponse).error);
 }
 
+/** Returns a machine-readable server error code when the response provides one. */
+export function extractHttpErrorCode(error: unknown): string | null {
+  if (!error || typeof error !== 'object') return null;
+  const cached = (error as Record<string, unknown>)[PARSED_BODY];
+  return errorCodeFrom(cached) ?? errorCodeFrom((error as HttpErrorResponse).error);
+}
+
 /** True when the body still needs an async read before it can be inspected. */
 export function isUnreadBlobError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -115,4 +122,10 @@ function messageFrom(body: unknown): string | null {
     return record['title'].trim();
   }
   return null;
+}
+
+function errorCodeFrom(body: unknown): string | null {
+  if (!body || typeof body !== 'object') return null;
+  const code = (body as Record<string, unknown>)['errorCode'];
+  return typeof code === 'string' && code.trim() ? code.trim() : null;
 }

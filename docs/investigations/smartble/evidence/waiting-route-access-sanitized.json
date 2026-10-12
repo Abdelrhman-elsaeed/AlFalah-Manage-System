@@ -1,0 +1,24 @@
+{
+  "source": "Playwright authorized GET navigation and visible message projection",
+  "requestedPath": "/pro/pro_waiting_classes/",
+  "responseChain": [
+    {
+      "path": "/pro/pro_waiting_classes/",
+      "status": 302
+    },
+    {
+      "path": "/pro/pro_dashboard/",
+      "status": 200
+    }
+  ],
+  "finalPath": "/pro/pro_dashboard/",
+  "visibleSubscriptionMessages": [
+    "أنت الآن على الخطة التجريبية [expiry details omitted] اضغط هنا لترقية اشتراكك"
+  ],
+  "accessFlags": {
+    "restrictedMessage": false,
+    "noActive": true,
+    "freeVersion": false
+  },
+  "inference": "Subscription-related redirect is a hypothesis unless the visible message attributes the blocked feature to subscription."
+}

@@ -1,0 +1,141 @@
+{
+  "sanitizedDerivative": true,
+  "sourceEvidenceId": "ev_3f701cca07a00a5205d7138d44c68bba3081ab9c41093d3bd20f7d53e227d4a5",
+  "sourceTool": "inspect_web_page",
+  "normalizedResult": {
+    "browser": {
+      "product": "Chrome/154.0.8037.98",
+      "protocol_version": "1.3",
+      "revision": "537.36 (@b859317bf11f6be47f9b7799ec690a0a42a1fb33)",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "js_version": "15.4.80.20"
+    },
+    "target": {
+      "target_id": "B61ACA7EE943AD2BEF710835D02AE93D",
+      "type": "page",
+      "title": "[redacted]",
+      "url": "https://www.smartble.net/pro/pro_dashboard/",
+      "origin": "https://www.smartble.net",
+      "attached": false
+    },
+    "capture_window": {
+      "started_at": "2026-10-12T06:17:57.356Z",
+      "ended_at": "2026-10-12T06:17:58.485Z",
+      "observation_ms": 800
+    },
+    "completeness": {
+      "status": "policy_filtered",
+      "conditions": [
+        "attach_limited",
+        "policy_filtered"
+      ],
+      "policy_filtered_sections": [
+        "accessibility",
+        "console_text",
+        "json_body_shapes",
+        "metadata",
+        "resources",
+        "script_sources",
+        "scripts",
+        "storage_keys",
+        "websocket_shapes"
+      ],
+      "attach_limited_sections": [
+        "console_events",
+        "metadata",
+        "network_requests",
+        "websocket_connections",
+        "websocket_frames"
+      ],
+      "truncated_sections": [],
+      "unavailable_sections": [],
+      "excluded": [
+        {
+          "section": "accessibility",
+          "reason": "not_approved",
+          "count": 600
+        },
+        {
+          "section": "console_text",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "json_body_shapes",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "metadata",
+          "reason": "disallowed_origin",
+          "count": 27
+        },
+        {
+          "section": "resources",
+          "reason": "disallowed_origin",
+          "count": 14
+        },
+        {
+          "section": "resources",
+          "reason": "unsupported_url",
+          "count": 1
+        },
+        {
+          "section": "script_sources",
+          "reason": "not_approved",
+          "count": 15
+        },
+        {
+          "section": "scripts",
+          "reason": "disallowed_origin",
+          "count": 6
+        },
+        {
+          "section": "scripts",
+          "reason": "unattributed_origin",
+          "count": 4
+        },
+        {
+          "section": "storage_keys",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "websocket_shapes",
+          "reason": "not_approved",
+          "count": null
+        }
+      ],
+      "dropped_events": {
+        "scripts": 0,
+        "network_requests": 0,
+        "console_events": 0,
+        "websocket_connections": 0,
+        "websocket_frames": 0,
+        "webmcp_tools": 0,
+        "timeline_events": 0,
+        "total": 0
+      }
+    },
+    "limitations": [
+      "Observation starts when REA attaches; prior network and console activity is unavailable.",
+      "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+      "Source maps are reported only as declarative URLs and are not fetched.",
+      "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven."
+    ]
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Observation starts when REA attaches; prior network and console activity is unavailable.",
+    "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+    "Source maps are reported only as declarative URLs and are not fetched.",
+    "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+    "Browser host platform and architecture were not observed."
+  ],
+  "captureSummary": {
+    "domNodeCount": 1583,
+    "scriptCount": 15,
+    "networkRequestCount": 0,
+    "priorActivityAvailable": false
+  }
+}

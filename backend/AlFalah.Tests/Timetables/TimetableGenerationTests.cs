@@ -47,7 +47,8 @@ public sealed class TimetableGenerationTests
 
         var action = () => _engine.Generate(expanded, default);
 
-        action.Should().Throw<ArgumentException>().WithMessage("*تعذر إنشاء جدول*");
+        action.Should().Throw<TimetableGenerationFailureException>()
+            .Which.Code.Should().Be(TimetableGenerationFailureCode.Infeasible);
     }
 
     [Fact]
@@ -166,7 +167,65 @@ public sealed class TimetableGenerationTests
 
         var action = () => _engine.Generate(expanded, default);
 
-        action.Should().Throw<ArgumentException>().WithMessage("*تعذر إنشاء جدول*");
+        action.Should().Throw<TimetableGenerationFailureException>()
+            .Which.Code.Should().Be(TimetableGenerationFailureCode.Infeasible);
+    }
+
+    [Fact]
+    public void Generator_prefers_the_configured_room_but_keeps_alternatives_available()
+    {
+        var context = TimetableReviewPhase7Tests.Context();
+        context.Requirements[0].FixedSlots.Add(new() { Day = 3, Period = 4 });
+        context.Requirements[0].Rooms =
+        [
+            RoomRequirement(1, 1, preferred: true),
+            RoomRequirement(1, 2)
+        ];
+        var expanded = AddRequirement(context, id: 2, classroomIndex: 1, teacherProfileId: 2,
+            fixedDay: 3, fixedPeriod: 4);
+        expanded.Requirements[1].Rooms =
+        [
+            RoomRequirement(2, 1, preferred: true),
+            RoomRequirement(2, 2)
+        ];
+        expanded = expanded with
+        {
+            Rooms =
+            [
+                new() { Id = 1, SchoolId = 1, Name = "Preferred" },
+                new() { Id = 2, SchoolId = 1, Name = "Alternative" }
+            ]
+        };
+
+        var generated = _engine.Generate(expanded, default);
+
+        generated.Should().HaveCount(2).And.OnlyContain(x => x.Day == TimetableDay.Monday && x.Period == 4);
+        generated.Select(x => x.RoomId).Should().BeEquivalentTo([1, 2]);
+    }
+
+    [Fact]
+    public void Generator_reports_search_limit_separately_from_infeasibility()
+    {
+        var limited = new TimetableGenerationEngine(searchLimit: 0);
+
+        var action = () => limited.Generate(TimetableReviewPhase7Tests.Context(), default);
+
+        var failure = action.Should().Throw<TimetableGenerationFailureException>().Which;
+        failure.Code.Should().Be(TimetableGenerationFailureCode.SearchLimitReached);
+    }
+
+    [Fact]
+    public void Generator_reports_exhausted_constraints_as_infeasible()
+    {
+        var context = TimetableReviewPhase7Tests.Context();
+        context.Requirements[0].FixedSlots.Add(new() { Day = 3, Period = 4 });
+        var second = AddRequirement(context, id: 2, classroomIndex: 1, teacherProfileId: 1,
+            fixedDay: 3, fixedPeriod: 4);
+
+        var action = () => _engine.Generate(second, default);
+
+        var failure = action.Should().Throw<TimetableGenerationFailureException>().Which;
+        failure.Code.Should().Be(TimetableGenerationFailureCode.Infeasible);
     }
 
     [Fact]
@@ -317,9 +376,10 @@ public sealed class TimetableGenerationTests
         };
     }
 
-    private static SubjectRoomRequirement RoomRequirement(int id, int roomId) => new()
+    private static SubjectRoomRequirement RoomRequirement(int id, int roomId, bool preferred = false) => new()
     {
         Id = id, SchoolId = 1, ClassSubjectRequirementId = id, RoomId = roomId,
+        IsPreferred = preferred,
         Room = new() { Id = roomId, SchoolId = 1, Name = "Lab" }
     };
 }

@@ -1,0 +1,144 @@
+{
+  "source": "Playwright visible-menu action + REA passive capture; sanitized derivative",
+  "action": "Open generation confirmation dialog and cancel; no confirmation",
+  "requests": [
+    {
+      "path": "/pro/pro_dashboard/api/auto-gen-preflight/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/pro/pro_dashboard/auto-gen-table-setup/",
+      "method": "GET",
+      "status": 200
+    }
+  ],
+  "blockedNonReadRequests": [
+    {
+      "method": "POST",
+      "path": "/tr/"
+    }
+  ],
+  "earlierAttempts": [
+    "Hidden menu item timed out; menu opened through its visible toggle before this capture."
+  ],
+  "modal": {
+    "visible": true,
+    "confirmVisible": true,
+    "confirmDisabled": false,
+    "reviewLink": "#",
+    "reviewVisible": false,
+    "messageLevels": [
+      [
+        "alert-info"
+      ]
+    ]
+  },
+  "rea": {
+    "sourceEvidenceId": "ev_3bf5c1f97646a6951e09b58d5333208241255ba7b9ffb2973e7207ed18c9f6c1",
+    "captureWindow": {
+      "started_at": "2026-10-12T06:46:13.712Z",
+      "ended_at": "2026-10-12T06:46:17.966Z",
+      "observation_ms": 4000
+    },
+    "completeness": {
+      "status": "policy_filtered",
+      "conditions": [
+        "attach_limited",
+        "policy_filtered"
+      ],
+      "policy_filtered_sections": [
+        "accessibility",
+        "console_text",
+        "metadata",
+        "network_requests",
+        "resources",
+        "script_sources",
+        "scripts",
+        "storage_keys",
+        "websocket_shapes"
+      ],
+      "attach_limited_sections": [
+        "console_events",
+        "metadata",
+        "network_requests",
+        "websocket_connections",
+        "websocket_frames"
+      ],
+      "truncated_sections": [],
+      "unavailable_sections": [],
+      "excluded": [
+        {
+          "section": "accessibility",
+          "reason": "not_approved",
+          "count": 820
+        },
+        {
+          "section": "console_text",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "metadata",
+          "reason": "disallowed_origin",
+          "count": 24
+        },
+        {
+          "section": "network_requests",
+          "reason": "disallowed_origin",
+          "count": 1
+        },
+        {
+          "section": "resources",
+          "reason": "disallowed_origin",
+          "count": 11
+        },
+        {
+          "section": "script_sources",
+          "reason": "not_approved",
+          "count": 19
+        },
+        {
+          "section": "scripts",
+          "reason": "disallowed_origin",
+          "count": 5
+        },
+        {
+          "section": "scripts",
+          "reason": "unattributed_origin",
+          "count": 48
+        },
+        {
+          "section": "storage_keys",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "websocket_shapes",
+          "reason": "not_approved",
+          "count": null
+        }
+      ],
+      "dropped_events": {
+        "scripts": 0,
+        "network_requests": 0,
+        "console_events": 0,
+        "websocket_connections": 0,
+        "websocket_frames": 0,
+        "webmcp_tools": 0,
+        "timeline_events": 0,
+        "total": 0
+      }
+    },
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "Observation starts when REA attaches; prior network and console activity is unavailable.",
+      "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+      "Source maps are reported only as declarative URLs and are not fetched.",
+      "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+      "Browser host platform and architecture were not observed."
+    ],
+    "requests": []
+  },
+  "reaNetworkRecordKeys": []
+}

@@ -11,7 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
-import { extractHttpErrorMessage, readHttpErrorBody } from '../../core/http/http-error-message';
+import { extractHttpErrorCode, extractHttpErrorMessage, readHttpErrorBody } from '../../core/http/http-error-message';
 import {
   SchoolTimetable,
   TimetableCatalog,
@@ -447,7 +447,14 @@ export class SchoolTimetableComponent implements OnInit {
       },
       error: error => {
         this.regenerating.set(false);
-        this.toast.error('تعذرت إعادة توليد الجدول', extractHttpErrorMessage(error) ?? 'راجع قيود المواد وإتاحة المعلمين والغرف.');
+        const detail = extractHttpErrorMessage(error) ?? 'راجع قيود المواد وإتاحة المعلمين والغرف.';
+        const code = extractHttpErrorCode(error);
+        const title = code === 'SearchLimitReached'
+          ? 'انتهى وقت البحث عن جدول'
+          : code === 'Infeasible'
+            ? 'لا يوجد جدول صالح بهذه القيود'
+            : 'تعذرت إعادة توليد الجدول';
+        this.toast.error(title, detail);
       }
     });
   }

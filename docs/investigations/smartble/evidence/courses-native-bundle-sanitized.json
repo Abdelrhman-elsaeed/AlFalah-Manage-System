@@ -1,0 +1,38 @@
+{
+  "source": "Native Codex REA analyze_web_bundle; sanitized derivative",
+  "sourceEvidenceId": "ev_c7d970ae86af3c8c2f16cab8809ae4451993970ecc47c8fe24055914383f8ffb",
+  "completeness": {
+    "status": "complete",
+    "parsed_scripts": 17,
+    "parse_failures": 0,
+    "visited_ast_nodes": 64233
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
+    "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
+    "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool."
+  ],
+  "capture": {
+    "scripts_observed": 17,
+    "scripts_analyzed": 17
+  },
+  "endpoints": [
+    {
+      "mechanism": "call:fetch",
+      "value": "/pro/pro_dashboard/special-place/"
+    },
+    {
+      "mechanism": "call:fetch",
+      "value": "/pro/pro_dashboard/special-place-bulk-update/"
+    },
+    {
+      "mechanism": "call:fetch",
+      "value": "/pro/pro_dashboard/courses/bulk-update/"
+    },
+    {
+      "mechanism": "call:fetch",
+      "value": "/pro/pro_dashboard/check-subscription/"
+    }
+  ]
+}

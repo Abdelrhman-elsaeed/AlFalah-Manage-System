@@ -1,0 +1,67 @@
+{
+  "source": "Playwright read-only navigation to links visible on authenticated Dashboard",
+  "pages": [
+    {
+      "requestedPath": "/pro/pro_waiting_classes/add-waiting-classes/",
+      "responseChain": [
+        {
+          "path": "/pro/pro_waiting_classes/add-waiting-classes/",
+          "status": 302
+        },
+        {
+          "path": "/pro/pro_dashboard/",
+          "status": 200
+        }
+      ],
+      "finalPath": "/pro/pro_dashboard/",
+      "ui": {
+        "fields": [
+          {
+            "name": "",
+            "type": "submit",
+            "label": "",
+            "disabled": false
+          }
+        ],
+        "actions": [
+          "الجدول الذكي",
+          "Go",
+          "مسح البيانات التجريبية"
+        ],
+        "headers": [],
+        "subscriptionGate": false
+      }
+    },
+    {
+      "requestedPath": "/pro/pro_waiting_classes/teacher-waiting-classes/",
+      "responseChain": [
+        {
+          "path": "/pro/pro_waiting_classes/teacher-waiting-classes/",
+          "status": 302
+        },
+        {
+          "path": "/pro/pro_dashboard/",
+          "status": 200
+        }
+      ],
+      "finalPath": "/pro/pro_dashboard/",
+      "ui": {
+        "fields": [
+          {
+            "name": "",
+            "type": "submit",
+            "label": "",
+            "disabled": false
+          }
+        ],
+        "actions": [
+          "الجدول الذكي",
+          "Go",
+          "مسح البيانات التجريبية"
+        ],
+        "headers": [],
+        "subscriptionGate": false
+      }
+    }
+  ]
+}

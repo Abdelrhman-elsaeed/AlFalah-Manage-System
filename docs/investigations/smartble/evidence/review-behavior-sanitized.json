@@ -1,0 +1,116 @@
+{
+  "source": "Playwright read-only review UI and delivered JavaScript; sanitized derivative",
+  "pagePath": "/pro/pro_dashboard/table-analysis/",
+  "status": 200,
+  "controls": {
+    "tabs": [],
+    "statusOptions": [
+      {
+        "value": "off",
+        "text": "يحتوي على حصص مغلقة"
+      },
+      {
+        "value": "wrong",
+        "text": "نقص في الإسنادات أو تداخل في الحصص"
+      },
+      {
+        "value": "clean",
+        "text": "مكتملة"
+      }
+    ],
+    "capabilities": [
+      {
+        "term": "نقص",
+        "present": true
+      },
+      {
+        "term": "زيادة",
+        "present": false
+      },
+      {
+        "term": "تعارض",
+        "present": false
+      },
+      {
+        "term": "أخطاء",
+        "present": true
+      },
+      {
+        "term": "ملاحظات",
+        "present": false
+      },
+      {
+        "term": "سليم",
+        "present": false
+      },
+      {
+        "term": "تحليل",
+        "present": false
+      },
+      {
+        "term": "الحصص المبكرة",
+        "present": false
+      },
+      {
+        "term": "الفجوات",
+        "present": false
+      },
+      {
+        "term": "المتتالية",
+        "present": false
+      },
+      {
+        "term": "انتظار",
+        "present": true
+      }
+    ]
+  },
+  "scripts": [
+    {
+      "ordinal": 8,
+      "originalSourceSha256": "2ef077e086d680007944099385e48b4e2a2c7d331c5237183e3cb92a87e6255b",
+      "selectedStaticLines": [
+        {
+          "line": 163,
+          "text": "const $p=$('#filterPrimary'),$s=$('#filterSubject'),$st=$('#filterStatus');"
+        }
+      ]
+    }
+  ],
+  "rea": {
+    "sourceEvidenceId": "ev_cd67a7997b21c1e4b19bbf2f22ce67d1e1be15a108cec983879dc9acfc6d626f",
+    "completeness": {
+      "status": "complete",
+      "parsed_scripts": 14,
+      "parse_failures": 0,
+      "visited_ast_nodes": 59331
+    },
+    "limitations": [
+      "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
+      "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
+      "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool."
+    ],
+    "capture": {
+      "scripts_observed": 14,
+      "scripts_analyzed": 14
+    },
+    "endpointRecordKeys": [
+      [
+        "value",
+        "mechanism",
+        "location"
+      ]
+    ],
+    "declaredEndpointPaths": [
+      {
+        "field": "value",
+        "path": "/pro/pro_dashboard/check-subscription/"
+      }
+    ]
+  },
+  "limitations": [
+    "No review fixes or saves executed.",
+    "Rendered status labels and static JS cannot establish server scheduling checks.",
+    "No table rows, entity names, field values or timetable times retained."
+  ]
+}

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AlFalah.Application.Common;
 using AlFalah.Application.Common.Exceptions;
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -69,6 +70,9 @@ public class GlobalExceptionMiddleware
             error: message,
             message: message
         );
+
+        if (exception is TimetableGenerationFailureException generationFailure)
+            response.ErrorCode = generationFailure.Code.ToString();
 
         var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
         {

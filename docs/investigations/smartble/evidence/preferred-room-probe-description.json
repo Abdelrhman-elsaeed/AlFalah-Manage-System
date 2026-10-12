@@ -1,0 +1,14 @@
+{
+  "temporaryProject": "C:\\Users\\ABDELR~1\\AppData\\Local\\Temp\\SmartbleRoomProbe_exwgpwey\\Probe.csproj",
+  "dllRoot": "D:\\AlFalah-Manage-System\\backend\\AlFalah.Tests\\bin\\Debug\\net8.0",
+  "source": "using System.Reflection;\nusing System.Runtime.Loader;\nusing System.Text.Json;\nusing AlFalah.Application.IntelligentTimetable;\nusing AlFalah.Domain.Entities;\nvar dllRoot = args[0];\nAssemblyLoadContext.Default.Resolving += (_, name) => {\n    var path = Path.Combine(dllRoot, name.Name + \".dll\");\n    return File.Exists(path) ? AssemblyLoadContext.Default.LoadFromAssemblyPath(path) : null;\n};\nvar tests = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(dllRoot, \"AlFalah.Tests.dll\"));\nvar fixture = tests.GetType(\"AlFalah.Tests.Timetables.TimetableReviewPhase7Tests\", true)!;\nvar method = fixture.GetMethod(\"Context\", BindingFlags.Static | BindingFlags.NonPublic)!;\nvar c = (TimetableValidationContext)method.Invoke(null, null)!;\nvar r = c.Requirements.Single();\nr.Rooms.Add(new SubjectRoomRequirement {RoomId=1, IsPreferred=true});\nr.Rooms.Add(new SubjectRoomRequirement {RoomId=2, IsPreferred=false});\nc = c with { Rooms = [\n    new TimetableRoom {Id=1,SchoolId=1,Name=\"Synthetic preferred\"},\n    new TimetableRoom {Id=2,SchoolId=1,Name=\"Synthetic alternative\"}\n]};\nvar generator = new TimetableGenerationEngine();\nvar validator = new TimetableValidationEngine();\nvar generated = generator.Generate(c, CancellationToken.None);\nc.Timetable.Entries.Single().RoomId = 1;\nvar preferredFindings = validator.Evaluate(c).Where(x=>x.Detail==\"required-room\").Select(x=>new {RuleCode=x.RuleCode.ToString(),Severity=x.Severity.ToString(),x.Detail}).ToArray();\nc.Timetable.Entries.Single().RoomId = 2;\nvar alternativeFindings = validator.Evaluate(c).Where(x=>x.Detail==\"required-room\").ToArray();\nConsole.WriteLine(JsonSerializer.Serialize(new {\n    SyntheticOnly=true,\n    AllowedRooms=new[]{1,2},PreferredRoom=1,\n    GeneratedRooms=generated.Select(x=>x.RoomId).ToArray(),\n    PreferredRoomFindings=preferredFindings,\n    AlternativeRoomRequiredErrors=alternativeFindings.Length,\n    NoDatabaseOrServicePersistence=true\n}));\nif (generated.Any(x=>x.RoomId!=2) || preferredFindings.Length!=1 || alternativeFindings.Length!=0) Environment.Exit(2);\n",
+  "assemblySha256": {
+    "AlFalah.Application": "4877523a44e0ced2a627b74c64503ad5efafe9634f82b67309b2d09b9d784923",
+    "AlFalah.Domain": "f222710488638be4207860dca03750866f858002e591fe462726e3f449b862da",
+    "AlFalah.Tests": "c55edacbb4c4d8a2ebcf8a4dc258d066af4ca4f4e21aece51eef23d16f033d4b"
+  },
+  "limitations": [
+    "Uses existing compiled production engines and synthetic in-memory test fixture; no database accessed.",
+    "Does not reproduce PDF, manual normalization or Smartble generation."
+  ]
+}

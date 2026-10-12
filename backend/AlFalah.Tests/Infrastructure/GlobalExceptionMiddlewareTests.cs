@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AlFalah.Api.Middlewares;
 using AlFalah.Application.Common;
+using AlFalah.Application.IntelligentTimetable;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -43,6 +44,24 @@ public sealed class GlobalExceptionMiddlewareTests
         var body = await ReadBodyAsync(context);
         using var json = JsonDocument.Parse(body);
         json.RootElement.GetProperty("message").GetString().Should().Be(message);
+    }
+
+    [Fact]
+    public async Task Timetable_generation_failures_return_a_machine_readable_code()
+    {
+        var middleware = new GlobalExceptionMiddleware(
+            _ => throw new TimetableGenerationFailureException(
+                TimetableGenerationFailureCode.SearchLimitReached,
+                "انتهى حد البحث."),
+            NullLogger<GlobalExceptionMiddleware>.Instance);
+        var context = NewContext();
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        using var json = JsonDocument.Parse(await ReadBodyAsync(context));
+        json.RootElement.GetProperty("errorCode").GetString().Should().Be("SearchLimitReached");
+        json.RootElement.GetProperty("message").GetString().Should().Be("انتهى حد البحث.");
     }
 
     [Fact]

@@ -1,0 +1,33 @@
+{
+  "source": "Actual compiled production generation and validation engines; synthetic fixture in memory",
+  "exitCode": 0,
+  "execution": "dotnet exec --roll-forward Major <temporary Probe.dll> <existing test assembly directory>",
+  "targetFramework": "net8.0",
+  "runtimeLimitation": "The direct net8.0 launch failed because Microsoft.AspNetCore.App 8 is absent; probe succeeded using explicit Major roll-forward to the installed newer runtime, without installing software.",
+  "result": {
+    "SyntheticOnly": true,
+    "AllowedRooms": [
+      1,
+      2
+    ],
+    "PreferredRoom": 1,
+    "GeneratedRooms": [
+      2
+    ],
+    "PreferredRoomFindings": [
+      {
+        "RuleCode": "MissingAssignment",
+        "Severity": "Error",
+        "Detail": "required-room"
+      }
+    ],
+    "AlternativeRoomRequiredErrors": 0,
+    "NoDatabaseOrServicePersistence": true
+  },
+  "validation": "Exit code 0 is conditional on generated room2, one required-room error for room1, zero required-room errors for room2.",
+  "limitations": [
+    "Does not invoke manual save/normalization or full HTTP workflow.",
+    "Does not demonstrate Smartble server behavior.",
+    "Temporary diagnostic harness only; no application source/test changes."
+  ]
+}

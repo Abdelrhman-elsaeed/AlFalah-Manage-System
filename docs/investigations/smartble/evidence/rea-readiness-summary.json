@@ -1,0 +1,287 @@
+{
+  "packageVersion": "6.4.0",
+  "source": "local MCP binary_session in a separate target-free server; not the active Codex MCP connection",
+  "serverIdentity": {
+    "package": {
+      "name": "rea-agents",
+      "version": "6.4.0",
+      "root_path": "C:\\Users\\abdelrhman\\AppData\\Roaming\\npm\\node_modules\\rea-agents",
+      "build_commit": null
+    },
+    "server": {
+      "name": "rea",
+      "version": "6.4.0",
+      "started_at": "2026-10-12T06:03:04.568Z",
+      "command_path": "C:\\Users\\abdelrhman\\AppData\\Roaming\\npm\\node_modules\\rea-agents\\scripts\\rea.mjs"
+    },
+    "sdk": {
+      "server": "2.3.1",
+      "client_test": "2.3.1",
+      "core": "2.3.1"
+    }
+  },
+  "relevantToolAvailability": [
+    {
+      "name": "analyze_web_bundle",
+      "surface": "browser-provider",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": true,
+        "writesFilesystem": false,
+        "launchesProcess": false,
+        "accessesNetwork": true,
+        "changesUiState": false,
+        "mayDiscardData": false,
+        "idempotent": true
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": false,
+        "idempotent": true,
+        "open_world": true
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "capture_browser_scenario",
+      "surface": "browser-provider",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": true,
+        "mutatesSession": true,
+        "writesFilesystem": true,
+        "launchesProcess": true,
+        "accessesNetwork": true,
+        "changesUiState": true,
+        "mayDiscardData": true,
+        "idempotent": false
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": true,
+        "idempotent": false,
+        "open_world": true
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "capture_web_screenshot",
+      "surface": "browser-provider",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": true,
+        "writesFilesystem": false,
+        "launchesProcess": false,
+        "accessesNetwork": true,
+        "changesUiState": false,
+        "mayDiscardData": false,
+        "idempotent": true
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": false,
+        "idempotent": true,
+        "open_world": true
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "compare_web_captures",
+      "surface": "browser-provider",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": true,
+        "writesFilesystem": false,
+        "launchesProcess": false,
+        "accessesNetwork": false,
+        "changesUiState": false,
+        "mayDiscardData": false,
+        "idempotent": true
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": false,
+        "idempotent": true,
+        "open_world": false
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "export_evidence_bundle",
+      "surface": "session",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": false,
+        "writesFilesystem": true,
+        "launchesProcess": false,
+        "accessesNetwork": false,
+        "changesUiState": false,
+        "mayDiscardData": true,
+        "idempotent": true
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": true,
+        "idempotent": true,
+        "open_world": false
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "export_web_scripts",
+      "surface": "application",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": true,
+        "writesFilesystem": true,
+        "launchesProcess": false,
+        "accessesNetwork": false,
+        "changesUiState": false,
+        "mayDiscardData": false,
+        "idempotent": false
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": false,
+        "idempotent": false,
+        "open_world": false
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "inspect_web_page",
+      "surface": "browser-provider",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": true,
+        "writesFilesystem": false,
+        "launchesProcess": false,
+        "accessesNetwork": true,
+        "changesUiState": false,
+        "mayDiscardData": false,
+        "idempotent": true
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": false,
+        "idempotent": true,
+        "open_world": true
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "list_browser_targets",
+      "surface": "browser-provider",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": true,
+        "writesFilesystem": false,
+        "launchesProcess": false,
+        "accessesNetwork": true,
+        "changesUiState": false,
+        "mayDiscardData": false,
+        "idempotent": true
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": false,
+        "idempotent": true,
+        "open_world": true
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    },
+    {
+      "name": "observe_web_session",
+      "surface": "browser-provider",
+      "client_requirements": {
+        "required": [],
+        "optional": [],
+        "missing_required": [],
+        "missing_optional": []
+      },
+      "effects": {
+        "mutatesTarget": false,
+        "mutatesSession": true,
+        "writesFilesystem": false,
+        "launchesProcess": false,
+        "accessesNetwork": true,
+        "changesUiState": false,
+        "mayDiscardData": false,
+        "idempotent": true
+      },
+      "annotations": {
+        "read_only": false,
+        "destructive": false,
+        "idempotent": true,
+        "open_world": true
+      },
+      "available": true,
+      "reason": "available",
+      "remediation": null
+    }
+  ],
+  "browserTargetSelected": false
+}

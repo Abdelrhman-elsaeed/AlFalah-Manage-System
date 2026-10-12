@@ -114,7 +114,7 @@ public sealed class TimetableValidationEngine
                 Add(ViolationRuleCode.MissingAssignment, "المعلم غير مسند إلى متطلب هذه المادة.", e, detail: "assignment");
             if (r.AllowedDays.Count > 0 && r.AllowedDays.All(x => x.Day != (int)e.Day))
                 Add(ViolationRuleCode.DisallowedDay, "المادة موضوعة في يوم غير مسموح.", e);
-            if (r.Rooms.Any(x => !x.IsPreferred) && !r.Rooms.Any(x => !x.IsPreferred && x.RoomId == e.RoomId))
+            if (r.Rooms.Count > 0 && (!e.RoomId.HasValue || !r.Rooms.Any(x => x.RoomId == e.RoomId)))
                 Add(ViolationRuleCode.MissingAssignment, "الحصة تحتاج إلى قاعة متخصصة من القاعات المحددة.", e, detail: "required-room");
             if (r.TimePreference == "Early" && e.Period > (r.LatestPreferredPeriodSequence ?? 3))
                 Add(ViolationRuleCode.EarlyPreferenceMissed, "لم تتحقق أفضلية الحصة المبكرة.", e);
