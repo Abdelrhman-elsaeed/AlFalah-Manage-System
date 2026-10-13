@@ -1,0 +1,52 @@
+{
+  "client_research_date": "2026-10-13",
+  "currency_conversion_assumption": "USD * 3.75 for SAR planning only; billed SAR card differs slightly by rounding",
+  "assumptions": [
+    "All outgoing messages assumed approved Utility to Saudi recipient numbers",
+    "No included discount or free service allowance deducted from proactive notifications",
+    "One primary guardian per student assumed; actual distinct guardian count unknown",
+    "Taxes, development, infrastructure, number cost, incoming messages and add-ons excluded"
+  ],
+  "scenarios": [
+    {
+      "scenario": "light",
+      "utility_delivered_monthly": 1500,
+      "meta_usd": 16.05,
+      "meta_sar_approx": 60.19,
+      "twilio_usd_outbound_only": 23.55,
+      "twilio_sar_approx": 88.31,
+      "360dialog_usd_standard": 75.05,
+      "360dialog_sar_approx": 281.44
+    },
+    {
+      "scenario": "normal",
+      "utility_delivered_monthly": 3500,
+      "meta_usd": 37.45,
+      "meta_sar_approx": 140.44,
+      "twilio_usd_outbound_only": 54.95,
+      "twilio_sar_approx": 206.06,
+      "360dialog_usd_standard": 96.45,
+      "360dialog_sar_approx": 361.69
+    },
+    {
+      "scenario": "high",
+      "utility_delivered_monthly": 8000,
+      "meta_usd": 85.6,
+      "meta_sar_approx": 321.0,
+      "twilio_usd_outbound_only": 125.6,
+      "twilio_sar_approx": 471.0,
+      "360dialog_usd_standard": 144.6,
+      "360dialog_sar_approx": 542.25
+    },
+    {
+      "scenario": "ceiling",
+      "utility_delivered_monthly": 10000,
+      "meta_usd": 107.0,
+      "meta_sar_approx": 401.25,
+      "twilio_usd_outbound_only": 157.0,
+      "twilio_sar_approx": 588.75,
+      "360dialog_usd_standard": 166.0,
+      "360dialog_sar_approx": 622.5
+    }
+  ]
+}

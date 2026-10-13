@@ -1,0 +1,49 @@
+{
+  "verification": "Real local HTTP, JWT middleware, SQL Server and hosted worker; synthetic isolated school",
+  "checks": [
+    {
+      "step": "Live manager context",
+      "status": 200
+    },
+    {
+      "step": "Live teacher schedule projection",
+      "status": 200
+    },
+    {
+      "step": "Teacher management denied",
+      "status": 403
+    },
+    {
+      "step": "Manager attendance authorization retained",
+      "status": 403
+    },
+    {
+      "step": "Secretary live attendance save",
+      "status": 200
+    },
+    {
+      "step": "Hosted worker exchanges after attendance save without duty page visits",
+      "status": 200
+    },
+    {
+      "step": "Live post-reconciliation context",
+      "status": 200
+    },
+    {
+      "step": "Live two-date manual review",
+      "status": 200
+    },
+    {
+      "step": "Live manual exchange",
+      "status": 200
+    },
+    {
+      "step": "Live idempotent retry",
+      "status": 200
+    },
+    {
+      "step": "Stale live revision rejected",
+      "status": 409
+    }
+  ]
+}

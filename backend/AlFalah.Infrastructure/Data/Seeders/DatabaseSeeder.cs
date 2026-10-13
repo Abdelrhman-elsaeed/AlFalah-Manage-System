@@ -409,7 +409,7 @@ public class DatabaseSeeder
             (PermissionNames.StudentAffairsDashboardSecurity, "StudentAffairsDashboard", "لوحة بوابة الأمن", "Security gate dashboard"),
             (PermissionNames.StudentAffairsDashboardGuardian, "StudentAffairsDashboard", "لوحة ولي الأمر", "Guardian Student Affairs dashboard"),
             (PermissionNames.StudentAffairsDashboardSchoolOversight, "StudentAffairsDashboard", "لوحة الإشراف المدرسي على شؤون الطلاب", "School Student Affairs oversight dashboard"),
-        }.Concat(StoragePermissionCatalog.All);
+        }.Concat(StoragePermissionCatalog.All).Concat(DutyPermissionCatalog.All);
     }
 
     // ─── Role → Permission mapping ────────────────────────────────────────────
@@ -459,6 +459,7 @@ public class DatabaseSeeder
 
             [RoleNames.SchoolManager] = new[]
             {
+                AlFalah.Application.Duty.DutyPermissions.View, AlFalah.Application.Duty.DutyPermissions.Manage,
                 PermissionNames.StorageViewSchool, PermissionNames.StorageManageSchool,
                 PermissionNames.StorageReviewEvidence, PermissionNames.StorageViewOwn, PermissionNames.StorageManageOwn,
                 PermissionNames.StorageViewArchive, PermissionNames.StorageRetryArchive, PermissionNames.StorageDelegate,
@@ -510,6 +511,7 @@ public class DatabaseSeeder
 
             [RoleNames.Instructor] = new[]
             {
+                AlFalah.Application.Duty.DutyPermissions.View,
                 PermissionNames.StorageViewOwn, PermissionNames.StorageManageOwn,
                 PermissionNames.ReportView, PermissionNames.ReportDownload,
                 PermissionNames.ComplaintCreate, PermissionNames.ComplaintView,

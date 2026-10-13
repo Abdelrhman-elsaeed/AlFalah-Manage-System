@@ -52,6 +52,7 @@ public class GlobalExceptionMiddleware
 
         var (statusCode, message) = exception switch
         {
+            AlFalah.Application.Duty.DutyException duty => (duty.Status, duty.Message),
             AlFalah.Application.Storage.StorageUnavailableException => (StatusCodes.Status503ServiceUnavailable, exception.Message),
             AlFalah.Application.Storage.StorageConflictException => (StatusCodes.Status409Conflict, exception.Message),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, exception.Message),
@@ -73,6 +74,8 @@ public class GlobalExceptionMiddleware
 
         if (exception is TimetableGenerationFailureException generationFailure)
             response.ErrorCode = generationFailure.Code.ToString();
+        if (exception is AlFalah.Application.Duty.DutyException dutyFailure)
+            response.ErrorCode = dutyFailure.Code;
 
         var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
         {

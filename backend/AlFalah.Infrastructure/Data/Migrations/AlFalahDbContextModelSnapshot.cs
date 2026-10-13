@@ -790,6 +790,361 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("Complaints");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("DutyPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EffectiveTeacherId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ExceptionCode")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsManuallyProtected")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OriginalTeacherId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EffectiveTeacherId");
+
+                    b.HasIndex("OriginalTeacherId");
+
+                    b.HasIndex("SchoolId", "Date")
+                        .IsUnique();
+
+                    b.HasIndex("SchoolId", "DutyPlanId");
+
+                    b.ToTable("DutyAssignments", (string)null);
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyAssignmentChange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AfterRevision")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AfterTeacherId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("AssignmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AttendanceRecordId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("AttendanceUpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("BeforeTeacherId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("DutyPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int?>("OtherAfterRevision")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OtherAfterTeacherId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("OtherAssignmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OtherBeforeTeacherId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateOnly?>("OtherDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("RelatedChangeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SettingsSnapshotJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId", "AssignmentId");
+
+                    b.HasIndex("SchoolId", "Date");
+
+                    b.HasIndex("SchoolId", "DutyPlanId");
+
+                    b.HasIndex("SchoolId", "OtherAssignmentId");
+
+                    b.HasIndex("SchoolId", "RelatedChangeId");
+
+                    b.ToTable("DutyAssignmentChanges", (string)null);
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyClosedDate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DutyPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("From")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("To")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId", "DutyPlanId");
+
+                    b.ToTable("DutyClosedDates", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_DutyClosure_Range", "[From] <= [To]");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyParticipant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DutyPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InstructorProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DutyPlanId", "Position")
+                        .IsUnique();
+
+                    b.HasIndex("DutyPlanId", "UserId")
+                        .IsUnique();
+
+                    b.HasIndex("InstructorProfileId", "UserId");
+
+                    b.HasIndex("SchoolId", "DutyPlanId");
+
+                    b.ToTable("DutyParticipants", (string)null);
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BellScheduleRevisionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PublishedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SettingsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BellScheduleRevisionId");
+
+                    b.HasIndex("SchoolId", "AcademicTermId")
+                        .IsUnique();
+
+                    b.ToTable("DutyPlans", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyReconciliationOperation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ErrorCode")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SignalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("SignalId")
+                        .IsUnique();
+
+                    b.HasIndex("CompletedAt", "NextAttemptAt");
+
+                    b.ToTable("DutyReconciliationOperations", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyRequestReceipt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Digest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ResultJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId", "RequestId")
+                        .IsUnique();
+
+                    b.ToTable("DutyRequestReceipts", (string)null);
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.EvidenceTask", b =>
                 {
                     b.Property<int>("Id")
@@ -10527,6 +10882,122 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Visit");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyAssignment", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("EffectiveTeacherId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("OriginalTeacherId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Duty.DutyPlan", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "DutyPlanId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyAssignmentChange", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.Duty.DutyAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AssignmentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("AlFalah.Domain.Entities.Duty.DutyPlan", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "DutyPlanId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Duty.DutyAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "OtherAssignmentId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("AlFalah.Domain.Entities.Duty.DutyAssignmentChange", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "RelatedChangeId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyClosedDate", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.Duty.DutyPlan", null)
+                        .WithMany("Closures")
+                        .HasForeignKey("SchoolId", "DutyPlanId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyParticipant", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", null)
+                        .WithMany()
+                        .HasForeignKey("InstructorProfileId", "UserId")
+                        .HasPrincipalKey("Id", "UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.Duty.DutyPlan", null)
+                        .WithMany("Participants")
+                        .HasForeignKey("SchoolId", "DutyPlanId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyPlan", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.BellScheduleRevision", null)
+                        .WithMany()
+                        .HasForeignKey("BellScheduleRevisionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("AlFalah.Domain.Entities.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.AcademicTerm", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicTermId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyReconciliationOperation", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyRequestReceipt", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.ImprovementPlan", b =>
                 {
                     b.HasOne("AlFalah.Domain.Entities.ApplicationUser", "CreatedByUser")
@@ -14151,6 +14622,13 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("FixedSlots");
 
                     b.Navigation("Rooms");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyPlan", b =>
+                {
+                    b.Navigation("Closures");
+
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.ImprovementPlan", b =>

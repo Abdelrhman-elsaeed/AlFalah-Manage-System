@@ -317,6 +317,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     private void UpdateTimestamps()
     {
+        if (ChangeTracker.Entries<AlFalah.Domain.Entities.Duty.DutyAssignmentChange>()
+            .Any(x => x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Duty history is append-only; append a correction event.");
         foreach (var entry in ChangeTracker.Entries())
         {
             if (entry.Entity is AlFalah.Domain.Entities.Storage.EvidenceReviewDecision or AlFalah.Domain.Entities.Storage.FileChangeDecision && entry.State is EntityState.Modified or EntityState.Deleted)

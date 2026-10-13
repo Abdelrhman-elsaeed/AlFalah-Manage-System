@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/app/features/timetables/**/*.spec.ts",
+    "src/app/features/intelligent-timetable/**/*.spec.ts",
+    "src/app/shared/components/clearable-select/**/*.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

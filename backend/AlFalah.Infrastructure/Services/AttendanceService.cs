@@ -5,6 +5,7 @@ using AlFalah.Domain.Entities;
 using AlFalah.Domain.Enums;
 using AlFalah.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using AlFalah.Domain.Entities.Duty;
 
 namespace AlFalah.Infrastructure.Services;
 
@@ -68,10 +69,13 @@ public class AttendanceService : IAttendanceService
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
+        var factsChanged = false;
         foreach (var entry in request.Entries)
         {
             if (existingRecords.TryGetValue(entry.UserId, out var existing))
             {
+                if (existing.Status == entry.Status && existing.Notes == NormalizeNotes(entry.Notes)) continue;
+                factsChanged = true;
                 existing.Status = entry.Status;
                 existing.Notes = NormalizeNotes(entry.Notes);
                 existing.RecordedByUserId = currentUserId;
@@ -79,6 +83,7 @@ public class AttendanceService : IAttendanceService
                 continue;
             }
 
+            factsChanged = true;
             _context.AttendanceRecords.Add(new AttendanceRecord
             {
                 SchoolId = schoolId,
@@ -92,6 +97,10 @@ public class AttendanceService : IAttendanceService
             });
         }
 
+        // SaveChanges commits the attendance facts and durable duty signal in one transaction.
+        // No change to secretary authorization and no dependency on a browser visit.
+        if (factsChanged)
+            _context.Set<DutyReconciliationOperation>().Add(new DutyReconciliationOperation { SchoolId = schoolId, Date = request.Date });
         await _context.SaveChangesAsync(cancellationToken);
         return await BuildSheetAsync(schoolId, request.Date, cancellationToken);
     }

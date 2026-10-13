@@ -238,12 +238,13 @@ export const routes: Routes = [
       {
         path: 'timetable',
         canActivate: [roleGuard, permissionGuard],
+        canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],
         data: {
           roles: ['Secretary', 'SchoolManager', 'Moderator', 'Instructor'],
           permissions: ['Timetable.View']
         },
-        loadComponent: () => import('./features/timetables/school-timetable.component')
-          .then(m => m.SchoolTimetableComponent),
+        loadComponent: () => import('./features/timetables/timetable-workspace.component')
+          .then(m => m.TimetableWorkspaceComponent),
         title: 'الجدول المدرسي'
       },
       {

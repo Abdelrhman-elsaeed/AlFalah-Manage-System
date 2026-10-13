@@ -1,0 +1,225 @@
+{
+  "scope": "Public official WhatsApp pricing calculator; no account access or message sending",
+  "client_research_date": "2026-10-13",
+  "timezone": "Africa/Cairo",
+  "retrieved_at_utc": "2026-10-13T08:34:20.918431+00:00",
+  "reference_page": "https://whatsappbusiness.com/products/platform-pricing/",
+  "observations": [
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=USD&category=Utility",
+      "http_status": 200,
+      "response": {
+        "quote": "0.0107",
+        "tier_list": [
+          {
+            "min_volume": 0,
+            "max_volume": 100000,
+            "quote": "0.0107"
+          },
+          {
+            "min_volume": 100001,
+            "max_volume": 1000000,
+            "quote": "0.0102"
+          },
+          {
+            "min_volume": 1000001,
+            "max_volume": 4500000,
+            "quote": "0.0096"
+          },
+          {
+            "min_volume": 4500001,
+            "max_volume": 40000000,
+            "quote": "0.0091"
+          },
+          {
+            "min_volume": 40000001,
+            "max_volume": 80000000,
+            "quote": "0.0086"
+          },
+          {
+            "min_volume": 80000001,
+            "max_volume": 2305843009213693951,
+            "quote": "0.008"
+          }
+        ]
+      },
+      "category": "Utility",
+      "currency": "USD"
+    },
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=USD&category=Marketing",
+      "http_status": 200,
+      "response": {
+        "quote": "0.0576",
+        "tier_list": []
+      },
+      "category": "Marketing",
+      "currency": "USD"
+    },
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=USD&category=Authentication",
+      "http_status": 200,
+      "response": {
+        "quote": "0.0107",
+        "tier_list": [
+          {
+            "min_volume": 0,
+            "max_volume": 300000,
+            "quote": "0.0107"
+          },
+          {
+            "min_volume": 300001,
+            "max_volume": 2000000,
+            "quote": "0.0102"
+          },
+          {
+            "min_volume": 2000001,
+            "max_volume": 10000000,
+            "quote": "0.0096"
+          },
+          {
+            "min_volume": 10000001,
+            "max_volume": 20000000,
+            "quote": "0.0091"
+          },
+          {
+            "min_volume": 20000001,
+            "max_volume": 40000000,
+            "quote": "0.0086"
+          },
+          {
+            "min_volume": 40000001,
+            "max_volume": 2305843009213693951,
+            "quote": "0.008"
+          }
+        ]
+      },
+      "category": "Authentication",
+      "currency": "USD"
+    },
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=USD&category=Service",
+      "http_status": 200,
+      "response": {
+        "quote": "0.0107",
+        "tier_list": []
+      },
+      "category": "Service",
+      "currency": "USD"
+    },
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=SAR&category=Utility",
+      "http_status": 200,
+      "response": {
+        "quote": "0.0401",
+        "tier_list": [
+          {
+            "min_volume": 0,
+            "max_volume": 100000,
+            "quote": "0.0401"
+          },
+          {
+            "min_volume": 100001,
+            "max_volume": 1000000,
+            "quote": "0.0381"
+          },
+          {
+            "min_volume": 1000001,
+            "max_volume": 4500000,
+            "quote": "0.0361"
+          },
+          {
+            "min_volume": 4500001,
+            "max_volume": 40000000,
+            "quote": "0.0341"
+          },
+          {
+            "min_volume": 40000001,
+            "max_volume": 80000000,
+            "quote": "0.0321"
+          },
+          {
+            "min_volume": 80000001,
+            "max_volume": 2305843009213693951,
+            "quote": "0.0301"
+          }
+        ]
+      },
+      "category": "Utility",
+      "currency": "SAR"
+    },
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=SAR&category=Marketing",
+      "http_status": 200,
+      "response": {
+        "quote": "0.2159",
+        "tier_list": []
+      },
+      "category": "Marketing",
+      "currency": "SAR"
+    },
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=SAR&category=Authentication",
+      "http_status": 200,
+      "response": {
+        "quote": "0.0401",
+        "tier_list": [
+          {
+            "min_volume": 0,
+            "max_volume": 300000,
+            "quote": "0.0401"
+          },
+          {
+            "min_volume": 300001,
+            "max_volume": 2000000,
+            "quote": "0.0381"
+          },
+          {
+            "min_volume": 2000001,
+            "max_volume": 10000000,
+            "quote": "0.0361"
+          },
+          {
+            "min_volume": 10000001,
+            "max_volume": 20000000,
+            "quote": "0.0341"
+          },
+          {
+            "min_volume": 20000001,
+            "max_volume": 40000000,
+            "quote": "0.0321"
+          },
+          {
+            "min_volume": 40000001,
+            "max_volume": 2305843009213693951,
+            "quote": "0.0301"
+          }
+        ]
+      },
+      "category": "Authentication",
+      "currency": "SAR"
+    },
+    {
+      "source_url": "https://whatsappbusiness.com/wp-json/wab/v1/pricing?market=SA&currency=SAR&category=Service",
+      "http_status": 200,
+      "response": {
+        "quote": "0.0401",
+        "tier_list": []
+      },
+      "category": "Service",
+      "currency": "SAR"
+    }
+  ],
+  "school": {
+    "country": "Saudi Arabia",
+    "type": "private",
+    "students": 330,
+    "teachers": 20,
+    "administrative_staff_count": null,
+    "monthly_volume": null,
+    "dedicated_sender_number": null,
+    "existing_whatsapp_business_number": true,
+    "sender_requirement": "Use existing WhatsApp Business app number; no new number purchase",
+    "coexistence_account_eligibility": "Not inspected"
+  }
+}
