@@ -1,8 +1,8 @@
 # Smartble investigation — baseline and continuation
 
-**التاريخ:** 2026-10-12 — Africa/Cairo  
-**الحالة:** التحليل المحلي والـauthenticated inventory مكتملان؛ التحقيق المختار اتنفذ، ثم نُفذ D-01 وD-02 محليًا بعد موافقة المستخدم. Smartble server generation experiments ما زالت غير منفذة.  
-**النطاق:** التحقيق والتخطيط فقط. إنشاء المستندات وإعداد REA اتوافق عليهم في المحادثة. تنفيذ features لسه محتاج موافقة منفصلة.
+**التاريخ:** 2026-10-12 — Africa/Cairo
+**الحالة:** التحليل المحلي والـauthenticated inventory مكتملان؛ التحقيق المختار اتنفذ، ثم نُفذت إصلاحات D-01 وD-02 وD-03 وD-06 وD-07 محليًا بعد موافقة المستخدم. Smartble server generation experiments ما زالت غير منفذة.
+**Scope:** investigation, planning, and the authorized local gap fixes. Document and REA setup work was approved; any new task outside D-01/D-02/D-03/D-06/D-07 requires separate approval.
 
 **المرجع الحالي:** [Deep scheduling investigation](deep-scheduling-investigation.md) فيه المقارنة المختارة والأدلة والـroadmap الجديدة، و[Authenticated feature inventory](authenticated-feature-inventory.md) فيه حالة الوصول. تفاصيل التحليل المحلي تحت ما زالت مفيدة؛ descriptions العامة موضحة باعتبارها public baseline.
 
@@ -10,7 +10,7 @@
 
 المشروع فيه Smart Timetable متقدم بالفعل، مش مجرد شاشات: إعداد سنة وفصل دراسي، ملفات إعداد، توقيتات واستراحات، إتاحة معلمين، قواعد مواد وغرف، teaching assignments، توليد تلقائي، مراجعة وإصلاح، نشر، versions، Excel import وPDF، وعمليات swap وdaily substitution.
 
-فحص الكود اتدعم بتشغيل مجموعة `AlFalah.Tests.Timetables`: **198 passed / 0 failed / 0 skipped**. ده دليل على السيناريوهات اللي اختبرتها المجموعة، مش إثبات إن كل UI workflow اشتغل end-to-end على database منشورة، ولا إن التطبيق مطابق لـSmartble.
+فحص الكود اتدعم بتشغيل مجموعة `AlFalah.Tests.Timetables`: **204 passed / 0 failed / 0 skipped**. ده دليل على السيناريوهات اللي اختبرتها المجموعة، مش إثبات إن كل UI workflow اشتغل end-to-end على database منشورة، ولا إن التطبيق مطابق لـSmartble.
 
 أبرز نتائج baseline:
 
@@ -283,7 +283,7 @@ Browser/CDP والـauthentication متاحون الآن. الحدود الحا�
 
 ## 12. Prioritized implementation roadmap — current status
 
-الـroadmap الحالية في [D-01 إلى D-08](deep-scheduling-investigation.md#11-roadmap-وحالة-التنفيذ): D-01 وD-02 وD-03 وD-06 منفذة؛ D-04 Preflight UX، D-05 shared-place، D-07 snapshot clone، وD-08 weekly standby investigation مؤجلة. **مفيش P0 مؤكد في الفحص الحالي.** ده ليس نفيًا لوجود مشاكل أخرى.
+Roadmap status: D-01, D-02, D-03, D-06, and D-07 implemented; D-04 Preflight UX, D-05 shared-place, and D-08 weekly standby investigation remain deferred. **No confirmed P0 remains in the current scope.**
 
 | ID / priority | Description and reason | Benefit | Existing files / frontend | Backend / database | Dependencies | Complexity / confidence | Acceptance criteria |
 |---|---|---|---|---|---|---|---|
@@ -295,24 +295,24 @@ Browser/CDP والـauthentication متاحون الآن. الحدود الحا�
 | U-01 / P2 optional | تقدير configuration readiness وnavigation flow بعد مقارنة المرجع | اكتشاف missing configuration من غير tabs مكررة | settings/timings/subjects UI | حسب متطلب مؤكد لاحقًا | authenticated UI inventory | Unknown complexity؛ suggestion فقط | كل tab مقترحة لها benefit واضح ومفيش equivalent موجود بالفعل |
 | X-01 / P3 optional | تقييم Noor/aSc/Madrasati adapters لو مطلوبين فعليًا | تكامل مفيد عند احتياج المدرسة | import/export UX حسب format موثق | dedicated adapters/services؛ DB changes only if justified | public formats، selected requirements، separate scope | Unknown؛ not verified | supported-format fixtures، preview/validation، no import persistent effect before permission |
 
-الموافقة الحالية شملت D-01 وD-02 فقط. أي task لاحق يحتاج موافقة منفصلة؛ الموافقة على المستندات/REA لا تشمل D-03 إلى D-08.
+المستخدم فوّض تنفيذ إصلاحات الفجوات المحلية. Smartble server generation experiments ما زالت غير منفذة، وأي تنفيذ على بيانات Smartble الحية يظل خارج نطاق هذه التغييرات.
 
 ## 13. Recommended next steps
 
-1. مراجعة [نتائج التحقيق المختار](deep-scheduling-investigation.md): D-01 وD-02 وD-03 وD-06 منفذة ومختبرة، وباقي الفجوات مصنفة في D-04 وD-05 وD-07 وD-08.
+1. مراجعة [نتائج التحقيق المختار](deep-scheduling-investigation.md): D-01 وD-02 وD-03 وD-06 وD-07 منفذة ومختبرة، وباقي الفجوات مصنفة في D-04 وD-05 وD-08.
 2. الحفاظ على layout الحالي، integrated timing/breaks وsubject rules، inline swaps، وسياسة hard blockers وsoft overrides.
 3. حسم دلالة Early/Late قبل تنفيذ أي تغيير، وتقييم Preflight كامتداد للـreadiness/validators الموجودة.
 4. إذا احتجنا إثبات solver المرجعي، يلزم concrete controlled experiment على بيانات آمنة وإذن للأفعال المحفوظة. لا نفترض أن HTTP GET دائمًا بلا persistence.
 5. التنفيذ يبقى بعد explicit approval على tasks محددة؛ investigation/docs approval لا يجيز application changes.
 
-**مكتمل:** التحليل المحلي، authentication/CDP، inventory، configuration/review/history/print read-only passes، client API traces، preferred-room synthetic reproduction، D-01/D-02/D-06، current roadmap. **جزئي/غير محسوم:** Deep Check رجع 500، Generate/Restore/Save لم تُنفذ، الخوارزمية المرجعية، full server validation، أسباب قيود الاشتراك، وweekly standby distribution.
+**مكتمل:** التحليل المحلي، authentication/CDP، inventory، configuration/review/history/print read-only passes، client API traces، preferred-room synthetic reproduction، D-01/D-02/D-03/D-06/D-07، current roadmap. **جزئي/غير محسوم:** Deep Check رجع 500، Generate/Restore/Save لم تُنفذ، الخوارزمية المرجعية، full server validation، أسباب قيود الاشتراك، وweekly standby distribution.
 
 ## Evidence and validation register
 
 | ID | Observation → hypothesis → validation → result | Classification / confidence | Remaining uncertainty |
 |---|---|---|---|
 | C-01 | UI routes تشير لشاشات حقيقية → implementation كبيرة → تتبع HTTP services/controllers/services/repos → backed features مؤكدة | CONFIRMED / high within source scope | Live UI/production database behavior |
-| C-02 | Test suite موجودة → covered rules قابلة للتحقق → run namespace filter → 198 passed | CONFIRMED / high for tested cases | Uncovered cases، relational deployment وE2E UI |
+| C-02 | Test suite موجودة → covered rules قابلة للتحقق → run namespace filter → 204 passed | CONFIRMED / high for tested cases | Uncovered cases، relational deployment وE2E UI |
 | C-03 | print route placeholder → printing navigation incomplete → route + component + PDF endpoint inspection → confirmed | CONFIRMED / high | أفضل مكان للملاحة من تجربة المستخدم |
 | C-04 | Teacher fields محفوظة → يمكن إنها غير مستخدمة في PDF → trace DTO/catalog/BuildPdf → path ignores print profile fields | CONFIRMED code path / high؛ visual effect INFERRED | Synthetic PDF reproduction وexpected personal-print semantics |
 | C-05 | Search limit يرجع false → رسائل فشل conflated → engine + caller inspection → same failure result/message | CONFIRMED code path / high | Controlled budget-exhaustion reproduction |

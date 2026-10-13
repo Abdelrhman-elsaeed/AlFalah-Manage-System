@@ -16,6 +16,12 @@ public sealed class SchoolTimetablesController : ControllerBase
 
     public SchoolTimetablesController(ISchoolTimetableService service) => _service = service;
 
+    [HttpGet]
+    public async Task<IActionResult> List([FromQuery] int academicYearId, [FromQuery] TimetableSemester semester,
+        [FromQuery] int? schoolId, CancellationToken cancellationToken) =>
+        Ok(ApiResponse<IReadOnlyList<TimetableListItemDto>>.Success(
+            await _service.ListAsync(academicYearId, semester, schoolId, cancellationToken)));
+
     [HttpGet("catalog")]
     public async Task<IActionResult> Catalog(
         [FromQuery] int? schoolId,
@@ -75,6 +81,26 @@ public sealed class SchoolTimetablesController : ControllerBase
     [HttpGet("{id:int}/versions")]
     public async Task<IActionResult> Versions(int id, CancellationToken cancellationToken) =>
         Ok(ApiResponse<IReadOnlyList<TimetableVersionDto>>.Success(await _service.GetVersionsAsync(id, cancellationToken)));
+
+    [HttpPost("{id:int}/checkpoints")]
+    public async Task<IActionResult> Checkpoint(
+        int id,
+        [FromBody] CreateTimetableCheckpointRequest request,
+        CancellationToken cancellationToken) =>
+        Ok(ApiResponse<SchoolTimetableDto>.Success(
+            await _service.CreateCheckpointAsync(id, request, cancellationToken),
+            "تم إنشاء نقطة استعاد مثبتة مع تسجيل المستخدم."));
+
+    [HttpPost("{id:int}/clone")]
+    public async Task<IActionResult> Clone(
+        int id,
+        [FromBody] CloneTimetableRequest request,
+        CancellationToken cancellationToken)
+    {
+        var timetable = await _service.CloneAsync(id, request, cancellationToken);
+        return CreatedAtAction(nameof(Get), new { id = timetable.Id },
+            ApiResponse<SchoolTimetableDto>.Success(timetable, "ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø¬Ø¯ÙˆÙ„ ÙƒÙ…Ø³ÙˆØ¯Ø© Ù…Ø³ØªÙ‚Ù„Ø© Ù…Ø¹ Ø­ÙØ¸ Ù…ØµØ¯Ø±Ù‡."));
+    }
 
     [HttpPost("{id:int}/versions/{versionNumber:int}/restore")]
     public async Task<IActionResult> Restore(

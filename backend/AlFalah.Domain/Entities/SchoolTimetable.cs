@@ -26,6 +26,7 @@ public class SchoolTimetable : IHasDomainEvents
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string UpdatedByUserId { get; set; } = string.Empty;
     public bool IsDeleted { get; set; }
+    public bool IsClone { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public string? DeletedByUserId { get; set; }
 

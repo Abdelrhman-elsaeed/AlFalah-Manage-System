@@ -12,10 +12,12 @@
         <button *ngIf="current.timetableSetupProfileId" pButton type="button" class="regenerate-button p-button-outlined"
           icon="pi pi-sparkles" [label]="current.timingsRequireRevalidation ? 'إعادة توليد الجدول' : 'توليد الجدول من جديد'"
           [disabled]="dirty() || saving() || regenerating()" [loading]="regenerating()" (click)="openRegenerate()"></button>
-        <button pButton type="button" class="p-button-outlined" icon="pi pi-history" label="النسخ" (click)="openVersions()"></button>
+        <button pButton type="button" class="p-button-outlined" icon="pi pi-history" label="سجل التغييرات" (click)="openVersions()"></button>
+        <button pButton type="button" class="p-button-outlined" icon="pi pi-bookmark" label="تسمية نقطة استعادة" [disabled]="dirty() || saving()" (click)="openCheckpoint()"></button>
+        <button pButton type="button" class="p-button-outlined" icon="pi pi-copy" label="نسخ مستقل" [disabled]="dirty() || saving()" (click)="openClone()"></button>
         <button *ngIf="canDelegate()" pButton type="button" class="p-button-outlined" icon="pi pi-users" label="تفويض مشرف" (click)="openGrants()"></button>
         <button pButton type="button" icon="pi pi-save" label="حفظ" [disabled]="!dirty() || saving()" [loading]="saving()" (click)="save()"></button>
-        <button *ngIf="!current.isPublished || current.timingsRequireRevalidation" pButton type="button" class="publish-button" icon="pi pi-send" label="نشر للمعلمين" [disabled]="dirty() || saving()" (click)="publish()"></button>
+        <button *ngIf="!current.isClone && (!current.isPublished || current.timingsRequireRevalidation)" pButton type="button" class="publish-button" icon="pi pi-send" label="نشر للمعلمين" [disabled]="dirty() || saving()" (click)="publish()"></button>
       </ng-container>
     </div>
   </header>
@@ -56,9 +58,16 @@
     </label>
     <div class="status-block" *ngIf="timetable() as current">
       <p-tag [severity]="current.isPublished ? 'success' : 'warning'" [value]="current.isPublished ? 'منشور' : 'مسودة'"></p-tag>
+      <p-tag *ngIf="current.isClone" severity="info" value="نسخة تجريبية"></p-tag>
       <span>نسخة العمل {{ current.revision }}</span>
       <span>آخر تحديث {{ current.updatedAt | date:'yyyy/MM/dd، h:mm a' }}</span>
     </div>
+    <label *ngIf="canManage() && timetableOptions().length > 1" class="timetable-picker">
+      <span>الجدول المفتوح</span>
+      <select [ngModel]="timetable()?.id" (ngModelChange)="selectTimetable($event)">
+        <option *ngFor="let option of timetableOptions()" [value]="option.id">{{ option.title }}{{ option.isClone ? ' — نسخة تجريبية' : '' }}</option>
+      </select>
+    </label>
   </div>
 
   <div class="loading-state" *ngIf="loading()">
@@ -318,20 +327,60 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog header="نسخ الجدول المحفوظة" [visible]="versionsDialogVisible()" (visibleChange)="versionsDialogVisible.set($event)" [modal]="true" [style]="{ width: '760px', maxWidth: '96vw' }" dir="rtl">
-  <div class="versions-list">
-    <div class="loading-inline" *ngIf="versionsLoading()"><i class="pi pi-spin pi-spinner"></i> جاري التحميل...</div>
-    <article *ngFor="let version of versions()">
-      <div class="version-number">{{ version.versionNumber }}</div>
-      <div class="version-info">
-        <strong>{{ version.changeKindLabelAr }}</strong>
-        <span>{{ version.createdAt | date:'yyyy/MM/dd، h:mm a' }} • {{ version.createdByFullName }}</span>
-        <small *ngIf="version.restoredFromVersionNumber">مسترجعة من النسخة {{ version.restoredFromVersionNumber }}</small>
+<p-dialog header="سجل تغييرات الجدول" [visible]="versionsDialogVisible()" (visibleChange)="versionsDialogVisible.set($event)" [modal]="true" [style]="{ width: '960px', maxWidth: '97vw' }" dir="rtl">
+  <section class="history-hero">
+    <div class="history-hero-icon"><i class="pi pi-history"></i></div>
+    <div>
+      <span class="history-kicker">مركز التتبع والاستعادة</span>
+      <h3>كل قرار محفوظ، وكل خطوة لها أثر</h3>
+      <p>تظهر هنا التعديلات تلقائيًا مع صاحبها ووقتها وتفاصيل ما تغيّر، ويمكنك العودة لأي نقطة بأمان.</p>
+    </div>
+    <div class="history-stat"><strong>{{ historyStats().total }}</strong><span>إصدار محفوظ</span></div>
+    <div class="history-stat"><strong>{{ historyStats().actors }}</strong><span>منفذ للتعديلات</span></div>
+  </section>
+  <nav class="history-filters" aria-label="تصفية سجل التغييرات">
+    <button type="button" [class.active]="historyFilter() === 'all'" (click)="setHistoryFilter('all')"><i class="pi pi-list"></i> الكل</button>
+    <button type="button" [class.active]="historyFilter() === 'automatic'" (click)="setHistoryFilter('automatic')"><i class="pi pi-bolt"></i> التغييرات التلقائية</button>
+    <button type="button" [class.active]="historyFilter() === 'manual'" (click)="setHistoryFilter('manual')"><i class="pi pi-pencil"></i> التعديلات اليدوية</button>
+    <button type="button" [class.active]="historyFilter() === 'restore'" (click)="setHistoryFilter('restore')"><i class="pi pi-replay"></i> الاستعادة والنقاط</button>
+  </nav>
+  <div class="history-timeline">
+    <div class="loading-inline" *ngIf="versionsLoading()"><i class="pi pi-spin pi-spinner"></i> جاري بناء السجل...</div>
+    <article *ngFor="let version of filteredVersions(); let last = last" class="history-event" [ngClass]="'history-event--' + versionTone(version)">
+      <div class="history-rail"><span class="history-dot"><i [class]="versionIcon(version)"></i></span><span class="history-line" *ngIf="!last"></span></div>
+      <div class="history-card">
+        <header class="history-card-head">
+          <div class="history-card-title"><span class="history-version">#{{ version.versionNumber }}</span><span class="history-kind">{{ version.changeKindLabelAr }}</span><span class="history-auto" *ngIf="version.changeKind !== 10">محفوظ تلقائيًا</span></div>
+          <time>{{ version.createdAt | date:'yyyy/MM/dd · h:mm a' }}</time>
+        </header>
+        <div class="history-actor"><span class="history-avatar">{{ (version.createdByFullName || '؟').slice(0, 1) }}</span><span><strong>{{ version.createdByFullName }}</strong><small>منفذ التغيير</small></span></div>
+        <p class="history-summary">{{ version.changeSummary || version.changeKindLabelAr }}</p>
+        <div class="history-details" *ngIf="version.changeDetails?.length">
+          <span *ngFor="let detail of version.changeDetails"><i class="pi pi-check"></i>{{ detail.label }}<b *ngIf="detail.count > 1">{{ detail.count }}</b><em *ngIf="detail.before || detail.after">{{ detail.before }} ? {{ detail.after }}</em></span>
+        </div>
+        <div class="history-reference" *ngIf="version.checkpointName || version.checkpointNote || version.restoredFromVersionNumber || version.sourceTimetableId">
+          <i class="pi pi-bookmark-fill"></i><span *ngIf="version.checkpointName">{{ version.checkpointName }}</span><span *ngIf="version.checkpointNote">— {{ version.checkpointNote }}</span><span *ngIf="version.restoredFromVersionNumber">استرجاع من الإصدار {{ version.restoredFromVersionNumber }}</span><span *ngIf="version.sourceTimetableId">مصدر النسخة: جدول {{ version.sourceTimetableId }} · الإصدار {{ version.sourceVersionNumber || 'الحالي' }}</span>
+        </div>
+        <div class="version-actions">
+          <button pButton type="button" class="p-button-outlined p-button-sm" icon="pi pi-copy" label="نسخ من هنا" [disabled]="dirty() || saving()" (click)="openClone(version)"></button>
+          <button pButton type="button" class="p-button-outlined p-button-sm" icon="pi pi-replay" label="استرجاع هذه النقطة" [disabled]="saving() || dirty() || timetable()?.isPublished" (click)="restore(version)"></button>
+        </div>
       </div>
-      <button pButton type="button" class="p-button-outlined p-button-sm" label="استرجاع" [disabled]="saving()" (click)="restore(version)"></button>
     </article>
-    <p class="empty-list" *ngIf="!versionsLoading() && !versions().length">لا توجد نسخ محفوظة.</p>
+    <p class="empty-list history-empty" *ngIf="!versionsLoading() && !filteredVersions().length"><i class="pi pi-inbox"></i> لا توجد تغييرات في هذا التصنيف.</p>
   </div>
+</p-dialog>
+<p-dialog header="إنشاء نقطة استعادة" [visible]="checkpointDialogVisible()" (visibleChange)="checkpointDialogVisible.set($event)" [modal]="true" [style]="{ width: '520px', maxWidth: '94vw' }" dir="rtl">
+  <label class="dialog-field"><span>اسم النقطة</span><input pInputText [(ngModel)]="checkpointName" maxlength="150" placeholder="قبل تعديل الإسنادات"></label>
+  <label class="dialog-field"><span>ملاحظة اختيارية</span><textarea pInputTextarea [(ngModel)]="checkpointNote" maxlength="1000" rows="3"></textarea></label>
+  <p class="dialog-note">سيُحفظ الجدول كما هو، مع المستخدم والوقت، ويمكن استرجاعه لاحقًا كإصدار جديد.</p>
+  <ng-template pTemplate="footer"><button pButton type="button" class="p-button-text" label="إلغاء" (click)="checkpointDialogVisible.set(false)"></button><button pButton type="button" icon="pi pi-bookmark" label="حفظ النقطة" [disabled]="!checkpointName.trim() || saving()" [loading]="saving()" (click)="createCheckpoint()"></button></ng-template>
+</p-dialog>
+
+<p-dialog header="نسخ الجدول إلى مسودة مستقلة" [visible]="cloneDialogVisible()" (visibleChange)="cloneDialogVisible.set($event)" [modal]="true" [style]="{ width: '520px', maxWidth: '94vw' }" dir="rtl">
+  <label class="dialog-field"><span>عنوان النسخة</span><input pInputText [(ngModel)]="cloneTitle" maxlength="250"></label>
+  <p class="dialog-note">المصدر: {{ cloneVersionNumber ? 'الإصدار ' + cloneVersionNumber : 'الجدول المحفوظ حاليًا' }}. النسخة للتجربة والمراجعة والطباعة. توزيع الحصص مستقل، وإعدادات المواد والمعلمين مشتركة مع المصدر.</p>
+  <ng-template pTemplate="footer"><button pButton type="button" class="p-button-text" label="إلغاء" (click)="cloneDialogVisible.set(false)"></button><button pButton type="button" icon="pi pi-copy" label="إنشاء النسخة" [disabled]="!cloneTitle.trim() || saving()" [loading]="saving()" (click)="cloneTimetable()"></button></ng-template>
 </p-dialog>
 
 <p-dialog header="تفويض المشرفين" [visible]="grantsDialogVisible()" (visibleChange)="grantsDialogVisible.set($event)" [modal]="true" [style]="{ width: '560px', maxWidth: '94vw' }" dir="rtl">

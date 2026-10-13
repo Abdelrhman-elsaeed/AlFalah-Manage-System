@@ -3,7 +3,7 @@
   "executed": [
     {
       "command": "dotnet test backend/AlFalah.Tests/AlFalah.Tests.csproj --no-restore --filter \"FullyQualifiedName~AlFalah.Tests.Timetables|FullyQualifiedName~AlFalah.Tests.Infrastructure.GlobalExceptionMiddlewareTests\" --verbosity quiet",
-      "result": "198 passed, 0 failed, 0 skipped",
+      "result": "204 passed, 0 failed, 0 skipped",
       "coverage": [
         "preferred room is selected before alternatives",
         "alternative room remains usable when preferred room conflicts",
@@ -34,7 +34,7 @@
     },
     {
       "command": "dotnet test backend/AlFalah.Tests/AlFalah.Tests.csproj --no-restore --filter FullyQualifiedName~AlFalah.Tests.Timetables --verbosity quiet",
-      "result": "198 passed, 0 failed, 0 skipped",
+      "result": "204 passed, 0 failed, 0 skipped",
       "coverage": [
         "D-06 catalog mapping for ShortDisplayName and HideFromPrint",
         "PDF/import service regression coverage",

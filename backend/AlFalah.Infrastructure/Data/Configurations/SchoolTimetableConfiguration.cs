@@ -14,7 +14,7 @@ public sealed class SchoolTimetableConfiguration : IEntityTypeConfiguration<Scho
         builder.Property(x => x.Title).HasMaxLength(250).IsUnicode(true).UseCollation("Arabic_CI_AS").IsRequired();
         builder.Property(x => x.Revision).IsConcurrencyToken();
         builder.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.Semester, x.TimetableSetupProfileId })
-            .HasFilter("[IsDeleted] = 0")
+            .HasFilter("[IsDeleted] = 0 AND [IsClone] = 0")
             .IsUnique();
 
         builder.HasOne(x => x.BellScheduleRevision).WithMany()

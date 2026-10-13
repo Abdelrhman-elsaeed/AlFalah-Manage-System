@@ -70,7 +70,9 @@ public sealed record SchoolTimetableDto(
     IReadOnlyList<TimetableTeacherSummaryDto> TeacherSummaries,
     TimetableCapabilitiesDto Capabilities,
     BellScheduleDto? BellSchedule = null, bool TimingsRequireRevalidation = false,
-    int? TimetableSetupProfileId = null);
+    int? TimetableSetupProfileId = null, bool IsClone = false);
+
+public sealed record TimetableListItemDto(int Id, string Title, bool IsClone, bool IsPublished);
 
 public sealed record CreateSchoolTimetableRequest(
     int AcademicYearId,
@@ -102,7 +104,23 @@ public sealed record TimetableVersionDto(
     string Title,
     DateTimeOffset CreatedAt,
     string CreatedByFullName,
-    int? RestoredFromVersionNumber);
+    int? RestoredFromVersionNumber,
+    string? CheckpointName = null,
+    string? CheckpointNote = null,
+    int? SourceTimetableId = null,
+    int? SourceVersionNumber = null,
+    string? ChangeSummary = null,
+    IReadOnlyList<TimetableChangeDetailDto>? ChangeDetails = null);
+
+public sealed record TimetableChangeDetailDto(
+    string Code,
+    string Label,
+    int Count = 0,
+    string? Before = null,
+    string? After = null);
+
+public sealed record CreateTimetableCheckpointRequest(int Revision, string Name, string? Note = null);
+public sealed record CloneTimetableRequest(int Revision, string Title, int? VersionNumber = null);
 
 public sealed record TimetableImportResultDto(
     SchoolTimetableDto Timetable,
@@ -111,4 +129,5 @@ public sealed record TimetableImportResultDto(
 
 public sealed record TimetableFileDto(byte[] Bytes, string ContentType, string FileName);
 
-public sealed record TimetableSnapshotDto(string Title, IReadOnlyList<TimetableEntryDto> Entries, BellScheduleDto? BellSchedule = null);
+public sealed record TimetableSnapshotDto(string Title, IReadOnlyList<TimetableEntryDto> Entries, BellScheduleDto? BellSchedule = null,
+    int? TimetableSetupProfileId = null, int? SetupRevision = null);

@@ -21,7 +21,8 @@ import {
   TimetablePdfColorMode,
   TimetableSemester,
   TimetableTeacher,
-  TimetableVersion
+  TimetableVersion,
+  TimetableListItem
 } from '../../core/models/timetable.models';
 import { TimetableService } from '../../core/services/timetable.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -84,11 +85,28 @@ export class SchoolTimetableComponent implements OnInit {
   readonly cellDialogVisible = signal(false);
   readonly createDialogVisible = signal(false);
   readonly versionsDialogVisible = signal(false);
+  readonly checkpointDialogVisible = signal(false);
+  readonly cloneDialogVisible = signal(false);
   readonly grantsDialogVisible = signal(false);
   readonly regenerateDialogVisible = signal(false);
   readonly regenerating = signal(false);
   readonly versions = signal<TimetableVersion[]>([]);
+  readonly historyFilter = signal<'all' | 'automatic' | 'manual' | 'restore'>('all');
+  readonly timetableOptions = signal<TimetableListItem[]>([]);
   readonly versionsLoading = signal(false);
+  readonly filteredVersions = computed(() => {
+    const filter = this.historyFilter();
+    return this.versions().filter(version => {
+      if (filter === 'all') return true;
+      if (filter === 'restore') return version.changeKind === 5 || version.changeKind === 10;
+      if (filter === 'manual') return version.changeKind === 2 || version.changeKind === 6 || version.changeKind === 7 || version.changeKind === 8;
+      return version.changeKind === 1 || version.changeKind === 3 || version.changeKind === 4 || version.changeKind === 9 || version.changeKind === 11;
+    });
+  });
+  readonly historyStats = computed(() => {
+    const versions = this.versions();
+    return { total: versions.length, actors: new Set(versions.map(version => version.createdByFullName)).size };
+  });
   readonly contextBellSchedule = signal<BellSchedule | null>(null);
   readonly gridFullscreen = signal(false);
   readonly cellDialogTab = signal<'edit' | 'swap'>('edit');
@@ -143,6 +161,10 @@ export class SchoolTimetableComponent implements OnInit {
   draftClass = '';
   draftSubject = '';
   newTitle = '';
+  checkpointName = '';
+  checkpointNote = '';
+  cloneTitle = '';
+  cloneVersionNumber: number | null = null;
   grantedModeratorIds = new Set<string>();
 
   ngOnInit(): void {
@@ -208,6 +230,7 @@ export class SchoolTimetableComponent implements OnInit {
         this.loading.set(false);
         const timetable = response.data ?? null;
         this.applyTimetable(timetable);
+        if (this.canManage()) this.loadTimetableOptions(academicYearId);
         if (this.canManage() && !timetable?.bellSchedule) {
           this.loadContextBellSchedule(academicYearId, this.selectedSemester());
         }
@@ -216,6 +239,25 @@ export class SchoolTimetableComponent implements OnInit {
         this.loading.set(false);
         this.toast.error('تعذر تحميل الجدول', extractHttpErrorMessage(error) ?? '');
       }
+    });
+  }
+
+  loadTimetableOptions(academicYearId: number): void {
+    this.api.list(academicYearId, this.selectedSemester()).subscribe({
+      next: response => this.timetableOptions.set(response.data ?? []),
+      error: () => this.timetableOptions.set([])
+    });
+  }
+
+  selectTimetable(id: string): void {
+    const timetableId = Number(id);
+    if (!timetableId || timetableId === this.timetable()?.id || this.loading() || this.saving()) return;
+    if (this.dirty() && !window.confirm('يوجد تعديلات غير محفوظة. هل تريد الانتقال بدون حفظها؟')) return;
+    this.inlineSwap.cancel();
+    this.loading.set(true);
+    this.api.getById(timetableId).subscribe({
+      next: response => { this.loading.set(false); this.applyTimetable(response.data ?? null); },
+      error: error => { this.loading.set(false); this.toast.error('تعذر تحميل النسخة', extractHttpErrorMessage(error) ?? ''); }
     });
   }
 
@@ -595,6 +637,29 @@ export class SchoolTimetableComponent implements OnInit {
     });
   }
 
+  setHistoryFilter(filter: 'all' | 'automatic' | 'manual' | 'restore'): void {
+    this.historyFilter.set(filter);
+  }
+
+  versionIcon(version: TimetableVersion): string {
+    if (version.changeKind === 10) return 'pi pi-bookmark-fill';
+    if (version.changeKind === 5) return 'pi pi-replay';
+    if (version.changeKind === 3) return 'pi pi-check-circle';
+    if (version.changeKind === 9) return 'pi pi-sparkles';
+    if (version.changeKind === 11) return 'pi pi-copy';
+    if (version.changeKind === 4) return 'pi pi-file-import';
+    return 'pi pi-pencil';
+  }
+
+  versionTone(version: TimetableVersion): string {
+    if (version.changeKind === 10) return 'checkpoint';
+    if (version.changeKind === 5) return 'restore';
+    if (version.changeKind === 3) return 'publish';
+    if (version.changeKind === 9) return 'generate';
+    if (version.changeKind === 11) return 'clone';
+    return 'edit';
+  }
+
   restore(version: TimetableVersion): void {
     const timetable = this.timetable();
     if (!timetable || !window.confirm(`استرجاع النسخة رقم ${version.versionNumber}؟ سيتم حفظها كنسخة حالية جديدة.`)) return;
@@ -610,6 +675,54 @@ export class SchoolTimetableComponent implements OnInit {
         this.saving.set(false);
         this.toast.error('تعذر استرجاع النسخة', extractHttpErrorMessage(error) ?? '');
       }
+    });
+  }
+
+  openCheckpoint(): void {
+    if (!this.timetable() || this.dirty()) return;
+    this.checkpointName = '';
+    this.checkpointNote = '';
+    this.checkpointDialogVisible.set(true);
+  }
+
+  createCheckpoint(): void {
+    const timetable = this.timetable();
+    if (!timetable || !this.checkpointName.trim()) return;
+    this.saving.set(true);
+    this.api.checkpoint(timetable.id, timetable.revision, this.checkpointName.trim(), this.checkpointNote.trim() || undefined).subscribe({
+      next: response => {
+        this.saving.set(false);
+        if (response.data) this.applyTimetable(response.data);
+        this.checkpointDialogVisible.set(false);
+        this.toast.success('تم إنشاء نقطة الاستعادة', 'تم تسجيل الاسم والملاحظة وصاحب العملية.');
+        this.openVersions();
+      },
+      error: error => { this.saving.set(false); this.toast.error('تعذر إنشاء نقطة الاستعادة', extractHttpErrorMessage(error) ?? ''); }
+    });
+  }
+
+  openClone(version?: TimetableVersion): void {
+    const timetable = this.timetable();
+    if (!timetable || this.dirty()) return;
+    this.cloneTitle = `${timetable.title} - نسخة تجريبية`;
+    this.cloneVersionNumber = version?.versionNumber ?? null;
+    this.cloneDialogVisible.set(true);
+  }
+
+  cloneTimetable(): void {
+    const timetable = this.timetable();
+    if (!timetable || !this.cloneTitle.trim()) return;
+    this.saving.set(true);
+    this.api.clone(timetable.id, timetable.revision, this.cloneTitle.trim(), this.cloneVersionNumber ?? undefined).subscribe({
+      next: response => {
+        this.saving.set(false);
+        if (response.data) this.applyTimetable(response.data);
+        this.cloneDialogVisible.set(false);
+        this.versionsDialogVisible.set(false);
+        if (response.data) this.loadTimetableOptions(response.data.academicYearId);
+        this.toast.success('تم إنشاء نسخة مستقلة', 'تم حفظ مصدر النسخة ورقم الإصدار.');
+      },
+      error: error => { this.saving.set(false); this.toast.error('تعذر نسخ الجدول', extractHttpErrorMessage(error) ?? ''); }
     });
   }
 

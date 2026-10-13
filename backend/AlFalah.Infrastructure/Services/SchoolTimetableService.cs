@@ -40,6 +40,19 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         _generation = generation;
     }
 
+    public async Task<IReadOnlyList<TimetableListItemDto>> ListAsync(int academicYearId, TimetableSemester semester,
+        int? schoolId, CancellationToken cancellationToken = default)
+    {
+        EnsureSemester(semester);
+        var resolvedSchoolId = ResolveSchoolId(schoolId);
+        await EnsureManageAsync(resolvedSchoolId, cancellationToken);
+        return await _repository.GetAll()
+            .Where(x => x.SchoolId == resolvedSchoolId && x.AcademicYearId == academicYearId && x.Semester == semester)
+            .OrderBy(x => x.IsClone).ThenByDescending(x => x.UpdatedAt).ThenByDescending(x => x.Id)
+            .Select(x => new TimetableListItemDto(x.Id, x.Title, x.IsClone, x.IsPublished))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<TimetableCatalogDto> GetCatalogAsync(
         int? schoolId,
         CancellationToken cancellationToken = default,
@@ -138,6 +151,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             .Where(x => x.SchoolId == resolvedSchoolId
                 && x.AcademicYearId == academicYearId
                 && x.Semester == semester
+                && !x.IsClone
                 && (x.IsPublished || capabilities.CanManage))
             .OrderByDescending(x => !x.TimingsRequireRevalidation
                 && x.SetupRevision.HasValue
@@ -163,12 +177,12 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     {
         var header = await _repository.GetAll()
             .Where(x => x.Id == timetableId)
-            .Select(x => new { x.SchoolId, x.IsPublished })
+            .Select(x => new { x.SchoolId, x.IsPublished, x.IsClone })
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new KeyNotFoundException("الجدول غير موجود.");
         EnsureSchoolScope(header.SchoolId);
         var capabilities = await GetCapabilitiesAsync(header.SchoolId, cancellationToken);
-        if (!header.IsPublished && !capabilities.CanManage)
+        if ((!header.IsPublished || header.IsClone) && !capabilities.CanManage)
             throw new KeyNotFoundException("لا يوجد جدول منشور حاليًا.");
         return await LoadDtoAsync(timetableId, capabilities, cancellationToken, personalOnly);
     }
@@ -276,9 +290,11 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     {
         var timetable = await RequireHeaderAsync(timetableId, cancellationToken);
         await EnsureManageAsync(timetable.SchoolId, cancellationToken);
-        return await _repository.GetVersions(timetableId)
+        var rows = await _repository.GetVersions(timetableId)
+            .Include(x => x.CreatedByUser)
             .OrderByDescending(x => x.VersionNumber)
-            .Select(x => new TimetableVersionDto(
+            .ToListAsync(cancellationToken);
+        return rows.Select(x => new TimetableVersionDto(
                 x.Id,
                 x.VersionNumber,
                 x.ChangeKind,
@@ -286,8 +302,124 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 x.Title,
                 x.CreatedAt,
                 (x.CreatedByUser.FirstName + " " + x.CreatedByUser.LastName).Trim(),
-                x.RestoredFromVersionNumber))
-            .ToListAsync(cancellationToken);
+                x.RestoredFromVersionNumber,
+                x.CheckpointName,
+                x.CheckpointNote,
+                x.SourceTimetableId,
+                x.SourceVersionNumber,
+                x.ChangeSummary,
+                DeserializeChangeDetails(x.ChangeDetailsJson)))
+            .ToList();
+    }
+
+    public async Task<SchoolTimetableDto> CreateCheckpointAsync(
+        int timetableId,
+        CreateTimetableCheckpointRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var timetable = await RequireTrackedAsync(timetableId, cancellationToken);
+        await EnsureManageAsync(timetable.SchoolId, cancellationToken);
+        EnsureRevision(timetable, request.Revision);
+        var name = NormalizeRequired(request.Name, 150, "اسم نقطة الاستعادة");
+        var note = NormalizeOptional(request.Note, 1000);
+        await _repository.ExecuteInTransactionAsync(async ct =>
+        {
+            var current = await _repository.GetAll().Include(x => x.Entries).SingleAsync(x => x.Id == timetableId, ct);
+            EnsureRevision(current, request.Revision);
+            await AddVersionAsync(current, SnapshotEntries(current.Entries), TimetableChangeKind.Checkpoint, null, ct,
+                checkpointName: name, checkpointNote: note,
+                audit: new ChangeAudit("نقطة استعادة محفوظة", [new TimetableChangeDetailDto("checkpoint", "لقطة كاملة محفوظة", 1, null, name)]));
+            await _repository.SaveChangesAsync(ct);
+        }, cancellationToken);
+
+        return await GetByIdAsync(timetableId, cancellationToken);
+    }
+
+    public async Task<SchoolTimetableDto> CloneAsync(
+        int timetableId,
+        CloneTimetableRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var header = await RequireHeaderAsync(timetableId, cancellationToken);
+        await EnsureManageAsync(header.SchoolId, cancellationToken);
+        var title = NormalizeRequired(request.Title, 250, "عنوان النسخة");
+        var cloneId = 0;
+        await _repository.ExecuteInTransactionAsync(async ct =>
+        {
+            var source = await _repository.GetAll().Include(x => x.Entries).SingleAsync(x => x.Id == timetableId, ct);
+            EnsureRevision(source, request.Revision);
+            SchoolTimetableVersion? sourceVersion = null;
+            TimetableSnapshotDto snapshot;
+            if (request.VersionNumber.HasValue)
+            {
+                sourceVersion = await _repository.GetVersions(source.Id)
+                    .FirstOrDefaultAsync(x => x.VersionNumber == request.VersionNumber.Value, cancellationToken)
+                    ?? throw new KeyNotFoundException("نسخة المصدر المطلوبة غير موجودة.");
+                snapshot = JsonSerializer.Deserialize<TimetableSnapshotDto>(sourceVersion.SnapshotJson)
+                    ?? throw new InvalidOperationException("تعذر قراءة نسخة المصدر.");
+            }
+            else
+            {
+                var timing = source.BellScheduleRevisionId.HasValue
+                    ? await _timings.GetRevisionAsync(source.SchoolId, source.BellScheduleRevisionId.Value, cancellationToken)
+                    : null;
+                snapshot = new TimetableSnapshotDto(source.Title, SnapshotEntries(source.Entries), timing);
+            }
+
+            var bellRevisionId = snapshot.BellSchedule?.RevisionId ?? source.BellScheduleRevisionId;
+            if (!bellRevisionId.HasValue)
+                throw new ArgumentException("الجدول المصدر لا يحتوي على توقيت صالح.");
+            var userId = RequireUserId();
+            var now = DateTimeOffset.UtcNow;
+            var clone = new SchoolTimetable
+            {
+                SchoolId = source.SchoolId,
+                AcademicYearId = source.AcademicYearId,
+                Semester = source.Semester,
+                Title = title,
+                BellScheduleRevisionId = bellRevisionId,
+                TimetableSetupProfileId = source.TimetableSetupProfileId,
+                SetupRevision = source.SetupRevision,
+                TimingsRequireRevalidation = source.TimingsRequireRevalidation,
+                IsClone = true,
+                Revision = 1,
+                CreatedByUserId = userId,
+                UpdatedByUserId = userId,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+            var entries = snapshot.Entries.Select(x => new SchoolTimetableEntry
+            {
+                SchoolId = source.SchoolId,
+                InstructorProfileId = x.InstructorProfileId,
+                Day = x.Day,
+                Period = x.Period,
+                EntryType = x.EntryType,
+                ClassLabel = x.ClassLabel,
+                Subject = x.Subject,
+                ClassroomId = x.ClassroomId,
+                SubjectId = x.SubjectId,
+                ClassSubjectRequirementId = x.ClassSubjectRequirementId,
+                RoomId = x.RoomId,
+                CreatedAt = now,
+                UpdatedAt = now
+            }).ToList();
+
+            await _repository.AddAsync(clone, ct);
+            await _repository.SaveChangesAsync(ct);
+            foreach (var entry in entries) entry.SchoolTimetableId = clone.Id;
+            await _repository.AddEntriesAsync(entries, ct);
+            await _repository.SaveChangesAsync(ct);
+            await AddVersionAsync(clone, SnapshotEntries(entries), TimetableChangeKind.Cloned, null, ct,
+                sourceTimetableId: source.Id, sourceVersionNumber: sourceVersion?.VersionNumber ??
+                    await _repository.GetVersions(source.Id).Select(x => (int?)x.VersionNumber).MaxAsync(ct),
+                audit: new ChangeAudit("تم إنشاء نسخة مستقلة", [new TimetableChangeDetailDto("clone", "مصدر النسخة", 1,
+                    sourceVersion is null ? "الإصدار الحالي" : $"الإصدار {sourceVersion.VersionNumber}", title)]));
+            await _repository.SaveChangesAsync(ct);
+            cloneId = clone.Id;
+        }, cancellationToken);
+
+        return await GetByIdAsync(cloneId, cancellationToken);
     }
 
     public async Task<SchoolTimetableDto> RestoreAsync(
@@ -411,6 +543,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         var now = DateTimeOffset.UtcNow;
         await _repository.ExecuteInTransactionAsync(async ct =>
         {
+            var previousTitle = timetable.Title;
+            var previousEntries = SnapshotEntries(timetable.Entries);
             var currentEntries = timetable.Entries.Where(x => !x.IsDeleted).ToList();
             _repository.SoftDeleteEntries(currentEntries, now);
             if (currentEntries.Count > 0) await _repository.SaveChangesAsync(ct);
@@ -446,7 +580,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             }
             timetable.Revision++;
             await SaveWithConcurrencyMessageAsync(ct);
-            await AddVersionAsync(timetable, entries, changeKind, restoredFromVersion, ct);
+            await AddVersionAsync(timetable, entries, changeKind, restoredFromVersion, ct,
+                audit: BuildChangeAudit(changeKind, previousTitle, previousEntries, title, entries));
             await _repository.SaveChangesAsync(ct);
         }, cancellationToken);
     }
@@ -462,13 +597,19 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         IReadOnlyList<TimetableEntryDto> entries,
         TimetableChangeKind changeKind,
         int? restoredFromVersion,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? checkpointName = null,
+        string? checkpointNote = null,
+        int? sourceTimetableId = null,
+        int? sourceVersionNumber = null,
+        ChangeAudit? audit = null)
     {
         var lastVersion = await _repository.GetVersions(timetable.Id)
             .Select(x => (int?)x.VersionNumber)
             .MaxAsync(cancellationToken) ?? 0;
         var timing = timetable.BellScheduleRevisionId.HasValue ? await _timings.GetRevisionAsync(timetable.SchoolId, timetable.BellScheduleRevisionId.Value, cancellationToken) : null;
-        var snapshot = JsonSerializer.Serialize(new TimetableSnapshotDto(timetable.Title, entries, timing));
+        var snapshot = JsonSerializer.Serialize(new TimetableSnapshotDto(timetable.Title, entries, timing,
+            timetable.TimetableSetupProfileId, timetable.SetupRevision));
         await _repository.AddVersionAsync(new SchoolTimetableVersion
         {
             SchoolTimetableId = timetable.Id,
@@ -478,9 +619,73 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             SnapshotJson = snapshot,
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedByUserId = RequireUserId(),
-            RestoredFromVersionNumber = restoredFromVersion
+            RestoredFromVersionNumber = restoredFromVersion,
+            CheckpointName = checkpointName,
+            CheckpointNote = checkpointNote,
+            SourceTimetableId = sourceTimetableId,
+            SourceVersionNumber = sourceVersionNumber,
+            ChangeSummary = audit?.Summary ?? ChangeKindLabel(changeKind),
+            ChangeDetailsJson = audit is null ? null : JsonSerializer.Serialize(audit.Details)
         }, cancellationToken);
     }
+
+    private sealed record ChangeAudit(string Summary, IReadOnlyList<TimetableChangeDetailDto> Details);
+
+    private static IReadOnlyList<TimetableChangeDetailDto> DeserializeChangeDetails(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return Array.Empty<TimetableChangeDetailDto>();
+        try { return JsonSerializer.Deserialize<IReadOnlyList<TimetableChangeDetailDto>>(json) ?? []; }
+        catch (JsonException) { return Array.Empty<TimetableChangeDetailDto>(); }
+    }
+
+    private static ChangeAudit BuildChangeAudit(
+        TimetableChangeKind kind,
+        string previousTitle,
+        IReadOnlyList<TimetableEntryDto> previousEntries,
+        string currentTitle,
+        IReadOnlyList<TimetableEntryDto> currentEntries)
+    {
+        var before = previousEntries.ToDictionary(SlotKey, EntrySignature);
+        var after = currentEntries.ToDictionary(SlotKey, EntrySignature);
+        var added = after.Keys.Except(before.Keys).Count();
+        var removed = before.Keys.Except(after.Keys).Count();
+        var changed = before.Keys.Intersect(after.Keys).Count(key => !string.Equals(before[key], after[key], StringComparison.Ordinal));
+        var details = new List<TimetableChangeDetailDto>();
+        if (added > 0) details.Add(new("added", "حصص أضيفت", added));
+        if (removed > 0) details.Add(new("removed", "حصص حُذفت", removed));
+        if (changed > 0) details.Add(new("changed", "حصص عُدلت", changed));
+        if (!string.Equals(previousTitle, currentTitle, StringComparison.Ordinal))
+            details.Add(new("title", "عنوان الجدول", 1, previousTitle, currentTitle));
+        if (details.Count == 0)
+            details.Add(new("operation", ChangeKindLabel(kind), 1));
+
+        var summary = kind switch
+        {
+            TimetableChangeKind.Saved => "تم حفظ تعديل يدوي",
+            TimetableChangeKind.Regenerated => "تمت إعادة توليد الجدول",
+            TimetableChangeKind.Imported => "تم استيراد جدول من Excel",
+            TimetableChangeKind.Restored => "تم استرجاع إصدار سابق",
+            _ => ChangeKindLabel(kind)
+        };
+        return new ChangeAudit(summary, details);
+    }
+
+    private static string SlotKey(TimetableEntryDto entry) => $"{entry.InstructorProfileId}:{entry.Day}:{entry.Period}";
+
+    private static string EntrySignature(TimetableEntryDto entry) => JsonSerializer.Serialize(new
+    {
+        entry.EntryType, entry.ClassLabel, entry.Subject, entry.ClassroomId, entry.SubjectId,
+        entry.ClassSubjectRequirementId, entry.RoomId
+    });
+
+    private static IReadOnlyList<TimetableEntryDto> SnapshotEntries(IEnumerable<SchoolTimetableEntry> entries) =>
+        entries.Where(x => !x.IsDeleted).OrderBy(x => x.InstructorProfileId).ThenBy(x => x.Day).ThenBy(x => x.Period)
+            .Select(x => new TimetableEntryDto(x.InstructorProfileId, x.Day, x.Period, x.EntryType,
+                x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId,
+                x.SubjectDefinition?.Color, x.Room?.Name, x.Id)).ToArray();
+
+    private static IReadOnlyList<TimetableEntryDto> SnapshotEntries(IEnumerable<TimetableEntryDto> entries) =>
+        entries.Select(x => x with { Id = null }).ToArray();
 
     private async Task<List<TimetableEntryDto>> NormalizeAndValidateEntriesAsync(
         SchoolTimetable timetable,
@@ -563,7 +768,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 x.Count(e => e.EntryType == TimetableEntryType.Standby)))
             .ToList();
         var header = await _repository.GetAll().Where(x => x.Id == timetableId)
-            .Select(x => new { x.BellScheduleRevisionId, x.TimingsRequireRevalidation, x.TimetableSetupProfileId }).SingleAsync(cancellationToken);
+            .Select(x => new { x.BellScheduleRevisionId, x.TimingsRequireRevalidation, x.TimetableSetupProfileId, x.IsClone }).SingleAsync(cancellationToken);
         var timing = header.BellScheduleRevisionId.HasValue ? await _timings.GetRevisionAsync(data.SchoolId, header.BellScheduleRevisionId.Value, cancellationToken) : null;
         return new SchoolTimetableDto(
             data.Id,
@@ -579,7 +784,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             data.UpdatedAt,
             data.Entries,
             summaries,
-            capabilities, timing, header.TimingsRequireRevalidation, header.TimetableSetupProfileId);
+            capabilities, timing, header.TimingsRequireRevalidation, header.TimetableSetupProfileId, header.IsClone);
     }
 
     private bool ShouldLimitToCurrentInstructor(TimetableCapabilitiesDto capabilities, bool personalOnly) =>
@@ -685,6 +890,14 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         return normalized;
     }
 
+    private static string? NormalizeOptional(string? value, int maxLength)
+    {
+        var normalized = value?.Trim();
+        return string.IsNullOrWhiteSpace(normalized) ? null : normalized.Length > maxLength
+            ? throw new ArgumentException($"Ø§Ù„Ù†Øµ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø£Ù† ÙŠØªØ¬Ø§ÙˆØ² {maxLength} Ø­Ø±ÙÙ‹Ø§.")
+            : normalized;
+    }
+
     private static TimetableEntryDto ToDto(SchoolTimetableEntry entry) => new(
         entry.InstructorProfileId,
         entry.Day,
@@ -720,6 +933,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         TimetableChangeKind.Imported => "استيراد Excel",
         TimetableChangeKind.Restored => "استرجاع نسخة",
         TimetableChangeKind.Regenerated => "إعادة توليد",
+        TimetableChangeKind.Checkpoint => "نقطة استعادة",
+        TimetableChangeKind.Cloned => "نسخ مستقل",
         _ => kind.ToString()
     };
 

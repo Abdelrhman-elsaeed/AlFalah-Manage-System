@@ -68,6 +68,8 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
     }, ct);
     public Task<TimetableReviewResultDto> PublishAsync(int id, int revision, CancellationToken ct) => repository.ExecuteAsync(async token => {
         School(true); var c = await Context(id, token);
+        if (c.Timetable.IsClone)
+            throw new ArgumentException("النسخة التجريبية مخصصة للمراجعة والتجربة؛ لا تُنشر كجدول أساسي.");
         if (c.Timetable.Revision != revision) throw new BellScheduleConflictException("Stale timetable");
         var run = await Analyze(c, false, token);
         if (run.HardViolationCount > 0 || !c.Timetable.Entries.Any(x => !x.IsDeleted && x.EntryType == TimetableEntryType.Lesson))
@@ -162,7 +164,18 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
                 TimetableValidationEngine.Breaks(s, d.Day).Select(b => new ScheduleBreakDto(b.Name, b.Category, b.Window.StartLocalTime, b.Window.EndLocalTime)).ToArray())).ToArray(), []);
         var version = new SchoolTimetableVersion { SchoolTimetableId = c.Timetable.Id, VersionNumber = await repository.NextVersionAsync(c.Timetable.Id, ct),
             ChangeKind = kind, Title = c.Timetable.Title, CreatedByUserId = user.UserId!,
-            SnapshotJson = JsonSerializer.Serialize(new TimetableSnapshotDto(c.Timetable.Title, entries, schedule)) };
+            ChangeSummary = kind switch
+            {
+                TimetableChangeKind.Published => "تم نشر الجدول",
+                TimetableChangeKind.Saved => "تم تطبيق إصلاح على الجدول",
+                _ => kind.ToString()
+            },
+            ChangeDetailsJson = JsonSerializer.Serialize(new[]
+            {
+                new TimetableChangeDetailDto("operation", kind == TimetableChangeKind.Published ? "نشر الجدول" : "تعديل من شاشة المراجعة", 1)
+            }),
+            SnapshotJson = JsonSerializer.Serialize(new TimetableSnapshotDto(c.Timetable.Title, entries, schedule,
+                c.Timetable.TimetableSetupProfileId, c.Timetable.SetupRevision)) };
         repository.AddVersion(version);
         return version;
     }

@@ -2,7 +2,7 @@
 
 **التاريخ:** 2026-10-12 — Africa/Cairo.  
 **اختيار المستخدم:** البدء بقواعد الجدولة → التوليد → المراجعة.  
-**Status:** Investigation scope complete. D-01, D-02, D-03, and D-06 are implemented locally; Smartble generation/deep-check POST remains unexecuted and its server algorithm is UNKNOWN.
+**Status:** Investigation scope complete. D-01, D-02, D-03, D-06, and D-07 are implemented locally; Smartble generation/deep-check POST remains unexecuted and its server algorithm is UNKNOWN.
 
 ## 1. أهم النتائج
 
@@ -192,10 +192,12 @@ LOCAL_PROPOSED_OUTCOME_CONTRACT():  // independent recommendation
 | D-01 / P1 — **منفذ** | توحيد allowed rooms وpreferred ranking بين اليدوي والتوليد والمراجعة؛ إزالة رفض غرفة مسموحة | الواجهة الحالية محفوظة | GenerationEngine وValidationEngine؛ لا migration | 53 اختبارًا مستهدفًا + full timetable suite؛ high | المفضلة والبدائل مرشحة؛ المراجعة تقبل الاثنين؛ occupancy/co-teaching محفوظان |
 | D-02 / P1 — **منفذ** | فصل limit/infeasible/cancelled feedback؛ منع رسالة استحالة غير مثبتة | `school-timetable.component` يعرض عنوانًا حسب `errorCode` | GenerationEngine، GlobalExceptionMiddleware، ApiResponse؛ لا DB change | 198 اختبار backend ناجحًا ضمن النطاق؛ high | `Infeasible` و`SearchLimitReached` مستقلان؛ errorCode يصل للواجهة؛ لا partial save؛ cancellation منفصل |
 | D-03 / P2 - **implemented** | Unify Early/Late window semantics across ranking and review; keep preferences soft | SubjectSchedulingPolicy, TimetableGenerationEngine, TimetableValidationEngine, TimetableSwapValidationSession, and rule code | No migration; added a Late warning while preserving existing enum values | 198 timetable tests with synthetic window/generation/review coverage; high | The same window drives ranking, validation, and swap warnings; Early/Late never block generation |
+| D-06 / P1 - **implemented** | Connect ShortDisplayName and HideFromPrint to PDF output | TimetableDtos, SchoolTimetableService, SchoolTimetableDocumentService | No migration | 204 timetable tests; high | Hidden teacher omitted from PDF; short name printed |
+| D-07 / P2 - **implemented** | Named checkpoints plus independent clone with source/version provenance | SchoolTimetableService, SchoolTimetableVersion, timetables UI, checkpoint/clone API | Two migrations; clone identity keeps source timetable and shared setup | 204 backend tests + 2 Playwright UI tests + four screenshots | Checkpoint actor/time/note; restore creates new version; clone is selectable, editable and cannot be published as primary |
 | D-04 / P2 optional | عرض تقرير استعداد/feasibility قبل regenerate؛ تجميع أسباب قابل للإصلاح | reuse Settings/readiness وreview + modal الحالي؛ لا tabs مكررة | existing validators/readiness؛ endpoint read-only بوضوح إذا لازم؛ لا DB متوقع | D-01/D-02 أولًا؛ Medium؛ high للـUX observed، medium للتصميم المقترح | أسباب actionable مع روابط للإعداد؛ scope/revision محفوظ؛ لا mutation عند الفحص؛ calculation error ظاهر كـunknown لا clean؛ التوليد يؤكد الحالة مجددًا |
 | D-05 / P3 optional | Shared-place capacity عند احتياج فعلي لفصول متزامنة؛ فرق config مرصود | Subject/room settings بنفس layout | Resource capacity policy متسقة في generation/review/manual/swap/repair؛ migration محتملة مع default=1 | حسم physical rooms vs shared place + actual school need؛ Medium–Large؛ high للـclient config، server enforcement UNKNOWN | default يحافظ على exclusivity؛ capacity counts logical class occurrences لا co-teacher rows؛ تداخل زمني فعلي؛ max+1 مرفوض؛ حفظ/swap/repair نفس السياسة |
 
-Baseline print tasks remain in the README roadmap. After D-01, D-02, D-03, and D-06, the next optional work is D-04 and D-05.
+Baseline print tasks remain in the README roadmap. After D-01, D-02, D-03, D-06, and D-07, the next optional work is D-04 and D-05.
 
 ## 12. Finding ledger والأدلة
 
@@ -230,6 +232,6 @@ Additional static evidence: [Generation handler](evidence/generation-client-sour
 | ماذا يحصل قبل Confirm؟ | PARTIALLY ANSWERED: GET traffic + client decisions | validation cases وتأثير reconcile الفعلي |
 | ما algorithm الخادم وهل جودة النتائج أفضل؟ | UNRESOLVED | generation authorized على test data، ثم output comparisons؛ لا claims حاليًا |
 | هل premium restrictions تمنع generation/deep check؟ | UNKNOWN | وجود button/200 لصفحة لا يثبت POST access؛ لم نشتَر أو نتجاوز |
-| Highest-value local fix | ANSWERED | D-01, D-02, D-03, and D-06 are implemented and tested; D-04, D-05, D-07, and D-08 remain deferred |
+| Highest-value local fix | ANSWERED | D-01, D-02, D-03, D-06, and D-07 are implemented and tested; D-04, D-05, and D-08 remain deferred |
 
-مجموعة اختبارات timetable الحالية **198 passed / 0 failed / 0 skipped** بعد التغييرات، منها 53 في generation/review وmiddleware. frontend bundle اتولد بنجاح قبل أن يفشل build بسبب CSS budgets قائمة في storage وvisits؛ frontend test command لم يبدأ بسبب أخطاء TypeScript قديمة في اختبارات غير مرتبطة. **تغيّرت ملفات التطبيق والاختبارات الخاصة بالإصلاحين فقط؛ لم تتغير production data.**
+مجموعة اختبارات timetable الحالية **204 passed / 0 failed / 0 skipped** بعد التغييرات، منها 53 في generation/review وmiddleware. frontend bundle اتولد بنجاح قبل أن يفشل build بسبب CSS budgets قائمة في storage وvisits؛ frontend test command لم يبدأ بسبب أخطاء TypeScript قديمة في اختبارات غير مرتبطة. **تغيّرت ملفات التطبيق والاختبارات الخاصة بالإصلاحين فقط؛ لم تتغير production data.**

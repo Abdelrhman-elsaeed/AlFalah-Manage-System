@@ -14,6 +14,12 @@ public class SchoolTimetableVersion
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string CreatedByUserId { get; set; } = string.Empty;
     public int? RestoredFromVersionNumber { get; set; }
+    public string? CheckpointName { get; set; }
+    public string? CheckpointNote { get; set; }
+    public int? SourceTimetableId { get; set; }
+    public int? SourceVersionNumber { get; set; }
+    public string? ChangeSummary { get; set; }
+    public string? ChangeDetailsJson { get; set; }
 
     public SchoolTimetable SchoolTimetable { get; set; } = null!;
     public ApplicationUser CreatedByUser { get; set; } = null!;

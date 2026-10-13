@@ -2898,6 +2898,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<string>("DeletedByUserId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsClone")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -2959,7 +2962,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "AcademicYearId", "Semester", "TimetableSetupProfileId")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
+                        .HasFilter("[IsDeleted] = 0 AND [IsClone] = 0");
 
                     b.ToTable("SchoolTimetables", (string)null);
                 });
@@ -3070,8 +3073,31 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ChangeDetailsJson")
+                        .HasMaxLength(8000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ChangeKind")
                         .HasColumnType("int");
+
+                    b.Property<string>("ChangeSummary")
+                        .HasMaxLength(500)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(500)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("CheckpointName")
+                        .HasMaxLength(150)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(150)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<string>("CheckpointNote")
+                        .HasMaxLength(1000)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(1000)")
+                        .UseCollation("Arabic_CI_AS");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -3089,6 +3115,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<string>("SnapshotJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SourceTimetableId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SourceVersionNumber")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()

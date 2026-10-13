@@ -84,6 +84,7 @@ export interface SchoolTimetable {
   semesterLabelAr: string;
   title: string;
   isPublished: boolean;
+  isClone?: boolean;
   publishedAt: string | null;
   revision: number;
   updatedAt: string;
@@ -116,7 +117,23 @@ export interface TimetableVersion {
   createdAt: string;
   createdByFullName: string;
   restoredFromVersionNumber: number | null;
+  checkpointName?: string | null;
+  checkpointNote?: string | null;
+  sourceTimetableId?: number | null;
+  sourceVersionNumber?: number | null;
+  changeSummary?: string | null;
+  changeDetails?: TimetableChangeDetail[];
 }
+
+export interface TimetableChangeDetail {
+  code: string;
+  label: string;
+  count: number;
+  before?: string | null;
+  after?: string | null;
+}
+
+export interface TimetableListItem { id: number; title: string; isClone: boolean; isPublished: boolean; }
 
 export interface TimetableImportResult {
   timetable: SchoolTimetable;

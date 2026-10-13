@@ -177,6 +177,76 @@ public sealed class SchoolTimetableServiceTests
     }
 
     [Fact]
+    public async Task Checkpoint_records_name_note_actor_without_changing_the_timetable_revision()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "الجدول"), null);
+        timetable = await service.SaveAsync(timetable.Id, new("الجدول", timetable.Revision,
+            new[] { Lesson(1, "3/1", "رياضيات") }));
+        var versionCount = (await service.GetVersionsAsync(timetable.Id)).Count;
+
+        var checkpoint = await service.CreateCheckpointAsync(timetable.Id,
+            new(timetable.Revision, "قبل التعديل", "Ø­ÙØ¸ Ø§Ù„Ù‚Ø±Ø§Ø± Ø§Ù„Ø£ÙˆÙ„"));
+
+        checkpoint.Revision.Should().Be(timetable.Revision);
+        checkpoint.Entries.Should().ContainSingle();
+        var versions = await service.GetVersionsAsync(timetable.Id);
+        versions.Should().HaveCount(versionCount + 1);
+        versions.First().ChangeKind.Should().Be(TimetableChangeKind.Checkpoint);
+        versions.First().CheckpointName.Should().Be("قبل التعديل");
+        versions.First().CheckpointNote.Should().Be("Ø­ÙØ¸ Ø§Ù„Ù‚Ø±Ø§Ø± Ø§Ù„Ø£ÙˆÙ„");
+        versions.First().CreatedByFullName.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task Every_saved_timetable_change_records_automatic_audit_details()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "Ø§Ù„Ø¬Ø¯ÙˆÙ„"), null);
+        timetable = await service.SaveAsync(timetable.Id, new(timetable.Title, timetable.Revision, new[]
+        {
+            Lesson(1, "3/1", "Ø±ÙŠØ§Ø¶ÙŠØ§Øª")
+        }));
+
+        var version = (await service.GetVersionsAsync(timetable.Id)).First();
+        version.ChangeKind.Should().Be(TimetableChangeKind.Saved);
+        version.ChangeSummary.Should().Be("تم حفظ تعديل يدوي");
+        version.ChangeDetails.Should().ContainSingle(x => x.Code == "added" && x.Count == 1);
+        version.CreatedByFullName.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task Clone_creates_an_independent_draft_with_source_provenance_and_isolated_entries()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        var service = harness.Service(harness.Manager());
+        var source = await service.CreateAsync(new(1, TimetableSemester.First, "الجدول الأصلي"), null);
+        source = await service.SaveAsync(source.Id, new(source.Title, source.Revision,
+            new[] { Lesson(1, "3/1", "رياضيات") }));
+        await service.CreateCheckpointAsync(source.Id, new(source.Revision, "نقطة 1"));
+
+        var clone = await service.CloneAsync(source.Id,
+            new(source.Revision, "نسخة تجريبية", VersionNumber: 3));
+
+        clone.Id.Should().NotBe(source.Id);
+        clone.Title.Should().Be("نسخة تجريبية");
+        clone.IsPublished.Should().BeFalse();
+        clone.Revision.Should().Be(1);
+        clone.Entries.Should().ContainSingle(x => x.Subject == "رياضيات");
+        var cloneVersion = (await service.GetVersionsAsync(clone.Id)).Single();
+        cloneVersion.ChangeKind.Should().Be(TimetableChangeKind.Cloned);
+        cloneVersion.SourceTimetableId.Should().Be(source.Id);
+        cloneVersion.SourceVersionNumber.Should().Be(3);
+
+        await service.SaveAsync(clone.Id, new(clone.Title, clone.Revision,
+            new[] { Lesson(1, "3/1", "علوم") }));
+        (await service.GetByIdAsync(source.Id)).Entries.Single().Subject.Should().Be("رياضيات");
+        (await service.GetByIdAsync(clone.Id)).Entries.Single().Subject.Should().Be("علوم");
+    }
+
+    [Fact]
     public async Task Manager_current_schedule_prefers_the_generated_populated_timetable_over_an_empty_draft()
     {
         await using var harness = await TimetableHarness.CreateAsync();
@@ -301,6 +371,72 @@ public sealed class SchoolTimetableServiceTests
         unchanged.Revision.Should().Be(timetable.Revision);
         unchanged.Entries.Should().BeEquivalentTo(originalEntries);
         (await service.GetVersionsAsync(timetable.Id)).Should().HaveCount(versionsBefore.Count);
+    }
+
+    [Fact]
+    public async Task Checkpoint_can_be_restored_without_rewriting_history_and_clones_do_not_become_current()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        var service = harness.Service(harness.Manager());
+        var source = await service.CreateAsync(new(1, TimetableSemester.First, "Source"), null);
+        source = await service.SaveAsync(source.Id, new(source.Title, source.Revision, [Lesson(1, "3/1", "Math")]));
+        await service.CreateCheckpointAsync(source.Id, new(source.Revision, "Before change", "Decision"));
+        var version = await harness.Context.SchoolTimetableVersions.SingleAsync(x => x.SchoolTimetableId == source.Id && x.VersionNumber == 3);
+        var originalJson = version.SnapshotJson;
+        version.CreatedByUserId.Should().Be(TimetableHarness.ManagerId);
+        source = await service.SaveAsync(source.Id, new(source.Title, source.Revision, [Lesson(1, "3/1", "Science")]));
+        var clone = await service.CloneAsync(source.Id, new(source.Revision, "Experiment 1", 3));
+        clone.Entries.Single().Subject.Should().Be("Math");
+        clone.IsClone.Should().BeTrue();
+        clone.TimetableSetupProfileId.Should().Be(source.TimetableSetupProfileId);
+        await service.CloneAsync(source.Id, new(source.Revision, "Experiment 2"));
+        (await service.ListAsync(1, TimetableSemester.First, null)).Should().HaveCount(3);
+        (await service.GetCurrentAsync(1, TimetableSemester.First, null))!.Id.Should().Be(source.Id);
+        (await service.GetByIdAsync(source.Id)).Revision.Should().Be(source.Revision);
+        var restored = await service.RestoreAsync(source.Id, 3, new(source.Revision));
+        restored.Revision.Should().Be(source.Revision + 1);
+        restored.Entries.Single().Subject.Should().Be("Math");
+        (await harness.Context.SchoolTimetableVersions.SingleAsync(x => x.Id == version.Id)).SnapshotJson.Should().Be(originalJson);
+        (await service.GetVersionsAsync(source.Id)).First().RestoredFromVersionNumber.Should().Be(3);
+        await service.Invoking(x => x.PublishAsync(clone.Id, new(clone.Revision))).Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task Checkpoint_and_clone_reject_stale_invalid_and_unauthorized_requests_without_writes()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        var manager = harness.Service(harness.Manager());
+        var source = await manager.CreateAsync(new(1, TimetableSemester.First, "Source"), null);
+        var count = await harness.Context.SchoolTimetableVersions.CountAsync();
+        await manager.Invoking(x => x.CreateCheckpointAsync(source.Id, new(source.Revision - 1, "Old"))).Should().ThrowAsync<InvalidOperationException>();
+        await manager.Invoking(x => x.CloneAsync(source.Id, new(source.Revision - 1, "Old"))).Should().ThrowAsync<InvalidOperationException>();
+        await manager.Invoking(x => x.CreateCheckpointAsync(source.Id, new(source.Revision, " "))).Should().ThrowAsync<ArgumentException>();
+        await manager.Invoking(x => x.CloneAsync(source.Id, new(source.Revision, "Copy", 999))).Should().ThrowAsync<KeyNotFoundException>();
+        await harness.Service(harness.Moderator()).Invoking(x => x.CloneAsync(source.Id, new(source.Revision, "Denied"))).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+        await harness.Service(harness.Instructor()).Invoking(x => x.CreateCheckpointAsync(source.Id, new(source.Revision, "Denied"))).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+        await harness.Service(harness.Instructor()).Invoking(x => x.ListAsync(1, TimetableSemester.First, null)).Should().ThrowAsync<UnauthorizedSchoolAccessException>();
+        (await harness.Context.SchoolTimetables.CountAsync()).Should().Be(1);
+        (await harness.Context.SchoolTimetableVersions.CountAsync()).Should().Be(count);
+    }
+
+    [Fact]
+    public async Task Published_source_can_be_checkpointed_and_cloned_without_losing_publication()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var service = harness.Service(harness.Manager());
+        var source = await service.CreateAsync(new(1, TimetableSemester.First, "Published"), null);
+        source = await service.RegenerateAsync(source.Id, new(source.Revision));
+        source = await service.PublishAsync(source.Id, new(source.Revision));
+        await service.CreateCheckpointAsync(source.Id, new(source.Revision, "Published decision"));
+        var clone = await service.CloneAsync(source.Id, new(source.Revision, "Draft experiment"));
+        clone.IsPublished.Should().BeFalse();
+        clone.Entries.Select(x => x.Id).Should().NotIntersectWith(source.Entries.Select(x => x.Id));
+        var unchanged = await service.GetByIdAsync(source.Id);
+        unchanged.IsPublished.Should().BeTrue();
+        unchanged.Revision.Should().Be(source.Revision);
+        unchanged.PublishedAt.Should().Be(source.PublishedAt);
+        await harness.Service(harness.Instructor()).Invoking(x => x.GetByIdAsync(clone.Id)).Should().ThrowAsync<KeyNotFoundException>();
     }
 
     private static SaveTimetableEntryRequest Lesson(int teacherId, string classLabel, string subject) =>

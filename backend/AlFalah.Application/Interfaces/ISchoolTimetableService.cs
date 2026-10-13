@@ -5,6 +5,7 @@ namespace AlFalah.Application.Interfaces;
 
 public interface ISchoolTimetableService
 {
+    Task<IReadOnlyList<TimetableListItemDto>> ListAsync(int academicYearId, TimetableSemester semester, int? schoolId, CancellationToken cancellationToken = default);
     Task<TimetableCatalogDto> GetCatalogAsync(int? schoolId, CancellationToken cancellationToken = default, bool personalOnly = true, int? timetableSetupProfileId = null);
     Task<SchoolTimetableDto?> GetCurrentAsync(int academicYearId, TimetableSemester semester, int? schoolId, CancellationToken cancellationToken = default, bool personalOnly = true);
     Task<SchoolTimetableDto> GetByIdAsync(int timetableId, CancellationToken cancellationToken = default, bool personalOnly = true);
@@ -13,6 +14,8 @@ public interface ISchoolTimetableService
     Task<SchoolTimetableDto> SaveAsync(int timetableId, SaveSchoolTimetableRequest request, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> PublishAsync(int timetableId, TimetableRevisionRequest request, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<TimetableVersionDto>> GetVersionsAsync(int timetableId, CancellationToken cancellationToken = default);
+    Task<SchoolTimetableDto> CreateCheckpointAsync(int timetableId, CreateTimetableCheckpointRequest request, CancellationToken cancellationToken = default);
+    Task<SchoolTimetableDto> CloneAsync(int timetableId, CloneTimetableRequest request, CancellationToken cancellationToken = default);
     Task<SchoolTimetableDto> RestoreAsync(int timetableId, int versionNumber, TimetableRevisionRequest request, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<TimetableModeratorDto>> UpdateGrantsAsync(UpdateTimetableGrantsRequest request, int? schoolId, CancellationToken cancellationToken = default);
     Task<TimetableImportResultDto> ImportAsync(int timetableId, Stream stream, int revision, CancellationToken cancellationToken = default);

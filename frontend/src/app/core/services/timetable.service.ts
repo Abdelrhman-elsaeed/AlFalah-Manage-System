@@ -15,7 +15,8 @@ import {
   TimetableModerator,
   TimetablePdfColorMode,
   TimetableSemester,
-  TimetableVersion
+  TimetableVersion,
+  TimetableListItem
 } from '../models/timetable.models';
 
 @Injectable({ providedIn: 'root' })
@@ -42,6 +43,15 @@ export class TimetableService {
     );
   }
 
+  list(academicYearId: number, semester: TimetableSemester): Observable<ApiResponse<TimetableListItem[]>> {
+    const params = new HttpParams().set('academicYearId', academicYearId).set('semester', semester);
+    return this.http.get<ApiResponse<TimetableListItem[]>>(this.base, { params });
+  }
+
+  getById(id: number): Observable<ApiResponse<SchoolTimetable>> {
+    return this.http.get<ApiResponse<SchoolTimetable>>(`${this.base}/${id}`, { params: { personalOnly: 'false' } }).pipe(map(normalizeRequiredTimetableResponse));
+  }
+
   create(request: CreateTimetableRequest): Observable<ApiResponse<SchoolTimetable>> {
     return this.http.post<ApiResponse<SchoolTimetable>>(this.base, request).pipe(map(normalizeRequiredTimetableResponse));
   }
@@ -64,6 +74,14 @@ export class TimetableService {
 
   restore(id: number, versionNumber: number, revision: number): Observable<ApiResponse<SchoolTimetable>> {
     return this.http.post<ApiResponse<SchoolTimetable>>(`${this.base}/${id}/versions/${versionNumber}/restore`, { revision }).pipe(map(normalizeRequiredTimetableResponse));
+  }
+
+  checkpoint(id: number, revision: number, name: string, note?: string): Observable<ApiResponse<SchoolTimetable>> {
+    return this.http.post<ApiResponse<SchoolTimetable>>(`${this.base}/${id}/checkpoints`, { revision, name, note }).pipe(map(normalizeRequiredTimetableResponse));
+  }
+
+  clone(id: number, revision: number, title: string, versionNumber?: number): Observable<ApiResponse<SchoolTimetable>> {
+    return this.http.post<ApiResponse<SchoolTimetable>>(`${this.base}/${id}/clone`, { revision, title, versionNumber }).pipe(map(normalizeRequiredTimetableResponse));
   }
 
   updateGrants(moderatorUserIds: string[]): Observable<ApiResponse<TimetableModerator[]>> {

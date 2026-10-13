@@ -1,0 +1,23 @@
+{
+  "feature": "D-07 timetable checkpoints and independent clones",
+  "environment": "local Angular dev server with Playwright synthetic API responses",
+  "tests": {
+    "command": "npx playwright test --config playwright.timetable.mock.config.ts",
+    "result": "2 passed, 0 failed",
+    "scenarios": [
+      "automatic save snapshot with change summary and per-change details",
+      "create named checkpoint with note",
+      "show checkpoint actor, timestamp, note and restore action",
+      "clone from historical version 3",
+      "show clone provenance and switch between source and clone",
+      "keep checkpoint dialog values after a 409 retry failure"
+    ]
+  },
+  "screenshots": [
+    "d07/checkpoint-dialog.png",
+    "d07/checkpoint-history.png",
+    "d07/clone-dialog.png",
+    "d07/clone-provenance.png"
+  ],
+  "privacy": "Synthetic names and timetable data only; no school account or production data used."
+}

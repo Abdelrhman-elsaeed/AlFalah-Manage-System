@@ -1,11 +1,11 @@
 # Investigation environment and continuation
 
-**التاريخ:** 2026-10-12 — Africa/Cairo  
+**التاريخ:** 2026-10-12 — Africa/Cairo
 **Workspace baseline commit:** `1c5d79939e6bda27edccf0ea6c5769b378769fb3`
 
 **Current investigation status:** CDP/authenticated session شغالان. [Authenticated inventory](authenticated-feature-inventory.md) و[selected scheduling investigation](deep-scheduling-investigation.md) موثقان. المستخدم اختار قواعد الجدولة → التوليد → المراجعة. Local MCP stdio استُخدم أولًا من الـshell دون إعادة setup؛ بعد ذلك ظهرت 170 REA tools مباشرة في Codex ونجح native `binary_session` و`list_browser_targets`. Waiting redirects سببها UNKNOWN. No save/generate/deep-check POST executed.
 
-**Implementation update:** D-01 وD-02 وD-03 اتنفذوا بعد تفويض المستخدم. Harness الـpreferred-room الأصلي مؤقت وخارج المشروع؛ الإصلاحات الحالية مغطاة باختبارات production داخل `backend/AlFalah.Tests`. [Source/hashes](evidence/preferred-room-probe-description.json)، [النتيجة الأصلية](evidence/preferred-room-probe-result.json). لم تتغير production data. D-03 اتنفذ واتغطى باختبارات synthetic؛ D-04 وD-05 مؤجلة.
+**Implementation update:** D-01 وD-02 وD-03 اتنفذوا بعد تفويض المستخدم. Harness الـpreferred-room الأصلي مؤقت وخارج المشروع؛ الإصلاحات الحالية مغطاة باختبارات production داخل `backend/AlFalah.Tests`. [Source/hashes](evidence/preferred-room-probe-description.json)، [النتيجة الأصلية](evidence/preferred-room-probe-result.json). لم تتغير production data. D-03 وD-06 وD-07 اتنفذوا واتغطوا باختبارات production/synthetic؛ D-04 وD-05 وD-08 مؤجلة.
 
 ## What was authorized and completed
 
@@ -124,4 +124,4 @@ rea list-browser-targets http://127.0.0.1:9222 --format json
 | Premium classifications | Feature-specific premium attribution UNKNOWN؛ Trial text and access redirects observed |
 | Functional comparison | Current scoped comparison/roadmap ready؛ preferred-room synthetic reproduction confirmed؛ reference solver/server behavior still UNKNOWN |
 | Documentation | Baseline، inventory، deep report وsanitized evidence saved؛ JSON/link/source-change checks completed |
-| Application implementation | D-01, D-02, D-03, and D-06 implemented; D-04 and D-05 deferred |
+| Application implementation | D-01, D-02, D-03, D-06, and D-07 implemented; D-04, D-05, and D-08 deferred |
