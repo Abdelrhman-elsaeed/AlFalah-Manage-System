@@ -1,6 +1,6 @@
 # Research — Client Evidence and Existing Application
 
-**Reviewed:** 2026-10-13. The original research below is a static baseline. D1 implementation and isolated verification are now recorded in [D1 verification](verification/d1.md); they do not establish D2/D3 or live Google Drive delivery.
+**Reviewed:** 2026-10-13. The original research below is a historical static baseline. D1 and [D2 implementation/verification](verification/d2.md) now address the relevant seams. Original gap descriptions below are preserved as research history; they do not describe the current implemented D2 surface or establish D3/Google delivery.
 
 ## Source inventory
 
@@ -72,7 +72,15 @@ The historical school name, staff names, year and handwritten examples are sampl
 
 ## Scope exclusions
 
-No Noor import, biometric integration, subject-assignment rebuild, waiting-period feature, guardian messaging, morning-attendance changes, disciplinary escalation or general permission-distribution UI is requested in this feature.
+No Noor import, biometric integration, subject-assignment rebuild, waiting-period feature, morning-attendance changes, disciplinary escalation or general permission-distribution UI is requested in this feature. The later 2026-10-13 amendment adds dismissal-lateness guardian notices, student-record facts and existing manager statistics in D2; it supersedes the original guardian-messaging exclusion only for this narrow workflow. C17 resolves delivery to both guardian dashboard and existing internal Messages, authored by System; external WhatsApp/SMS is outside the requirement.
+
+## Owner amendment research — 2026-10-13
+
+Reopened all five original images and verified their fingerprints against this inventory. [references.md](references.md) records clickable original paths and mandatory report/letter mapping; originals remain unchanged and outside the repository. `4.jpeg` controls exact report division; `5.jpeg` controls the letter. Images 2/3 do not expand duty into subject assignment or waiting-period execution.
+
+[dismissal-lateness.md](dismissal-lateness.md) captures selected-student entry, guardian notices, history and manager count/list scope. Static inspection confirms effective `StudentGuardian` notification links, in-app `StudentAffairsNotificationDispatcher` recipient selection and `SchoolManagerOperationsDto`/overview seams. `StudentWorkflowRepository.GetStudentTimelineAsync` is an empty placeholder requiring a real scoped dismissal projection in D2. This planning change claims no new runtime delivery or visual acceptance.
+
+C17 follow-up: `guardian-dashboard.component.ts` links messages to `/student-affairs/messages` and notifications to guardian notifications. `MessagingEntities.cs` requires `ConversationMessage.SenderUserId`/`SenderUser`; current thread types and `SendConversationMessageCommandHandler` support human conversations. `MessagingDeliveryPolicy` handles teacher office hours, while `MessageReceipt` retains delivery/read evidence. No system-origin sender capability is established by this review. D2 must add it with trusted server creation, additive contracts/UI, recipient isolation and independent deduplicated dashboard/message results; do not impersonate the recorder or relax human authorization.
 
 ## Waiting-period follow-up — 2026-10-13
 
@@ -86,3 +94,11 @@ The owner asked whether the pictured waiting-period register already exists and 
 - The inspected cover records/contracts do not include the pictured `ما تم تنفيذه في حصة الانتظار` execution narrative or the covering teacher's execution signature. Existing timetable export is not evidence of a source-faithful signed `QF71-B-2-1` daily register.
 
 Recommendation, not an approved scope addition: finish D1–D3 duty first, then extend the existing standby/cover workflow with the official execution register, teacher acknowledgement/signature, and its document/archive needs after clarifying its rules. Reuse attendance and existing timetable cover instead of creating a second substitution system. Both features can react to the same staff absence while retaining separate assignment, fairness, execution and document records. Existing standby allocations/cover counts do not weight the owner's confirmed equal duty rotation.
+
+## D2 implementation findings
+
+Reopened actual originals before editing, especially report `4.jpeg` and letter `5.jpeg`, preserving their logical sections and private source files. Current execution snapshots retain original/substitute identity/signature positions, separate notes, student table order/selected-enrollment mappings, observations, added last departure and handover/footer.
+
+Replaced the real `GetStudentTimelineAsync` empty seam with retained dismissal revision projection and added the same facts to the actual analytics profile. Extended existing manager operations/overview rather than creating a replacement dashboard. Existing student-record authorization remains intact.
+
+Current messaging now has a narrow System origin with null human sender, trusted correlation and recipient-only SystemNotice threads; no login account impersonation. Hosted worker dispatch is independently verified through actual synthetic SQL/HTTP, including both surfaces and independent reads. Browser captures use mocked synthetic APIs and prove rendering/request behavior only. See [D2 verification](verification/d2.md) for implemented file boundaries, migration/refinements, regressions, real versus mocked results and limitations. D3 remains unstarted.

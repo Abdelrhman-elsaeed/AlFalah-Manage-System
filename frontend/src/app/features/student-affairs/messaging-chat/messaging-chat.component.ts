@@ -30,6 +30,8 @@ import { StudentAffairsDashboardService } from '../../../core/services/student-a
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { MessagingUnreadService } from '../../../core/services/messaging-unread.service';
+import { ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 interface ConversationRecipientOption {
   readonly key: string;
@@ -63,9 +65,9 @@ interface ConversationContact {
 @Component({
   selector: 'app-messaging-chat',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, DialogModule, DropdownModule, InputTextModule, InputTextareaModule, ProgressSpinnerModule, TagModule],
+  imports: [CommonModule, ReactiveFormsModule, ButtonModule, DialogModule, DropdownModule, InputTextModule, InputTextareaModule, ProgressSpinnerModule, TagModule, TranslateModule],
   templateUrl: './messaging-chat.component.html',
-  styleUrl: './messaging-chat.component.css'
+  styleUrls: ['./messaging-chat.component.css','./system-notice-message.css']
 })
 export class MessagingChatComponent implements OnInit {
   private readonly api = inject(Phase5Service);
@@ -75,6 +77,8 @@ export class MessagingChatComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly messagingUnread = inject(MessagingUnreadService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly translate = inject(TranslateService);
 
   readonly conversations = signal<readonly ConversationDto[]>([]);
   readonly totalRecords = signal(0);
@@ -237,6 +241,9 @@ export class MessagingChatComponent implements OnInit {
         const items = pages.flatMap(response => response.data?.items ?? []);
         this.conversations.set(items);
         this.totalRecords.set(pages[0].data.totalCount);
+        const deepLink = Number(this.route.snapshot.queryParamMap.get('conversationId'));
+        const linked = items.find(x=>x.id===deepLink);
+        if (linked && !this.selected()) { this.selectConversation(linked); return; }
         const selectedId = this.selected()?.id;
         if (selectedId) {
           const latest = items.find(item => item.id === selectedId);
@@ -571,7 +578,7 @@ export class MessagingChatComponent implements OnInit {
       ? `أقرب ساعات مكتبية وموعد الرد المتوقع: ${this.formatOfficeHoursTime(message.nextEligibleSendAt)} (بتوقيت المدرسة).`
       : 'لم يُحدد موعد للساعات المكتبية بعد؛ لا يمكن تحديد موعد الرد المتوقع حاليًا.';
   }
-  threadTypeLabel(type: ConversationDto['threadType']): string { return ({ GuardianTeacher: 'ولي الأمر والمعلم', GuardianStudentAffairs: 'ولي الأمر وشؤون الطلاب', GuardianSocialWorker: 'ولي الأمر والموجه الطلابي' })[type]; }
+  threadTypeLabel(type: ConversationDto['threadType']): string { return ({ GuardianTeacher: 'ولي الأمر والمعلم', GuardianStudentAffairs: 'ولي الأمر وشؤون الطلاب', GuardianSocialWorker: 'ولي الأمر والموجه الطلابي', SystemNotice: this.translate.instant('DUTY_EXEC.SYSTEM') })[type]; }
   participantRoleLabel(role: string): string {
     return ({
       Guardian: 'ولي أمر',

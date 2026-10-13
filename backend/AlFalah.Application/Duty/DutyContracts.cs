@@ -42,8 +42,10 @@ public sealed record DutyWorkspace(bool CanManage, string School, DateOnly Today
     IReadOnlyList<DutyTerm> Terms, int? TermId, int PlanRevision, DutySettings? Settings,
     IReadOnlyList<DutyTeacher> Teachers, IReadOnlyList<int> SuggestedWeekdays, IReadOnlyList<DutyDay> Days,
     IReadOnlyList<DutyHistory> History, IReadOnlyList<DutyFairness> Fairness, int PendingRetries,
-    IReadOnlyList<DutyClosure> Closures);
+    IReadOnlyList<DutyClosure> Closures, IReadOnlyList<DutyExecutionSummary>? OwnHistory = null);
 public sealed record DutyAccess(string School, bool Manager, bool Teacher);
+public sealed record DutyExecutionSummary(int AssignmentId, DateOnly Date, string AuthorUserId, int AssignmentRevision,
+    bool Acknowledged, bool Submitted, DateTimeOffset? SavedAt, DateTimeOffset? SubmittedAt);
 public sealed record DutyTiming(int? RevisionId, string Zone, IReadOnlyList<int> Weekdays);
 public sealed class DutyState
 {
@@ -53,6 +55,7 @@ public sealed class DutyState
     public List<AttendanceRecord> Attendance { get; init; } = [];
     public List<DutyTeacher> Teachers { get; init; } = [];
     public Dictionary<string, string> Names { get; init; } = [];
+    public List<DutyExecutionSummary> Executions { get; init; } = [];
 }
 
 public interface IDutyRepository
@@ -61,6 +64,7 @@ public interface IDutyRepository
     Task<List<DutyTerm>> TermsAsync(int schoolId, CancellationToken ct);
     Task<DutyTiming> TimingAsync(int schoolId, DutyTerm term, CancellationToken ct);
     Task<DutyState> LoadAsync(int schoolId, CancellationToken ct);
+    Task<List<DutyReportDraft>> ExecutionDraftsAsync(int schoolId, int assignmentId, CancellationToken ct) => Task.FromResult(new List<DutyReportDraft>());
     Task<T> AtomicAsync<T>(int schoolId, Func<Task<T>> action, CancellationToken ct);
     Task<DutyRequestReceipt?> ReceiptAsync(int schoolId, Guid requestId, CancellationToken ct);
     Task<List<DutyReconciliationOperation>> PendingAsync(CancellationToken ct);

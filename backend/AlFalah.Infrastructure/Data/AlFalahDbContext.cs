@@ -317,6 +317,9 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     private void UpdateTimestamps()
     {
+        if (ChangeTracker.Entries().Any(x => x.Entity is AlFalah.Domain.Entities.Duty.DutySignedDocument or AlFalah.Domain.Entities.Duty.DismissalLatenessRevision
+            && x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Signed duty documents and lateness revisions are immutable.");
         if (ChangeTracker.Entries<AlFalah.Domain.Entities.Duty.DutyAssignmentChange>()
             .Any(x => x.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Duty history is append-only; append a correction event.");

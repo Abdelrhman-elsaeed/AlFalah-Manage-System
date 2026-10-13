@@ -65,6 +65,9 @@ public sealed class GetStudentByIdQueryHandler
 
         if (details is null)
             return ApiResponse<StudentDetailsDto>.Fail(StudentHandlerSupport.NotFound);
+        if (_currentUser.IsInRole(RoleNames.Instructor) && !_currentUser.HasPermission(PermissionNames.StudentView)
+            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            details = details with { RecentEvents = Array.Empty<StudentTimelineItemDto>() };
 
         return ApiResponse<StudentDetailsDto>.Success(details);
     }

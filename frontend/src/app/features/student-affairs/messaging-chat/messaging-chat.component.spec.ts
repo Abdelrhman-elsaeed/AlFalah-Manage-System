@@ -11,6 +11,8 @@ import { Phase5Service } from '../../../core/services/phase5.service';
 import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { MessagingChatComponent } from './messaging-chat.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 
 describe('MessagingChatComponent Guardian conversation wizard', () => {
   let api: jasmine.SpyObj<Phase5Service>;
@@ -48,8 +50,10 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error', 'warn', 'info']);
 
     await TestBed.configureTestingModule({
-      imports: [MessagingChatComponent, NoopAnimationsModule],
+      imports: [MessagingChatComponent, NoopAnimationsModule, TranslateModule.forRoot()],
       providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { snapshot:{queryParamMap:{get:()=>null}} } },
         { provide: Phase5Service, useValue: api },
         { provide: StudentAffairsDashboardService, useValue: dashboard },
         { provide: DailyOperationsService, useValue: directory },

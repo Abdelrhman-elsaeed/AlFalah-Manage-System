@@ -1,0 +1,11 @@
+{
+  "extends":"./tsconfig.duty-spec.json",
+  "include":[
+    "src/app/features/timetables/**/*.spec.ts",
+    "src/app/features/intelligent-timetable/**/*.spec.ts",
+    "src/app/shared/components/clearable-select/**/*.spec.ts",
+    "src/app/features/student-affairs/messaging-chat/**/*.spec.ts",
+    "src/app/features/student-affairs/guardian-dashboard/**/*.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

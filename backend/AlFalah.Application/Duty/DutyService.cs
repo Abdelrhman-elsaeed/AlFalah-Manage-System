@@ -75,7 +75,8 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
             access.Manager && plan is not null ? DutyRotation.Settings(plan) : null,
             access.Manager ? teachers : [], timing.Weekdays, days, history,
             access.Manager ? Fairness(state, plan?.Id, today) : [], access.Manager ? await repo.PendingCountAsync(SchoolId, ct) : 0,
-            plan?.Closures.Select(x => new DutyClosure(x.From, x.To, access.Manager ? x.Reason : "")).ToArray() ?? []);
+            plan?.Closures.Select(x => new DutyClosure(x.From, x.To, access.Manager ? x.Reason : "")).ToArray() ?? [],
+            state.Executions.Where(x => x.AuthorUserId == UserId).OrderByDescending(x => x.Date).ToArray());
     }
     internal static DateOnly Today(string zone) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(zone)).DateTime);
     internal static IReadOnlyList<DutyFairness> Fairness(DutyState state, int? planId, DateOnly today)
@@ -92,7 +93,7 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
         state.Assignments.Count(a => a.DutyPlanId == planId && !a.IsCancelled && a.EffectiveTeacherId == t.UserId
             && state.Changes.Any(x => x.AssignmentId == a.Id && x.Kind is "AutoExchange" or "UnresolvedCompensation"
                 && !state.Changes.Any(u => u.Kind == "Undo" && u.RelatedChangeId == x.Id))),
-        0, // Execution/completion comes from D2 reports; past dates alone never confer credit.
+        state.Executions.Count(x => x.AuthorUserId == t.UserId && x.Submitted && state.Assignments.Any(a => a.Id == x.AssignmentId && a.DutyPlanId == planId)),
         state.Changes.Count(x => x.BeforeTeacherId == t.UserId && (DutyRotation.Unresolved(x, state.Changes) ||
             x.Kind == "AutoExchange" && x.OtherDate >= today && state.Assignments.Any(a => a.Id == x.OtherAssignmentId && !a.IsCancelled && a.EffectiveTeacherId == t.UserId)
             && !state.Changes.Any(u => u.Kind == "Undo" && u.RelatedChangeId == x.Id)))))
@@ -246,9 +247,10 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
         var a = state.Assignments.SingleOrDefault(x => x.Id == r.AssignmentId && !x.IsCancelled) ?? throw new DutyException("DutyNotFound", "المناوبة غير متاحة. / Assignment unavailable.", 404);
         var plan = state.Plans.Single(x => x.Id == a.DutyPlanId);
         if (plan.Revision != r.ExpectedRevision) throw Conflict();
-        if (a.IsLocked || a.Date < Today(plan.TimeZoneId)) throw Invalid("DutyLocked", "لا يمكن تعديل مناوبة مقفلة أو ماضية. / Past or locked duty cannot be changed.");
+        if (a.Date < Today(plan.TimeZoneId) || a.IsLocked && r.Mode != "Emergency") throw Invalid("DutyLocked", "لا يمكن تعديل مناوبة مقفلة أو ماضية دون مراجعة طارئة. / Past or locked duty requires reviewed emergency handling.");
         if (string.IsNullOrWhiteSpace(r.Reason) || r.Reason.Length > 1000) throw Invalid("DutyReasonRequired", "أدخل سببًا للتعديل. / A reason is required.");
-        if (r.Mode is not ("Replace" or "Exchange" or "Unprotect" or "ResolveCompensation")) throw Invalid("DutyInvalidChange", "نوع التعديل غير صالح. / Invalid change mode.");
+        if (r.Mode is not ("Replace" or "Exchange" or "Unprotect" or "ResolveCompensation" or "Emergency")) throw Invalid("DutyInvalidChange", "نوع التعديل غير صالح. / Invalid change mode.");
+        if (r.Mode == "Emergency" && (!r.AcceptException || r.TeacherId == a.EffectiveTeacherId)) throw Invalid("DutyExceptionConfirmation", "راجع تغيير المناوب واحتفاظ التوقيعات السابقة ثم أكّد الاستثناء. / Review replacement and retained signed history, then confirm the exception.");
         if (r.Mode != "Exchange" && r.OtherAssignmentId.HasValue || r.Mode != "ResolveCompensation" && r.ResolveChangeId.HasValue)
             throw Invalid("DutyInvalidChange", "معرّفات التبادل أو التعويض لا تطابق نوع التعديل. / Exchange or obligation IDs do not match this change mode.");
         if (r.Mode == "Unprotect") return (a, null, plan, []);
@@ -258,6 +260,7 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
         if (r.Mode == "ResolveCompensation" && !state.Changes.Any(x => x.Id == r.ResolveChangeId && x.BeforeTeacherId == r.TeacherId && DutyRotation.Unresolved(x, state.Changes))) throw Invalid("DutyInvalidCompensation", "اختر التزام تعويض مفتوحًا لصاحب المناوبة. / Select an unresolved obligation for this teacher.");
         var warnings = new List<string>();
         bool Unavailable(string id, DateOnly date) => state.Attendance.Any(x => x.UserId == id && x.AttendanceDate == date && x.Status != AlFalah.Domain.Enums.AttendanceStatus.Present);
+        if (r.Mode == "Emergency") warnings.Add("EmergencyHistoryRetention");
         if (!DutyRotation.Eligible(DutyRotation.Settings(plan), r.TeacherId, a.Date) || Unavailable(r.TeacherId, a.Date)) warnings.Add("ManualEligibilityException");
         if (b is not null && (!DutyRotation.Eligible(DutyRotation.Settings(plan), a.EffectiveTeacherId, b.Date) || Unavailable(a.EffectiveTeacherId, b.Date))) warnings.Add("CompensationEligibilityException");
         if (warnings.Count > 0 && !r.AcceptException) throw Invalid("DutyExceptionConfirmation", "يلزم إقرار صريح بتحذير الغياب أو الاستبعاد. / Explicitly accept absence/exclusion warning.");
@@ -283,8 +286,10 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
             var receipt = await ReadReceipt(r.RequestId, r, ct); if (receipt is not null) return receipt;
             var state = await Load(ct); var v = ValidateChange(state, r); var before = v.A.EffectiveTeacherId;
             var c = AddChange(v.A, r.Mode, before, r.Mode == "Unprotect" ? before : r.TeacherId, r.Reason.Trim(), r.ResolveChangeId);
+            if (r.Mode == "Emergency") c.SettingsSnapshotJson = JsonSerializer.Serialize(await repo.ExecutionDraftsAsync(SchoolId, v.A.Id, ct));
             v.A.IsManuallyProtected = r.Mode != "Unprotect"; v.A.Revision++; v.A.ExceptionCode = v.Warnings.Count > 0 ? "ManualEligibilityException" : null;
             if (r.Mode != "Unprotect") v.A.EffectiveTeacherId = r.TeacherId;
+            if (r.Mode == "Emergency") v.A.IsLocked = false;
             c.AfterRevision = v.A.Revision;
             if (v.B is not null)
             {

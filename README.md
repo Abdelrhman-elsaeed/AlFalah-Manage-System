@@ -238,3 +238,9 @@ Backend 913, storage/settings units 34 and browser tests 70 pass. Actual referen
 ### Local activation follow-up — 2026-10-06
 
 The owner-authorized library rollout is running at Angular4200/API5264. Activation buttons provision the current school using existing live authorization/idempotency; school18 is already ready, with36 active-year requirements. Local ignored `appsettings.StorageActivation.Development.json` persists library gates and keeps startup initialization/archive workers OFF. Original Development/credentials/keys unchanged; storage migrations and safe backfill applied explicitly. [Operation log](docs/specs/school-file-storage/verification/library-activation.md).
+
+## Change log
+
+| Date | Change |
+|---|---|
+| 2026-10-13 | School Duty D2 implemented: signed teacher execution and drafts, enrolled-student mobile picker, shared dismissal-lateness facts/history/statistics and trusted System guardian dashboard/internal Messages. See [verification and visual evidence](docs/specs/school-duty/verification/d2.md). D1 preserved; D3 not started. Operational database/configuration untouched; isolated synthetic delivery only, final client visual acceptance pending. |

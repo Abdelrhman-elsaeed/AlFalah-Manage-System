@@ -36,6 +36,7 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
             && !notification.RequiresApproval
             && !notification.IsSuppressed
             && notification.DeliveryStatus == NotificationDeliveryStatus.Delivered);
+        source = DutyGuardianScope.Filter(_context, source, schoolId, userId, await DutyGuardianScope.CurrentDate(_context, schoolId, cancellationToken));
         if (query.IsRead is { } isRead) source = source.Where(notification => notification.IsRead == isRead);
         if (query.StudentId is { } studentId) source = source.Where(notification => notification.StudentId == studentId);
         var page = Math.Max(1, query.Page);
@@ -57,16 +58,16 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
         return new PagedResult<StudentAffairsNotificationDto> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
     }
 
-    public Task<int> GetUnreadCountAsync(int schoolId, string userId, CancellationToken cancellationToken) =>
-        _context.Notifications.AsNoTracking().CountAsync(notification =>
+    public async Task<int> GetUnreadCountAsync(int schoolId, string userId, CancellationToken cancellationToken) =>
+        await DutyGuardianScope.Filter(_context, _context.Notifications.AsNoTracking(), schoolId, userId, await DutyGuardianScope.CurrentDate(_context, schoolId, cancellationToken)).CountAsync(notification =>
             notification.SchoolId == schoolId && notification.UserId == userId
             && !notification.RequiresApproval && !notification.IsSuppressed
             && notification.DeliveryStatus == NotificationDeliveryStatus.Delivered && !notification.IsRead,
             cancellationToken);
 
-    public Task<Notification?> GetOwnForUpdateAsync(
+    public async Task<Notification?> GetOwnForUpdateAsync(
         int schoolId, string userId, int notificationId, CancellationToken cancellationToken) =>
-        _context.Notifications.SingleOrDefaultAsync(notification =>
+        await DutyGuardianScope.Filter(_context, _context.Notifications, schoolId, userId, await DutyGuardianScope.CurrentDate(_context, schoolId, cancellationToken)).SingleOrDefaultAsync(notification =>
             notification.Id == notificationId && notification.SchoolId == schoolId
             && notification.UserId == userId && !notification.RequiresApproval && !notification.IsSuppressed
             && notification.DeliveryStatus == NotificationDeliveryStatus.Delivered,
@@ -74,7 +75,7 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
 
     public async Task<IReadOnlyList<Notification>> GetAllOwnUnreadForUpdateAsync(
         int schoolId, string userId, CancellationToken cancellationToken) =>
-        await _context.Notifications.Where(notification => notification.SchoolId == schoolId
+        await DutyGuardianScope.Filter(_context, _context.Notifications, schoolId, userId, await DutyGuardianScope.CurrentDate(_context, schoolId, cancellationToken)).Where(notification => notification.SchoolId == schoolId
             && notification.UserId == userId && !notification.IsRead
             && !notification.RequiresApproval && !notification.IsSuppressed
             && notification.DeliveryStatus == NotificationDeliveryStatus.Delivered)

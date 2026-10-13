@@ -163,6 +163,7 @@
       </div>
     </div>
 
+    <div class="kpi-metric-card kpi-metric-card--delay" style="margin-bottom:24px"><div class="kpi-metric__header"><span class="kpi-metric__title">{{ 'DUTY_EXEC.DISMISSAL_LATENESS' | translate }}</span><div class="kpi-metric__icon"><i class="pi pi-clock" aria-hidden="true"></i></div></div><div class="kpi-metric__body"><strong class="kpi-metric__count">{{ profile()?.totalDismissalLateness ?? 0 }}</strong><span class="kpi-metric__unit">{{ 'DUTY_EXEC.INCIDENTS' | translate }}</span></div></div>
     <!-- Charts & Analytics Section -->
     <div class="analytics-charts-grid">
       <!-- Monthly Trend Bar Chart -->
@@ -213,6 +214,7 @@
 
         <!-- Filter Chips -->
         <div class="timeline-filters no-print">
+          <button type="button" class="filter-chip filter-chip--delay" [class.is-active]="activeTimelineFilter()==='DismissalLateness'" (click)="setTimelineFilter('DismissalLateness')">{{ 'DUTY_EXEC.DISMISSAL_LATENESS' | translate }} ({{ profile()?.totalDismissalLateness ?? 0 }})</button>
           <button
             type="button"
             class="filter-chip"

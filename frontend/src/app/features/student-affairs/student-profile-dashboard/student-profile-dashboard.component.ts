@@ -12,14 +12,16 @@ import { finalize } from 'rxjs';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { StudentAnalyticsEventDto, StudentAnalyticsProfileDto } from '../../../core/models/daily-operations.models';
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
+import { TranslateModule } from '@ngx-translate/core';
 
-type TimelineFilter = 'ALL' | 'Absence' | 'Delay' | 'Excuse' | 'Referral' | 'Behavior' | 'Recognition';
+type TimelineFilter = 'ALL' | 'Absence' | 'Delay' | 'Excuse' | 'Referral' | 'Behavior' | 'Recognition' | 'DismissalLateness';
 
 @Component({
   selector: 'app-student-profile-dashboard',
   standalone: true,
   imports: [
     CommonModule,
+    TranslateModule,
     RouterLink,
     ButtonModule,
     CardModule,

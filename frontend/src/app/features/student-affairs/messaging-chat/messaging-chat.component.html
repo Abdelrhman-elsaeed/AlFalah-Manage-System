@@ -51,8 +51,8 @@
           <div class="timeline">
             @if (hasOlder()) { <button pButton type="button" label="تحميل رسائل أقدم" icon="pi pi-history" class="p-button-text older" [loading]="loadingOlder()" (click)="loadOlder()"></button> }
             @for (message of messages(); track message.id) {
-              <article class="message" [class.mine]="isMine(message)">
-                <div class="message-head"><strong>{{ message.sender.displayName }}</strong><time><bdi dir="ltr">{{ formatDateTime(message.createdAt) }}</bdi></time></div>
+              <article class="message" [class.mine]="isMine(message)" [class.system-notice-message]="message.sender.roleSnapshot==='System'">
+                <div class="message-head"><strong><i *ngIf="message.sender.roleSnapshot==='System'" class="pi pi-shield" aria-hidden="true"></i>{{ message.sender.roleSnapshot==='System'?('DUTY_EXEC.SYSTEM' | translate):message.sender.displayName }}</strong><time><bdi dir="ltr">{{ formatDateTime(message.createdAt) }}</bdi></time></div>
                 <p dir="auto">{{ message.body }}</p>
                 @if (isMine(message) && receiptView(message); as receipt) {
                   <footer><span class="receipt-status" [class]="'receipt-status receipt-status--' + receipt.tone"><i [class]="receipt.icon"></i>{{ receipt.label }}@if (receipt.time) { <time><bdi dir="ltr">{{ formatDateTime(receipt.time) }}</bdi></time> }</span></footer>
@@ -71,7 +71,8 @@
               </article>
             } @empty { <div class="conversation-empty small"><i class="pi pi-envelope"></i><span>لا توجد رسائل بعد.</span></div> }
           </div>
-          <form class="composer" (submit)="submitComposer($event)">
+          @if (thread.threadType === 'SystemNotice') { <div class="system-thread-note"><i class="pi pi-shield" aria-hidden="true"></i>{{ 'DUTY_EXEC.SYSTEM_READ_ONLY' | translate }}</div> }
+          <form *ngIf="thread.threadType !== 'SystemNotice'" class="composer" (submit)="submitComposer($event)">
             @if (thread.status !== 'Open') { <div class="closed-note"><i class="pi pi-lock"></i><span>المحادثة مغلقة والرد غير متاح.</span></div> }
             @if (sendError()) { <div class="send-error" role="alert"><i class="pi pi-exclamation-triangle"></i><span>{{ sendError() }}</span></div> }
             @if (thread.status === 'Open') {

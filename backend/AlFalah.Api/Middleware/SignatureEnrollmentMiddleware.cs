@@ -13,6 +13,7 @@ public sealed class SignatureEnrollmentMiddleware(RequestDelegate next)
         if (context.User.Identity?.IsAuthenticated != true || context.User.IsInRole(RoleNames.SchoolManager)
             || !path.StartsWithSegments("/api") || path.StartsWithSegments("/api/v1/auth")
             || path.StartsWithSegments("/api/v1/account/signature")
+            || path.StartsWithSegments("/api/v1/school-duty")
             || context.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() is not null)
         {
             await next(context);

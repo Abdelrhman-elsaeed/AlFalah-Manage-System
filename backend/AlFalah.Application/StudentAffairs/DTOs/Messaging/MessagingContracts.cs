@@ -46,6 +46,7 @@ public sealed record CreateConversationRequestDto(
     int? ReferralId = null,
     int? TargetGuardianProfileId = null);
 
+[System.Text.Json.Serialization.JsonUnmappedMemberHandling(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)]
 public sealed record SendMessageRequestDto(string Body, long? ReplyToMessageId, string IdempotencyKey);
 public sealed record MarkConversationReadRequestDto(long ThroughMessageId);
 public sealed record CloseConversationRequestDto(string Reason, string RowVersion);

@@ -35,7 +35,10 @@ public sealed class SchoolManagerOperationsRepository(AlFalahDbContext context) 
             ? await context.GatePasses.AsNoTracking().CountAsync(x => x.SchoolId == query.SchoolId && !x.IsDeleted, ct) : null;
         int? conversations = query.IncludeConversations
             ? await context.ConversationThreads.AsNoTracking().CountAsync(x => x.SchoolId == query.SchoolId && !x.IsDeleted, ct) : null;
-        return new(default, query.Date, "", students, staff, summons, null, activities, gatePasses, conversations, visits);
+        var dismissalDate = query.IncludeStudents ? await DutyGuardianScope.CurrentDate(context, query.SchoolId, ct) : query.Date;
+        int? dismissal = query.IncludeStudents ? await context.Set<AlFalah.Domain.Entities.Duty.StudentDismissalLateness>().AsNoTracking()
+            .Where(x => x.SchoolId == query.SchoolId && x.DutyDate == dismissalDate && !x.IsRetracted).Select(x => x.StudentId).Distinct().CountAsync(ct) : null;
+        return new(default, query.Date, "", students, staff, summons, null, activities, gatePasses, conversations, visits, dismissal);
     }
 
     private async Task<StaffPulseDto> ReadStaffAsync(SchoolManagerOperationsQuery query, CancellationToken ct)

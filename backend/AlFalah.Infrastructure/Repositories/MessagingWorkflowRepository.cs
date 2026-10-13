@@ -44,6 +44,11 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             .Select(participant => (ConversationThreadType?)participant.ConversationThread.ThreadType)
             .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         if (!threadType.HasValue) return false;
+        if (threadType == ConversationThreadType.SystemNotice)
+        {
+            var date = await SystemDateAsync(schoolId, cancellationToken);
+            return await SystemThreads(schoolId, userId, date).AnyAsync(x => x.Id == conversationId, cancellationToken);
+        }
         var roles = await _context.UserSchoolRoles.AsNoTracking()
             .Where(assignment => assignment.SchoolId == schoolId && assignment.UserId == userId
                 && assignment.IsActive && !assignment.IsDeleted)
@@ -395,6 +400,9 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
                 && ct.Participants.Any(p => p.ApplicationUserId == userId && !p.IsDeleted));
         var allowedThreadTypes = await GetAllowedThreadTypesAsync(schoolId, userId, cancellationToken).ConfigureAwait(false);
         dbQuery = dbQuery.Where(ct => allowedThreadTypes.Contains(ct.ThreadType));
+        var systemDate = await SystemDateAsync(schoolId, cancellationToken);
+        var allowedSystemThreads = SystemThreads(schoolId, userId, systemDate);
+        dbQuery = dbQuery.Where(thread => thread.ThreadType != ConversationThreadType.SystemNotice || allowedSystemThreads.Any(x => x.Id == thread.Id));
 
         if (query.StudentId.HasValue)
         {
@@ -830,7 +838,8 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
                 m.Id,
                 m.ConversationThreadId,
                 m.SenderUserId,
-                SenderDisplayName = (m.SenderUser.FirstName + " " + m.SenderUser.LastName).Trim(),
+                m.IsSystemOrigin,
+                SenderDisplayName = m.IsSystemOrigin ? "النظام / System" : (m.SenderUser!.FirstName + " " + m.SenderUser.LastName).Trim(),
                 m.Body,
                 m.ReplyToMessageId,
                 CreatedAt = m.SentAt ?? m.CreatedAt,
@@ -850,9 +859,9 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
 
         var items = projections.Select(p =>
         {
-            var senderRole = p.SenderUserId == userId ? "Me" : "Sender";
+            var senderRole = p.IsSystemOrigin ? "System" : p.SenderUserId == userId ? "Me" : "Sender";
             var sender = new ActorSummaryDto(
-                p.SenderUserId,
+                p.SenderUserId ?? "system",
                 string.IsNullOrWhiteSpace(p.SenderDisplayName) ? "User" : p.SenderDisplayName,
                 senderRole);
 
@@ -1111,6 +1120,8 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
 
         if (thread.Status != ConversationThreadStatus.Open)
             throw new InvalidOperationException("Closed conversations do not accept new messages");
+        if (thread.ThreadType == ConversationThreadType.SystemNotice)
+            throw new InvalidOperationException("System notices do not accept browser messages");
         if (request.ReplyToMessageId.HasValue && !await _context.ConversationMessages.AsNoTracking()
                 .AnyAsync(message => message.Id == request.ReplyToMessageId.Value
                     && message.ConversationThreadId == conversationId
@@ -1826,7 +1837,7 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             .Select(item => new
             {
                 Message = item,
-                SenderName = (item.SenderUser.FirstName + " " + item.SenderUser.LastName).Trim(),
+                SenderName = (item.SenderUser!.FirstName + " " + item.SenderUser.LastName).Trim(),
                 ConversationRowVersion = item.ConversationThread.RowVersion,
                 DeliveryState = item.Receipts.Count == 0 || item.Receipts.All(receipt => receipt.DeliveryState == MessageDeliveryState.Delivered)
                     ? MessageDeliveryState.Delivered
@@ -1885,8 +1896,22 @@ public sealed class MessagingWorkflowRepository : IMessagingWorkflowRepository
             allowed.Add(ConversationThreadType.GuardianStudentAffairs);
         if (roles.Contains(RoleNames.Guardian) || roles.Contains(RoleNames.SocialWorker))
             allowed.Add(ConversationThreadType.GuardianSocialWorker);
+        if (roles.Contains(RoleNames.Guardian)) allowed.Add(ConversationThreadType.SystemNotice);
         return allowed.Distinct().ToArray();
     }
+
+    private async Task<DateOnly> SystemDateAsync(int schoolId, CancellationToken ct)
+    {
+        var zone = await _context.Set<AlFalah.Domain.Entities.Duty.DutyPlan>().AsNoTracking().Where(x => x.SchoolId == schoolId)
+            .OrderByDescending(x => x.PublishedAt).Select(x => x.TimeZoneId).FirstOrDefaultAsync(ct) ?? "Africa/Cairo";
+        return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(_timeProvider.GetUtcNow(), TimeZoneInfo.FindSystemTimeZoneById(zone)).DateTime);
+    }
+    private IQueryable<ConversationThread> SystemThreads(int schoolId, string userId, DateOnly date) =>
+        _context.ConversationThreads.AsNoTracking().Where(x => x.SchoolId == schoolId && x.ThreadType == ConversationThreadType.SystemNotice
+            && x.Participants.Any(p => p.ApplicationUserId == userId && p.LeftAt == null)
+            && _context.UserSchoolRoles.Any(r => r.SchoolId == schoolId && r.UserId == userId && r.IsActive && r.User.IsActive && r.Role.Name == RoleNames.Guardian)
+            && _context.StudentGuardians.Any(g => g.SchoolId == schoolId && g.StudentId == x.StudentId && g.GuardianProfile.ApplicationUserId == userId
+                && g.GuardianProfile.IsActive && g.ValidFrom <= date && (g.ValidTo == null || g.ValidTo >= date)));
 
     private static TimetableDay ToTimetableDay(DayOfWeek day) => day switch
     {

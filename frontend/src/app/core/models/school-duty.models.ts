@@ -17,6 +17,7 @@ export interface DutyFairness { userId: string; name: string; planned: number; e
 export interface DutyPreviewDay { date: string; teacherId: string; teacher: string; before: string | null; preserved: boolean; exceptionCode: string | null; }
 export interface DutyPreview { digest: string; days: DutyPreviewDay[]; fairness: DutyFairness[]; warnings: string[]; changedDates: number; }
 export interface DutyWorkspace {
+  ownHistory?: { assignmentId:number;date:string;authorUserId:string;assignmentRevision:number;acknowledged:boolean;submitted:boolean;savedAt:string|null;submittedAt:string|null }[];
   canManage: boolean; school: string; today: string; userId: string; terms: DutyTerm[]; termId: number | null; planRevision: number;
   settings: DutySettings | null; teachers: DutyTeacher[]; suggestedWeekdays: number[]; days: DutyDay[]; history: DutyHistory[];
   fairness: DutyFairness[]; pendingRetries: number; closures: DutyRange[];

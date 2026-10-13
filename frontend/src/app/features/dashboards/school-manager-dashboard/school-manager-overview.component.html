@@ -20,6 +20,7 @@
     <div class="pulse-art" aria-hidden="true"><img src="assets/dashboard/school-pulse.svg" width="540" height="330" alt="" /></div>
   </section>
 
+  <app-dismissal-statistics *ngIf="canOpenDuty()" />
   <section class="tool-section" aria-labelledby="manager-tools-title">
     <div class="section-head"><div><span class="kicker">{{ t('وصول مباشر', 'Quick access') }}</span><h2 id="manager-tools-title">{{ t('أدوات إدارة المدرسة', 'School management tools') }}</h2></div><span class="quiet">{{ t('اختر الأداة وابدأ العمل', 'Choose a tool to get started') }}</span></div>
     <div class="manager-tools">

@@ -56,7 +56,11 @@ public sealed class ConversationMessage : IStudentAffairsMutableEntity
     public int Id { get; set; }
     public int SchoolId { get; set; }
     public int ConversationThreadId { get; set; }
-    public string SenderUserId { get; set; } = string.Empty;
+    public string? SenderUserId { get; set; }
+    public bool IsSystemOrigin { get; set; }
+    public Guid? SystemCorrelationId { get; set; }
+    public int? SourceFactId { get; set; }
+    public int? SourceFactRevision { get; set; }
     public string Body { get; set; } = string.Empty;
     public DateTimeOffset? SentAt { get; set; }
     public DateTimeOffset QueuedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -77,7 +81,7 @@ public sealed class ConversationMessage : IStudentAffairsMutableEntity
 
     public School School { get; set; } = null!;
     public ConversationThread ConversationThread { get; set; } = null!;
-    public ApplicationUser SenderUser { get; set; } = null!;
+    public ApplicationUser? SenderUser { get; set; }
     public ConversationMessage? ReplyToMessage { get; set; }
     public ICollection<MessageReceipt> Receipts { get; set; } = new List<MessageReceipt>();
 }

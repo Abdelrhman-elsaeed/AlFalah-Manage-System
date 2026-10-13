@@ -58,7 +58,7 @@ export class ManagerMessagingAuditComponent {
   next(): void { if (this.page() < this.pages()) { this.page.update(value => value + 1); this.load(); } }
 
   typeLabel(type: ConversationThreadType): string {
-    return ({ GuardianTeacher: 'ولي أمر ومعلم', GuardianStudentAffairs: 'ولي أمر وشؤون الطلاب', GuardianSocialWorker: 'ولي أمر وأخصائي اجتماعي' })[type];
+    return ({ GuardianTeacher: 'ولي أمر ومعلم', GuardianStudentAffairs: 'ولي أمر وشؤون الطلاب', GuardianSocialWorker: 'ولي أمر وأخصائي اجتماعي', SystemNotice:'النظام / System' })[type];
   }
 
   statusLabel(status: ConversationThreadStatus): string {

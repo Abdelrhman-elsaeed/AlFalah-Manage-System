@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -13,10 +13,11 @@ import { ClearableSelectComponent } from '../../../shared/components/clearable-s
 import { SchoolDutyService } from '../../../core/services/school-duty.service';
 import { DutyChange, DutyDay, DutyHistory, DutyPreview, DutySettings, DutyWorkspace } from '../../../core/models/school-duty.models';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
+import { DutyExecutionComponent } from './duty-execution.component';
 
 @Component({
   selector: 'app-school-duty', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, DialogModule, CalendarModule, InputTextModule, ClearableSelectComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, DialogModule, CalendarModule, InputTextModule, ClearableSelectComponent, DutyExecutionComponent],
   templateUrl: './school-duty.component.html', styleUrls: ['./duty-dialog.css', './school-duty.component.css']
 })
 export class SchoolDutyComponent implements OnInit {
@@ -26,6 +27,8 @@ export class SchoolDutyComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly destroy = inject(DestroyRef);
   readonly data = signal<DutyWorkspace | null>(null);
+  executionId: number | null = null;
+  @ViewChild(DutyExecutionComponent) execution?: DutyExecutionComponent;
   readonly language = signal(this.translate.currentLang || 'ar');
   readonly loading = signal(true); readonly busy = signal(false); readonly error = signal(''); readonly success = signal('');
   readonly view = signal<'week' | 'term'>('week'); readonly week = signal(''); readonly filter = signal('all'); readonly teacher = signal<string | null>(null);
@@ -78,7 +81,7 @@ export class SchoolDutyComponent implements OnInit {
   ngOnInit() {
     this.translate.onLangChange.pipe(takeUntilDestroyed(this.destroy)).subscribe(event => this.language.set(event.lang));
     this.load(); timer(10000, 10000).pipe(takeUntilDestroyed(this.destroy)).subscribe(() => {
-      if (!this.hasDraft() && !this.detailOpen && !this.historyOpen && !this.busy() && document.visibilityState === 'visible') this.load(true);
+      if (!this.executionId && !this.hasDraft() && !this.detailOpen && !this.historyOpen && !this.busy() && document.visibilityState === 'visible') this.load(true);
     });
   }
   t(key: string) { this.language(); return this.translate.instant(`DUTY.${key}`); }
@@ -89,7 +92,7 @@ export class SchoolDutyComponent implements OnInit {
   asDate(value: string) { let date = this.dateCache.get(value); if (!date) { date = new Date(`${value}T12:00:00`); this.dateCache.set(value, date); } return date; }
   iso(date: Date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
   weekOf(date: string) { const d = new Date(this.asDate(date)); d.setDate(d.getDate()-d.getDay()); return this.iso(d); }
-  hasDraft() { return this.setupOpen || this.manualOpen || this.previewOpen; }
+  hasDraft() { return this.setupOpen || this.manualOpen || this.previewOpen || !!this.execution?.dirty() || !!this.execution?.busy(); }
   @HostListener('window:beforeunload', ['$event']) beforeUnload(event: BeforeUnloadEvent) { if (this.hasDraft()) event.preventDefault(); }
   closeTopDialog(event: KeyboardEvent) {
     if (!(this.previewOpen || this.manualOpen || this.setupOpen || this.detailOpen || this.historyOpen)) return;
@@ -116,8 +119,11 @@ export class SchoolDutyComponent implements OnInit {
         this.error.set(this.t('REVIEW_REFRESHED'));
       }
       if (!this.week() || !this.weeks().includes(this.week())) this.week.set(this.weeks().find(x => x >= this.weekOf(r.data!.today)) ?? this.weeks()[0] ?? '');
+      const linkedExecution=Number(this.route.snapshot.queryParamMap.get('execution'));
+      if (linkedExecution && !background) this.executionId=linkedExecution;
       const linked = this.route.snapshot.queryParamMap.get('date');
-      if (linked && !background) { const linkedDay = r.data.days.find(x => x.date === linked); if (linkedDay) { this.week.set(this.weekOf(linked)); this.selected = linkedDay; this.detailOpen = true; } }
+      if (linked && !background) { const linkedDay = r.data.days.find(x => x.date === linked); if (linkedDay) { this.week.set(this.weekOf(linked)); this.selected = linkedDay;
+        if (linkedDay.isMine || this.route.snapshot.queryParamMap.has('execution')) this.executionId = linkedDay.id; else this.detailOpen = true; } }
     }, error: e => { if (sequence !== this.loadSequence) return; this.loading.set(false); if (!background) this.error.set(extractHttpErrorMessage(e) || this.t('ERROR')); } });
   }
   switchTerm(id: number) { this.termId = id; this.week.set(''); this.load(); }
@@ -133,7 +139,10 @@ export class SchoolDutyComponent implements OnInit {
   }
   attendance(day: DutyDay) { return this.t(`ATTENDANCE_${day.attendance || 'Unknown'}`); }
   initials(name: string) { return name.split(' ').filter(Boolean).slice(0,2).map(x => x[0]).join(' '); }
-  openDetails(day: DutyDay) { this.selected = day; this.detailOpen = true; void this.router.navigate([], { relativeTo: this.route, queryParams: { date: day.date }, queryParamsHandling: 'merge', replaceUrl: true }); }
+  openDetails(day: DutyDay) { if(day.isMine && !this.data()?.canManage){this.openExecution(day);return;} this.selected = day; this.detailOpen = true; void this.router.navigate([], { relativeTo: this.route, queryParams: { date: day.date }, queryParamsHandling: 'merge', replaceUrl: true }); }
+  openExecution(day: DutyDay) { this.detailOpen=false;this.executionId=day.id;void this.router.navigate([], {relativeTo:this.route,queryParams:{date:day.date,execution:day.id},queryParamsHandling:'merge',replaceUrl:true}); }
+  openHistorical(id:number,date:string){this.executionId=id;void this.router.navigate([], {relativeTo:this.route,queryParams:{date,execution:id},queryParamsHandling:'merge',replaceUrl:true});}
+  closeExecution() { this.executionId=null;void this.router.navigate([], {relativeTo:this.route,queryParams:{date:null,execution:null},queryParamsHandling:'merge',replaceUrl:true});this.load(); }
   closeDetails() { this.detailOpen = false; void this.router.navigate([], { relativeTo: this.route, queryParams: { date: null }, queryParamsHandling: 'merge', replaceUrl: true }); }
   dayHistory() { return this.data()?.history.filter(x => x.date === this.selected?.date || x.otherDate === this.selected?.date) ?? []; }
   historyReason(history: DutyHistory) {

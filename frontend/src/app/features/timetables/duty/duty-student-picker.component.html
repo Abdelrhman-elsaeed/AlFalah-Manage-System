@@ -1,0 +1,23 @@
+<p-dialog [(visible)]="visible" [modal]="true" [draggable]="false" [resizable]="false" [header]="'DUTY_EXEC.PICK_STUDENT' | translate" [dir]="dir" styleClass="duty-picker" [style]="{width:'920px',maxWidth:'96vw'}" (onShow)="focusSearch()" (onHide)="close()">
+  <div class="picker-layout">
+    <header class="picker-search"><p class="school-context"><i class="pi pi-building" aria-hidden="true"></i>{{ school }}<span>{{ 'DUTY_EXEC.ENROLLED_ROSTER' | translate }}</span></p>
+      <label class="search-field" for="duty-student-search"><i class="pi pi-search" aria-hidden="true"></i><input id="duty-student-search" type="search" [(ngModel)]="search" (ngModelChange)="refresh()" (keydown.escape)="escape($event)" [placeholder]="'DUTY_EXEC.SEARCH_STUDENT' | translate" [attr.aria-label]="'DUTY_EXEC.SEARCH_STUDENT' | translate" autocomplete="off"><button *ngIf="search" (click)="search=''; refresh(); focusSearch()" [attr.aria-label]="'DUTY_EXEC.CLEAR' | translate"><i class="pi pi-times" aria-hidden="true"></i></button></label>
+      <div class="picker-filters"><label>{{ 'DUTY_EXEC.GRADE' | translate }}<app-clearable-select inputId="duty-grade" [options]="grades" optionLabel="label" optionValue="id" [(ngModel)]="grade" (ngModelChange)="classroom=null; refresh()" [placeholder]="'DUTY_EXEC.ALL_GRADES' | translate" /></label><label>{{ 'DUTY_EXEC.CLASSROOM' | translate }}<app-clearable-select inputId="duty-class" [options]="classes" optionLabel="label" optionValue="id" [(ngModel)]="classroom" (ngModelChange)="refresh()" [placeholder]="'DUTY_EXEC.ALL_CLASSES' | translate" /></label></div>
+    </header>
+    <div class="picker-body">
+      <nav class="class-navigator" [attr.aria-label]="'DUTY_EXEC.CLASSROOMS' | translate"><span>{{ 'DUTY_EXEC.BROWSE_CLASS' | translate }}</span><button (click)="selectClass(null)" [attr.aria-pressed]="classroom===null">{{ 'DUTY_EXEC.ALL_CLASSES' | translate }}</button><button *ngFor="let c of classes" (click)="selectClass(c.id)" [attr.aria-pressed]="classroom===c.id"><strong>{{ c.label }}</strong><small>{{ c.count }}</small></button></nav>
+      <section class="student-results" [attr.aria-busy]="loading()" aria-live="polite">
+        <div class="picker-state" *ngIf="error()" role="alert"><i class="pi pi-cloud" aria-hidden="true"></i><strong>{{ error() }}</strong><button (click)="refresh(false)">{{ 'DUTY_EXEC.RETRY' | translate }}</button></div>
+        <div class="picker-state" *ngIf="loading()"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ 'DUTY_EXEC.SEARCHING' | translate }}</div>
+        <ng-container *ngIf="!loading() && !error()">
+          <div *ngFor="let group of groups()" class="student-group"><h3>{{ group.label }}<span>{{ group.items.length }} {{ 'DUTY_EXEC.SHOWN' | translate }}</span></h3>
+            <button class="student-result" *ngFor="let student of group.items; trackBy: track" [attr.aria-pressed]="selected()?.enrollmentId===student.enrollmentId" (click)="selected.set(student)"><span class="student-monogram" aria-hidden="true">{{ student.name.slice(0,1) }}</span><span class="student-copy"><strong>{{ student.name }}</strong><small>{{ student.classroom }}<bdi> · {{ student.studentNumber }}</bdi></small><em *ngIf="recordedIds.includes(student.studentId)">{{ 'DUTY_EXEC.ALREADY_RECORDED' | translate }}</em></span><span class="selection-ring"><i *ngIf="selected()?.enrollmentId===student.enrollmentId" class="pi pi-check" aria-hidden="true"></i></span></button>
+          </div>
+          <div class="picker-state" *ngIf="!roster()?.students?.items?.length"><i class="pi pi-search" aria-hidden="true"></i><strong>{{ 'DUTY_EXEC.NO_RESULTS' | translate }}</strong><p>{{ 'DUTY_EXEC.ROSTER_RESOLUTION' | translate }}</p></div>
+          <div class="picker-pagination" *ngIf="roster() as r"><button [disabled]="page===1" (click)="page=page-1; refresh(false)">{{ 'DUTY_EXEC.PREVIOUS' | translate }}</button><span>{{ page }} · {{ r.students.totalCount }} {{ 'DUTY_EXEC.STUDENTS' | translate }}</span><button [disabled]="page*r.students.pageSize>=r.students.totalCount" (click)="page=page+1; refresh(false)">{{ 'DUTY_EXEC.NEXT' | translate }}</button></div>
+        </ng-container>
+      </section>
+    </div>
+  </div>
+  <ng-template pTemplate="footer"><div class="picker-footer"><div><small>{{ 'DUTY_EXEC.SELECTED' | translate }}</small><strong>{{ selected()?.name || ('DUTY_EXEC.SELECT_HINT' | translate) }}</strong><span *ngIf="selected()">{{ selected()?.classroom }} · <bdi>{{ selected()?.studentNumber }}</bdi></span></div><button class="confirm-student" [disabled]="!selected() || loading()" (click)="confirm()">{{ 'DUTY_EXEC.SELECT_STUDENT' | translate }}<i class="pi pi-check" aria-hidden="true"></i></button></div></ng-template>
+</p-dialog>

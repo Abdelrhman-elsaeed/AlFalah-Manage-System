@@ -1,6 +1,6 @@
 # Technical Plan — School Duty
 
-**Status:** D1 implemented. Contracts below remain the whole-feature plan; only the D1 surface listed in `verification/d1.md` exists. D2/D3 are unimplemented.  
+**Status:** D1/D2 implemented and verified; [D2 delivery](verification/d2.md) records the implemented contracts and refinements below. D3 is unimplemented. The owner-confirmed [dismissal-lateness amendment](dismissal-lateness.md) and [source references](references.md) govern D2 data/UI and future D3 PDFs.
 **Architecture:** Existing modular monolith; .NET 8, Angular, SQL Server/EF Core, current PDF and Drive infrastructure.
 
 ## Integration boundaries
@@ -35,7 +35,10 @@ Names are provisional; relationships and invariants must survive implementation 
 | `DutyAssignmentChange` | Append-only before/after identities and revisions, both affected assignment IDs when exchanged, attendance evidence, reason, actor and timestamp; pending compensation state belongs to the exchange trail |
 | `DutyAcknowledgement` | AssignmentId/revision, authenticated actual teacher, acknowledged timestamp, immutable letter snapshot, signature asset/hash and template version; historical acknowledgements survive reassignment |
 | `DutyReport` / `DutyReportRevision` | Assignment/revision, author, draft revision/concurrency, submitted-at, last departure, observations, correction reason and previous submitted revision link; retain submitted versions |
-| `DutyReportLine` | Report revision, category Late/Violation, StudentId if resolved, frozen name/class, time, action, notes and manual-entry reason; child rows cannot cross schools |
+| `DutyReportLine` | Report revision, category Late/Violation, required selected StudentId/EnrollmentId, frozen name/class, time/action/notes; late lines link a stable dismissal-lateness fact/revision; child rows cannot cross schools |
+| `StudentDismissalLateness` (provisional name) | School/student/enrollment, duty date/assignment revision, author, observed time, dismissal timing reference, departure when known, action/notes, active/corrected/retracted status and audit; one active school/student/date fact |
+| Dismissal guardian notice intent | Stable fact/revision/recipient correlation, dashboard-notice and internal-message delivery results, attempts/read state and correction linkage; durable delivery separate from report/archive state |
+| System message provenance (additive D2 messaging seam) | Server-owned system origin, source fact/revision and recipient-scoped thread/message correlation; visible `النظام` / `System`, no personal impersonation or browser-forged origin; preserve existing human sender FKs/history |
 | `DutyReconciliationOperation` | Unique school/date/attendance-change evidence, state/attempts; durable processing signal from staff attendance |
 | `DutyArchiveOperation` / artifact link | School, assignment revision, report revision if applicable, Letter/Report kind, frozen snapshot/hash, state, reserved provider ID, lease/retry data and StoredFile/Version IDs |
 
@@ -51,6 +54,7 @@ Store identities plus frozen display values in signed snapshots. Resolve Instruc
 - `DutyAssignmentService`: manager manual decisions, revision validation and atomic date exchanges.
 - `DutyReconciliationService`: read current staff facts, resolve eligible next assignments, honor manual/locked records, apply one exchange, retain unresolved obligations.
 - `DutyReportService`: own draft, acknowledgement, validation, submission and retained corrections.
+- Focused dismissal-lateness application service: explicit confirmation/correction, scoped roster validation and fact + notice-intent transaction; existing delivery/statistics/student-record readers project the same fact.
 - `DutyDocumentService`: official roster/letter/report rendering from frozen data; no scheduling decisions.
 - `DutyArchiveProcessor`: reliable storage delivery using existing provider abstractions and duty-specific authorization.
 
@@ -61,6 +65,14 @@ An automatic/manual two-date exchange locks or concurrency-checks both assignmen
 Add the attendance signal to `AttendanceService.SaveSheetAsync` within the transaction saving the sheet. Record only relevant changed facts, including corrections, and process after commit. A durable worker retries failed reconciliation; a write-path fast attempt can reduce delay but cannot be the sole guarantee. Attendance retains its existing secretary-only management policy. Re-read facts during reconciliation and before acknowledgement/submission; never rely on browser absence flags.
 
 Preload/freeze the authenticated teacher's signature through existing trusted server mechanisms, then revalidate assignment revision inside the acknowledgement/submission transaction. Snapshot, audit and archive intent are committed together. A snapshot must retain signature bytes/assets with a hash, not a URL to a mutable current account signature. Use safe existing signature handling; do not fetch an arbitrary user-supplied URL.
+
+### D2 student facts and projections
+
+Use a minimal whole-school term roster reader for the duty author, rather than limiting lookup to classes they teach or granting broad Student Affairs permission. Search/grade/class/pagination are server enforced. Confirmed lateness fact, audit and durable guardian intent commit together with assignment/request/concurrency checks; report drafts reference the fact. Reuse existing notification infrastructure after auditing durability. Correct/retract with retained history and truthful notice state. Delivery failure cannot remove the incident or signed report.
+
+Extend `SchoolManagerOperationsDto`/existing overview and student-record/profile seams with scoped count/list/history projections. The inspected `GetStudentTimelineAsync` returns an empty placeholder; D2 must supply the relevant real projection. Preserve morning-delay/attendance/penalty metrics. The owner confirmed both guardian-dashboard notice and a system-authored message in existing internal Messages; no external provider is required.
+
+Current `ConversationMessage` requires a real `SenderUserId`/FK, thread types are human-oriented, and the public send handler requires an authenticated human participant with messaging permission. Add a narrow trusted system-origin model/delivery seam and DTO/UI support; do not call that handler as an impersonated teacher or merely rename a human sender. Browser requests cannot claim system origin. Preserve existing participant/recipient isolation, human office-hour rules and unread/receipt behavior; system fact notices dispatch promptly without the teacher's office-hour gate. Link one dashboard notice to the corresponding internal message; track/retry each surface separately and suppress any duplicate generic new-message alert for that same fact. Correction history retains both artifacts. See the amendment for detailed invariants and verification.
 
 ## Proposed API surface
 
@@ -76,10 +88,14 @@ Base route: `/api/v1/school-duty`. School context is resolved from the current s
 | POST `/assignments/{id}/change` | Manager direct replacement/exchange/exception resolution with reason, affected revisions and request ID |
 | GET `/assignments/{id}` | Capability-specific day details; report/signature fields own-or-manager only |
 | POST `/assignments/{id}/acknowledge` | Actual teacher's saved-signature acknowledgement; revision and request ID |
-| GET `/students?termId=&search=&page=` | Minimal active school roster/class lookup for an authorized current duty author/manager |
+| GET `/students?termId=&search=&gradeId=&classroomId=&page=` | Minimal whole-school active roster/class lookup for current duty author/manager; server filters, classroom grouping and pagination |
 | PUT `/assignments/{id}/report/draft` | Own current draft with concurrency token; other-teacher edits denied |
 | POST `/assignments/{id}/report/submit` | Own signed submission with revision/request ID |
 | POST `/assignments/{id}/report/correction` | Manager authorizes a retained correction with reason; actual teacher edits/re-signs the resulting draft |
+| POST `/assignments/{id}/dismissal-lateness` | Actual duty author confirms selected-student fact + durable guardian intent with request/revision validation; no autosave dispatch |
+| POST `/dismissal-lateness/{id}/correction` | Authorized correction/retraction with reason and retained fact/notice history |
+| GET `/dismissal-lateness?termId=&from=&to=&classroomId=&page=` | Actual manager scoped count/list drill-down; own author-specific status through own-duty projection |
+| Existing manager overview / student record APIs | Extend authorized projections with dismissal counts/names and history; duty lookup does not grant full profile access |
 | GET `/plans/{id}/roster.pdf` | Official schedule-only roster |
 | GET `/assignments/{id}/documents/{kind}` | Own/manager frozen letter/report or specific retained revision; authenticated stream |
 | POST `/assignments/{id}/archive/retry` | Duty manager retries an identified artifact/revision; no browser-selected provider destination |
@@ -126,10 +142,22 @@ Use per-school duty archive readiness/enablement rather than enabling unrelated 
 - Add last-student departure from the client conversation. Preserve the report's next-day handover instruction without adding an unrequested manager signature.
 - Use actual Arabic font shaping, right-to-left tables, repeating page headers, sensible page breaks and overflow pages. A signature belongs to the teacher who actually performed the action.
 - Store a canonical Gregorian DateOnly key; display the school's established Arabic/Hijri date convention consistently after checking existing formatting. Do not infer historical Hijri dates from image years or the host timezone.
-- Visually compare real generated letter/report/roster PDFs with source forms; keep exact field mapping even where the digital layout improves legibility.
+- Follow [references.md](references.md), reopening the original `4.jpeg` and `5.jpeg` during implementation. Visually compare real letter/report/roster PDFs: exact report section order, table divisions, labels, columns and signature positions are mandatory. Mobile editors may improve controls without changing the logical division.
 
 ## Rollout and verification
 
 The owner's 2026-10-13 request authorizes D1 implementation and isolated migration/runtime verification using its documented defaults. Stop after D1. Creation of the initial planning kit did not itself authorize implementation; the later implementation request supersedes that planning pause. D2/D3, live Drive writes, production deployment and general feature assignment remain outside this execution scope.
 
 Validate additive migration on an isolated database with actual constraints and existing data preserved. Activate only for an explicitly configured school after attendance, signature, PDF and storage checks. Record rollback as disabling new duty entry/write processing while retaining plans, signed snapshots and stored artifacts; do not remove history to roll back.
+
+## D2 implemented contracts and refinements
+
+The D2 request explicitly authorizes C1-C17 and relevant engineering defaults. It supersedes the historical D1-only rollout scope above. Thin `DutyExecutionController` actions use `ApiResponse<T>`; `DutyExecutionService` owns execution/validation/transactions and `DutyExecutionRepository` owns scoped EF reads/writes. `DutyNoticeProcessor` is the narrow internal communication seam, invoked by a scoped hosted worker.
+
+The provisional acknowledgement/report/revision/line outline is implemented as one mutable per-author `DutyReportDraft` with typed content JSON, immutable Letter/Report `DutySignedDocument` snapshots and retained prior-document links. SQL protects immutability/scope. Emergency change history additionally freezes displaced unsigned drafts, including repeat ownership. This avoids duplicate independent line/acknowledgement truth while retaining all source sections, selected enrollment identity, rows and stable fact revisions. Archive intents are local `PendingD3` rows only.
+
+`StudentDismissalLateness`, append-only `DismissalLatenessRevision`, `DismissalNoticeBatch` and per-recipient results provide one fact per school/student/date, correction/retraction history and independent dashboard/message delivery results. Existing D1 serializable school application locks protect facts, audit, intents and request receipts. System messages use nullable human sender, constrained trusted provenance and correlated recipient-only closed threads; public human sends cannot forge origin. Existing human office hours are unchanged. Generic notifications and Messages both revalidate current effective guardian scope.
+
+Manager statistics query active facts, and real student timeline/profile projections query retained revisions. Full-record authorization is preserved, including the manager aggregate-only boundary. Roster search projects only active term enrollment identity/name/class/number/grade. Draft concurrency, signing ownership, school-local timing, explicit empty categories and reasoned correction/re-signature are validated server-side. Existing D1 reconciliation/regeneration respects execution activity locks.
+
+Additive migration `20261013135411_AddSchoolDutyD2` is verified only on fresh guarded synthetic SQL databases. Previous-document pointers use scalar EF FKs plus SQL scope triggers to avoid a composite metadata cycle. Embedded/local branding bytes are frozen; unavailable/remote logo state is recorded without network fetches. See D-108 and [verification](verification/d2.md). Stop after D2; archive processors/PDFs/storage operations remain D3.

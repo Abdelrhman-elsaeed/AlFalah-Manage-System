@@ -73,6 +73,7 @@ public sealed class ConversationsController : StudentAffairsControllerBase
     }
 
     [HttpPost("{id:int}/messages")]
+    [AlFalah.Api.Filters.ApiResponseValidation]
     public async Task<IActionResult> SendMessage(int id, [FromBody] SendMessageRequestDto request, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.MessagingSend)) return PermissionDenied();

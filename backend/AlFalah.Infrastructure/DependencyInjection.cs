@@ -155,6 +155,11 @@ public static class DependencyInjection
         services.AddScoped<AlFalah.Application.Duty.IDutyRepository, DutyRepository>();
         services.AddScoped<AlFalah.Application.Duty.IDutyService, AlFalah.Application.Duty.DutyService>();
         services.AddScoped<AlFalah.Application.Duty.DutyReconciler>();
+        services.AddScoped<AlFalah.Application.Duty.IDutyExecutionRepository, DutyExecutionRepository>();
+        services.AddScoped<AlFalah.Application.Duty.IDutyExecutionService, AlFalah.Application.Duty.DutyExecutionService>();
+        services.AddScoped<AlFalah.Application.Duty.IDutyDocumentAssets, DutyDocumentAssets>();
+        services.AddScoped<AlFalah.Application.Duty.DutyNoticeProcessor>();
+        services.AddHostedService<DutyNoticeWorker>();
         services.AddHostedService<DutyReconciliationWorker>();
         services.AddScoped<IAttendancePdfService, AttendancePdfService>();
         services.AddScoped<ISchoolTimetableRepository, SchoolTimetableRepository>();

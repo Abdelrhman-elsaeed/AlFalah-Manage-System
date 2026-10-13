@@ -1,0 +1,85 @@
+{
+  "verification": "Actual local HTTP/JWT/SQL/hosted worker; isolated synthetic guardians only; no external providers",
+  "checks": [
+    {
+      "step": "Own execution and unsigned preview",
+      "status": 200
+    },
+    {
+      "step": "Actual whole-school roster lookup",
+      "status": 200
+    },
+    {
+      "step": "Explicit actual-teacher saved signature acknowledgement",
+      "status": 200
+    },
+    {
+      "step": "Explicit fact and durable intent commit before report",
+      "status": 200
+    },
+    {
+      "step": "Lost-response fact confirmation replay",
+      "status": 200
+    },
+    {
+      "step": "Real hosted worker persisted dashboard notice and System message without report or human office hours",
+      "status": 200
+    },
+    {
+      "step": "Effective guardian dashboard content and deep link",
+      "status": 200
+    },
+    {
+      "step": "Dashboard read receipt",
+      "status": 200
+    },
+    {
+      "step": "Existing Messages inbox and unread thread",
+      "status": 200
+    },
+    {
+      "step": "System provenance in actual Messages projection",
+      "status": 200
+    },
+    {
+      "step": "Independent actual message read receipt",
+      "status": 200
+    },
+    {
+      "step": "Browser System-origin forgery rejected",
+      "status": 400
+    },
+    {
+      "step": "Manager fact names/counts before report submission",
+      "status": 200
+    },
+    {
+      "step": "Existing manager aggregate-only student-record authorization preserved",
+      "status": 403
+    },
+    {
+      "step": "Actual authorized student timeline before report submission",
+      "status": 200
+    },
+    {
+      "step": "Actual student profile count and retained timeline projection",
+      "status": 200
+    },
+    {
+      "step": "Manager cannot sign for teacher",
+      "status": 403
+    },
+    {
+      "step": "Actual server draft with timestamp",
+      "status": 200
+    },
+    {
+      "step": "Actual signed local report and D3 archive intent",
+      "status": 200
+    },
+    {
+      "step": "Signed submission lost-response replay",
+      "status": 200
+    }
+  ]
+}

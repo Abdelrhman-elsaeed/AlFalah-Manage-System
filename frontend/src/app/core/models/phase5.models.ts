@@ -26,7 +26,7 @@ export type StudentCaseActionType =
   | 'Other';
 export type GuardianSummonStatus = 'Pending' | 'Attended' | 'UnderObservation' | 'Improved';
 export type GuardianDispatchDecision = 'PendingOfficerDecision' | 'Approved' | 'Suppressed';
-export type ConversationThreadType = 'GuardianTeacher' | 'GuardianStudentAffairs' | 'GuardianSocialWorker';
+export type ConversationThreadType = 'GuardianTeacher' | 'GuardianStudentAffairs' | 'GuardianSocialWorker' | 'SystemNotice';
 export type ConversationThreadStatus = 'Open' | 'Closed' | 'Archived';
 export type MessageDeliveryState = 'Pending' | 'Delivered' | 'Failed';
 export type OfficeHoursDisposition = 'SentImmediately' | 'QueuedUntilOfficeHours' | 'BypassedForUrgency';

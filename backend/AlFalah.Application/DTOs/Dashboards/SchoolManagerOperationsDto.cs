@@ -27,4 +27,4 @@ public sealed record SchoolDayPulseDto(string Name, string TimeZone, IReadOnlyLi
 public sealed record SchoolManagerOperationsDto(DateTimeOffset GeneratedAt, DateOnly Date, string TimeZone,
     StudentPulseDto? Students, StaffPulseDto Staff, SummonPulseDto? Summons,
     SchoolDayPulseDto? SchoolDay, IReadOnlyList<SchoolActivityDto> Activities,
-    int? GatePasses, int? Conversations, IReadOnlyList<RecentSchoolVisitDto> RecentVisits);
+    int? GatePasses, int? Conversations, IReadOnlyList<RecentSchoolVisitDto> RecentVisits, int? DismissalLatenessToday = null);

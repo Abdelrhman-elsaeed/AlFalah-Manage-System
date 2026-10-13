@@ -48,6 +48,9 @@ public sealed class GetStudentTimelineQueryHandler
             return ApiResponse<PagedResult<StudentTimelineItemDto>>.Fail(StudentHandlerSupport.PermissionDenied);
         }
 
+        if (_currentUser.IsInRole(RoleNames.Instructor) && !StudentHandlerSupport.HasAnyPermission(_currentUser, PermissionNames.StudentView)
+            && !_currentUser.IsInRole(RoleNames.SchoolManager))
+            return ApiResponse<PagedResult<StudentTimelineItemDto>>.Fail(StudentHandlerSupport.PermissionDenied);
         if (_currentUser.IsInRole(RoleNames.Guardian))
         {
             var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().DateTime);

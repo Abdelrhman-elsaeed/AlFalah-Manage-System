@@ -2,12 +2,15 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, fromEvent, interval } from 'rxjs';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { GuardianDashboardStudentDto, GuardianStudentAffairsDashboardDto } from '../../../core/models/student-affairs-dashboard.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { StudentAffairsDashboardService } from '../../../core/services/student-affairs-dashboard.service';
+import { DutyExecutionService } from '../../../core/services/duty-execution.service';
+import { DutyGuardianNotice } from '../../../core/models/duty-execution.models';
+import { TranslateModule } from '@ngx-translate/core';
 
 const SERVICES = [
   { code: 'UnreadThreads', label: 'الرسائل', description: 'تواصل مع المدرسة وتابع الردود', icon: 'pi-comments', route: '/student-affairs/messages', permissions: ['Messaging.ViewOwn'], tone: 'new' },
@@ -21,12 +24,18 @@ const SERVICES = [
 @Component({
   selector: 'app-guardian-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslateModule],
   templateUrl: './guardian-dashboard.component.html',
-  styleUrls: ['../manager-workspace.css', './guardian-dashboard.component.css']
+  styleUrls: ['../manager-workspace.css', './guardian-dashboard.component.css', './guardian-duty-notices.css']
 })
 export class GuardianDashboardComponent {
   private readonly api = inject(StudentAffairsDashboardService);
+  private readonly duty = inject(DutyExecutionService);
+  private readonly router = inject(Router);
+  openMessage(event:Event,notice:DutyGuardianNotice){event.preventDefault();if(notice.messageRoute)void this.router.navigateByUrl(notice.messageRoute);}
+  readonly dutyNotices = signal<DutyGuardianNotice[]>([]);
+  readonly dutyNoticeError = signal('');
+  readDutyNotice(notice: DutyGuardianNotice) { this.duty.read(notice.notificationId).subscribe({next:r=>{if(r.isSuccess){this.dutyNotices.update(rows=>rows.map(x=>x.notificationId===notice.notificationId?{...x,isRead:true}:x));this.load();}},error:e=>this.dutyNoticeError.set(extractHttpErrorMessage(e)||'تعذر حفظ القراءة. / Could not save read status.')}); }
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   readonly view = inject(ActivatedRoute).snapshot.data['guardianView'] === 'overview' ? 'overview' : 'children';
@@ -66,6 +75,7 @@ export class GuardianDashboardComponent {
     if (this.refreshing()) return;
     this.refreshing.set(true);
     this.errorMessage.set('');
+    this.duty.guardian().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:r=>{if(r.isSuccess&&r.data){this.dutyNotices.set(r.data);this.dutyNoticeError.set('');}},error:e=>this.dutyNoticeError.set(extractHttpErrorMessage(e)||'تعذر تحميل التنبيهات. / Could not load notices.')});
     this.api.getGuardianDashboard().pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => { this.loading.set(false); this.refreshing.set(false); })

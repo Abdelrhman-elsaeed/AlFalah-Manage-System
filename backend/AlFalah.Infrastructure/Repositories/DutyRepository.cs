@@ -42,12 +42,30 @@ public sealed class DutyRepository(AlFalahDbContext db) : IDutyRepository
         Assignments = await db.Set<DutyAssignment>().Where(x => x.SchoolId == schoolId).OrderBy(x => x.Date).ToListAsync(ct),
         Changes = await db.Set<DutyAssignmentChange>().Where(x => x.SchoolId == schoolId).OrderBy(x => x.Id).ToListAsync(ct),
         Attendance = await db.AttendanceRecords.AsNoTracking().Where(x => x.SchoolId == schoolId).ToListAsync(ct),
+        Executions = await ExecutionsAsync(schoolId, ct),
         Names = await db.Users.IgnoreQueryFilters().AsNoTracking().Where(x => db.UserSchoolRoles.IgnoreQueryFilters().Any(r => r.SchoolId == schoolId && r.UserId == x.Id))
             .ToDictionaryAsync(x => x.Id, x => x.FirstName + " " + x.LastName, ct),
         Teachers = await db.InstructorProfiles.AsNoTracking().Where(x => x.SchoolId == schoolId && x.IsActive && x.User.IsActive
             && db.UserSchoolRoles.Any(r => r.SchoolId == schoolId && r.UserId == x.UserId && r.IsActive && r.Role.Name == RoleNames.Instructor))
             .OrderBy(x => x.User.FirstName).Select(x => new DutyTeacher(x.Id, x.UserId, x.User.FirstName + " " + x.User.LastName, true)).ToListAsync(ct)
     };
+    private async Task<List<DutyExecutionSummary>> ExecutionsAsync(int schoolId, CancellationToken ct)
+    {
+        var drafts = await (from d in db.Set<DutyReportDraft>().AsNoTracking()
+            join a in db.Set<DutyAssignment>().AsNoTracking() on d.AssignmentId equals a.Id
+            where d.SchoolId == schoolId
+            select new DutyExecutionSummary(a.Id, a.Date, d.AuthorUserId, d.AssignmentRevision,
+                db.Set<DutySignedDocument>().Any(x => x.AssignmentId == a.Id && x.SchoolId == schoolId && x.AuthorUserId == d.AuthorUserId && x.Kind == "Letter"),
+                d.SubmittedAt != null, d.SavedAt, d.SubmittedAt)).ToListAsync(ct);
+        var letters = await (from document in db.Set<DutySignedDocument>().AsNoTracking()
+                join a in db.Set<DutyAssignment>().AsNoTracking() on document.AssignmentId equals a.Id
+                where document.SchoolId == schoolId && document.Kind == "Letter"
+                    && !db.Set<DutyReportDraft>().Any(d => d.SchoolId == schoolId && d.AssignmentId == a.Id && d.AuthorUserId == document.AuthorUserId)
+                select new DutyExecutionSummary(a.Id, a.Date, document.AuthorUserId, document.AssignmentRevision, true, false, null, document.SignedAt)).ToListAsync(ct);
+        return drafts.Concat(letters).ToList();
+    }
+    public Task<List<DutyReportDraft>> ExecutionDraftsAsync(int schoolId, int assignmentId, CancellationToken ct) => db.Set<DutyReportDraft>().AsNoTracking()
+        .Where(x => x.SchoolId == schoolId && x.AssignmentId == assignmentId).ToListAsync(ct);
     public async Task<T> AtomicAsync<T>(int schoolId, Func<Task<T>> action, CancellationToken ct)
     {
         if (!db.Database.IsRelational()) return await action();

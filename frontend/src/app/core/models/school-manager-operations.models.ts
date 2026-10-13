@@ -10,6 +10,7 @@ export interface AttendanceCounts {
 }
 export interface AttendanceTrend { date: string; present: number; recorded: number; }
 export interface SchoolManagerOperations {
+  dismissalLatenessToday?: number | null;
   generatedAt: string;
   date: string;
   timeZone: string;

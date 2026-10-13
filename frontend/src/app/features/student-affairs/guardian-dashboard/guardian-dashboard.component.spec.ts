@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
+import { DutyExecutionService } from '../../../core/services/duty-execution.service';
 import { Subject, of, throwError } from 'rxjs';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { GuardianStudentAffairsDashboardDto } from '../../../core/models/student-affairs-dashboard.models';
@@ -19,8 +21,10 @@ describe('Guardian dashboard refresh', () => {
     api = jasmine.createSpyObj('StudentAffairsDashboardService', ['getGuardianDashboard']);
     api.getGuardianDashboard.and.returnValue(of(response));
     TestBed.configureTestingModule({
-      imports: [GuardianDashboardComponent],
+      imports: [GuardianDashboardComponent, TranslateModule.forRoot()],
       providers: [
+        provideRouter([]),
+        { provide: DutyExecutionService, useValue: { guardian:()=>of({isSuccess:true,data:[],errors:[]}),read:()=>of({isSuccess:true}) } },
         { provide: StudentAffairsDashboardService, useValue: api },
         { provide: AuthService, useValue: { hasAllPermissions: () => true, hasPermission: () => true } },
         { provide: ActivatedRoute, useValue: { snapshot: { data: { guardianView: 'overview' } } } }

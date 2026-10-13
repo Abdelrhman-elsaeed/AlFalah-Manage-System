@@ -1,6 +1,6 @@
 # UX — Manager Workspace and Teacher Mobile Flow
 
-**Status:** D1 manager and teacher schedule surfaces implemented and rendered at 390px, 768px and 1440px. See [D1 verification](verification/d1.md) and retained captures. Final client visual acceptance is pending owner review. D2/D3 surfaces are not implemented.
+**Status:** D1 manager and teacher schedule surfaces implemented and rendered at 390px, 768px and 1440px. See [D1 verification](verification/d1.md) and retained captures. Final client visual acceptance is pending owner review. D2 execution/picker/guardian/statistics/history surfaces are implemented; see [D2 evidence](verification/d2.md). D3 official PDFs/archive are not implemented.
 
 The experience should feel like a polished part of Al-Falah: clear Arabic hierarchy, generous spacing, restrained green/gold emphasis and excellent mobile execution. The official paper format belongs in the PDF preview; everyday work uses responsive controls.
 
@@ -39,7 +39,13 @@ flowchart LR
     F --> G[Read signed PDF and archive status]
 ```
 
-On phones, use stacked student cards instead of a horizontally scrolling paper table. Student search fills class automatically; time, action and notes remain clear. Adding/editing a line uses a focused bottom sheet or full-height dialog. Show separate `المتأخرون` and `المخالفون` sections, with explicit `لا يوجد` confirmation and a visible add action.
+On phones, use stacked student cards instead of a horizontally scrolling paper table. The modern picker in [dismissal-lateness.md](dismissal-lateness.md) provides search, grade/class filters and grouped classroom results, with no typed student-name fallback. Selection fills class automatically; time, action and notes remain clear. Adding/editing a line uses a focused bottom sheet or full-height dialog. Show separate `المتأخرون` and `المخالفون` sections, with explicit `لا يوجد` confirmation and a visible add action.
+
+The editor retains the source logical section order from [references.md](references.md). Confirming dismissal lateness is a separate intentional action explaining the guardian notice; autosave does not notify. Design pending/failed/no-guardian/correction states without losing the student or draft.
+
+The guardian receives both a visible dashboard notice (student/date/content and a link to the message) and an automated message in the existing Messages tab. Label the sender `النظام` / `System` with a recognizable system icon, never a teacher/staff avatar. Preserve existing message-list, unread and read-receipt interactions; distinguish each surface's status and show linked correction history. No separate inbox or external channel is requested. Capture these guardian states at the required breakpoints; see C17 and the amendment.
+
+Extend the existing manager dashboard with `تأخر الانصراف`: today's count, a readable names/class drill-down and date/term/class filters. The student record shows the same fact with real date/time and authorized detail. Count/list/history remain useful before final report signing. Detailed interaction and state requirements are in the amendment.
 
 Provide draft saving and a visible `تم حفظ المسودة` timestamp. Preserve entered data on failure and reload conflict; never show a saved indicator before the API confirms it. Initial scope uses server drafts and debounced saving; offline submission is not promised. The final screen reviews both categories, general observations, the last student's departure and a private preview of the teacher's saved signature.
 
@@ -72,6 +78,18 @@ Use existing toast conventions for short confirmations; important conflicts and 
 - Use restrained motion and honor reduced-motion preferences. Background refresh must not shift the focused input or overwrite an active draft.
 - Student picker reveals only necessary student/class fields, not phone, identity, guardian or case details.
 
+## Mandatory official-form reference
+
+The owner requires the exact report section/table division in `4.jpeg` and the letter reference in `5.jpeg`, located at `C:\Users\abdelrhman\Desktop\المناوبة\New folder`. Follow [references.md](references.md) during D2 field/editor design and D3 actual PDF implementation; reopen the images rather than relying on memory. Guardian/application metadata must not add arbitrary official columns or replace source sections.
+
 ## Visual acceptance deliverables
 
 During D1–D3, record desktop/mobile captures for: manager today/week, setup preview, automatic/manual exchange, teacher acknowledgement, report with student lines, submission success, archive failure and official PDF previews. Check Arabic wrapping, long teacher/student names, duplicate names, empty categories and multi-page output. Owner visual review is part of acceptance; “modern/professional” is not established by a build passing.
+
+## D2 delivered visual workflow
+
+D2 uses a focused green/gold own-duty hero and letter/report/review sequence, source-section cards, saved-signature review, truthful server save timestamps and local/current conflict comparison. A full-height phone picker has debounced search, clearable grade/class controls, classroom navigation, grouped readable long-name rows, school-number disambiguation, paging and fixed selection footer. It preserves filters during repeated entry and uses visual viewport height; Escape returns focus to the trigger. Explicit confirmation explains guardian communication without exposing implementation internals.
+
+Guardian notices render student/date/content and link to the actual System conversation; each surface has its own read behavior. Existing Messages renders System provenance without a human composer on its closed notice thread. Manager overview adds a dismissal metric and focused names/filter drill-down. Student profiles add a separate dismissal metric/timeline filter, preserving existing routes/permissions and morning-delay presentation.
+
+Actual Angular screens at 390/768/1440 are captured in [D2 verification](verification/d2.md). Refinement covered Arabic long names, white hero contrast, shared select sizing, 44px controls, reduced motion, overflow, fixed phone actions and failure/conflict/correction/signature states. API responses in the rendered harness are mocked synthetic fixtures; internal delivery is proven separately by real HTTP/SQL. Physical OS keyboard/assistive-technology and final client visual acceptance remain pending owner review.

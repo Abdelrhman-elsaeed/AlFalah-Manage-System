@@ -102,7 +102,9 @@ public sealed record StudentTimelineItemDto(
     string Title,
     string? Description,
     string Severity,
-    ActorSummaryDto? Actor);
+    ActorSummaryDto? Actor,
+    int? FactId = null,
+    int? FactRevision = null);
 
 public sealed record StudentListItemDto(StudentSummaryDto Student, IReadOnlyList<MetricBadgeDto> RiskBadges);
 
@@ -178,7 +180,9 @@ public sealed record StudentAnalyticsEventDto(
     string Severity,
     string Icon,
     string? Status,
-    string? ActorName);
+    string? ActorName,
+    int? FactId = null,
+    int? FactRevision = null);
 
 public sealed record StudentAnalyticsProfileDto(
     int StudentId,
@@ -206,7 +210,8 @@ public sealed record StudentAnalyticsProfileDto(
     int TotalGatePasses,
     IReadOnlyList<MonthlyAttendanceTrendDto> MonthlyTrends,
     IReadOnlyList<StudentAnalyticsEventDto> RecentEvents,
-    IReadOnlyList<StudentGuardianLinkDto> Guardians);
+    IReadOnlyList<StudentGuardianLinkDto> Guardians,
+    int TotalDismissalLateness = 0);
 
 public sealed record GetStudentAnalyticsProfileQuery(int StudentId) : IRequest<ApiResponse<StudentAnalyticsProfileDto>>;
 

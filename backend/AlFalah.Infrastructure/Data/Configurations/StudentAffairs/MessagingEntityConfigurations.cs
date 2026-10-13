@@ -52,7 +52,12 @@ internal sealed class ConversationMessageConfiguration
 
     protected override void ConfigureEntity(EntityTypeBuilder<ConversationMessage> builder)
     {
-        builder.Property(x => x.SenderUserId).HasMaxLength(450).IsRequired();
+        builder.Property(x => x.SenderUserId).HasMaxLength(450).IsRequired(false);
+        builder.ToTable("ConversationMessages", table => table.HasCheckConstraint("CK_ConversationMessages_Origin",
+            "([IsSystemOrigin] = 0 AND [SenderUserId] IS NOT NULL AND [SystemCorrelationId] IS NULL AND [SourceFactId] IS NULL AND [SourceFactRevision] IS NULL) OR ([IsSystemOrigin] = 1 AND [SenderUserId] IS NULL AND [SystemCorrelationId] IS NOT NULL AND [SourceFactId] IS NOT NULL AND [SourceFactRevision] > 0)"));
+        builder.HasIndex(x => x.SystemCorrelationId).HasFilter("[SystemCorrelationId] IS NOT NULL").IsUnique();
+        builder.HasOne<AlFalah.Domain.Entities.Duty.StudentDismissalLateness>().WithMany()
+            .HasForeignKey(x => new { x.SchoolId, x.SourceFactId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.NoAction);
         builder.Property(x => x.Body).HasColumnType("nvarchar(max)").IsUnicode(true).UseCollation("Arabic_CI_AS").IsRequired();
         builder.Property(x => x.IdempotencyKey).HasMaxLength(200).IsUnicode(false).IsRequired();
         builder.Property(x => x.IdempotencyPayloadHash).HasMaxLength(64).IsUnicode(false).IsRequired();

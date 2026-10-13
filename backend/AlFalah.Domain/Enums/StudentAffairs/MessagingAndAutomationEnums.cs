@@ -4,7 +4,8 @@ public enum ConversationThreadType
 {
     GuardianTeacher = 1,
     GuardianStudentAffairs = 2,
-    GuardianSocialWorker = 3
+    GuardianSocialWorker = 3,
+    SystemNotice = 4
 }
 
 public enum ConversationThreadStatus

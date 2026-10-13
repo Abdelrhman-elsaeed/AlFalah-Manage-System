@@ -313,7 +313,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             enrollmentDto,
             guardians,
             Array.Empty<MetricBadgeDto>(),
-            Array.Empty<StudentTimelineItemDto>(),
+            (await GetStudentTimelineAsync(schoolId, studentId, new StudentTimelineQuery { PageSize = 20 }, cancellationToken)).Items.ToArray(),
             audit,
             string.Empty
         );
@@ -484,20 +484,49 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             .Where(e => e.SchoolId == schoolId && e.StudentId == studentId && e.Id == enrollmentId && !e.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 
-    public Task<PagedResult<StudentTimelineItemDto>> GetStudentTimelineAsync(
+    public async Task<PagedResult<StudentTimelineItemDto>> GetStudentTimelineAsync(
         int schoolId,
         int studentId,
         StudentTimelineQuery query,
         CancellationToken cancellationToken)
     {
-        var items = new List<StudentTimelineItemDto>();
-        return Task.FromResult(new PagedResult<StudentTimelineItemDto>
+        var page = Math.Max(1, query.PageNumber); var size = Math.Clamp(query.PageSize, 1, 100);
+        var facts = _context.Set<AlFalah.Domain.Entities.Duty.StudentDismissalLateness>().AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && x.StudentId == studentId);
+        if (query.FromDate.HasValue) facts = facts.Where(x => x.DutyDate >= query.FromDate);
+        if (query.ToDate.HasValue) facts = facts.Where(x => x.DutyDate <= query.ToDate);
+        if (query.EventTypes.Count > 0 && !query.EventTypes.Contains("DismissalLateness")) facts = facts.Where(x => false);
+        var revisions = from revision in _context.Set<AlFalah.Domain.Entities.Duty.DismissalLatenessRevision>().AsNoTracking()
+            join fact in facts on revision.FactId equals fact.Id
+            where revision.SchoolId == schoolId
+            select new { Revision = revision, Current = fact.Revision };
+        var count = await revisions.CountAsync(cancellationToken);
+        var rows = await (from item in revisions join u in _context.Users.IgnoreQueryFilters() on item.Revision.ActorUserId equals u.Id
+            orderby item.Revision.CreatedAt descending, item.Revision.Id descending
+            select new { item.Revision, item.Current, Actor = u.FirstName + " " + u.LastName }).Skip((page - 1) * size).Take(size).ToListAsync(cancellationToken);
+        var ids = rows.Select(x => x.Revision.FactId).Distinct().ToArray();
+        var statuses = await _context.Set<AlFalah.Domain.Entities.Duty.DismissalNoticeBatch>().AsNoTracking()
+            .Where(x => x.SchoolId == schoolId && ids.Contains(x.FactId)).Select(x => new { x.FactId, x.Revision, x.State }).ToListAsync(cancellationToken);
+        var items = rows.Select(x => {
+            var f = System.Text.Json.JsonSerializer.Deserialize<AlFalah.Domain.Entities.Duty.StudentDismissalLateness>(x.Revision.SnapshotJson)!;
+            var local = f.DutyDate.ToDateTime(f.ObservedAt, DateTimeKind.Unspecified);
+            var at = f.Revision > 1 ? x.Revision.CreatedAt : new DateTimeOffset(local, TimeZoneInfo.FindSystemTimeZoneById(f.TimeZoneId).GetUtcOffset(local));
+            var state = statuses.FirstOrDefault(s => s.FactId == f.Id && s.Revision == f.Revision)?.State;
+            var notice = state switch { "Delivered" => "وصل التنبيه والرسالة / Notice and message delivered", "NoEligibleGuardian" => "لا يوجد ولي أمر مؤهل / No eligible guardian", "RetryScheduled" or "NeedsAttention" => "الإرسال يحتاج متابعة / Delivery needs attention", _ => "التنبيه قيد الإرسال / Notice pending" };
+            return new StudentTimelineItemDto("DismissalLateness", at,
+                (f.IsRetracted ? "تأخر الانصراف — مسحوب / Dismissal lateness — retracted" : "تأخر الانصراف / Dismissal lateness")
+                    + (f.Revision < x.Current ? " · نسخة محفوظة / Retained version" : ""),
+                $"{f.DutyDate:yyyy-MM-dd} · {f.Classroom} · {f.ObservedAt:HH:mm} · {f.Action} · {f.Notes}" + (f.DepartureAt is null ? "" : $" · المغادرة / Departure {f.DepartureAt:HH:mm}")
+                    + (f.Revision > 1 ? $" · سبب التصحيح / Correction reason: {x.Revision.Reason}" : "") + $" · {notice}",
+                f.IsRetracted || f.Revision < x.Current ? "Info" : "Warning", new ActorSummaryDto(x.Revision.ActorUserId, x.Actor, f.Revision == 1 ? "DutyTeacher" : "SchoolManager"), f.Id, f.Revision);
+        }).ToList();
+        return new PagedResult<StudentTimelineItemDto>
         {
             Items = items,
-            TotalCount = 0,
-            Page = query.PageNumber <= 0 ? 1 : query.PageNumber,
-            PageSize = query.PageSize <= 0 ? 20 : query.PageSize
-        });
+            TotalCount = count,
+            Page = page,
+            PageSize = size
+        };
     }
 
     public async Task<StudentEnrollmentDto?> GetEnrollmentDtoAsync(
@@ -2012,6 +2041,10 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             ));
         }
 
+        var dismissalTimeline = await GetStudentTimelineAsync(schoolId, studentId, new StudentTimelineQuery { PageSize = 50 }, cancellationToken);
+        events.AddRange(dismissalTimeline.Items.Select(x => new StudentAnalyticsEventDto($"dismissal-{x.FactId}-r{x.FactRevision}",
+            x.EventType, x.Title, x.Description, x.OccurredAt, x.Severity.ToLowerInvariant(), "pi pi-clock", null, x.Actor?.DisplayName, x.FactId, x.FactRevision)));
+        var dismissalCount = await _context.Set<AlFalah.Domain.Entities.Duty.StudentDismissalLateness>().CountAsync(x => x.SchoolId == schoolId && x.StudentId == studentId && !x.IsRetracted, cancellationToken);
         var sortedEvents = events.OrderByDescending(e => e.OccurredAt).Take(50).ToList();
 
         var fullName = string.Join(" ", new[] { s.FirstName, s.MiddleName, s.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
@@ -2042,7 +2075,8 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
             totalGatePasses,
             monthlyTrends,
             sortedEvents,
-            guardians
+            guardians,
+            dismissalCount
         );
     }
 

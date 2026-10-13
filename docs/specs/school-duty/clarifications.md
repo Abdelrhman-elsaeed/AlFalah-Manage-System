@@ -1,6 +1,6 @@
 # Clarifications and Decision Register
 
-**Updated:** 2026-10-13. The owner explicitly authorized D1 and its relevant documented defaults in the implementation request. D2/D3 remain outside that authorization.
+**Updated:** 2026-10-13. The owner explicitly authorized D1 and, by submitting the D2 implementation prompt, D2 with C1–C17 and its relevant documented defaults. D3 remains outside that authorization.
 
 ## Confirmed decisions
 
@@ -17,6 +17,12 @@
 | C9 | Write the Spec Kit in English, communicate in Arabic, use a separate docs folder and few phases; agree before implementation | Owner request |
 | C10 | Equal cyclic rotation, without teaching-load weights, over the teacher pool explicitly selected in duty settings. Managers can remove teachers from that pool | Owner follow-up answer on 2026-10-13 |
 | C11 | Archive under school root / `المناوبات` / academic year / term / actual teacher / duty date, with separate responsibility-letter and daily-report PDFs | Owner follow-up answer on 2026-10-13 |
+| C12 | Student identities are selected through a modern mobile dialog with search, filters and classroom grouping; no typed student-name fallback | Owner amendment on 2026-10-13 |
+| C13 | Dismissal lateness triggers a notice to the selected student's guardian | Owner amendment on 2026-10-13 |
+| C14 | Existing manager dashboard statistics show dismissal-lateness counts and which students were late | Owner amendment on 2026-10-13 |
+| C15 | Dismissal lateness is recorded in the student's history | Owner amendment on 2026-10-13 |
+| C16 | Official report divisions match the supplied images exactly; retain their directory as a mandatory reference and review during D3 | Owner amendment on 2026-10-13 |
+| C17 | Dismissal-lateness notice appears in the guardian dashboard **and** as a message in the existing internal Messages tab, authored by the system rather than a person | Owner clarification on 2026-10-13 |
 
 All five submitted clarification questions are answered. The former fairness and archive-path proposals are confirmed as C10 and C11; no answer to those questions remains outstanding.
 
@@ -27,11 +33,19 @@ All five submitted clarification questions are answered. The former fairness and
 | P2 | Schedule operating weekdays from selected timetable timing, within AcademicTerm dates, with manager-entered holiday/exam closure ranges | The paper has holiday/exam rows. Exam days remain operating unless explicitly closed; no automatic school-calendar import is assumed |
 | P4 | Teacher report submission explicitly applies the saved handwritten signature again. If missing, save the draft and direct the teacher to existing signature settings; signed submission/acknowledgement stays unavailable | Reuses the confirmed signature mechanism without inventing a signature |
 | P5 | Submission is final and does not wait for manager approval; manager reviews the following day. Corrections create a retained revision with reason and teacher re-signature | Paper specifies handover, not an approval state; preserves automatic archival and historical fidelity |
-| P6 | Late and violating students are recorded in duty only; no automatic Student Affairs incident/penalty | The duty paper does not specify escalation, severity or conduct policy |
+| P6 (partly superseded by C13–C15) | Dismissal lateness now creates a shared student fact/history item, guardian notice and manager statistics. Violating-student observations still do not automatically create disciplinary incidents/penalties | Owner amendment expands dismissal-lateness integration only; no morning-delay or conduct-policy expansion |
 | P7 | Known Absent and Excused staff are unavailable. Missing attendance means unknown; show this state. Automatic next-in-queue cover may remain provisional until attendance is saved, with a final check before acknowledgement | The current model has no attendance fact until a sheet is saved; unknown must not be presented as confirmed Present |
 | P8 | An emergency manual reassignment may proceed for a known-absent/excluded teacher only through an explicit exception warning and mandatory reason. The manager cannot sign on that teacher's behalf or falsify attendance | Supports the owner's manual control with transparent accountability |
 
-The 2026-10-13 implementation request supplies the required plan agreement for D1. P2, P7, P8 and D1 correction/protection/compensation policies are authorized defaults; do not ask for reconfirmation. P4–P6 describe D2 behavior and remain unimplemented. If a default changes, update the corresponding spec, contracts and tasks together.
+The 2026-10-13 implementation request supplies the required plan agreement for D1. P2, P7, P8 and D1 correction/protection/compensation policies are authorized defaults; do not ask for reconfirmation. P4–P6 describe D2 behavior and remain unimplemented; P6 must be read with C13–C15, not as a prohibition on student-history/guardian integration. If a default changes, update the corresponding spec, contracts and tasks together.
+
+## D2 amendment defaults and channel decision
+
+See [dismissal-lateness.md](dismissal-lateness.md) and [references.md](references.md). Confirmed requirements C12–C17 need no reconfirmation. Proposed engineering defaults are explicit confirmation before notification (independent of report submission), one active lateness fact per student/duty date, durable deduplication/retry, established effective guardian-recipient policy and retained corrections. This amendment is planned; it does not start D2/D3 implementation.
+
+**Channel resolved by C17:** both guardian-dashboard notice and existing internal Messages, with visible/authenticated system provenance (`النظام` / `System`). No external messaging provider is required. Current human-sender contracts need a narrow additive system-origin path; do not impersonate a teacher or permit browsers to forge it. Independent delivery/read states, deduplication and correction links are specified in the amendment. There is still no approved arbitrary dismissal-delay grace period.
+
+The owner requested an English next-phase prompt. [D2 implementation prompt](prompts/d2-implementation.md) is prepared; submitting it authorizes D2 and its documented relevant defaults without reconfirming C1–C17. Prompt preparation itself does not start implementation. D3 remains excluded, with stop/report after D2.
 
 ## D1 implementation decisions
 
@@ -50,3 +64,9 @@ The 2026-10-13 implementation request supplies the required plan agreement for D
 - Manual assignment/exchange has a persistent protection marker, so automatic reconciliation does not immediately undo it. Removing protection is a separate audited action.
 - Exclusions and eligibility changes affect future unlocked days from an explicit effective date; history survives.
 - Late submission is allowed with an “overdue” indicator; never backdate the acknowledgement/submission timestamp to the duty date.
+
+## D2 implemented decision record
+
+The submitted D2 prompt explicitly authorized C1-C17 and their relevant defaults without reconfirmation. D2 is implemented; [verification](verification/d2.md) records actual scope and evidence. Historical D1 completion-zero and amendment/prompt-preparation statements above apply to their original phase, not the current D2 result: completion credit now requires a signed report, and selected-student facts/System communication are delivered.
+
+D-108 records the retained typed draft JSON/generic immutable Letter/Report documents, stable lateness/revision records, per-surface results, nullable constrained System sender, scoped SQL triggers and emergency draft history. Embedded/local logo bytes are frozen; remote/unavailable logo state is retained explicitly. No arbitrary lateness grace period, fake departure, external provider, new student-record grant or D3 processor was introduced. Operational data/configuration remain unchanged; owner visual acceptance is pending and work stops after D2.

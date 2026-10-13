@@ -1,6 +1,6 @@
 # Tasks — Three Implementation Phases
 
-**Status:** D1 implementation delivered (2026-10-13); verification evidence and known baseline limitations are in `verification/d1.md`. Final owner visual acceptance is pending. D2/D3 remain unstarted.
+**Status:** D1 implementation delivered (2026-10-13); verification evidence and known baseline limitations are in `verification/d1.md`. Final owner visual acceptance is pending. D2 implementation delivered; see `verification/d2.md`. D3 remains unstarted.
 
 ## Before D1
 
@@ -33,18 +33,39 @@ Use meaningful service tests for these decisions and real SQL integration tests 
 
 ## D2 — Teacher execution, report and saved signatures
 
-**Outcome:** The actual duty teacher acknowledges the letter and signs a complete mobile daily report using the existing saved handwritten signature.
+**Outcome:** The actual duty teacher acknowledges the letter, selects students through a premium mobile picker, confirms dismissal lateness with guardian notice/student history/manager statistics, and signs a complete report using the existing saved handwritten signature. The [amendment](dismissal-lateness.md) and [source references](references.md) are mandatory.
 
-- [ ] Add acknowledgement, report draft/retained revisions/lines and frozen signature/document snapshots with scoped relationships.
-- [ ] Build narrow student/enrollment/class lookup without exposing unrelated Student Affairs information.
-- [ ] Build teacher own-duty upcoming/history, letter preview, acknowledgement, draft persistence, late/violation cards, observations and last departure review.
-- [ ] Capture saved signature on `اطلعت وأتعهد` and `توقيع وإرسال التقرير`; missing-signature settings/return flow.
-- [ ] Validate author/current assignment, date/time, explicit empty categories and manual roster fallback; preserve drafts on failure/conflict.
-- [ ] Implement idempotent submit, late-submit timestamps, manager-authorized retained correction and teacher re-signature.
-- [ ] Commit document archive intents with the signed snapshot; external worker delivery belongs to D3.
-- [ ] Handle same-day emergency reassignment after acknowledgement without moving signatures/authorship to the replacement teacher.
+- [x] Record owner amendment C12–C16, inspect original image references and plan the mobile picker/shared lateness fact (documentation only, 2026-10-13).
+- [x] Record C17: both guardian dashboard and existing Messages tab, authored by System; inspect current human-sender contracts and plan the additive seam (documentation only).
+- [x] Prepare the English D2-only implementation handoff with the confirmed amendments, premium mobile frontend/visual gate, isolated verification and explicit D3 exclusion (preparation only).
+- [x] Reopen `4.jpeg`/`5.jpeg` and map exact report sections/columns/signature positions before data/UI implementation; retain the source division in the mobile editor.
 
-**Acceptance:** AC-07, AC-09–13, AC-16 and AC-20. Verify substitution signature ownership, later account signature change, two concurrent draft edits, stale assignment, seven-row overflow, no observations, departure validation, lost submit response and cross-school/student/report ID attempts.
+- [x] Add acknowledgement, report draft/retained revisions/lines and frozen signature/document snapshots with scoped relationships.
+- [x] Build narrow whole-school student/enrollment/class lookup for the actual duty author, with server search, grade/class filters, grouped classrooms, pagination and stable duplicate-name identity; no typed-name fallback or contact/profile disclosure.
+- [x] Implement the modern phone full-height/student-selection dialog and tablet/desktop layout from the amendment, with focus, scroll/keyboard handling, selected-student footer and preserved filter context.
+- [x] Persist explicit dismissal-lateness confirmation, audit and durable guardian intent atomically; autosave does not notify. Validate effective recipients server-side, deduplicate/retry and show missing-guardian/delivery states. Do not assume external-channel delivery.
+- [x] Create actual guardian-dashboard notice/content/deep link and one system-authored message in existing `/student-affairs/messages`; retain source-fact correlation, unread/receipt behavior and independent surface retry/read state without duplicate alerts.
+- [x] Add trusted system-origin persistence/DTO/UI support to messaging; reject browser spoofing and avoid personal sender impersonation. Preserve human permissions/office-hour behavior and scoped participant isolation; system notices do not wait for human office hours.
+- [x] Extend existing manager dashboard with dismissal-lateness counts and names/class drill-down, date/term/class filters and distinct-student versus incident totals.
+- [x] Implement the real scoped dismissal-lateness student-record/timeline/profile projection; address the current empty timeline seam and preserve existing record authorization.
+- [x] Link one stable fact/revision across report/dashboard/student history; implement audited correction/retraction and notice history without altering morning-delay or disciplinary metrics.
+- [x] Build teacher own-duty upcoming/history, letter preview, acknowledgement, draft persistence, late/violation cards, observations and last departure review.
+- [x] Capture saved signature on `اطلعت وأتعهد` and `توقيع وإرسال التقرير`; missing-signature settings/return flow.
+- [x] Validate author/current assignment, selected student/enrollment/class, date/time and explicit empty categories; unavailable roster entries need resolution, not manual name entry. Preserve drafts on failure/conflict.
+- [x] Implement idempotent submit, late-submit timestamps, manager-authorized retained correction and teacher re-signature.
+- [x] Commit document archive intents with the signed snapshot; external worker delivery belongs to D3.
+- [x] Handle same-day emergency reassignment after acknowledgement without moving signatures/authorship to the replacement teacher.
+
+- [x] Complete isolated SQL/security/concurrency/dual-surface HTTP and affected backend/frontend regressions; retain real versus mocked evidence.
+- [x] Capture/refine rendered principal workflows at 390px, 768px and 1440px, plus signature/conflict/correction/delivery states.
+- [x] Update feature/project docs, phase tracker and decisions; stop after D2 without operational migration or D3 processing.
+- [ ] Final owner/client visual acceptance and physical mobile keyboard review (pending owner review).
+
+**Verification:** [D2 delivery report](verification/d2.md). 361 affected backend checks, 86 focused Angular checks, 20 actual isolated HTTP checks and retained mocked-API rendered browser evidence. No real-parent test traffic. Known unrelated baseline failures remain documented.
+
+**Acceptance:** AC-07, AC-09–13, AC-16, AC-20–26 and AC-27's source mapping. Verify substitution signature ownership, later account signature change, two concurrent draft edits, stale assignment, seven-row overflow, no observations, departure validation, lost submit response and cross-school/student/report ID attempts. Verify concurrent lateness confirmation/atomic rollback/retry, recipient isolation/expiry/missing guardian, no repeated initial notices, consistent counts/history before report submission and after correction, and unchanged morning-delay counters. Inspect/capture picker search/filter/class browsing, long/duplicate names, virtual keyboard and notice states at 390/768/1440px; client visual acceptance remains pending.
+
+Also verify AC-28–30: actual guardian-dashboard notice and Messages list/chat with `النظام` / `System`, one-surface failure/recovery, distinct unread/read state, correction linkage, denied system-origin forgery/other-recipient threads and unchanged human conversation behavior. Capture both guardian surfaces; distinguish real local persistence/browser results from mocks.
 
 Use workflow/backend tests plus focused desktop/mobile browser journeys with real supported RTL controls. Verify teacher deep links through the actual role/permission guard. Capture key states and record visual feedback.
 
@@ -55,6 +76,7 @@ Use workflow/backend tests plus focused desktop/mobile browser journeys with rea
 **Outcome:** Letter acknowledgement and report submission produce retained official PDFs in the duty archive, with recoverable external delivery and protected access.
 
 - [ ] Implement official roster, letter and report renderers with source field fidelity, original/substitute identities, frozen assets, school headers, last departure and multi-page tables.
+- [ ] Reopen originals in `C:\Users\abdelrhman\Desktop\المناوبة\New folder`; use [references.md](references.md) to verify exact daily-report division/section/column order (`4.jpeg`), letter (`5.jpeg`) and roster (`1.jpeg`). Retain actual source/output visual comparison evidence; no generic replacement report.
 - [ ] Add duty archive folder/source identities and protection across new and legacy listing/download/mutation boundaries.
 - [ ] Provision the reviewed school/year/term/teacher/date hierarchy using stable identities and duplicate-name handling.
 - [ ] Implement durable processor, ID reservation, leases/retry/reconciliation, immutable artifact/version links and per-school readiness.
@@ -65,7 +87,7 @@ Use workflow/backend tests plus focused desktop/mobile browser journeys with rea
 - [ ] Demonstrate real configured-school write/read/retry behavior when authorized and available; distinguish live results from fakes/mocks.
 - [ ] Review manager and teacher UI with the owner, record acceptance/limits and publish activation/rollback instructions.
 
-**Acceptance:** AC-09–10 and AC-13–20, plus complete end-to-end: publish → staff absence → date exchange → substitute acknowledgement → mobile report → submit → archive → protected download. No duplicate documents, overwritten signature, unprotected library access or fabricated completion.
+**Acceptance:** AC-09–10, AC-13–20 and AC-27, plus complete end-to-end: publish → staff absence → date exchange → substitute acknowledgement → selected student → confirmed dismissal lateness → guardian notice/student history/manager statistics → report submit → archive → protected download. No duplicate documents/notices, overwritten signature, unprotected access or fabricated completion/delivery. Distinguish actual notification-channel results from mocks.
 
 **Stop/report:** Mark complete only when feature acceptance is demonstrated or explicitly record remaining external/owner acceptance. General feature assignment remains deferred.
 

@@ -323,6 +323,7 @@ export interface StudentAnalyticsEventDto {
 }
 
 export interface StudentAnalyticsProfileDto {
+  totalDismissalLateness?: number;
   readonly studentId: number;
   readonly studentNumber: string;
   readonly fullName: string;

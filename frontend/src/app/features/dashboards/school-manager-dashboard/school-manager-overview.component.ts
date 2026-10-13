@@ -9,11 +9,12 @@ import { SchoolManagerDashboard } from '../../../core/models/dashboard.models';
 import { AttendanceCounts, AttendanceTrend, ManagerOperationsCard, ManagerToolCard, SchoolManagerOperations } from '../../../core/models/school-manager-operations.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { PublishedScorePipe } from '../../../shared/score-scale';
+import { DismissalStatisticsComponent } from './dismissal-statistics.component';
 
 @Component({
   selector: 'app-school-manager-overview',
   standalone: true,
-  imports: [CommonModule, ChartModule, PublishedScorePipe],
+  imports: [CommonModule, ChartModule, PublishedScorePipe, DismissalStatisticsComponent],
   templateUrl: './school-manager-overview.component.html',
   styleUrl: './school-manager-overview.component.css'
 })
@@ -115,6 +116,7 @@ export class SchoolManagerOverviewComponent {
     return ({ 1: this.t('مسودة', 'Draft'), 2: this.t('مرسلة', 'Submitted'), 3: this.t('بانتظار الاعتماد', 'Pending approval'), 4: this.t('معتمدة', 'Approved'), 5: this.t('معادة للتعديل', 'Returned'), 6: this.t('أعيد فتحها', 'Reopened'), 7: this.t('قيد المراجعة', 'Under review'), 8: this.t('ملغاة', 'Cancelled') } as Record<number, string>)[status] ?? '—';
   }
   canOpenStaff(): boolean { return this.auth.hasPermission('Attendance.Manage'); }
+  canOpenDuty(): boolean { return this.auth.hasPermission('Duty.Manage'); }
   canOpenSummons(): boolean { return this.auth.roles().includes('SocialWorker') && this.auth.hasPermission('Summon.View'); }
   private seconds(time: string): number {
     const parts = time.split(':').map(Number);
