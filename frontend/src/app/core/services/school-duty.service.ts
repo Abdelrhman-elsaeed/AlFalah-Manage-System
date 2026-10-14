@@ -15,4 +15,10 @@ export class SchoolDutyService {
   changePreview(request: DutyChange) { return this.http.post<ApiResponse<DutyPreview>>(`${this.base}/assignments/change-preview`, request, this.options); }
   change(request: DutyChange) { return this.http.post<ApiResponse<unknown>>(`${this.base}/assignments/change`, request, this.options); }
   retry() { return this.http.post<ApiResponse<boolean>>(`${this.base}/reconciliation/retry`, {}, this.options); }
+  dashboard() { return this.http.get<ApiResponse<DutyDashboard>>(`${this.base}/dashboard`,this.options); }
+  administrators(){return this.http.get<ApiResponse<DutyAdministratorAccount[]>>(`${this.base}/administrators`,this.options);}
+  changeAdministrator(userId:string,enabled:boolean,expectedVersion:string|null){return this.http.put<ApiResponse<DutyAdministratorAccount[]>>(`${this.base}/administrators/${encodeURIComponent(userId)}`,{enabled,expectedVersion},this.options);}
 }
+export interface DutyAdministratorAccount {userId:string;name:string;username?:string|null;roles:string[];eligible:boolean;inherited:boolean;enabled:boolean;version:string|null;}
+export interface DutyDashboardDay { assignmentId:number;date:string;teacher:string;needsReview:boolean; }
+export interface DutyDashboard { school:string;today:string;from:string;to:string;current:DutyDashboardDay|null;recent:DutyDashboardDay[]; }

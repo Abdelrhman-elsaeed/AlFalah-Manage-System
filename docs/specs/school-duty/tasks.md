@@ -125,3 +125,26 @@ After duty acceptance, specify the manager's `توزيع الصلاحيات` tab
 - [ ] Owner-selected operational school activation/rollout (original flags remain off).
 
 [Current acceptance evidence and safe activation/rollback](verification/workspace-amendment.md).
+
+## C24 administrator amendment — 2026-10-14
+
+- [x] Separate settings steps from the content panel; use individual visible buttons without a continuous green strip and refine all administrative duty pages at390/768/1440.
+- [x] Paginate/search teacher management and rotation order, preserving exclusion/restoration/exchange actions; paginate fairness and change history.
+- [x] Add a school-scoped SQL-paginated paired letter/report archive with filters, retained corrections, authenticated previews/downloads/retry and unavailable/denied states.
+- [x] Add optional published school-local dismissal time with timetable default, preserved timing on protected assignments and immutable prior PDFs.
+- [x] Show today's effective duty teacher and preceding seven dates in the general dashboard of an actual Duty.Manage administrator, independent of primary manager identity; preserve author signing and school isolation.
+- [x] Fix reload warnings for untouched settings; protect changed settings/server saves/unsaved teacher drafts.
+- [x] Verify78 backend checks (70 real SQL),141 Angular, scalable105-teacher/103-archive browser fixtures, ordinary teacher regression,14 actual protected HTTP reads and18 native downloads against retained real Drive artifacts. See [administrator evidence](verification/admin-amendment.md).
+- [x] Keep local API5264/Angular4200 running, retain68 operational migrations and disabled original school activation; update D-116 and docs. Stop after School Duty.
+- [ ] Final owner appearance and physical-device/OS keyboard acceptance remain pending.
+
+- [x] C24 owner follow-up: move duty summary to the general dashboard page end after all header/tools/content; verify actual browser DOM order and390/768/1440, authorized officer/ordinary-teacher isolation.
+
+## C25 — explicit School Duty delegation
+
+- [x] Match dashboard width/margins at390/768/1440/1920 while retaining page-end placement.
+- [x] Manager-only grouped school-account picker; grant/revoke, duplicate-name usernames, retained selection, explicit confirmation, paging and accessible RTL/English states.
+- [x] Six administrative duty pages/dashboard/documents for a delegate, with actual-author signing and school scope preserved; no recursive delegation or general storage rights.
+- [x] Reuse existing scoped memberships/fixed two-permission role/audit with serialized idempotent/versioned transactions, SQL uniqueness/rollback and live identity/revocation; no schema migration or automatic operational grants.
+- [x]82 backend (74 SQL),146 Angular,16 actual isolated HTTP checks and rendered four-width delegation/workspace regression; latest local Release API5264/Angular4200 ready. [Evidence](verification/delegation-amendment.md), D-117.
+- [ ] Owner final appearance and physical-device acceptance remain pending.

@@ -1,0 +1,92 @@
+{
+  "verification": "Actual Angular and browser interaction; synthetic APIs only, no operational grants/provider writes",
+  "results": [
+    {
+      "role": "SchoolManager",
+      "width": 390,
+      "groupedAllRoles": true,
+      "grant": true,
+      "revokeConfirmation": true,
+      "cancelWithoutMutation": true,
+      "revoke": true,
+      "conflictRetainsSelection": true,
+      "matchingDashboardWidth": {
+        "dashboard": {
+          "width": 300.625,
+          "x": 18.6875
+        },
+        "duty": {
+          "width": 300.625,
+          "x": 18.6875
+        }
+      }
+    },
+    {
+      "role": "SchoolManager",
+      "width": 768,
+      "groupedAllRoles": true,
+      "grant": true,
+      "revokeConfirmation": true,
+      "cancelWithoutMutation": true,
+      "revoke": true,
+      "conflictRetainsSelection": true,
+      "matchingDashboardWidth": {
+        "dashboard": {
+          "width": 663.75,
+          "x": 26.125
+        },
+        "duty": {
+          "width": 663.75,
+          "x": 26.125
+        }
+      }
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1440,
+      "groupedAllRoles": true,
+      "grant": true,
+      "revokeConfirmation": true,
+      "cancelWithoutMutation": true,
+      "revoke": true,
+      "conflictRetainsSelection": true,
+      "matchingDashboardWidth": {
+        "dashboard": {
+          "width": 1175.75,
+          "x": 26.125
+        },
+        "duty": {
+          "width": 1175.75,
+          "x": 26.125
+        }
+      }
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1920,
+      "groupedAllRoles": true,
+      "grant": true,
+      "revokeConfirmation": true,
+      "cancelWithoutMutation": true,
+      "revoke": true,
+      "conflictRetainsSelection": true,
+      "matchingDashboardWidth": {
+        "dashboard": {
+          "width": 1440,
+          "x": 134
+        },
+        "duty": {
+          "width": 1440,
+          "x": 134
+        }
+      }
+    },
+    {
+      "role": "Moderator",
+      "sixDutyAdministrationPages": true,
+      "cannotDelegate": true
+    }
+  ],
+  "ownerVisualReview": "Pending",
+  "physicalDevice": "Pending"
+}

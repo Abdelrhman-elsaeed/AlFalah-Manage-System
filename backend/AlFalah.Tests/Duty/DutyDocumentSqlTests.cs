@@ -24,6 +24,69 @@ namespace AlFalah.Tests.Duty;
 [Collection("Duty SQL")]
 public sealed class DutyDocumentSqlTests(DutySqlFixture fixture)
 {
+    [DutySqlFact] public async Task Administrative_archive_is_SQL_paged_filtered_and_keeps_corrected_history_without_teacher_access()
+    {
+        var w=await Setup(false);await using var db=fixture.Db();
+        var planner=new DutyService(new DutyRepository(db),new TeacherDriveHarness.TestCurrentUser(RoleNames.SchoolManager,w.Scene.Manager,w.Scene.School,true));
+        var plan=await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==w.Scene.School);
+        var settings=DutyRotation.Settings(plan) with{To=w.Scene.Date.AddDays(35),RegenerateTo=w.Scene.Date.AddDays(35)};
+        var preview=await planner.PreviewAsync(new(settings,plan.Revision),default);await planner.PublishAsync(new(settings,plan.Revision,preview.Digest,Guid.NewGuid()),default);
+        var letter=await SignLetter(db,w);var original=await SignReport(db,w);var oldPdf=await Reader(db,w).ContentAsync(original,false,default);
+        var execution=await Execution(db,w,true).GetAsync(w.Scene.Assignment,default);
+        await Execution(db,w,true).CorrectReportAsync(w.Scene.Assignment,new(execution.AssignmentRevision,execution.Draft!.Version,"Synthetic retained archive correction",Guid.NewGuid()),default);
+        var teacher=Execution(db,w);var revised=await teacher.GetAsync(w.Scene.Assignment,default);
+        await teacher.SubmitAsync(w.Scene.Assignment,new(revised.AssignmentRevision,Guid.NewGuid(),revised.Draft!.Version),default);
+        var manager=Reader(db,w,true);var first=await manager.ArchiveAsync(new(w.Scene.Term,To:w.Scene.Date.AddDays(35)),default);
+        first.Total.Should().Be(36);first.Rows.Should().HaveCount(10);
+        var second=await manager.ArchiveAsync(new(w.Scene.Term,To:w.Scene.Date.AddDays(35),Page:2),default);
+        second.Rows.Should().HaveCount(10);second.Rows.Select(x=>x.AssignmentId).Should().NotIntersectWith(first.Rows.Select(x=>x.AssignmentId));
+        var filtered=await manager.ArchiveAsync(new(w.Scene.Term,w.Scene.Teacher,w.Scene.Date,w.Scene.Date),default);
+        filtered.Rows.Should().ContainSingle();filtered.Rows[0].Letter!.DocumentId.Should().Be(letter);filtered.Rows[0].Report!.DocumentId.Should().NotBe(original);filtered.Rows[0].RevisionCount.Should().Be(3);
+        (await Reader(db,w).ContentAsync(original,false,default)).Hash.Should().Be(oldPdf.Hash);
+        await FluentActions.Invoking(()=>Reader(db,w).ArchiveAsync(new(),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        await FluentActions.Invoking(()=>manager.ArchiveAsync(new(TermId:w.Scene.Term+10000),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==404);
+        await FluentActions.Invoking(()=>manager.ArchiveAsync(new(Page:0),default)).Should().ThrowAsync<DutyException>();
+        (await manager.ArchiveAsync(new(w.Scene.Term,"foreign-teacher"),default)).Rows.Should().BeEmpty();
+        (await db.Set<DutySignedDocument>().CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(3);
+    }
+    [DutySqlFact] public async Task Scoped_non_primary_administrator_gets_dashboard_and_archive_but_not_signing_or_other_school_access()
+    {
+        var w=await Setup(false);await using var db=fixture.Db();var role="SyntheticDutyAdmin-"+Guid.NewGuid().ToString("N");
+        db.Roles.Add(new(){Id=role,Name=role,NormalizedName=role.ToUpperInvariant()});
+        db.RolePermissions.Add(new(){RoleId=role,PermissionId=await db.Permissions.Where(x=>x.Name==DutyPermissions.Manage).Select(x=>x.Id).SingleAsync()});
+        var membership=new UserSchoolRole{UserId=w.Scene.Replacement,SchoolId=w.Scene.School,RoleId=role};db.UserSchoolRoles.Add(membership);
+        var plan=await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==w.Scene.School);
+        for(var offset=1;offset<=7;offset++)db.Add(new DutyAssignment{SchoolId=w.Scene.School,DutyPlanId=plan.Id,Date=w.Scene.Date.AddDays(-offset),OriginalTeacherId=w.Scene.Teacher,EffectiveTeacherId=w.Scene.Replacement,IsCancelled=offset==7});
+        await db.SaveChangesAsync();
+        var current=new TeacherDriveHarness.TestCurrentUser(RoleNames.Instructor,w.Scene.Replacement,w.Scene.School,true);
+        var administrator=new DutyService(new DutyRepository(db),current);var dashboard=await administrator.DashboardAsync(default);
+        dashboard.Today.Should().Be(w.Scene.Date);dashboard.Current!.AssignmentId.Should().Be(w.Scene.Assignment);dashboard.Recent.Should().HaveCount(6);dashboard.Recent.Should().OnlyContain(x=>x.Date<dashboard.Today&&x.Date>=dashboard.From);
+        (await Reader(db,w,true,w.Scene.Replacement).ArchiveAsync(new(),default)).Rows.Should().NotBeEmpty();
+        await FluentActions.Invoking(()=>Execution(db,w,user:w.Scene.Replacement).AcknowledgeAsync(w.Scene.Assignment,new(1,Guid.NewGuid()),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        var foreign=await Setup(false);
+        var outsider=new DutyService(new DutyRepository(db),new TeacherDriveHarness.TestCurrentUser(RoleNames.SchoolManager,w.Scene.Replacement,foreign.Scene.School,true));
+        await FluentActions.Invoking(()=>outsider.DashboardAsync(default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        await db.UserSchoolRoles.Where(x=>x.UserId==w.Scene.Replacement&&x.SchoolId==w.Scene.School&&x.RoleId==role).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,false));
+        await FluentActions.Invoking(()=>administrator.DashboardAsync(default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        await FluentActions.Invoking(()=>Reader(db,w,true,w.Scene.Replacement).ArchiveAsync(new(),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+    }
+    [DutySqlFact] public async Task Custom_plan_dismissal_changes_unlocked_days_and_preserves_locked_time_signed_bytes_and_exception_priority()
+    {
+        var w=await Setup(false);await using var db=fixture.Db();
+        var manager=Execution(db,w,true);var initial=await manager.GetAsync(w.Scene.Assignment,default);
+        await manager.TimingExceptionAsync(w.Scene.Assignment,new(initial.AssignmentRevision,null,"Use term setting for synthetic test",Guid.NewGuid()),default);
+        var planner=new DutyService(new DutyRepository(db),new TeacherDriveHarness.TestCurrentUser(RoleNames.SchoolManager,w.Scene.Manager,w.Scene.School,true));
+        async Task Publish(TimeOnly time){var plan=await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==w.Scene.School);var settings=DutyRotation.Settings(plan) with{DismissalAt=time};var preview=await planner.PreviewAsync(new(settings,plan.Revision),default);await planner.PublishAsync(new(settings,plan.Revision,preview.Digest,Guid.NewGuid()),default);}
+        await Publish(new(13,0));(await Execution(db,w).GetAsync(w.Scene.Assignment,default)).DismissalAt.Should().Be(new TimeOnly(13,0));
+        var letter=await SignLetter(db,w);var original=await Reader(db,w).ContentAsync(letter,false,default);
+        await Publish(new(14,0));db.ChangeTracker.Clear();
+        (await Execution(db,w).GetAsync(w.Scene.Assignment,default)).DismissalAt.Should().Be(new TimeOnly(13,0));
+        var plan=await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==w.Scene.School);var future=await db.Set<DutyAssignment>().Where(x=>x.SchoolId==w.Scene.School&&x.Date>w.Scene.Date).OrderBy(x=>x.Date).FirstAsync();
+        (await new DutyExecutionRepository(db).DismissalAsync(plan,future.Date,default)).Should().Be(new TimeOnly(14,0));
+        (await Reader(db,w).ContentAsync(letter,false,default)).Hash.Should().Be(original.Hash);
+        await manager.TimingExceptionAsync(w.Scene.Assignment,new(initial.AssignmentRevision,new(15,0),"Explicit day exception still wins",Guid.NewGuid()),default);
+        (await Execution(db,w).GetAsync(w.Scene.Assignment,default)).DismissalAt.Should().Be(new TimeOnly(15,0));
+    }
     private sealed record World(DutyExecutionSqlTests.Scene Scene, FakeGoogleDrive Drive, string Root);
     private static readonly IOptions<DutyArchiveOptions> Enabled = Options.Create(new DutyArchiveOptions { ProcessingEnabled=true });
     private static byte[] Signature(int variant=0)
@@ -101,7 +164,7 @@ public sealed class DutyDocumentSqlTests(DutySqlFixture fixture)
         var plan=await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==w.Scene.School);
         plan.TimeZoneId="Pacific/Honolulu";
         var schoolToday=DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow,TimeZoneInfo.FindSystemTimeZoneById(plan.TimeZoneId)).DateTime);
-        var day=await db.Set<DutyAssignment>().SingleAsync(x=>x.Id==w.Scene.Assignment);day.Date=schoolToday.AddDays(1);await db.SaveChangesAsync();
+        var day=await db.Set<DutyAssignment>().Where(x=>x.SchoolId==w.Scene.School&&x.Date>schoolToday&&x.EffectiveTeacherId==w.Scene.Teacher).OrderBy(x=>x.Date).FirstAsync();await db.SaveChangesAsync();
         var service=Execution(db,w);var view=await service.GetAsync(day.Id,default);view.CanExecute.Should().BeFalse();view.SignatureData.Should().BeNull();
         await FluentActions.Invoking(()=>service.AcknowledgeAsync(day.Id,new(day.Revision,Guid.NewGuid()),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Code=="DutyNotToday"&&x.Status==409);
         await FluentActions.Invoking(()=>service.SaveDraftAsync(day.Id,new(day.Revision,0,new(true,true,[],"Future forged edit",null)),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Code=="DutyNotToday");

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace AlFalah.Application.Duty;
 
-public sealed class DutyDocumentService(IDutyRepository duty, IDutyExecutionRepository execution, IDutyDocumentRepository repo,
+public sealed partial class DutyDocumentService(IDutyRepository duty, IDutyExecutionRepository execution, IDutyDocumentRepository repo,
     IDutyPdfRenderer renderer, ICurrentUserService current, DutyArchiveDriveService drive, IOptions<DutyArchiveOptions> options, IDutyDocumentAssets? assets = null) : IDutyDocumentService
 {
     private int School => current.ActiveSchoolId ?? throw Forbidden();
@@ -42,18 +42,8 @@ public sealed class DutyDocumentService(IDutyRepository duty, IDutyExecutionRepo
                 catch(DutyException e) { await repo.MarkAvailabilityAsync(i,e.Code,DateTimeOffset.UtcNow,ct); }
                 catch(Exception) when(!ct.IsCancellationRequested) { await repo.MarkAvailabilityAsync(i,"ConnectionUnavailable",DateTimeOffset.UtcNow,ct); }
             }
-            var state = i?.State ?? "Pending";
-            if (state is "PendingD3" or "Pending" && (!readiness.Enabled || !readiness.ProcessingEnabled || readiness.ConnectionState!="Connected")) state="SetupUnavailable";
-            if (i?.ErrorCode is not null && state == "Archived") state = i.ErrorCode == "ConnectionUnavailable" ? "Disconnected" : "NeedsAttention";
-            var artifactState=i?.ArtifactId is null ? i?.ErrorCode=="DutyArtifactUnavailable" ? "Unavailable" : "Preparing" : "Available";
-            var authorName="";var dutyDate="";
-            try { var frozen=DutyDocumentIntegrity.Validate(doc);authorName=frozen.GetProperty("Header").GetProperty("ActualTeacher").GetString()??"";dutyDate=frozen.GetProperty("Date").GetString()??"";
-                if(i?.ArtifactId is not null) DutyDocumentIntegrity.Validate(await repo.ArtifactAsync(School,doc.Id,ct) ?? throw DutyDocumentIntegrity.Error()); }
-            catch(DutyException) { artifactState="Unavailable"; }
-            states.Add(new(doc.Id,doc.Kind,doc.AssignmentRevision,doc.SignedAt,doc.PreviousDocumentId,doc.CorrectionReason,
-                artifactState,state,
-                access.Manager && artifactState!="Unavailable" && i is { State: "RetryScheduled" or "NeedsAttention" } && readiness.Enabled && readiness.ProcessingEnabled,
-                i?.Attempts??0,i?.NextAttemptAt,i?.VerifiedAt,i?.ErrorCode,authorName,dutyDate,doc.AssignmentRevision==day.Revision&&doc.AuthorUserId==day.EffectiveTeacherId));
+            var artifact=i?.ArtifactId is null?null:await repo.ArtifactAsync(School,doc.Id,ct);
+            states.Add(Describe(doc,i,artifact,access.Manager,doc.AssignmentRevision==day.Revision&&doc.AuthorUserId==day.EffectiveTeacherId,readiness));
         }
         await Access(false,ct);
         return new(readiness,states);

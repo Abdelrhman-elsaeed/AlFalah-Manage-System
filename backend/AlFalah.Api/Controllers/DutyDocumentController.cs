@@ -8,6 +8,8 @@ namespace AlFalah.Api.Controllers;
 [Authorize,ApiController,AlFalah.Api.Filters.ApiResponseValidation,Route("api/v1/school-duty")]
 public sealed class DutyDocumentController(IDutyDocumentService service) : ControllerBase
 {
+    [HttpGet("archive")]
+    public async Task<IActionResult> Archive([FromQuery]DutyArchiveQuery query,CancellationToken ct)=>Ok(ApiResponse<DutyArchivePage>.Success(await service.ArchiveAsync(query,ct)));
     [HttpGet("assignments/{id:int}/documents")]
     public async Task<IActionResult> Documents(int id,CancellationToken ct)=>Ok(ApiResponse<DutyDocumentCollection>.Success(await service.ListAsync(id,ct)));
     [HttpGet("documents/{id:int}/pdf")]

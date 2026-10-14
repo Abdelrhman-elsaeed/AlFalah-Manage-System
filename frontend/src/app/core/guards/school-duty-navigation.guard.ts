@@ -11,10 +11,13 @@ export const schoolDutyAccessGuard: CanActivateFn = () => {
 
 export const schoolDutyManagerGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
-  return auth.activeSchoolId() && auth.hasRole('SchoolManager') && auth.hasAnyPermission(['Duty.Manage'])
+  return auth.activeSchoolId() && auth.hasAnyPermission(['Duty.Manage'])
     ? true : inject(Router).createUrlTree(['/unauthorized']);
 };
 export const schoolDutySectionGuard: CanDeactivateFn<{ canLeave(): boolean }> = component => component.canLeave();
+export const schoolDutyDelegationGuard:CanActivateFn=()=>{
+ const auth=inject(AuthService);return auth.activeSchoolId()&&auth.hasRole('SchoolManager')&&auth.hasAnyPermission(['Duty.Manage'])?true:inject(Router).createUrlTree(['/unauthorized']);
+};
 
 /** Old signed-document/execution bookmarks now enter their dedicated page. */
 export const schoolDutyEntryGuard: CanActivateFn = route => route.queryParamMap.has('execution')
@@ -22,7 +25,8 @@ export const schoolDutyEntryGuard: CanActivateFn = route => route.queryParamMap.
 
 /** Preserve retained notifications, bookmarks and signature-return context. */
 export const legacySchoolDutyGuard: CanActivateFn = route => {
-  if (route.queryParamMap.get('tab') !== 'duty' || !inject(AuthService).hasAnyRole(['SchoolManager', 'Instructor'])) return true;
+  const auth=inject(AuthService);
+  if (route.queryParamMap.get('tab') !== 'duty' || !(auth.hasAnyRole(['SchoolManager', 'Instructor'])||auth.hasAnyPermission(['Duty.Manage']))) return true;
   const { tab, ...queryParams } = route.queryParams;
   return inject(Router).createUrlTree([queryParams['execution'] ? '/school-duty/execution' : '/school-duty'], { queryParams, fragment: route.fragment ?? undefined });
 };

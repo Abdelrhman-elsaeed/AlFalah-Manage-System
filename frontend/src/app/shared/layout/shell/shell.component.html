@@ -156,6 +156,7 @@
 
     <main class="shell-content">
       <router-outlet></router-outlet>
+      <app-duty-dashboard-summary *ngIf="showDutyDashboard()" [schoolId]="currentUser()?.activeSchoolId||null" />
     </main>
   </div>
   <nav *ngIf="isStorageRoute()" class="storage-mobile-nav" aria-label="أقسام مساحة الملفات">

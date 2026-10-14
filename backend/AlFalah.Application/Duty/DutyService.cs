@@ -4,7 +4,7 @@ using AlFalah.Domain.Entities.Duty;
 
 namespace AlFalah.Application.Duty;
 
-public sealed class DutyService(IDutyRepository repo, ICurrentUserService current) : IDutyService
+public sealed class DutyService(IDutyRepository repo, ICurrentUserService current,IDutyAdministrationRepository? administration=null) : IDutyService
 {
     private async Task<DutyState> Load(CancellationToken ct)
     {
@@ -40,7 +40,7 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
     {
         var access = await repo.AccessAsync(SchoolId, UserId, ct);
         if (access is null || !(access.Manager || access.Teacher) || (manage && !access.Manager))
-            throw new DutyException("DutyForbidden", "إدارة المناوبة متاحة لمدير المدرسة الحالي فقط. / Duty management requires the current school manager.", 403);
+            throw new DutyException("DutyForbidden", "يلزم تصريح إدارة المناوبة في المدرسة الحالية. / Duty administration requires current-school authorization.", 403);
         // Read the live database capability; refreshed role assignment takes effect immediately.
         return access;
     }
@@ -76,9 +76,17 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
             access.Manager ? teachers : [], timing.Weekdays, days, history,
             access.Manager ? Fairness(state, plan?.Id, today) : [], access.Manager ? await repo.PendingCountAsync(SchoolId, ct) : 0,
             plan?.Closures.Select(x => new DutyClosure(x.From, x.To, access.Manager ? x.Reason : "")).ToArray() ?? [],
-            state.Executions.Where(x => x.AuthorUserId == UserId).OrderByDescending(x => x.Date).ToArray());
+            state.Executions.Where(x => x.AuthorUserId == UserId).OrderByDescending(x => x.Date).ToArray(),administration is not null&&await administration.CanDelegateAsync(SchoolId,UserId,ct));
     }
     internal static DateOnly Today(string zone) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(zone)).DateTime);
+    public async Task<DutyDashboard> DashboardAsync(CancellationToken ct)
+    {
+        var access=await Access(true,ct);var term=(await repo.TermsAsync(SchoolId,ct)).FirstOrDefault();
+        var zone=term is null?"Africa/Cairo":await repo.PlanZoneAsync(SchoolId,term.Id,ct)??(await repo.TimingAsync(SchoolId,term,ct)).Zone;
+        var today=Today(zone);var rows=await repo.DashboardDaysAsync(SchoolId,today.AddDays(-7),today,ct);
+        await Access(true,ct);
+        return new(access.School,today,today.AddDays(-7),today.AddDays(-1),rows.SingleOrDefault(x=>x.Date==today),rows.Where(x=>x.Date<today).ToArray());
+    }
     internal static IReadOnlyList<DutyFairness> Fairness(DutyState state, int? planId, DateOnly today)
     {
         var selected = state.Plans.FirstOrDefault(p => p.Id == planId)?.Participants.Select(p => p.UserId).ToHashSet() ?? [];
@@ -188,6 +196,13 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
             if (preview.Days.Any(x => string.IsNullOrEmpty(x.TeacherId) && DutyRotation.Operating(settings, x.Date)))
                 throw Invalid("DutyNoEligibleTeacher", "توجد أيام دون معلم مؤهل. راجع الاستبعادات. / Some days have no eligible teacher.");
             var plan = v.Plan;
+            if(plan is not null && (DutyRotation.Settings(plan).DismissalAt!=settings.DismissalAt || plan.BellScheduleRevisionId!=v.Timing.RevisionId))
+            {
+                var preservedIds=preview.Days.Where(x=>x.Preserved).Select(x=>x.Date).ToHashSet();
+                var preserved=v.State.Assignments.Where(x=>x.DutyPlanId==plan.Id && !x.IsCancelled && preservedIds.Contains(x.Date)).ToArray();
+                var prior=await repo.DismissalTimesAsync(plan,preserved,ct);
+                foreach(var a in preserved) AddChange(a,"SettingsTimingPreserved",a.EffectiveTeacherId,a.EffectiveTeacherId,"Retained dismissal time on settings publication",null).SettingsSnapshotJson=JsonSerializer.Serialize(prior[a.Id]);
+            }
             if (plan is null)
             {
                 plan = new DutyPlan { SchoolId = SchoolId, AcademicTermId = r.Settings.TermId, TimeZoneId = v.Timing.Zone, BellScheduleRevisionId = v.Timing.RevisionId };

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, provideRouter } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
-import { schoolDutyEntryGuard, schoolDutyManagerGuard, schoolDutySectionGuard, schoolDutyUnsavedGuard } from '../../../core/guards/school-duty-navigation.guard';
+import { schoolDutyEntryGuard, schoolDutyDelegationGuard, schoolDutyManagerGuard, schoolDutySectionGuard, schoolDutyUnsavedGuard } from '../../../core/guards/school-duty-navigation.guard';
 import { DutyFeedbackService } from './duty-feedback.service';
 import { signatureEnrollmentGuard } from '../../../core/guards/signature-enrollment.guard';
 
@@ -24,14 +24,19 @@ describe('Ordered duty workspace and explicit error acknowledgement', () => {
     for(const url of ['/school-duty','/school-duty/execution?execution=1','/school-duty/documents?execution=1'])
       expect(TestBed.runInInjectionContext(()=>signatureEnrollmentGuard({} as any,{url} as any))).toBeTrue();
   });
-  it('manager settings/statistics/history require manager role and capability', () => {
+  it('duty settings/statistics/history follow the school capability regardless of role label', () => {
     expect(TestBed.runInInjectionContext(() => schoolDutyManagerGuard({} as any, {} as any))).toBeTrue();
-    role = 'Instructor'; const denied = TestBed.runInInjectionContext(() => schoolDutyManagerGuard({} as any, {} as any));
+    role = 'Instructor';expect(TestBed.runInInjectionContext(() => schoolDutyManagerGuard({} as any, {} as any))).toBeTrue();
+    manage=false; const denied = TestBed.runInInjectionContext(() => schoolDutyManagerGuard({} as any, {} as any));
     expect(TestBed.inject(Router).serializeUrl(denied as any)).toBe('/unauthorized');
   });
   it('does not grant management through a role alone or a missing school', () => {
     manage = false; expect(TestBed.runInInjectionContext(() => schoolDutyManagerGuard({} as any, {} as any))).not.toBeTrue();
     manage = true; school = undefined; expect(TestBed.runInInjectionContext(() => schoolDutyManagerGuard({} as any, {} as any))).not.toBeTrue();
+  });
+  it('lets only the school manager open delegation even when another account can manage duty',()=>{
+    expect(TestBed.runInInjectionContext(()=>schoolDutyDelegationGuard({} as any,{} as any))).toBeTrue();
+    role='Moderator';expect(TestBed.runInInjectionContext(()=>schoolDutyDelegationGuard({} as any,{} as any))).not.toBeTrue();
   });
   it('old execution links retain identity on the separate execution page', () => {
     const route = new ActivatedRouteSnapshot(); route.queryParams = { execution: '42', date: '2030-01-06', termId: '7' }; route.fragment = 'history';

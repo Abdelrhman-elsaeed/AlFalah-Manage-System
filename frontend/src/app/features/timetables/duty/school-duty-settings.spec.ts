@@ -24,6 +24,27 @@ describe('Duty settings amendment', () => {
     component.openSetup(); expect(component.draft()!.teacherIds).toEqual(['a','b']); expect(component.draft()!.weekdays).toEqual([0,2,4]);
     expect(component.draft()!.permanentlyExcludedTeacherIds).toEqual([]);
   });
+  it('does not warn on reload for an untouched setup, search or stage navigation; warns only for changed settings', () => {
+    component.openSetup();const untouched=new Event('beforeunload',{cancelable:true});component.beforeUnload(untouched);
+    expect(untouched.defaultPrevented).toBeFalse();component.search='A';component.setupStage='calendar';expect(component.hasDraft()).toBeFalse();
+    component.setDismissalMode(true);expect(component.hasDraft()).toBeTrue();component.setDismissalMode(false);expect(component.hasDraft()).toBeFalse();
+    component.excludePermanently('a');const changed=new Event('beforeunload',{cancelable:true});component.beforeUnload(changed);
+    expect(changed.defaultPrevented).toBeTrue();component.restorePermanent('a');expect(component.hasDraft()).toBeTrue();
+    component.draft.set(null);expect(component.hasDraft()).toBeFalse();
+  });
+  it('pages the displayed teacher pool without removing unrendered participants and keeps global reorder positions', () => {
+    const teachers=Array.from({length:105},(_,i)=>({userId:'t'+i,name:'Synthetic '+i,profileId:i+1}));
+    component.data.update(x=>({...x!,teachers}));component.openSetup();
+    expect(component.displayedTeachers.length).toBe(10);expect(component.draft()!.teacherIds.length).toBe(105);
+    component.moveTeacherPage(10);expect(component.displayedTeachers.length).toBe(5);
+    component.rotationPage=2;const moved=component.displayedOrder[0]!.userId;component.reorder(component.rotationOffset,-1);
+    expect(component.draft()!.teacherIds[19]).toBe(moved);expect(component.draft()!.teacherIds.length).toBe(105);
+  });
+  it('requires an explicit custom dismissal time and can return to the timetable default', () => {
+    component.openSetup();component.setDismissalMode(true);component.previewPlan();expect(component.error()).toBe('DUTY_ADMIN.TIME_REQUIRED');
+    component.setDismissal('13:45');expect(component.draft()!.dismissalAt).toBe('13:45:00');
+    component.setDismissalMode(false);expect(component.draft()!.dismissalAt).toBeNull();
+  });
   it('applies permanent exclusion once and restores participation', () => {
     component.openSetup(); component.excludePermanently('a'); component.excludePermanently('a');
     expect(component.draft()!.teacherIds).toEqual(['b']); expect(component.draft()!.permanentlyExcludedTeacherIds).toEqual(['a']);

@@ -19,17 +19,22 @@ public class AuthService : IAuthService
     private readonly AlFalahDbContext _context;
     private readonly IJwtService _jwtService;
     private readonly ILogger<AuthService> _logger;
+    private readonly ICurrentUserService? _current;
+    private readonly AlFalah.Application.Duty.IDutyRepository? _duty;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         AlFalahDbContext context,
         IJwtService jwtService,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        ICurrentUserService? current=null,
+        AlFalah.Application.Duty.IDutyRepository? duty=null)
     {
         _userManager = userManager;
         _context = context;
         _jwtService = jwtService;
         _logger = logger;
+        _current=current;_duty=duty;
     }
 
     // ─── School Login ─────────────────────────────────────────────────────────
@@ -81,6 +86,8 @@ public class AuthService : IAuthService
 
         // Get permissions for this user's roles
         var permissions = await GetPermissionsForUserAsync(user.Id);
+
+        await AppendDutyPermissions(user.Id,request.SchoolId,permissions);
 
         return await BuildAuthResponseAsync(
             user, userRoles, permissions,
@@ -242,10 +249,14 @@ public class AuthService : IAuthService
         var roles = await _userManager.GetRolesAsync(user);
         var permissions = await GetPermissionsForUserAsync(userId);
 
+        var schoolScope=_current?.ActiveSchoolId;
+
         var activeSchoolRole = await _context.UserSchoolRoles
             .Include(x => x.School)
-            .Where(x => x.UserId == userId && x.IsActive)
+            .Where(x => x.UserId == userId && x.IsActive&&x.RoleId!=AlFalah.Application.Duty.DutyPermissions.AdministratorRole&&(!schoolScope.HasValue||x.SchoolId==schoolScope))
             .FirstOrDefaultAsync();
+
+        await AppendDutyPermissions(userId,activeSchoolRole?.SchoolId,permissions);
 
         return new CurrentUserDto
         {
@@ -279,6 +290,16 @@ public class AuthService : IAuthService
             .ToListAsync();
 
         return permissions;
+    }
+
+    private async Task AppendDutyPermissions(string user,int? school,List<string> permissions)
+    {
+        if(_duty is null)return;
+        permissions.RemoveAll(x=>x is AlFalah.Application.Duty.DutyPermissions.Manage or AlFalah.Application.Duty.DutyPermissions.View);
+        if(school is null)return;
+        var access=await _duty.AccessAsync(school.Value,user,default);
+        if(access?.Manager==true)permissions.AddRange([AlFalah.Application.Duty.DutyPermissions.Manage,AlFalah.Application.Duty.DutyPermissions.View]);
+        else if(access?.Teacher==true)permissions.Add(AlFalah.Application.Duty.DutyPermissions.View);
     }
 
     private async Task<AuthResponseDto> BuildAuthResponseAsync(

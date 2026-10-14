@@ -8,6 +8,7 @@ public static class DutyPermissions
 {
     public const string View = "Duty.View";
     public const string Manage = "Duty.Manage";
+    public const string AdministratorRole = "SchoolDutyAdministrator";
 }
 public sealed class DutyException(string code, string message, int status = 400) : Exception(message)
 {
@@ -21,7 +22,7 @@ public sealed record DutyClosure(DateOnly From, DateOnly To, string Reason);
 public sealed record DutySettings(int TermId, DateOnly From, DateOnly To, IReadOnlyList<int> Weekdays,
     IReadOnlyList<string> TeacherIds, IReadOnlyList<DutyExclusion> Exclusions, IReadOnlyList<DutyClosure> Closures,
     DateOnly RegenerateFrom, DateOnly RegenerateTo, bool AcceptAttendanceCalendarMismatch = false,
-    IReadOnlyList<string>? PermanentlyExcludedTeacherIds = null);
+    IReadOnlyList<string>? PermanentlyExcludedTeacherIds = null, TimeOnly? DismissalAt = null);
 public sealed record DutyPreviewRequest(DutySettings Settings, int ExpectedRevision);
 public sealed record DutyPublishRequest(DutySettings Settings, int ExpectedRevision, string PreviewDigest, Guid RequestId);
 public sealed record DutyChangeRequest(int AssignmentId, int ExpectedRevision, string TeacherId, int? OtherAssignmentId,
@@ -43,11 +44,13 @@ public sealed record DutyWorkspace(bool CanManage, string School, DateOnly Today
     IReadOnlyList<DutyTerm> Terms, int? TermId, int PlanRevision, DutySettings? Settings,
     IReadOnlyList<DutyTeacher> Teachers, IReadOnlyList<int> SuggestedWeekdays, IReadOnlyList<DutyDay> Days,
     IReadOnlyList<DutyHistory> History, IReadOnlyList<DutyFairness> Fairness, int PendingRetries,
-    IReadOnlyList<DutyClosure> Closures, IReadOnlyList<DutyExecutionSummary>? OwnHistory = null);
+    IReadOnlyList<DutyClosure> Closures, IReadOnlyList<DutyExecutionSummary>? OwnHistory = null,bool CanDelegate=false);
 public sealed record DutyAccess(string School, bool Manager, bool Teacher);
 public sealed record DutyExecutionSummary(int AssignmentId, DateOnly Date, string AuthorUserId, int AssignmentRevision,
     bool Acknowledged, bool Submitted, DateTimeOffset? SavedAt, DateTimeOffset? SubmittedAt);
 public sealed record DutyTiming(int? RevisionId, string Zone, IReadOnlyList<int> Weekdays);
+public sealed record DutyDashboardDay(int AssignmentId, DateOnly Date, string Teacher, bool NeedsReview);
+public sealed record DutyDashboard(string School, DateOnly Today, DateOnly From, DateOnly To, DutyDashboardDay? Current, IReadOnlyList<DutyDashboardDay> Recent);
 public sealed class DutyState
 {
     public List<DutyPlan> Plans { get; init; } = [];
@@ -64,6 +67,9 @@ public interface IDutyRepository
     Task<DutyAccess?> AccessAsync(int schoolId, string userId, CancellationToken ct);
     Task<List<DutyTerm>> TermsAsync(int schoolId, CancellationToken ct);
     Task<DutyTiming> TimingAsync(int schoolId, DutyTerm term, CancellationToken ct);
+    Task<string?> PlanZoneAsync(int schoolId, int termId, CancellationToken ct);
+    Task<List<DutyDashboardDay>> DashboardDaysAsync(int schoolId, DateOnly from, DateOnly to, CancellationToken ct);
+    Task<Dictionary<int, TimeOnly?>> DismissalTimesAsync(DutyPlan plan, IReadOnlyList<DutyAssignment> assignments, CancellationToken ct);
     Task<DutyState> LoadAsync(int schoolId, CancellationToken ct);
     Task<List<DutyReportDraft>> ExecutionDraftsAsync(int schoolId, int assignmentId, CancellationToken ct) => Task.FromResult(new List<DutyReportDraft>());
     Task<T> AtomicAsync<T>(int schoolId, Func<Task<T>> action, CancellationToken ct);
@@ -79,6 +85,7 @@ public interface IDutyRepository
 public interface IDutyService
 {
     Task<DutyWorkspace> WorkspaceAsync(int? termId, CancellationToken ct);
+    Task<DutyDashboard> DashboardAsync(CancellationToken ct);
     Task<DutyPreview> PreviewAsync(DutyPreviewRequest request, CancellationToken ct);
     Task<DutyMutationResult> PublishAsync(DutyPublishRequest request, CancellationToken ct);
     Task<DutyPreview> ChangePreviewAsync(DutyChangeRequest request, CancellationToken ct);

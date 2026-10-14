@@ -1,4 +1,5 @@
-<section class="documents" [dir]="dir" [attr.aria-busy]="busy() || loading()">
+<span hidden *ngIf="actionsOnly" [dutyError]="error()" (dutyErrorDismissed)="error.set('')"></span>
+<section class="documents" [dir]="dir" [attr.aria-busy]="busy() || loading()" *ngIf="!actionsOnly">
   <header class="documents-heading"><div><span class="eyebrow">{{ t('EYEBROW') }}</span><h2>{{ t('TITLE') }}</h2><p>{{ t('INTRO') }}</p></div><button class="history-action" (click)="openHistory()" [disabled]="!data()?.documents?.length"><i class="pi pi-history" aria-hidden="true"></i>{{ t('HISTORY') }}<span>{{ data()?.documents?.length || 0 }}</span></button></header>
   <span hidden [dutyError]="error()" (dutyErrorDismissed)="error.set('')"></span>
   <div *ngIf="!loading() && !data()" class="document-unavailable"><p>{{ t('UNAVAILABLE') }}</p><button class="history-action" (click)="load()">{{ t('REFRESH') }}</button></div>

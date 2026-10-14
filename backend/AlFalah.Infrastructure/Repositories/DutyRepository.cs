@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text.Json;
 using AlFalah.Application.Duty;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Entities.Duty;
@@ -14,13 +15,36 @@ public sealed class DutyRepository(AlFalahDbContext db) : IDutyRepository
     {
         var school = await db.Schools.AsNoTracking().Where(x => x.Id == schoolId && x.IsActive).Select(x => new { x.Name, x.ManagerUserId }).SingleOrDefaultAsync(ct);
         if (school is null || !await db.Users.AnyAsync(x => x.Id == userId && x.IsActive, ct)) return null;
-        var roles = await db.UserSchoolRoles.AsNoTracking().Where(x => x.SchoolId == schoolId && x.UserId == userId && x.IsActive).Select(x => x.Role.Name).ToListAsync(ct);
+        var roles = await db.UserSchoolRoles.AsNoTracking().Where(x => x.SchoolId == schoolId && x.UserId == userId && x.IsActive && x.Role.IsActive && x.RoleId!=DutyPermissions.AdministratorRole).Select(x => x.Role.Name).ToListAsync(ct);
         var permissions = await (from membership in db.UserSchoolRoles.AsNoTracking()
             join grant in db.RolePermissions.AsNoTracking() on membership.RoleId equals grant.RoleId
-            where membership.SchoolId == schoolId && membership.UserId == userId && membership.IsActive
+            where membership.SchoolId == schoolId && membership.UserId == userId && membership.IsActive && membership.Role.IsActive
             select grant.Permission.Name).Distinct().ToListAsync(ct);
-        return new(school.Name, school.ManagerUserId == userId && roles.Contains(RoleNames.SchoolManager)
-            && permissions.Contains(DutyPermissions.Manage), roles.Contains(RoleNames.Instructor) && permissions.Contains(DutyPermissions.View));
+        return new(school.Name, roles.Count > 0 && permissions.Contains(DutyPermissions.Manage),
+            roles.Contains(RoleNames.Instructor) && permissions.Contains(DutyPermissions.View));
+    }
+    public Task<string?> PlanZoneAsync(int schoolId, int termId, CancellationToken ct) => db.Set<DutyPlan>().AsNoTracking()
+        .Where(x=>x.SchoolId==schoolId && x.AcademicTermId==termId).Select(x=>x.TimeZoneId).SingleOrDefaultAsync(ct);
+    public Task<List<DutyDashboardDay>> DashboardDaysAsync(int schoolId, DateOnly rangeFrom, DateOnly rangeTo, CancellationToken ct) =>
+        (from a in db.Set<DutyAssignment>().AsNoTracking()
+         join u in db.Users.IgnoreQueryFilters().AsNoTracking() on a.EffectiveTeacherId equals u.Id
+         where a.SchoolId==schoolId && !a.IsCancelled && a.Date>=rangeFrom && a.Date<=rangeTo
+         orderby a.Date descending, a.Id
+         select new DutyDashboardDay(a.Id,a.Date,u.FirstName+" "+u.LastName,a.ExceptionCode!=null)).ToListAsync(ct);
+    public async Task<Dictionary<int,TimeOnly?>> DismissalTimesAsync(DutyPlan plan,IReadOnlyList<DutyAssignment> assignments,CancellationToken ct)
+    {
+        var ids=assignments.Select(x=>x.Id).ToArray();
+        var retained=await db.Set<DutyAssignmentChange>().AsNoTracking().Where(x=>x.SchoolId==plan.SchoolId && ids.Contains(x.AssignmentId??0)
+            && x.Kind=="SettingsTimingPreserved").OrderByDescending(x=>x.Id).ToListAsync(ct);
+        var days=await db.Set<BellScheduleDay>().AsNoTracking().Where(x=>x.BellScheduleRevisionId==plan.BellScheduleRevisionId).Include(x=>x.Periods).ToListAsync(ct);
+        var configured=DutyRotation.Settings(plan).DismissalAt;
+        return assignments.ToDictionary(a=>a.Id,a=> {
+            var old=retained.FirstOrDefault(x=>x.AssignmentId==a.Id&&x.AfterRevision==a.Revision);
+            if(old is not null)return JsonSerializer.Deserialize<TimeOnly?>(old.SettingsSnapshotJson!);
+            if(configured is not null)return configured;
+            var day=days.SingleOrDefault(x=>x.Day==((int)a.Date.DayOfWeek+1)%7+1);
+            return day is not {IsStudyDay:true}?null:(day.UsesDefaultSchedule?days.SingleOrDefault(x=>x.Day==0)?.Periods:day.Periods)?.Select(x=>(TimeOnly?)x.EndLocalTime).Max();
+        });
     }
     public Task<List<DutyTerm>> TermsAsync(int schoolId, CancellationToken ct) => db.AcademicTerms.AsNoTracking()
         .Where(x => x.SchoolId == schoolId && x.StartsOn >= x.AcademicYear.StartsOn && x.EndsOn <= x.AcademicYear.EndsOn)

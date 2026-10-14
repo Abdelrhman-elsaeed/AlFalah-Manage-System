@@ -57,6 +57,9 @@ type DropdownChangeEvent = { value: any; originalEvent?: Event };
                   [optionLabel]="optionLabel"
                   [optionValue]="optionValue"
                   [optionDisabled]="optionDisabled"
+                  [group]="group"
+                  [optionGroupLabel]="optionGroupLabel"
+                  [optionGroupChildren]="optionGroupChildren"
                   [placeholder]="placeholder"
                   [filter]="filter"
                   [filterBy]="filterBy"
@@ -136,6 +139,9 @@ export class ClearableSelectComponent implements ControlValueAccessor {
   @Input() optionLabel: string | undefined = undefined;
   @Input() optionValue: string | undefined = undefined;
   @Input() optionDisabled: string | undefined;
+  @Input() group=false;
+  @Input() optionGroupLabel='label';
+  @Input() optionGroupChildren='items';
   @Input() placeholder = '';
   @Input() filter = false;
   @Input() filterBy: string | undefined;

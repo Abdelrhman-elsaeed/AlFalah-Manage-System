@@ -1,0 +1,78 @@
+{
+  "at": "2026-10-14T13:00:24.2295283+00:00",
+  "isolatedSql": true,
+  "freshGuard": true,
+  "sentinelPreserved": true,
+  "checks": [
+    {
+      "path": "school-duty/administrators",
+      "status": 200
+    },
+    {
+      "path": "administrators",
+      "enabled": true,
+      "status": 200
+    },
+    {
+      "path": "auth/me",
+      "status": 200
+    },
+    {
+      "path": "school-duty/context",
+      "status": 200
+    },
+    {
+      "path": "school-duty/dashboard",
+      "status": 200
+    },
+    {
+      "path": "school-duty/archive",
+      "status": 200
+    },
+    {
+      "path": "school-duty/archive/enablement",
+      "status": 200
+    },
+    {
+      "path": "school-duty/administrators",
+      "status": 403
+    },
+    {
+      "path": "plans/preview\u002Bpublish",
+      "status": 200
+    },
+    {
+      "path": "other-teacher signing",
+      "status": 403
+    },
+    {
+      "path": "school-duty/administrators",
+      "status": 200
+    },
+    {
+      "path": "administrators",
+      "enabled": false,
+      "status": 200
+    },
+    {
+      "path": "auth/me",
+      "status": 200
+    },
+    {
+      "path": "school-duty/dashboard",
+      "status": 403
+    },
+    {
+      "path": "school-duty/archive",
+      "status": 403
+    },
+    {
+      "path": "school-duty/administrators",
+      "status": 403
+    }
+  ],
+  "audits": 2,
+  "providerWrites": 0,
+  "operationalGrants": 0,
+  "existingSchema": true
+}

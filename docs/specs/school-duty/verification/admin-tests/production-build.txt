@@ -1,0 +1,103 @@
+npx.cmd : - Building...
+At line:2 char:1
++ npx.cmd ng build --configuration production *> ../.audit/duty-admin-p ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (- Building...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Initial chunk files   | Names                         |  Raw size | Estimated transfer size
+styles-66Y6NBHC.css   | styles                        | 638.98 kB |                52.80 kB
+chunk-UP2RVXPO.js     | -                             | 208.19 kB |                59.11 kB
+main-CVN2O3MJ.js      | main                          | 117.78 kB |                28.40 kB
+chunk-WT4NRTND.js     | -                             |  74.42 kB |                18.29 kB
+polyfills-FFHMD2TL.js | polyfills                     |  33.71 kB |                11.02 kB
+chunk-PZDGU76M.js     | -                             |  15.99 kB |                 4.06 kB
+chunk-T56ENJPE.js     | -                             |  15.17 kB |                 4.27 kB
+chunk-HJSRSHZQ.js     | -                             |  14.86 kB |                 4.55 kB
+chunk-47WIOUT2.js     | -                             |  11.01 kB |                 2.79 kB
+chunk-KVOZTKPO.js     | -                             |   4.92 kB |                 1.46 kB
+chunk-3FIAAEFL.js     | -                             |   4.71 kB |                 1.56 kB
+chunk-4YRY4IP2.js     | -                             |   4.25 kB |                 1.05 kB
+chunk-NXBYBGXK.js     | -                             |   3.37 kB |                 1.25 kB
+chunk-O3URPJLD.js     | -                             |   2.96 kB |                 1.30 kB
+chunk-TOOG2AA5.js     | -                             |   2.31 kB |               789 bytes
+chunk-2WDZHIVJ.js     | -                             |   1.82 kB |               733 bytes
+chunk-VB2ESDX2.js     | -                             |   1.71 kB |               845 bytes
+chunk-HO54BKV2.js     | -                             |   1.61 kB |               612 bytes
+chunk-BLAIPCXC.js     | -                             |   1.53 kB |               793 bytes
+chunk-6GWSBT57.js     | -                             |   1.38 kB |               501 bytes
+chunk-5G567QLT.js     | -                             |   1.30 kB |               585 bytes
+chunk-SISOKXA6.js     | -                             |   1.08 kB |               555 bytes
+chunk-ILDZH2QG.js     | -                             | 863 bytes |               863 bytes
+chunk-CUQM3JDQ.js     | -                             | 539 bytes |               539 bytes
+chunk-DGDBISBG.js     | -                             | 123 bytes |               123 bytes
+chunk-4HA4DJVG.js     | -                             |  75 bytes |                75 bytes
+
+                      | Initial total                 |   1.14 MB |               198.76 kB
+
+Lazy chunk files      | Names                         |  Raw size | Estimated transfer size
+chunk-L2RLK3P5.js     | student-analyzer-component    |   1.43 MB |               356.76 kB
+chunk-CECVYIRQ.js     | -                             | 324.76 kB |                80.85 kB
+chunk-ZTBESYIH.js     | -                             | 302.44 kB |                64.75 kB
+chunk-END5BVIX.js     | school-duty-component         | 297.23 kB |                49.00 kB
+chunk-RPXHYISI.js     | storage-page-component        | 219.82 kB |                35.50 kB
+chunk-OR54NVHQ.js     | -                             | 199.62 kB |                59.65 kB
+chunk-VCVCGUGP.js     | timetable-workspace-component | 132.49 kB |                24.09 kB
+chunk-B3KX5LAI.js     | visit-workspace-component     | 128.89 kB |                22.03 kB
+chunk-5WPFQB47.js     | subject-settings-component    | 127.52 kB |                25.40 kB
+chunk-S63DWKCU.js     | landing-page-component        | 118.21 kB |                22.41 kB
+chunk-ZO6LJQSC.js     | -                             | 116.36 kB |                23.46 kB
+chunk-6FBAWZHN.js     | social-worker-crm-component   | 115.88 kB |                21.04 kB
+chunk-GMMF5OTI.js     | readiness-page-component      | 101.32 kB |                18.04 kB
+chunk-OAKM2PHG.js     | storage-admin-page-component  |  93.17 kB |                16.85 kB
+chunk-AM5MXDHQ.js     | -                             |  84.65 kB |                18.47 kB
+...and 136 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation failed. [56.557 seconds]
+
+▲ [WARNING] src/app/features/storage/storage-page.component.css exceeded maximum budget. Budget 16.00 kB was not met 
+by 23.34 kB with a total of 39.34 kB.
+
+
+▲ [WARNING] src/app/features/dashboards/school-manager-dashboard/school-manager-overview.component.css exceeded 
+maximum budget. Budget 16.00 kB was not met by 1.91 kB with a total of 17.91 kB.
+
+
+▲ [WARNING] src/app/features/visits-v2/visit-workspace/visit-workspace.component.css exceeded maximum budget. Budget 
+16.00 kB was not met by 18.50 kB with a total of 34.50 kB.
+
+
+▲ [WARNING] src/app/features/timetables/school-timetable.component.css exceeded maximum budget. Budget 16.00 kB was 
+not met by 3.36 kB with a total of 19.36 kB.
+
+
+▲ [WARNING] src/app/features/storage/storage-admin-page.component.css exceeded maximum budget. Budget 16.00 kB was not 
+met by 2.43 kB with a total of 18.43 kB.
+
+
+▲ [WARNING] src/app/shared/components/dashboard-live/dashboard-live.component.css exceeded maximum budget. Budget 
+16.00 kB was not met by 12.91 kB with a total of 28.91 kB.
+
+
+▲ [WARNING] src/app/features/storage/readiness-page.component.css exceeded maximum budget. Budget 16.00 kB was not met 
+by 13.81 kB with a total of 29.81 kB.
+
+
+▲ [WARNING] 3 rules skipped due to selector errors:
+  .p-organizationchart .p-organizationchart-lines :nth-child(1 of.p-organizationchart-line-left) -> n-th rule couldn't 
+be parsed ('1 of.p-organizationchart-line-left')
+  .p-organizationchart .p-organizationchart-lines :nth-last-child(1 of.p-organizationchart-line-left) -> n-th rule 
+couldn't be parsed ('1 of.p-organizationchart-line-left')
+  .p-organizationchart .p-organizationchart-lines :nth-child(1 of.p-organizationchart-line-right) -> n-th rule 
+couldn't be parsed ('1 of.p-organizationchart-line-right')
+
+
+X [ERROR] src/app/features/storage/storage-page.component.css exceeded maximum budget. Budget 32.00 kB was not met by 
+7.34 kB with a total of 39.34 kB.
+
+
+X [ERROR] src/app/features/visits-v2/visit-workspace/visit-workspace.component.css exceeded maximum budget. Budget 
+32.00 kB was not met by 2.50 kB with a total of 34.50 kB.
+
+

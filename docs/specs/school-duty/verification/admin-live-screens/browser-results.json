@@ -1,0 +1,116 @@
+{
+  "verification": "Live isolated HTTP/JWT/SQL with actual Google Drive Archived results; unrelated app shell API fixtures",
+  "checks": [
+    {
+      "role": "Instructor",
+      "width": 390,
+      "authenticatedRequests": 8,
+      "hash": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "expected": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "letterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "expectedLetterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "rosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "expectedRosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "Actual Google Drive Archived status after verified bytes and SQL commit"
+      ]
+    },
+    {
+      "role": "Instructor",
+      "width": 768,
+      "authenticatedRequests": 8,
+      "hash": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "expected": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "letterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "expectedLetterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "rosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "expectedRosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "Actual Google Drive Archived status after verified bytes and SQL commit"
+      ]
+    },
+    {
+      "role": "Instructor",
+      "width": 1440,
+      "authenticatedRequests": 8,
+      "hash": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "expected": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "letterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "expectedLetterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "rosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "expectedRosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "Actual Google Drive Archived status after verified bytes and SQL commit"
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 390,
+      "authenticatedRequests": 6,
+      "hash": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "expected": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "letterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "expectedLetterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "rosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "expectedRosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "Actual Google Drive Archived status after verified bytes and SQL commit"
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 768,
+      "authenticatedRequests": 6,
+      "hash": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "expected": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "letterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "expectedLetterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "rosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "expectedRosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "Actual Google Drive Archived status after verified bytes and SQL commit"
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1440,
+      "authenticatedRequests": 6,
+      "hash": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "expected": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "letterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "expectedLetterHash": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "rosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "expectedRosterHash": "EF3E80EA84BA4AC5B555C5A03CB02686B4E8F474C35F07F79B36C584268016FF",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "Actual Google Drive Archived status after verified bytes and SQL commit"
+      ]
+    }
+  ],
+  "physicalKeyboard": "Pending physical device; headless browser keyboard tested",
+  "ownerVisualAcceptance": "Pending",
+  "errors": []
+}

@@ -16,6 +16,8 @@ import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { DutyExecutionComponent } from './duty-execution.component';
 import { DutyRosterExportComponent } from './duty-roster-export.component';
 import { DutyDocumentsComponent } from './duty-documents.component';
+import { DutyAdminArchiveComponent } from './duty-admin-archive.component';
+import { DutyPermissionsComponent } from './duty-permissions.component';
 import { DutyErrorDirective } from './duty-error.directive';
 import { DutyErrorDialogComponent } from './duty-error-dialog.component';
 import { DutyFeedbackService } from './duty-feedback.service';
@@ -24,9 +26,9 @@ import { DUTY_SECTIONS, DUTY_WORKSPACE_NAVIGATION, DutySection, dutySectionRoute
 
 @Component({
   selector: 'app-school-duty', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, RouterOutlet, ButtonModule, DialogModule, CalendarModule, InputTextModule, ClearableSelectComponent, DutyExecutionComponent, DutyRosterExportComponent, DutyDocumentsComponent, DutyErrorDirective, DutyErrorDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, RouterOutlet, ButtonModule, DialogModule, CalendarModule, InputTextModule, ClearableSelectComponent, DutyExecutionComponent, DutyRosterExportComponent, DutyDocumentsComponent, DutyAdminArchiveComponent, DutyPermissionsComponent, DutyErrorDirective, DutyErrorDialogComponent],
   providers: [DutyFeedbackService, { provide: DUTY_WORKSPACE_NAVIGATION, useExisting: forwardRef(() => SchoolDutyComponent) }],
-  templateUrl: './school-duty.component.html', styleUrls: ['./duty-dialog.css', './school-duty.component.css', './duty-pages.css']
+  templateUrl: './school-duty.component.html', styleUrls: ['./duty-dialog.css', './school-duty.component.css', './duty-pages.css', './duty-admin.css']
 })
 export class SchoolDutyComponent implements OnInit {
   private readonly api = inject(SchoolDutyService);
@@ -44,6 +46,7 @@ export class SchoolDutyComponent implements OnInit {
   @ViewChild('executionPage', { static: true }) executionPage!: TemplateRef<unknown>;
   @ViewChild('documentsPage', { static: true }) documentsPage!: TemplateRef<unknown>;
   @ViewChild('fairnessPage', { static: true }) fairnessPage!: TemplateRef<unknown>;
+  @ViewChild('permissionsPage', { static:true }) permissionsPage!:TemplateRef<unknown>;
   @ViewChild('historyPage', { static: true }) historyPage!: TemplateRef<unknown>;
   executionId: number | null = null;
   readonly executionContext = signal<DutyWorkspace | null>(null);
@@ -82,11 +85,31 @@ export class SchoolDutyComponent implements OnInit {
   setupOpen = false; previewOpen = false; manualOpen = false; detailOpen = false; historyOpen = false;
   preview: DutyPreview | null = null; manualPreview: DutyPreview | null = null; selected: DutyDay | null = null;
   search = ''; termId: number | null = null; reason = ''; substitute: string | null = null; otherId: number | null = null;
+  teacherPage=0;rotationPage=0;customDismissal=false;historyCursor=0;fairnessCursor=0;previewPage=0;
+  get historyPages(){return Math.max(1,Math.ceil((this.data()?.history.length??0)/10));}
+  get displayedHistory(){return (this.data()?.history??[]).slice(Math.min(this.historyCursor,this.historyPages-1)*10,(Math.min(this.historyCursor,this.historyPages-1)+1)*10);}
+  moveHistoryPage(delta:number){this.historyCursor=Math.max(0,Math.min(this.historyPages-1,this.historyCursor+delta));}
+  get fairnessPages(){return Math.max(1,Math.ceil((this.data()?.fairness.length??0)/10));}
+  get displayedFairness(){return (this.data()?.fairness??[]).slice(Math.min(this.fairnessCursor,this.fairnessPages-1)*10,(Math.min(this.fairnessCursor,this.fairnessPages-1)+1)*10);}
+  moveFairnessPage(delta:number){this.fairnessCursor=Math.max(0,Math.min(this.fairnessPages-1,this.fairnessCursor+delta));}
+  get teacherPages(){return Math.max(1,Math.ceil(this.roster.length/10));}
+  get displayedTeachers(){return this.roster.slice(Math.min(this.teacherPage,this.teacherPages-1)*10,(Math.min(this.teacherPage,this.teacherPages-1)+1)*10);}
+  moveTeacherPage(delta:number){this.teacherPage=Math.max(0,Math.min(this.teacherPages-1,this.teacherPage+delta));}
+  get rotationPages(){return Math.max(1,Math.ceil(this.order().length/10));}
+  get rotationOffset(){return Math.min(this.rotationPage,this.rotationPages-1)*10;}
+  get displayedOrder(){return this.order().slice(this.rotationOffset,this.rotationOffset+10);}
+  moveRotationPage(delta:number){this.rotationPage=Math.max(0,Math.min(this.rotationPages-1,this.rotationPage+delta));}
+  setDismissalMode(custom:boolean){this.customDismissal=custom;if(!custom)this.draft.update(x=>({...x!,dismissalAt:null}));this.invalidatePublication();}
+  setDismissal(value:string){this.draft.update(x=>({...x!,dismissalAt:value?value+':00':null}));this.invalidatePublication();}
   mode = 'Exchange'; acceptException = false; resolveId: number | null = null; manualRequest: DutyChange | null = null;
   exclusionTeacher: string | null = null; exclusionFrom: Date | null = null; exclusionTo: Date | null = null; exclusionReason = '';
   exclusionMode: 'permanent' | 'dated' = 'permanent';
   closureFrom: Date | null = null; closureTo: Date | null = null; closureReason = '';
   private publishRequest: Parameters<SchoolDutyService['publish']>[0] | null = null;
+  private settingsBaseline='';
+  private initialDismissalMode=false;
+  private settingsIdentity(){return JSON.stringify({...this.draft(),dismissalAt:this.draft()?.dismissalAt??null});}
+  settingsChanged(){return !!this.draft()&&(this.settingsIdentity()!==this.settingsBaseline||this.customDismissal!==this.initialDismissalMode);}
   private loadSequence = 0;
   private refreshingReview = false;
   private readonly dateCache = new Map<string, Date>();
@@ -121,7 +144,7 @@ export class SchoolDutyComponent implements OnInit {
     });
   }
   t(key: string) { this.language(); return this.translate.instant(`DUTY.${key}`); }
-  get sectionOptions() { return DUTY_SECTIONS.filter(x => !x.managerOnly || this.data()?.canManage).map(x => ({ ...x, key: !this.data()?.canManage && x.id === 'execution' ? 'DUTY_PAGES.MY_EXECUTION' : !this.data()?.canManage && x.id === 'documents' ? 'DUTY_PAGES.MY_DOCUMENTS' : x.key })); }
+  get sectionOptions() { return DUTY_SECTIONS.filter(x => (!x.managerOnly || this.data()?.canManage)&&(!x.ownerOnly||this.data()?.canDelegate)).map(x => ({ ...x, key: !this.data()?.canManage && x.id === 'execution' ? 'DUTY_PAGES.MY_EXECUTION' : !this.data()?.canManage && x.id === 'documents' ? 'DUTY_PAGES.MY_DOCUMENTS' : x.key })); }
   trackSection(_: number, item: { id: DutySection }) { return item.id; }
   sectionRoute = dutySectionRoute;
   sectionKey() { return this.sectionOptions.find(x => x.id === this.section())?.key ?? 'DUTY_PAGES.SCHEDULE'; }
@@ -219,7 +242,7 @@ export class SchoolDutyComponent implements OnInit {
   weekOf(date: string) { const d = new Date(this.asDate(date)); d.setDate(d.getDate()-d.getDay()); return this.iso(d); }
   hasDraft() {
     const d = this.data(); const cached = d ? this.executionOptions.some(x => sessionStorage.getItem(`duty-draft:${d.userId}:${x.id}`)) : false;
-    return this.setupOpen || this.manualOpen || this.previewOpen || !!this.execution?.dirty() || !!this.execution?.busy() || cached;
+    return this.settingsChanged() || (this.manualOpen && (!!this.reason.trim() || !!this.otherId || !!this.substitute)) || this.busy() || !!this.execution?.dirty() || !!this.execution?.busy() || cached;
   }
   @HostListener('window:beforeunload', ['$event']) beforeUnload(event: BeforeUnloadEvent) { if (this.hasDraft()) event.preventDefault(); }
   closeTopDialog(event: KeyboardEvent) {
@@ -253,7 +276,7 @@ export class SchoolDutyComponent implements OnInit {
   }
   switchTerm(id: number) {
     if (!id || id===this.termId) return;
-    if (this.setupOpen && !window.confirm(this.t('LEAVE_DRAFT'))) return;
+    if (this.settingsChanged() && !window.confirm(this.t('LEAVE_DRAFT'))) return;
     this.draft.set(null); this.setupOpen = false; this.invalidatePublication(); this.executionId = null;
     this.termId = id; this.week.set(''); this.load(); void this.router.navigate([], { relativeTo: this.route, queryParams: { termId: id, execution: null, date: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
@@ -276,6 +299,7 @@ export class SchoolDutyComponent implements OnInit {
   closeDetails() { this.detailOpen = false; void this.router.navigate([], { relativeTo: this.route, queryParams: { date: null }, queryParamsHandling: 'merge', replaceUrl: true }); }
   dayHistory() { return this.data()?.history.filter(x => x.date === this.selected?.date || x.otherDate === this.selected?.date) ?? []; }
   historyReason(history: DutyHistory) {
+    if(history.kind==='SettingsTimingPreserved')return this.t('TIMING_RETAINED_REASON');
     if (history.kind === 'Publish' || history.kind === 'Regenerate') return this.t(`KIND_${history.kind}`);
     if (history.actor !== 'system') return history.reason;
     if (history.kind === 'AutoExchange' || history.kind === 'UnresolvedCompensation') return this.t(history.reason.includes('Excused') ? 'AUTOMATIC_EXCUSED' : 'AUTOMATIC_ABSENT');
@@ -292,10 +316,13 @@ export class SchoolDutyComponent implements OnInit {
     this.exclusionTeacher = null; this.exclusionMode = 'permanent'; this.exclusionReason = ''; this.exclusionFrom = null; this.exclusionTo = null;
     if (d.settings) { this.draft.update(x => ({ ...x!, regenerateFrom: d.today > x!.from && d.today <= x!.to ? d.today : x!.from, regenerateTo: x!.to })); }
     this.setupOpen = true;
+    this.teacherPage=0;this.rotationPage=0;this.customDismissal=!!this.draft()?.dismissalAt;
+    this.settingsBaseline=this.settingsIdentity();this.initialDismissalMode=this.customDismissal;
   }
   setDate(field: 'from'|'to'|'regenerateFrom'|'regenerateTo', value: Date) { if (value) this.draft.update(x => ({ ...x!, [field]: this.iso(value) })); }
   excludePermanently(id: string, returnFocus = false) {
     this.draft.update(x => ({ ...x!, teacherIds: x!.teacherIds.filter(t => t !== id), permanentlyExcludedTeacherIds: [...new Set([...(x!.permanentlyExcludedTeacherIds ?? []), id])] }));
+    this.rotationPage=Math.min(this.rotationPage,this.rotationPages-1);
     if (returnFocus) setTimeout(() => document.getElementById('duty-restore-' + id)?.focus());
   }
   restorePermanent(id: string, returnFocus = false) {
@@ -325,6 +352,8 @@ export class SchoolDutyComponent implements OnInit {
   removeClosure(index: number) { this.draft.update(x => ({ ...x!, closures: x!.closures.filter((_,i) => i !== index) })); }
   teacherName(id: string) { return this.data()?.teachers.find(x => x.userId === id)?.name ?? id; }
   previewPlan() {
+    if(this.customDismissal&&!this.draft()?.dismissalAt){this.error.set(this.translate.instant('DUTY_ADMIN.TIME_REQUIRED'));return;}
+    this.previewPage=0;
     this.busy.set(true); this.error.set(''); this.api.preview(this.draft()!, this.data()!.planRevision).subscribe({ next: r => {
       this.busy.set(false); if (!r.data || !r.isSuccess) { this.error.set(r.message || this.t('ERROR')); return; }
       this.preview = r.data; this.publishRequest = { settings: structuredClone(this.draft()!), expectedRevision: this.data()!.planRevision, previewDigest: r.data.digest, requestId: crypto.randomUUID() }; this.previewOpen = true; this.setupStage = 'review'; setTimeout(() => document.getElementById('duty-stage-review')?.focus());

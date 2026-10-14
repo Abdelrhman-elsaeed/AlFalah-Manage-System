@@ -21,6 +21,11 @@ public sealed record DutyRosterSnapshot(int SchoolId, int PlanId, int Revision, 
     DateOnly From, DateOnly To, IReadOnlyList<int> Weekdays, IReadOnlyList<DutyRosterRow> Rows, string TimeZoneId, DutyLogoSnapshot? Logo = null);
 public sealed record DutyRosterRow(DateOnly Date, string Teacher, string Notes, bool Closed);
 public sealed record DutyArchiveScope(int YearId, int TermId);
+public sealed record DutyArchiveQuery(int? TermId=null,string? TeacherId=null,DateOnly? From=null,DateOnly? To=null,int Page=1);
+public sealed record DutyArchiveGroup(int AssignmentId,string AuthorId,int Revision,DateOnly Date,string Name,bool IsCurrent,int DocumentCount);
+public sealed record DutyArchiveSlice(int Total,IReadOnlyList<DutyArchiveGroup> Groups,IReadOnlyList<DutySignedDocument> Documents,IReadOnlyList<DutyArchiveIntent> Intents,IReadOnlyList<DutyPdfArtifact> Artifacts);
+public sealed record DutyArchiveRow(int AssignmentId,string TeacherId,string Teacher,DateOnly Date,int Revision,bool IsCurrent,int RevisionCount,DutyDocumentState? Letter,DutyDocumentState? Report);
+public sealed record DutyArchivePage(int Page,int PageSize,int Total,DutyArchiveReadiness Readiness,IReadOnlyList<DutyArchiveRow> Rows);
 public static class DutyDocumentIntegrity
 {
     public static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes));
@@ -66,6 +71,7 @@ public interface IDutyPdfRenderer
 }
 public interface IDutyDocumentRepository
 {
+    Task<DutyArchiveSlice> ArchiveAsync(int school,DutyArchiveQuery query,DateOnly today,CancellationToken ct);
     Task<DutyArchiveReadiness> ReadinessAsync(int school, CancellationToken ct);
     Task SetEnabledAsync(int school, bool enabled, string actor, CancellationToken ct);
     Task<DutyPdfArtifact?> ArtifactAsync(int school, int document, CancellationToken ct);
@@ -91,6 +97,7 @@ public interface IDutyDocumentRepository
 }
 public interface IDutyDocumentService
 {
+    Task<DutyArchivePage> ArchiveAsync(DutyArchiveQuery query,CancellationToken ct);
     Task<DutyArchiveReadiness> ReadinessAsync(CancellationToken ct);
     Task<DutyDocumentCollection> ListAsync(int assignment, CancellationToken ct);
     Task<DutyPdf> ContentAsync(int document, bool archived, CancellationToken ct);

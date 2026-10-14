@@ -11,7 +11,7 @@ import { studentAnalyzerGuard } from './core/guards/student-analyzer.guard';
 import { unsavedTimetableSettingsGuard } from './core/guards/unsaved-timetable-settings.guard';
 import { visitV2UnsavedGuard } from './features/visits-v2/visit-v2-unsaved.guard';
 import { legacyImprovementPlanGuard } from './core/guards/legacy-improvement-plan.guard';
-import { legacySchoolDutyGuard, schoolDutyAccessGuard, schoolDutyEntryGuard, schoolDutyManagerGuard, schoolDutySectionGuard, schoolDutyUnsavedGuard } from './core/guards/school-duty-navigation.guard';
+import { legacySchoolDutyGuard, schoolDutyAccessGuard, schoolDutyDelegationGuard, schoolDutyEntryGuard, schoolDutyManagerGuard, schoolDutySectionGuard, schoolDutyUnsavedGuard } from './core/guards/school-duty-navigation.guard';
 
 function translatedTitle(key: string): ResolveFn<string> {
   return () => inject(TranslateService).get(key);
@@ -238,7 +238,7 @@ export const routes: Routes = [
       },
       {
         path: 'school-duty',
-        canActivate: [roleGuard, schoolDutyAccessGuard],
+          canActivate: [schoolDutyAccessGuard],
         canDeactivate: [schoolDutyUnsavedGuard],
         data: { roles: ['SchoolManager', 'Instructor'] },
         loadComponent: () => import('./features/timetables/duty/school-duty.component')
@@ -249,6 +249,7 @@ export const routes: Routes = [
           { path: 'execution', data: { section: 'execution' }, canDeactivate: [schoolDutySectionGuard], loadComponent: () => import('./features/timetables/duty/duty-section.component').then(m => m.DutySectionComponent) },
           { path: 'documents', data: { section: 'documents' }, canDeactivate: [schoolDutySectionGuard], loadComponent: () => import('./features/timetables/duty/duty-section.component').then(m => m.DutySectionComponent) },
           { path: 'fairness', data: { section: 'fairness' }, canActivate: [schoolDutyManagerGuard], canDeactivate: [schoolDutySectionGuard], loadComponent: () => import('./features/timetables/duty/duty-section.component').then(m => m.DutySectionComponent) },
+          { path: 'permissions', data: { section: 'permissions' }, canActivate: [schoolDutyDelegationGuard], canDeactivate: [schoolDutySectionGuard], loadComponent: () => import('./features/timetables/duty/duty-section.component').then(m => m.DutySectionComponent) },
           { path: 'history', data: { section: 'history' }, canActivate: [schoolDutyManagerGuard], canDeactivate: [schoolDutySectionGuard], loadComponent: () => import('./features/timetables/duty/duty-section.component').then(m => m.DutySectionComponent) }
         ],
         title: translatedTitle('DUTY.TITLE')

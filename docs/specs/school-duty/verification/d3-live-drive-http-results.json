@@ -29,6 +29,16 @@
       "status": 200
     },
     {
+      "role": "Instructor",
+      "kind": "archive",
+      "status": 403
+    },
+    {
+      "role": "Instructor",
+      "kind": "dashboard",
+      "status": 403
+    },
+    {
       "role": "SchoolManager",
       "kind": "Letter",
       "archived": false,
@@ -54,6 +64,16 @@
       "kind": "Report",
       "archived": true,
       "sha256": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "status": 200
+    },
+    {
+      "role": "SchoolManager",
+      "kind": "archive",
+      "status": 200
+    },
+    {
+      "role": "SchoolManager",
+      "kind": "dashboard",
       "status": 200
     },
     {

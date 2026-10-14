@@ -7,6 +7,7 @@ export interface DutySettings {
   exclusions: DutyExclusion[]; closures: DutyRange[]; regenerateFrom: string; regenerateTo: string;
   acceptAttendanceCalendarMismatch: boolean;
   permanentlyExcludedTeacherIds?: string[] | null;
+  dismissalAt?: string | null;
 }
 export interface DutyDay {
   id: number; date: string; originalTeacherId: string; originalTeacher: string; teacherId: string; teacher: string;
@@ -19,7 +20,7 @@ export interface DutyPreviewDay { date: string; teacherId: string; teacher: stri
 export interface DutyPreview { digest: string; days: DutyPreviewDay[]; fairness: DutyFairness[]; warnings: string[]; changedDates: number; }
 export interface DutyWorkspace {
   ownHistory?: { assignmentId:number;date:string;authorUserId:string;assignmentRevision:number;acknowledged:boolean;submitted:boolean;savedAt:string|null;submittedAt:string|null }[];
-  canManage: boolean; school: string; today: string; userId: string; terms: DutyTerm[]; termId: number | null; planRevision: number;
+    canManage: boolean; canDelegate?:boolean; school: string; today: string; userId: string; terms: DutyTerm[]; termId: number | null; planRevision: number;
   settings: DutySettings | null; teachers: DutyTeacher[]; suggestedWeekdays: number[]; days: DutyDay[]; history: DutyHistory[];
   fairness: DutyFairness[]; pendingRetries: number; closures: DutyRange[];
 }

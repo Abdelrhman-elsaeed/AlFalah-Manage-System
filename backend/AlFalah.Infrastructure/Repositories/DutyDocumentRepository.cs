@@ -1,4 +1,5 @@
 using System.Data;
+using System.Linq.Expressions;
 using System.Text.Json;
 using AlFalah.Application.Duty;
 using AlFalah.Application.Storage;
@@ -13,6 +14,43 @@ namespace AlFalah.Infrastructure.Repositories;
 
 public sealed class DutyDocumentRepository(AlFalahDbContext db) : IDutyDocumentRepository
 {
+    public async Task<DutyArchiveSlice> ArchiveAsync(int school,DutyArchiveQuery query,DateOnly today,CancellationToken ct)
+    {
+        var current=db.Set<DutyAssignment>().AsNoTracking().Where(x=>x.SchoolId==school&&!x.IsCancelled)
+            .Select(x=>new{AssignmentId=x.Id,AuthorId=x.EffectiveTeacherId,Revision=x.Revision});
+        var historical=db.Set<DutySignedDocument>().AsNoTracking().Where(x=>x.SchoolId==school)
+            .Select(x=>new{AssignmentId=x.AssignmentId,AuthorId=x.AuthorUserId,Revision=x.AssignmentRevision});
+        var all=from g in current.Union(historical)
+                join a in db.Set<DutyAssignment>().AsNoTracking() on g.AssignmentId equals a.Id
+                join p in db.Set<DutyPlan>().AsNoTracking() on a.DutyPlanId equals p.Id
+                join u in db.Users.IgnoreQueryFilters().AsNoTracking() on g.AuthorId equals u.Id
+                where a.SchoolId==school&&p.SchoolId==school&&(!query.TermId.HasValue||p.AcademicTermId==query.TermId)
+                select new{g.AssignmentId,g.AuthorId,g.Revision,a.Date,Name=u.FirstName+" "+u.LastName,IsCurrent=a.EffectiveTeacherId==g.AuthorId&&a.Revision==g.Revision&&!a.IsCancelled,
+                    DocumentCount=db.Set<DutySignedDocument>().Count(d=>d.SchoolId==school&&d.AssignmentId==a.Id)};
+        if(query.TeacherId is not null)all=all.Where(x=>x.AuthorId==query.TeacherId);
+        if(query.From is not null)all=all.Where(x=>x.Date>=query.From);
+        if(query.To is not null)all=all.Where(x=>x.Date<=query.To);
+        else all=all.Where(x=>x.Date<=today||x.DocumentCount>0);
+        var total=await all.CountAsync(ct);
+        var page=await all.OrderByDescending(x=>x.Date).ThenBy(x=>x.AssignmentId).ThenBy(x=>x.AuthorId).ThenByDescending(x=>x.Revision)
+            .Skip((query.Page-1)*10).Take(10).ToListAsync(ct);
+        var parameter=Expression.Parameter(typeof(DutySignedDocument),"document");Expression matches=Expression.Constant(false);
+        foreach(var row in page)
+        {
+            var key=Expression.AndAlso(Expression.Equal(Expression.Property(parameter,nameof(DutySignedDocument.AssignmentId)),Expression.Constant(row.AssignmentId)),
+                Expression.AndAlso(Expression.Equal(Expression.Property(parameter,nameof(DutySignedDocument.AuthorUserId)),Expression.Constant(row.AuthorId)),
+                    Expression.Equal(Expression.Property(parameter,nameof(DutySignedDocument.AssignmentRevision)),Expression.Constant(row.Revision))));
+            matches=Expression.OrElse(matches,key);
+        }
+        var docs=await db.Set<DutySignedDocument>().AsNoTracking().Where(x=>x.SchoolId==school)
+            .Where(Expression.Lambda<Func<DutySignedDocument,bool>>(matches,parameter))
+            .Where(x=>!db.Set<DutySignedDocument>().Any(later=>later.SchoolId==school&&later.AssignmentId==x.AssignmentId&&later.AuthorUserId==x.AuthorUserId&&later.AssignmentRevision==x.AssignmentRevision&&later.Kind==x.Kind&&later.Id>x.Id))
+            .OrderByDescending(x=>x.Id).ToListAsync(ct);
+        var ids=docs.Select(x=>x.Id).ToArray();
+        return new(total,page.Select(x=>new DutyArchiveGroup(x.AssignmentId,x.AuthorId,x.Revision,x.Date,x.Name,x.IsCurrent,x.DocumentCount)).ToArray(),docs,
+            await Intents.AsNoTracking().Where(x=>x.SchoolId==school&&ids.Contains(x.DocumentId)).ToListAsync(ct),
+            await db.Set<DutyPdfArtifact>().AsNoTracking().Where(x=>x.SchoolId==school&&ids.Contains(x.DocumentId??0)).ToListAsync(ct));
+    }
     private IQueryable<DutyArchiveIntent> Intents => db.Set<DutyArchiveIntent>();
     public async Task<DutyArchiveReadiness> ReadinessAsync(int school,CancellationToken ct)
     {

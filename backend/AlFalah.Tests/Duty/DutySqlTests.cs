@@ -244,6 +244,8 @@ public sealed class DutySqlTests(DutySqlFixture fixture)
         await FluentActions.Awaiting(()=>s.Service(db).WorkspaceAsync(other.Term,default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==404);
         await FluentActions.Awaiting(()=>s.Service(db,s.Manager,other.School).WorkspaceAsync(other.Term,default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
         var school=await db.Schools.SingleAsync(x=>x.Id==s.School);school.ManagerUserId=null;await db.SaveChangesAsync();
+        (await s.Service(db).WorkspaceAsync(s.Term,default)).CanManage.Should().BeTrue(); // C24: live school capability, independent of the primary manager record.
+        var membership=await db.UserSchoolRoles.SingleAsync(x=>x.SchoolId==s.School&&x.UserId==s.Manager);membership.IsActive=false;await db.SaveChangesAsync();
         await FluentActions.Awaiting(()=>s.Service(db).WorkspaceAsync(s.Term,default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
     }
     [DutySqlFact] public async Task Failed_mid_exchange_rolls_back_both_rows_and_history_and_retry_remains_durable()

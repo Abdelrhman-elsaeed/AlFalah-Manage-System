@@ -11,6 +11,8 @@ public sealed class SchoolDutyController(IDutyService service) : ControllerBase
     [HttpGet("context")]
     public async Task<IActionResult> Context([FromQuery] int? termId, CancellationToken ct) =>
         Ok(ApiResponse<DutyWorkspace>.Success(await service.WorkspaceAsync(termId, ct)));
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> Dashboard(CancellationToken ct)=>Ok(ApiResponse<DutyDashboard>.Success(await service.DashboardAsync(ct)));
     [HttpPost("plans/preview")]
     public async Task<IActionResult> Preview(DutyPreviewRequest request, CancellationToken ct) =>
         Ok(ApiResponse<DutyPreview>.Success(await service.PreviewAsync(request, ct)));

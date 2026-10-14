@@ -1,0 +1,35 @@
+{
+  "backend": {
+    "total": "82",
+    "executed": "82",
+    "passed": "82",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "sqlPassed": 74,
+  "angularPassed": 146,
+  "isolatedAuthenticatedHttpPassed": 16,
+  "browserWidths": [
+    390,
+    768,
+    1440,
+    1920
+  ],
+  "operationalGrants": 0,
+  "schemaMigrations": 0,
+  "providerWrites": 0,
+  "roleAndAuditUniqueness": "Existing unique membership index + real SQL locks/version/rollback verified",
+  "ownerVisualReview": "Pending",
+  "physicalDevice": "Pending"
+}

@@ -1,0 +1,33 @@
+{
+  "verification": "Actual Angular dashboard rendering and DOM placement at390/768/1440; synthetic API fixtures, no PDF reads/provider writes.",
+  "results": [
+    {
+      "role": "SchoolManager",
+      "width": 390,
+      "dutySummaryAfterEntireDashboard": true
+    },
+    {
+      "role": "SchoolManager",
+      "width": 768,
+      "dutySummaryAfterEntireDashboard": true
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1440,
+      "dutySummaryAfterEntireDashboard": true
+    },
+    {
+      "role": "StudentAffairsOfficer",
+      "actualDutyManage": true,
+      "generalDashboard": true,
+      "adminSettings": true
+    },
+    {
+      "role": "Instructor",
+      "ordinaryTeacherUnchanged": true,
+      "noAdminSummaryRequest": true
+    }
+  ],
+  "ownerVisualReview": "Pending",
+  "physicalDevice": "Pending"
+}

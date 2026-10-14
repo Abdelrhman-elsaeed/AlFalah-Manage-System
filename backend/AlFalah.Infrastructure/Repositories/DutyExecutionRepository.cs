@@ -33,6 +33,10 @@ public sealed class DutyExecutionRepository(AlFalahDbContext db) : IDutyExecutio
     public Task<UserSignature?> SignatureAsync(string user, CancellationToken ct) => db.UserSignatures.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == user, ct);
     public async Task<TimeOnly?> DismissalAsync(DutyPlan plan, DateOnly date, CancellationToken ct)
     {
+        var assignment=await db.Set<DutyAssignment>().AsNoTracking().Where(x=>x.SchoolId==plan.SchoolId&&x.DutyPlanId==plan.Id&&x.Date==date).Select(x=>new{x.Id,x.Revision}).SingleOrDefaultAsync(ct);
+        var retained=assignment is null?null:await db.Set<DutyAssignmentChange>().AsNoTracking().Where(x=>x.SchoolId==plan.SchoolId&&x.AssignmentId==assignment.Id&&x.AfterRevision==assignment.Revision&&x.Kind=="SettingsTimingPreserved").OrderByDescending(x=>x.Id).Select(x=>x.SettingsSnapshotJson).FirstOrDefaultAsync(ct);
+        if(retained is not null)return JsonSerializer.Deserialize<TimeOnly?>(retained);
+        if(DutyRotation.Settings(plan).DismissalAt is {} configured)return configured;
         if (plan.BellScheduleRevisionId is null) return null;
         var days = await db.Set<BellScheduleDay>().AsNoTracking().Where(x => x.BellScheduleRevisionId == plan.BellScheduleRevisionId)
             .Include(x => x.Periods).ToListAsync(ct);

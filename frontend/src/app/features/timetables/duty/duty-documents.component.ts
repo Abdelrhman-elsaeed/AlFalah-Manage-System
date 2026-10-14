@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, Input, OnChanges, inject, signal } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
@@ -15,6 +15,7 @@ import { isDutyPdf } from './duty-pdf-content';
   templateUrl: './duty-documents.component.html', styleUrls: ['./duty-documents.component.css'] })
 export class DutyDocumentsComponent implements OnChanges {
   @Input({ required: true }) assignmentId = 0; @Input() canManage = false; @Input() signedCount = 0;
+  @Input() actionsOnly = false; @Output() changed=new EventEmitter<void>();
   private readonly api = inject(DutyDocumentsService); private readonly translate = inject(TranslateService);
   private readonly destroy = inject(DestroyRef);
   readonly data = signal<DutyDocumentCollection | null>(null); readonly loading = signal(true); readonly busy = signal(false);
@@ -24,13 +25,15 @@ export class DutyDocumentsComponent implements OnChanges {
   private denied = false;
   constructor() {
     timer(10000, 10000).pipe(takeUntilDestroyed(this.destroy)).subscribe(() => {
-      if (!this.denied && !this.busy() && !this.previewOpen && !this.historyOpen && document.visibilityState === 'visible') void this.load(true);
+      if (!this.actionsOnly && !this.denied && !this.busy() && !this.previewOpen && !this.historyOpen && document.visibilityState === 'visible') void this.load(true);
     });
     this.destroy.onDestroy(() => { this.sequence++; this.context++; this.release(); });
   }
   get dir() { return this.translate.currentLang === 'en' ? 'ltr' : 'rtl'; }
   t(key: string) { return this.translate.instant(`DUTY_DOC.${key}`); }
-  ngOnChanges() { this.context++; this.denied = false; this.release(); this.previewOpen = false; this.historyOpen = false; this.selected = null; this.data.set(null); this.message.set(''); void this.load(); }
+  ngOnChanges() { this.context++; this.denied = false; this.release(); this.previewOpen = false; this.historyOpen = false; this.selected = null; this.data.set(null); this.message.set(''); if(!this.actionsOnly)void this.load(); }
+  openForAssignment(id:number,doc:DutyDocumentState,download=false) { if(this.busy())return;this.assignmentId=id;this.ngOnChanges();void this.open(doc,download); }
+  async historyForAssignment(id:number) { if(this.busy())return;this.assignmentId=id;this.ngOnChanges();this.busy.set(true);try{await this.load();if(this.data())this.openHistory();}finally{this.busy.set(false);} }
   latest(kind: string) { return this.data()?.documents?.find(x => x.kind === kind && (!this.canManage || x.isCurrent !== false)); }
   async load(background = false) {
     const sequence = ++this.sequence;
@@ -57,7 +60,7 @@ export class DutyDocumentsComponent implements OnChanges {
       this.fileName = filenameFromContentDisposition(response.headers.get('Content-Disposition')) || `${doc.kind}.pdf`; this.selected = doc;
       if (download) { const url = this.objectUrl; this.download(); this.objectUrl = ''; setTimeout(() => URL.revokeObjectURL(url), 1000); this.message.set(this.t('DOWNLOADED')); }
       else { this.previewBlob = blob; this.previewOpen = true; }
-      void this.load(true);
+      if(!this.actionsOnly)void this.load(true);
     } catch (e: any) {
       if (assignment !== this.assignmentId || context !== this.context) return;
       if (e.error instanceof Blob) { try { const body = JSON.parse(await e.error.text()); this.error.set(body.message || this.t('UNAVAILABLE')); } catch { this.error.set(this.t('UNAVAILABLE')); } }
@@ -71,7 +74,7 @@ export class DutyDocumentsComponent implements OnChanges {
   closeHistory() { this.focusOrigin?.focus(); }
   async retry(doc: DutyDocumentState) {
     if (!doc.canRetry || this.busy()) return; this.busy.set(true); this.error.set('');
-    try { const r = await firstValueFrom(this.api.retry(doc.documentId)); if (!r.isSuccess) throw new Error(r.message); this.message.set(this.t('RETRY_QUEUED')); await this.load(); }
+    try { const r = await firstValueFrom(this.api.retry(doc.documentId)); if (!r.isSuccess) throw new Error(r.message); this.message.set(this.t('RETRY_QUEUED')); if(!this.actionsOnly)await this.load();this.changed.emit(); }
     catch (e) { this.error.set(extractHttpErrorMessage(e) || this.t('ERROR')); } finally { this.busy.set(false); }
   }
   async enable() {

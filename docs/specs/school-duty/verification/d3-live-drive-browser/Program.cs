@@ -40,6 +40,14 @@ try{
    var hash=AlFalah.Application.Duty.DutyDocumentIntegrity.Hash(await response.Content.ReadAsByteArrayAsync());var artifact=await db.Set<DutyPdfArtifact>().SingleAsync(x=>x.DocumentId==doc.Id);
    if(hash!=artifact.Hash)throw new InvalidOperationException("Protected HTTP bytes mismatch");checks.Add(new{role,kind=doc.Kind,archived,sha256=hash,status=200});
   }
+  foreach(var endpoint in new[]{"archive","dashboard"}){
+   using var response=await http.GetAsync("/api/v1/school-duty/"+endpoint);
+   var expected=role=="SchoolManager"?200:403;if((int)response.StatusCode!=expected)throw new InvalidOperationException("Administrative read scope mismatch");
+   if(expected==200){var payload=JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+    if(endpoint=="archive"&&(payload.GetProperty("pageSize").GetInt32()!=10||!payload.GetProperty("rows").EnumerateArray().Any(x=>x.GetProperty("assignmentId").GetInt32()==assignment)))throw new InvalidOperationException("Actual SQL archive row missing");
+    if(endpoint=="dashboard"&&payload.GetProperty("recent").EnumerateArray().Any(x=>DateOnly.Parse(x.GetProperty("date").GetString()!)>=DateOnly.Parse(payload.GetProperty("today").GetString()!)))throw new InvalidOperationException("Dashboard recent range invalid");}
+   checks.Add(new{role,kind=endpoint,status=expected});
+  }
  }
  var replacement=await db.UserSchoolRoles.Where(x=>x.SchoolId==school&&x.Role.Name=="Instructor"&&x.UserId!=letter.AuthorUserId).Select(x=>x.UserId).SingleAsync();var other=await db.Users.SingleAsync(x=>x.Id==replacement);
  http.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue("Bearer",jwt.GenerateAccessToken(other.Id,other.UserName!,["Instructor"],["Duty.View"],school,"ar",other.SecurityStamp!));
@@ -50,7 +58,7 @@ try{
   expectedHash=(await db.Set<DutyPdfArtifact>().SingleAsync(x=>x.DocumentId==report.Id)).Hash,expectedLetterHash=(await db.Set<DutyPdfArtifact>().SingleAsync(x=>x.DocumentId==letter.Id)).Hash,expectedRosterHash=AlFalah.Application.Duty.DutyDocumentIntegrity.Hash(await roster.Content.ReadAsByteArrayAsync()),actualDrive=true};
  var privateFile=Path.Combine(workspace,".audit/duty-organized-20261014/live-drive/browser-private.json");await File.WriteAllTextAsync(privateFile,JsonSerializer.Serialize(browserConfig));
  var browserStart=new ProcessStartInfo("node"){WorkingDirectory=Path.Combine(workspace,"frontend"),UseShellExecute=false,CreateNoWindow=true};browserStart.ArgumentList.Add("scripts/check-duty-documents-live.mjs");browserStart.ArgumentList.Add(privateFile);
- browserStart.Environment["ALFALAH_DUTY_LIVE_EVIDENCE"]="../docs/specs/school-duty/verification/d3-live-drive-screens";
+ browserStart.Environment["ALFALAH_DUTY_LIVE_EVIDENCE"]=Environment.GetEnvironmentVariable("ALFALAH_DUTY_LIVE_EVIDENCE")??"../docs/specs/school-duty/verification/d3-live-drive-screens";
  using var browser=Process.Start(browserStart)!;await browser.WaitForExitAsync();if(browser.ExitCode!=0)throw new InvalidOperationException("Live browser checks failed.");
  await File.WriteAllTextAsync(Path.Combine(workspace,"docs/specs/school-duty/verification/d3-live-drive-http-results.json"),JsonSerializer.Serialize(new{checks,liveDrive=true,providerWritesDuringReads=0,noMigration=true},new JsonSerializerOptions{WriteIndented=true}));Console.WriteLine($"Live protected HTTP checks: {checks.Count}; browser completed.");
 }finally{if(!host.HasExited)host.Kill(entireProcessTree:true);await host.WaitForExitAsync();await stdout;var errors=await stderr;if(errors.Length>0)Console.Error.WriteLine("Isolated host diagnostics retained locally; no credentials printed.");}

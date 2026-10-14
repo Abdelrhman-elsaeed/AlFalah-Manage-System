@@ -14,6 +14,8 @@ export interface DutyDocumentCollection {
   readiness: { enabled: boolean; processingEnabled: boolean; connectionState: string };
   documents: DutyDocumentState[];
 }
+export interface DutyArchiveRow { assignmentId:number;teacherId:string;teacher:string;date:string;revision:number;isCurrent:boolean;revisionCount:number;letter:DutyDocumentState|null;report:DutyDocumentState|null; }
+export interface DutyArchivePage { page:number;pageSize:number;total:number;readiness:DutyDocumentCollection['readiness'];rows:DutyArchiveRow[]; }
 @Injectable({ providedIn: 'root' })
 export class DutyDocumentsService {
   private readonly http = inject(HttpClient);
@@ -25,4 +27,5 @@ export class DutyDocumentsService {
   retry(id: number) { return this.http.post<ApiResponse<boolean>>(`${this.base}/documents/${id}/archive/retry`, {}, this.options); }
   enable(enabled: boolean) { return this.http.put<ApiResponse<DutyDocumentCollection['readiness']>>(`${this.base}/archive/enablement`, { enabled }, this.options); }
   readiness() { return this.http.get<ApiResponse<DutyDocumentCollection['readiness']>>(`${this.base}/archive/enablement`, this.options); }
+  archive(query:Record<string,string|number>) { return this.http.get<ApiResponse<DutyArchivePage>>(`${this.base}/archive`,{...this.options,params:query}); }
 }

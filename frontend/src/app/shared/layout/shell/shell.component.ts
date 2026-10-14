@@ -16,6 +16,7 @@ import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 import { StorageApiService } from '../../../features/storage/storage-api.service';
 import { VisitArchiveApiService } from '../../../features/storage/visit-archive-api.service';
 import { DUTY_SECTIONS, dutySectionRoute } from '../../../features/timetables/duty/duty-workspace-navigation';
+import { DutyDashboardSummaryComponent } from '../../../features/timetables/duty/duty-dashboard-summary.component';
 
 interface NavItem {
   labelKey: string;
@@ -372,11 +373,12 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslateModule, TooltipModule, RoleDisplayNamePipe],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslateModule, TooltipModule, RoleDisplayNamePipe, DutyDashboardSummaryComponent],
   templateUrl: './shell.component.html',
   styleUrls: ['./shell.component.css']
 })
 export class ShellComponent implements OnInit {
+  showDutyDashboard(){return !!this.authService.activeSchoolId()&&this.authService.hasPermission('Duty.Manage')&&this.router.url.split(/[?#]/)[0]===roleLandingFor(this.authService.roles());}
   private readonly authService = inject(AuthService);
   private readonly guardianSelfService = inject(GuardianSelfServiceService);
   private readonly router = inject(Router);
@@ -462,10 +464,10 @@ export class ShellComponent implements OnInit {
   });
 
   readonly visibleCategories = computed<NavCategory[]>(() => {
-    const dutyAllowed = this.authService.hasAnyRole(['SchoolManager','Instructor']) && this.authService.activeSchoolId() && this.authService.hasAnyPermission(['Duty.View','Duty.Manage']);
-    const dutyManager = this.authService.hasRole('SchoolManager') && this.authService.hasPermission('Duty.Manage');
+    const dutyManager = this.authService.hasPermission('Duty.Manage');
+    const dutyAllowed = this.authService.activeSchoolId() && (dutyManager || this.authService.hasRole('Instructor') && this.authService.hasPermission('Duty.View'));
     const duty: NavCategory[] = dutyAllowed ? [{ id: 'duty', labelKey: 'DUTY.TITLE', icon: 'pi pi-sun',
-      items: DUTY_SECTIONS.filter(x => !x.managerOnly || dutyManager).map(x => ({ labelKey: x.id === 'execution' && !dutyManager ? 'DUTY_PAGES.MY_EXECUTION' : x.id === 'documents' && !dutyManager ? 'DUTY_PAGES.MY_DOCUMENTS' : x.key, icon: x.icon, route: dutySectionRoute(x.id), exact: true })) }] : [];
+      items: DUTY_SECTIONS.filter(x => (!x.managerOnly || dutyManager)&&(!x.ownerOnly||this.authService.hasRole('SchoolManager'))).map(x => ({ labelKey: x.id === 'execution' && !dutyManager ? 'DUTY_PAGES.MY_EXECUTION' : x.id === 'documents' && !dutyManager ? 'DUTY_PAGES.MY_DOCUMENTS' : x.key, icon: x.icon, route: dutySectionRoute(x.id), exact: true })) }] : [];
     const storageItems: NavItem[] = [];
     if (!this.isInstructorOnly() && this.hasSchoolStorageAccess()) storageItems.push(
       { labelKey: 'نظرة عامة', icon: 'pi pi-th-large', route: '/school-manager/storage/overview', exact: true },
