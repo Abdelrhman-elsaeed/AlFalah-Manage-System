@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-14",
+  "ownerDecision": "C18 independent sidebar/page",
+  "canonicalRoute": "/school-duty",
+  "redReproduction": "Top-level duty sidebar count 0, expected 1",
+  "focusedAngular": {
+    "passed": 105,
+    "failed": 0
+  },
+  "newNavigationTests": 9,
+  "developmentBuildPassed": true,
+  "currentDevBrowserJourneys": 9,
+  "roles": [
+    "SchoolManager",
+    "Instructor"
+  ],
+  "viewports": [
+    390,
+    768,
+    1440
+  ],
+  "deniedRolesAndMissingCapabilities": true,
+  "d1RenderedRegression": "Passed",
+  "d2RenderedRegression": "Passed",
+  "d3RenderedRegression": "Passed",
+  "apiPresentation": "Synthetic fixtures; current actual localhost Angular server for navigation",
+  "backendSchemaOrPermissionsChanged": false,
+  "operationalWritesFromVerification": false,
+  "externalDriveProcessingEnabled": false,
+  "ownerVisualAcceptance": "Pending"
+}

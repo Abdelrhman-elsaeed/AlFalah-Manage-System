@@ -1,6 +1,6 @@
 # Technical Plan — School Duty
 
-**Status:** D1–D3 implemented and independently verified; [D3 delivery](verification/d3.md) records final contracts, evidence and pending external/owner/physical acceptance. The owner-confirmed [dismissal-lateness amendment](dismissal-lateness.md) and [source references](references.md) govern implemented data/UI and official PDFs. Earlier phase-only implementation notes below are historical.
+**Status:** D1–D3 implemented and verified, including the designated synthetic real Drive gate; [D3 delivery](verification/d3.md) and [workspace amendment](verification/workspace-amendment.md) record final contracts/evidence and pending owner/physical acceptance. The owner-confirmed [dismissal-lateness amendment](dismissal-lateness.md) and [source references](references.md) govern implemented data/UI and official PDFs. Earlier phase-only implementation notes below are historical.
 **Architecture:** Existing modular monolith; .NET 8, Angular, SQL Server/EF Core, current PDF and Drive infrastructure.
 
 ## Integration boundaries
@@ -175,3 +175,21 @@ The owner explicitly authorized D3 through prompts/d3-implementation.md, includi
 API routes are under `/api/v1/school-duty`: assignment document list, signed-document local/archived PDF, revision-bound roster PDF, duty-manager retry and enablement; readiness is returned with the document collection/enablement result. Local PDF reads survive disabled/disconnected storage. Global processing and per-school enablement default false. Pending D2 intents may prepare local artifacts without external writes; a letter is independent of its report. Completion requires verified provider output plus ledger commit; non-network providers produce TestVerified only.
 
 The additive D3 migration was verified on fresh guarded LocalDB, including a twice-applied idempotent D2-to-D3 script and sentinel preservation. No operational migration occurred. Rollback disables new external processing and retains all snapshots/facts/artifacts/reservations/history; destructive Down is rejected. Reproducible commands, source/PDF comparisons, actual check totals and safe activation gates are in D3 verification. Stop after D3.
+
+## Subsequent local migration/startup authorization - 2026-10-14
+
+The owner requested necessary migrations and startup for manual testing. The configured local Development database is now at D3 after a verified backup and preservation/CHECKDB checks; API5264/Angular4200 run with automatic startup initialization and external duty/visit processing disabled. This authorization supersedes earlier no-original-migration statements only for this local operation. Existing credentials/roots/grants/settings/keys are retained; no production or external-provider activation occurred. See [local operation](verification/local-manual-testing.md), D-111.
+
+## C18 independent navigation implementation - 2026-10-14
+
+Expose the existing SchoolDutyComponent directly at `/school-duty`, guarded by school manager/instructor role, active school and existing Duty.View/Duty.Manage capability. A top-level sidebar entry reuses existing menu tokens/controls and accessible label/current-page state. TimetableWorkspaceComponent now hosts lessons only; a compatibility guard redirects old duty query links before timetable loading, preserving their parameters/fragment and re-evaluating query changes. Retain existing unsaved duty work checks and pre-signature teacher entry; old signature return links remain compatible. No backend/schema/permission or Drive change is required. [Verification](verification/navigation.md), D-112.
+
+## C19 implementation amendment (2026-10-14)
+
+Extend the existing settings JSON with optional permanent teacher IDs and normalize active teacher participation in Application services. Derive trusted study weekdays/timing revision via the scoped repository and reject stale previews. Do not mutate retained plan history, execution snapshots or PDFs. Frontend replaces opt-in selection/manual weekdays with all-by-default exclusions, linked calendar and equal-height date controls. No schema migration or external activation. [Verification](verification/settings-amendment.md).
+
+## C20–C23 implementation and verified provider seam (2026-10-14)
+
+Route SchoolDutyComponent as a retained parent with focused guarded child sections; shared injected feedback service owns duty error presentation via native dialogs. Scoped Application services remain the authority for live role/school/author/revision and future-date validation, using the frozen plan time zone. Main frontend execution loads current context independently of archive term and ignores arbitrary future selection. Archive inspection/correction/explicit overdue completion preserve frozen artifacts and server drafts; receipt replay re-evaluates ownership.
+
+GET/PUT `/api/v1/school-duty/archive/enablement` are thin service adapters. Manager readiness probes the actual trusted root; enable validates processing/readiness, pause preserves artifacts/intents. No new migration/schema or general storage grant is required. Existing IStorageProvider/GoogleDriveClient and duty processor handle actual delivery. The standalone live harness starts no workers, rejects existing SQL before migrations, clones encrypted connection into synthetic SQL, uses existing keys without automatic generation, persists trusted destination reservation and confines writes to user-designated D3_Test/run root. Lost response and SQL rollback recover by reserved identity without duplicate uploads/ledger versions. A separate isolated API/browser host verifies authenticated archived/roster reads, including local artifact preparation and verification bookkeeping, with business submissions and provider writers disabled. Original school flags stay false; process-level manual duty readiness is true, Visit processing false. [Evidence and non-destructive rollout](verification/workspace-amendment.md), D-114–115.

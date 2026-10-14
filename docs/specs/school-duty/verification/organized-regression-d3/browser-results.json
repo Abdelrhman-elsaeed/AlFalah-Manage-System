@@ -1,0 +1,182 @@
+{
+  "verification": "Actual rendered Angular SPA and generated synthetic PDF pages; mocked authenticated API presentation",
+  "report": [
+    {
+      "width": 390,
+      "checks": [
+        "teacher pending and manager archived cards",
+        "actual rasterized PDF preview",
+        "authenticated blob download SHA256",
+        "retained correction history",
+        "dialog Escape and focus return",
+        "RTL overflow"
+      ]
+    },
+    {
+      "width": 768,
+      "checks": [
+        "teacher pending and manager archived cards",
+        "actual rasterized PDF preview",
+        "authenticated blob download SHA256",
+        "retained correction history",
+        "dialog Escape and focus return",
+        "RTL overflow"
+      ]
+    },
+    {
+      "width": 1440,
+      "checks": [
+        "teacher pending and manager archived cards",
+        "actual rasterized PDF preview",
+        "authenticated blob download SHA256",
+        "retained correction history",
+        "dialog Escape and focus return",
+        "RTL overflow"
+      ]
+    }
+  ],
+  "hashes": [
+    {
+      "label": "letter-download-Instructor-390",
+      "hash": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "expected": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "retained-download-Instructor-390",
+      "hash": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "expected": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "letter-download-SchoolManager-390",
+      "hash": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "expected": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "retained-download-SchoolManager-390",
+      "hash": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "expected": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "archived-download-390",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "letter-download-Instructor-768",
+      "hash": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "expected": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "retained-download-Instructor-768",
+      "hash": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "expected": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "letter-download-SchoolManager-768",
+      "hash": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "expected": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "retained-download-SchoolManager-768",
+      "hash": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "expected": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "archived-download-768",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "letter-download-Instructor-1440",
+      "hash": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "expected": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "retained-download-Instructor-1440",
+      "hash": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "expected": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "letter-download-SchoolManager-1440",
+      "hash": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "expected": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "retained-download-SchoolManager-1440",
+      "hash": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "expected": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "archived-download-1440",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "local-SetupUnavailable",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "local-Disconnected",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "local-Delivering",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "local-NeedsAttention",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "local-RetryScheduled",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "local-Unavailable",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "local-Preparing",
+      "hash": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "expected": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    },
+    {
+      "label": "roster-download-390",
+      "hash": "32342612A615F42A1D79E4296F2B1CDC3152DA662F5462F8B3726E87660E6DF7",
+      "expected": "32342612A615F42A1D79E4296F2B1CDC3152DA662F5462F8B3726E87660E6DF7",
+      "source": "Real generated PDF bytes; API delivery mocked in this harness"
+    }
+  ],
+  "pageErrors": [],
+  "physicalDevice": "Pending; viewport simulation is not physical OS keyboard testing",
+  "ownerVisualReview": "Pending",
+  "liveProviderDelivery": "Not claimed"
+}

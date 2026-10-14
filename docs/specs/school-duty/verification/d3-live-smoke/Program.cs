@@ -55,6 +55,7 @@ var start=new ProcessStartInfo("dotnet"){WorkingDirectory=Path.Combine(workspace
 start.ArgumentList.Add(Path.Combine(start.WorkingDirectory,"bin/Debug/net8.0/AlFalah.Api.dll"));
 foreach(var pair in new Dictionary<string,string>{{"ASPNETCORE_ENVIRONMENT","Development"},{"ASPNETCORE_URLS",origin},{"ConnectionStrings__DefaultConnection",fixture.Connection},{"Database__InitializeOnStartup","false"},{"Jwt__Secret",secret},{"Jwt__Issuer","D3-Smoke"},{"Jwt__Audience","D3-Smoke"},{"DataProtection__KeysPath",Path.Combine(Path.GetTempPath(),"AlFalah-D3-Isolated-Smoke-Keys")},{"Logging__LogLevel__Default","Error"},{"Logging__LogLevel__Microsoft","Error"}})start.Environment[pair.Key]=pair.Value;
 start.Environment["SchoolDutyArchive__ProcessingEnabled"]="false";
+start.Environment["SchoolFileStorage__ArchiveProcessingEnabled"]="false";
 foreach(var key in new[]{"Enabled","VisitArchiveEnabled","VisitArchiveWorkerEnabled","ExternalWritesEnabled","AdministrationEnabled","ReadModelEnabled","ArchiveWorkerEnabled","ArchiveExternalWritesEnabled"})start.Environment["SchoolFileStorage__"+key]="false";
 using var process=Process.Start(start)??throw new InvalidOperationException("Host could not start.");var stdout=process.StandardOutput.ReadToEndAsync();var stderr=process.StandardError.ReadToEndAsync();
 using var client=new HttpClient{BaseAddress=new(origin),Timeout=TimeSpan.FromSeconds(30)};var results=new List<object>{new {step="Actual SQL publication and two effective-date absence exchanges before substitute acknowledgement",status=200}};
@@ -81,6 +82,10 @@ try
         try{await client.GetAsync("/api/v1/school-duty/context");break;}catch(Exception ex)when(ex is HttpRequestException or TaskCanceledException){await Task.Delay(500);}
     }
     Console.WriteLine("Synthetic D3 HTTP host ready.");
+    await Token(scene.Teacher,RoleNames.Instructor,[DutyPermissions.View]);
+    await Check(await client.GetAsync("/api/v1/school-duty/archive/enablement"),HttpStatusCode.Forbidden,"Teacher cannot read manager archive settings");
+    await Token(scene.Replacement,RoleNames.Instructor,[DutyPermissions.View]);
+    await Check(await client.PostAsJsonAsync(assignment+"/acknowledge",new DutySignRequest(1,Guid.NewGuid())),HttpStatusCode.Forbidden,"Other teacher cannot take duty by forging acknowledgement");
     await Token(scene.Teacher,RoleNames.Instructor,[DutyPermissions.View]);
     var execution=(await Check(await client.GetAsync(assignment+"/execution"),HttpStatusCode.OK,"Own execution and unsigned preview")).GetProperty("data").Deserialize<DutyExecution>(jsonOptions)!;
     if(execution.Acknowledged)throw new InvalidOperationException("Opening signed a letter");

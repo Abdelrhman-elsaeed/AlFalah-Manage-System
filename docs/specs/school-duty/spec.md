@@ -3,6 +3,8 @@
 **Status:** D1/D2 implemented under explicit owner authorization; C1–C17 confirmed. [D2 verification](verification/d2.md) covers signatures/report/mobile picker/shared lateness/System communication. D3 official PDFs/protected archive/recovery are implemented; [D3 verification](verification/d3.md) records independent evidence and pending external Drive/owner/physical acceptance.
 **Feature label:** `المناوبة`. **Administrative owner in v1:** School Manager.
 
+**Current navigation (C18):** the owner now requires School Duty as its own sidebar entry and `/school-duty` page. Earlier timetable-tab references below are historical UX; old duty URLs redirect with their retained context. Duty business scope and backend access are unchanged. See [navigation verification](verification/navigation.md).
+
 ## Purpose and boundaries
 
 Assign one eligible teacher to whole-school dismissal supervision each operating day, distribute turns fairly, react to recorded teacher absence, capture the teacher's responsibility and daily observations, and retain signed official documents in school storage.
@@ -160,3 +162,13 @@ The submitted D3 request authorizes C1-C17 and the approved hierarchy. All offic
 Genuine protected duty folder/source identities and scoped ledger versions implement the two-file hierarchy. Durable operation identity, reserved provider IDs, leases, bounded retry/reconciliation and verified completion preserve uncertain writes and SQL rollback. Readiness disabled/disconnected preserves local signed access; managers may retry the missing result without storage administration or repeated facts/notices. Actual-author/current-school or authorized-manager checks apply to every revision; emergency replacement keeps displaced signatures in history.
 
 [D3 verification](verification/d3.md) records AC-09-10, AC-13-20 and AC-27 evidence, the complete publication/absence/substitute/lateness/internal-message/report/document journey, source-to-output comparisons and isolation/recovery checks. Independent local implementation acceptance is delivered; actual external Drive, final owner visual and physical-device acceptance remain pending. No later feature or operational rollout is authorized by these results.
+
+## C19 settings amendment (2026-10-14)
+
+All active school teachers participate by default in new configuration. Managers record permanent (this plan until restored) or dated exclusions, retain rotation ordering, and review before publishing. Study weekdays derive from the school/year/semester timetable calendar, with no independent weekday picker or guessed fallback; operating/regeneration ranges and closures remain. Historical selected pools convert omissions to explicit exclusions only when reviewed; new active teachers join the next review. Past/manual/exchanged/locked execution and signed artifacts remain protected. See C19, D-113 and [verification](verification/settings-amendment.md).
+
+## C20–C23 current workflow and acceptance amendment (2026-10-14)
+
+Independent ordered School Duty pages replace the combined timetable workspace. Main edit selects school today/current term automatically; archive alone selects historical duty/date/term. Schedule uses a full-width nearest-own-duty hero, prominent current-day alert, academic-term totals and ten-day teacher/date card pages with own/all/teacher filters. Execution/review fills available width, late/violating desktop categories share equal columns, and PDF cards live only in `أرشيف المناوبات`. Explicit centered error OK retains input and focus. Actual-author ownership and frozen-school-time future rejection apply on the backend; past overdue completion and reasoned corrections preserve retained revisions.
+
+Manager storage administration offers separately scoped readiness/enable/pause, with actual root probing. Owner completed OAuth reconnection and designated D3_Test. Real delivery/uncertainty/SQL-rollback recovery and protected local/archived hash-identical reads passed on fresh isolated SQL in that destination. Original school flags remain off, no later feature/production rollout occurred, and final owner visual/physical acceptance stays pending. [Reproducible evidence](verification/workspace-amendment.md), C20–C23, D-114–115 supersede earlier UI/provider-gate statements for current implementation.

@@ -5,7 +5,7 @@ import {resolve,extname,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {chromium} from '@playwright/test';
-const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),dist=resolve(root,'dist/al-falah-app/browser'),evidence=resolve(root,'../docs/specs/school-duty/verification/d3-screens');
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),dist=resolve(root,'dist/al-falah-app/browser'),evidence=process.env.ALFALAH_DUTY_BROWSER_EVIDENCE ? resolve(process.env.ALFALAH_DUTY_BROWSER_EVIDENCE) : resolve(root,'../docs/specs/school-duty/verification/d3-screens');
 mkdirSync(evidence,{recursive:true});
 const mime={'.html':'text/html','.js':'application/javascript','.mjs':'application/javascript','.css':'text/css','.json':'application/json','.woff2':'font/woff2','.png':'image/png','.svg':'image/svg+xml'};
 const server=createServer((req,res)=>{let p=resolve(dist,decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/,'')||'index.html');if(!p.startsWith(dist)){res.writeHead(403);return res.end();}if(!existsSync(p))p=resolve(dist,'index.html');res.writeHead(200,{'Content-Type':mime[extname(p)]||'application/octet-stream'});res.end(readFileSync(p));});
@@ -109,7 +109,7 @@ try{
  for(const width of [390,768,1440]){
   for(const role of ['Instructor','SchoolManager']){
    const x=await documents(width,role,role==='SchoolManager'?'Archived':'Pending');const page=x.page;
-   await page.goto(origin+'/timetable?tab=duty&date=2026-10-13&execution=1');await page.locator('.document-card.available').first().waitFor();
+   await page.goto(origin+'/school-duty/documents?date=2026-10-13&execution=1');await page.locator('.document-card.available').first().waitFor();
    await page.locator('.documents').scrollIntoViewIfNeeded();await capture(page,`${role.toLowerCase()}-documents-${width}`);
    await page.locator('.document-card').first().getByRole('button',{name:'معاينة',exact:true}).click();await page.locator('.pdf-pages canvas').first().waitFor();await page.locator('.preview-message[role=status]').waitFor({state:'hidden'});await capture(page,`letter-preview-${role.toLowerCase()}-${width}`);
    await downloadCheck(page,()=>page.locator('.duty-pdf-dialog .dialog-download').click(),`letter-download-${role}-${width}`,'original-letter');
@@ -123,13 +123,13 @@ try{
   report.push({width,checks:['teacher pending and manager archived cards','actual rasterized PDF preview','authenticated blob download SHA256','retained correction history','dialog Escape and focus return','RTL overflow']});
  }
  for(const archive of ['SetupUnavailable','Disconnected','Delivering','NeedsAttention','RetryScheduled','Unavailable','Preparing']){
-  const x=await documents(390,'SchoolManager',archive);await x.page.goto(origin+'/timetable?tab=duty&date=2026-10-13&execution=1');await x.page.locator('.document-card.available').first().waitFor();await x.page.locator('.documents').scrollIntoViewIfNeeded();await capture(x.page,`archive-${archive.toLowerCase()}-390`);
+  const x=await documents(390,'SchoolManager',archive);await x.page.goto(origin+'/school-duty/documents?date=2026-10-13&execution=1');await x.page.locator('.document-card.available').first().waitFor();await x.page.locator('.documents').scrollIntoViewIfNeeded();await capture(x.page,`archive-${archive.toLowerCase()}-390`);
   await downloadCheck(x.page,()=>x.page.locator('.document-card').last().getByRole('button',{name:'تنزيل',exact:false}).first().click(),`local-${archive}`,'corrected-report');
   if(archive==='NeedsAttention'){await x.page.locator('.retry-action').first().click();await x.page.getByText('أُدرجت محاولة الأرشفة. نسختك الموقّعة محفوظة بالفعل.',{exact:true}).waitFor();assert.equal(x.docs.retries,1);await capture(x.page,'retry-pending-390');}
   await x.page.close();
  }
- for(const mode of ['denied','missing']){const x=await documents(390);x.docs[mode]=true;await x.page.goto(origin+'/timetable?tab=duty&date=2026-10-13&execution=1');await x.page.locator('.document-card.available').first().waitFor();await x.page.locator('.document-card').first().getByRole('button',{name:'معاينة',exact:true}).click();await x.page.locator('.documents .feedback.error').waitFor();await x.page.locator('.documents').scrollIntoViewIfNeeded();await capture(x.page,`pdf-${mode}-390`);assert.equal(await x.page.locator('.pdf-pages').count(),0);await x.page.close();}
+ for(const mode of ['denied','missing']){const x=await documents(390);x.docs[mode]=true;await x.page.goto(origin+'/school-duty/documents?date=2026-10-13&execution=1');await x.page.locator('.document-card.available').first().waitFor();await x.page.locator('.document-card').first().getByRole('button',{name:'معاينة',exact:true}).click();await x.page.locator('.duty-error-dialog[open]').waitFor();await x.page.locator('.documents').scrollIntoViewIfNeeded();await capture(x.page,`pdf-${mode}-390`);assert.equal(await x.page.locator('.pdf-pages').count(),0);await x.page.close();}
  const roster=await documents(390,'SchoolManager');await roster.page.goto(origin+'/timetable?tab=duty');await roster.page.locator('app-duty-roster-export button').waitFor();await downloadCheck(roster.page,()=>roster.page.locator('app-duty-roster-export button').click(),'roster-download-390','official-roster');await capture(roster.page,'roster-export-390');await roster.page.close();
- const en=await documents(1440,'SchoolManager','Archived','en');await en.page.goto(origin+'/timetable?tab=duty&date=2026-10-13&execution=1');await en.page.locator('.document-card.available').first().waitFor();await en.page.locator('.documents').scrollIntoViewIfNeeded();await capture(en.page,'documents-en-1440');await en.page.close();
+ const en=await documents(1440,'SchoolManager','Archived','en');await en.page.goto(origin+'/school-duty/documents?date=2026-10-13&execution=1');await en.page.locator('.document-card.available').first().waitFor();await en.page.locator('.documents').scrollIntoViewIfNeeded();await capture(en.page,'documents-en-1440');await en.page.close();
  assert.deepEqual(errors,[]);writeFileSync(resolve(evidence,'browser-results.json'),JSON.stringify({verification:'Actual rendered Angular SPA and generated synthetic PDF pages; mocked authenticated API presentation',report,hashes,pageErrors:errors,physicalDevice:'Pending; viewport simulation is not physical OS keyboard testing',ownerVisualReview:'Pending',liveProviderDelivery:'Not claimed'},null,2));console.log('D3 rendered document checks passed');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

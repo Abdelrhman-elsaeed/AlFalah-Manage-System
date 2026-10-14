@@ -112,10 +112,28 @@ public sealed class DutyDocumentService(IDutyRepository duty, IDutyExecutionRepo
         if (!options.Value.ProcessingEnabled || !ready.Enabled || ready.ConnectionState!="Connected") throw new DutyException("DutyArchiveSetup","يلزم تجهيز اتصال الأرشيف أولًا. / Set up archive connectivity first.",409);
         await repo.RetryAsync(School,document,User,ct);
     }
+    public async Task<DutyArchiveReadiness> ReadinessAsync(CancellationToken ct)
+    {
+        await Access(true,ct);
+        var ready = (await repo.ReadinessAsync(School,ct)) with { ProcessingEnabled=options.Value.ProcessingEnabled };
+        if (ready.ConnectionState == "Connected")
+        {
+            try { await drive.RootAsync(School,null,ct); }
+            catch (Exception) when (!ct.IsCancellationRequested) { ready = ready with { ConnectionState="Disconnected" }; }
+        }
+        await Access(true,ct);
+        return ready;
+    }
     public async Task<DutyArchiveReadiness> EnableAsync(bool enabled,CancellationToken ct)
     {
         await Access(true,ct);
-        if (enabled) { if (!options.Value.ProcessingEnabled) throw new DutyException("DutyArchiveSetup","تفعيل الأرشفة غير متاح حاليًا. / Archive activation is currently unavailable.",409); await drive.RootAsync(School,null,ct); }
+        if (enabled)
+        {
+            if (!options.Value.ProcessingEnabled) throw new DutyException("DutyArchiveSetup","تفعيل الأرشفة غير متاح حاليًا. / Archive activation is currently unavailable.",409);
+            try { await drive.RootAsync(School,null,ct); }
+            catch (DutyException) { throw; }
+            catch (Exception) when (!ct.IsCancellationRequested) { throw new DutyException("DutyArchiveConnection","تعذّر الاتصال بـ Google Drive. راجع اتصال المدرسة ثم أعد المحاولة. / Google Drive could not be reached. Review the school connection and try again.",409); }
+        }
         await Access(true,ct); await repo.SetEnabledAsync(School,enabled,User,ct);
         return (await repo.ReadinessAsync(School,ct)) with {ProcessingEnabled=options.Value.ProcessingEnabled};
     }

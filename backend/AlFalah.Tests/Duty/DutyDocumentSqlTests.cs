@@ -57,6 +57,57 @@ public sealed class DutyDocumentSqlTests(DutySqlFixture fixture)
         await e.AcknowledgeAsync(w.Scene.Assignment,new(d.AssignmentRevision,Guid.NewGuid()),default);
         return (await db.Set<DutySignedDocument>().AsNoTracking().Where(x=>x.SchoolId==w.Scene.School&&x.Kind=="Letter").OrderByDescending(x=>x.Id).FirstAsync()).Id;
     }
+    [DutySqlFact] public async Task Other_teacher_cannot_take_duty_by_acknowledgement_and_retained_replay_has_current_permissions()
+    {
+        var w=await Setup(false);await using var db=fixture.Db();
+        var initial=await db.Set<DutyAssignment>().AsNoTracking().SingleAsync(x=>x.Id==w.Scene.Assignment);
+        await FluentActions.Invoking(()=>Execution(db,w,user:w.Scene.Replacement).AcknowledgeAsync(initial.Id,new(initial.Revision,Guid.NewGuid()),default))
+            .Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        (await db.Set<DutySignedDocument>().CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(0);
+        (await db.Set<DutyArchiveIntent>().CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(0);
+        var sign=new DutySignRequest(initial.Revision,Guid.NewGuid());
+        await Execution(db,w).AcknowledgeAsync(initial.Id,sign,default);
+        (await db.Set<DutyAssignment>().SingleAsync(x=>x.Id==initial.Id)).EffectiveTeacherId.Should().Be(initial.EffectiveTeacherId);
+        var planner=new DutyService(new DutyRepository(db),new TeacherDriveHarness.TestCurrentUser(RoleNames.SchoolManager,w.Scene.Manager,w.Scene.School,true));
+        var context=await planner.WorkspaceAsync(w.Scene.Term,default);
+        await planner.ChangeAsync(new(initial.Id,context.PlanRevision,w.Scene.Replacement,null,"Synthetic ownership review","Emergency",true,null,Guid.NewGuid()),default);
+        var replay=await Execution(db,w).AcknowledgeAsync(initial.Id,sign,default);
+        replay.CanExecute.Should().BeFalse();replay.Header.ActualTeacher.Should().NotBeEmpty();
+        await FluentActions.Invoking(()=>Execution(db,w).AcknowledgeAsync(initial.Id,new(initial.Revision,Guid.NewGuid()),default))
+            .Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        (await db.Set<DutySignedDocument>().CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(1);
+        (await db.Set<DutyAssignment>().SingleAsync(x=>x.Id==initial.Id)).EffectiveTeacherId.Should().Be(w.Scene.Replacement);
+    }
+    [DutySqlFact] public async Task Manager_archive_readiness_detects_disconnection_and_activation_preserves_unrelated_state()
+    {
+        var w=await Setup(false);await using var db=fixture.Db();var manager=Reader(db,w,true);
+        var connected=await manager.ReadinessAsync(default);connected.Enabled.Should().BeFalse();connected.ConnectionState.Should().Be("Connected");
+        await FluentActions.Invoking(()=>Reader(db,w).ReadinessAsync(default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        await FluentActions.Invoking(()=>Reader(db,w).EnableAsync(true,default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==403);
+        w.Drive.UnreachableSchools.Add(w.Scene.School);
+        (await manager.ReadinessAsync(default)).ConnectionState.Should().Be("Disconnected");
+        await FluentActions.Invoking(()=>manager.EnableAsync(true,default)).Should().ThrowAsync<Exception>();
+        db.ChangeTracker.Clear();var before=await db.SchoolGoogleDrives.SingleAsync(x=>x.SchoolId==w.Scene.School);
+        before.DutyArchiveEnabled.Should().BeFalse();var credential=before.ProtectedCredential;var visit=before.VisitArchiveEnabled;
+        w.Drive.UnreachableSchools.Clear();(await manager.EnableAsync(true,default)).Enabled.Should().BeTrue();
+        (await manager.EnableAsync(false,default)).Enabled.Should().BeFalse();
+        db.ChangeTracker.Clear();var after=await db.SchoolGoogleDrives.SingleAsync(x=>x.SchoolId==w.Scene.School);
+        after.ProtectedCredential.Should().Be(credential);after.VisitArchiveEnabled.Should().Be(visit);after.RootFolderId.Should().Be(w.Root);
+        w.Drive.Uploads.Should().BeEmpty();
+    }
+    [DutySqlFact] public async Task Future_duty_cannot_be_started_using_an_owned_assignment_or_host_calendar_date()
+    {
+        var w=await Setup(false);await using var db=fixture.Db();
+        var plan=await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==w.Scene.School);
+        plan.TimeZoneId="Pacific/Honolulu";
+        var schoolToday=DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow,TimeZoneInfo.FindSystemTimeZoneById(plan.TimeZoneId)).DateTime);
+        var day=await db.Set<DutyAssignment>().SingleAsync(x=>x.Id==w.Scene.Assignment);day.Date=schoolToday.AddDays(1);await db.SaveChangesAsync();
+        var service=Execution(db,w);var view=await service.GetAsync(day.Id,default);view.CanExecute.Should().BeFalse();view.SignatureData.Should().BeNull();
+        await FluentActions.Invoking(()=>service.AcknowledgeAsync(day.Id,new(day.Revision,Guid.NewGuid()),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Code=="DutyNotToday"&&x.Status==409);
+        await FluentActions.Invoking(()=>service.SaveDraftAsync(day.Id,new(day.Revision,0,new(true,true,[],"Future forged edit",null)),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Code=="DutyNotToday");
+        (await db.Set<DutySignedDocument>().CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(0);
+        (await db.Set<DutyArchiveIntent>().CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(0);day.EffectiveTeacherId.Should().Be(w.Scene.Teacher);
+    }
     private async Task<int> SignReport(AlFalahDbContext db,World w,string? user=null,bool populated=false,string? observations=null)
     {
         var e=Execution(db,w,user:user);var d=await e.GetAsync(w.Scene.Assignment,default);

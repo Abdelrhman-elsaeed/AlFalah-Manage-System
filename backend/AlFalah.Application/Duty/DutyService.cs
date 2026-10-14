@@ -52,7 +52,7 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
         if (termId.HasValue && term is null) throw new DutyException("DutyNotFound", "الفصل غير متاح. / Term unavailable.", 404);
         var state = await Load(ct);
         var plan = state.Plans.SingleOrDefault(x => x.AcademicTermId == term?.Id);
-        var timing = term is null ? new DutyTiming(null, "Africa/Cairo", [0,1,2,3,4]) : await repo.TimingAsync(SchoolId, term, ct);
+        var timing = term is null ? new DutyTiming(null, "Africa/Cairo", []) : await repo.TimingAsync(SchoolId, term, ct);
         var today = Today(plan?.TimeZoneId ?? timing.Zone);
         var settings = plan is null ? null : DutyRotation.Settings(plan);
         string Name(string id) => state.Names.GetValueOrDefault(id) ?? state.Teachers.FirstOrDefault(x => x.UserId == id)?.Name ?? id;
@@ -100,7 +100,7 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
             .Where(f => selected.Contains(f.UserId) || f.Planned > 0 || f.Effective > 0 || f.Covered > 0 || f.PendingCompensation > 0).ToArray();
     }
 
-    private async Task<(DutyState State, DutyPlan? Plan, DutyTiming Timing)> Validate(DutySettings s, int revision, CancellationToken ct)
+    private async Task<(DutyState State, DutyPlan? Plan, DutyTiming Timing, DutySettings Settings)> Validate(DutySettings s, int revision, CancellationToken ct)
     {
         await Access(true, ct);
         var term = (await repo.TermsAsync(SchoolId, ct)).SingleOrDefault(x => x.Id == s.TermId)
@@ -110,21 +110,32 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
         if ((plan?.Revision ?? 0) != revision) throw Conflict();
         if (s.From < term.From || s.To > term.To || s.From > s.To || s.To.DayNumber - s.From.DayNumber > 400)
             throw Invalid("DutyDateBounds", "اختر فترة داخل حدود الفصل والسنة. / Dates must lie inside the term and year.");
-        if (s.TeacherIds.Count == 0 || s.TeacherIds.Distinct().Count() != s.TeacherIds.Count || s.TeacherIds.Any(id => !state.Teachers.Any(t => t.UserId == id)))
+        if (s.TeacherIds.Distinct().Count() != s.TeacherIds.Count || s.TeacherIds.Any(id => !state.Teachers.Any(t => t.UserId == id)))
             throw Invalid("DutyInvalidPool", "اختر معلمين نشطين من المدرسة دون تكرار. / Select distinct active school teachers.");
-        if (s.Weekdays.Count == 0 || s.Weekdays.Any(x => x < 0 || x > 6) || s.Weekdays.Distinct().Count() != s.Weekdays.Count)
-            throw Invalid("DutyInvalidDays", "اختر أيام التشغيل. / Select operating weekdays.");
+        // Legacy selected pools remain explicit exclusions when reviewed, never silently rewritten.
+        var excluded = s.PermanentlyExcludedTeacherIds ?? (s.TeacherIds.Count == 0 ? [] :
+            state.Teachers.Where(t => !s.TeacherIds.Contains(t.UserId)).Select(t => t.UserId).ToArray());
+        var previousExcluded = plan is null ? [] : DutyRotation.Settings(plan).PermanentlyExcludedTeacherIds ?? [];
+        if (excluded.Distinct().Count() != excluded.Count || excluded.Any(id => !state.Names.ContainsKey(id)
+            || !state.Teachers.Any(t => t.UserId == id) && !(plan?.Participants.Any(t => t.UserId == id) ?? false) && !previousExcluded.Contains(id)))
+            throw Invalid("DutyInvalidExclusion", "اختر معلمًا من المدرسة للاستبعاد. / Exclusions require school teachers.");
+        var ids = s.TeacherIds.Concat(state.Teachers.Select(t => t.UserId)).Distinct().Where(id => !excluded.Contains(id)).ToArray();
+        if (ids.Length == 0) throw Invalid("DutyInvalidPool", "يلزم بقاء معلم مشارك على الأقل. / Keep at least one participating teacher.");
+        var timing = await repo.TimingAsync(SchoolId, term, ct);
+        if (timing.Weekdays.Count == 0)
+            throw Invalid("DutyStudyCalendarRequired", "اضبط أيام الدراسة في توقيتات الجدول لهذا الفصل أولًا. / Configure this term's timetable study days first.");
+        s = s with { TeacherIds = ids, PermanentlyExcludedTeacherIds = excluded, Weekdays = timing.Weekdays };
         if (s.RegenerateFrom < s.From || s.RegenerateTo > s.To || s.RegenerateFrom > s.RegenerateTo)
             throw Invalid("DutyRegenerationRange", "حدّد نطاق إعادة التوليد داخل الفترة. / Select a regeneration range inside operating dates.");
         foreach (var x in s.Exclusions)
-            if (!s.TeacherIds.Contains(x.UserId) || x.From < s.From || x.To > s.To || x.From > x.To || string.IsNullOrWhiteSpace(x.Reason) || x.Reason.Length > 1000)
+            if (!state.Teachers.Any(t => t.UserId == x.UserId) || x.From < s.From || x.To > s.To || x.From > x.To || string.IsNullOrWhiteSpace(x.Reason) || x.Reason.Length > 1000)
                 throw Invalid("DutyInvalidExclusion", "راجع المعلم وفترة الاستبعاد والسبب. / Check exclusion teacher, range and reason.");
         foreach (var x in s.Closures)
             if (x.From < s.From || x.To > s.To || x.From > x.To || string.IsNullOrWhiteSpace(x.Reason) || x.Reason.Length > 1000)
                 throw Invalid("DutyInvalidClosure", "راجع فترة الإغلاق والسبب. / Check closure range and reason.");
         if (s.Weekdays.Any(x => x is 5 or 6) && !s.AcceptAttendanceCalendarMismatch)
             throw Invalid("DutyAttendanceCalendarMismatch", "الحضور لا يدعم الجمعة والسبت. يلزم إقرار صريح؛ سيظل الحضور غير مؤكد. / Explicitly accept unsupported attendance weekdays.");
-        return (state, plan, await repo.TimingAsync(SchoolId, term, ct));
+        return (state, plan, timing, s);
     }
     private static bool Preserved(DutyAssignment a, DateOnly today, DutyState state) => a.Date < today || a.IsLocked || a.IsManuallyProtected
         || state.Changes.Any(c => (c.AssignmentId == a.Id || c.OtherAssignmentId == a.Id) && c.Kind is "AutoExchange" or "UnresolvedCompensation"
@@ -153,7 +164,7 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
         var fairness = s.TeacherIds.Select(id => new DutyFairness(id, state.Teachers.Single(x => x.UserId == id).Name,
             result.Count(x => x.TeacherId == id), result.Count(x => x.TeacherId == id), 0, 0,
             Fairness(state, plan?.Id, today).FirstOrDefault(x => x.UserId == id)?.PendingCompensation ?? 0)).ToArray();
-        var digest = DutyRotation.Digest(new { s, Revision = plan?.Revision ?? 0, Today = today, Days = result });
+        var digest = DutyRotation.Digest(new { s, TimingRevision = timing.RevisionId, Revision = plan?.Revision ?? 0, Today = today, Days = result });
         var changedDates = result.Count(p => !p.Preserved && (old.TryGetValue(p.Date, out var a)
             ? p.TeacherId.Length == 0 ? !a.IsCancelled : a.IsCancelled || a.EffectiveTeacherId != p.TeacherId
             : p.TeacherId.Length > 0));
@@ -161,7 +172,7 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
     }
     public async Task<DutyPreview> PreviewAsync(DutyPreviewRequest r, CancellationToken ct)
     {
-        var v = await Validate(r.Settings, r.ExpectedRevision, ct); return BuildPreview(r.Settings, v.State, v.Plan, v.Timing);
+        var v = await Validate(r.Settings, r.ExpectedRevision, ct); return BuildPreview(v.Settings, v.State, v.Plan, v.Timing);
     }
     public async Task<DutyMutationResult> PublishAsync(DutyPublishRequest r, CancellationToken ct)
     {
@@ -171,9 +182,10 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
             await Access(true, ct);
             var receipt = await ReadReceipt(r.RequestId, r, ct); if (receipt is not null) return receipt;
             var v = await Validate(r.Settings, r.ExpectedRevision, ct);
-            var preview = BuildPreview(r.Settings, v.State, v.Plan, v.Timing);
+            var settings = v.Settings;
+            var preview = BuildPreview(settings, v.State, v.Plan, v.Timing);
             if (preview.Digest != r.PreviewDigest) throw Conflict();
-            if (preview.Days.Any(x => string.IsNullOrEmpty(x.TeacherId) && DutyRotation.Operating(r.Settings, x.Date)))
+            if (preview.Days.Any(x => string.IsNullOrEmpty(x.TeacherId) && DutyRotation.Operating(settings, x.Date)))
                 throw Invalid("DutyNoEligibleTeacher", "توجد أيام دون معلم مؤهل. راجع الاستبعادات. / Some days have no eligible teacher.");
             var plan = v.Plan;
             if (plan is null)
@@ -182,17 +194,18 @@ public sealed class DutyService(IDutyRepository repo, ICurrentUserService curren
                 repo.Add(plan); await repo.SaveAsync(ct);
             }
             else plan.Revision++;
-            plan.SettingsJson = JsonSerializer.Serialize(r.Settings); plan.PublishedAt = DateTimeOffset.UtcNow; plan.PublishedByUserId = UserId;
+            plan.SettingsJson = JsonSerializer.Serialize(settings); plan.BellScheduleRevisionId = v.Timing.RevisionId;
+            plan.PublishedAt = DateTimeOffset.UtcNow; plan.PublishedByUserId = UserId;
             foreach (var x in plan.Participants.ToArray()) repo.Remove(x);
             foreach (var x in plan.Closures.ToArray()) repo.Remove(x);
             await repo.SaveAsync(ct); plan.Participants.Clear(); plan.Closures.Clear();
-            for (var i = 0; i < r.Settings.TeacherIds.Count; i++)
+            for (var i = 0; i < settings.TeacherIds.Count; i++)
             {
-                var t = v.State.Teachers.Single(x => x.UserId == r.Settings.TeacherIds[i]);
+                var t = v.State.Teachers.Single(x => x.UserId == settings.TeacherIds[i]);
                 plan.Participants.Add(new() { SchoolId = SchoolId, DutyPlanId = plan.Id, InstructorProfileId = t.ProfileId, UserId = t.UserId, Position = i });
             }
-            foreach (var c in r.Settings.Closures) plan.Closures.Add(new() { SchoolId = SchoolId, DutyPlanId = plan.Id, From = c.From, To = c.To, Reason = c.Reason });
-            var affectedTeachers = r.Settings.TeacherIds.ToHashSet();
+            foreach (var c in settings.Closures) plan.Closures.Add(new() { SchoolId = SchoolId, DutyPlanId = plan.Id, From = c.From, To = c.To, Reason = c.Reason });
+            var affectedTeachers = settings.TeacherIds.ToHashSet();
             foreach (var p in preview.Days)
             {
                 var a = v.State.Assignments.SingleOrDefault(x => x.DutyPlanId == plan.Id && x.Date == p.Date);

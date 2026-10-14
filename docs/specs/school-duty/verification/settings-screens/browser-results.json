@@ -1,0 +1,345 @@
+{
+  "verification": "Actual current Angular SPA; all API responses synthetic; no operational writes",
+  "checks": [
+    {
+      "width": 390,
+      "allIncluded": true,
+      "permanentAndDated": true,
+      "duplicateSafe": true,
+      "errorRetainsDraft": true,
+      "timetableDays": true,
+      "rtlAndLtr": true,
+      "initialCalendarSizes": [
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 941.5625,
+          "buttonTop": 941.5625,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1021.0625,
+          "buttonTop": 1021.0625,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1302.078125,
+          "buttonTop": 1302.078125,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1381.578125,
+          "buttonTop": 1381.578125,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1497.703125,
+          "buttonTop": 1497.703125,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1577.203125,
+          "buttonTop": 1577.203125,
+          "width": 297.625
+        }
+      ],
+      "datedCalendarSizes": [
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -606.4375,
+          "buttonTop": -606.4375,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -526.9375,
+          "buttonTop": -526.9375,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -245.921875,
+          "buttonTop": -245.921875,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -166.421875,
+          "buttonTop": -166.421875,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -50.296875,
+          "buttonTop": -50.296875,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 29.203125,
+          "buttonTop": 29.203125,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 520.171875,
+          "buttonTop": 520.171875,
+          "width": 297.625
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 599.671875,
+          "buttonTop": 599.671875,
+          "width": 297.625
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "allIncluded": true,
+      "permanentAndDated": true,
+      "duplicateSafe": true,
+      "errorRetainsDraft": true,
+      "timetableDays": true,
+      "rtlAndLtr": true,
+      "initialCalendarSizes": [
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 898.84375,
+          "buttonTop": 898.84375,
+          "width": 309.4375
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 898.84375,
+          "buttonTop": 898.84375,
+          "width": 309.453125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1157.0625,
+          "buttonTop": 1157.0625,
+          "width": 309.4375
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1157.0625,
+          "buttonTop": 1157.0625,
+          "width": 309.453125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1273.1875,
+          "buttonTop": 1273.1875,
+          "width": 309.4375
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 1273.1875,
+          "buttonTop": 1273.1875,
+          "width": 309.453125
+        }
+      ],
+      "datedCalendarSizes": [
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -172.15625,
+          "buttonTop": -172.15625,
+          "width": 309.4375
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -172.15625,
+          "buttonTop": -172.15625,
+          "width": 309.453125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 86.0625,
+          "buttonTop": 86.0625,
+          "width": 309.4375
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 86.0625,
+          "buttonTop": 86.0625,
+          "width": 309.453125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 202.1875,
+          "buttonTop": 202.1875,
+          "width": 309.4375
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 202.1875,
+          "buttonTop": 202.1875,
+          "width": 309.453125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 599.859375,
+          "buttonTop": 599.859375,
+          "width": 309.453125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 679.359375,
+          "buttonTop": 679.359375,
+          "width": 309.4375
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "allIncluded": true,
+      "permanentAndDated": true,
+      "duplicateSafe": true,
+      "errorRetainsDraft": true,
+      "timetableDays": true,
+      "rtlAndLtr": true,
+      "initialCalendarSizes": [
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 318.796875,
+          "buttonTop": 318.796875,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 318.796875,
+          "buttonTop": 318.796875,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 577.015625,
+          "buttonTop": 577.015625,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 577.015625,
+          "buttonTop": 577.015625,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 693.140625,
+          "buttonTop": 693.140625,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 693.140625,
+          "buttonTop": 693.140625,
+          "width": 203.28125
+        }
+      ],
+      "datedCalendarSizes": [
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -93.203125,
+          "buttonTop": -93.203125,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": -93.203125,
+          "buttonTop": -93.203125,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 165.015625,
+          "buttonTop": 165.015625,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 165.015625,
+          "buttonTop": 165.015625,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 281.140625,
+          "buttonTop": 281.140625,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 281.140625,
+          "buttonTop": 281.140625,
+          "width": 203.28125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 678.8125,
+          "buttonTop": 678.8125,
+          "width": 179.328125
+        },
+        {
+          "inputHeight": 44,
+          "buttonHeight": 44,
+          "inputTop": 678.8125,
+          "buttonTop": 678.8125,
+          "width": 179.34375
+        }
+      ]
+    },
+    {
+      "missingStudyCalendar": true,
+      "blockedPreview": true,
+      "actionableTimetableLink": true
+    }
+  ],
+  "ownerReview": "Pending",
+  "physicalDevice": "Pending"
+}

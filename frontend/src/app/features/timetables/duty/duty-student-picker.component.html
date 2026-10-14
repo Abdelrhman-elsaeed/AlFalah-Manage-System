@@ -7,9 +7,10 @@
     <div class="picker-body">
       <nav class="class-navigator" [attr.aria-label]="'DUTY_EXEC.CLASSROOMS' | translate"><span>{{ 'DUTY_EXEC.BROWSE_CLASS' | translate }}</span><button (click)="selectClass(null)" [attr.aria-pressed]="classroom===null">{{ 'DUTY_EXEC.ALL_CLASSES' | translate }}</button><button *ngFor="let c of classes" (click)="selectClass(c.id)" [attr.aria-pressed]="classroom===c.id"><strong>{{ c.label }}</strong><small>{{ c.count }}</small></button></nav>
       <section class="student-results" [attr.aria-busy]="loading()" aria-live="polite">
-        <div class="picker-state" *ngIf="error()" role="alert"><i class="pi pi-cloud" aria-hidden="true"></i><strong>{{ error() }}</strong><button (click)="refresh(false)">{{ 'DUTY_EXEC.RETRY' | translate }}</button></div>
+        <span hidden [dutyError]="error()" (dutyErrorDismissed)="error.set('')"></span>
         <div class="picker-state" *ngIf="loading()"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ 'DUTY_EXEC.SEARCHING' | translate }}</div>
-        <ng-container *ngIf="!loading() && !error()">
+        <div class="picker-state" *ngIf="failed()"><p>{{ 'DUTY_EXEC.SEARCH_ERROR' | translate }}</p><button class="soft-action" (click)="refresh(false)">{{ 'DUTY_EXEC.RETRY' | translate }}</button></div>
+        <ng-container *ngIf="!loading() && !failed()">
           <div *ngFor="let group of groups()" class="student-group"><h3>{{ group.label }}<span>{{ group.items.length }} {{ 'DUTY_EXEC.SHOWN' | translate }}</span></h3>
             <button class="student-result" *ngFor="let student of group.items; trackBy: track" [attr.aria-pressed]="selected()?.enrollmentId===student.enrollmentId" (click)="selected.set(student)"><span class="student-monogram" aria-hidden="true">{{ student.name.slice(0,1) }}</span><span class="student-copy"><strong>{{ student.name }}</strong><small>{{ student.classroom }}<bdi> · {{ student.studentNumber }}</bdi></small><em *ngIf="recordedIds.includes(student.studentId)">{{ 'DUTY_EXEC.ALREADY_RECORDED' | translate }}</em></span><span class="selection-ring"><i *ngIf="selected()?.enrollmentId===student.enrollmentId" class="pi pi-check" aria-hidden="true"></i></span></button>
           </div>
@@ -19,5 +20,5 @@
       </section>
     </div>
   </div>
-  <ng-template pTemplate="footer"><div class="picker-footer"><div><small>{{ 'DUTY_EXEC.SELECTED' | translate }}</small><strong>{{ selected()?.name || ('DUTY_EXEC.SELECT_HINT' | translate) }}</strong><span *ngIf="selected()">{{ selected()?.classroom }} · <bdi>{{ selected()?.studentNumber }}</bdi></span></div><button class="confirm-student" [disabled]="!selected() || loading()" (click)="confirm()">{{ 'DUTY_EXEC.SELECT_STUDENT' | translate }}<i class="pi pi-check" aria-hidden="true"></i></button></div></ng-template>
+  <ng-template pTemplate="footer"><div class="picker-footer"><div><small>{{ 'DUTY_EXEC.SELECTED' | translate }}</small><strong>{{ selected()?.name || ('DUTY_EXEC.SELECT_HINT' | translate) }}</strong><span *ngIf="selected()">{{ selected()?.classroom }} · <bdi>{{ selected()?.studentNumber }}</bdi></span></div><button class="confirm-student" [disabled]="!selected() || loading() || failed()" (click)="confirm()">{{ 'DUTY_EXEC.SELECT_STUDENT' | translate }}<i class="pi pi-check" aria-hidden="true"></i></button></div></ng-template>
 </p-dialog>

@@ -32,6 +32,7 @@ public sealed class DutyExecutionService(IDutyRepository duty, IDutyExecutionRep
         var (a, p, access) = await Read(id, ct);
         if (!access.Teacher || a.EffectiveTeacherId != User) throw Error("DutyForbidden", "يوقّع المعلم الفعلي بنفسه. / The actual teacher must sign personally.", 403);
         if (a.IsCancelled || a.Revision != revision) throw Error("DutyRevisionConflict", "تغيّرت المناوبة. احتُفظ بإدخالك؛ راجع النسخة الحالية. / Duty changed; your input is retained. Review the current version.", 409);
+        if (a.Date > SchoolToday(p)) throw Error("DutyNotToday", "لم يحن يوم هذه المناوبة. افتح مناوبة اليوم أو استعرض الأرشيف. / This duty date has not arrived. Open today's duty or browse the archive.", 409);
         var state = await duty.LoadAsync(School, ct);
         var unavailable = await repo.UnavailableAsync(School, User, a.Date, ct);
         var eligible = state.Teachers.Any(x => x.UserId == User) && DutyRotation.Eligible(DutyRotation.Settings(p), User, a.Date);
@@ -43,6 +44,7 @@ public sealed class DutyExecutionService(IDutyRepository duty, IDutyExecutionRep
     }
     private async Task<TimeOnly?> Dismissal(DutyAssignment a, DutyPlan p, CancellationToken ct) =>
         await repo.DismissalOverrideAsync(School, a.Id, a.Revision, ct) ?? await repo.DismissalAsync(p, a.Date, ct);
+    private static DateOnly SchoolToday(DutyPlan plan) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow,TimeZoneInfo.FindSystemTimeZoneById(plan.TimeZoneId)).DateTime);
     private static DutyReportContent Empty => new(false, false, [], "", null);
     private static DutyReportContent Content(DutyReportDraft d) => JsonSerializer.Deserialize<DutyReportContent>(d.ContentJson) ?? Empty;
     private static DutyDraftDto DraftDto(DutyReportDraft d) => new(d.Id, d.Version, d.AssignmentRevision, d.AuthorUserId, Content(d), d.SavedAt, d.SubmittedAt, d.CorrectionReason);
@@ -54,6 +56,7 @@ public sealed class DutyExecutionService(IDutyRepository duty, IDutyExecutionRep
         var (a, p, access) = await Read(assignment, ct);
         var docs = await repo.DocumentsAsync(School, a.Id, ct); var drafts = await repo.DraftsAsync(School, a.Id, ct);
         var owns = a.EffectiveTeacherId == User && access.Teacher && !a.IsCancelled;
+        var canExecute = owns && a.Date <= SchoolToday(p);
         var draft = drafts.SingleOrDefault(x => x.AuthorUserId == (access.Manager ? a.EffectiveTeacherId : User));
         var canSeeCurrent = access.Manager || owns;
         var facts = canSeeCurrent ? await repo.FactsAsync(School, a.Id, ct) : [];
@@ -66,8 +69,8 @@ public sealed class DutyExecutionService(IDutyRepository duty, IDutyExecutionRep
             .Where(x => access.Manager || x.AuthorUserId == User).Select(DraftDto)
             .Concat(drafts.Where(x => x != draft && (access.Manager || x.AuthorUserId == User)).Select(DraftDto))
             .DistinctBy(x => new { x.Id, x.Version, x.AssignmentRevision }).ToArray();
-        return new(a.Id, a.Revision, a.Date, owns, access.Manager, await repo.HeaderAsync(School, a, p, ct), await Dismissal(a, p, ct),
-            await repo.TimingReasonAsync(School, a.Id, a.Revision, ct), owns ? (await repo.SignatureAsync(User, ct))?.SignatureDrawnData : null,
+        return new(a.Id, a.Revision, a.Date, canExecute, access.Manager, await repo.HeaderAsync(School, a, p, ct), await Dismissal(a, p, ct),
+            await repo.TimingReasonAsync(School, a.Id, a.Revision, ct), canExecute ? (await repo.SignatureAsync(User, ct))?.SignatureDrawnData : null,
             docs.Any(x => x.Kind == "Letter" && x.AuthorUserId == a.EffectiveTeacherId && x.AssignmentRevision == a.Revision),
             draft is null ? null : DraftDto(draft), lines,
             visible.Select(x => new DutyDocumentSummary(x.Id, x.Kind, x.AssignmentRevision, x.AuthorUserId, x.SignedAt, x.SignatureHash, x.PreviousDocumentId, x.CorrectionReason)).ToArray(),
@@ -188,7 +191,7 @@ public sealed class DutyExecutionService(IDutyRepository duty, IDutyExecutionRep
         await Read(assignment, ct); var payload = new { Action = "Acknowledge", assignment, User, request };
         return await duty.AtomicAsync(School, async () =>
         {
-            await Read(assignment, ct); var replay = await Replay<DutyExecution>(request.RequestId, payload, ct); if (replay is not null) return replay;
+            await Read(assignment, ct); var replay = await Replay<DutyExecution>(request.RequestId, payload, ct); if (replay is not null) return await GetAsync(assignment, ct);
             var (a, p) = await Own(assignment, request.AssignmentRevision, ct);
             if (!(await repo.DocumentsAsync(School, a.Id, ct)).Any(x => x.Kind == "Letter" && x.AuthorUserId == User && x.AssignmentRevision == a.Revision))
                 await Sign(a, p, "Letter", null, new { Acknowledgement = "اطلعت وأتعهد" }, ct);
@@ -200,7 +203,7 @@ public sealed class DutyExecutionService(IDutyRepository duty, IDutyExecutionRep
         await Read(assignment, ct); var payload = new { Action = "Submit", assignment, User, request };
         return await duty.AtomicAsync(School, async () =>
         {
-            await Read(assignment, ct); var replay = await Replay<DutyExecution>(request.RequestId, payload, ct); if (replay is not null) return replay;
+            await Read(assignment, ct); var replay = await Replay<DutyExecution>(request.RequestId, payload, ct); if (replay is not null) return await GetAsync(assignment, ct);
             var (a, p) = await Own(assignment, request.AssignmentRevision, ct); await AckRequired(a, ct);
             var draft = (await repo.DraftsAsync(School, a.Id, ct)).SingleOrDefault(x => x.AuthorUserId == User);
             if (draft is null || draft.Version != request.DraftVersion || draft.AssignmentRevision != a.Revision || draft.SubmittedAt is not null)

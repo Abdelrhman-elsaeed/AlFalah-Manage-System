@@ -1,0 +1,4 @@
+Duty settings exercised 390px
+Duty settings exercised 768px
+Duty settings exercised 1440px
+Duty settings browser checks passed.

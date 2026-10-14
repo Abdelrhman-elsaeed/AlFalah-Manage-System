@@ -1,0 +1,5 @@
+Teacher D2 journeys rendered at 390px
+Teacher D2 journeys rendered at 768px
+Teacher D2 journeys rendered at 1440px
+Signature return URL: http://127.0.0.1:58260/school-duty/execution?date=2026-10-13&execution=1
+D2 rendered checks passed

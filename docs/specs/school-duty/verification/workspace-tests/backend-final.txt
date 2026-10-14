@@ -1,0 +1,16 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  AlFalah.Shared -> D:\AlFalah-Manage-System\backend\AlFalah.Shared\bin\Debug\net8.0\AlFalah.Shared.dll
+  AlFalah.Domain -> D:\AlFalah-Manage-System\backend\AlFalah.Domain\bin\Debug\net8.0\AlFalah.Domain.dll
+  AlFalah.Application -> D:\AlFalah-Manage-System\backend\AlFalah.Application\bin\Debug\net8.0\AlFalah.Application.dll
+  AlFalah.Infrastructure -> D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\bin\Debug\net8.0\AlFalah.Infrastructure.dll
+  AlFalah.Api -> D:\AlFalah-Manage-System\backend\AlFalah.Api\bin\Debug\net8.0\AlFalah.Api.dll
+  AlFalah.Tests -> D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll
+Test run for D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: D:\AlFalah-Manage-System\.audit\duty-organized-20261014\backend\duty-final.trx
+
+Passed!  - Failed:     0, Passed:    75, Skipped:     0, Total:    75, Duration: 1 m 19 s - AlFalah.Tests.dll (net8.0)

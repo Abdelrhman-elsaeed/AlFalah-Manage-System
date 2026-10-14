@@ -33,7 +33,8 @@ public sealed class VisitArchiveService(IVisitArchiveRepository repository, ISto
         Enabled();
         await RequireManagementAsync(ct);
         var schoolEnabled = await repository.SchoolEnabledAsync(School, ct);
-        return new(true, schoolEnabled, schoolEnabled, schoolEnabled);
+        var processing = schoolEnabled && options.Value.ArchiveProcessingEnabled;
+        return new(true, processing, processing, schoolEnabled);
     }
     private async Task<bool> AuthorizeAsync(ArchiveVisitScope visit, bool management, CancellationToken ct)
     {
@@ -100,7 +101,7 @@ public sealed class VisitArchiveService(IVisitArchiveRepository repository, ISto
                 manage ? operation.ApprovalSource : "", operation.ApprovedAtUtc, manage ? operation.Attempts : 0,
                 manage ? operation.LastAttemptAtUtc : null, operation.CompletedAtUtc, manage ? operation.NextAttemptAtUtc : null,
                 manage ? operation.LastErrorCode : null, available && visit.Status == VisitStatus.Approved && visit.ApprovalRevision == operation.ApprovalRevision,
-                manage && (missing || operation.Status is VisitArchiveStatus.NeedsAttention or VisitArchiveStatus.RetryScheduled),
+                manage && options.Value.ArchiveProcessingEnabled && (missing || operation.Status is VisitArchiveStatus.NeedsAttention or VisitArchiveStatus.RetryScheduled),
                 manage ? versions : versions.Take(1).ToList()));
         }
         return new(visit.VisitId, visit.InstructorName, visit.ApprovalRevision, visit.Status == VisitStatus.Approved,
@@ -112,6 +113,7 @@ public sealed class VisitArchiveService(IVisitArchiveRepository repository, ISto
         var visit = await repository.VisitAsync(School, visitId, ct) ?? throw new KeyNotFoundException("الزيارة غير موجودة.");
         await AuthorizeAsync(visit, true, ct);
         await authorization.RequireSchoolPermissionAsync(School, PermissionNames.StorageRetryArchive, ct);
+        if (!options.Value.ArchiveProcessingEnabled) throw new StorageUnavailableException();
         if (request.ApprovalRevision < 1 || request.Reason?.Length > 1000) throw new ArgumentException("طلب المحاولة غير صالح.");
         // Live reconcile first: SQL alone is never evidence that a successful file exists.
         await GetAsync(visitId, ct);

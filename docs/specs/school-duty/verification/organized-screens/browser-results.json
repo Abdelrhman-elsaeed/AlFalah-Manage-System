@@ -1,0 +1,218 @@
+{
+  "verification": "Actual current Angular server; synthetic API fixtures only; native downloads contain actual generated synthetic PDF bytes",
+  "results": [
+    {
+      "role": "SchoolManager",
+      "width": 390,
+      "orderedSidebar": true,
+      "focusedPages": true,
+      "retainedSetup": true,
+      "centeredError": true,
+      "calendarGeometry": [
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        }
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 768,
+      "orderedSidebar": true,
+      "focusedPages": true,
+      "retainedSetup": true,
+      "centeredError": true,
+      "calendarGeometry": [
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        }
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1440,
+      "orderedSidebar": true,
+      "focusedPages": true,
+      "retainedSetup": true,
+      "centeredError": true,
+      "calendarGeometry": [
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        },
+        {
+          "input": 44,
+          "button": 44
+        }
+      ]
+    },
+    {
+      "role": "Instructor",
+      "width": 390,
+      "legacyContext": true,
+      "teacherOnlyPages": true,
+      "draftPreserved": true,
+      "explicitErrorOK": true,
+      "nativeDownloadHash": true,
+      "deniedRead": true,
+      "pickerRecovery": true,
+      "focusedReview": true,
+      "noExtraSignatures": true
+    },
+    {
+      "role": "Instructor",
+      "width": 768,
+      "legacyContext": true,
+      "teacherOnlyPages": true,
+      "draftPreserved": true,
+      "explicitErrorOK": true,
+      "nativeDownloadHash": true,
+      "deniedRead": true,
+      "pickerRecovery": true,
+      "focusedReview": true,
+      "noExtraSignatures": true
+    },
+    {
+      "role": "Instructor",
+      "width": 1440,
+      "legacyContext": true,
+      "teacherOnlyPages": true,
+      "draftPreserved": true,
+      "explicitErrorOK": true,
+      "nativeDownloadHash": true,
+      "deniedRead": true,
+      "pickerRecovery": true,
+      "focusedReview": true,
+      "noExtraSignatures": true
+    },
+    {
+      "role": "Instructor",
+      "width": 390,
+      "tenDayCards": true,
+      "pagination": true,
+      "schoolTodayAlert": true,
+      "nearestOwnDate": true,
+      "ownAllAndTeacherFilters": true,
+      "otherTeacherRosterOnly": true,
+      "automaticTodayWithoutPicker": true,
+      "noFutureFallback": true,
+      "readOnlyHistoricalInspection": true,
+      "explicitOverdueResume": true,
+      "archiveSelectionRetained": true
+    },
+    {
+      "role": "Instructor",
+      "width": 768,
+      "tenDayCards": true,
+      "pagination": true,
+      "schoolTodayAlert": true,
+      "nearestOwnDate": true,
+      "ownAllAndTeacherFilters": true,
+      "otherTeacherRosterOnly": true,
+      "automaticTodayWithoutPicker": true,
+      "noFutureFallback": true,
+      "readOnlyHistoricalInspection": true,
+      "explicitOverdueResume": true,
+      "archiveSelectionRetained": true
+    },
+    {
+      "role": "Instructor",
+      "width": 1440,
+      "tenDayCards": true,
+      "pagination": true,
+      "schoolTodayAlert": true,
+      "nearestOwnDate": true,
+      "ownAllAndTeacherFilters": true,
+      "otherTeacherRosterOnly": true,
+      "automaticTodayWithoutPicker": true,
+      "noFutureFallback": true,
+      "readOnlyHistoricalInspection": true,
+      "explicitOverdueResume": true,
+      "archiveSelectionRetained": true
+    },
+    {
+      "role": "SchoolManager",
+      "width": 390,
+      "archiveReadiness": true,
+      "disconnectedActivationDenied": true,
+      "explicitEnableAndPause": true,
+      "syntheticApiOnly": true
+    },
+    {
+      "role": "SchoolManager",
+      "width": 768,
+      "archiveReadiness": true,
+      "disconnectedActivationDenied": true,
+      "explicitEnableAndPause": true,
+      "syntheticApiOnly": true
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1440,
+      "archiveReadiness": true,
+      "disconnectedActivationDenied": true,
+      "explicitEnableAndPause": true,
+      "syntheticApiOnly": true
+    }
+  ],
+  "ownerVisualReview": "Pending",
+  "physicalDevice": "Pending",
+  "externalProvider": "Not used"
+}

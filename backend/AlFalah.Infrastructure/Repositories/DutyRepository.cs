@@ -29,12 +29,23 @@ public sealed class DutyRepository(AlFalahDbContext db) : IDutyRepository
     {
         var timing = await db.SchoolTimetables.AsNoTracking().Where(x => x.SchoolId == schoolId && x.AcademicYearId == term.YearId
             && (int)x.Semester == term.Semester && x.IsPublished && !x.IsClone && !x.TimingsRequireRevalidation)
+            .OrderByDescending(x => x.PublishedAt).ThenByDescending(x => x.Id)
             .Select(x => x.BellScheduleRevisionId).FirstOrDefaultAsync(ct);
-        if (timing is null) return new(null, "Africa/Cairo", [0, 1, 2, 3, 4]);
+        // A configured timetable calendar is usable before lesson publication.
+        // Only the template attached to this school's year/term setup is trusted.
+        timing ??= await (from setup in db.TimetableSetupProfiles.AsNoTracking()
+            join revision in db.Set<BellScheduleRevision>().AsNoTracking() on setup.BellScheduleTemplateId equals revision.BellScheduleTemplateId
+            where setup.SchoolId == schoolId && setup.AcademicYearId == term.YearId && (int)setup.Semester == term.Semester
+                && !setup.IsDeleted && revision.SchoolId == schoolId && revision.Template.IsActive && !revision.Template.IsDeleted
+                && revision.Template.AcademicYearId == term.YearId && (int)revision.Template.Semester == term.Semester
+                && revision.Revision == revision.Template.Revision
+            orderby setup.UpdatedAt descending, setup.Id descending
+            select (int?)revision.Id).FirstOrDefaultAsync(ct);
+        if (timing is null) return new(null, "Africa/Cairo", []);
         var zone = await db.Set<BellScheduleRevision>().Where(x => x.Id == timing).Select(x => x.SchoolTimeZoneId).SingleAsync(ct);
         var days = await db.Set<BellScheduleDay>().Where(x => x.BellScheduleRevisionId == timing && x.Day != 0 && x.IsStudyDay).Select(x => x.Day).ToListAsync(ct);
         // TimetableDay: Saturday=1, Sunday=2 ... Friday=7. DateOnly uses Sunday=0.
-        return new(timing, zone, days.Select(x => (x + 5) % 7).ToArray());
+        return new(timing, zone, days.Select(x => (x + 5) % 7).Order().ToArray());
     }
     public async Task<DutyState> LoadAsync(int schoolId, CancellationToken ct) => new()
     {

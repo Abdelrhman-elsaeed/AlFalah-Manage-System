@@ -20,7 +20,8 @@ public sealed record DutyExclusion(string UserId, DateOnly From, DateOnly To, st
 public sealed record DutyClosure(DateOnly From, DateOnly To, string Reason);
 public sealed record DutySettings(int TermId, DateOnly From, DateOnly To, IReadOnlyList<int> Weekdays,
     IReadOnlyList<string> TeacherIds, IReadOnlyList<DutyExclusion> Exclusions, IReadOnlyList<DutyClosure> Closures,
-    DateOnly RegenerateFrom, DateOnly RegenerateTo, bool AcceptAttendanceCalendarMismatch = false);
+    DateOnly RegenerateFrom, DateOnly RegenerateTo, bool AcceptAttendanceCalendarMismatch = false,
+    IReadOnlyList<string>? PermanentlyExcludedTeacherIds = null);
 public sealed record DutyPreviewRequest(DutySettings Settings, int ExpectedRevision);
 public sealed record DutyPublishRequest(DutySettings Settings, int ExpectedRevision, string PreviewDigest, Guid RequestId);
 public sealed record DutyChangeRequest(int AssignmentId, int ExpectedRevision, string TeacherId, int? OtherAssignmentId,

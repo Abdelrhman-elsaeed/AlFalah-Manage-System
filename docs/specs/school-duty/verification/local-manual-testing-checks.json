@@ -1,0 +1,67 @@
+{
+  "authorization": "Owner request 2026-10-14: apply necessary local migrations and run for manual testing",
+  "localDevelopmentOnly": true,
+  "productionDeployment": false,
+  "backup": {
+    "copyOnly": true,
+    "checksumVerifyPassed": true,
+    "rawBackupRetainedInIgnoredAuditDirectory": true
+  },
+  "migration": {
+    "beforeCount": 59,
+    "applied": [
+      "20261012144441_AddTimetableCheckpointsAndClones",
+      "20261012181800_AddTimetableCloneIdentity",
+      "20261013071807_AddTimetableChangeAuditDetails",
+      "20261013102255_AddSchoolDutyD1",
+      "20261013102540_AddDutySettingsHistory",
+      "20261013104512_AddDutyTeacherSchoolIntegrity",
+      "20261013113721_PreserveDutyHistoryAcrossTeacherTransfers",
+      "20261013135411_AddSchoolDutyD2",
+      "20261013165202_AddSchoolDutyD3"
+    ],
+    "afterCount": 68,
+    "target": "20261013165202_AddSchoolDutyD3",
+    "generalSeeding": false,
+    "downExecuted": false
+  },
+  "postflight": {
+    "verifiedAtUtc": "2026-10-14T04:31:24.9345771+00:00",
+    "migrations": 68,
+    "target": "20261013165202_AddSchoolDutyD3",
+    "originalRowCountsUnchanged": true,
+    "driveCredentialsRootsEnablementUnchanged": true,
+    "teacherGrantsUnchanged": true,
+    "originalConfigurationAndKeysUnchanged": true,
+    "dutyExternalEnablementOff": true,
+    "requiredDutyTablesPresent": true,
+    "checkDbPassed": true
+  },
+  "readiness": {
+    "checkedAtUtc": "2026-10-14T04:26:20.6345594+00:00",
+    "frontendStatus": 200,
+    "apiSwaggerReady": true,
+    "documentRoutesPresent": true,
+    "anonymousPdfStatus": 401,
+    "frontendCorsReady": true,
+    "databaseTarget": "20261013165202_AddSchoolDutyD3",
+    "externalDutyProcessingEnabled": false
+  },
+  "browser": {
+    "checkedAtUtc": "2026-10-14T04:27:24.296Z",
+    "actualLocalAngularServer": true,
+    "protectedDutyRouteRedirectsToLogin": true,
+    "passwordFieldVisible": true,
+    "pageErrors": [],
+    "authenticatedOperationalActionsPerformed": false,
+    "finalPath": "/auth/school-login"
+  },
+  "externalDutyProcessing": false,
+  "schoolDutyArchiveEnablement": false,
+  "ownerVisualAcceptance": "Pending",
+  "physicalDeviceAcceptance": "Pending",
+  "externalProviderGate": "Pending designated isolated synthetic D3 destination",
+  "originalKeyFileSetUnchanged": true,
+  "pendingModelChanges": false,
+  "subsequentVisitStopCorrection": "Legacy visit archive flags did not enforce processor/worker stop. Current C19 startup uses SchoolFileStorage:ArchiveProcessingEnabled=false; see settings-amendment.md and settings-tests/readiness.json. Earlier disablement fields record requested startup flags."
+}

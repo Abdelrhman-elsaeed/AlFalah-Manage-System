@@ -6,12 +6,28 @@ using AlFalah.Domain.Enums;
 using AlFalah.Tests.TestDoubles;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace AlFalah.Tests.Storage;
 
 public sealed class VisitArchiveOperationsTests
 {
+    [Fact]
+    public async Task Process_stop_preserves_library_and_school_status_and_prevents_repository_and_provider_work()
+    {
+        var flags=new StorageOptions{AdministrationEnabled=true,ReadModelEnabled=true,ArchiveProcessingEnabled=false};
+        var archive=DispatchProxy.Create<IVisitArchiveRepository,ArchiveSettingsRepository>();
+        ((ArchiveSettingsRepository)archive).SchoolEnabled=true;
+        var storage=DispatchProxy.Create<IStorageRepository,PermissionRepository>();
+        var service=Service(archive,storage,new ArchiveAuthorization(),flags);
+        (await service.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(true,false,false,true));
+        // All processor repository methods throw in this proxy; null providers must never be reached.
+        var processor=new VisitArchiveProcessor(archive,null!,null!,null!,Options.Create(flags),TimeProvider.System,NullLogger<VisitArchiveProcessor>.Instance);
+        (await processor.ProcessBatchAsync()).Should().Be(0);(await processor.ReconcileAsync()).Should().Be(0);
+        flags.AdministrationEnabled.Should().BeTrue();flags.ReadModelEnabled.Should().BeTrue();
+        ((ArchiveSettingsRepository)archive).SchoolEnabled.Should().BeTrue();
+    }
     [Fact]
     public async Task Status_reports_configuration_only_to_authorized_visit_reader()
     {

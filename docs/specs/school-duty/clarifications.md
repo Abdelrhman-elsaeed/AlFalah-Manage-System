@@ -23,6 +23,7 @@
 | C15 | Dismissal lateness is recorded in the student's history | Owner amendment on 2026-10-13 |
 | C16 | Official report divisions match the supplied images exactly; retain their directory as a mandatory reference and review during D3 | Owner amendment on 2026-10-13 |
 | C17 | Dismissal-lateness notice appears in the guardian dashboard **and** as a message in the existing internal Messages tab, authored by the system rather than a person | Owner clarification on 2026-10-13 |
+| C18 | School Duty has its own top-level sidebar entry and independent page, not an internal lesson-timetable tab. Preserve old duty links and existing school/author/manager scope | Owner navigation correction and screenshot on 2026-10-14 |
 
 All five submitted clarification questions are answered. The former fairness and archive-path proposals are confirmed as C10 and C11; no answer to those questions remains outstanding.
 
@@ -82,3 +83,29 @@ The submitted D3 implementation request explicitly authorizes recorded C1-C17, t
 Implemented defaults keep global duty external processing and every school's duty enablement false until safe activation; local PDF preparation/access remains independent. Signed historical branding state and school-local timing are retained. Corrections require D2 manager reason plus actual teacher re-signature and retain prior bytes. Only letter/report have archive obligations; roster export binds a plan revision. Fake-provider verification is labelled TestVerified and cannot satisfy actual archive acceptance.
 
 [D3 verification](verification/d3.md) records delivered independent checks, safe enablement/rollback and unresolved boundaries: an explicitly designated synthetic external destination/connection, owner visual review and physical-device keyboard review. General provider access alone does not designate a school archive destination. No operational migration/deployment, root/grant/credential change or later feature occurred.
+
+## Subsequent local operational authorization - 2026-10-14
+
+The owner explicitly authorized applying necessary migrations and running the project for manual testing. The configured local Development database migration/startup is completed and verified; this supersedes the earlier original-database restriction for that local scope. It does not designate an external test destination or authorize production/external archive activation. Recorded C1-C17 remain unchanged. See [local operation](verification/local-manual-testing.md), D-111; owner visual/physical acceptance remains pending.
+
+## C18 navigation correction - 2026-10-14
+
+The owner explicitly requested an independent sidebar entry/page after seeing duty inside the timetable. Canonical entry is `/school-duty`; lesson timetable stays `/timetable`, while retained `?tab=duty` links redirect with date/execution/fragment context. This supersedes earlier UI placement, not C1-C17 business rules or backend scope. Existing duty capabilities are reused; no general delegation, migration or external archive activation is added. [Evidence](verification/navigation.md), D-112.
+## C19 settings amendment — 2026-10-14
+
+The owner requests all active school teachers included by default, explicit permanent or dated exclusions with quick actions, timetable-derived study weekdays without manual duty weekday selection, and equal-height calendar inputs/buttons. This supersedes C10's opt-in pool UX and the editable fallback weekday default. Permanent means the current duty plan until restored; it does not alter attendance, lessons, historical assignments or other terms. Existing selected pools remain exclusions when reviewed, not silently republished. New teachers join the next reviewed configuration. Dates, regeneration bounds, closures, rotation order, preview/publication and execution protections remain. Study days use the current valid published timetable revision, otherwise the latest configured year/semester setup's active attached timing revision; without either, setup explains the required timetable calendar. A timing change invalidates an earlier preview. See D-113 and [verification](verification/settings-amendment.md).
+## C20/C21 workflow organization and error feedback — 2026-10-14
+
+The owner requests a main School Duty sidebar category with ordered separate child pages, replacing the crowded combined workspace. Managers get setup, schedule, execution, documents/archive, fairness/compensation and change history; teachers get schedule, own execution and documents. Setup separates teachers/exclusions, timetable calendar and publication preview. Execution separates letter, daily report and concise final review; signed PDF cards/history move to documents. Existing actual-author/school/manager checks and immutable contracts remain. One retained parent context preserves in-feature settings/picker/draft context and old links retain date/execution identity.
+
+Errors in the duty workflow must appear in a centered modal requiring an explicit OK acknowledgement, with readable localized text, keyboard focus and retained input. Persistent informational archive states remain status cards rather than errors. This supersedes earlier primary inline/toast error presentation for duty; unrelated product feedback is unchanged. No backend/schema/provider activation or later feature is authorized by this UI amendment. D-114; implemented and verified in [workspace amendment](verification/workspace-amendment.md).
+
+## C22 schedule, ownership and archive activation — 2026-10-14
+
+Owner requests a full-width nearest-own-duty hero with actual date and prominent school-today duty/no-duty alert; academic-term naming; teacher/date cards ten days per page; own/all/specific-teacher filters; `تحرير المناوبة` naming; equal desktop late/violation columns; functional letter preview/download; duty-specific manager storage enable/pause and real Drive verification. Application still requires actual teacher ownership. Future execution is rejected using frozen school-local timing, while past overdue submission and earlier signed PDFs are retained. Receipt replay returns live permissions after emergency replacement. See D-115 and [evidence](verification/workspace-amendment.md).
+
+## C23 current-day editing, archive separation and designated provider test — 2026-10-14
+
+Owner explicitly removes the execution date picker: edit automatically uses the current school day/current term; date/term browsing is reserved for archive. Execution/review fills the schedule width and has no bottom documents section. `مستنداتي` becomes `أرشيف المناوبات`. Historical details default read-only; explicit current-owner overdue completion and approved correction preserve prior behavior without changing the main today entry.
+
+Owner requested the local Google redirect mismatch fix, completed OAuth consent manually, and explicitly designated a **new D3_Test folder inside the current Al-Falah E2E Test School root**, with isolated test SQL. This authorizes bounded synthetic external write/read/recovery there, not original school activation or arbitrary real-school destinations. Only local public OAuth callbacks changed; existing credentials were renewed by the owner's Google consent. Real verification passed with two PDFs, one reserved hierarchy and no existing data deletion. Original per-school duty flags remain off; owner/physical appearance acceptance remains pending. D-115, [evidence](verification/workspace-amendment.md).

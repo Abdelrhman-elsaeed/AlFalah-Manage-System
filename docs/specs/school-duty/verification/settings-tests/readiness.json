@@ -1,0 +1,26 @@
+{
+    "verifiedAtUtc":  "2026-10-14T06:35:30.7621111+00:00",
+    "originalMigrations":  68,
+    "target":  "20261013165202_AddSchoolDutyD3",
+    "noNewMigration":  true,
+    "driveCredentialsRootsEnablementPreserved":  true,
+    "teacherGrantsPreserved":  true,
+    "originalConfigurationKeysPreserved":  true,
+    "libraryAdministrationPreserved":  true,
+    "libraryReadModelPreserved":  true,
+    "startupInitializationDisabled":  true,
+    "dutyProcessingDisabled":  true,
+    "visitProcessingDisabled":  true,
+    "currentProcessObservedSeconds":  691,
+    "permanentExclusionApiContract":  true,
+    "anonymousDenials":  {
+                             "/api/v1/school-duty/context":  401,
+                             "/api/v1/school-duty/documents/1/pdf":  401
+                         },
+    "frontendStatus":  200,
+    "externalProviderGate":  "Pending designated synthetic destination",
+    "ownerVisualReview":  "Pending",
+    "physicalDevice":  "Pending",
+    "noVisitWorkerProcessingInCurrentLog":  true,
+    "laterAuthenticatedLibraryReadsAttemptedExpiredOAuth":  true
+}

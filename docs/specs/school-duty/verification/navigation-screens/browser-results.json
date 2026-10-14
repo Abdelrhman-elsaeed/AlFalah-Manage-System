@@ -1,0 +1,71 @@
+{
+  "verification": "Actual current localhost Angular server; synthetic API fixtures only; no operational writes",
+  "checks": [
+    {
+      "role": "SchoolManager",
+      "width": 390,
+      "independentSidebar": true,
+      "legacyRedirect": true,
+      "keyboardEntry": true,
+      "signatureSetupPreserved": false,
+      "pageErrors": []
+    },
+    {
+      "role": "SchoolManager",
+      "width": 768,
+      "independentSidebar": true,
+      "legacyRedirect": true,
+      "keyboardEntry": true,
+      "signatureSetupPreserved": false,
+      "pageErrors": []
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1440,
+      "independentSidebar": true,
+      "legacyRedirect": true,
+      "keyboardEntry": true,
+      "signatureSetupPreserved": false,
+      "pageErrors": []
+    },
+    {
+      "role": "Instructor",
+      "width": 390,
+      "independentSidebar": true,
+      "legacyRedirect": true,
+      "keyboardEntry": true,
+      "signatureSetupPreserved": true,
+      "pageErrors": []
+    },
+    {
+      "role": "Instructor",
+      "width": 768,
+      "independentSidebar": true,
+      "legacyRedirect": true,
+      "keyboardEntry": true,
+      "signatureSetupPreserved": true,
+      "pageErrors": []
+    },
+    {
+      "role": "Instructor",
+      "width": 1440,
+      "independentSidebar": true,
+      "legacyRedirect": true,
+      "keyboardEntry": true,
+      "signatureSetupPreserved": true,
+      "pageErrors": []
+    },
+    {
+      "separateLessonPage": true,
+      "independentSidebarClick": true
+    },
+    {
+      "role": "Secretary",
+      "deniedWithoutDutyAccess": true
+    },
+    {
+      "role": "SchoolManager",
+      "deniedWithoutDutyAccess": true
+    }
+  ]
+}

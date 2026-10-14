@@ -71,6 +71,10 @@ public sealed class DutySqlFixture : IAsyncLifetime
         var term=new AcademicTerm{SchoolId=school.Id,AcademicYearId=year.Id,Semester=TimetableSemester.First,StartsOn=new(2030,1,6),EndsOn=new(2030,2,6),IsActive=true,CreatedByUserId=manager,UpdatedByUserId=manager};db.Add(term);
         foreach(var id in ids){db.InstructorProfiles.Add(new InstructorProfile{SchoolId=school.Id,UserId=id});db.UserSchoolRoles.Add(new UserSchoolRole{SchoolId=school.Id,UserId=id,RoleId=RoleNames.Instructor});}
         db.UserSchoolRoles.AddRange(new UserSchoolRole{SchoolId=school.Id,UserId=manager,RoleId=RoleNames.SchoolManager},new UserSchoolRole{SchoolId=school.Id,UserId=secretary,RoleId=RoleNames.Secretary});await db.SaveChangesAsync();
+        var template=new BellScheduleTemplate{SchoolId=school.Id,AcademicYearId=year.Id,Semester=TimetableSemester.First,Name="Synthetic duty calendar",CreatedByUserId=manager,UpdatedByUserId=manager};db.Add(template);await db.SaveChangesAsync();
+        db.Add(new BellScheduleRevision{SchoolId=school.Id,BellScheduleTemplateId=template.Id,Revision=1,Name="Synthetic calendar",SchoolTimeZoneId="Africa/Cairo",CreatedByUserId=manager,
+            Days=Enumerable.Range(1,7).Select(day=>new BellScheduleDay{Day=day,IsStudyDay=true}).ToList()});
+        db.Add(new TimetableSetupProfile{SchoolId=school.Id,AcademicYearId=year.Id,Semester=TimetableSemester.First,Name="Synthetic duty setup",BellScheduleTemplateId=template.Id,CreatedByUserId=manager,UpdatedByUserId=manager});await db.SaveChangesAsync();
         var scenario=new DutyScenario(this,school.Id,term.Id,manager,secretary,ids,DutyTests.Settings(term.Id,ids,days));
         await using var publishDb=Db();var service=scenario.Service(publishDb);var preview=await service.PreviewAsync(new(scenario.Settings,0),default);
         await service.PublishAsync(new(scenario.Settings,0,preview.Digest,Guid.NewGuid()),default);return scenario;
@@ -95,6 +99,74 @@ public sealed record DutyScenario(DutySqlFixture Fixture,int School,int Term,str
 [Collection("Duty SQL")]
 public sealed class DutySqlTests(DutySqlFixture fixture)
 {
+    private static async Task<int> Calendar(AlFalahDbContext db, DutyScenario s, params int[] days)
+    {
+        var setup=await db.TimetableSetupProfiles.SingleAsync(x=>x.SchoolId==s.School);
+        var template=await db.Set<BellScheduleTemplate>().SingleAsync(x=>x.Id==setup.BellScheduleTemplateId);
+        template.Revision++;
+        var revision=new BellScheduleRevision{SchoolId=s.School,BellScheduleTemplateId=template.Id,Revision=template.Revision,Name="Revised synthetic calendar",SchoolTimeZoneId="Africa/Cairo",CreatedByUserId=s.Manager,
+            Days=Enumerable.Range(1,7).Select(day=>new BellScheduleDay{Day=day,IsStudyDay=days.Contains((day+5)%7)}).ToList()};
+        db.Add(revision);await db.SaveChangesAsync();return revision.Id;
+    }
+    [DutySqlFact] public async Task All_teachers_are_default_and_server_uses_study_days_instead_of_request_weekdays()
+    {
+        var s=await fixture.Scenario(20);await using var db=fixture.Db();var revision=await Calendar(db,s,0,1,2,3,4);
+        var service=s.Service(db);var w=await service.WorkspaceAsync(s.Term,default);w.SuggestedWeekdays.Should().Equal(0,1,2,3,4);
+        var settings=s.Settings with{TeacherIds=[],PermanentlyExcludedTeacherIds=[],Weekdays=[5,6],AcceptAttendanceCalendarMismatch=false};
+        var p=await service.PreviewAsync(new(settings,w.PlanRevision),default);
+        p.Days.Where(x=>x.TeacherId.Length>0).Should().OnlyContain(x=>(int)x.Date.DayOfWeek<=4);
+        p.Fairness.Select(x=>x.UserId).Should().BeEquivalentTo(s.Teachers);
+        await service.PublishAsync(new(settings,w.PlanRevision,p.Digest,Guid.NewGuid()),default);
+        var current=await service.WorkspaceAsync(s.Term,default);current.Settings!.TeacherIds.Should().BeEquivalentTo(s.Teachers);
+        current.Settings.Weekdays.Should().Equal(0,1,2,3,4);current.Settings.PermanentlyExcludedTeacherIds.Should().BeEmpty();
+        (await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==s.School)).BellScheduleRevisionId.Should().Be(revision);
+    }
+    [DutySqlFact] public async Task Explicit_exclusions_include_unmentioned_active_teachers_and_restore_without_losing_dated_exclusion()
+    {
+        var s=await fixture.Scenario(10);await using var db=fixture.Db();var service=s.Service(db);var w=await service.WorkspaceAsync(s.Term,default);
+        var settings=s.Settings with{TeacherIds=[s.Teachers[0]],PermanentlyExcludedTeacherIds=[s.Teachers[1]],Exclusions=[new(s.Teachers[1],s.Settings.From,s.Settings.From,"Temporary retained reason")]};
+        var p=await service.PreviewAsync(new(settings,w.PlanRevision),default);p.Fairness.Select(x=>x.UserId).Should().BeEquivalentTo(s.Teachers[0],s.Teachers[2]);
+        await service.PublishAsync(new(settings,w.PlanRevision,p.Digest,Guid.NewGuid()),default);
+        w=await service.WorkspaceAsync(s.Term,default);w.Settings!.PermanentlyExcludedTeacherIds.Should().Equal(s.Teachers[1]);
+        var restored=w.Settings with{PermanentlyExcludedTeacherIds=[]};p=await service.PreviewAsync(new(restored,w.PlanRevision),default);
+        p.Fairness.Select(x=>x.UserId).Should().BeEquivalentTo(s.Teachers);p.Days.First().TeacherId.Should().NotBe(s.Teachers[1]);
+        await service.PublishAsync(new(restored,w.PlanRevision,p.Digest,Guid.NewGuid()),default);
+        (await service.WorkspaceAsync(s.Term,default)).Settings!.Exclusions.Should().ContainSingle();
+        (await db.Set<DutyAssignmentChange>().CountAsync(x=>x.SchoolId==s.School&&x.Kind=="Publish")).Should().Be(3);
+    }
+    [DutySqlFact] public async Task Changing_timing_revision_after_preview_is_conflict_even_with_identical_days()
+    {
+        var s=await fixture.Scenario();await using var db=fixture.Db();var service=s.Service(db);var w=await service.WorkspaceAsync(s.Term,default);
+        var p=await service.PreviewAsync(new(s.Settings,w.PlanRevision),default);await Calendar(db,s,0,1,2,3,4,5,6);
+        await FluentActions.Awaiting(()=>service.PublishAsync(new(s.Settings,w.PlanRevision,p.Digest,Guid.NewGuid()),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Status==409);
+        (await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==s.School)).Revision.Should().Be(w.PlanRevision);
+    }
+    [DutySqlFact] public async Task Missing_timetable_calendar_requires_setup_and_cannot_mutate_existing_plan()
+    {
+        var s=await fixture.Scenario();await using var db=fixture.Db();var setup=await db.TimetableSetupProfiles.SingleAsync(x=>x.SchoolId==s.School);setup.BellScheduleTemplateId=null;await db.SaveChangesAsync();
+        var service=s.Service(db);var w=await service.WorkspaceAsync(s.Term,default);w.SuggestedWeekdays.Should().BeEmpty();
+        await FluentActions.Awaiting(()=>service.PreviewAsync(new(s.Settings,w.PlanRevision),default)).Should().ThrowAsync<DutyException>().Where(x=>x.Code=="DutyStudyCalendarRequired");
+        (await db.Set<DutyAssignment>().CountAsync(x=>x.SchoolId==s.School)).Should().Be(5);
+    }
+    [DutySqlFact] public async Task Foreign_duplicate_and_all_teacher_permanent_exclusions_are_denied()
+    {
+        var s=await fixture.Scenario();var other=await fixture.Scenario();await using var db=fixture.Db();var service=s.Service(db);var w=await service.WorkspaceAsync(s.Term,default);
+        foreach(var excluded in new[]{new[]{other.Teachers[0]},new[]{s.Manager},new[]{s.Teachers[0],s.Teachers[0]},s.Teachers})
+            await FluentActions.Awaiting(()=>service.PreviewAsync(new(s.Settings with{PermanentlyExcludedTeacherIds=excluded},w.PlanRevision),default)).Should().ThrowAsync<DutyException>();
+        (await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==s.School)).Revision.Should().Be(w.PlanRevision);
+    }
+    [DutySqlFact] public async Task Published_timetable_calendar_precedes_setup_and_ignores_clones_and_invalid_timing()
+    {
+        var s=await fixture.Scenario();await using var db=fixture.Db();var term=await db.AcademicTerms.SingleAsync(x=>x.Id==s.Term);
+        var original=(await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==s.School)).BellScheduleRevisionId;
+        var revised=await Calendar(db,s,0,2,4);
+        SchoolTimetable Timetable(int revision,bool clone=false,bool invalid=false)=>new(){SchoolId=s.School,AcademicYearId=term.AcademicYearId,Semester=term.Semester,Title="Synthetic timetable",BellScheduleRevisionId=revision,IsPublished=true,PublishedAt=DateTimeOffset.UtcNow,CreatedByUserId=s.Manager,UpdatedByUserId=s.Manager,PublishedByUserId=s.Manager,IsClone=clone,TimingsRequireRevalidation=invalid};
+        db.Add(Timetable(original!.Value));await db.SaveChangesAsync();
+        var invalid=Timetable(revised,invalid:true);invalid.TimetableSetupProfileId=(await db.TimetableSetupProfiles.SingleAsync(x=>x.SchoolId==s.School)).Id;
+        db.Add(Timetable(revised,clone:true));db.Add(invalid);await db.SaveChangesAsync();
+        var timing=await new DutyRepository(db).TimingAsync(s.School,new(s.Term,term.AcademicYearId,"2030",(int)term.Semester,term.StartsOn,term.EndsOn),default);
+        timing.RevisionId.Should().Be(original);timing.Weekdays.Should().Equal(0,1,2,3,4,5,6);
+    }
     [DutySqlFact] public async Task Existing_database_is_rejected_before_any_migration_or_data_change()
     {
         var scenario=await fixture.Scenario();
@@ -204,6 +276,9 @@ public sealed class DutySqlTests(DutySqlFixture fixture)
         var updated=s.Settings with{TeacherIds=s.Teachers.Reverse().ToArray()};var p=await service.PreviewAsync(new(updated,w.PlanRevision),default);p.Days.Single().Preserved.Should().BeTrue();
         await service.PublishAsync(new(updated,w.PlanRevision,p.Digest,Guid.NewGuid()),default);
         var year=await db.AcademicTerms.Where(x=>x.Id==s.Term).Select(x=>x.AcademicYearId).SingleAsync();var term=new AcademicTerm{SchoolId=s.School,AcademicYearId=year,Semester=TimetableSemester.Second,StartsOn=new(2030,3,1),EndsOn=new(2030,3,5),CreatedByUserId=s.Manager,UpdatedByUserId=s.Manager};db.Add(term);await db.SaveChangesAsync();
+        var calendar=new BellScheduleTemplate{SchoolId=s.School,AcademicYearId=year,Semester=term.Semester,Name="Synthetic renewal calendar",CreatedByUserId=s.Manager,UpdatedByUserId=s.Manager};db.Add(calendar);await db.SaveChangesAsync();
+        db.Add(new BellScheduleRevision{SchoolId=s.School,BellScheduleTemplateId=calendar.Id,Revision=1,Name="Renewal calendar",SchoolTimeZoneId="Africa/Cairo",CreatedByUserId=s.Manager,Days=Enumerable.Range(1,7).Select(day=>new BellScheduleDay{Day=day,IsStudyDay=true}).ToList()});
+        db.Add(new TimetableSetupProfile{SchoolId=s.School,AcademicYearId=year,Semester=term.Semester,Name="Renewal setup",BellScheduleTemplateId=calendar.Id,CreatedByUserId=s.Manager,UpdatedByUserId=s.Manager});await db.SaveChangesAsync();
         var renewal=updated with{TermId=term.Id,From=term.StartsOn,To=term.EndsOn,RegenerateFrom=term.StartsOn,RegenerateTo=term.EndsOn};var preview=await service.PreviewAsync(new(renewal,0),default);await service.PublishAsync(new(renewal,0,preview.Digest,Guid.NewGuid()),default);
         var renewed=await service.WorkspaceAsync(term.Id,default);var debt=renewed.History.Single(x=>x.Unresolved);debt.BeforeTeacherId.Should().Be(s.Teachers[0]);
         var change=new DutyChangeRequest(renewed.Days[0].Id,renewed.PlanRevision,s.Teachers[0],null,"Carry compensation forward","ResolveCompensation",false,debt.Id,Guid.NewGuid());await service.ChangeAsync(change,default);

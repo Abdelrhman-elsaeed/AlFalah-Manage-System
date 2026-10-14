@@ -11,6 +11,7 @@
       <article class="status-card"><span class="card-icon"><i class="pi pi-cog" aria-hidden="true"></i></span><div><span class="overline">تقارير الزيارات</span><h3>{{ operations?.ready ? 'الأرشفة جاهزة' : 'الأرشفة تحتاج متابعة' }}</h3><p>تبدأ الأرشفة بعد اعتماد الزيارة وتشغيل المعالج والكتابة الخارجية.</p><div class="card-meta"><span>المعالج</span><strong>{{ operations?.workerEnabled ? 'يعمل' : 'متوقف' }}</strong></div><div class="card-meta"><span>الكتابة إلى Drive</span><strong>{{ operations?.externalWritesEnabled ? 'مفعلة' : 'متوقفة' }}</strong></div><a routerLink="/school-manager/storage/visits">عرض تقارير الزيارات <i class="pi pi-arrow-left" aria-hidden="true"></i></a></div></article>
     </div>
     <p *ngIf="operationsError" class="alert" role="alert">{{ operationsError }} <button type="button" (click)="loadOperations()">إعادة المحاولة</button></p>
+    <app-duty-archive-settings *ngIf="canManageDuty" />
   </section>
 
   <section *ngIf="context" [hidden]="tab!=='setup'" class="tab-content">

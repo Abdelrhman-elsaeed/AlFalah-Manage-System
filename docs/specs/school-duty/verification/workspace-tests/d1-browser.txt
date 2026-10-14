@@ -1,0 +1,4 @@
+Rendered and exercised 390px
+Rendered and exercised 768px
+Rendered and exercised 1440px
+Duty rendered checks passed. Evidence: D:\AlFalah-Manage-System\docs\specs\school-duty\verification\organized-regression-d1

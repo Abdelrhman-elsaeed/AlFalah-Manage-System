@@ -18,6 +18,8 @@ public sealed class DutyDocumentController(IDutyDocumentService service) : Contr
     public async Task<IActionResult> Retry(int id,CancellationToken ct){await service.RetryAsync(id,ct);return Accepted(ApiResponse<bool>.Success(true));}
     [HttpPut("archive/enablement")]
     public async Task<IActionResult> Enable([FromBody]DutyArchiveEnablement request,CancellationToken ct)=>Ok(ApiResponse<DutyArchiveReadiness>.Success(await service.EnableAsync(request.Enabled,ct)));
+    [HttpGet("archive/enablement")]
+    public async Task<IActionResult> Readiness(CancellationToken ct)=>Ok(ApiResponse<DutyArchiveReadiness>.Success(await service.ReadinessAsync(ct)));
     private IActionResult Content(DutyPdf pdf)
     {
         Response.Headers.CacheControl="private, no-store";Response.Headers["X-Content-Type-Options"]="nosniff";

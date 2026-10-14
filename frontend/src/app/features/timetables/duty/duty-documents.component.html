@@ -1,6 +1,7 @@
 <section class="documents" [dir]="dir" [attr.aria-busy]="busy() || loading()">
   <header class="documents-heading"><div><span class="eyebrow">{{ t('EYEBROW') }}</span><h2>{{ t('TITLE') }}</h2><p>{{ t('INTRO') }}</p></div><button class="history-action" (click)="openHistory()" [disabled]="!data()?.documents?.length"><i class="pi pi-history" aria-hidden="true"></i>{{ t('HISTORY') }}<span>{{ data()?.documents?.length || 0 }}</span></button></header>
-  <p class="feedback error" *ngIf="error()" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><span>{{ error() }}</span><button *ngIf="!data()" (click)="load()">{{ t('REFRESH') }}</button></p>
+  <span hidden [dutyError]="error()" (dutyErrorDismissed)="error.set('')"></span>
+  <div *ngIf="!loading() && !data()" class="document-unavailable"><p>{{ t('UNAVAILABLE') }}</p><button class="history-action" (click)="load()">{{ t('REFRESH') }}</button></div>
   <p class="feedback success" *ngIf="message()" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message() }}</p>
   <div class="document-grid" *ngIf="loading() && !data()" role="status"><div class="skeleton"></div><div class="skeleton"></div><span class="sr-only">{{ t('LOADING') }}</span></div>
   <div class="document-grid" *ngIf="data()">

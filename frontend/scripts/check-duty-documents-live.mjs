@@ -5,7 +5,7 @@ import {resolve,extname,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {chromium} from '@playwright/test';
-const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),dist=resolve(root,'dist/al-falah-app/browser'),evidence=resolve(root,'../docs/specs/school-duty/verification/d3-live-screens');
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),dist=resolve(root,'dist/al-falah-app/browser'),evidence=resolve(root,process.env.ALFALAH_DUTY_LIVE_EVIDENCE||'../docs/specs/school-duty/verification/d3-live-screens');
 mkdirSync(evidence,{recursive:true});
 const mime={'.html':'text/html','.js':'application/javascript','.mjs':'application/javascript','.css':'text/css','.json':'application/json','.woff2':'font/woff2','.png':'image/png','.svg':'image/svg+xml'};
 const server=createServer((req,res)=>{let p=resolve(dist,decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/,'')||'index.html');if(!p.startsWith(dist)){res.writeHead(403);return res.end();}if(!existsSync(p))p=resolve(dist,'index.html');res.writeHead(200,{'Content-Type':mime[extname(p)]||'application/octet-stream'});res.end(readFileSync(p));});
@@ -89,7 +89,7 @@ try {
    const response=await route.fetch({url:config.origin+url.pathname+url.search,headers:{...req.headers(),authorization:'Bearer '+active.token}});
    await route.fulfill({response});
   });
-  await page.goto(origin+`/timetable?tab=duty&date=${config.date}&execution=${config.assignment}`);await page.locator('.document-card.available').first().waitFor();
+  await page.goto(origin+`/school-duty/documents?date=${config.date}&execution=${config.assignment}`);await page.locator('.document-card.available').first().waitFor();
   await page.locator('.documents').scrollIntoViewIfNeeded();await capture(page,`live-${suffix}documents-${width}`);await page.locator('.documents').screenshot({path:resolve(evidence,`live-${suffix}document-cards-${width}.png`)});
   await page.locator('.document-card').last().locator('.primary-action').click();await page.locator('.pdf-pages canvas').first().waitFor();await page.locator('.preview-message[role=status]').waitFor({state:'hidden'});
   await page.locator('.duty-pdf-dialog').screenshot({path:resolve(evidence,`live-${suffix}report-preview-${width}.png`)});
@@ -103,7 +103,7 @@ try {
   await page.goto(origin+'/timetable?tab=duty');await page.locator('app-duty-roster-export button').waitFor();
   const [rosterDownload]=await Promise.all([page.waitForEvent('download'),page.locator('app-duty-roster-export button').click()]);const rosterPath=resolve(evidence,`live-${suffix}authenticated-roster-${width}.pdf`);await rosterDownload.saveAs(rosterPath);
   const rosterHash=createHash('sha256').update(readFileSync(rosterPath)).digest('hex').toUpperCase();assert.equal(rosterHash,config.expectedRosterHash);
-  checks.push({role:user.role,width,authenticatedRequests:authenticated,hash,expected:config.expectedHash,letterHash,expectedLetterHash:config.expectedLetterHash,rosterHash,expectedRosterHash:config.expectedRosterHash,checks:['Actual HttpClient bearer requests to running isolated API','Real SQL signed letter/report artifacts','PDF.js rendered previews','Native browser letter/report/roster downloads and retained SHA256','External TestVerified status does not claim Drive archived']});await page.close();
+  checks.push({role:user.role,width,authenticatedRequests:authenticated,hash,expected:config.expectedHash,letterHash,expectedLetterHash:config.expectedLetterHash,rosterHash,expectedRosterHash:config.expectedRosterHash,checks:['Actual HttpClient bearer requests to running isolated API','Real SQL signed letter/report artifacts','PDF.js rendered previews','Native browser letter/report/roster downloads and retained SHA256',config.actualDrive?'Actual Google Drive Archived status after verified bytes and SQL commit':'External TestVerified status does not claim Drive archived']});await page.close();
  }
- assert.deepEqual(errors,[]);writeFileSync(resolve(evidence,'browser-results.json'),JSON.stringify({verification:'Live isolated local HTTP/JWT/SQL document, execution and schedule APIs; unrelated app shell API fixtures; no external provider delivery',checks,physicalKeyboard:'Pending physical device; headless browser keyboard tested',ownerVisualAcceptance:'Pending',errors},null,2));console.log('D3 live authenticated browser documents passed');
+ assert.deepEqual(errors,[]);writeFileSync(resolve(evidence,'browser-results.json'),JSON.stringify({verification:config.actualDrive?'Live isolated HTTP/JWT/SQL with actual Google Drive Archived results; unrelated app shell API fixtures':'Live isolated local HTTP/JWT/SQL document, execution and schedule APIs; unrelated app shell API fixtures; no external provider delivery',checks,physicalKeyboard:'Pending physical device; headless browser keyboard tested',ownerVisualAcceptance:'Pending',errors},null,2));console.log('D3 live authenticated browser documents passed');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

@@ -1,0 +1,93 @@
+  AlFalah.Shared -> D:\AlFalah-Manage-System\backend\AlFalah.Shared\bin\Debug\net8.0\AlFalah.Shared.dll
+  AlFalah.Domain -> D:\AlFalah-Manage-System\backend\AlFalah.Domain\bin\Debug\net8.0\AlFalah.Domain.dll
+  AlFalah.Application -> D:\AlFalah-Manage-System\backend\AlFalah.Application\bin\Debug\net8.0\AlFalah.Application.dll
+  AlFalah.Infrastructure -> D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\bin\Debug\net8.0\AlFalah.Infrastructure.dll
+  AlFalah.Api -> D:\AlFalah-Manage-System\backend\AlFalah.Api\bin\Debug\net8.0\AlFalah.Api.dll
+  AlFalah.Tests -> D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll
+Test run for D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.2)
+[xUnit.net 00:00:00.87]   Discovering: AlFalah.Tests
+[xUnit.net 00:00:01.71]   Discovered:  AlFalah.Tests
+[xUnit.net 00:00:01.73]   Starting:    AlFalah.Tests
+  Passed AlFalah.Tests.Duty.DutyTests.Ten_teachers_twenty_dates_are_equal_and_deterministic [565 ms]
+  Passed AlFalah.Tests.Storage.VisitArchiveOperationsTests.Process_stop_preserves_library_and_school_status_and_prevents_repository_and_provider_work [711 ms]
+  Passed AlFalah.Tests.Storage.VisitArchiveOperationsTests.Status_reports_configuration_only_to_authorized_visit_reader [88 ms]
+  Passed AlFalah.Tests.Duty.DutyTests.Manual_protection_and_end_of_term_obligation_are_retained [16 s]
+  Passed AlFalah.Tests.Duty.DutyTests.Correction_undoes_only_exact_unmodified_pair_and_locks_require_review [284 ms]
+  Passed AlFalah.Tests.Duty.DutyTests.Repeated_absence_uses_effective_queue_and_retry_does_not_duplicate [92 ms]
+  Passed AlFalah.Tests.Duty.DutyTests.Missing_attendance_is_unknown_and_absent_excluded_inactive_candidates_are_skipped [45 ms]
+  Passed AlFalah.Tests.Duty.DutyTests.Closure_consumes_no_turn_and_date_exclusion_is_respected [14 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Substitute_signature_has_own_position_and_long_tables_have_continuation_pages [6 s]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Frozen_local_pdf_survives_profile_branding_shared_fact_changes_and_disconnection [915 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Root_grant_overlap_and_ambiguous_native_folder_are_rejected_before_file_upload [629 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.SQL_rejects_inserted_artifact_with_missing_signed_provenance_or_wrong_hash [259 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Corrupt_signature_or_snapshot_is_recoverable_and_never_rendered_as_signed_evidence [212 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Lost_folder_create_response_reconciles_persisted_reservation_without_duplicate_folders [843 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Retry_processes_only_missing_report_and_does_not_repeat_letter_facts_or_notices [611 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Stale_lease_is_fenced_and_transient_failures_stop_after_five_attempts [388 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Lost_upload_response_reconciles_reserved_id_and_never_claims_fake_Drive_delivery [340 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Worker_race_expired_lease_restart_and_repeated_batches_keep_one_folder_chain_and_file [376 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.New_and_legacy_storage_boundaries_deny_duty_content_even_after_external_move_and_property_removal [691 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Renamed_or_missing_file_and_parent_folder_are_detected_without_automatic_recreation [1 s]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Disconnected_setup_and_disabled_readiness_freeze_local_evidence_without_provider_IO [267 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Successful_upload_then_SQL_rollback_is_recovered_without_second_upload_or_ledger_version [426 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Author_school_manager_and_revision_scope_is_rechecked_after_membership_changes [492 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Moved_renamed_missing_and_uncertain_provider_outputs_never_trigger_blind_rewrites [532 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.D3_idempotent_migration_script_applies_twice_to_fresh_D2_and_preserves_sentinel [9 s]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Same_name_teachers_keep_distinct_stable_readable_folders_and_emergency_history [566 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Duty_SQL_evidence_scope_bytes_reserved_identity_and_storage_mutations_are_protected [529 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Correction_resigns_new_snapshot_preserves_prior_pdf_and_exact_two_file_ledger [746 ms]
+  Passed AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation [486 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Message_success_dashboard_failure_stays_truthful_and_retries_only_dashboard [1 s]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Forged_student_enrollment_class_and_school_are_rejected_without_profile_disclosure [449 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Missing_signature_retains_server_draft_and_concurrent_save_retains_winner [282 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Emergency_reassignment_preserves_authorship_and_blocks_stale_teacher_mutation [430 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Roster_is_whole_school_minimal_paginated_and_more_than_seven_report_rows_are_frozen [708 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Repeated_emergency_return_keeps_the_earlier_unsigned_draft_as_immutable_history [480 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Attendance_correction_and_regeneration_cannot_silently_replace_acknowledged_execution [265 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Guardian_dual_surface_delivery_is_system_authored_deduplicated_and_read_independent [647 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.System_origin_payload_forgery_is_rejected_by_public_message_contract [261 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Real_bell_reference_enforces_last_departure_and_reasoned_manager_exception_is_required [527 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Range_statistics_distinguish_incidents_from_distinct_students_with_term_class_and_page_filters [574 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Explicit_empty_categories_and_departure_validation_and_lost_submit_response_are_real [568 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Signing_assets_freeze_embedded_bytes_and_do_not_fetch_remote_or_outside_files [14 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Dashboard_success_message_failure_retries_only_missing_surface [442 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Effective_expired_missing_guardians_and_revoked_thread_access_are_enforced [437 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Confirmation_rolls_back_fact_audit_and_intent_atomically [718 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Missing_dismissal_never_fabricates_reference_or_notice_and_observation_departure_must_be_real [626 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Correction_reason_teacher_resignature_and_retained_student_timeline_are_required [757 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Opening_letter_does_not_sign_and_actual_teacher_signature_is_frozen_across_profile_changes [334 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Fact_correction_retraction_retains_versions_notices_and_opens_teacher_resignature [952 ms]
+  Passed AlFalah.Tests.Duty.DutyExecutionSqlTests.Explicit_confirmation_is_unique_under_concurrency_and_history_statistics_precede_submission [1 s]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Teacher_confidentiality_actual_manager_and_school_isolation_are_enforced_live [476 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Changing_timing_revision_after_preview_is_conflict_even_with_identical_days [152 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Attendance_and_signal_commit_together_when_signal_insert_fails [207 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Additive_migration_twice_preserves_sentinel_credentials_and_catalog [4 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Published_timetable_calendar_precedes_setup_and_ignores_clones_and_invalid_timing [220 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Existing_database_is_rejected_before_any_migration_or_data_change [142 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Repeated_absence_and_correction_preserve_originals_and_do_not_duplicate_notifications [366 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Missing_timetable_calendar_requires_setup_and_cannot_mutate_existing_plan [183 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Simultaneous_manual_and_automatic_changes_commit_one_valid_pair [165 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.All_teachers_are_default_and_server_uses_study_days_instead_of_request_weekdays [566 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Exact_correction_undo_is_atomic_and_idempotent [221 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Teacher_transfer_preserves_history_and_allows_explicit_removal_of_ineligible_selection [730 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Explicit_exclusions_include_unmentioned_active_teachers_and_restore_without_losing_dated_exclusion [965 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Manual_pair_is_protected_revision_checked_and_retry_returns_same_receipt [610 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Foreign_duplicate_and_all_teacher_permanent_exclusions_are_denied [330 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Database_rejects_duplicate_dates_cross_school_links_and_history_mutation [240 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Selected_pool_date_exclusions_closures_and_regeneration_are_previewed_before_publication [1 s]
+  Passed AlFalah.Tests.Duty.DutySqlTests.An_already_processed_future_absence_is_requeued_when_exchange_changes_its_effective_owner [318 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Future_regeneration_retains_exchange_and_renewal_retains_unresolved_compensation [591 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Secretary_save_persists_signal_with_facts_and_same_sheet_is_a_noop [154 ms]
+[xUnit.net 00:01:45.74]   Finished:    AlFalah.Tests
+  Passed AlFalah.Tests.Duty.DutySqlTests.Failed_mid_exchange_rolls_back_both_rows_and_history_and_retry_remains_durable [154 ms]
+  Passed AlFalah.Tests.Duty.DutySqlTests.Duplicate_teacher_names_remain_distinct_in_review_and_fairness_uses_identity [194 ms]
+
+Test Run Successful.
+Total tests: 72
+     Passed: 72
+ Total time: 1.7916 Minutes

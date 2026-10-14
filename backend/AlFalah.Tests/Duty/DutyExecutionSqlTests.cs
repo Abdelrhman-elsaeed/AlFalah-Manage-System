@@ -51,6 +51,10 @@ public sealed class DutyExecutionSqlTests(DutySqlFixture fixture)
         if(guardian)foreach(var row in list)db.StudentGuardians.Add(new(){SchoolId=school.Id,StudentId=row.Student.Id,GuardianProfileId=profile.Id,RelationshipType=GuardianRelationshipType.Father,IsPrimary=true,ReceivesNotifications=true,ValidFrom=term.StartsOn,CreatedByUserId=manager,UpdatedByUserId=manager});
         await db.SaveChangesAsync();
         var settings=new DutySettings(term.Id,date,date.AddDays(2),[0,1,2,3,4,5,6],[teacher,replacement],[],[],date,date.AddDays(2),true);
+        var calendar=new BellScheduleTemplate{SchoolId=school.Id,AcademicYearId=year.Id,Semester=term.Semester,Name="Synthetic execution calendar",CreatedByUserId=manager,UpdatedByUserId=manager};db.Add(calendar);await db.SaveChangesAsync();
+        db.Add(new BellScheduleRevision{SchoolId=school.Id,BellScheduleTemplateId=calendar.Id,Revision=1,Name="Synthetic execution calendar",SchoolTimeZoneId="Africa/Cairo",CreatedByUserId=manager,
+            Days=Enumerable.Range(1,7).Select(day=>new BellScheduleDay{Day=day,IsStudyDay=true}).ToList()});
+        db.Add(new TimetableSetupProfile{SchoolId=school.Id,AcademicYearId=year.Id,Semester=term.Semester,Name="Synthetic execution setup",BellScheduleTemplateId=calendar.Id,CreatedByUserId=manager,UpdatedByUserId=manager});await db.SaveChangesAsync();
         var planning=new DutyService(new DutyRepository(db),new TeacherDriveHarness.TestCurrentUser(RoleNames.SchoolManager,manager,school.Id,true));
         var preview=await planning.PreviewAsync(new(settings,0),default);await planning.PublishAsync(new(settings,0,preview.Digest,Guid.NewGuid()),default);
         var assignment=await db.Set<DutyAssignment>().SingleAsync(x=>x.SchoolId==school.Id&&x.Date==date);

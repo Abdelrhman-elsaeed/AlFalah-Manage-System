@@ -1,6 +1,6 @@
 # Tasks — Three Implementation Phases
 
-**Status:** D1 implementation delivered (2026-10-13); verification evidence and known baseline limitations are in `verification/d1.md`. Final owner visual acceptance is pending. D2 implementation delivered; see `verification/d2.md`. D3 implementation and independent local verification are delivered; external Drive, owner visual and physical-device acceptance remain pending. See `verification/d3.md`.
+**Status:** D1 implementation delivered (2026-10-13); verification evidence and known baseline limitations are in `verification/d1.md`. Final owner visual acceptance is pending. D2 implementation delivered; see `verification/d2.md`. D3 implementation, independent local verification and designated synthetic real Drive delivery/read/recovery are delivered. Owner visual/physical-device acceptance and operational activation remain pending. See `verification/d3.md` and `verification/workspace-amendment.md`.
 
 ## Before D1
 
@@ -85,11 +85,13 @@ Use workflow/backend tests plus focused desktop/mobile browser journeys with rea
 - [x] Verify actual generated PDFs visually and compare generated/local/downloaded/provider-double byte hashes. Real Drive byte equality remains part of the external gate below.
 - [x] Inject disconnected Drive, denied destination, uncertain upload response, SQL failure after upload, worker restart/race, renamed/moved external artifact and same-name teacher cases.
 - [x] Validate migrations on isolated SQL, meaningful relevant backend/frontend checks and existing timetable/attendance/storage regressions.
-- [ ] Demonstrate live external provider write/read/retry in the explicitly designated synthetic destination with isolated SQL; distinguish live results from fakes/mocks.
+- [x] Demonstrate live external provider write/read/retry in explicitly designated D3_Test using fresh isolated SQL: 15 real provider checks, 10 protected HTTP checks, 6 real archive browser journeys/18 downloads. See [workspace amendment](verification/workspace-amendment.md).
 - [ ] Final owner/client visual acceptance and physical-device keyboard review (pending).
 
 - [x] Publish per-school readiness, safe activation and non-destructive rollback instructions; preserve snapshots/facts/artifacts/history.
 - [x] Update feature/project documentation, phase tracker and D-110; stop after D3.
+- [x] Subsequent owner-authorized local manual-test readiness: verified backup, nine pending migrations through D3, preservation/CHECKDB checks and API5264/Angular4200 startup. See [local operation](verification/local-manual-testing.md), D-111. External delivery and owner/physical acceptance remain pending.
+- [x] Subsequent C18 owner UX correction: independent sidebar/page, legacy redirects/context, scoped/unsaved/signature guards and rendered teacher/manager navigation checks. See [navigation verification](verification/navigation.md), D-112.
 
 **Verification:** [D3 delivery report](verification/d3.md): 21 D3 SQL, 96 focused Angular and 37 actual local HTTP checks; 15 PDF pages and rendered 390/768/1440 evidence. Expanded backend results, provider doubles versus real local communication, known baseline failures and external/owner/physical gates are explicit. No operational migration/activation or real Drive delivery is claimed.
 
@@ -100,3 +102,26 @@ Use workflow/backend tests plus focused desktop/mobile browser journeys with rea
 ## Later — Feature assignment, separately scoped
 
 After duty acceptance, specify the manager's `توزيع الصلاحيات` tab, selectable feature capabilities, active school-user grants/revocation, audit and server enforcement. Start from the completed duty capability boundary. This is not an additional duty implementation phase and has no tasks silently started here.
+
+## C19 owner settings amendment ? 2026-10-14
+
+- [x] Default active teachers, explicit permanent/date exclusions, quick exclusion/restoration and retained rotation order.
+- [x] Server-derived timetable study days; remove weekday selection, retain operating/regeneration/closure dates; calendar readiness/stale-preview protection.
+- [x] Match calendar input/trigger heights, Arabic/English labels and mobile action layout.
+- [x] Verify isolated SQL, focused Angular, actual 390/768/1440 rendering and running local project; record evidence: 72 backend / 114 Angular, current UI + D1/D2/D3 journeys and preservation/readiness.
+- [ ] Owner visual and physical-device acceptance (remains pending).
+
+## C20–C23 owner workflow amendment — 2026-10-14
+
+- [x] Ordered School Duty sidebar child pages, retained in-feature context and focused three-stage setup/execution.
+- [x] Explicit centered error OK with language/focus/input retention; refine picker/PDF/permission recovery.
+- [x] Full-width nearest-own-date/today alert, academic-term totals and ten-day teacher/date cards with all three filters.
+- [x] Backend actual-author and frozen-school-time future guards; receipt replay after replacement, retained historical artifacts and overdue completion.
+- [x] Automatic current-day/current-term edit without picker, archive-only browsing/history, archive rename, equal desktop categories and full-width review without document footer.
+- [x] Duty-specific storage readiness/enable/pause; narrow local callback fix and owner-completed OAuth connection.
+- [x] 75 backend / 138 Angular, current UI and D1/D2/D3 three-width regressions, real designated Drive and authenticated native-download/hash checks; source/PDF and preservation evidence.
+- [x] Update specification, plan, UX, phase/readme change logs and decisions; no new migration, production deployment or later feature.
+- [ ] Final owner/client visual approval and physical-device/OS keyboard/assistive-technology review.
+- [ ] Owner-selected operational school activation/rollout (original flags remain off).
+
+[Current acceptance evidence and safe activation/rollback](verification/workspace-amendment.md).

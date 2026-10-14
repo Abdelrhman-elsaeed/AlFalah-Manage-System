@@ -9,15 +9,16 @@ import { Subject, debounceTime, firstValueFrom, timer } from 'rxjs';
 import { DutyExecutionService } from '../../../core/services/duty-execution.service';
 import { DutyExecution, DutyLate, DutyReportContent, DutyStudent } from '../../../core/models/duty-execution.models';
 import { DutyStudentPickerComponent } from './duty-student-picker.component';
-import { DutyDocumentsComponent } from './duty-documents.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
+import { DutyErrorDirective } from './duty-error.directive';
 
 @Component({ selector: 'app-duty-execution', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, DutyStudentPickerComponent, DutyDocumentsComponent],
-  templateUrl: './duty-execution.component.html', styleUrls: ['./duty-execution.component.css', './duty-execution-dialog.css'] })
+  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, DutyStudentPickerComponent, DutyErrorDirective],
+  templateUrl: './duty-execution.component.html', styleUrls: ['./duty-execution.component.css', './duty-execution-dialog.css', './duty-execution-flow.css'] })
 export class DutyExecutionComponent implements OnInit {
   @Input({ required: true }) assignmentId = 0; @Output() closed = new EventEmitter<void>();
+  @Input() inspection = false;
   @ViewChild(DutyStudentPickerComponent) picker?: DutyStudentPickerComponent;
   private readonly api = inject(DutyExecutionService); readonly translate = inject(TranslateService);
   private readonly router = inject(Router); private readonly auth = inject(AuthService); private readonly destroy = inject(DestroyRef);
@@ -35,12 +36,12 @@ export class DutyExecutionComponent implements OnInit {
   get cacheKey() { return `duty-draft:${this.auth.currentUser()?.userId}:${this.assignmentId}`; }
   get activeFacts() { return this.data()?.lateStudents.filter(x => !x.isRetracted) ?? []; }
   get recordedIds() { return this.activeFacts.map(x => x.studentId); }
-  get readonly() { return !this.data()?.canExecute || !!this.data()?.draft?.submittedAt; }
+  get readonly() { return !this.data()?.canExecute || !!this.data()?.draft?.submittedAt || this.inspection && !this.data()?.draft?.correctionReason; }
   t(key: string) { return this.translate.instant(`DUTY_EXEC.${key}`); }
   ngOnInit() {
     this.load(); this.changes.pipe(debounceTime(850), takeUntilDestroyed(this.destroy)).subscribe(() => { if (!this.conflict() && !this.readonly) void this.save(); });
     timer(5000,5000).pipe(takeUntilDestroyed(this.destroy)).subscribe(() => {
-      if (!this.busy() && !this.factOpen && !this.dirty() && document.visibilityState === 'visible')
+      if (this.data() && !this.busy() && !this.factOpen && !this.dirty() && document.visibilityState === 'visible')
         this.api.get(this.assignmentId).pipe(takeUntilDestroyed(this.destroy)).subscribe({next:r => {
           if (!r.data || !r.isSuccess || this.busy() || this.dirty() || this.factOpen || r.data.assignmentRevision !== this.data()?.assignmentRevision) return;
           if (r.data.draft?.version !== this.data()?.draft?.version) {
@@ -50,7 +51,7 @@ export class DutyExecutionComponent implements OnInit {
             this.signAttempt = null;
           }
           this.data.set(r.data);
-        },error:()=>{}});
+        },error:e=>{if(e.status===403){this.data.set(null);this.error.set(this.t('LOAD_ERROR'));}}});
     });
   }
   load() {
@@ -59,7 +60,7 @@ export class DutyExecutionComponent implements OnInit {
       this.data.set(r.data); this.content = structuredClone(r.data.draft?.content ?? this.content); this.draftVersion = r.data.draft?.version ?? 0;
       this.saved.set(r.data.draft?.savedAt ?? ''); this.step = r.data.acknowledged ? 'report' : 'letter';
       const cached = sessionStorage.getItem(this.cacheKey);
-      if (cached && r.data.canExecute && !r.data.draft?.submittedAt) {
+      if (cached && !this.readonly) {
         try { const local = JSON.parse(cached); this.content = local.content; this.dirty.set(true);
           if (local.version !== this.draftVersion || local.revision !== r.data.assignmentRevision) this.conflict.set(r.data);
           else this.changes.next(); } catch { sessionStorage.removeItem(this.cacheKey); }
@@ -95,7 +96,18 @@ export class DutyExecutionComponent implements OnInit {
   keepLocal() { const server = this.conflict(); if (!server || !server.canExecute || server.draft?.submittedAt || server.assignmentRevision !== this.data()?.assignmentRevision) return;
     this.draftVersion = server.draft?.version ?? 0; this.data.set(server); this.conflict.set(null); this.changed(); }
   reviewConflict(){document.querySelector('.conflict-panel')?.scrollIntoView({behavior:'auto',block:'center'});}
-  async review() { if (await this.save()) this.step = 'review'; }
+  async review() {
+    if ((!this.activeFacts.length && !this.content.noLateStudents) || (!this.content.violations.length && !this.content.noViolations) || !this.content.lastDeparture) {
+      this.error.set(this.t('REVIEW_REQUIRED')); return;
+    }
+    if (await this.save()) { this.step = 'review'; document.querySelector('.execution-workspace')?.scrollIntoView({ block: 'start' }); }
+  }
+  async selectStep(step: 'letter' | 'report' | 'review') {
+    if (step === 'review') { await this.review(); return; }
+    if (step === 'report' && !this.data()?.acknowledged && this.data()?.canExecute) return;
+    this.step = step;
+  }
+  openDocuments() { void this.router.navigate(['/school-duty/documents'], { queryParams: { execution: this.assignmentId, date: this.data()?.date }, queryParamsHandling: 'merge' }); }
   async sign(action: 'acknowledge' | 'report/submit') {
     const data = this.data(); if (!data || this.busy() || !data.canExecute) return;
     if (!data.signatureData) { this.error.set(this.t('SIGNATURE_MISSING')); return; }

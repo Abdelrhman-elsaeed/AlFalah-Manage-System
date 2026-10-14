@@ -91,6 +91,7 @@ public interface IDutyDocumentRepository
 }
 public interface IDutyDocumentService
 {
+    Task<DutyArchiveReadiness> ReadinessAsync(CancellationToken ct);
     Task<DutyDocumentCollection> ListAsync(int assignment, CancellationToken ct);
     Task<DutyPdf> ContentAsync(int document, bool archived, CancellationToken ct);
     Task<DutyPdf> RosterAsync(int term, int revision, CancellationToken ct);

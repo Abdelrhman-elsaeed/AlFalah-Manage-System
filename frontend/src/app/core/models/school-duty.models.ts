@@ -6,6 +6,7 @@ export interface DutySettings {
   termId: number; from: string; to: string; weekdays: number[]; teacherIds: string[];
   exclusions: DutyExclusion[]; closures: DutyRange[]; regenerateFrom: string; regenerateTo: string;
   acceptAttendanceCalendarMismatch: boolean;
+  permanentlyExcludedTeacherIds?: string[] | null;
 }
 export interface DutyDay {
   id: number; date: string; originalTeacherId: string; originalTeacher: string; teacherId: string; teacher: string;

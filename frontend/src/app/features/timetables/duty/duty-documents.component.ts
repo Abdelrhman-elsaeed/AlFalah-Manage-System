@@ -8,8 +8,10 @@ import { DutyDocumentCollection, DutyDocumentState, DutyDocumentsService } from 
 import { filenameFromContentDisposition } from '../../../core/services/visits.service';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { DutyPdfPreviewComponent } from './duty-pdf-preview.component';
+import { DutyErrorDirective } from './duty-error.directive';
+import { isDutyPdf } from './duty-pdf-content';
 
-@Component({ selector: 'app-duty-documents', standalone: true, imports: [CommonModule, TranslateModule, DialogModule, DutyPdfPreviewComponent],
+@Component({ selector: 'app-duty-documents', standalone: true, imports: [CommonModule, TranslateModule, DialogModule, DutyPdfPreviewComponent, DutyErrorDirective],
   templateUrl: './duty-documents.component.html', styleUrls: ['./duty-documents.component.css'] })
 export class DutyDocumentsComponent implements OnChanges {
   @Input({ required: true }) assignmentId = 0; @Input() canManage = false; @Input() signedCount = 0;
@@ -19,15 +21,16 @@ export class DutyDocumentsComponent implements OnChanges {
   readonly error = signal(''); readonly message = signal(''); readonly kinds = ['Letter', 'Report'] as const;
   historyOpen = false; previewOpen = false; previewBlob: Blob | null = null; selected: DutyDocumentState | null = null;
   private objectUrl = ''; private fileName = ''; private focusOrigin: HTMLElement | null = null; private sequence = 0; private context = 0;
+  private denied = false;
   constructor() {
     timer(10000, 10000).pipe(takeUntilDestroyed(this.destroy)).subscribe(() => {
-      if (!this.busy() && !this.previewOpen && !this.historyOpen && document.visibilityState === 'visible') void this.load(true);
+      if (!this.denied && !this.busy() && !this.previewOpen && !this.historyOpen && document.visibilityState === 'visible') void this.load(true);
     });
     this.destroy.onDestroy(() => { this.sequence++; this.context++; this.release(); });
   }
   get dir() { return this.translate.currentLang === 'en' ? 'ltr' : 'rtl'; }
   t(key: string) { return this.translate.instant(`DUTY_DOC.${key}`); }
-  ngOnChanges() { this.context++; this.release(); this.previewOpen = false; this.historyOpen = false; this.selected = null; this.data.set(null); this.message.set(''); void this.load(); }
+  ngOnChanges() { this.context++; this.denied = false; this.release(); this.previewOpen = false; this.historyOpen = false; this.selected = null; this.data.set(null); this.message.set(''); void this.load(); }
   latest(kind: string) { return this.data()?.documents?.find(x => x.kind === kind && (!this.canManage || x.isCurrent !== false)); }
   async load(background = false) {
     const sequence = ++this.sequence;
@@ -37,7 +40,7 @@ export class DutyDocumentsComponent implements OnChanges {
       if (!r.isSuccess || !r.data || !Array.isArray(r.data.documents)) throw new Error(r.message || this.t('ERROR')); this.data.set(r.data);
     } catch (e: any) {
       if (sequence !== this.sequence) return;
-      if (e.status === 403 || e.status === 404) { this.data.set(null); this.previewOpen = false; this.historyOpen = false; this.release(); }
+      if (e.status === 403 || e.status === 404) { this.denied = e.status === 403; this.data.set(null); this.previewOpen = false; this.historyOpen = false; this.release(); }
       if (!background || e.status === 403) this.error.set(e.status === 403 ? this.t('DENIED') : extractHttpErrorMessage(e) || this.t('ERROR'));
     } finally { if (sequence === this.sequence) this.loading.set(false); }
   }
@@ -47,17 +50,19 @@ export class DutyDocumentsComponent implements OnChanges {
     this.busy.set(true); this.error.set(''); this.message.set('');
     try {
       const response = await firstValueFrom(this.api.pdf(doc.documentId, archived)); if (assignment !== this.assignmentId || context !== this.context) return;
-      if (!response.body || response.body.type !== 'application/pdf') throw new Error(this.t('UNAVAILABLE'));
-      this.release(); this.objectUrl = URL.createObjectURL(response.body);
+      if (!await isDutyPdf(response.body)) throw new Error(this.t('UNAVAILABLE'));
+      if (assignment !== this.assignmentId || context !== this.context) return;
+      const blob = response.body!;
+      this.release(); this.objectUrl = URL.createObjectURL(blob);
       this.fileName = filenameFromContentDisposition(response.headers.get('Content-Disposition')) || `${doc.kind}.pdf`; this.selected = doc;
       if (download) { const url = this.objectUrl; this.download(); this.objectUrl = ''; setTimeout(() => URL.revokeObjectURL(url), 1000); this.message.set(this.t('DOWNLOADED')); }
-      else { this.previewBlob = response.body; this.previewOpen = true; }
+      else { this.previewBlob = blob; this.previewOpen = true; }
       void this.load(true);
     } catch (e: any) {
       if (assignment !== this.assignmentId || context !== this.context) return;
       if (e.error instanceof Blob) { try { const body = JSON.parse(await e.error.text()); this.error.set(body.message || this.t('UNAVAILABLE')); } catch { this.error.set(this.t('UNAVAILABLE')); } }
       else this.error.set(extractHttpErrorMessage(e) || this.t('UNAVAILABLE'));
-      if (e.status === 403) { this.error.set(this.t('DENIED')); this.data.set(null); this.previewOpen = false; this.historyOpen = false; this.release(); }
+      if (e.status === 403) { this.denied = true; this.error.set(this.t('DENIED')); this.data.set(null); this.previewOpen = false; this.historyOpen = false; this.release(); }
     } finally { this.busy.set(false); }
   }
   download() { if (!this.objectUrl) return; const a = document.createElement('a'); a.href = this.objectUrl; a.download = this.fileName; document.body.append(a); a.click(); a.remove(); }

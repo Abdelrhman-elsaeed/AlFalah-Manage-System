@@ -12,6 +12,8 @@ import { ImportPageComponent } from './import-page.component';
 import { StorageApiService } from './storage-api.service';
 import { StorageContext } from './storage.models';
 import { ArchiveOperations, VisitArchiveApiService } from './visit-archive-api.service';
+import { AuthService } from '../../core/services/auth.service';
+import { DutyArchiveSettingsComponent } from '../timetables/duty/duty-archive-settings.component';
 
 interface Delegation { id:number; granteeUserId:string; startsAt:string; expiresAt?:string; revokedAt?:string; reason:string; rowVersion:string; }
 interface DelegationCandidate { userId:string; fullName:string; username:string; roles:string[]; roleLabel?:string; }
@@ -25,8 +27,10 @@ interface SetupProgress { stage:string; label:string; completed:number; total:nu
 type SetupStreamMessage = { kind:'progress'; progress:SetupProgress } | { kind:'result'; result:SetupResult } | { kind:'error'; message:string };
 interface ArchiveActivation { enabled:boolean; }
 
-@Component({selector:'app-storage-admin',standalone:true,imports:[CommonModule,FormsModule,RouterLink,ImportPageComponent,DropdownModule],templateUrl:'./storage-admin-page.component.html',styleUrls:['./storage-admin-page.component.css']})
+@Component({selector:'app-storage-admin',standalone:true,imports:[CommonModule,FormsModule,RouterLink,ImportPageComponent,DropdownModule,DutyArchiveSettingsComponent],templateUrl:'./storage-admin-page.component.html',styleUrls:['./storage-admin-page.component.css']})
 export class StorageAdminPageComponent implements OnInit,OnDestroy {
+  readonly dutyAuth=inject(AuthService);
+  get canManageDuty(){return this.dutyAuth.hasRole('SchoolManager') && this.dutyAuth.hasAnyPermission(['Duty.Manage']);}
   private readonly api=inject(StorageApiService); private readonly archive=inject(VisitArchiveApiService); private readonly http=inject(HttpClient);
   private readonly route=inject(ActivatedRoute); private readonly router=inject(Router); private readonly destroyed=new Subject<void>();
   readonly tabs=[{id:'drive',label:'Drive والجاهزية',icon:'pi-cloud'},{id:'setup',label:'إنشاء المكتبة',icon:'pi-folder-plus'},{id:'teachers',label:'مجلدات المعلمين',icon:'pi-users'},{id:'delegations',label:'التفويض',icon:'pi-shield'},{id:'imports',label:'الاستيراد التاريخي',icon:'pi-history'}];

@@ -1,6 +1,6 @@
 # School Duty — Feature Phase Tracker
 
-**Status:** D1–D3 IMPLEMENTED / independently VERIFIED — external Drive, owner visual and physical-device acceptance pending. No operational rollout.
+**Status:** D1–D3 IMPLEMENTED / independently VERIFIED — designated synthetic Drive delivery/read/recovery verified; owner visual and physical-device acceptance pending. Local Development manual-test environment running; no production deployment.
 **Updated:** 2026-10-14
 **Spec Kit:** [School Duty](../specs/school-duty/README.md)
 
@@ -14,7 +14,7 @@ Reviewed five supplied images and the client conversation, inspected existing ti
 |---|---|---|
 | D1 | Rotation, exclusions, manager workspace and automatic/manual absence exchange | IMPLEMENTED; isolated verification complete; owner visual review pending |
 | D2 | Teacher acknowledgement/report/signatures; mobile student picker, dismissal-lateness guardian notice/student history/existing manager statistics | IMPLEMENTED / VERIFIED; 361 backend, 86 Angular, 20 real HTTP checks; owner visual review pending |
-| D3 | Source-faithful official PDFs, protected school storage, recovery and final acceptance | IMPLEMENTED; independent SQL/HTTP/PDF/browser checks delivered; external/owner/physical gates pending |
+| D3 | Source-faithful official PDFs, protected school storage, recovery and final acceptance | IMPLEMENTED; independent SQL/HTTP/PDF/browser checks and designated real Drive gate delivered; owner/physical review pending |
 
 The owner's 2026-10-13 implementation request authorizes D1 using the confirmed decisions and documented defaults relevant to D1. Implementation and isolated SQL verification are authorized; production deployment, data resets, D2/D3 and general feature assignment are excluded.
 
@@ -73,3 +73,25 @@ The submitted D3 request supersedes the earlier phase-only authorization. Implem
 [D3 verification](../specs/school-duty/verification/d3.md) retains actual source/output comparisons, fifteen PDF pages, rendered 390/768/1440 UI, 21 D3 SQL and 96 focused Angular checks, 37 actual isolated HTTP checks and live authenticated browser download hash equality. Final expanded backend: 699 passed/one unchanged D2 model-assertion failure; an earlier timing failure passed both isolated and in the final run without changing the threshold. Known SQLite/broad Angular/production CSS failures remain explicit. Archive doubles finish TestVerified, never actual Drive delivery.
 
 Fresh guarded SQL migrations/idempotent reapplication retained a sentinel; operational database/configuration/credentials/roots/grants were untouched. Real external Drive verification awaits an explicitly designated isolated synthetic destination. Owner visual and physical-device acceptance remain pending. Activation and non-destructive disablement rollback are documented; no rollout or later feature started. **Stopped after D3 implementation and independent verification.** See D-110.
+
+## Owner-authorized local manual testing - 2026-10-14
+
+The owner explicitly requested applying necessary migrations and running the project for manual testing. This later authorization supersedes the earlier original-database restriction for the configured local Development environment only. Verified COPY_ONLY/checksum backup preceded nine additive migrations (59 to68) through D3. Existing counts, encrypted Drive credentials/root/enablement, grants and configuration/key hashes were preserved; CHECKDB passed. Release API5264 and Angular4200 now run with startup initialization/general seeding disabled and duty/visit external delivery OFF. Actual anonymous browser/HTTP/CORS readiness passed. [Operation and sanitized evidence](../specs/school-duty/verification/local-manual-testing.md), D-111. No production deployment, agent-created facts/notices or Drive writes; external/owner/physical acceptance remains pending.
+
+## Owner navigation correction C18 - 2026-10-14
+
+School Duty now has its own top-level sidebar entry and `/school-duty` page as requested. Lesson timetable renders separately; retained duty URLs redirect with date/execution/fragment context. Reuse existing duty components/capabilities and backend scope, preserving drafts/signature setup/history. This is a navigation refinement within delivered duty, not later feature delegation. [Verification and principal captures](../specs/school-duty/verification/navigation.md), D-112. Local API5264/Angular4200 stay running with external archive processing OFF; owner/physical/external gates remain pending.
+
+### Subsequent C19 settings amendment (2026-10-14)
+
+Owner requests all active teachers by default with permanent/date exclusions, timetable-derived study weekdays and aligned calendar controls. Implemented within the existing School Duty phase, preserving publication/execution/history and external delivery OFF. No migration or later feature. [Verification](../specs/school-duty/verification/settings-amendment.md), D-113. Owner/physical review remains pending.
+
+C19 verification completed: 72 affected backend checks including 64 real SQL; 114 focused Angular; actual three-width settings and D1/D2/D3 rendered regressions. Current Release API5264/Angular4200 ready, original 68 migrations/config/keys/provider values preserved; supported duty/visit processing overrides OFF. No new migration. Owner/physical/external acceptance remains pending.
+
+## C20–C23 / D-114–115 — focused workflow and real Drive verification
+
+Delivered ordered standalone pages, centered explicit error acknowledgement, automatic school-today edit/archive-only browsing, ten-day card schedule/filters/current-day alert, full-width review/equal desktop categories and separate manager duty archive activation. Scoped actual-author/future/receipt checks preserve old drafts/signatures/late completion and correction artifacts. Current Release API5264/Angular4200 run with startup initialization off; original database remains at68 migrations and needs no new migration.
+
+75 backend (67 real SQL), 138 Angular, actual three-width workspace/D1/D2/D3 regressions and independent39 real internal HTTP checks passed. Owner completed Google reconnection after the requested local callback fix and designated D3_Test under the verified synthetic-school root. Bounded fresh-SQL verification passed15 real Drive checks,10 protected archived HTTP checks and6 teacher/manager browser journeys/18 downloads; hashes match actual Drive/frozen SQL/native output. Two PDFs uploaded, lost response and real SQL rollback recovered without duplicates. Existing root/grants/client secrets/keys/provider data preserved; original per-school flags remain off, global manual duty readiness true, unrelated Visit processing false.
+
+[Full evidence, captures, source comparison and rollback](../specs/school-duty/verification/workspace-amendment.md). Owner visual approval, physical device/OS keyboard and operational activation remain pending. Existing baseline failures unchanged. D3 scope stops here; later delegation/waiting-register/external messaging is excluded.

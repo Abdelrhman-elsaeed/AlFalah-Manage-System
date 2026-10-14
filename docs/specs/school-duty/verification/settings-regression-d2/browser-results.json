@@ -1,0 +1,108 @@
+{
+  "verification": "Actual rendered Angular SPA with mocked synthetic API fixtures",
+  "report": [
+    {
+      "width": 390,
+      "checks": [
+        "letter preview does not sign",
+        "acknowledgement",
+        "debounced duplicate-name search",
+        "selected footer",
+        "explicit lateness confirmation before report",
+        "repeated entry retains search",
+        "no-results",
+        "class browsing",
+        "draft saves",
+        "review and saved signature",
+        "submitted success",
+        "no document/dialog overflow"
+      ]
+    },
+    {
+      "width": 768,
+      "checks": [
+        "letter preview does not sign",
+        "acknowledgement",
+        "debounced duplicate-name search",
+        "selected footer",
+        "explicit lateness confirmation before report",
+        "repeated entry retains search",
+        "no-results",
+        "class browsing",
+        "draft saves",
+        "review and saved signature",
+        "submitted success",
+        "no document/dialog overflow"
+      ]
+    },
+    {
+      "width": 1440,
+      "checks": [
+        "letter preview does not sign",
+        "acknowledgement",
+        "debounced duplicate-name search",
+        "selected footer",
+        "explicit lateness confirmation before report",
+        "repeated entry retains search",
+        "no-results",
+        "class browsing",
+        "draft saves",
+        "review and saved signature",
+        "submitted success",
+        "no document/dialog overflow"
+      ]
+    },
+    {
+      "width": 390,
+      "checks": [
+        "guardian content and System provenance",
+        "dashboard read independent of message read",
+        "dashboard-to-message deep link",
+        "message unread/read receipts",
+        "System thread has no human composer",
+        "manager today count and paginated names"
+      ]
+    },
+    {
+      "width": 768,
+      "checks": [
+        "guardian content and System provenance",
+        "dashboard read independent of message read",
+        "dashboard-to-message deep link",
+        "message unread/read receipts",
+        "System thread has no human composer",
+        "manager today count and paginated names"
+      ]
+    },
+    {
+      "width": 1440,
+      "checks": [
+        "guardian content and System provenance",
+        "dashboard read independent of message read",
+        "dashboard-to-message deep link",
+        "message unread/read receipts",
+        "System thread has no human composer",
+        "manager today count and paginated names"
+      ]
+    },
+    {
+      "width": 390,
+      "checks": [
+        "server pagination",
+        "grade filter and clear",
+        "stale delayed search discarded",
+        "selected action visible in resized keyboard viewport",
+        "dialog focus returns to trigger",
+        "draw/save missing signature and return with draft intact",
+        "conflict preserves local input",
+        "manager fact correction and notice history",
+        "reasoned manager report correction and actual-teacher re-signature",
+        "delivery retry/missing guardian states",
+        "loading and load failure"
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "keyboard": "Resized viewport simulation; physical mobile keyboard remains owner acceptance",
+  "clientVisualAcceptance": "Pending owner review"
+}

@@ -15,6 +15,7 @@ import { roleLandingFor } from '../../../core/utils/role-landing';
 import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 import { StorageApiService } from '../../../features/storage/storage-api.service';
 import { VisitArchiveApiService } from '../../../features/storage/visit-archive-api.service';
+import { DUTY_SECTIONS, dutySectionRoute } from '../../../features/timetables/duty/duty-workspace-navigation';
 
 interface NavItem {
   labelKey: string;
@@ -30,7 +31,7 @@ interface NavItem {
 }
 
 interface NavCategory {
-  id: 'storage' | 'student-affairs' | 'evaluation' | 'people' | 'administration' | 'intelligent-timetable' | 'reports' | 'settings';
+  id: 'duty' | 'storage' | 'student-affairs' | 'evaluation' | 'people' | 'administration' | 'intelligent-timetable' | 'reports' | 'settings';
   labelKey: string;
   icon: string;
   items: NavItem[];
@@ -461,6 +462,10 @@ export class ShellComponent implements OnInit {
   });
 
   readonly visibleCategories = computed<NavCategory[]>(() => {
+    const dutyAllowed = this.authService.hasAnyRole(['SchoolManager','Instructor']) && this.authService.activeSchoolId() && this.authService.hasAnyPermission(['Duty.View','Duty.Manage']);
+    const dutyManager = this.authService.hasRole('SchoolManager') && this.authService.hasPermission('Duty.Manage');
+    const duty: NavCategory[] = dutyAllowed ? [{ id: 'duty', labelKey: 'DUTY.TITLE', icon: 'pi pi-sun',
+      items: DUTY_SECTIONS.filter(x => !x.managerOnly || dutyManager).map(x => ({ labelKey: x.id === 'execution' && !dutyManager ? 'DUTY_PAGES.MY_EXECUTION' : x.id === 'documents' && !dutyManager ? 'DUTY_PAGES.MY_DOCUMENTS' : x.key, icon: x.icon, route: dutySectionRoute(x.id), exact: true })) }] : [];
     const storageItems: NavItem[] = [];
     if (!this.isInstructorOnly() && this.hasSchoolStorageAccess()) storageItems.push(
       { labelKey: 'نظرة عامة', icon: 'pi pi-th-large', route: '/school-manager/storage/overview', exact: true },
@@ -474,8 +479,8 @@ export class ShellComponent implements OnInit {
     if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canViewStorageArchive()) storageItems.push({ labelKey: 'الزيارات', icon: 'pi pi-clipboard', route: '/school-manager/storage/visits' });
     if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canManageSchoolStorage()) storageItems.push({ labelKey: 'الإدارة', icon: 'pi pi-cog', route: '/school-manager/storage/admin' });
     const storage: NavCategory[] = storageItems.length ? [{ id: 'storage', labelKey: 'مساحة الملفات', icon: 'pi pi-folder-open', items: storageItems }] : [];
-    if (this.isInstructorOnly()) return storage;
-    return [...storage, ...this.categories]
+    if (this.isInstructorOnly()) return [...duty, ...storage];
+    return [...duty, ...storage, ...this.categories]
       .map(category => ({
         ...category,
         items: category.items.filter(item => this.canSee(item))
@@ -616,6 +621,7 @@ export class ShellComponent implements OnInit {
   }
 
   categoryContainsActiveRoute(category: NavCategory): boolean {
+    if (category.id === 'duty') return this.router.url.split('?')[0].startsWith('/school-duty');
     if (category.id === 'storage') return this.isStorageRoute();
     return category.items.some(item => this.routeMatches(item.route, this.router.url));
   }
@@ -642,9 +648,15 @@ export class ShellComponent implements OnInit {
     return this.routeMatches(item.route, this.router.url);
   }
   sidebarItemActive(category: NavCategory, item: NavItem): boolean {
+    if (category.id === 'duty') return this.router.url.split('?')[0].split('#')[0] === item.route;
     if (item.route === '/users') return this.router.url.split('?')[0].split('#')[0] === '/users';
     return category.id === 'storage' ? this.storageMobileActive(item) : this.routeMatches(item.route, this.router.url);
   }
+  dutyNavigationQuery(item: NavItem) {
+    const query = new URL(this.router.url, 'http://localhost').searchParams;
+    return { termId: query.get('termId'), ...(item.route === '/school-duty/documents' ? { execution: query.get('execution'), date: query.get('date') } : {}) };
+  }
+  closeDutyNavigation(category: NavCategory) { if (category.id === 'duty' && window.matchMedia('(max-width: 1024px)').matches) this.setSidebarCollapsed(true); }
 
   logout(): void {
     this.authService.logout();

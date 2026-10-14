@@ -95,6 +95,8 @@
             <a
               [routerLink]="item.route"
               routerLinkActive="is-active"
+              ariaCurrentWhenActive="page"
+              [attr.aria-label]="item.labelKey | translate"
               class="shell-sidebar__link"
               [pTooltip]="(item.tooltipKey || item.labelKey) | translate"
               tooltipPosition="left">
@@ -115,6 +117,7 @@
             [class.is-expanded]="isCategoryExpanded(category)"
             [attr.aria-expanded]="isCategoryExpanded(category)"
             [attr.aria-controls]="'sidebar-category-' + category.id"
+            [attr.aria-label]="category.labelKey | translate"
             [pTooltip]="category.labelKey | translate"
             tooltipPosition="left"
             (click)="toggleCategory(category)">
@@ -133,6 +136,9 @@
             <li *ngFor="let item of category.items">
               <a
                 [routerLink]="item.route"
+                [queryParams]="category.id === 'duty' ? dutyNavigationQuery(item) : null"
+                (click)="closeDutyNavigation(category)"
+                [attr.aria-label]="item.labelKey | translate"
                 [class.is-active]="sidebarItemActive(category, item)"
                 [attr.aria-current]="sidebarItemActive(category, item) ? 'page' : null"
                 class="shell-sidebar__link shell-sidebar__link--nested"

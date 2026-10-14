@@ -24,4 +24,5 @@ export class DutyDocumentsService {
   roster(term: number, revision: number) { return this.http.get(`${this.base}/plans/roster.pdf`, { params: { termId: term, revision }, observe: 'response', responseType: 'blob', ...this.options }); }
   retry(id: number) { return this.http.post<ApiResponse<boolean>>(`${this.base}/documents/${id}/archive/retry`, {}, this.options); }
   enable(enabled: boolean) { return this.http.put<ApiResponse<DutyDocumentCollection['readiness']>>(`${this.base}/archive/enablement`, { enabled }, this.options); }
+  readiness() { return this.http.get<ApiResponse<DutyDocumentCollection['readiness']>>(`${this.base}/archive/enablement`, this.options); }
 }

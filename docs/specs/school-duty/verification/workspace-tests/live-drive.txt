@@ -1,0 +1,17 @@
+Verified authorized synthetic-school root. Original duty processing remains disabled.
+Actual upload with deliberately lost response remains recoverable; no premature ledger completion
+Local signed PDF remains available during external uncertainty
+Reserved provider identity recovered without a second upload; actual Archived state
+Letter archived before its report exists
+Actual report upload followed by real SQL rollback retains only the earlier letter ledger version
+SQL failure recovery reconciles existing bytes without duplicate file or version
+Actual Drive download, frozen artifact and committed version hash match: Letter
+Delivered file contained in explicitly authorized D3_Test: Letter
+Author local and manager protected archived reads return the identical artifact: Letter
+Actual Drive download, frozen artifact and committed version hash match: Report
+Delivered file contained in explicitly authorized D3_Test: Report
+Author local and manager protected archived reads return the identical artifact: Report
+Repeated processing and reconciliation preserve one hierarchy and exactly two immutable ledger versions
+Archive and PDF operations create no guardian notices or System/human messages
+Original school connection, root, flags and encrypted credentials unchanged by this harness
+Real Drive verification complete: 15 checks, 2 actual uploads.

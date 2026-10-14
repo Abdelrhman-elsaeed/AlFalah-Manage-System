@@ -1,0 +1,23 @@
+﻿{
+    "verifiedAtUtc":  "2026-10-14T09:49:42.8946212+00:00",
+    "migrations":  68,
+    "noNewMigration":  true,
+    "originalRootsGrantsClientSecretsAndFlagsPreserved":  true,
+    "teacherGrantsPreserved":  true,
+    "productionConfigurationAndExistingKeysPreserved":  true,
+    "developmentOtherConfigurationPreserved":  true,
+    "developmentOAuthCallbacks":  "User-authorized localhost5264 API / localhost4200 completion",
+    "originalCredential":  "Owner renewed OAuth consent; agent did not replace credentials",
+    "enabledOriginalDutySchools":  0,
+    "startupInitializationDisabled":  true,
+    "dutyProcessReady":  true,
+    "unrelatedVisitProcessingDisabled":  true,
+    "anonymousDenials":  {
+                             "/api/v1/school-duty/context":  401,
+                             "/api/v1/school-duty/documents/1/pdf":  401
+                         },
+    "frontendStatus":  200,
+    "externalProvider":  "Real designated D3_Test verification passed using fresh isolated SQL",
+    "ownerVisualReview":  "Pending",
+    "physicalDevice":  "Pending"
+}

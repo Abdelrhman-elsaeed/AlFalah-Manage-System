@@ -6,6 +6,14 @@
       "status": 200
     },
     {
+      "step": "Teacher cannot read manager archive settings",
+      "status": 403
+    },
+    {
+      "step": "Other teacher cannot take duty by forging acknowledgement",
+      "status": 403
+    },
+    {
       "step": "Own execution and unsigned preview",
       "status": 200
     },
@@ -92,12 +100,12 @@
     {
       "step": "Actual authenticated HTTP local PDF download and SQL byte hash equality",
       "status": 200,
-      "sha256": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6"
+      "sha256": "0E7FD80F9B09B7992BD2133B9F59AC4116A1E57FC2B0C2BA19BDB92A0C1B78F5"
     },
     {
       "step": "Letter available independently from report archive progress",
       "status": 200,
-      "sha256": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3"
+      "sha256": "6A6093C7FACD63C9EF232C1FB3030E5C714E81A3F5D23356A29796A921D87EE6"
     },
     {
       "step": "External archive unavailable without false completion",
@@ -114,7 +122,7 @@
     {
       "step": "Actual authorized school manager PDF read",
       "status": 200,
-      "sha256": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6"
+      "sha256": "0E7FD80F9B09B7992BD2133B9F59AC4116A1E57FC2B0C2BA19BDB92A0C1B78F5"
     },
     {
       "step": "Manager retry blocked by disconnected/disabled readiness",
@@ -131,7 +139,7 @@
     {
       "step": "Schedule-only authenticated official roster export",
       "status": 200,
-      "sha256": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1"
+      "sha256": "4BCFDFC46BE7A9F0AFA9DBBCC914FDC3DF0C89E2779F981D43878FC4C68258BE"
     },
     {
       "step": "Stale roster revision rejected",
@@ -143,18 +151,18 @@
       "byteEvidence": [
         {
           "kind": "Letter",
-          "retainedHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
-          "providerDoubleHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
-          "ledgerHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
-          "bytes": 56519,
+          "retainedHash": "6A6093C7FACD63C9EF232C1FB3030E5C714E81A3F5D23356A29796A921D87EE6",
+          "providerDoubleHash": "6A6093C7FACD63C9EF232C1FB3030E5C714E81A3F5D23356A29796A921D87EE6",
+          "ledgerHash": "6A6093C7FACD63C9EF232C1FB3030E5C714E81A3F5D23356A29796A921D87EE6",
+          "bytes": 56528,
           "state": "TestVerified"
         },
         {
           "kind": "Report",
-          "retainedHash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
-          "providerDoubleHash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
-          "ledgerHash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
-          "bytes": 71280,
+          "retainedHash": "0E7FD80F9B09B7992BD2133B9F59AC4116A1E57FC2B0C2BA19BDB92A0C1B78F5",
+          "providerDoubleHash": "0E7FD80F9B09B7992BD2133B9F59AC4116A1E57FC2B0C2BA19BDB92A0C1B78F5",
+          "ledgerHash": "0E7FD80F9B09B7992BD2133B9F59AC4116A1E57FC2B0C2BA19BDB92A0C1B78F5",
+          "bytes": 71315,
           "state": "TestVerified"
         }
       ]
@@ -162,7 +170,7 @@
     {
       "step": "Local HTTP PDF unchanged after provider-double ledger completion",
       "status": 200,
-      "sha256": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6"
+      "sha256": "0E7FD80F9B09B7992BD2133B9F59AC4116A1E57FC2B0C2BA19BDB92A0C1B78F5"
     },
     {
       "step": "Provider-double result remains unavailable as actual Drive delivery",

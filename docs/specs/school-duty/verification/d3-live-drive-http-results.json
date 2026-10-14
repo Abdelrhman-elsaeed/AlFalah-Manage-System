@@ -1,0 +1,75 @@
+{
+  "checks": [
+    {
+      "role": "Instructor",
+      "kind": "Letter",
+      "archived": false,
+      "sha256": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "status": 200
+    },
+    {
+      "role": "Instructor",
+      "kind": "Letter",
+      "archived": true,
+      "sha256": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "status": 200
+    },
+    {
+      "role": "Instructor",
+      "kind": "Report",
+      "archived": false,
+      "sha256": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "status": 200
+    },
+    {
+      "role": "Instructor",
+      "kind": "Report",
+      "archived": true,
+      "sha256": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "status": 200
+    },
+    {
+      "role": "SchoolManager",
+      "kind": "Letter",
+      "archived": false,
+      "sha256": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "status": 200
+    },
+    {
+      "role": "SchoolManager",
+      "kind": "Letter",
+      "archived": true,
+      "sha256": "8CDCAFDE195986F07C4EAA089F100A0B21EFA22034BB57CCB3B637707D551045",
+      "status": 200
+    },
+    {
+      "role": "SchoolManager",
+      "kind": "Report",
+      "archived": false,
+      "sha256": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "status": 200
+    },
+    {
+      "role": "SchoolManager",
+      "kind": "Report",
+      "archived": true,
+      "sha256": "51496C3D7FDA16FA4E642D8741BE896E3D5B4D8B808FEF985841E763656B09FF",
+      "status": 200
+    },
+    {
+      "role": "OtherInstructor",
+      "kind": "Letter",
+      "archived": false,
+      "status": 403
+    },
+    {
+      "role": "OtherInstructor",
+      "kind": "Letter",
+      "archived": true,
+      "status": 403
+    }
+  ],
+  "liveDrive": true,
+  "providerWritesDuringReads": 0,
+  "noMigration": true
+}

@@ -22,7 +22,7 @@ public sealed class VisitArchiveProcessor(IVisitArchiveRepository repository, Vi
     private static readonly Histogram<double> Generation = Meter.CreateHistogram<double>("archive.pdf.ms");
     private static readonly Histogram<double> Upload = Meter.CreateHistogram<double>("archive.upload.ms");
     private static readonly Histogram<double> Lag = Meter.CreateHistogram<double>("archive.pending.seconds");
-    private bool Enabled => options.Value.AdministrationEnabled && options.Value.ReadModelEnabled;
+    private bool Enabled => options.Value.ArchiveProcessingEnabled && options.Value.AdministrationEnabled && options.Value.ReadModelEnabled;
 
     public async Task<int> ProcessBatchAsync(CancellationToken ct = default)
     {

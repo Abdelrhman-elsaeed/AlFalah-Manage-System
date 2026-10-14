@@ -10,6 +10,7 @@ public static class DutyRotation
 {
     public static string Digest<T>(T value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value))));
     public static bool Eligible(DutySettings s, string userId, DateOnly date) => s.TeacherIds.Contains(userId)
+        && !(s.PermanentlyExcludedTeacherIds?.Contains(userId) ?? false)
         && !s.Exclusions.Any(x => x.UserId == userId && x.From <= date && x.To >= date);
     public static bool Operating(DutySettings s, DateOnly date) => date >= s.From && date <= s.To
         && s.Weekdays.Contains((int)date.DayOfWeek) && !s.Closures.Any(x => x.From <= date && x.To >= date);
