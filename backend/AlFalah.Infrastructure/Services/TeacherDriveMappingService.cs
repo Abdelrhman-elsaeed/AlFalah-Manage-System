@@ -1,4 +1,5 @@
 using AlFalah.Application.DTOs.TeacherDrive;
+using AlFalah.Application.Common.Exceptions;
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities;
 using AlFalah.Infrastructure.Data;
@@ -90,6 +91,8 @@ public sealed class TeacherDriveMappingService : ITeacherDriveMappingService
             if (parent.Trashed || !parent.IsFolder
                 || !await _guard.IsWithinAsync(teacher.SchoolId, schoolDrive.RootFolderId, parentId, cancellationToken))
                 throw new InvalidOperationException("لا يمكن استعراض مجلد خارج المجلد الرئيسي للمدرسة.");
+            if ((await _guard.ExcludedArchiveIdsAsync(teacher.SchoolId, [parent], cancellationToken)).Contains(parent.Id))
+                throw new TeacherDriveAccessDeniedException("مجلد المستندات محمي.");
             parentName = parent.Name;
         }
 
@@ -100,7 +103,8 @@ public sealed class TeacherDriveMappingService : ITeacherDriveMappingService
             PageSize: 100,
             PageToken: string.IsNullOrWhiteSpace(request.PageToken) ? null : request.PageToken,
             SharedDriveId: schoolDrive.SharedDriveId), cancellationToken);
-        var folders = drivePage.Files.Where(x => x.IsFolder && !x.Trashed).ToList();
+        var protectedIds = await _guard.ExcludedArchiveIdsAsync(teacher.SchoolId, drivePage.Files, cancellationToken);
+        var folders = drivePage.Files.Where(x => x.IsFolder && !x.Trashed && !protectedIds.Contains(x.Id)).ToList();
         var folderIds = folders.Select(x => x.Id).ToList();
 
         var assignments = await _context.TeacherDriveFolders.AsNoTracking()
@@ -154,7 +158,7 @@ public sealed class TeacherDriveMappingService : ITeacherDriveMappingService
             .Select(x => x.RootItemId)
             .ToListAsync(cancellationToken);
         var protectedRoots = await _context.StorageFolders.AsNoTracking()
-            .Where(x => x.SchoolId == teacher.SchoolId && x.IsActive && x.OwnerTeacherId == null && x.ParentFolderId == null)
+            .Where(x => x.SchoolId == teacher.SchoolId && x.IsActive && x.OwnerTeacherId == null && (x.ParentFolderId == null || x.Kind == AlFalah.Domain.Enums.StorageFolderKind.DutyArchive))
             .Select(x => x.DriveItemId).ToListAsync(cancellationToken);
         otherActiveGrantRoots.AddRange(protectedRoots);
         foreach (var otherRoot in otherActiveGrantRoots)

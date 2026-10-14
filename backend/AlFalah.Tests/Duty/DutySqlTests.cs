@@ -48,7 +48,8 @@ public sealed class DutySqlFixture : IAsyncLifetime
         if(await db.Schools.AnyAsync())throw new InvalidOperationException("Choose a fresh isolated database; tests do not reset existing databases.");
         db.Schools.Add(new School{Name="D1 sentinel",City="Sentinel",Stage=SchoolStage.Primary});await db.SaveChangesAsync();
         var school=await db.Schools.SingleAsync();
-        db.SchoolGoogleDrives.Add(new SchoolGoogleDrive {SchoolId=school.Id,ProtectedCredential="ciphertext-sentinel",RootFolderId="root-sentinel"});await db.SaveChangesAsync();
+        // Seed the pre-D1 schema without using a current model that includes future additive columns.
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO SchoolGoogleDrives (SchoolId,CredentialType,SchoolGoogleEmail,ProtectedCredential,RootFolderId,RootFolderDisplayName,IsEnabled,ConnectedAtUtc,UpdatedAtUtc) VALUES ({school.Id},1,'','ciphertext-sentinel','root-sentinel','',1,SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET())");
         await db.Database.MigrateAsync();await db.Database.MigrateAsync();db.ChangeTracker.Clear();
         SentinelPreserved=await db.Schools.AnyAsync(x=>x.Id==school.Id&&x.Name=="D1 sentinel")&&await db.SchoolGoogleDrives.AnyAsync(x=>x.SchoolId==school.Id&&x.ProtectedCredential=="ciphertext-sentinel"&&x.RootFolderId=="root-sentinel");
         foreach(var role in new[]{RoleNames.SchoolManager,RoleNames.Instructor,RoleNames.Secretary,RoleNames.Moderator})db.Roles.Add(new ApplicationRole{Id=role,Name=role,NormalizedName=role.ToUpperInvariant()});

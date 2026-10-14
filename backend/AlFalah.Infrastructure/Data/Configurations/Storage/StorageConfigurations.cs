@@ -31,6 +31,8 @@ public sealed class StorageFolderConfiguration : IEntityTypeConfiguration<Storag
         b.Property(x => x.DisplayName).HasMaxLength(512).IsRequired();
         b.Property(x => x.DriveId).HasMaxLength(256).IsRequired();
         b.Property(x => x.DriveItemId).HasMaxLength(256).IsRequired();
+        b.Property(x => x.DutyIdentity).HasMaxLength(450);
+        b.HasIndex(x => new { x.SchoolId, x.DutyIdentity }).IsUnique().HasFilter("[DutyIdentity] IS NOT NULL");
         b.HasIndex(x => new { x.SchoolId, x.DriveId, x.DriveItemId }).IsUnique();
         b.HasIndex(x => new { x.SchoolId, x.DriveItemId });
         b.HasIndex(x => new { x.SchoolId, x.OwnerTeacherId });
@@ -42,7 +44,7 @@ public sealed class StorageFolderConfiguration : IEntityTypeConfiguration<Storag
         b.ToTable("StorageFolders", t =>
         {
             t.HasCheckConstraint("CK_StorageFolders_Parent", "[ParentFolderId] IS NULL OR [ParentFolderId] <> [Id]");
-            t.HasCheckConstraint("CK_StorageFolders_Kind", "[Kind] BETWEEN 1 AND 3");
+            t.HasCheckConstraint("CK_StorageFolders_Kind", "[Kind] BETWEEN 1 AND 4");
             t.HasTrigger("TR_StorageFolders_NoCycles");
         });
     }
@@ -56,6 +58,8 @@ public sealed class StoredFileConfiguration : IEntityTypeConfiguration<StoredFil
         // Id participates in the current-version FK; explicitly retain identity generation.
         b.Property(x => x.Id).ValueGeneratedOnAdd();
         b.Property(x => x.DisplayName).HasMaxLength(512).IsRequired();
+        b.Property(x => x.DutyIdentity).HasMaxLength(450);
+        b.HasIndex(x => new { x.SchoolId, x.DutyIdentity }).IsUnique().HasFilter("[DutyIdentity] IS NOT NULL");
         b.Property(x => x.LegacyFingerprint).HasMaxLength(64);
         b.Property(x => x.SharedWriterFingerprint).HasMaxLength(64);
         b.HasIndex(x => x.LegacySubmissionId).IsUnique().HasFilter("[LegacySubmissionId] IS NOT NULL");
@@ -71,7 +75,7 @@ public sealed class StoredFileConfiguration : IEntityTypeConfiguration<StoredFil
         b.HasQueryFilter(x => !x.IsDeleted);
         b.ToTable("StoredFiles", t =>
         {
-            t.HasCheckConstraint("CK_StoredFiles_SourceKind", "[SourceKind] BETWEEN 1 AND 4");
+            t.HasCheckConstraint("CK_StoredFiles_SourceKind", "[SourceKind] BETWEEN 1 AND 5");
             t.HasTrigger("TR_StoredFiles_Provenance");
             t.HasTrigger("TR_StoredFiles_SharedProvenance");
         });

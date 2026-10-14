@@ -7,6 +7,7 @@ namespace AlFalah.Infrastructure.Services;
 
 public sealed class GoogleStorageProvider(IGoogleDriveClient drive) : IStorageProvider
 {
+    public bool IsRealDelivery => drive.IsRealDelivery;
     private readonly ConcurrentDictionary<string, Lazy<Task<GoogleDriveFile?>>> metadata = new(StringComparer.Ordinal);
     public void ResetRequestCache() => metadata.Clear();
     public Task<string> AllocateIdAsync(int schoolId, CancellationToken ct) => drive.AllocateFileIdAsync(schoolId, ct);

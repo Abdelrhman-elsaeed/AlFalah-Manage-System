@@ -1,0 +1,901 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="391a9cac-4e17-4510-9a68-58cdd0ffb2a5" name="abdelrhman@DESKTOP-FHRP6TC 2026-10-13 20:20:21" runUser="DESKTOP-FHRP6TC\abdelrhman" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-13T20:20:21.1443210+03:00" queuing="2026-10-13T20:20:21.1443222+03:00" start="2026-10-13T20:19:54.0869036+03:00" finish="2026-10-13T20:20:21.3948659+03:00" />
+  <TestSettings name="default" id="f4890959-c9a1-4a07-a899-8880af8a4935">
+    <Deployment runDeploymentRoot="abdelrhman_DESKTOP-FHRP6TC_2026-10-13_20_20_21" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="f6194393-6ec8-4019-81ca-828a64f7f944" testId="e933c78d-464f-f762-df7a-109555e39f70" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Author_school_manager_and_revision_scope_is_rechecked_after_membership_changes" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1063868+03:00" endTime="2026-10-13T20:20:21.1063869+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f6194393-6ec8-4019-81ca-828a64f7f944">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="bb3f8aab-b5ff-4ed7-ae5a-effe0330da8b" testId="742c3c18-25b9-3d9d-0033-20fbfd698bed" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Corrupt_signature_or_snapshot_is_recoverable_and_never_rendered_as_signed_evidence" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.0973415+03:00" endTime="2026-10-13T20:20:21.0973416+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bb3f8aab-b5ff-4ed7-ae5a-effe0330da8b">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0062da2e-0e0f-4b0c-b7b6-d7b2dcea7176" testId="0c0a1dea-78ec-d574-83da-c703d7cd2003" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Lost_upload_response_reconciles_reserved_id_and_never_claims_fake_Drive_delivery" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.0992553+03:00" endTime="2026-10-13T20:20:21.0992555+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0062da2e-0e0f-4b0c-b7b6-d7b2dcea7176">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="7c76edcd-e0c0-4708-99e9-c218e9afc0f5" testId="450be004-d648-2aba-bd11-19081aca8d85" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1342438+03:00" endTime="2026-10-13T20:20:21.1342440+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7c76edcd-e0c0-4708-99e9-c218e9afc0f5">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b05d5f45-3e2a-47eb-be47-fab6cbc45181" testId="447e66fe-4b5f-6de9-b793-b533386e0015" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Moved_renamed_missing_and_uncertain_provider_outputs_never_trigger_blind_rewrites" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1279472+03:00" endTime="2026-10-13T20:20:21.1279474+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b05d5f45-3e2a-47eb-be47-fab6cbc45181">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e01483ae-aaa9-40ef-9ae8-b2e409082fc5" testId="7015bb7a-b9f1-cd72-af2f-12aac5f2c76f" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Correction_resigns_new_snapshot_preserves_prior_pdf_and_exact_two_file_ledger" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1323483+03:00" endTime="2026-10-13T20:20:21.1323485+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e01483ae-aaa9-40ef-9ae8-b2e409082fc5">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b45c6298-45cb-4666-a9d5-94bdd0f429df" testId="5c53957c-098f-c19a-fbe6-652e5fdd918b" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Successful_upload_then_SQL_rollback_is_recovered_without_second_upload_or_ledger_version" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1044569+03:00" endTime="2026-10-13T20:20:21.1044570+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b45c6298-45cb-4666-a9d5-94bdd0f429df">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5c4f4f8f-5891-4be2-b76b-2c61f547bc16" testId="f73dc024-a0fc-76c3-a770-181c2977d3b1" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Frozen_local_pdf_survives_profile_branding_shared_fact_changes_and_disconnection" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.0855546+03:00" endTime="2026-10-13T20:20:21.0855547+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5c4f4f8f-5891-4be2-b76b-2c61f547bc16">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d5ffe6ea-8d2a-4205-b1e0-2f8427f21854" testId="d1c81c26-6538-9044-4e0c-af5e0e02028d" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Root_grant_overlap_and_ambiguous_native_folder_are_rejected_before_file_upload" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.0954946+03:00" endTime="2026-10-13T20:20:21.0954948+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d5ffe6ea-8d2a-4205-b1e0-2f8427f21854">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d10e1578-bed1-4df5-a9e6-761d21f969f7" testId="675075a5-25a7-34fb-f281-80437b17174e" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Duty_SQL_evidence_scope_bytes_reserved_identity_and_storage_mutations_are_protected" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1297285+03:00" endTime="2026-10-13T20:20:21.1297287+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d10e1578-bed1-4df5-a9e6-761d21f969f7">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="32fde29e-5744-42bf-b4e6-5d9aeec35014" testId="1964edc0-4ec3-c76b-070f-cc81e3437f25" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Disconnected_setup_and_disabled_readiness_freeze_local_evidence_without_provider_IO" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1027935+03:00" endTime="2026-10-13T20:20:21.1027936+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32fde29e-5744-42bf-b4e6-5d9aeec35014">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e3255028-0484-4c4f-8bd1-5dd6e37ae0b2" testId="5c6e3ee3-604e-aa69-a3b0-c02d7fbdef6f" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Worker_race_expired_lease_restart_and_repeated_batches_keep_one_folder_chain_and_file" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.1010851+03:00" endTime="2026-10-13T20:20:21.1010852+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e3255028-0484-4c4f-8bd1-5dd6e37ae0b2">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="09db2bb4-61d1-4909-b457-b66d18395f1d" testId="1eb54f48-328f-635c-9e55-d17091e31da8" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Substitute_signature_has_own_position_and_long_tables_have_continuation_pages" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0010000" startTime="2026-10-13T20:20:21.0786531+03:00" endTime="2026-10-13T20:20:21.0786980+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="09db2bb4-61d1-4909-b457-b66d18395f1d">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken) in D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs:line 260&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 51&#xD;
+   at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs:line 61&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Corrupt_signature_or_snapshot_is_recoverable_and_never_rendered_as_signed_evidence" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="742c3c18-25b9-3d9d-0033-20fbfd698bed">
+      <Execution id="bb3f8aab-b5ff-4ed7-ae5a-effe0330da8b" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Corrupt_signature_or_snapshot_is_recoverable_and_never_rendered_as_signed_evidence" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="450be004-d648-2aba-bd11-19081aca8d85">
+      <Execution id="7c76edcd-e0c0-4708-99e9-c218e9afc0f5" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Root_grant_overlap_and_ambiguous_native_folder_are_rejected_before_file_upload" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="d1c81c26-6538-9044-4e0c-af5e0e02028d">
+      <Execution id="d5ffe6ea-8d2a-4205-b1e0-2f8427f21854" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Root_grant_overlap_and_ambiguous_native_folder_are_rejected_before_file_upload" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Substitute_signature_has_own_position_and_long_tables_have_continuation_pages" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="1eb54f48-328f-635c-9e55-d17091e31da8">
+      <Execution id="09db2bb4-61d1-4909-b457-b66d18395f1d" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Substitute_signature_has_own_position_and_long_tables_have_continuation_pages" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Disconnected_setup_and_disabled_readiness_freeze_local_evidence_without_provider_IO" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="1964edc0-4ec3-c76b-070f-cc81e3437f25">
+      <Execution id="32fde29e-5744-42bf-b4e6-5d9aeec35014" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Disconnected_setup_and_disabled_readiness_freeze_local_evidence_without_provider_IO" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Duty_SQL_evidence_scope_bytes_reserved_identity_and_storage_mutations_are_protected" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="675075a5-25a7-34fb-f281-80437b17174e">
+      <Execution id="d10e1578-bed1-4df5-a9e6-761d21f969f7" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Duty_SQL_evidence_scope_bytes_reserved_identity_and_storage_mutations_are_protected" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Moved_renamed_missing_and_uncertain_provider_outputs_never_trigger_blind_rewrites" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="447e66fe-4b5f-6de9-b793-b533386e0015">
+      <Execution id="b05d5f45-3e2a-47eb-be47-fab6cbc45181" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Moved_renamed_missing_and_uncertain_provider_outputs_never_trigger_blind_rewrites" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Worker_race_expired_lease_restart_and_repeated_batches_keep_one_folder_chain_and_file" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="5c6e3ee3-604e-aa69-a3b0-c02d7fbdef6f">
+      <Execution id="e3255028-0484-4c4f-8bd1-5dd6e37ae0b2" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Worker_race_expired_lease_restart_and_repeated_batches_keep_one_folder_chain_and_file" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Correction_resigns_new_snapshot_preserves_prior_pdf_and_exact_two_file_ledger" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="7015bb7a-b9f1-cd72-af2f-12aac5f2c76f">
+      <Execution id="e01483ae-aaa9-40ef-9ae8-b2e409082fc5" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Correction_resigns_new_snapshot_preserves_prior_pdf_and_exact_two_file_ledger" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Frozen_local_pdf_survives_profile_branding_shared_fact_changes_and_disconnection" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="f73dc024-a0fc-76c3-a770-181c2977d3b1">
+      <Execution id="5c4f4f8f-5891-4be2-b76b-2c61f547bc16" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Frozen_local_pdf_survives_profile_branding_shared_fact_changes_and_disconnection" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Successful_upload_then_SQL_rollback_is_recovered_without_second_upload_or_ledger_version" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="5c53957c-098f-c19a-fbe6-652e5fdd918b">
+      <Execution id="b45c6298-45cb-4666-a9d5-94bdd0f429df" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Successful_upload_then_SQL_rollback_is_recovered_without_second_upload_or_ledger_version" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Author_school_manager_and_revision_scope_is_rechecked_after_membership_changes" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="e933c78d-464f-f762-df7a-109555e39f70">
+      <Execution id="f6194393-6ec8-4019-81ca-828a64f7f944" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Author_school_manager_and_revision_scope_is_rechecked_after_membership_changes" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Lost_upload_response_reconciles_reserved_id_and_never_claims_fake_Drive_delivery" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="0c0a1dea-78ec-d574-83da-c703d7cd2003">
+      <Execution id="0062da2e-0e0f-4b0c-b7b6-d7b2dcea7176" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Lost_upload_response_reconciles_reserved_id_and_never_claims_fake_Drive_delivery" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="e933c78d-464f-f762-df7a-109555e39f70" executionId="f6194393-6ec8-4019-81ca-828a64f7f944" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="742c3c18-25b9-3d9d-0033-20fbfd698bed" executionId="bb3f8aab-b5ff-4ed7-ae5a-effe0330da8b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0c0a1dea-78ec-d574-83da-c703d7cd2003" executionId="0062da2e-0e0f-4b0c-b7b6-d7b2dcea7176" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="450be004-d648-2aba-bd11-19081aca8d85" executionId="7c76edcd-e0c0-4708-99e9-c218e9afc0f5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="447e66fe-4b5f-6de9-b793-b533386e0015" executionId="b05d5f45-3e2a-47eb-be47-fab6cbc45181" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7015bb7a-b9f1-cd72-af2f-12aac5f2c76f" executionId="e01483ae-aaa9-40ef-9ae8-b2e409082fc5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5c53957c-098f-c19a-fbe6-652e5fdd918b" executionId="b45c6298-45cb-4666-a9d5-94bdd0f429df" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f73dc024-a0fc-76c3-a770-181c2977d3b1" executionId="5c4f4f8f-5891-4be2-b76b-2c61f547bc16" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d1c81c26-6538-9044-4e0c-af5e0e02028d" executionId="d5ffe6ea-8d2a-4205-b1e0-2f8427f21854" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="675075a5-25a7-34fb-f281-80437b17174e" executionId="d10e1578-bed1-4df5-a9e6-761d21f969f7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1964edc0-4ec3-c76b-070f-cc81e3437f25" executionId="32fde29e-5744-42bf-b4e6-5d9aeec35014" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5c6e3ee3-604e-aa69-a3b0-c02d7fbdef6f" executionId="e3255028-0484-4c4f-8bd1-5dd6e37ae0b2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1eb54f48-328f-635c-9e55-d17091e31da8" executionId="09db2bb4-61d1-4909-b457-b66d18395f1d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="13" executed="13" passed="0" failed="13" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.2)&#xD;
+[xUnit.net 00:00:00.49]   Discovering: AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.69]   Discovered:  AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.69]   Starting:    AlFalah.Tests&#xD;
+[xUnit.net 00:00:24.86]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.86]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.86]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.86]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.86]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.86]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.86]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.86]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.86]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.86]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.86]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.86]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.87]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.87]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.87]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.87]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.87]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.87]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.87]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.87]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.87]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.87]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.87]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.87]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.88]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.88]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.88]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.88]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.88]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.88]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.88]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.88]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.88]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.88]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.88]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.88]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.88]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.88]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.88]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.89]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.89]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.89]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.89]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.89]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.89]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.89]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.89]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.89]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.89]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.89]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.89]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.91]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.91]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.91]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.91]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.91]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.91]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.91]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.91]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.91]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.91]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.91]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.92]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.92]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.92]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.92]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.92]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.92]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.92]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.92]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.92]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.92]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:24.92]       ---- Microsoft.Data.SqlClient.SqlException : Invalid column name 'DutyArchiveEnabled'.&#xD;
+[xUnit.net 00:00:24.92]       Stack Trace:&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\Data\AlFalahDbContext.cs(260,0): at AlFalah.Infrastructure.Data.AlFalahDbContext.SaveChangesAsync(CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(51,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.92]         D:\AlFalah-Manage-System\backend\AlFalah.Tests\Duty\DutySqlTests.cs(61,0): at AlFalah.Tests.Duty.DutySqlFixture.InitializeAsync()&#xD;
+[xUnit.net 00:00:24.92]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.Data.SqlClient.SqlCommand.&lt;&gt;c.&lt;ExecuteDbDataReaderAsync&gt;b__209_0(Task`1 result)&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.92]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)&#xD;
+[xUnit.net 00:00:24.92]            at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task&amp; currentTaskSlot, Thread threadPoolThread)&#xD;
+[xUnit.net 00:00:24.92]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.92]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:24.93]   Finished:    AlFalah.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.0738292+03:00">
+        <Text>[xUnit.net 00:00:24.86]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Substitute_signature_has_own_position_and_long_tables_have_continuation_pages [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.0841218+03:00">
+        <Text>[xUnit.net 00:00:24.87]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Frozen_local_pdf_survives_profile_branding_shared_fact_changes_and_disconnection [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.0866808+03:00">
+        <Text>[xUnit.net 00:00:24.87]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Root_grant_overlap_and_ambiguous_native_folder_are_rejected_before_file_upload [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.0959270+03:00">
+        <Text>[xUnit.net 00:00:24.88]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Corrupt_signature_or_snapshot_is_recoverable_and_never_rendered_as_signed_evidence [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.0977005+03:00">
+        <Text>[xUnit.net 00:00:24.88]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Lost_upload_response_reconciles_reserved_id_and_never_claims_fake_Drive_delivery [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.0996744+03:00">
+        <Text>[xUnit.net 00:00:24.89]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Worker_race_expired_lease_restart_and_repeated_batches_keep_one_folder_chain_and_file [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.1014206+03:00">
+        <Text>[xUnit.net 00:00:24.89]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Disconnected_setup_and_disabled_readiness_freeze_local_evidence_without_provider_IO [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.1031174+03:00">
+        <Text>[xUnit.net 00:00:24.89]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Successful_upload_then_SQL_rollback_is_recovered_without_second_upload_or_ledger_version [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.1047993+03:00">
+        <Text>[xUnit.net 00:00:24.89]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Author_school_manager_and_revision_scope_is_rechecked_after_membership_changes [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.1798774+03:00">
+        <Text>[xUnit.net 00:00:24.91]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Moved_renamed_missing_and_uncertain_provider_outputs_never_trigger_blind_rewrites [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.1800831+03:00">
+        <Text>[xUnit.net 00:00:24.92]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Duty_SQL_evidence_scope_bytes_reserved_identity_and_storage_mutations_are_protected [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.1802563+03:00">
+        <Text>[xUnit.net 00:00:24.92]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Correction_resigns_new_snapshot_preserves_prior_pdf_and_exact_two_file_ledger [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-FHRP6TC" outcome="Error" timestamp="2026-10-13T20:20:21.1804332+03:00">
+        <Text>[xUnit.net 00:00:24.92]     AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

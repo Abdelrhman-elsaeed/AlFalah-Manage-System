@@ -40,7 +40,7 @@ public sealed class EvidenceWorkflowContext(IEvidenceRepository repository, ISto
     {
         Enabled(); await authorization.RequireScopeAsync(School, ct);
         var access = await scopes.GetFileAccessAsync(School, id, ct) ?? throw new KeyNotFoundException("الملف غير متاح.");
-        if (access.SourceKind is StoredFileSourceKind.VisitArchive or StoredFileSourceKind.HistoricalImport)
+        if (access.SourceKind is StoredFileSourceKind.VisitArchive or StoredFileSourceKind.DutyArchive or StoredFileSourceKind.HistoricalImport)
             throw new UnauthorizedSchoolAccessException("هذا الأصل محمي بسياسة الأرشيف.");
         var own = access.OwnerIsActiveInSchool && access.OwnerUserId == Actor;
         if (ownOnly && !own) throw new UnauthorizedSchoolAccessException("الملف ليس ملكك.");

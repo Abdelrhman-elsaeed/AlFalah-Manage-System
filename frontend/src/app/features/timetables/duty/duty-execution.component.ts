@@ -9,11 +9,12 @@ import { Subject, debounceTime, firstValueFrom, timer } from 'rxjs';
 import { DutyExecutionService } from '../../../core/services/duty-execution.service';
 import { DutyExecution, DutyLate, DutyReportContent, DutyStudent } from '../../../core/models/duty-execution.models';
 import { DutyStudentPickerComponent } from './duty-student-picker.component';
+import { DutyDocumentsComponent } from './duty-documents.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 
 @Component({ selector: 'app-duty-execution', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, DutyStudentPickerComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, DutyStudentPickerComponent, DutyDocumentsComponent],
   templateUrl: './duty-execution.component.html', styleUrls: ['./duty-execution.component.css', './duty-execution-dialog.css'] })
 export class DutyExecutionComponent implements OnInit {
   @Input({ required: true }) assignmentId = 0; @Output() closed = new EventEmitter<void>();

@@ -1,0 +1,38 @@
+<section class="documents" [dir]="dir" [attr.aria-busy]="busy() || loading()">
+  <header class="documents-heading"><div><span class="eyebrow">{{ t('EYEBROW') }}</span><h2>{{ t('TITLE') }}</h2><p>{{ t('INTRO') }}</p></div><button class="history-action" (click)="openHistory()" [disabled]="!data()?.documents?.length"><i class="pi pi-history" aria-hidden="true"></i>{{ t('HISTORY') }}<span>{{ data()?.documents?.length || 0 }}</span></button></header>
+  <p class="feedback error" *ngIf="error()" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><span>{{ error() }}</span><button *ngIf="!data()" (click)="load()">{{ t('REFRESH') }}</button></p>
+  <p class="feedback success" *ngIf="message()" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message() }}</p>
+  <div class="document-grid" *ngIf="loading() && !data()" role="status"><div class="skeleton"></div><div class="skeleton"></div><span class="sr-only">{{ t('LOADING') }}</span></div>
+  <div class="document-grid" *ngIf="data()">
+    <article class="document-card" *ngFor="let kind of kinds" [class.available]="latest(kind)">
+      <div class="card-top"><span class="document-icon"><i class="pi" [ngClass]="kind==='Letter'?'pi-file-edit':'pi-file-pdf'" aria-hidden="true"></i></span><span class="format">PDF <span aria-hidden="true">·</span> {{ t('OFFICIAL') }}</span></div>
+      <h3>{{ t(kind) }}</h3>
+      <ng-container *ngIf="latest(kind) as doc; else unsigned">
+        <p class="signed-status"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ t(kind==='Letter'?'ACKNOWLEDGED':'SUBMITTED') }}</p>
+        <p class="document-author" *ngIf="doc.authorName">{{ doc.authorName }}</p>
+        <p class="document-duty-date" *ngIf="doc.isCurrent===false">{{ t('PRIOR_DUTY') }}</p>
+        <p class="document-duty-date" *ngIf="doc.dutyDate">{{ t('DUTY_DATE') }} <bdi>{{ doc.dutyDate }}</bdi></p>
+        <p class="document-date">{{ t('SIGNED_AT') }} <bdi>{{ doc.signedAt | date:'yyyy/MM/dd · HH:mm' }}</bdi><span *ngIf="doc.previousDocumentId">{{ t('CORRECTED') }}</span></p>
+        <div class="archive-status" [class.verified]="doc.archiveState==='Archived'" [class.attention]="doc.archiveState==='NeedsAttention' || doc.archiveState==='RetryScheduled' || doc.archiveState==='Unavailable'">
+          <i class="pi" [ngClass]="doc.archiveState==='Archived'?'pi-cloud-upload':doc.archiveState==='Delivering'?'pi-spin pi-spinner':'pi-cloud'" aria-hidden="true"></i>
+          <div><strong>{{ t('STATE_'+doc.archiveState) }}</strong><small>{{ t('HINT_'+doc.archiveState) }}</small></div>
+        </div>
+        <div class="document-actions"><button class="primary-action" (click)="open(doc)" [disabled]="busy() || doc.artifactState==='Unavailable'"><i class="pi pi-eye" aria-hidden="true"></i>{{ t('PREVIEW') }}</button><button class="download-action" (click)="open(doc,true)" [disabled]="busy() || doc.artifactState==='Unavailable'" [attr.aria-label]="t('DOWNLOAD')+' '+t(kind)"><i class="pi pi-download" aria-hidden="true"></i>{{ t('DOWNLOAD') }}</button></div>
+        <button class="retry-action" *ngIf="doc.canRetry" (click)="retry(doc)" [disabled]="busy()"><i class="pi pi-refresh" aria-hidden="true"></i>{{ t('RETRY') }}</button>
+        <p class="artifact-warning" *ngIf="doc.artifactState==='Unavailable'">{{ t('UNAVAILABLE') }}</p>
+      </ng-container>
+      <ng-template #unsigned><p class="unsigned-copy">{{ t(kind==='Letter'?'LETTER_EMPTY':'REPORT_EMPTY') }}</p><div class="empty-status"><i class="pi pi-clock" aria-hidden="true"></i>{{ t('NOT_SIGNED') }}</div></ng-template>
+    </article>
+  </div>
+  <button class="history-action" *ngIf="canManage && data()?.readiness?.processingEnabled && data()?.readiness?.connectionState==='Connected' && !data()?.readiness?.enabled" (click)="enable()" [disabled]="busy()">{{ t('ENABLE') }}</button>
+  <footer *ngIf="data()"><i class="pi pi-lock" aria-hidden="true"></i>{{ t('PRIVATE') }}</footer>
+</section>
+<p-dialog [(visible)]="previewOpen" (onHide)="closePreview()" [modal]="true" [header]="t(selected?.kind || 'TITLE')" [dir]="dir" [style]="{width:'1000px',maxWidth:'96vw'}" styleClass="duty-pdf-dialog">
+  <div class="preview-layout"><p class="preview-note">{{ t('FROZEN') }}</p><app-duty-pdf-preview *ngIf="previewOpen && previewBlob" [blob]="previewBlob" /></div>
+  <ng-template pTemplate="footer"><button class="dialog-action" (click)="previewOpen=false">{{ t('CLOSE') }}</button><button class="dialog-download" (click)="download()"><i class="pi pi-download" aria-hidden="true"></i>{{ t('DOWNLOAD') }}</button></ng-template>
+</p-dialog>
+<p-dialog [(visible)]="historyOpen" (onHide)="closeHistory()" [modal]="true" [header]="t('HISTORY')" [dir]="dir" [style]="{width:'760px',maxWidth:'96vw'}" styleClass="duty-pdf-dialog">
+  <p class="feedback error" *ngIf="error()" role="alert">{{ error() }}</p>
+  <div class="revision-history"><p class="preview-note">{{ t('HISTORY_HINT') }}</p><article *ngFor="let doc of data()?.documents"><span class="revision-icon"><i class="pi pi-file-pdf" aria-hidden="true"></i></span><div class="revision-copy"><h3>{{ t(doc.kind) }} <small>{{ t('REVISION') }} {{ doc.assignmentRevision }}</small></h3><p *ngIf="doc.authorName">{{ doc.authorName }}</p><p><bdi>{{ doc.signedAt | date:'yyyy/MM/dd · HH:mm' }}</bdi></p><p *ngIf="doc.correctionReason" class="correction-reason">{{ doc.correctionReason }}</p><span class="history-status">{{ t('STATE_'+doc.archiveState) }}</span></div><div class="revision-actions"><button (click)="open(doc,true)" [disabled]="busy()" [attr.aria-label]="t('DOWNLOAD')+' '+t(doc.kind)+' '+doc.signedAt"><i class="pi pi-download" aria-hidden="true"></i></button><button *ngIf="doc.archiveState==='Archived'" (click)="open(doc,true,true)" [disabled]="busy()" [attr.aria-label]="t('ARCHIVED_DOWNLOAD')"><i class="pi pi-cloud-download" aria-hidden="true"></i></button></div></article></div>
+  <ng-template pTemplate="footer"><button class="dialog-action" (click)="historyOpen=false">{{ t('CLOSE') }}</button></ng-template>
+</p-dialog>

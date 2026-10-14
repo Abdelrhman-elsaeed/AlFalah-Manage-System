@@ -25,6 +25,8 @@ public interface IGoogleDriveTokenService
 /// </summary>
 public interface IGoogleDriveClient
 {
+    /// <summary>Only the live transport confirms external Drive delivery; test transports default to false.</summary>
+    bool IsRealDelivery => false;
     Task<string> AllocateFileIdAsync(int schoolId, CancellationToken ct = default) => throw new NotSupportedException();
     Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct = default) => throw new NotSupportedException();
     Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct = default) => throw new NotSupportedException();

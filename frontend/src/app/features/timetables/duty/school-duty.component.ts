@@ -14,10 +14,11 @@ import { SchoolDutyService } from '../../../core/services/school-duty.service';
 import { DutyChange, DutyDay, DutyHistory, DutyPreview, DutySettings, DutyWorkspace } from '../../../core/models/school-duty.models';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { DutyExecutionComponent } from './duty-execution.component';
+import { DutyRosterExportComponent } from './duty-roster-export.component';
 
 @Component({
   selector: 'app-school-duty', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, DialogModule, CalendarModule, InputTextModule, ClearableSelectComponent, DutyExecutionComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, DialogModule, CalendarModule, InputTextModule, ClearableSelectComponent, DutyExecutionComponent, DutyRosterExportComponent],
   templateUrl: './school-duty.component.html', styleUrls: ['./duty-dialog.css', './school-duty.component.css']
 })
 export class SchoolDutyComponent implements OnInit {

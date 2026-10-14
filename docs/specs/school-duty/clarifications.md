@@ -1,6 +1,6 @@
 # Clarifications and Decision Register
 
-**Updated:** 2026-10-13. The owner explicitly authorized D1 and, by submitting the D2 implementation prompt, D2 with C1–C17 and its relevant documented defaults. D3 remains outside that authorization.
+**Updated:** 2026-10-13. The owner explicitly authorized D1-D3 through the submitted phase prompts, recorded C1-C17 and relevant defaults. D3 implementation/independent verification is delivered; external Drive and owner/physical acceptance remain pending. Earlier phase-only statements below are historical.
 
 ## Confirmed decisions
 
@@ -70,3 +70,15 @@ The owner requested an English next-phase prompt. [D2 implementation prompt](pro
 The submitted D2 prompt explicitly authorized C1-C17 and their relevant defaults without reconfirmation. D2 is implemented; [verification](verification/d2.md) records actual scope and evidence. Historical D1 completion-zero and amendment/prompt-preparation statements above apply to their original phase, not the current D2 result: completion credit now requires a signed report, and selected-student facts/System communication are delivered.
 
 D-108 records the retained typed draft JSON/generic immutable Letter/Report documents, stable lateness/revision records, per-surface results, nullable constrained System sender, scoped SQL triggers and emergency draft history. Embedded/local logo bytes are frozen; remote/unavailable logo state is retained explicitly. No arbitrary lateness grace period, fake departure, external provider, new student-record grant or D3 processor was introduced. Operational data/configuration remain unchanged; owner visual acceptance is pending and work stops after D2.
+
+## D3 prompt preparation - 2026-10-13
+
+The owner requested the next English implementation prompt. [D3 handoff](prompts/d3-implementation.md) applies C1-C17 and relevant documented defaults to official PDFs, protected archive delivery/recovery and final verification, preserving D2's actual immutable contracts and unavailable-branding state. No new business decision or runtime authorization is inferred from preparing the prompt. Submitting it authorizes its scoped implementation; live provider checks additionally require an explicitly designated isolated synthetic destination. Operational migration/deployment, unrelated provider writes, real-parent test traffic and later features remain excluded. D3 is unstarted and final owner acceptance remains pending. See D-109.
+
+## D3 authorization and applied defaults - 2026-10-13
+
+The submitted D3 implementation request explicitly authorizes recorded C1-C17, the dismissal-lateness amendment and approved archive hierarchy. No recorded decision was reconfirmed and no new owner decision was invented. Earlier D1/D2-only authorization and prompt-preparation statements remain historical.
+
+Implemented defaults keep global duty external processing and every school's duty enablement false until safe activation; local PDF preparation/access remains independent. Signed historical branding state and school-local timing are retained. Corrections require D2 manager reason plus actual teacher re-signature and retain prior bytes. Only letter/report have archive obligations; roster export binds a plan revision. Fake-provider verification is labelled TestVerified and cannot satisfy actual archive acceptance.
+
+[D3 verification](verification/d3.md) records delivered independent checks, safe enablement/rollback and unresolved boundaries: an explicitly designated synthetic external destination/connection, owner visual review and physical-device keyboard review. General provider access alone does not designate a school archive destination. No operational migration/deployment, root/grant/credential change or later feature occurred.

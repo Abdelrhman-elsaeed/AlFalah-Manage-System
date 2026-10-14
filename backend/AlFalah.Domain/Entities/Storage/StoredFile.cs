@@ -9,6 +9,7 @@ public sealed class StoredFile : IStorageRecord
     public int FolderId { get; set; }
     public int? OwnerTeacherId { get; set; }
     public StoredFileSourceKind SourceKind { get; set; }
+    public string? DutyIdentity { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public int? CurrentVersionId { get; set; }
     public bool NeedsLink { get; set; }

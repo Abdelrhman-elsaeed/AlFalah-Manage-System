@@ -1,6 +1,7 @@
 using System.Data;
 using System.Text.Json;
 using AlFalah.Application.Storage;
+using AlFalah.Application.Common;
 using AlFalah.Domain.Entities;
 using AlFalah.Domain.Entities.Storage;
 using AlFalah.Domain.Enums;
@@ -43,7 +44,9 @@ public sealed class StorageSetupRepository(AlFalahDbContext db) : IStorageSetupR
     public async Task<bool> HasProtectedDataAsync(int schoolId, int folderId, CancellationToken ct)
     {
         var ids = await DescendantIdsAsync(schoolId, folderId, ct);
-        return await db.StoredFiles.AsNoTracking().AnyAsync(f => f.SchoolId == schoolId && ids.Contains(f.FolderId), ct)
+        return await db.StorageFolders.AnyAsync(f => f.SchoolId == schoolId && ids.Contains(f.Id) && f.Kind == StorageFolderKind.DutyArchive, ct)
+            || await db.Set<AlFalah.Domain.Entities.Duty.DutyArchiveIntent>().AnyAsync(i => i.SchoolId == schoolId && i.FolderId.HasValue && ids.Contains(i.FolderId.Value), ct)
+            || await db.StoredFiles.AsNoTracking().AnyAsync(f => f.SchoolId == schoolId && ids.Contains(f.FolderId), ct)
             || await db.Set<StorageOperation>().AsNoTracking().AnyAsync(o => o.SchoolId == schoolId && o.FolderId.HasValue &&
                 ids.Contains(o.FolderId.Value) && o.Action != "CreateFolder", ct)
             || await db.VisitArchiveOperations.AsNoTracking().AnyAsync(o => o.SchoolId == schoolId && o.ArchiveFolderId.HasValue &&
@@ -73,6 +76,7 @@ public sealed class StorageSetupRepository(AlFalahDbContext db) : IStorageSetupR
             o.FolderId.HasValue && ids.Contains(o.FolderId.Value) && o.Action != "CreateFolder", ct);
         operations += await db.VisitArchiveOperations.AsNoTracking().CountAsync(o => o.SchoolId == schoolId &&
             o.ArchiveFolderId.HasValue && ids.Contains(o.ArchiveFolderId.Value), ct);
+        operations += await db.Set<AlFalah.Domain.Entities.Duty.DutyArchiveIntent>().CountAsync(i => i.SchoolId == schoolId && i.FolderId.HasValue && ids.Contains(i.FolderId.Value), ct);
         return new(ids.Count, files, operations);
     }
 
@@ -80,6 +84,7 @@ public sealed class StorageSetupRepository(AlFalahDbContext db) : IStorageSetupR
     {
         var ids = await DescendantIdsAsync(schoolId, folderId, ct);
         var rows = await db.StorageFolders.Where(f => f.SchoolId == schoolId && ids.Contains(f.Id) && f.IsActive).ToListAsync(ct);
+        if (rows.Any(f => f.Kind == StorageFolderKind.DutyArchive)) throw new UnauthorizedSchoolAccessException("Duty archive hierarchy is protected.");
         foreach (var row in rows)
         {
             row.IsActive = false;
@@ -95,6 +100,7 @@ public sealed class StorageSetupRepository(AlFalahDbContext db) : IStorageSetupR
 
     public async Task RebindFolderAsync(StorageFolder folder, string driveId, string itemId, string name, string actor, CancellationToken ct)
     {
+        if (folder.Kind == StorageFolderKind.DutyArchive) throw new UnauthorizedSchoolAccessException("Duty archive hierarchy is protected.");
         var oldItemId = folder.DriveItemId;
         folder.DriveId = driveId;
         folder.DriveItemId = itemId;

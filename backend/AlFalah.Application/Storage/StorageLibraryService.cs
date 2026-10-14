@@ -57,7 +57,7 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
     {
         var folder = id is null ? await RootAsync(teacher, ct) : await repository.FindFolderAsync(School, id.Value, ct)
             ?? throw new KeyNotFoundException("المجلد غير متاح.");
-        if (folder.Kind == StorageFolderKind.VisitArchive || folder.OwnerTeacherId != teacher?.Id) throw Denied();
+        if (folder.Kind is StorageFolderKind.VisitArchive or StorageFolderKind.DutyArchive || folder.OwnerTeacherId != teacher?.Id) throw Denied();
         var school = await SchoolRootAsync(ct);
         var rootFolder = await RootAsync(teacher, ct);
         var root = teacher?.Root ?? new StorageDriveRoot(rootFolder.DriveId, rootFolder.DriveItemId);
@@ -236,7 +236,7 @@ public sealed class StorageLibraryService(IStorageLibraryRepository repository, 
         var access = await authorization.RequireFileAsync(School, id, ct: ct, metadataOnly: true);
         if (own.HasValue && (own.Value
             ? access.OwnerTeacherId is null || access.OwnerUserId != user.UserId || access.SourceKind != StoredFileSourceKind.TeacherUpload
-            : access.OwnerTeacherId is not null || access.SourceKind == StoredFileSourceKind.VisitArchive)) throw Denied();
+            : access.OwnerTeacherId is not null || access.SourceKind is StoredFileSourceKind.VisitArchive or StoredFileSourceKind.DutyArchive)) throw Denied();
         if (academicYearId.HasValue)
         {
             var current = await repository.ContextAsync(School, ct);

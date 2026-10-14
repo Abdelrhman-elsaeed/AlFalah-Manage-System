@@ -42,6 +42,22 @@ public sealed class DutyArchiveIntent
     public int DocumentId { get; set; }
     public string State { get; set; } = "PendingD3";
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public string? OperationIdentity { get; set; }
+    public int? ArtifactId { get; set; }
+    public string? ProviderItemId { get; set; }
+    public string? DriveId { get; set; }
+    public string? SchoolRootItemId { get; set; }
+    public int? FolderId { get; set; }
+    public string? FolderItemId { get; set; }
+    public int? StoredFileVersionId { get; set; }
+    public Guid? LeaseToken { get; set; }
+    public DateTimeOffset? LeaseExpiresAt { get; set; }
+    public DateTimeOffset? NextAttemptAt { get; set; }
+    public DateTimeOffset? LastAttemptAt { get; set; }
+    public DateTimeOffset? VerifiedAt { get; set; }
+    public int Attempts { get; set; }
+    public string? ErrorCode { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 }
 
 public sealed class StudentDismissalLateness

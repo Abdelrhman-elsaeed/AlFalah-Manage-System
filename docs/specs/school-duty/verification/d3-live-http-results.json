@@ -1,0 +1,176 @@
+{
+  "verification": "Actual local HTTP/JWT/SQL/hosted internal worker and live browser documents; isolated synthetic guardians only; archive provider DOUBLE, no external delivery",
+  "checks": [
+    {
+      "step": "Actual SQL publication and two effective-date absence exchanges before substitute acknowledgement",
+      "status": 200
+    },
+    {
+      "step": "Own execution and unsigned preview",
+      "status": 200
+    },
+    {
+      "step": "Actual whole-school roster lookup",
+      "status": 200
+    },
+    {
+      "step": "Explicit actual-teacher saved signature acknowledgement",
+      "status": 200
+    },
+    {
+      "step": "Explicit fact and durable intent commit before report",
+      "status": 200
+    },
+    {
+      "step": "Lost-response fact confirmation replay",
+      "status": 200
+    },
+    {
+      "step": "Real hosted worker persisted dashboard notice and System message without report or human office hours",
+      "status": 200
+    },
+    {
+      "step": "Effective guardian dashboard content and deep link",
+      "status": 200
+    },
+    {
+      "step": "Dashboard read receipt",
+      "status": 200
+    },
+    {
+      "step": "Existing Messages inbox and unread thread",
+      "status": 200
+    },
+    {
+      "step": "System provenance in actual Messages projection",
+      "status": 200
+    },
+    {
+      "step": "Independent actual message read receipt",
+      "status": 200
+    },
+    {
+      "step": "Browser System-origin forgery rejected",
+      "status": 400
+    },
+    {
+      "step": "Manager fact names/counts before report submission",
+      "status": 200
+    },
+    {
+      "step": "Existing manager aggregate-only student-record authorization preserved",
+      "status": 403
+    },
+    {
+      "step": "Actual authorized student timeline before report submission",
+      "status": 200
+    },
+    {
+      "step": "Actual student profile count and retained timeline projection",
+      "status": 200
+    },
+    {
+      "step": "Manager cannot sign for teacher",
+      "status": 403
+    },
+    {
+      "step": "Actual server draft with timestamp",
+      "status": 200
+    },
+    {
+      "step": "Actual signed local report and D3 archive intent",
+      "status": 200
+    },
+    {
+      "step": "Signed submission lost-response replay",
+      "status": 200
+    },
+    {
+      "step": "Separate locally retained letter and report while external processing disabled",
+      "status": 200
+    },
+    {
+      "step": "Actual authenticated HTTP local PDF download and SQL byte hash equality",
+      "status": 200,
+      "sha256": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6"
+    },
+    {
+      "step": "Letter available independently from report archive progress",
+      "status": 200,
+      "sha256": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3"
+    },
+    {
+      "step": "External archive unavailable without false completion",
+      "status": 409
+    },
+    {
+      "step": "Teacher retry does not grant archive management",
+      "status": 403
+    },
+    {
+      "step": "Original absent teacher cannot read substitute signature/report",
+      "status": 403
+    },
+    {
+      "step": "Actual authorized school manager PDF read",
+      "status": 200,
+      "sha256": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6"
+    },
+    {
+      "step": "Manager retry blocked by disconnected/disabled readiness",
+      "status": 409
+    },
+    {
+      "step": "Process-disabled activation is rejected",
+      "status": 409
+    },
+    {
+      "step": "Final locked schedule context",
+      "status": 200
+    },
+    {
+      "step": "Schedule-only authenticated official roster export",
+      "status": 200,
+      "sha256": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1"
+    },
+    {
+      "step": "Stale roster revision rejected",
+      "status": 409
+    },
+    {
+      "step": "Actual SQL protected ledger with provider DOUBLE: two uploads, retained hash equality, no duplicate facts/notices/signatures; TestVerified only",
+      "status": 200,
+      "byteEvidence": [
+        {
+          "kind": "Letter",
+          "retainedHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+          "providerDoubleHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+          "ledgerHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+          "bytes": 56519,
+          "state": "TestVerified"
+        },
+        {
+          "kind": "Report",
+          "retainedHash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+          "providerDoubleHash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+          "ledgerHash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+          "bytes": 71280,
+          "state": "TestVerified"
+        }
+      ]
+    },
+    {
+      "step": "Local HTTP PDF unchanged after provider-double ledger completion",
+      "status": 200,
+      "sha256": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6"
+    },
+    {
+      "step": "Provider-double result remains unavailable as actual Drive delivery",
+      "status": 409
+    },
+    {
+      "step": "Actual browser authenticated PDF preview/download against live isolated HTTP/JWT/SQL",
+      "status": 200
+    }
+  ]
+}

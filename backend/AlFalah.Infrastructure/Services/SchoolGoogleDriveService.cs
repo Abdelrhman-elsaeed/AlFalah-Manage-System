@@ -96,7 +96,10 @@ public sealed class SchoolGoogleDriveService : ISchoolGoogleDriveService
         if (!request.IsEnabled || previousRoot != null &&
             (previousRoot != drive.RootFolderId || previousSharedDrive != drive.SharedDriveId ||
              previousType != drive.CredentialType || previousSchoolEmail != drive.SchoolGoogleEmail))
+        {
             drive.VisitArchiveEnabled = false;
+            drive.DutyArchiveEnabled = false;
+        }
 
         if (request.CredentialType == GoogleDriveCredentialType.ServiceAccount)
         {

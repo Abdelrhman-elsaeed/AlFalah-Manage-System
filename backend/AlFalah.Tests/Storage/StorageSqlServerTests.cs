@@ -57,13 +57,26 @@ public sealed class StorageSqlFixture : IAsyncLifetime
             !b.InitialCatalog.StartsWith("AlFalahS1Tests_", StringComparison.Ordinal) || !b.IntegratedSecurity)
             throw new InvalidOperationException("Storage SQL tests require an explicitly isolated LocalDB database.");
         Connection = b.ConnectionString;
+        // Reject an existing database before ANY migration, including the historical baseline.
+        var masterBuilder = new SqlConnectionStringBuilder(Connection) { InitialCatalog = "master" };
+        await using (var master = new SqlConnection(masterBuilder.ConnectionString))
+        {
+            await master.OpenAsync();
+            await using var check = master.CreateCommand();
+            check.CommandText = "SELECT COUNT(*) FROM sys.databases WHERE name=@name";
+            check.Parameters.AddWithValue("@name", b.InitialCatalog);
+            if (Convert.ToInt32(await check.ExecuteScalarAsync()) != 0)
+                throw new InvalidOperationException("Choose a fresh AlFalahS1Tests_* database; existing databases are rejected before migration.");
+        }
         await using var db = CreateContext();
         // Test databases are fresh; no reset/delete command ever targets an existing database.
         await db.GetService<IMigrator>().MigrateAsync("20260929185322_AddW8SocialWorkerCaseWorkflow");
         if (await db.TeacherEvidenceSubmissions.AnyAsync())
             throw new InvalidOperationException("Choose a fresh AlFalahS1Tests_* database for migration verification.");
-        db.Users.AddRange(new ApplicationUser { Id = TeacherDriveHarness.ManagerUserId, UserName = "manager" },
-            new ApplicationUser { Id = TeacherDriveHarness.TeacherAUserId, UserName = "teacher-a" });
+        // The historical baseline predates ProtectedPassword. Seed its actual columns,
+        // then exercise the current repositories only after additive migrations finish.
+        foreach (var id in new[] { TeacherDriveHarness.ManagerUserId, TeacherDriveHarness.TeacherAUserId })
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO Users (Id,UserName,FirstName,LastName,PreferredLanguage,IsActive,CreatedAt,UpdatedAt,EmailConfirmed,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEnabled,AccessFailedCount) VALUES ({id},{id},'Synthetic','Storage','ar',1,SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET(),0,0,0,0,0)");
         db.Roles.AddRange(new ApplicationRole { Id = "manager", Name = RoleNames.SchoolManager },
             new ApplicationRole { Id = "teacher", Name = RoleNames.Instructor });
         var school = new School { Name = "مدرسة اختبار", City = "الرياض", Stage = SchoolStage.Primary, ManagerUserId = TeacherDriveHarness.ManagerUserId };

@@ -1,0 +1,116 @@
+{
+  "verification": "Live isolated local HTTP/JWT/SQL document, execution and schedule APIs; unrelated app shell API fixtures; no external provider delivery",
+  "checks": [
+    {
+      "role": "Instructor",
+      "width": 390,
+      "authenticatedRequests": 10,
+      "hash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "expected": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "letterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "expectedLetterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "rosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "expectedRosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "External TestVerified status does not claim Drive archived"
+      ]
+    },
+    {
+      "role": "Instructor",
+      "width": 768,
+      "authenticatedRequests": 10,
+      "hash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "expected": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "letterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "expectedLetterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "rosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "expectedRosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "External TestVerified status does not claim Drive archived"
+      ]
+    },
+    {
+      "role": "Instructor",
+      "width": 1440,
+      "authenticatedRequests": 10,
+      "hash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "expected": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "letterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "expectedLetterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "rosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "expectedRosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "External TestVerified status does not claim Drive archived"
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 390,
+      "authenticatedRequests": 10,
+      "hash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "expected": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "letterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "expectedLetterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "rosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "expectedRosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "External TestVerified status does not claim Drive archived"
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 768,
+      "authenticatedRequests": 10,
+      "hash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "expected": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "letterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "expectedLetterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "rosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "expectedRosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "External TestVerified status does not claim Drive archived"
+      ]
+    },
+    {
+      "role": "SchoolManager",
+      "width": 1440,
+      "authenticatedRequests": 10,
+      "hash": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "expected": "F2BE23FAD2D4AFC7E854CE67A1C7520CE0B07CBDC66FB9664C847A5F5BCCC1D6",
+      "letterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "expectedLetterHash": "5F9F04BCBDDFF951ADD0D9DC2F0D6498E6C88180AEA8D9BCBF4DB63E1D14DAA3",
+      "rosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "expectedRosterHash": "4C362DAEC1ADA0A6239F8BCC7DA713C374BC6135EC7E994017F6BEA9F4E9ABF1",
+      "checks": [
+        "Actual HttpClient bearer requests to running isolated API",
+        "Real SQL signed letter/report artifacts",
+        "PDF.js rendered previews",
+        "Native browser letter/report/roster downloads and retained SHA256",
+        "External TestVerified status does not claim Drive archived"
+      ]
+    }
+  ],
+  "physicalKeyboard": "Pending physical device; headless browser keyboard tested",
+  "ownerVisualAcceptance": "Pending",
+  "errors": []
+}

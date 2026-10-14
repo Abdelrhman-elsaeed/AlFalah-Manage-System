@@ -19,6 +19,7 @@ namespace AlFalah.Infrastructure.Services;
 /// </summary>
 public sealed class GoogleDriveClient : IGoogleDriveClient
 {
+    public bool IsRealDelivery => true;
     /// <summary>Everything the UI and the ledger need from a file, in one round trip.</summary>
     private const string FileFields = "id,name,mimeType,size,modifiedTime,webViewLink,version,parents,trashed,appProperties,driveId,capabilities(canAddChildren),lastModifyingUser(displayName)";
 

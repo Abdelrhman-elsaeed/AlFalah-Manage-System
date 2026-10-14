@@ -36,7 +36,7 @@ public sealed class TeacherDriveFolderGuard
         if (_archives != null && items.Count != 0)
             excluded.UnionWith(await _archives.ProtectedProviderIdsAsync(schoolId, items.Select(i => i.Id).ToArray(), ct));
         foreach (var item in items)
-            if (item.AppProperties?.ContainsKey("visitId") == true && item.AppProperties.ContainsKey("approvalRevision")) excluded.Add(item.Id);
+            if (item.AppProperties?.ContainsKey("dutyDocumentId") == true || item.AppProperties?.ContainsKey("visitId") == true && item.AppProperties.ContainsKey("approvalRevision")) excluded.Add(item.Id);
         return excluded;
     }
 
@@ -59,7 +59,7 @@ public sealed class TeacherDriveFolderGuard
         // reachable through a direct request.
         if (item.Trashed) throw new TeacherDriveAccessDeniedException("لم يعد الملف أو المجلد موجوداً.");
         if (enforceArchivePolicy && (await ExcludedArchiveIdsAsync(mapping.SchoolId, [item], cancellationToken)).Contains(item.Id))
-            throw new TeacherDriveAccessDeniedException("التقرير محمي بمسار الزيارة المصرح.");
+            throw new TeacherDriveAccessDeniedException("المستند محمي بمسار الوصول المصرح.");
         if (string.Equals(item.Id, mapping.RootItemId, StringComparison.Ordinal)) return item;
 
         // Breadth-first over `parents` rather than following parents[0]: Drive permits an
@@ -80,6 +80,8 @@ public sealed class TeacherDriveFolderGuard
             // Stop climbing a branch we cannot read: it can never prove containment, and
             // beyond the granted root the school credential's view is irrelevant anyway.
             if (parent is null || parent.Trashed) continue;
+            if (enforceArchivePolicy && (await ExcludedArchiveIdsAsync(mapping.SchoolId,[parent],cancellationToken)).Contains(parent.Id))
+                throw new TeacherDriveAccessDeniedException("المجلد محمي بمسار المستند المصرح.");
             foreach (var grandParent in parent.Parents) queue.Enqueue(grandParent);
         }
 

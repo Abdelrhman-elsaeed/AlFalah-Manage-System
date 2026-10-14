@@ -22,7 +22,7 @@ public sealed class ReadinessRepository(AlFalahDbContext db) : IReadinessReposit
         if (pageIds != null) requirements = requirements.Where(r => pageIds.Contains(r.Id));
         var ids = requirements.Select(r => r.Id);
         var raw = db.EvidenceLinks.IgnoreQueryFilters().AsNoTracking().Where(l => l.SchoolId == school && l.AcademicYearId == f.AcademicYearId && l.IsActive &&
-            ids.Contains(l.RequirementId) && l.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive && l.StoredFile.SourceKind != StoredFileSourceKind.HistoricalImport);
+            ids.Contains(l.RequirementId) && l.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive && l.StoredFile.SourceKind != StoredFileSourceKind.DutyArchive && l.StoredFile.SourceKind != StoredFileSourceKind.HistoricalImport);
         var available = EvidenceLinkQueries.Eligible(db, school, f.AcademicYearId).Where(l => ids.Contains(l.RequirementId) && l.Version.Availability == StoredFileAvailability.Available && !denied.Contains(l.VersionId));
         var approved = EvidenceLinkQueries.Approved(db, school, f.AcademicYearId).Where(l => ids.Contains(l.RequirementId) && !denied.Contains(l.VersionId));
         var rawCounts = raw.GroupBy(l => l.RequirementId).Select(g => new { Id = g.Key, Count = (int?)g.Count() });

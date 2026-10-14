@@ -18,7 +18,7 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
     }
     private IQueryable<StoredFile> Files(int school) => db.StoredFiles.AsNoTracking().Where(x => x.SchoolId == school);
     private Expression<Func<StoredFile, bool>> Protected => f =>
-        f.SourceKind == StoredFileSourceKind.HistoricalImport || f.SourceKind == StoredFileSourceKind.VisitArchive ||
+        f.SourceKind == StoredFileSourceKind.HistoricalImport || f.SourceKind == StoredFileSourceKind.VisitArchive || f.SourceKind == StoredFileSourceKind.DutyArchive ||
         db.EvidenceReviewDecisions.Any(d => d.SchoolId == f.SchoolId && d.StoredFileId == f.Id && d.Decision == EvidenceReviewStatus.Approved) ||
         db.EvidenceLinks.Any(l => l.SchoolId == f.SchoolId && l.StoredFileId == f.Id && l.Status == EvidenceLinkStatus.Approved) ||
         db.TeacherEvidenceSubmissions.IgnoreQueryFilters().Any(s => s.Id == f.LegacySubmissionId && s.ReviewStatus == EvidenceReviewStatus.Approved) ||
@@ -66,7 +66,7 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
     public async Task<StoragePage<StorageFolderReadRow>> FoldersAsync(int schoolId, int? owner, int? parent, int page, int pageSize, CancellationToken ct)
     {
         var q = db.StorageFolders.AsNoTracking().Where(x => x.SchoolId == schoolId && x.IsActive &&
-            x.OwnerTeacherId == owner && x.ParentFolderId == parent && x.Kind != StorageFolderKind.VisitArchive);
+            x.OwnerTeacherId == owner && x.ParentFolderId == parent && x.Kind != StorageFolderKind.VisitArchive && x.Kind != StorageFolderKind.DutyArchive);
         var total = await q.CountAsync(ct);
         var rows = await q.OrderBy(x => x.DisplayName).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize)
             .Select(x => new { x.Id, x.ParentFolderId, x.DisplayName, x.Kind, x.RowVersion, x.DriveItemId }).ToListAsync(ct);
@@ -76,7 +76,7 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
 
     public async Task<StoragePage<StorageReadRow>> FilesAsync(int schoolId, int? owner, StorageListRequest request, CancellationToken ct)
     {
-        var q = Files(schoolId).Where(x => x.SourceKind != StoredFileSourceKind.VisitArchive &&
+        var q = Files(schoolId).Where(x => x.SourceKind != StoredFileSourceKind.VisitArchive && x.SourceKind != StoredFileSourceKind.DutyArchive &&
             (owner == null ? x.OwnerTeacherId == null : x.OwnerTeacherId == owner) &&
             (request.Global || x.FolderId == request.FolderId) &&
             (request.Search == null || x.DisplayName.Contains(request.Search)));
@@ -249,6 +249,7 @@ public sealed class StorageLibraryRepository(AlFalahDbContext db) : IStorageLibr
         var ids = children.Select(x => x.Id).ToList();
         var archiveIds = (await VisitArchiveRepository.ProtectedProviderIdsQuery(db, ids).ToListAsync(ct)).ToHashSet(StringComparer.Ordinal);
         children.RemoveAll(x => archiveIds.Contains(x.Id) ||
+            x.AppProperties?.ContainsKey("dutyDocumentId") == true ||
             x.AppProperties?.ContainsKey("visitId") == true && x.AppProperties.ContainsKey("approvalRevision"));
         ids = children.Select(x => x.Id).ToList();
         var folders = await db.StorageFolders.AsTracking().Where(x => x.SchoolId == parent.SchoolId && ids.Contains(x.DriveItemId)).ToListAsync(ct);

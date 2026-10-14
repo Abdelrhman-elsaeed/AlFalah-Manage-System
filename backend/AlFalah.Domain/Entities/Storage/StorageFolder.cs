@@ -9,6 +9,8 @@ public sealed class StorageFolder : IStorageRecord
     public int? ParentFolderId { get; set; }
     public int? OwnerTeacherId { get; set; }
     public StorageFolderKind Kind { get; set; }
+    public string? DutyIdentity { get; set; }
+    public bool DutyProvisioned { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public string DriveId { get; set; } = string.Empty;
     public string DriveItemId { get; set; } = string.Empty;

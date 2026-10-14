@@ -1,6 +1,6 @@
 # Specification — School Dismissal Duty
 
-**Status:** D1/D2 implemented under explicit owner authorization; C1–C17 confirmed. [D2 verification](verification/d2.md) covers signatures/report/mobile picker/shared lateness/System communication. D3 official PDFs/archive remain unimplemented; final client visual acceptance pending.
+**Status:** D1/D2 implemented under explicit owner authorization; C1–C17 confirmed. [D2 verification](verification/d2.md) covers signatures/report/mobile picker/shared lateness/System communication. D3 official PDFs/protected archive/recovery are implemented; [D3 verification](verification/d3.md) records independent evidence and pending external Drive/owner/physical acceptance.
 **Feature label:** `المناوبة`. **Administrative owner in v1:** School Manager.
 
 ## Purpose and boundaries
@@ -152,3 +152,11 @@ The feature is complete after D1–D3 pass business/security/failure verificatio
 ## D2 acceptance record
 
 Delivered D2 covers the execution portions of AC-07, AC-09-13, AC-16, AC-20-26 and AC-28-30, with the source-data mapping portion of AC-27. Read [verification/d2.md](verification/d2.md) for real SQL/HTTP evidence, independently mocked browser presentation and baseline limitations. AC-11's actual paginated PDF, AC-14-15's external archive/PDF behavior and AC-27's rendered official-source comparison remain D3. Local submission does not claim PDF/archive completion or final client visual acceptance. Operational migration/real-parent testing/deployment were not performed.
+
+## D3 implemented contract and acceptance evidence - 2026-10-13
+
+The submitted D3 request authorizes C1-C17 and the approved hierarchy. All official form sections, columns and signature ownership are implemented from the inspected originals, with actual Arabic shaping, licensed embedded fonts and composed continuation pages. Signed letters/reports use immutable D2 snapshots and actual author's frozen signature; unavailable historical branding remains unavailable. Frozen PDF bytes/hash/provenance and renderer version survive profile/fact changes and retained correction/re-signature. Roster export freezes a plan revision and creates no archive obligation.
+
+Genuine protected duty folder/source identities and scoped ledger versions implement the two-file hierarchy. Durable operation identity, reserved provider IDs, leases, bounded retry/reconciliation and verified completion preserve uncertain writes and SQL rollback. Readiness disabled/disconnected preserves local signed access; managers may retry the missing result without storage administration or repeated facts/notices. Actual-author/current-school or authorized-manager checks apply to every revision; emergency replacement keeps displaced signatures in history.
+
+[D3 verification](verification/d3.md) records AC-09-10, AC-13-20 and AC-27 evidence, the complete publication/absence/substitute/lateness/internal-message/report/document journey, source-to-output comparisons and isolation/recovery checks. Independent local implementation acceptance is delivered; actual external Drive, final owner visual and physical-device acceptance remain pending. No later feature or operational rollout is authorized by these results.

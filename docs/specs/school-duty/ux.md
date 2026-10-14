@@ -1,6 +1,6 @@
 # UX — Manager Workspace and Teacher Mobile Flow
 
-**Status:** D1 manager and teacher schedule surfaces implemented and rendered at 390px, 768px and 1440px. See [D1 verification](verification/d1.md) and retained captures. Final client visual acceptance is pending owner review. D2 execution/picker/guardian/statistics/history surfaces are implemented; see [D2 evidence](verification/d2.md). D3 official PDFs/archive are not implemented.
+**Status:** D1 manager and teacher schedule surfaces implemented and rendered at 390px, 768px and 1440px. See [D1 verification](verification/d1.md) and retained captures. Final client visual acceptance is pending owner review. D2 execution/picker/guardian/statistics/history surfaces are implemented; see [D2 evidence](verification/d2.md). D3 official PDF previews/downloads/history and archive states are implemented and rendered; see [D3 evidence](verification/d3.md), with external Drive/owner/physical acceptance pending.
 
 The experience should feel like a polished part of Al-Falah: clear Arabic hierarchy, generous spacing, restrained green/gold emphasis and excellent mobile execution. The official paper format belongs in the PDF preview; everyday work uses responsive controls.
 
@@ -93,3 +93,11 @@ D2 uses a focused green/gold own-duty hero and letter/report/review sequence, so
 Guardian notices render student/date/content and link to the actual System conversation; each surface has its own read behavior. Existing Messages renders System provenance without a human composer on its closed notice thread. Manager overview adds a dismissal metric and focused names/filter drill-down. Student profiles add a separate dismissal metric/timeline filter, preserving existing routes/permissions and morning-delay presentation.
 
 Actual Angular screens at 390/768/1440 are captured in [D2 verification](verification/d2.md). Refinement covered Arabic long names, white hero contrast, shared select sizing, 44px controls, reduced motion, overflow, fixed phone actions and failure/conflict/correction/signature states. API responses in the rendered harness are mocked synthetic fixtures; internal delivery is proven separately by real HTTP/SQL. Physical OS keyboard/assistive-technology and final client visual acceptance remain pending owner review.
+
+## D3 implemented document experience - 2026-10-13
+
+Own-duty and manager execution show independent letter/report cards near the top after submission or when reviewing signed history. The Arabic/English green/gold design uses existing typography/tokens, generous spacing, frozen author/date labels and clear signed success separate from archive progress. A replacement's current cards do not imply that a displaced teacher signed for them; retained history remains accessible only to the actual author/current school or authorized manager.
+
+PDF.js canvas previews render actual immutable pages with contained scroll, zoom, native authenticated download and separate retained revisions/correction reasons. Loading, empty, preparing, pending, setup unavailable/disconnected, delivering, failure/retry, verified archived, missing artifact and denied access have readable next actions. The interface describes availability rather than provider IDs/leases. A test provider never displays actual archived success. Background authorization failure clears sensitive document UI; stale async responses and duplicate actions are guarded. Server drafts and student-picker context remain intact.
+
+Dialogs use accessible labels, visible focus, Escape/focus return, 44px actions, readable contrast and reduced-motion support. Real rendered screens and authenticated downloads were exercised at 390/768/1440; principal captures, mocked versus live boundaries and actual hash equality are in [D3 verification](verification/d3.md). Browser keyboard checks and viewport simulation do not replace physical-device/OS keyboard acceptance. Final owner visual review remains pending.

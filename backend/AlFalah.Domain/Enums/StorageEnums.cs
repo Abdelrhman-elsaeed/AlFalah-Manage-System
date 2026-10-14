@@ -1,7 +1,7 @@
 namespace AlFalah.Domain.Enums;
 
-public enum StorageFolderKind { Teacher = 1, SchoolLibrary = 2, VisitArchive = 3 }
-public enum StoredFileSourceKind { TeacherUpload = 1, SchoolUpload = 2, VisitArchive = 3, HistoricalImport = 4 }
+public enum StorageFolderKind { Teacher = 1, SchoolLibrary = 2, VisitArchive = 3, DutyArchive = 4 }
+public enum StoredFileSourceKind { TeacherUpload = 1, SchoolUpload = 2, VisitArchive = 3, HistoricalImport = 4, DutyArchive = 5 }
 public enum StoredFileAvailability { Unverified = 1, Available = 2, Missing = 3, Deleted = 4, UploadIncomplete = 5 }
 public enum EvidenceLinkStatus { Draft = 1, PendingReview = 2, Approved = 3, Rejected = 4, Resubmitted = 5 }
 public enum EvidenceFulfillmentPolicy { AnyApprovedLink = 1, MinimumApprovedLinks = 2 }

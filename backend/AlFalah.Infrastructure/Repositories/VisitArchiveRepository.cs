@@ -135,10 +135,11 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
         // move must not turn another school's archive into an ordinary teacher file.
         // No archive record, school identity or content is disclosed by this lookup.
         var versions = db.StoredFileVersions.AsNoTracking().Where(v => itemIds.Contains(v.DriveItemId) &&
-            db.StoredFiles.IgnoreQueryFilters().Any(f => f.Id == v.StoredFileId && f.SourceKind == StoredFileSourceKind.VisitArchive)).Select(v => v.DriveItemId);
+            db.StoredFiles.IgnoreQueryFilters().Any(f => f.Id == v.StoredFileId && (f.SourceKind == StoredFileSourceKind.VisitArchive || f.SourceKind == StoredFileSourceKind.DutyArchive))).Select(v => v.DriveItemId);
         var reserved = db.Set<VisitArchiveOperation>().AsNoTracking().Where(o => o.ProviderItemId != null && itemIds.Contains(o.ProviderItemId)).Select(o => o.ProviderItemId!);
-        var folders = db.StorageFolders.AsNoTracking().Where(f => f.Kind == StorageFolderKind.VisitArchive && itemIds.Contains(f.DriveItemId)).Select(f => f.DriveItemId);
-        return versions.Union(reserved).Union(folders);
+        var dutyReserved = db.Set<AlFalah.Domain.Entities.Duty.DutyArchiveIntent>().AsNoTracking().Where(o=>o.ProviderItemId!=null&&itemIds.Contains(o.ProviderItemId)).Select(o=>o.ProviderItemId!);
+        var folders = db.StorageFolders.AsNoTracking().Where(f => (f.Kind == StorageFolderKind.VisitArchive || f.Kind == StorageFolderKind.DutyArchive) && itemIds.Contains(f.DriveItemId)).Select(f => f.DriveItemId);
+        return versions.Union(reserved).Union(dutyReserved).Union(folders);
     }
 
     // Session-owned SQL application lock survives lease expiry during an in-flight upload.

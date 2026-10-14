@@ -158,6 +158,13 @@ public static class DependencyInjection
         services.AddScoped<AlFalah.Application.Duty.IDutyExecutionRepository, DutyExecutionRepository>();
         services.AddScoped<AlFalah.Application.Duty.IDutyExecutionService, AlFalah.Application.Duty.DutyExecutionService>();
         services.AddScoped<AlFalah.Application.Duty.IDutyDocumentAssets, DutyDocumentAssets>();
+        services.Configure<AlFalah.Application.Duty.DutyArchiveOptions>(configuration.GetSection(AlFalah.Application.Duty.DutyArchiveOptions.Section));
+        services.AddScoped<AlFalah.Application.Duty.IDutyDocumentRepository, DutyDocumentRepository>();
+        services.AddScoped<AlFalah.Application.Duty.IDutyPdfRenderer, DutyPdfRenderer>();
+        services.AddScoped<AlFalah.Application.Duty.DutyArchiveDriveService>();
+        services.AddScoped<AlFalah.Application.Duty.IDutyDocumentService, AlFalah.Application.Duty.DutyDocumentService>();
+        services.AddScoped<AlFalah.Application.Duty.DutyArchiveProcessor>();
+        services.AddHostedService<DutyArchiveWorker>();
         services.AddScoped<AlFalah.Application.Duty.DutyNoticeProcessor>();
         services.AddHostedService<DutyNoticeWorker>();
         services.AddHostedService<DutyReconciliationWorker>();

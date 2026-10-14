@@ -1,6 +1,6 @@
 # Research — Client Evidence and Existing Application
 
-**Reviewed:** 2026-10-13. The original research below is a historical static baseline. D1 and [D2 implementation/verification](verification/d2.md) now address the relevant seams. Original gap descriptions below are preserved as research history; they do not describe the current implemented D2 surface or establish D3/Google delivery.
+**Reviewed:** 2026-10-13. The original research below is a historical static baseline. D1, [D2](verification/d2.md) and [D3](verification/d3.md) implementation now address the relevant seams. Original gap descriptions below are preserved as research history; they do not describe the current implemented surface or establish actual external Drive delivery.
 
 ## Source inventory
 
@@ -102,3 +102,11 @@ Reopened actual originals before editing, especially report `4.jpeg` and letter 
 Replaced the real `GetStudentTimelineAsync` empty seam with retained dismissal revision projection and added the same facts to the actual analytics profile. Extended existing manager operations/overview rather than creating a replacement dashboard. Existing student-record authorization remains intact.
 
 Current messaging now has a narrow System origin with null human sender, trusted correlation and recipient-only SystemNotice threads; no login account impersonation. Hosted worker dispatch is independently verified through actual synthetic SQL/HTTP, including both surfaces and independent reads. Browser captures use mocked synthetic APIs and prove rendering/request behavior only. See [D2 verification](verification/d2.md) for implemented file boundaries, migration/refinements, regressions, real versus mocked results and limitations. D3 remains unstarted.
+
+## D3 implementation findings - 2026-10-13
+
+Reopened original roster/report/letter images and matched the recorded fingerprints before template composition. The report needs five original-duty columns, a substitute identity span plus its own signature/notes, separate six-column student categories, seven short-form numbered rows, observations and next-day handover. The last departure is adjacent to handover rather than replacing a source section. The letter keeps its last-student obligation and distinct manager/teacher positions; roster closure/exam rows do not manufacture attendance or signatures.
+
+Existing QuestPDF/Amiri infrastructure supports Arabic shaping and embedded licensed fonts. The final renderer freezes bytes/provenance on the D2 document seam. Longer reports repeat table headers; the paired RTL roster keeps whole week groups with readable continuation pages. Independent Poppler rasterization and actual PDF.js previews were used for final visual inspection; source samples/signatures remain outside the repository. See [source/output evidence](verification/d3.md).
+
+Narrow storage seams reuse IStorageProvider/GoogleDriveClient, trusted root metadata, reserved provider IDs and StoredFile/Version ledger. Dedicated duty kinds and SQL protection prevent evidence/visit impersonation and new/legacy bypasses. Fresh SQL tests establish trigger/constraint, race/lease and rollback behavior independently of provider doubles; actual Drive uncertainty verification still requires the designated synthetic external destination. No operational settings or unrelated workers were enabled.

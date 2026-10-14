@@ -48,3 +48,11 @@ The term roster follows `1.jpeg`: heading/year/term, week groupings, day/date/na
 ## D2 source review completed
 
 Original report/letter images were opened before implementation. D2 stores all source sections and identity/signature mappings, with the confirmed last-departure addition and no seven-row business limit. Original private source images/handwriting were preserved outside the repository. [D2 verification](verification/d2.md) maps fields to data/snapshots and retains rendered mobile/tablet/desktop evidence. This completes the D2 data/UI reference gate only; actual official PDF/source comparisons and archive byte verification remain mandatory in D3.
+
+## D3 source/output review - 2026-10-13
+
+The original 1.jpeg, 4.jpeg and 5.jpeg were reopened, their recorded fingerprints checked and their content visually inspected before renderer design. Upright temporary report/letter copies were kept outside the repository. No private sample images, historical identities or source signatures became runtime assets.
+
+[D3 verification](verification/d3.md#actual-source-to-output-inspection) maps each source section/column/signature position to actual generated output. Nine synthetic PDFs/fifteen pages retain original/substitute, explicit empties, more than seven entries, long observations, last departure, frozen unavailable branding and retained corrections. All pages of the representative three-page report and five-page roster were visually inspected. Licensed embedded Amiri provides Arabic shaping; canonical school Gregorian dates and frozen school-local times replace sample historical dates.
+
+The long-name eighteen-week roster uses paired complete week groups over five readable pages, preserving source organization with continuation pages rather than compressing long names into the source's dense single page. No roster completion/signatures are invented. Final page PNGs/font/hash inventory and native mocked/live-local browser download evidence are retained. Provider-double hash equality is not real Drive delivery; owner visual acceptance remains pending. See D-110 for this pagination choice and remaining gates.

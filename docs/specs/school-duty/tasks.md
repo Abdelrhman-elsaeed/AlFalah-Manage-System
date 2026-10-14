@@ -1,6 +1,6 @@
 # Tasks — Three Implementation Phases
 
-**Status:** D1 implementation delivered (2026-10-13); verification evidence and known baseline limitations are in `verification/d1.md`. Final owner visual acceptance is pending. D2 implementation delivered; see `verification/d2.md`. D3 remains unstarted.
+**Status:** D1 implementation delivered (2026-10-13); verification evidence and known baseline limitations are in `verification/d1.md`. Final owner visual acceptance is pending. D2 implementation delivered; see `verification/d2.md`. D3 implementation and independent local verification are delivered; external Drive, owner visual and physical-device acceptance remain pending. See `verification/d3.md`.
 
 ## Before D1
 
@@ -75,17 +75,23 @@ Use workflow/backend tests plus focused desktop/mobile browser journeys with rea
 
 **Outcome:** Letter acknowledgement and report submission produce retained official PDFs in the duty archive, with recoverable external delivery and protected access.
 
-- [ ] Implement official roster, letter and report renderers with source field fidelity, original/substitute identities, frozen assets, school headers, last departure and multi-page tables.
-- [ ] Reopen originals in `C:\Users\abdelrhman\Desktop\المناوبة\New folder`; use [references.md](references.md) to verify exact daily-report division/section/column order (`4.jpeg`), letter (`5.jpeg`) and roster (`1.jpeg`). Retain actual source/output visual comparison evidence; no generic replacement report.
-- [ ] Add duty archive folder/source identities and protection across new and legacy listing/download/mutation boundaries.
-- [ ] Provision the reviewed school/year/term/teacher/date hierarchy using stable identities and duplicate-name handling.
-- [ ] Implement durable processor, ID reservation, leases/retry/reconciliation, immutable artifact/version links and per-school readiness.
-- [ ] Add archive statuses, own/manager authenticated PDF reads and duty-manager retry; preserve submitted success during storage failure.
-- [ ] Verify actual generated PDFs visually and compare archived byte hashes with generated output.
-- [ ] Inject disconnected Drive, denied destination, uncertain upload response, SQL failure after upload, worker restart/race, renamed/moved external artifact and same-name teacher cases.
-- [ ] Validate migrations on isolated SQL, meaningful relevant backend/frontend checks and existing timetable/attendance/storage regressions.
-- [ ] Demonstrate real configured-school write/read/retry behavior when authorized and available; distinguish live results from fakes/mocks.
-- [ ] Review manager and teacher UI with the owner, record acceptance/limits and publish activation/rollback instructions.
+- [x] Prepare the [English D3-only implementation handoff](prompts/d3-implementation.md), carrying D1/D2 contracts, exact PDF/source and premium UI gates, protected archive recovery, isolated verification and explicit provider/rollout boundaries (documentation only, 2026-10-13; runtime unstarted).
+- [x] Implement official roster, letter and report renderers with source field fidelity, original/substitute identities, frozen assets, school headers, last departure and multi-page tables.
+- [x] Reopen originals in `C:\Users\abdelrhman\Desktop\المناوبة\New folder`; use [references.md](references.md) to verify exact daily-report division/section/column order (`4.jpeg`), letter (`5.jpeg`) and roster (`1.jpeg`). Retain actual source/output visual comparison evidence; no generic replacement report.
+- [x] Add duty archive folder/source identities and protection across new and legacy listing/download/mutation boundaries.
+- [x] Provision the reviewed school/year/term/teacher/date hierarchy using stable identities and duplicate-name handling.
+- [x] Implement durable processor, ID reservation, leases/retry/reconciliation, immutable artifact/version links and per-school readiness.
+- [x] Add archive statuses, own/manager authenticated PDF reads and duty-manager retry; preserve submitted success during storage failure.
+- [x] Verify actual generated PDFs visually and compare generated/local/downloaded/provider-double byte hashes. Real Drive byte equality remains part of the external gate below.
+- [x] Inject disconnected Drive, denied destination, uncertain upload response, SQL failure after upload, worker restart/race, renamed/moved external artifact and same-name teacher cases.
+- [x] Validate migrations on isolated SQL, meaningful relevant backend/frontend checks and existing timetable/attendance/storage regressions.
+- [ ] Demonstrate live external provider write/read/retry in the explicitly designated synthetic destination with isolated SQL; distinguish live results from fakes/mocks.
+- [ ] Final owner/client visual acceptance and physical-device keyboard review (pending).
+
+- [x] Publish per-school readiness, safe activation and non-destructive rollback instructions; preserve snapshots/facts/artifacts/history.
+- [x] Update feature/project documentation, phase tracker and D-110; stop after D3.
+
+**Verification:** [D3 delivery report](verification/d3.md): 21 D3 SQL, 96 focused Angular and 37 actual local HTTP checks; 15 PDF pages and rendered 390/768/1440 evidence. Expanded backend results, provider doubles versus real local communication, known baseline failures and external/owner/physical gates are explicit. No operational migration/activation or real Drive delivery is claimed.
 
 **Acceptance:** AC-09–10, AC-13–20 and AC-27, plus complete end-to-end: publish → staff absence → date exchange → substitute acknowledgement → selected student → confirmed dismissal lateness → guardian notice/student history/manager statistics → report submit → archive → protected download. No duplicate documents/notices, overwritten signature, unprotected access or fabricated completion/delivery. Distinguish actual notification-channel results from mocks.
 

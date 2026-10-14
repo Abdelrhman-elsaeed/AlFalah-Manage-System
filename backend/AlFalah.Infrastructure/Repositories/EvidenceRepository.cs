@@ -53,7 +53,7 @@ public sealed class EvidenceRepository(AlFalahDbContext db) : IEvidenceRepositor
         await Links(school).AsTracking().Where(x => x.StoredFileId == file).OrderBy(x => x.Id).ToListAsync(ct);
     public async Task<StoragePage<int>> LinkIdsAsync(int school, EvidenceQueueRequest r, CancellationToken ct)
     {
-        var q = Links(school).AsNoTracking().Where(x => x.IsActive && x.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive && x.StoredFile.SourceKind != StoredFileSourceKind.HistoricalImport && x.AcademicYearId == r.AcademicYearId &&
+        var q = Links(school).AsNoTracking().Where(x => x.IsActive && x.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive && x.StoredFile.SourceKind != StoredFileSourceKind.DutyArchive && x.StoredFile.SourceKind != StoredFileSourceKind.HistoricalImport && x.AcademicYearId == r.AcademicYearId &&
             (r.RequirementId == null || x.RequirementId == r.RequirementId) && (r.TeacherId == null || x.TeacherId == r.TeacherId) &&
             (r.StandardCode == null || x.Requirement.StandardCode == r.StandardCode) &&
             (r.Decided ? x.Status == EvidenceLinkStatus.Approved || x.Status == EvidenceLinkStatus.Rejected :
@@ -101,7 +101,7 @@ public sealed class EvidenceRepository(AlFalahDbContext db) : IEvidenceRepositor
         var q = from c in db.Set<FileChangeRequest>().AsNoTracking()
                 join f in db.StoredFiles.IgnoreQueryFilters().AsNoTracking() on c.StoredFileId equals f.Id
                 where c.SchoolId == school && f.SchoolId == school && (status == null || c.Status == status) &&
-                    f.SourceKind != StoredFileSourceKind.VisitArchive && f.SourceKind != StoredFileSourceKind.HistoricalImport &&
+                    f.SourceKind != StoredFileSourceKind.VisitArchive && f.SourceKind != StoredFileSourceKind.DutyArchive && f.SourceKind != StoredFileSourceKind.HistoricalImport &&
                     (!db.EvidenceLinks.Any(l => l.StoredFileId == f.Id) || db.EvidenceLinks.Any(l => l.StoredFileId == f.Id && l.AcademicYearId == year))
                 select new { ChangeId = c.Id, FileId = f.Id, f.DisplayName, c.Kind, c.Status, c.Reason };
         var total = await q.CountAsync(ct);
@@ -143,7 +143,7 @@ public sealed class EvidenceRepository(AlFalahDbContext db) : IEvidenceRepositor
         var fulfilled = await (from r in requirements join g in grouped on r.Id equals g.Id
             where g.Count >= (r.FulfillmentPolicy == EvidenceFulfillmentPolicy.AnyApprovedLink ? 1 : r.MinimumApprovedLinks) select r.Id).CountAsync(ct);
         var files = db.StoredFiles.Where(x => x.SchoolId == school && (owner == null || x.OwnerTeacherId == owner) &&
-            x.SourceKind != StoredFileSourceKind.VisitArchive && x.SourceKind != StoredFileSourceKind.HistoricalImport &&
+            x.SourceKind != StoredFileSourceKind.VisitArchive && x.SourceKind != StoredFileSourceKind.DutyArchive && x.SourceKind != StoredFileSourceKind.HistoricalImport &&
             db.StoredFileVersions.Any(v => v.Id == x.CurrentVersionId && v.Availability == StoredFileAvailability.Available &&
                 db.SchoolGoogleDrives.Any(s => s.SchoolId == school && s.IsEnabled && (s.SharedDriveId ?? "") == v.DriveId)) &&
             (x.OwnerTeacherId == null || db.TeacherDriveFolders.Any(g => g.TeacherId == x.OwnerTeacherId && g.SchoolId == school && g.IsActive) &&

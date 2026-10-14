@@ -25,5 +25,6 @@
     <ProjectReference Include="..\AlFalah.Infrastructure\AlFalah.Infrastructure.csproj" />
     <ProjectReference Include="..\AlFalah.Api\AlFalah.Api.csproj" />
   </ItemGroup>
+  <ItemGroup><Content Include="TestAssets\Duty\*.png" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 
 </Project>

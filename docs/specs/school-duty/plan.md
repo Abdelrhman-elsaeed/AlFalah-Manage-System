@@ -1,6 +1,6 @@
 # Technical Plan — School Duty
 
-**Status:** D1/D2 implemented and verified; [D2 delivery](verification/d2.md) records the implemented contracts and refinements below. D3 is unimplemented. The owner-confirmed [dismissal-lateness amendment](dismissal-lateness.md) and [source references](references.md) govern D2 data/UI and future D3 PDFs.
+**Status:** D1–D3 implemented and independently verified; [D3 delivery](verification/d3.md) records final contracts, evidence and pending external/owner/physical acceptance. The owner-confirmed [dismissal-lateness amendment](dismissal-lateness.md) and [source references](references.md) govern implemented data/UI and official PDFs. Earlier phase-only implementation notes below are historical.
 **Architecture:** Existing modular monolith; .NET 8, Angular, SQL Server/EF Core, current PDF and Drive infrastructure.
 
 ## Integration boundaries
@@ -161,3 +161,17 @@ The provisional acknowledgement/report/revision/line outline is implemented as o
 Manager statistics query active facts, and real student timeline/profile projections query retained revisions. Full-record authorization is preserved, including the manager aggregate-only boundary. Roster search projects only active term enrollment identity/name/class/number/grade. Draft concurrency, signing ownership, school-local timing, explicit empty categories and reasoned correction/re-signature are validated server-side. Existing D1 reconciliation/regeneration respects execution activity locks.
 
 Additive migration `20261013135411_AddSchoolDutyD2` is verified only on fresh guarded synthetic SQL databases. Previous-document pointers use scalar EF FKs plus SQL scope triggers to avoid a composite metadata cycle. Embedded/local branding bytes are frozen; unavailable/remote logo state is recorded without network fetches. See D-108 and [verification](verification/d2.md). Stop after D2; archive processors/PDFs/storage operations remain D3.
+
+## D3 authorization and implementation status — 2026-10-13
+
+The owner explicitly authorized D3 through prompts/d3-implementation.md, including C1–C17 and the reviewed archive hierarchy. D3 implementation and independent isolated verification are delivered; see [verification/d3.md](verification/d3.md). Historical D1/D2-only authorization is superseded for this phase. Operational migration, production deployment, external archive writes outside a designated synthetic destination, and later features remain outside this authorization. External Drive verification, owner visual acceptance and physical-device review remain pending.
+
+## D3 implemented seams
+
+`DutyDocumentService` owns current-school/actual-author/manager access, integrity validation, immutable preparation, roster revision binding and duty-specific readiness/retry. `DutyArchiveProcessor` and `DutyArchiveDriveService` own delivery decisions, uncertainty reconciliation and trusted hierarchy validation. Scoped `DutyDocumentRepository` owns SQL leases, session/ledger locks and persistence; `DutyPdfRenderer` owns QuestPDF composition. Thin file/JSON controllers retain existing response conventions. D2 submission/signature/internal-notice transactions are unchanged.
+
+`DutyPdfArtifact` freezes PDF bytes/hash, renderer version and provenance. Existing signed documents and archive intents carry the durable operation/reservation/lease/version links; no alternate signing system or roster archive obligation is added. Genuine DutyArchive folder/source kinds have scoped FKs, filtered unique indexes and immutability/protection triggers. Two logical letter/report files retain immutable signed correction versions. Existing provider/streaming abstractions are reused through narrow real-delivery and protected-ID seams.
+
+API routes are under `/api/v1/school-duty`: assignment document list, signed-document local/archived PDF, revision-bound roster PDF, duty-manager retry and enablement; readiness is returned with the document collection/enablement result. Local PDF reads survive disabled/disconnected storage. Global processing and per-school enablement default false. Pending D2 intents may prepare local artifacts without external writes; a letter is independent of its report. Completion requires verified provider output plus ledger commit; non-network providers produce TestVerified only.
+
+The additive D3 migration was verified on fresh guarded LocalDB, including a twice-applied idempotent D2-to-D3 script and sentinel preservation. No operational migration occurred. Rollback disables new external processing and retains all snapshots/facts/artifacts/reservations/history; destructive Down is rejected. Reproducible commands, source/PDF comparisons, actual check totals and safe activation gates are in D3 verification. Stop after D3.

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = resolve(root, 'dist/al-falah-app/browser');
-const evidence = resolve(root, '../docs/specs/school-duty/verification/screens');
+const evidence = (process.env.ALFALAH_DUTY_BROWSER_EVIDENCE ? resolve(process.env.ALFALAH_DUTY_BROWSER_EVIDENCE) : resolve(root, '../docs/specs/school-duty/verification/screens'));
 mkdirSync(evidence,{recursive:true});
 const mime={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.woff2':'font/woff2','.png':'image/png','.svg':'image/svg+xml'};
 const server=createServer((req,res)=>{let path=resolve(dist,decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/, '')||'index.html');if(!path.startsWith(dist)){res.writeHead(403);return res.end();}if(!existsSync(path))path=resolve(dist,'index.html');res.writeHead(200,{'Content-Type':mime[extname(path)]||'application/octet-stream'});res.end(readFileSync(path));});

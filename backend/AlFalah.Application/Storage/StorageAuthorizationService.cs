@@ -85,7 +85,7 @@ public sealed class StorageAuthorizationService(
         else
         {
             // Visit report visibility needs the independent visit policy added in S5.
-            if (file.SourceKind == StoredFileSourceKind.VisitArchive) throw Denied();
+            if (file.SourceKind is StoredFileSourceKind.VisitArchive or StoredFileSourceKind.DutyArchive) throw Denied();
             await RequireSchoolPermissionAsync(schoolId, mutation ? PermissionNames.StorageManageSchool : PermissionNames.StorageViewSchool, ct);
             root = await repository.GetSchoolDriveRootAsync(schoolId, ct);
         }

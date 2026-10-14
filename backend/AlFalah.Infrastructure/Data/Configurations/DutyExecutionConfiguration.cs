@@ -44,6 +44,15 @@ public sealed class DutyExecutionConfiguration : IEntityTypeConfiguration<DutyRe
         Scope(b, "DutyArchiveIntents"); b.Property(x => x.State).HasMaxLength(40); b.HasIndex(x => x.DocumentId).IsUnique();
         b.HasOne<DutySignedDocument>().WithMany().HasForeignKey(x => new { x.SchoolId, x.DocumentId })
             .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.NoAction);
+        b.ToTable("DutyArchiveIntents", t => t.UseSqlOutputClause(false));
+        b.Property(x => x.RowVersion).IsRowVersion(); b.Property(x => x.OperationIdentity).HasMaxLength(200);
+        b.HasIndex(x => x.OperationIdentity).IsUnique().HasFilter("[OperationIdentity] IS NOT NULL");
+        b.Property(x => x.ProviderItemId).HasMaxLength(256); b.Property(x => x.DriveId).HasMaxLength(256);
+        b.Property(x => x.SchoolRootItemId).HasMaxLength(256); b.Property(x => x.FolderItemId).HasMaxLength(256);
+        b.Property(x => x.ErrorCode).HasMaxLength(80); b.HasIndex(x => new { x.State, x.NextAttemptAt });
+        b.HasOne<DutyPdfArtifact>().WithMany().HasForeignKey(x => new { x.SchoolId, x.ArtifactId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.NoAction);
+        b.HasOne<AlFalah.Domain.Entities.Storage.StorageFolder>().WithMany().HasForeignKey(x => new { x.SchoolId, x.FolderId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.NoAction);
+        b.HasOne<AlFalah.Domain.Entities.Storage.StoredFileVersion>().WithMany().HasForeignKey(x => new { x.SchoolId, x.StoredFileVersionId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.NoAction);
     }
     public void Configure(EntityTypeBuilder<StudentDismissalLateness> b)
     {

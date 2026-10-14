@@ -1,0 +1,125 @@
+[
+  {
+    "file": "corrected-report.pdf",
+    "sha256": "571A256CD6392ED6BDBE1EDEF40C2B9764BD9D892E1BFEA7BDB1AB882E06D10A",
+    "pages": [
+      "corrected-report-page-1.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "multipage-report.pdf",
+    "sha256": "DA9876380AFEDD5BEF68A55F376CA68633068BF1CD4D8B384CC2186C5A3F07C5",
+    "pages": [
+      "multipage-report-page-1.png",
+      "multipage-report-page-2.png",
+      "multipage-report-page-3.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "official-roster.pdf",
+    "sha256": "32342612A615F42A1D79E4296F2B1CDC3152DA662F5462F8B3726E87660E6DF7",
+    "pages": [
+      "official-roster-page-1.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "original-letter.pdf",
+    "sha256": "B032307F39F4A5EDBD17CFD7A81A63D163E3B1A33CE1D2CC3756C38A64CAF1B4",
+    "pages": [
+      "original-letter-page-1.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "original-report.pdf",
+    "sha256": "01AFD58205B1F96CC47C30B8F0E29BE5E9434A08A5CCDC9B1952A257DFEE16FB",
+    "pages": [
+      "original-report-page-1.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "retained-report.pdf",
+    "sha256": "7A66FDF70EFB2829EDEB8786A9B6B113CAE96F2BB907BD285EF08ADAA5B5C01E",
+    "pages": [
+      "retained-report-page-1.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "roster-long-names-closures-exams.pdf",
+    "sha256": "3598632FC56D41AD51DC5E7CC522C49F97B3738B36FAE6EF9FF3DDABDE9ACD7B",
+    "pages": [
+      "roster-long-names-closures-exams-page-1.png",
+      "roster-long-names-closures-exams-page-2.png",
+      "roster-long-names-closures-exams-page-3.png",
+      "roster-long-names-closures-exams-page-4.png",
+      "roster-long-names-closures-exams-page-5.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "substitute-letter.pdf",
+    "sha256": "8016792523E555F4BA1A5F2093E8BCBB712C28A5C67C4AA841FEBFAAB3F82D5F",
+    "pages": [
+      "substitute-letter-page-1.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  },
+  {
+    "file": "substitute-report.pdf",
+    "sha256": "7059C05A48B2E7225E183B7B708CDE4ECD7694E0E8CD53A2F91E36A528D9A2B7",
+    "pages": [
+      "substitute-report-page-1.png"
+    ],
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "synthetic": true,
+    "rasterizer": "Poppler pdftoppm; PyMuPDF font inventory only"
+  }
+]

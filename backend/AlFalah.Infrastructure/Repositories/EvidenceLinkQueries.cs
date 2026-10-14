@@ -11,7 +11,7 @@ internal static class EvidenceLinkQueries
     internal static IQueryable<EvidenceLink> Eligible(AlFalahDbContext db, int school, int year, int? owner = null) =>
         db.EvidenceLinks.AsNoTracking().Where(x => x.SchoolId == school &&
         x.AcademicYearId == year && x.IsActive && x.Requirement.IsActive && (owner == null || x.TeacherId == owner) &&
-        !x.StoredFile.IsDeleted && x.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive &&
+        !x.StoredFile.IsDeleted && x.StoredFile.SourceKind != StoredFileSourceKind.VisitArchive && x.StoredFile.SourceKind != StoredFileSourceKind.DutyArchive &&
         x.StoredFile.SourceKind != StoredFileSourceKind.HistoricalImport &&
         x.VersionId == x.StoredFile.CurrentVersionId &&
         db.SchoolGoogleDrives.Any(s => s.SchoolId == school && s.IsEnabled && (s.SharedDriveId ?? "") == x.Version.DriveId) &&

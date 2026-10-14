@@ -1,7 +1,7 @@
 # School Duty — Feature Phase Tracker
 
-**Status:** D1/D2 IMPLEMENTED / VERIFIED — final owner visual acceptance pending; D3 not started.
-**Updated:** 2026-10-13  
+**Status:** D1–D3 IMPLEMENTED / independently VERIFIED — external Drive, owner visual and physical-device acceptance pending. No operational rollout.
+**Updated:** 2026-10-14
 **Spec Kit:** [School Duty](../specs/school-duty/README.md)
 
 ## Authorized work completed
@@ -14,7 +14,7 @@ Reviewed five supplied images and the client conversation, inspected existing ti
 |---|---|---|
 | D1 | Rotation, exclusions, manager workspace and automatic/manual absence exchange | IMPLEMENTED; isolated verification complete; owner visual review pending |
 | D2 | Teacher acknowledgement/report/signatures; mobile student picker, dismissal-lateness guardian notice/student history/existing manager statistics | IMPLEMENTED / VERIFIED; 361 backend, 86 Angular, 20 real HTTP checks; owner visual review pending |
-| D3 | Source-faithful official PDFs, protected school storage, recovery and final acceptance | NOT STARTED; exact report division/reference gate confirmed |
+| D3 | Source-faithful official PDFs, protected school storage, recovery and final acceptance | IMPLEMENTED; independent SQL/HTTP/PDF/browser checks delivered; external/owner/physical gates pending |
 
 The owner's 2026-10-13 implementation request authorizes D1 using the confirmed decisions and documented defaults relevant to D1. Implementation and isolated SQL verification are authorized; production deployment, data resets, D2/D3 and general feature assignment are excluded.
 
@@ -59,3 +59,17 @@ The submitted D2 prompt explicitly authorized C1-C17 and relevant documented def
 See [D2 verification and captures](../specs/school-duty/verification/d2.md): 361 affected backend checks (including 21 new D2 checks), 86 focused Angular checks, 20 actual isolated HTTP/JWT/SQL/hosted-worker checks and 11 rerun D1 HTTP regressions. Actual Angular rendered journeys/captures at 390/768/1440 use mocked synthetic API fixtures. No real-parent test traffic or external provider was used. Final owner visual review and physical mobile keyboard acceptance remain pending.
 
 The additive D2 migration was tested only on fresh guarded LocalDB databases, with existing-database rejection before migration and sentinel preservation/reapplication. Operational data/settings/credentials/keys are unchanged. Existing baseline SQLite/broad Angular/production CSS failures remain documented and budgets unchanged. D3 official PDFs/archive processing, general delegation, waiting-register extensions, operational migration and production deployment remain outside this execution. **Stopped after D2.** Earlier planning/handoff sections above are historical records.
+
+## D3 implementation handoff - 2026-10-13
+
+Prepared the [English D3-only prompt](../specs/school-duty/prompts/d3-implementation.md) at the owner's request. Covers actual source-image inspection and official roster/letter/report PDF comparison, frozen signed evidence, the approved actual-teacher/date hierarchy, protected new/legacy storage paths, durable artifact identity/ID reservation/leases/reconciliation, local access independent of Drive and premium rendered document/recovery states at 390/768/1440.
+
+Submitting the prompt authorizes its scoped D3 implementation and isolated verification; preparing it does not start D3. Provider checks require a clearly designated authorized synthetic destination, retain existing artifacts and cannot enable operational processing. Missing external readiness and owner visual/physical-device acceptance must remain explicit gates. No code, migrations, provider writes, parent notices or runtime checks were performed in this documentation-only handoff. D1/D2 evidence and known baseline limits remain unchanged; general delegation, waiting-register extensions and production/operational migration remain excluded. See D-109.
+
+## D3 delivery - 2026-10-14
+
+The submitted D3 request supersedes the earlier phase-only authorization. Implemented all three source-inspected official Arabic forms, frozen signed artifacts/provenance and revision-bound roster export; protected DutyArchive kinds and approved school/year/term/actual-teacher/date hierarchy; two logical letter/report files with immutable corrections; durable reservations, fenced leases, bounded retries and uncertainty reconciliation. Extended the timetable own/manager workspace with independent document availability, premium PDF.js previews/native downloads and retained history. D1/D2 signing, facts and internal messaging behavior is preserved.
+
+[D3 verification](../specs/school-duty/verification/d3.md) retains actual source/output comparisons, fifteen PDF pages, rendered 390/768/1440 UI, 21 D3 SQL and 96 focused Angular checks, 37 actual isolated HTTP checks and live authenticated browser download hash equality. Final expanded backend: 699 passed/one unchanged D2 model-assertion failure; an earlier timing failure passed both isolated and in the final run without changing the threshold. Known SQLite/broad Angular/production CSS failures remain explicit. Archive doubles finish TestVerified, never actual Drive delivery.
+
+Fresh guarded SQL migrations/idempotent reapplication retained a sentinel; operational database/configuration/credentials/roots/grants were untouched. Real external Drive verification awaits an explicitly designated isolated synthetic destination. Owner visual and physical-device acceptance remain pending. Activation and non-destructive disablement rollback are documented; no rollout or later feature started. **Stopped after D3 implementation and independent verification.** See D-110.

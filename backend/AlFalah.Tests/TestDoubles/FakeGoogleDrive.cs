@@ -21,6 +21,7 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
     private int _getFileCalls;
     public int GetFileCalls => Volatile.Read(ref _getFileCalls);
     public bool LoseNextUploadResponse { get; set; }
+    public bool LoseNextFolderResponse { get; set; }
     public bool FailNextUpload { get; set; }
     public bool RejectNextUpload { get; set; }
     public Func<Task>? BeforeUpload { get; set; }
@@ -35,6 +36,7 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
         EnsureReachable(schoolId);
         if (_nodes.ContainsKey(id)) throw new InvalidOperationException("Duplicate provider ID");
         AddFolder(id, name, parent);
+        if (LoseNextFolderResponse) { LoseNextFolderResponse = false; throw new HttpRequestException("Folder response lost after commit"); }
         return GetFileAsync(schoolId, id, ct).ContinueWith(t => t.Result!, ct);
     }
     public async Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct = default)

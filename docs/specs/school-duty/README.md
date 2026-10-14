@@ -1,7 +1,7 @@
 # School Duty — Feature Spec Kit
 
-**Status:** D1 and D2 implemented and verified on isolated SQL/local HTTP and rendered browser fixtures. Final client visual acceptance pending; D3 not started.
-**Created / updated:** 2026-10-13  
+**Status:** D1–D3 implemented; independent isolated SQL/local HTTP, browser and actual PDF verification delivered. External Drive verification, final client visual acceptance and physical-device review remain pending. See [D3 verification](verification/d3.md).
+**Created / updated:** 2026-10-13 / 2026-10-14
 **Module:** School timetable — `المناوبة`  
 **Scope:** One school-wide dismissal duty teacher per operating school day.
 
@@ -21,8 +21,10 @@ This is a feature-sized Spec Kit: research → specification → clarification �
 | [tasks.md](tasks.md) | Three implementation phases, deliverables and verification |
 | [prompts/d1-implementation.md](prompts/d1-implementation.md) | Copyable first implementation prompt; authorizes D1 when submitted in a new chat and makes premium frontend quality an acceptance requirement |
 | [prompts/d2-implementation.md](prompts/d2-implementation.md) | Next-phase implementation prompt: D2 only, confirmed amendments/System communication, premium mobile frontend and actual rendered verification |
+| [prompts/d3-implementation.md](prompts/d3-implementation.md) | Prepared D3-only prompt: source-faithful official PDFs, immutable artifacts, protected archive/recovery, premium document UI and bounded synthetic verification |
 | [verification/d1.md](verification/d1.md) | Delivered D1 contracts, live versus mocked checks, visual evidence, baseline limitations and rollout guidance |
 | [verification/d2.md](verification/d2.md) | Delivered D2 workflows, source mapping, real internal communication, SQL/security tests, rendered evidence and remaining limits |
+| [verification/d3.md](verification/d3.md) | Official PDF/source comparison, immutable artifacts, protected archive/recovery, actual SQL/HTTP/download checks, rendered UI and activation/acceptance gates |
 
 Read the project [constitution](../../../.spec/constitution.md), [architecture](../../01-ARCHITECTURE.md), and [phase tracker](../../phases/PHASE-DUTY-SCHOOL-DUTY.md) before implementation. These documents are written in English; Arabic form labels and product copy are retained verbatim where relevant.
 
@@ -47,18 +49,20 @@ General feature assignment is a separate later feature: the manager chooses a fe
 |---|---|
 | Evidence and code research | Complete — static review, no runtime changes |
 | Business clarification | Five clarification answers confirmed on 2026-10-13, including equal selected-roster rotation and archive hierarchy |
-| Specification, UX, plan and tasks | D1/D2 authorized; implementation/evidence reflected in the kit |
+| Specification, UX, plan and tasks | D1–D3 authorized; implemented contracts and evidence reflected in the kit |
 | D1 — Rotation and absence integration | Implemented; final client visual acceptance pending |
 | D2 — Teacher execution and signatures | Implemented and verified; final owner visual acceptance pending |
-| D3 — Official documents and storage | Not started |
+| D3 — Official documents and storage | Implemented and independently verified; external Drive and owner/physical acceptance pending |
 | Later feature assignment | Deferred by owner |
 
-The submitted D2 implementation request explicitly authorized C1–C17 and the documented relevant defaults, superseding the earlier prompt-preparation status. D2 extends D1 and stops at locally signed snapshots/archive intents. The [D2 verification report](verification/d2.md) distinguishes real isolated HTTP/SQL communication from mocked browser presentation, preserves known baseline failures and records pending owner visual acceptance. D3 remains unstarted.
+The submitted D3 implementation request authorizes C1–C17, relevant documented defaults and the approved archive hierarchy. D3 extends D2's signed snapshots/intents with immutable official PDFs and protected delivery/recovery. [D3 verification](verification/d3.md) distinguishes actual isolated SQL/HTTP/native browser downloads and internal guardian delivery from mocked presentation/provider doubles. Earlier D1/D2-only authorization and handoff entries below are historical. Operational settings/data are untouched; external verification requires a designated synthetic destination. Stop after D3.
 
 ## Change log
 
 | Date | Change |
 |---|---|
+| 2026-10-14 | **D3 delivered:** source-inspected official roster/letter/report PDFs, frozen artifacts/provenance, independent letter/report local access, retained correction/history, protected school/year/term/actual-teacher/date archive, reserved IDs/leases/bounded retry/reconciliation and premium RTL/LTR preview/download UI. 21 D3 SQL, 96 focused Angular and 37 live local HTTP checks; expanded backend results and known baseline failures recorded; 15 actual PDF pages and 390/768/1440 captures retained. Real internal synthetic guardian delivery; provider doubles remain TestVerified. External Drive/owner/physical review pending; operational data/configuration preserved. [Evidence](verification/d3.md), D-110. |
+| 2026-10-13 | Prepared the [English D3-only prompt](prompts/d3-implementation.md): official roster/letter/report source comparison, frozen D2 signatures/assets, protected duty archive, durable ID/lease/retry/reconciliation, premium 390/768/1440 UI and actual PDF inspection. Requires fresh guarded SQL and bounded authorized synthetic provider verification; preserves D1/D2 and known baseline limits. Documentation only; D3 runtime unstarted, external/owner acceptance not claimed. D-109. |
 | 2026-10-13 | **D2 delivered:** own-duty letter acknowledgement, server drafts/review/saved-signature submission, frozen history and D3 intents; mobile enrolled-student picker; atomic shared dismissal facts/corrections; System guardian dashboard/internal Messages with independent retry/read state; existing manager statistics and actual student timeline/profile. 361 affected backend, 86 Angular and 20 real isolated HTTP checks; rendered 390/768/1440 evidence. Synthetic guardians only, operational data/config preserved; D3 not started, owner visual acceptance pending. See [verification](verification/d2.md), D-108. |
 | 2026-10-13 | Prepared the English D2-only implementation prompt covering C1–C17, saved signatures, exact source sections, premium mobile student picker, shared lateness/history/statistics and System-authored guardian dashboard/Messages delivery. Requires actual 390/768/1440 inspection, isolated SQL/synthetic guardians and regression checks; D3 excluded. Preparation only; no runtime implementation/notification. |
 | 2026-10-13 | C17 resolves guardian delivery: notice visible in guardian dashboard **and** system-authored message in existing internal Messages. Documented explicit server system provenance, existing human-sender gap, correlated/independent surface retry/read states and spoofing/isolation regression requirements. Supersedes the earlier channel ambiguity; no external provider, runtime implementation or D1 changes. |

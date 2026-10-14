@@ -62,6 +62,8 @@ public interface IStorageLibraryRepository
 
 public interface IStorageProvider
 {
+    // Test adapters must never establish actual external delivery.
+    bool IsRealDelivery => false;
     void ResetRequestCache();
     Task<string> AllocateIdAsync(int schoolId, CancellationToken ct);
     Task<GoogleDriveFile?> MetadataAsync(int schoolId, string id, CancellationToken ct);

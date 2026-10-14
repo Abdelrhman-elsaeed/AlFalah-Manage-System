@@ -1,0 +1,65 @@
+{
+  "verification": "Mock API fixtures / actual rendered Angular SPA",
+  "report": [
+    {
+      "width": 390,
+      "checks": [
+        "today",
+        "term",
+        "exception filter",
+        "manual two-date review/confirm",
+        "teacher selection/order",
+        "preview/publish",
+        "history/debt",
+        "keyboard tabs",
+        "no document overflow",
+        "reduced motion"
+      ]
+    },
+    {
+      "width": 768,
+      "checks": [
+        "today",
+        "term",
+        "exception filter",
+        "manual two-date review/confirm",
+        "teacher selection/order",
+        "preview/publish",
+        "history/debt",
+        "keyboard tabs",
+        "no document overflow",
+        "reduced motion"
+      ]
+    },
+    {
+      "width": 1440,
+      "checks": [
+        "today",
+        "term",
+        "exception filter",
+        "manual two-date review/confirm",
+        "teacher selection/order",
+        "preview/publish",
+        "history/debt",
+        "keyboard tabs",
+        "no document overflow",
+        "reduced motion"
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "states": [
+    "empty",
+    "error",
+    "loading",
+    "teacher",
+    "English LTR",
+    "manual eligibility warning",
+    "closures",
+    "exclusions and restoration",
+    "inactive selected teacher removal",
+    "nested preview Escape retains settings",
+    "explicit compensation date review"
+  ],
+  "clientVisualAcceptance": "Pending owner review"
+}

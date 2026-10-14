@@ -5,6 +5,7 @@
     <div class="heading-actions" *ngIf="data() as d">
       <label class="term-select"><span class="sr-only">{{ 'DUTY.TERM' | translate }}</span><app-clearable-select inputId="duty-term" [options]="termOptions()" optionLabel="name" optionValue="id" [ngModel]="termId" (ngModelChange)="switchTerm($event)" [clearable]="false" [disabled]="busy()" /></label>
       <button *ngIf="d.canManage && d.termId" pButton class="settings-button" icon="pi pi-sliders-h" [label]="'DUTY.SETTINGS' | translate" (click)="openSetup()"></button>
+      <app-duty-roster-export *ngIf="d.termId && d.planRevision" [termId]="d.termId" [revision]="d.planRevision" />
     </div>
   </header>
   <div *ngIf="success()" class="feedback success" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ success() }}<button (click)="success.set('')" [attr.aria-label]="'DUTY.DISMISS' | translate">×</button></div>

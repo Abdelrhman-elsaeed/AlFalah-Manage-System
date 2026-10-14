@@ -5,7 +5,7 @@ import {resolve,extname,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {chromium} from '@playwright/test';
-const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),dist=resolve(root,'dist/al-falah-app/browser'),evidence=resolve(root,'../docs/specs/school-duty/verification/d2-screens');
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),dist=resolve(root,'dist/al-falah-app/browser'),evidence=(process.env.ALFALAH_DUTY_BROWSER_EVIDENCE ? resolve(process.env.ALFALAH_DUTY_BROWSER_EVIDENCE) : resolve(root,'../docs/specs/school-duty/verification/d2-screens'));
 mkdirSync(evidence,{recursive:true});
 const mime={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.woff2':'font/woff2','.png':'image/png','.svg':'image/svg+xml'};
 const server=createServer((req,res)=>{let p=resolve(dist,decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/,'')||'index.html');if(!p.startsWith(dist)){res.writeHead(403);return res.end();}if(!existsSync(p))p=resolve(dist,'index.html');res.writeHead(200,{'Content-Type':mime[extname(p)]||'application/octet-stream'});res.end(readFileSync(p));});
