@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { ChipsModule } from 'primeng/chips';
+import { ClassroomSelectorComponent } from '../../../shared/components/classroom-selector/classroom-selector.component';
+import { TeacherTeaching } from '../../../core/models/teacher.models';
 import { InputTextModule } from 'primeng/inputtext';
 import { AccountTeachingService } from '../../../core/services/account-teaching.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -12,7 +13,7 @@ import { ToastService } from '../../../core/services/toast.service';
 @Component({
   selector: 'app-account-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslateModule, ButtonModule, ChipsModule, InputTextModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule, ButtonModule, ClassroomSelectorComponent, InputTextModule],
   templateUrl: './account-settings.component.html',
   styleUrls: ['./account-settings.component.css']
 })
@@ -27,9 +28,11 @@ export class AccountSettingsComponent implements OnInit {
   readonly teachingLoading = signal(false);
   readonly teachingSaving = signal(false);
   readonly teachingLoaded = signal(false);
+  readonly teaching = signal<TeacherTeaching | null>(null);
+  readonly catalogReady = signal(false);
   readonly teachingForm = this.fb.group({
     subject: ['', [Validators.required, Validators.maxLength(200)]],
-    classes: [[] as string[]]
+    classroomIds: [[] as number[]]
   });
   readonly passwordForm = this.fb.group({
     currentPassword: ['', [Validators.required]],
@@ -48,9 +51,10 @@ export class AccountSettingsComponent implements OnInit {
       next: response => {
         this.teachingLoading.set(false);
         if (response.isSuccess && response.data) {
+          this.teaching.set(response.data);
           this.teachingForm.patchValue({
             subject: response.data.subject ?? '',
-            classes: response.data.classes ?? []
+            classroomIds: response.data.classroomIds ?? []
           });
         }
         this.teachingLoaded.set(true);
@@ -63,6 +67,7 @@ export class AccountSettingsComponent implements OnInit {
   }
 
   saveTeaching(): void {
+    if (!this.catalogReady() || !this.teaching() || this.teachingSaving()) return;
     if (this.teachingForm.invalid) {
       this.teachingForm.markAllAsTouched();
       return;
@@ -72,12 +77,15 @@ export class AccountSettingsComponent implements OnInit {
     this.teachingSaving.set(true);
     this.teachingService.updateMyTeaching({
       subject: value.subject!.trim(),
-      classes: (value.classes ?? []).map(c => c.trim()).filter(Boolean)
+      classroomIds: value.classroomIds ?? [],
+      academicYearId: this.teaching()!.academicYearId,
+      teachingRevision: this.teaching()!.teachingRevision
     }).subscribe({
       next: response => {
         this.teachingSaving.set(false);
         if (response.isSuccess && response.data) {
-          this.teachingForm.patchValue({ subject: response.data.subject ?? '', classes: response.data.classes ?? [] });
+          this.teaching.set(response.data);
+          this.teachingForm.patchValue({ subject: response.data.subject ?? '', classroomIds: response.data.classroomIds ?? [] });
           this.toast.success(this.translate.instant('TEACHING.SAVE_SUCCESS'), response.message || '');
         }
       },

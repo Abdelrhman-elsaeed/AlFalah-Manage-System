@@ -1,3 +1,4 @@
+using AlFalah.Application.Classrooms;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Users;
 using AlFalah.Application.Interfaces;
@@ -29,6 +30,7 @@ public class UserService : IUserService
     private readonly ICurrentUserService _currentUser;
     private readonly SchoolScopeGuard _scopeGuard;
     private readonly ILogger<UserService> _logger;
+    private readonly IClassroomCatalogService _catalog;
 
     public UserService(
         AlFalahDbContext context,
@@ -36,7 +38,7 @@ public class UserService : IUserService
         RoleManager<ApplicationRole> roleManager,
         ICurrentUserService currentUser,
         SchoolScopeGuard scopeGuard,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger, IClassroomCatalogService catalog)
     {
         _context = context;
         _userManager = userManager;
@@ -44,6 +46,7 @@ public class UserService : IUserService
         _currentUser = currentUser;
         _scopeGuard = scopeGuard;
         _logger = logger;
+        _catalog = catalog;
     }
 
     public async Task<PagedResult<UserListItemDto>> GetPagedAsync(UserListQuery query, CancellationToken cancellationToken = default)
@@ -276,9 +279,9 @@ public class UserService : IUserService
             {
                 classes = await _context.InstructorClasses
                     .AsNoTracking()
-                    .Where(c => c.InstructorProfileId == profile.Id)
+                    .Where(c => c.InstructorProfileId == profile.Id && (c.SchoolId == null || c.SchoolId == profile.SchoolId) && (c.ClassroomId == null || c.Classroom!.AcademicYear.IsActive))
                     .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
-                    .Select(c => c.ClassLabel)
+                    .Select(c => c.Classroom != null ? c.Classroom.ClassLabel : c.ClassLabel)
                     .ToListAsync(cancellationToken);
                 stage = profile.Stage;
             }
@@ -719,9 +722,7 @@ public class UserService : IUserService
                 IsActive = true
             };
             _context.InstructorProfiles.Add(profile);
-            // Save immediately so the new profile gets an Id we can FK against
-            // for the class rows below (avoids relying on graph-fixup ordering).
-            await _context.SaveChangesAsync(cancellationToken);
+            // Catalogue associations use graph fix-up and share the caller's save.
         }
         else
         {
@@ -739,55 +740,7 @@ public class UserService : IUserService
             profile.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        // D-74 — Class labels: only touch the table when the caller sent a
-        // non-null list (null means "don't change classes"). Normalize, dedupe
-        // (case-insensitive to mirror the DB collation), preserve order.
-        if (classes != null)
-        {
-            var existing = await _context.InstructorClasses
-                .Where(c => c.InstructorProfileId == profile.Id)
-                .ToListAsync(cancellationToken);
-
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var normalized = new List<string>();
-            foreach (var raw in classes)
-            {
-                if (string.IsNullOrWhiteSpace(raw)) continue;
-                var trimmed = raw.Trim();
-                if (trimmed.Length > 50) trimmed = trimmed.Substring(0, 50);
-                if (seen.Add(trimmed)) normalized.Add(trimmed);
-            }
-
-            // Drop rows whose label isn't in the new set.
-            foreach (var row in existing)
-            {
-                if (!normalized.Any(n => string.Equals(n, row.ClassLabel, StringComparison.OrdinalIgnoreCase)))
-                {
-                    row.IsDeleted = true;
-                    row.DeletedAt = DateTimeOffset.UtcNow;
-                    row.DeletedByUserId = _currentUser.UserId;
-                }
-            }
-
-            // Insert any new labels.
-            var existingLabels = existing
-                .Where(r => !r.IsDeleted)
-                .Select(r => r.ClassLabel)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            var sortOrder = 0;
-            foreach (var label in normalized)
-            {
-                if (existingLabels.Contains(label)) { sortOrder++; continue; }
-                _context.InstructorClasses.Add(new InstructorClass
-                {
-                    InstructorProfileId = profile.Id,
-                    ClassLabel = label,
-                    SortOrder = sortOrder
-                });
-                sortOrder++;
-            }
-        }
+        await _catalog.ApplyTeacherSelectionAsync(profile, null, classes, null, null, cancellationToken);
     }
 
     private async Task MoveInstructorAssignmentAsync(

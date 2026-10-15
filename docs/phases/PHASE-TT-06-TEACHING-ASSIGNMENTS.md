@@ -54,3 +54,7 @@ Empty `members` explicitly unassigns a cell. Omitted cells remain unchanged. Tea
 ## Scope and compatibility
 
 Automatic timetable generation remains a later phase. Its output must pass the existing availability and subject/teaching-assignment validators. Legacy setups with no Phase 6 assignment history retain Phase 5 placement behavior; once Phase 6 is used, all configured requirements must have valid assignments before publication. Mid-term effective dates and primary/assistant labels are not introduced. More than two teachers are accepted subject to the mode/allocation rules, as the blueprint does not specify a numeric maximum.
+
+## C32 / D-124 ? Classroom identity and assignment design (2026-10-15)
+
+Design/prototype only, explicitly selected by the owner. Existing structured Classroom/subject-allocation models are reused in the proposal; legacy InstructorClass text identity, teacher self/manager editors, both visit frontends, student/classroom scope, timetable import/generation/review/history and exports are covered in a semantic impact map. The owner confirms direct teacher association self-save without approval, stage-local grade ordinals and numeric sections. An isolated theme-aligned prototype demonstrates the manager catalogue, teacher multi-selection, assignment matrix/co/split/load and source-structured statement. No production code/schema/permissions/provider change or feature cutover. [Design, decisions and evidence](../specs/classroom-catalog/README.md). Implementation and physical/printer acceptance remain future phases.

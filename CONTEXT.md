@@ -75,3 +75,34 @@ _Avoid_: Automatic deletion, automatic improvement
 **School Oversight Aggregate**:
 Non-identifying School Manager statistics such as total present, absent, and excused per class. It excludes Social Worker case notes, counseling/session details, message bodies, guardian identifiers, and evidence.
 _Avoid_: Confidential case view
+
+## Academic placement and teaching
+
+**School Grade (الصف الدراسي)**:
+A level within one school stage, such as the first intermediate grade. Its ordinal starts within its stage rather than identifying a teaching section or an academic term.
+_Avoid_: Classroom, semester
+
+**Classroom Section (الفصل)**:
+A numbered group within a school grade for a school and academic year, such as first intermediate, section2. It is distinct from the physical teaching room.
+_Avoid_: Academic term, room, free-form class name
+
+**Teacher Classroom Association (فصول المعلم)**:
+The current-year classroom sections a teacher declares they teach. The owner permits teachers to select and confirm their own sections directly; this is separate from allocating subject periods.
+_Avoid_: Teaching assignment, approval request
+
+**Teaching Assignment (إسناد التدريس)**:
+The allocation of a classroom's subject-period requirement to one or more teachers in a timetable setup. Single teaching, co-teaching and split quota describe how teachers share that requirement.
+_Avoid_: Teacher classroom association, published lesson
+
+**Weekly Teaching Load (نصاب الحصص)**:
+The number of allocated weekly periods for a teacher, including specialization and other subjects. Co-teachers each carry the complete co-taught period load; a split allocation carries only its allocated share.
+_Avoid_: Number of classrooms, number of subjects
+
+**Assignment Statement (كشف إسنادات المواد)**:
+A teacher-row statement grouping assigned sections under their grades and separating specialization periods from other-subject periods, with a total teacher load.
+_Avoid_: Published timetable, duty roster
+
+
+## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
+
+The owner approved implementation after C32. C33 locally adds the existing-ID manager classroom catalogue and shared direct-confirmation teacher selector, including stage-local numeric sections, separate location, exact-only migration, current-year revisioned association sets and teacher scope ID joins. Legacy letters/unknown names stay retained for explicit review. Old Classes arrays are compatibility echoes, not a second source of new associations. Complete visit/timetable consumer conversion and production assignment UI/export remain later phases. See docs/specs/classroom-catalog/implementation.md.

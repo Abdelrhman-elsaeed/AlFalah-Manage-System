@@ -1,0 +1,46 @@
+{
+  "pages": 1,
+  "pagePoints": {
+    "width": 841.9199829101562,
+    "height": 594.9599609375
+  },
+  "a4Landscape": true,
+  "fonts": [
+    {
+      "name": "AAAAAA+Amiri-Regular",
+      "embedded": true
+    },
+    {
+      "name": "BAAAAA+Amiri-Regular",
+      "embedded": true
+    },
+    {
+      "name": "CAAAAA+Tajawal-Bold",
+      "embedded": true
+    },
+    {
+      "name": "DAAAAA+Tajawal-Bold",
+      "embedded": true
+    },
+    {
+      "name": "EAAAAA+Amiri-Bold",
+      "embedded": true
+    },
+    {
+      "name": "FAAAAA+Amiri-Bold",
+      "embedded": true
+    },
+    {
+      "name": "GAAAAA+Tajawal-Regular",
+      "embedded": true
+    },
+    {
+      "name": "HAAAAA+Tajawal-Regular",
+      "embedded": true
+    }
+  ],
+  "sha256": "33053e3e56e5223e50dee2dd1a9de7b2918ed1c5d327a6de0fc6b362c294a0a7",
+  "syntheticData": true,
+  "printedFromCurrentSavedPrototype": true,
+  "productionPdfEndpoint": false
+}

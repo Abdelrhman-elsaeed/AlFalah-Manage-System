@@ -113,17 +113,24 @@ export interface TeacherTeaching {
   subject?: string | null;
   stage: SchoolStage;
   classes: string[];
+  classroomIds?: number[];
+  academicYearId?: number | null;
+  teachingRevision?: number;
+  unresolvedClasses?: string[];
 }
 
 /**
  * D-74 — Body of PUT /teaching endpoints. Subject is free-text and capped
- * server-side; Classes is the new (full) set — entries missing from this
- * list are soft-deleted, new entries are inserted (server-side diff).
+ * server-side; classroomIds replaces the current-year set using teachingRevision.
+ * Legacy classes arrays can echo existing values but cannot create associations.
  */
 export interface TeacherTeachingUpsertRequest {
   subject?: string | null;
   stage?: SchoolStage | null;
   classes?: string[] | null;
+  classroomIds?: number[];
+  academicYearId?: number | null;
+  teachingRevision?: number;
 }
 
 export type TeacherListPage = PagedResult<TeacherListItem>;

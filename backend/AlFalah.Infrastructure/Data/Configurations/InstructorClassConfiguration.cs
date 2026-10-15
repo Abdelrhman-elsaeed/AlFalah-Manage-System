@@ -23,12 +23,16 @@ public class InstructorClassConfiguration : IEntityTypeConfiguration<InstructorC
             .HasForeignKey(x => x.InstructorProfileId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(x => x.Classroom).WithMany().HasForeignKey(x => new { x.SchoolId, x.ClassroomId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => new { x.InstructorProfileId, x.ClassroomId }).IsUnique()
+            .HasFilter("[IsDeleted] = 0 AND [ClassroomId] IS NOT NULL");
         builder.HasIndex(x => x.InstructorProfileId);
         builder.HasIndex(x => x.IsDeleted);
         // One (active) class label per profile — soft-deletes still allowed
         // and excluded by the global query filter.
         builder.HasIndex(x => new { x.InstructorProfileId, x.ClassLabel })
-            .HasFilter("[IsDeleted] = 0")
+            .HasFilter("[IsDeleted] = 0 AND [ClassroomId] IS NULL")
             .IsUnique();
     }
 }

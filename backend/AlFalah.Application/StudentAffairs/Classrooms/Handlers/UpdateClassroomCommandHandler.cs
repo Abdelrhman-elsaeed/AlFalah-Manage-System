@@ -1,6 +1,5 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using AlFalah.Application.Classrooms;
+using AlFalah.Application.Common;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 using AlFalah.Application.StudentAffairs.Students;
@@ -8,73 +7,31 @@ using AlFalah.Application.StudentAffairs.Students.Handlers;
 using AlFalah.Domain.Enums;
 using AlFalah.Shared.Models;
 using MediatR;
-
 namespace AlFalah.Application.StudentAffairs.Classrooms.Handlers;
-
-public sealed class UpdateClassroomCommandHandler
-    : IRequestHandler<UpdateClassroomCommand, ApiResponse<ClassroomDto>>
+// Compatibility endpoint: all writes use the same catalogue policy.
+public sealed class UpdateClassroomCommandHandler(
+    IStudentWorkflowRepository repository, ICurrentUserService currentUser,
+    IClassroomCatalogService catalog) : IRequestHandler<UpdateClassroomCommand, ApiResponse<ClassroomDto>>
 {
-    private readonly IStudentWorkflowRepository _repository;
-    private readonly ICurrentUserService _currentUser;
-    private readonly TimeProvider _timeProvider;
-
-    public UpdateClassroomCommandHandler(
-        IStudentWorkflowRepository repository,
-        ICurrentUserService currentUser,
-        TimeProvider timeProvider)
+    public async Task<ApiResponse<ClassroomDto>> Handle(UpdateClassroomCommand command, CancellationToken cancellationToken)
     {
-        _repository = repository;
-        _currentUser = currentUser;
-        _timeProvider = timeProvider;
-    }
-
-    public async Task<ApiResponse<ClassroomDto>> Handle(
-        UpdateClassroomCommand command,
-        CancellationToken cancellationToken)
-    {
-        var schoolId = _currentUser.ActiveSchoolId;
-        var userId = _currentUser.UserId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
+        var school = currentUser.ActiveSchoolId;
+        if (school is null || string.IsNullOrWhiteSpace(currentUser.UserId))
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
-
-        if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
-            && !_currentUser.HasPermission(PermissionNames.ClassroomManage))
-        {
+        if (!currentUser.HasPermission(PermissionNames.StudentEnrollmentManage) && !currentUser.HasPermission(PermissionNames.ClassroomManage))
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.PermissionDenied);
-        }
-
-        var classroom = await _repository.GetClassroomForUpdateAsync(
-            schoolId.Value,
-            command.ClassroomId,
-            cancellationToken).ConfigureAwait(false);
-
-        if (classroom is null)
-            return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.NotFound);
-
-        var req = command.Request;
-        var classLabel = req.ClassLabel.Trim();
-        if (await _repository.ClassroomLabelExistsAsync(
-                schoolId.Value,
-                classroom.AcademicYearId,
-                classLabel,
-                classroom.Id,
-                cancellationToken).ConfigureAwait(false))
+        try
         {
-            return ApiResponse<ClassroomDto>.Fail("A classroom with the same name already exists in this academic year");
+            var row = await repository.GetClassroomForUpdateAsync(school.Value, command.ClassroomId, cancellationToken);
+            if (row is null) return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.NotFound);
+            var request = command.Request;
+            await catalog.UpdateAsync(row.Id, new(request.Section, request.IsActive, request.PhysicalLocation,
+                string.IsNullOrEmpty(request.RowVersion) ? row.UpdatedAt.ToString("O") : request.RowVersion), cancellationToken);
+            var id = row.Id;
+            return ApiResponse<ClassroomDto>.Success((await repository.GetClassroomDtoAsync(school.Value, id, cancellationToken))!);
         }
-
-        var now = _timeProvider.GetUtcNow();
-
-        classroom.ClassLabel = classLabel;
-        classroom.Section = req.Section.Trim();
-        classroom.PhysicalLocation = req.PhysicalLocation.Trim();
-        classroom.IsActive = req.IsActive;
-        classroom.UpdatedAt = now;
-        classroom.UpdatedByUserId = userId;
-
-        await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        var dto = await _repository.GetClassroomDtoAsync(schoolId.Value, classroom.Id, cancellationToken).ConfigureAwait(false);
-        return ApiResponse<ClassroomDto>.Success(dto!, "Classroom updated successfully");
+        catch (ArgumentException ex) { return ApiResponse<ClassroomDto>.Fail(ex.Message); }
+        catch (ClassroomCatalogConflictException ex) { return ApiResponse<ClassroomDto>.Fail(ex.Message); }
+        catch (UnauthorizedSchoolAccessException) { return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.PermissionDenied); }
     }
 }

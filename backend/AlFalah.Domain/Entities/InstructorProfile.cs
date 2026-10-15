@@ -30,6 +30,7 @@ public class InstructorProfile
 
     public DateOnly? HireDate { get; set; }
     public bool IsActive { get; set; } = true;
+    public int TeachingRevision { get; set; } = 1;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public bool IsDeleted { get; set; } = false;

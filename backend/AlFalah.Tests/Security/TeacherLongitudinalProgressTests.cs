@@ -154,6 +154,6 @@ public sealed class TeacherLongitudinalProgressTests
             currentUser,
             new SchoolScopeGuard(context, currentUser, NullLogger<SchoolScopeGuard>.Instance),
             new AuditLogWriter(context, accessor, NullLogger<AuditLogWriter>.Instance),
-            NullLogger<TeacherService>.Instance);
+            NullLogger<TeacherService>.Instance, new AlFalah.Application.Classrooms.ClassroomCatalogService(new AlFalah.Infrastructure.Repositories.ClassroomCatalogRepository(context), currentUser));
     }
 }

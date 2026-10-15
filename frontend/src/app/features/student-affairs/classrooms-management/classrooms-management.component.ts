@@ -1,264 +1,80 @@
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { CheckboxModule } from 'primeng/checkbox';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
-import { finalize } from 'rxjs';
+import { finalize, map } from 'rxjs';
+import { ClassroomCatalogService, ClassroomCatalog, ClassroomOption } from '../../../core/services/classroom-catalog.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
-import {
-  AcademicYearLookupDto,
-  ClassroomDto,
-  SchoolStage
-} from '../../../core/models/daily-operations.models';
-import { DailyOperationsService } from '../../../core/services/daily-operations.service';
-import { ClearableSelectComponent } from '../../../shared/components/clearable-select/clearable-select.component';
-
-interface SelectOption<T> {
-  readonly label: string;
-  readonly value: T;
-}
 
 @Component({
-  selector: 'app-classrooms-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ButtonModule,
-    CardModule,
-    CheckboxModule,
-    ConfirmDialogModule,
-    DialogModule,
-    InputNumberModule,
-    InputTextModule,
-    ProgressSpinnerModule,
-    TableModule,
-    TagModule,
-    ClearableSelectComponent
-  ],
-  providers: [ConfirmationService],
-  templateUrl: './classrooms-management.component.html',
-  styleUrl: './classrooms-management.component.css'
+  selector: 'app-classrooms-management', standalone: true,
+  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, TableModule],
+  templateUrl: './classrooms-management.component.html', styleUrl: './classrooms-management.component.css'
 })
 export class ClassroomsManagementComponent {
-  private readonly api = inject(DailyOperationsService);
-  private readonly messages = inject(MessageService);
-  private readonly confirmation = inject(ConfirmationService);
-
-  readonly classrooms = signal<readonly ClassroomDto[]>([]);
-  readonly academicYears = signal<readonly AcademicYearLookupDto[]>([]);
-  readonly loading = signal(true);
+  readonly api = inject(ClassroomCatalogService);
+  private readonly auth = inject(AuthService);
+  readonly catalog = signal<ClassroomCatalog | null>(null);
+  readonly loading = signal(false);
   readonly saving = signal(false);
-  readonly dialogVisible = signal(false);
-  readonly editing = signal<ClassroomDto | null>(null);
+  readonly error = signal('');
+  readonly success = signal('');
   readonly search = signal('');
-  readonly errorMessage = signal('');
-
-  readonly stageOptions: readonly SelectOption<SchoolStage>[] = [
-    { label: 'ابتدائي', value: 'Primary' },
-    { label: 'متوسط', value: 'Intermediate' },
-    { label: 'ثانوي', value: 'Secondary' }
-  ];
-
-  readonly form = new FormGroup({
-    academicYearId: new FormControl<number | null>(null, Validators.required),
-    stage: new FormControl<SchoolStage | null>(null, Validators.required),
-    gradeLevel: new FormControl<number | null>(1, [Validators.required, Validators.min(1), Validators.max(12)]),
-    section: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    classLabel: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    physicalLocation: new FormControl('', [Validators.required, Validators.maxLength(120)]),
-    isActive: new FormControl(true, { nonNullable: true })
-  });
-
-  constructor() {
-    this.loadAcademicYears();
-    this.loadClassrooms();
+  readonly grade = signal(1);
+  readonly stage = signal<string>('Primary');
+  readonly year = signal<number | undefined>(undefined);
+  readonly editing = signal<ClassroomOption | null>(null);
+  readonly dialog = signal(false);
+  readonly formError = signal('');
+  firstSection = 1;
+  lastSection = 3;
+  location = '';
+  section = '';
+  active = true;
+  readonly stages = computed(() => [...new Set([this.catalog()?.context.stage ?? 'Primary', ...(this.catalog()?.items.map(c => c.stage) ?? [])])]);
+  readonly grades = computed(() => Array.from({length: this.stage() === 'Primary' ? 6 : 3}, (_, i) => i + 1));
+  readonly canManage = computed(() => !!this.catalog() && (this.catalog()!.context.isManager || this.auth.hasRole('SuperAdmin') || this.auth.hasRole('MainManager') ||
+    this.auth.hasPermission('Classroom.Manage') || this.auth.hasPermission('StudentEnrollment.Manage')));
+  readonly currentYear = computed(() => this.catalog()?.context.years.find(y => y.id === this.year())?.isActive === true);
+  readonly rows = computed(() => (this.catalog()?.items ?? []).filter(c => c.stage === this.stage() && c.gradeLevel === this.grade() &&
+    `${c.label} ${c.section} ${c.physicalLocation}`.toLocaleLowerCase('ar').includes(this.search().trim().toLocaleLowerCase('ar'))));
+  readonly legacyCount = computed(() => this.catalog()?.items.filter(c => c.sectionNumber == null).length ?? 0);
+  constructor() { this.load(); }
+  count(grade: number): number { return this.catalog()?.items.filter(c => c.stage === this.stage() && c.gradeLevel === grade).length ?? 0; }
+  load(): void {
+    this.loading.set(true); this.error.set('');
+    this.api.all(this.year()).pipe(finalize(() => this.loading.set(false))).subscribe({
+      next: data => { const initial = !this.catalog(); this.catalog.set(data); if (initial) this.stage.set(data.context.stage); if (!this.year()) this.year.set(data.context.years.find(y => y.isActive)?.id); },
+      error: e => this.error.set(extractHttpErrorMessage(e) || 'تعذر تحميل الفصول. أعد المحاولة.')
+    });
   }
-
-  get filteredClassrooms(): readonly ClassroomDto[] {
-    const term = this.search().trim().toLocaleLowerCase('ar');
-    if (!term) return this.classrooms();
-    return this.classrooms().filter(classroom =>
-      classroom.label.toLocaleLowerCase('ar').includes(term) ||
-      classroom.section.toLocaleLowerCase('ar').includes(term) ||
-      classroom.physicalLocation.toLocaleLowerCase('ar').includes(term) ||
-      classroom.academicYearLabel.toLocaleLowerCase('ar').includes(term));
-  }
-
-  get academicYearOptions(): readonly SelectOption<number>[] {
-    return this.academicYears().map(year => ({
-      label: `${year.nameAr} (${year.code})`,
-      value: year.id
-    }));
-  }
-
   openCreate(): void {
-    this.editing.set(null);
-    this.setImmutableFieldsDisabled(false);
-    const preferredYear = this.academicYears().find(year => year.isActive) ?? this.academicYears()[0];
-    this.form.reset({
-      academicYearId: preferredYear?.id ?? null,
-      stage: null,
-      gradeLevel: 1,
-      section: '',
-      classLabel: '',
-      physicalLocation: '',
-      isActive: true
-    });
-    this.dialogVisible.set(true);
+    this.editing.set(null); this.formError.set(''); this.location = ''; this.firstSection = 1; this.lastSection = 3; this.dialog.set(true);
   }
-
-  openEdit(classroom: ClassroomDto): void {
-    this.editing.set(classroom);
-    this.form.reset({
-      academicYearId: classroom.academicYearId,
-      stage: classroom.stage as SchoolStage,
-      gradeLevel: classroom.gradeLevel,
-      section: classroom.section,
-      classLabel: classroom.label,
-      physicalLocation: classroom.physicalLocation,
-      isActive: classroom.isActive
-    });
-    this.setImmutableFieldsDisabled(true);
-    this.dialogVisible.set(true);
+  openEdit(row: ClassroomOption): void {
+    this.editing.set(row); this.formError.set(''); this.location = row.physicalLocation; this.section = row.section;
+    this.active = row.isActive; this.dialog.set(true);
   }
-
-  closeDialog(): void {
-    if (!this.saving()) this.dialogVisible.set(false);
-  }
-
   save(): void {
-    this.form.markAllAsTouched();
-    if (this.form.invalid || this.saving()) return;
-
-    const value = this.form.getRawValue();
-    const editing = this.editing();
-    this.saving.set(true);
-    const request$ = editing
-      ? this.api.updateClassroom(editing.id, {
-          classLabel: value.classLabel!.trim(),
-          section: value.section!.trim(),
-          physicalLocation: value.physicalLocation!.trim(),
-          isActive: value.isActive,
-          rowVersion: editing.rowVersion
-        })
-      : this.api.createClassroom({
-          academicYearId: value.academicYearId!,
-          stage: value.stage!,
-          gradeLevel: value.gradeLevel!,
-          section: value.section!.trim(),
-          classLabel: value.classLabel!.trim(),
-          physicalLocation: value.physicalLocation!.trim()
-        });
-
-    request$.pipe(finalize(() => this.saving.set(false))).subscribe({
-      next: response => {
-        if (!response.isSuccess || !response.data) {
-          this.showError(response.errors[0] ?? response.message ?? 'تعذر حفظ بيانات الفصل.');
-          return;
-        }
-        this.dialogVisible.set(false);
-        this.messages.add({
-          severity: 'success',
-          summary: editing ? 'تم تحديث الفصل' : 'تمت إضافة الفصل',
-          detail: `تم حفظ الفصل ${response.data.label} بنجاح.`
-        });
-        this.loadClassrooms();
-      },
-      error: (error: HttpErrorResponse) => this.showError(
-        extractHttpErrorMessage(error) ?? 'تعذر حفظ بيانات الفصل. تحقق من عدم تكرار اسم الفصل.'
-      )
+    if (this.saving() || !this.canManage() || !this.currentYear()) return;
+    if (!this.editing() && this.stage() !== this.catalog()?.context.stage) { this.formError.set('إضافة الفصول متاحة لمرحلة المدرسة الحالية فقط.'); return; }
+    if (!this.location.trim()) { this.formError.set('حدّد الموقع الفعلي للفصول.'); return; }
+    if (!this.editing() && (!Number.isInteger(this.firstSection) || !Number.isInteger(this.lastSection) ||
+      this.firstSection < 1 || this.lastSection < this.firstSection || this.lastSection - this.firstSection >= 100)) {
+      this.formError.set('اختر نطاقًا صحيحًا من شعبة إلى ١٠٠ شعبة.'); return;
+    }
+    this.saving.set(true); this.formError.set('');
+    const row = this.editing();
+    const request = row ? this.api.edit(row, this.section, this.active, this.location).pipe(map(r => ({isSuccess:r.isSuccess, message:r.message}))) :
+      this.api.create(this.year()!, this.grade(), Array.from({length: this.lastSection - this.firstSection + 1}, (_, i) => `${this.firstSection + i}`), this.location).pipe(map(r => ({isSuccess:r.isSuccess, message:r.message})));
+    request.pipe(finalize(() => this.saving.set(false))).subscribe({
+      next: result => {
+        if (!result.isSuccess) { this.formError.set(result.message || 'تعذر حفظ الفصول.'); return; }
+        this.dialog.set(false); this.success.set(row ? 'تم تحديث الفصل مع الاحتفاظ بارتباطاته.' : 'تمت إضافة الشعب. أصبحت متاحة للمعلمين مباشرة.'); this.load();
+      }, error: e => this.formError.set(extractHttpErrorMessage(e) || 'تعذر الحفظ. حدّث البيانات ثم أعد المحاولة.')
     });
-  }
-
-  confirmArchive(classroom: ClassroomDto): void {
-    const hasActiveStudents = classroom.activeEnrollmentCount > 0;
-
-    this.confirmation.confirm({
-      header: hasActiveStudents ? 'تحذير: الفصل يحتوي على طلاب' : 'تأكيد حذف الفصل',
-      message: hasActiveStudents
-        ? 'سيتم إخفاء/إلغاء تعيين جميع الطلاب في هذا الفصل. هل أنت متأكد؟'
-        : `سيتم حذف الفصل «${classroom.label}» من القوائم النشطة. هل تريد المتابعة؟`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'حذف الفصل',
-      rejectLabel: 'إلغاء',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.archive(classroom, hasActiveStudents)
-    });
-  }
-
-  stageLabel(stage: string): string {
-    return this.stageOptions.find(option => option.value === stage)?.label ?? stage;
-  }
-
-  setSearch(event: Event): void {
-    this.search.set((event.target as HTMLInputElement).value);
-  }
-
-  private loadAcademicYears(): void {
-    this.api.getAcademicYears().subscribe({
-      next: response => {
-        if (response.isSuccess && response.data) this.academicYears.set(response.data);
-        else this.showError(response.errors[0] ?? response.message ?? 'تعذر تحميل الأعوام الدراسية.');
-      },
-      error: (error: HttpErrorResponse) => this.showError(
-        extractHttpErrorMessage(error) ?? 'تعذر تحميل الأعوام الدراسية.'
-      )
-    });
-  }
-
-  loadClassrooms(): void {
-    this.loading.set(true);
-    this.errorMessage.set('');
-    this.api.getClassrooms().pipe(finalize(() => this.loading.set(false))).subscribe({
-      next: response => {
-        if (response.isSuccess && response.data) this.classrooms.set(response.data.items);
-        else this.errorMessage.set(response.errors[0] ?? response.message ?? 'تعذر تحميل الفصول.');
-      },
-      error: (error: HttpErrorResponse) => {
-        this.errorMessage.set(extractHttpErrorMessage(error) ?? 'تعذر تحميل الفصول.');
-      }
-    });
-  }
-
-  private archive(classroom: ClassroomDto, forceDelete: boolean): void {
-    this.api.deleteClassroom(classroom.id, {
-      reason: 'حذف من شاشة إدارة الفصول',
-      rowVersion: classroom.rowVersion,
-      forceDelete
-    }).subscribe({
-      next: response => {
-        if (!response.isSuccess || response.data !== true) {
-          this.showError(response.errors[0] ?? response.message ?? 'تعذر حذف الفصل.');
-          return;
-        }
-        this.messages.add({ severity: 'success', summary: 'تم حذف الفصل', detail: classroom.label });
-        this.loadClassrooms();
-      },
-      error: (error: HttpErrorResponse) => this.showError(
-        extractHttpErrorMessage(error) ?? 'تعذر حذف الفصل.'
-      )
-    });
-  }
-
-  private showError(detail: string): void {
-    this.messages.add({ severity: 'error', summary: 'تعذر تنفيذ العملية', detail });
-  }
-
-  private setImmutableFieldsDisabled(disabled: boolean): void {
-    const controls = [this.form.controls.academicYearId, this.form.controls.stage, this.form.controls.gradeLevel];
-    controls.forEach(control => disabled
-      ? control.disable({ emitEvent: false })
-      : control.enable({ emitEvent: false }));
   }
 }

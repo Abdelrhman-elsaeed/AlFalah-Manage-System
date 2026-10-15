@@ -91,6 +91,12 @@ public class AccountController : ControllerBase
             var result = await _teacherService.UpsertTeachingAsync(userId, request, cancellationToken);
             return Ok(ApiResponse<TeacherTeachingDto>.Success(result, "تم حفظ المادة والفصول بنجاح."));
         }
+        catch (AlFalah.Application.Classrooms.ClassroomCatalogConflictException ex)
+        { return Conflict(ApiResponse.Fail(ex.Message)); }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        { return Conflict(ApiResponse.Fail("Teaching data changed. Refresh and retry.")); }
+        catch (ArgumentException ex)
+        { return BadRequest(ApiResponse.Fail(ex.Message)); }
         catch (KeyNotFoundException ex)
         {
             return NotFound(ApiResponse<TeacherTeachingDto>.Fail(ex.Message));

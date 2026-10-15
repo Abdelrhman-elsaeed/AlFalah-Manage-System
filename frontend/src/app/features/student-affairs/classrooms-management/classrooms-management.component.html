@@ -1,132 +1,40 @@
-<section class="page classrooms-page" dir="rtl">
-  <p-confirmDialog></p-confirmDialog>
-
-  <header class="page-header">
-    <div class="page-header__titles">
-      <span class="eyebrow">البيانات الأساسية</span>
-      <h1 class="page-header__title">إدارة الفصول</h1>
-      <p class="page-header__subtitle">أضف الفصول وحدّث بياناتها لتظهر مباشرة في كشوف الحضور واستئذانات الخروج.</p>
-    </div>
-    <button pButton type="button" class="page-header__action" icon="pi pi-plus" label="إضافة فصل" (click)="openCreate()"></button>
+<section class="catalog-page" dir="rtl" aria-labelledby="catalog-title">
+  <header class="catalog-header">
+    <div><span class="eyebrow">البيانات الأساسية · التنظيم الدراسي</span><h1 id="catalog-title">إدارة الفصول<span>.</span></h1><p>صفوف واضحة، وشعب موحّدة لكل المدرسة.</p></div>
+    <label class="year-field">العام الدراسي<select [ngModel]="year()" (ngModelChange)="year.set(+$event); load()" [disabled]="loading()"><option *ngFor="let y of catalog()?.context?.years" [ngValue]="y.id">{{ y.name }}{{ y.isActive ? ' · نشط' : '' }}</option></select></label>
   </header>
-
-  <div class="list-toolbar">
-    <label class="toolbar-field toolbar-field--grow" for="classroom-search">
-      <span class="toolbar-field__label">البحث</span>
-      <span class="p-input-icon-left toolbar-field__control">
-        <i class="pi pi-search"></i>
-        <input id="classroom-search" pInputText type="search" placeholder="اسم الفصل أو الشعبة أو العام" [value]="search()" (input)="setSearch($event)" />
-      </span>
-    </label>
-    <div class="toolbar-summary">{{ filteredClassrooms.length }} فصل</div>
-  </div>
-
-  @if (errorMessage()) {
-    <div class="error-banner" role="alert">
-      <span>{{ errorMessage() }}</span>
-      <button pButton type="button" class="p-button-text" icon="pi pi-refresh" label="إعادة المحاولة" (click)="loadClassrooms()"></button>
-    </div>
-  }
-
-  <p-card styleClass="table-card classroom-table-card">
-    @if (loading()) {
-      <div class="loading"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الفصول...</span></div>
-    } @else {
-      <p-table [value]="filteredClassrooms" [rowHover]="true" [paginator]="filteredClassrooms.length > 10" [rows]="10" responsiveLayout="scroll">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>الفصل</th>
-            <th>المرحلة</th>
-            <th>الصف</th>
-            <th>الشعبة</th>
-            <th>الموقع / الدور</th>
-            <th>العام الدراسي</th>
-            <th>الطلاب النشطون</th>
-            <th>الحالة</th>
-            <th class="actions-column">الإجراءات</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-classroom>
-          <tr>
-            <td><strong>{{ classroom.label }}</strong></td>
-            <td>{{ stageLabel(classroom.stage) }}</td>
-            <td>{{ classroom.gradeLevel }}</td>
-            <td>{{ classroom.section }}</td>
-            <td>{{ classroom.physicalLocation }}</td>
-            <td>{{ classroom.academicYearLabel }}</td>
-            <td>{{ classroom.activeEnrollmentCount }}</td>
-            <td><p-tag [value]="classroom.isActive ? 'نشط' : 'غير نشط'" [severity]="classroom.isActive ? 'success' : 'warning'"></p-tag></td>
-            <td>
-              <div class="row-actions">
-                <button pButton type="button" class="p-button-text" icon="pi pi-pencil" aria-label="تعديل الفصل" (click)="openEdit(classroom)"></button>
-                <button pButton type="button" class="p-button-text p-button-danger" icon="pi pi-trash" aria-label="حذف الفصل" (click)="confirmArchive(classroom)"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr><td colspan="9" class="empty">لا توجد فصول مطابقة. أضف فصلًا جديدًا للبدء.</td></tr>
-        </ng-template>
+  @if (error()) { <div class="notice error" role="alert">{{ error() }} <button type="button" (click)="load()">إعادة المحاولة</button></div> }
+  @if (success()) { <div class="notice" role="status">{{ success() }}</div> }
+  @if (catalog()) {
+    <section class="catalog-intro"><div><i class="pi pi-sitemap" aria-hidden="true"></i><div><h2>فصول المدرسة</h2><p>تظهر هذه الفصول في قوائم الاختيار. الموقع يصف مكان الفصل، وليس اسمه.</p></div></div><strong>{{ catalog()!.items.length }} <small>فصلًا مسجلًا</small></strong></section>
+    @if (legacyCount()) { <div class="notice legacy"><i class="pi pi-info-circle" aria-hidden="true"></i><span>يوجد {{ legacyCount() }} فصلًا بترقيم سابق. راجع كل فصل وحدّد رقم شعبته؛ تظل بياناته وارتباطاته محفوظة.</span></div> }
+    @if (!currentYear()) { <p class="notice">أنت تستعرض عامًا سابقًا. تعديل الفصول متاح في العام النشط.</p> }
+    <label class="year-field stage-field" *ngIf="stages().length > 1">المرحلة<select [ngModel]="stage()" (ngModelChange)="stage.set($event); grade.set(1)"><option *ngFor="let s of stages()" [ngValue]="s">{{ s === 'Primary' ? 'الابتدائية' : s === 'Intermediate' ? 'المتوسطة' : 'الثانوية' }}{{ s !== catalog()!.context.stage ? ' · بيانات سابقة' : '' }}</option></select></label>
+    <nav class="grade-nav" aria-label="صفوف المدرسة"><button *ngFor="let g of grades()" type="button" [class.selected]="grade() === g" [attr.aria-current]="grade() === g ? 'page' : null" (click)="grade.set(g)"><span>{{ api.gradeLabel(stage(), g) }}</span><strong>{{ count(g) }} شعبة</strong></button></nav>
+    <section class="catalog-table" [attr.aria-busy]="loading()">
+      <header><div><span class="eyebrow">شعب الصف</span><h2>{{ api.gradeLabel(stage(), grade()) }}</h2></div><div class="table-tools"><input type="search" aria-label="البحث في الفصول" placeholder="ابحث عن فصل أو موقع..." [ngModel]="search()" (ngModelChange)="search.set($event)" /><button pButton type="button" icon="pi pi-plus" label="إضافة شعب" [disabled]="!canManage() || !currentYear() || loading() || stage() !== catalog()!.context.stage" (click)="openCreate()"></button></div></header>
+      <p-table [value]="rows()" [paginator]="rows().length > 10" [rows]="10" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header"><tr><th>الفصل</th><th>الشعبة</th><th>الموقع الفعلي</th><th>الحالة</th><th>الإجراءات</th></tr></ng-template>
+        <ng-template pTemplate="body" let-row><tr><td><strong>{{ row.label }}</strong><small *ngIf="row.sectionNumber == null" class="legacy-tag">ترقيم سابق</small></td><td>{{ row.section }}</td><td>{{ row.physicalLocation }}</td><td><span class="status" [class.inactive]="!row.isActive">{{ row.isActive ? 'نشط' : 'متوقف' }}</span></td><td><button type="button" class="edit-button" (click)="openEdit(row)" [disabled]="!canManage() || !currentYear()">تعديل <i class="pi pi-pencil" aria-hidden="true"></i></button></td></tr></ng-template>
+        <ng-template pTemplate="emptymessage"><tr><td colspan="5" class="empty"><i class="pi pi-building" aria-hidden="true"></i><h3>{{ search() ? 'لا توجد نتائج مطابقة' : 'ابدأ بإضافة شعب هذا الصف' }}</h3><p>{{ search() ? 'جرّب اسم الفصل أو موقعه.' : 'اختر نطاق الشعب وموقعها؛ سنرتّب أسماء الفصول تلقائيًا.' }}</p></td></tr></ng-template>
       </p-table>
-    }
-  </p-card>
-
-  <p-dialog
-    [visible]="dialogVisible()"
-    (visibleChange)="dialogVisible.set($event)"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [closable]="!saving()"
-    [style]="{ width: 'min(620px, calc(100vw - 2rem))' }"
-    [header]="editing() ? 'تعديل الفصل' : 'إضافة فصل جديد'">
-    <form class="classroom-form" [formGroup]="form" (ngSubmit)="save()">
-      <label class="form-field" for="classroom-year">
-        <span>العام الدراسي <b>*</b></span>
-        <app-clearable-select inputId="classroom-year" formControlName="academicYearId" [options]="academicYearOptions" optionLabel="label" optionValue="value" placeholder="اختر العام الدراسي" [clearable]="false"></app-clearable-select>
-      </label>
-
-      <label class="form-field" for="classroom-stage">
-        <span>المرحلة <b>*</b></span>
-        <app-clearable-select inputId="classroom-stage" formControlName="stage" [options]="stageOptions" optionLabel="label" optionValue="value" placeholder="اختر المرحلة" [clearable]="false"></app-clearable-select>
-      </label>
-
-      <label class="form-field" for="classroom-grade">
-        <span>الصف <b>*</b></span>
-        <p-inputNumber inputId="classroom-grade" formControlName="gradeLevel" [min]="1" [max]="12" [useGrouping]="false"></p-inputNumber>
-      </label>
-
-      <label class="form-field" for="classroom-section">
-        <span>الشعبة <b>*</b></span>
-        <input id="classroom-section" pInputText formControlName="section" maxlength="50" placeholder="مثال: أ" />
-      </label>
-
-      <label class="form-field form-field--wide" for="classroom-label">
-        <span>اسم الفصل الظاهر <b>*</b></span>
-        <input id="classroom-label" pInputText formControlName="classLabel" maxlength="50" placeholder="مثال: الصف الأول - أ" />
-      </label>
-
-      <label class="form-field form-field--wide" for="classroom-location">
-        <span>الموقع الفعلي / الدور <b>*</b></span>
-        <input id="classroom-location" pInputText formControlName="physicalLocation" maxlength="120" placeholder="مثال: الدور الثاني - الجناح الشرقي" />
-        <small>يظهر هذا الوصف للمعلمين وفي نسخ الجدول المطبوعة.</small>
-      </label>
-
-      @if (editing()) {
-        <label class="active-field form-field--wide" for="classroom-active">
-          <p-checkbox inputId="classroom-active" formControlName="isActive" [binary]="true"></p-checkbox>
-          <span>الفصل نشط ويظهر في القوائم التشغيلية</span>
-        </label>
-      }
-
-      @if (form.invalid && form.touched) {
-        <p class="validation-message">أكمل جميع الحقول المطلوبة بقيم صحيحة.</p>
-      }
-
-      <div class="dialog-actions form-field--wide">
-        <button pButton type="button" class="p-button-outlined" label="إلغاء" [disabled]="saving()" (click)="closeDialog()"></button>
-        <button pButton type="submit" icon="pi pi-check" [label]="editing() ? 'حفظ التعديلات' : 'إضافة الفصل'" [loading]="saving()"></button>
-      </div>
-    </form>
-  </p-dialog>
+    </section>
+  } @else if (loading()) { <p role="status" class="notice">جارٍ تحميل فصول المدرسة...</p> }
 </section>
+<p-dialog [visible]="dialog()" (visibleChange)="dialog.set($event)" [modal]="true" [draggable]="false" [resizable]="false" [closable]="!saving()" [style]="{width:'min(560px, calc(100vw - 2rem))'}" [header]="editing() ? 'تعديل الفصل' : 'إضافة شعب الصف'">
+  <form class="catalog-form" dir="rtl" (ngSubmit)="save()">
+    <p>{{ api.gradeLabel(catalog()?.context?.stage || '', editing()?.gradeLevel || grade()) }}</p>
+    @if (editing(); as row) {
+      <p class="notice" *ngIf="row.sectionNumber == null">الاسم الحالي: {{ row.label }}. اختر رقم الشعبة الصحيح لهذا الفصل دون إنشاء فصل بديل.</p>
+      <label>رقم الشعبة<input name="section" [(ngModel)]="section" inputmode="numeric" required /></label>
+      <label class="checkbox-field"><input type="checkbox" name="active" [(ngModel)]="active" /> الفصل نشط ومتاح للاختيار</label>
+    } @else {
+      <div class="range-fields"><label>من الشعبة<input type="number" name="firstSection" [(ngModel)]="firstSection" min="1" required /></label><label>إلى الشعبة<input type="number" name="lastSection" [(ngModel)]="lastSection" min="1" required /></label></div>
+      <p class="form-hint">يُنشأ اسم كل فصل تلقائيًا، مثل: {{ api.gradeLabel(catalog()?.context?.stage || '', grade()) }} · شعبة {{ firstSection }}.</p>
+    }
+    <label>الموقع الفعلي<input name="location" [(ngModel)]="location" maxlength="120" placeholder="مثل: الدور الأول · الجناح الشرقي" required /></label>
+    <small class="form-hint">يمكن تعديل موقع كل فصل لاحقًا.</small>
+    @if (formError()) { <p class="notice error" role="alert">{{ formError() }}</p> }
+    <footer><button pButton type="submit" [label]="editing() ? 'حفظ التعديل' : 'إضافة الشعب'" [loading]="saving()"></button><button pButton type="button" class="p-button-outlined" label="إلغاء" [disabled]="saving()" (click)="dialog.set(false)"></button></footer>
+  </form>
+</p-dialog>

@@ -34,7 +34,7 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
                     && profile.User.IsActive
                     && profile.Classes.Any(assignment =>
                         !assignment.IsDeleted
-                        && assignment.ClassLabel == classroom.ClassLabel)))
+                        && assignment.ClassroomId == classroom.Id && assignment.SchoolId == classroom.SchoolId)))
             .OrderBy(classroom => classroom.Stage)
             .ThenBy(classroom => classroom.GradeLevel)
             .ThenBy(classroom => classroom.Section)
@@ -75,7 +75,7 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
                     && profile.User.IsActive
                     && profile.Classes.Any(assignment =>
                         !assignment.IsDeleted
-                        && assignment.ClassLabel == classroom.ClassLabel)),
+                        && assignment.ClassroomId == classroom.Id && assignment.SchoolId == classroom.SchoolId)),
                 cancellationToken);
 
     public async Task<TeacherContextSnapshot?> GetTopPriorityAsync(

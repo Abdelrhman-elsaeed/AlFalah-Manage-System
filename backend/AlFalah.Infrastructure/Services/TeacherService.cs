@@ -1,3 +1,4 @@
+using AlFalah.Application.Classrooms;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Teachers;
 using AlFalah.Application.Interfaces;
@@ -43,6 +44,7 @@ public class TeacherService : ITeacherService
     private readonly SchoolScopeGuard _scopeGuard;
     private readonly AuditLogWriter _audit;
     private readonly ILogger<TeacherService> _logger;
+    private readonly IClassroomCatalogService _catalog;
 
     public TeacherService(
         AlFalahDbContext context,
@@ -50,7 +52,7 @@ public class TeacherService : ITeacherService
         ICurrentUserService currentUser,
         SchoolScopeGuard scopeGuard,
         AuditLogWriter audit,
-        ILogger<TeacherService> logger)
+        ILogger<TeacherService> logger, IClassroomCatalogService catalog)
     {
         _context = context;
         _userManager = userManager;
@@ -58,6 +60,7 @@ public class TeacherService : ITeacherService
         _scopeGuard = scopeGuard;
         _audit = audit;
         _logger = logger;
+        _catalog = catalog;
     }
 
     // ─── List ─────────────────────────────────────────────────────────────────
@@ -268,9 +271,9 @@ public class TeacherService : ITeacherService
             ? new List<string>()
             : await _context.InstructorClasses
                 .AsNoTracking()
-                .Where(c => c.InstructorProfileId == profile.Id)
+                .Where(c => c.InstructorProfileId == profile.Id && (c.SchoolId == null || c.SchoolId == profile.SchoolId) && (c.ClassroomId == null || c.Classroom!.AcademicYear.IsActive))
                 .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
-                .Select(c => c.ClassLabel)
+                .Select(c => c.Classroom != null ? c.Classroom.ClassLabel : c.ClassLabel)
                 .ToListAsync(cancellationToken);
 
         return new TeacherProfileDto
@@ -543,9 +546,9 @@ public class TeacherService : ITeacherService
             ? new List<string>()
             : await _context.InstructorClasses
                 .AsNoTracking()
-                .Where(c => c.InstructorProfileId == profile.Id)
+                .Where(c => c.InstructorProfileId == profile.Id && (c.SchoolId == null || c.SchoolId == profile.SchoolId) && (c.ClassroomId == null || c.Classroom!.AcademicYear.IsActive))
                 .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
-                .Select(c => c.ClassLabel)
+                .Select(c => c.Classroom != null ? c.Classroom.ClassLabel : c.ClassLabel)
                 .ToListAsync(cancellationToken);
 
         SchoolStage stage;
@@ -557,13 +560,22 @@ public class TeacherService : ITeacherService
             stage = school?.Stage ?? SchoolStage.Primary;
         }
 
+        var activeYears = await _context.AcademicTerms.AsNoTracking()
+            .Where(t => t.SchoolId == assignment.SchoolId && t.IsActive && t.AcademicYear.IsActive)
+            .Select(t => t.AcademicYearId).Distinct().Take(2).ToArrayAsync(cancellationToken);
+        int? activeYear = activeYears.Length == 1 ? activeYears[0] : null;
+        var selectedIds = profile is null ? new List<int>() : await _context.InstructorClasses.AsNoTracking()
+            .Where(c => c.InstructorProfileId == profile.Id && c.ClassroomId != null && c.Classroom!.SchoolId == assignment.SchoolId && c.Classroom.AcademicYearId == activeYear)
+            .OrderBy(c => c.SortOrder).Select(c => c.ClassroomId!.Value).ToListAsync(cancellationToken);
+        var unresolved = profile is null ? new List<string>() : await _context.InstructorClasses.AsNoTracking()
+            .Where(c => c.InstructorProfileId == profile.Id && c.ClassroomId == null).Select(c => c.ClassLabel).ToListAsync(cancellationToken);
         return new TeacherTeachingDto
         {
             UserId = userId,
             SchoolId = assignment.SchoolId,
             Subject = profile?.SubjectSpecialization,
             Stage = stage,
-            Classes = classes
+            Classes = classes, ClassroomIds = selectedIds, TeachingRevision = profile?.TeachingRevision ?? 1, AcademicYearId = activeYear, UnresolvedClasses = unresolved
         };
     }
 
@@ -586,7 +598,6 @@ public class TeacherService : ITeacherService
                 IsActive = true
             };
             _context.InstructorProfiles.Add(profile);
-            await _context.SaveChangesAsync(cancellationToken);
         }
 
         // Subject (null = leave alone, matching the UserService convention).
@@ -598,56 +609,10 @@ public class TeacherService : ITeacherService
         if (request.Stage.HasValue)
             profile.Stage = request.Stage;
 
-        // Classes (null = leave alone; the existing list stays untouched).
-        if (request.Classes != null)
-        {
-            var existing = await _context.InstructorClasses
-                .Where(c => c.InstructorProfileId == profile.Id)
-                .ToListAsync(cancellationToken);
-
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var normalized = new List<string>();
-            foreach (var raw in request.Classes)
-            {
-                if (string.IsNullOrWhiteSpace(raw)) continue;
-                var trimmed = raw.Trim();
-                if (trimmed.Length > 50) trimmed = trimmed.Substring(0, 50);
-                if (seen.Add(trimmed)) normalized.Add(trimmed);
-            }
-
-            // Drop rows whose label isn't in the new set.
-            foreach (var row in existing)
-            {
-                if (!normalized.Any(n => string.Equals(n, row.ClassLabel, StringComparison.OrdinalIgnoreCase)))
-                {
-                    row.IsDeleted = true;
-                    row.DeletedAt = DateTimeOffset.UtcNow;
-                    row.DeletedByUserId = _currentUser.UserId;
-                }
-            }
-
-            var existingLabels = existing
-                .Where(r => !r.IsDeleted)
-                .Select(r => r.ClassLabel)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            var sortOrder = 0;
-            foreach (var label in normalized)
-            {
-                if (existingLabels.Contains(label)) { sortOrder++; continue; }
-                _context.InstructorClasses.Add(new InstructorClass
-                {
-                    InstructorProfileId = profile.Id,
-                    ClassLabel = label,
-                    SortOrder = sortOrder
-                });
-                sortOrder++;
-            }
-        }
+        await _catalog.ApplyTeacherSelectionAsync(profile, request.ClassroomIds, request.Classes,
+            request.AcademicYearId, request.TeachingRevision, cancellationToken);
 
         profile.UpdatedAt = DateTimeOffset.UtcNow;
-        await _context.SaveChangesAsync(cancellationToken);
-
         _audit.Write(
             schoolId: assignment.SchoolId,
             userId: _currentUser.UserId,
@@ -660,8 +625,10 @@ public class TeacherService : ITeacherService
             {
                 subject = profile.SubjectSpecialization,
                 stage = profile.Stage,
-                classes = request.Classes
+                classes = request.Classes,
+                classroomIds = request.ClassroomIds
             });
+        await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Teacher teaching upserted: userId={UserId} school={SchoolId} subject={Subject} classes={Count} caller={CallerId}",

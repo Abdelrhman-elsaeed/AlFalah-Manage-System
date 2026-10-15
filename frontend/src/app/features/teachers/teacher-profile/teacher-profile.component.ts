@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { ChipsModule } from 'primeng/chips';
+import { ClassroomSelectorComponent } from '../../../shared/components/classroom-selector/classroom-selector.component';
+import { TeacherTeaching } from '../../../core/models/teacher.models';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -36,7 +37,7 @@ import { AdminDriveFolderItem, DriveFolderMapping } from '../../../core/models/t
   standalone: true,
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    ButtonModule, InputTextModule, ChipsModule, TableModule, TagModule, TooltipModule, ChartModule,
+    ButtonModule, InputTextModule, ClassroomSelectorComponent, TableModule, TagModule, TooltipModule, ChartModule,
     DialogModule, ConfirmDialogModule,
     PublishedScorePipe, PublishedScoreDeltaPipe
   ],
@@ -61,7 +62,9 @@ export class TeacherProfileComponent implements OnInit {
   readonly loading = signal(false);
   readonly editingClasses = signal(false);
   readonly savingClasses = signal(false);
-  readonly editableClasses = signal<string[]>([]);
+  readonly editableClasses = signal<number[]>([]);
+  readonly teaching = signal<TeacherTeaching | null>(null);
+  readonly catalogReady = signal(false);
 
   // The radar chart payload — built reactively from `progress()`.
   readonly radarData = computed(() => {
@@ -366,8 +369,14 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   beginClassesEdit(): void {
-    this.editableClasses.set([...(this.profile()?.classes ?? [])]);
+    this.teaching.set(null);
+    this.catalogReady.set(false);
     this.editingClasses.set(true);
+    const id = this.profile()?.userId;
+    if (!id) return;
+    this.teachersService.getTeaching(id).subscribe({next: r => {
+      if (r.isSuccess && r.data) { this.teaching.set(r.data); this.editableClasses.set(r.data.classroomIds ?? []); }
+    }, error: () => this.toast.error(this.translate.instant('TEACHERS.CLASSES_SAVE_FAILED'))});
   }
 
   cancelClassesEdit(): void {
@@ -377,17 +386,15 @@ export class TeacherProfileComponent implements OnInit {
 
   saveClasses(): void {
     const profile = this.profile();
-    if (!profile) return;
-
-    const classes = [...new Set(this.editableClasses()
-      .map(classLabel => classLabel.trim())
-      .filter(Boolean))];
+    if (!profile || !this.teaching() || !this.catalogReady() || this.savingClasses()) return;
 
     this.savingClasses.set(true);
     this.teachersService.updateTeaching(profile.userId, {
       subject: profile.subject,
       stage: profile.stage,
-      classes
+      classroomIds: this.editableClasses(),
+      academicYearId: this.teaching()!.academicYearId,
+      teachingRevision: this.teaching()!.teachingRevision
     }).subscribe({
       next: response => {
         this.savingClasses.set(false);

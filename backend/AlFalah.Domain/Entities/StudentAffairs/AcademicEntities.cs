@@ -135,6 +135,7 @@ public sealed class Classroom : IStudentAffairsMutableEntity
     public SchoolStage Stage { get; set; }
     public byte GradeLevel { get; set; }
     public string Section { get; set; } = string.Empty;
+    public int? SectionNumber { get; set; }
     public string ClassLabel { get; set; } = string.Empty;
     public string PhysicalLocation { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;

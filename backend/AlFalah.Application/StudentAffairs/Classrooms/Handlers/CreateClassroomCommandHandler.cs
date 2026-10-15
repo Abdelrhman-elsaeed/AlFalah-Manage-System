@@ -1,86 +1,36 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using AlFalah.Application.Classrooms;
+using AlFalah.Application.Common;
 using AlFalah.Application.Interfaces;
 using AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 using AlFalah.Application.StudentAffairs.Students;
 using AlFalah.Application.StudentAffairs.Students.Handlers;
-using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Domain.Enums;
 using AlFalah.Shared.Models;
 using MediatR;
-
 namespace AlFalah.Application.StudentAffairs.Classrooms.Handlers;
-
-public sealed class CreateClassroomCommandHandler
-    : IRequestHandler<CreateClassroomCommand, ApiResponse<ClassroomDto>>
+// Compatibility endpoint: all writes use the same catalogue policy.
+public sealed class CreateClassroomCommandHandler(
+    IStudentWorkflowRepository repository, ICurrentUserService currentUser,
+    IClassroomCatalogService catalog) : IRequestHandler<CreateClassroomCommand, ApiResponse<ClassroomDto>>
 {
-    private readonly IStudentWorkflowRepository _repository;
-    private readonly ICurrentUserService _currentUser;
-    private readonly TimeProvider _timeProvider;
-
-    public CreateClassroomCommandHandler(
-        IStudentWorkflowRepository repository,
-        ICurrentUserService currentUser,
-        TimeProvider timeProvider)
+    public async Task<ApiResponse<ClassroomDto>> Handle(CreateClassroomCommand command, CancellationToken cancellationToken)
     {
-        _repository = repository;
-        _currentUser = currentUser;
-        _timeProvider = timeProvider;
-    }
-
-    public async Task<ApiResponse<ClassroomDto>> Handle(
-        CreateClassroomCommand command,
-        CancellationToken cancellationToken)
-    {
-        var schoolId = _currentUser.ActiveSchoolId;
-        var userId = _currentUser.UserId;
-        if (schoolId is null || string.IsNullOrWhiteSpace(userId))
+        var school = currentUser.ActiveSchoolId;
+        if (school is null || string.IsNullOrWhiteSpace(currentUser.UserId))
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.AuthenticationRequired);
-
-        if (!_currentUser.HasPermission(PermissionNames.StudentEnrollmentManage)
-            && !_currentUser.HasPermission(PermissionNames.ClassroomManage))
-        {
+        if (!currentUser.HasPermission(PermissionNames.StudentEnrollmentManage) && !currentUser.HasPermission(PermissionNames.ClassroomManage))
             return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.PermissionDenied);
-        }
-
-        var req = command.Request;
-        var classLabel = req.ClassLabel.Trim();
-        if (!await _repository.AcademicYearExistsAsync(schoolId.Value, req.AcademicYearId, cancellationToken).ConfigureAwait(false))
-            return ApiResponse<ClassroomDto>.Fail("Academic year was not found");
-
-        if (await _repository.ClassroomLabelExistsAsync(
-                schoolId.Value,
-                req.AcademicYearId,
-                classLabel,
-                null,
-                cancellationToken).ConfigureAwait(false))
+        try
         {
-            return ApiResponse<ClassroomDto>.Fail("A classroom with the same name already exists in this academic year");
+            var request = command.Request;
+            var context = await catalog.OptionsAsync(request.AcademicYearId, 1, true, cancellationToken);
+            if (context.Context.Stage != request.Stage) throw new ArgumentException("Stage must match the active school.");
+            var created = await catalog.CreateAsync(new(request.AcademicYearId, request.GradeLevel, [request.Section], request.PhysicalLocation), cancellationToken);
+            var id = created.Single().Id;
+            return ApiResponse<ClassroomDto>.Success((await repository.GetClassroomDtoAsync(school.Value, id, cancellationToken))!);
         }
-
-        var now = _timeProvider.GetUtcNow();
-
-        var classroom = new Classroom
-        {
-            SchoolId = schoolId.Value,
-            AcademicYearId = req.AcademicYearId,
-            Stage = req.Stage,
-            GradeLevel = req.GradeLevel,
-            Section = req.Section.Trim(),
-            ClassLabel = classLabel,
-            PhysicalLocation = req.PhysicalLocation.Trim(),
-            IsActive = true,
-            CreatedAt = now,
-            CreatedByUserId = userId,
-            UpdatedAt = now,
-            UpdatedByUserId = userId
-        };
-
-        _repository.AddClassroom(classroom);
-        await _repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        var dto = await _repository.GetClassroomDtoAsync(schoolId.Value, classroom.Id, cancellationToken).ConfigureAwait(false);
-        return ApiResponse<ClassroomDto>.Success(dto!, "Classroom created successfully");
+        catch (ArgumentException ex) { return ApiResponse<ClassroomDto>.Fail(ex.Message); }
+        catch (ClassroomCatalogConflictException ex) { return ApiResponse<ClassroomDto>.Fail(ex.Message); }
+        catch (UnauthorizedSchoolAccessException) { return ApiResponse<ClassroomDto>.Fail(StudentHandlerSupport.PermissionDenied); }
     }
 }

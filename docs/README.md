@@ -40,6 +40,7 @@
 | HP-01 | [specs/homepage/01-premium-landing-page.md](specs/homepage/01-premium-landing-page.md) | Proposed premium Arabic landing page, separate login route, achievements redesign, and acceptance plan |
 | CV2 | [specs/classroom-visits-v2/plan.md](specs/classroom-visits-v2/plan.md) | Classroom Visits V2 approved prototype parity, implementation phases, and safety decisions |
 | CV2-OPS | [specs/classroom-visits-v2/rollout-runbook.md](specs/classroom-visits-v2/rollout-runbook.md) | V2 pilot, cutover, monitoring, and fast rollback procedure |
+| CLASS | [specs/classroom-catalog/README.md](specs/classroom-catalog/README.md) | C32 design/prototype: shared classroom identity, impact inventory, teaching assignment UX and statement export; implementation not started |
 | SFS | [specs/school-file-storage/plan.md](specs/school-file-storage/plan.md) | School file storage, teacher evidence, prototype parity, permissions, readiness, and visit PDF archival specification |
 | DUTY | [specs/school-duty/README.md](specs/school-duty/README.md) | D1/D2 implemented: rotation, signed execution, shared dismissal lateness and System communication; verification/visual evidence; D3 not started |
 | SA-1 | [Phase1-Domain-And-Database-Schema.md](Phase1-Domain-And-Database-Schema.md) | Student Affairs domain and EF Core schema specification |
@@ -302,3 +303,16 @@ C27 / D-119: replaced storage feature redirects with native school-root browsing
 | Date | Change |
 |---|---|
 | 2026-10-15 | Corrected tiny PDF preview caused by legacy global layout; added full-width document scrolling, Fit width and expanded viewer. Replaced disabled archive write tools with a library shortcut and guarded writes during folder loading after a real wrong-folder reproduction.27 Angular checks/build plus real and synthetic390/768/1440 browser verification passed; real manager create/upload/byte-matched read-back and bounded cleanup verified. [Evidence](specs/school-file-storage/verification/preview-layout.md). No schema, permissions or original file changes; owner/physical acceptance pending. |
+
+## C32 / D-124 ? Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | Delivered owner-selected discovery/design/prototype for unified classroom identity and teaching assignments.354-file lexical inventory plus semantic consumer map, confirmed direct teacher self-selection/numeric sections, proposed ID migration/history/access policy, modern theme-aligned interactive matrix/catalogue/teacher selection and source-structured assignment PDF. [Review package](specs/classroom-catalog/README.md). No application cutover, SQL or provider writes; implementation not started. |
+
+
+## C33 / D-125 - Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | Implemented manager classroom catalogue on its existing route, stage-local numeric bulk sections, location/edit/activation, exact-only schema70 migration and shared revisioned teacher ID multi-select. Existing data/artifacts/Drive settings preserved.117 backend/SQL and11 Angular checks plus actual390/768/1440 browser verification passed; unrelated broader-suite failures disclosed. Remaining consumer conversion and assignment UI/PDF pending. [Implementation](specs/classroom-catalog/implementation.md). |

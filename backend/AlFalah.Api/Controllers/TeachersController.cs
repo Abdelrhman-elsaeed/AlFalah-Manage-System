@@ -214,6 +214,12 @@ public class TeachersController : ControllerBase
         {
             return StatusCode(403, ApiResponse.Fail(ex.Message));
         }
+        catch (AlFalah.Application.Classrooms.ClassroomCatalogConflictException ex)
+        { return Conflict(ApiResponse.Fail(ex.Message)); }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        { return Conflict(ApiResponse.Fail("Teaching data changed. Refresh and retry.")); }
+        catch (ArgumentException ex)
+        { return BadRequest(ApiResponse.Fail(ex.Message)); }
         catch (KeyNotFoundException ex)
         {
             return NotFound(ApiResponse.Fail(ex.Message));

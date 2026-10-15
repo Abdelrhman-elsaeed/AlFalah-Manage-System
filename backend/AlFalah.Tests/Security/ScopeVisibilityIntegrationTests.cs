@@ -381,7 +381,7 @@ public sealed class ScopeVisibilityIntegrationTests
             user,
             Guard(context, user),
             new AuditLogWriter(context, accessor, NullLogger<AuditLogWriter>.Instance),
-            NullLogger<TeacherService>.Instance);
+            NullLogger<TeacherService>.Instance, new AlFalah.Application.Classrooms.ClassroomCatalogService(new AlFalah.Infrastructure.Repositories.ClassroomCatalogRepository(context), user));
     }
 
     private static ComplaintService CreateComplaintService(

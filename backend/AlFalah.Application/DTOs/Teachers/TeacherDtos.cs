@@ -183,16 +183,24 @@ public class TeacherTeachingDto
     public SchoolStage Stage { get; set; }
     /// <summary>The class labels this teacher teaches, in the teacher's preferred order.</summary>
     public List<string> Classes { get; set; } = new();
+    public List<int> ClassroomIds { get; set; } = new();
+    public int TeachingRevision { get; set; }
+    public int? AcademicYearId { get; set; }
+    public List<string> UnresolvedClasses { get; set; } = new();
 }
 
 /// <summary>
 /// Body of PUT /teaching endpoints. Subject is free-text and capped by the
-/// validator; Classes is the new (full) set — entries missing from this list
-/// are soft-deleted, new entries are inserted (server-side diff).
+/// validator. ClassroomIds is the current-year replacement set and requires
+/// TeachingRevision. Classes is a read-compatible echo only; new free-text
+/// associations are rejected. Omitted selections preserve existing links.
 /// </summary>
 public class TeacherTeachingUpsertRequest
 {
     public string? Subject { get; set; }
     public SchoolStage? Stage { get; set; }
+    public List<int>? ClassroomIds { get; set; }
+    public int? AcademicYearId { get; set; }
+    public int? TeachingRevision { get; set; }
     public List<string>? Classes { get; set; }
 }

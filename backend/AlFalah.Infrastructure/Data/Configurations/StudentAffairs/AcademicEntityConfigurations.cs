@@ -127,7 +127,10 @@ internal sealed class ClassroomConfiguration : StudentAffairsMutableEntityConfig
 
     protected override void ConfigureEntity(EntityTypeBuilder<Classroom> builder)
     {
+        builder.Property(x => x.UpdatedAt).IsConcurrencyToken();
         builder.Property(x => x.Section).IsArabicText(50);
+        builder.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.Stage, x.GradeLevel, x.SectionNumber })
+            .IsUnique().HasFilter("[IsDeleted] = 0 AND [SectionNumber] IS NOT NULL");
         builder.Property(x => x.ClassLabel).IsArabicText(50);
         builder.Property(x => x.PhysicalLocation).IsArabicText(120);
         builder.HasIndex(x => new { x.SchoolId, x.AcademicYearId, x.ClassLabel })

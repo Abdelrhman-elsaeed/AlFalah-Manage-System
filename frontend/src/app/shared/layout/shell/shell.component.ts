@@ -156,8 +156,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
         labelKey: 'إدارة الفصول',
         icon: 'pi pi-building',
         route: '/student-affairs/classrooms',
-        roles: ['Secretary'],
-        permissions: ['Classroom.Manage']
+        roles: ['Secretary', 'SchoolManager', 'SuperAdmin', 'MainManager']
       },
       {
         labelKey: 'إدارة الطلاب',

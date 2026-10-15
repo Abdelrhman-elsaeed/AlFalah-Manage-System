@@ -1,0 +1,19 @@
+{
+  "source": "Owner-provided local 2.jpeg, viewed directly",
+  "sha256": "933185e5121a48a19aeffe6354fef3515302fb5b42d1828a8996a98f2aeb11e3",
+  "pixelDimensions": [
+    1600,
+    900
+  ],
+  "structure": [
+    "school/education header",
+    "full-width title",
+    "teacher ordinal/name/specialization",
+    "specialization sections grouped by grade",
+    "specialization period load",
+    "life skills/critical thinking/activity groups",
+    "total teacher load",
+    "teacher-affairs signoff"
+  ],
+  "originalNamesAndSignatureCopied": false
+}

@@ -21,6 +21,9 @@ public class InstructorClass
 
     /// <summary>The owning InstructorProfile (1 row per school).</summary>
     public int InstructorProfileId { get; set; }
+    public int? SchoolId { get; set; }
+    public int? ClassroomId { get; set; }
+    public AlFalah.Domain.Entities.StudentAffairs.Classroom? Classroom { get; set; }
 
     /// <summary>
     /// Free-form class label (e.g. "3/1", "3/2", "1/أ"). Length-bounded; trimmed

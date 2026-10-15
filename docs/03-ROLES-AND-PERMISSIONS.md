@@ -196,3 +196,12 @@ Historical import administration uses existing Storage.ManageSchool with live Sc
 Actual school managers and live school-storage administrators receive the School files navigation, including Instructor-role delegates. Personal files is hidden for them; its old URL resolves live school access and redirects to School files. Ordinary teachers retain their actual own-folder grant checks. The menu does not confer backend rights: existing per-school authorization, teacher-root boundaries, protected archive policies and actual-manager-only confirmed native deletion remain enforced.
 
 Upload/create are reconnected only to server-resolved eligible school-library folders through existing services. Automatic duty/visit archive destinations stay protected. A registered numeric folder/file link is resolved by scoped SQL plus live provider-root/parent validation, never by trusting browser provider IDs. No role/permission/grant schema change. [Verification](specs/school-file-storage/verification/download-access.md).
+
+## C32 / D-124 ? Classroom identity and assignment design (2026-10-15)
+
+Design/prototype only, explicitly selected by the owner. Existing structured Classroom/subject-allocation models are reused in the proposal; legacy InstructorClass text identity, teacher self/manager editors, both visit frontends, student/classroom scope, timetable import/generation/review/history and exports are covered in a semantic impact map. The owner confirms direct teacher association self-save without approval, stage-local grade ordinals and numeric sections. An isolated theme-aligned prototype demonstrates the manager catalogue, teacher multi-selection, assignment matrix/co/split/load and source-structured statement. No production code/schema/permissions/provider change or feature cutover. [Design, decisions and evidence](specs/classroom-catalog/design.md). Implementation and physical/printer acceptance remain future phases.
+
+
+## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
+
+C33 / D-125 exposes the single classroom-management page to SchoolManager and existing classroom staff. Catalogue reads require active membership in the selected school; writes require its actual ManagerUserId, global authority or existing Classroom.Manage/StudentEnrollment.Manage. Teacher selection remains hard-self or the existing scoped User.Edit manager path, with no approval queue; it uses IDs and a revision. No role/permission seeds or student-administration grants were added. [Contracts and scope](specs/classroom-catalog/implementation.md).

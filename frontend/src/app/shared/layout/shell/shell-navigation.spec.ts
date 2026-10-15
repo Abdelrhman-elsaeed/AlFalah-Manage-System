@@ -135,11 +135,11 @@ describe('shell Student Affairs least-privilege navigation', () => {
 describe('shell classroom master data navigation', () => {
   const administration = SHELL_NAV_CATEGORIES.find(category => category.id === 'administration');
 
-  it('exposes classroom management only to secretaries with its narrow permission', () => {
+  it('exposes one classroom page to school managers and existing classroom staff', () => {
     const classrooms = administration?.items.find(item => item.route === '/student-affairs/classrooms');
 
-    expect(classrooms?.roles).toEqual(['Secretary']);
-    expect(classrooms?.permissions).toEqual(['Classroom.Manage']);
+    expect(classrooms?.roles).toEqual(['Secretary', 'SchoolManager', 'SuperAdmin', 'MainManager']);
+    expect(classrooms?.permissions).toBeUndefined();
   });
 
   it('places student management directly after classroom management for secretaries', () => {

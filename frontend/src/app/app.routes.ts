@@ -606,10 +606,9 @@ export const routes: Routes = [
       // Student Affairs Phase 3: daily attendance, integrations, and absence excuses.
       {
         path: 'student-affairs/classrooms',
-        canActivate: [roleGuard, permissionGuard],
+        canActivate: [roleGuard],
         data: {
-          roles: ['Secretary'],
-          permissions: ['Classroom.Manage']
+          roles: ['Secretary', 'SchoolManager', 'SuperAdmin', 'MainManager']
         },
         loadComponent: () => import('./features/student-affairs/classrooms-management/classrooms-management.component')
           .then(m => m.ClassroomsManagementComponent),

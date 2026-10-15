@@ -50,15 +50,17 @@
       </div>
       <div class="teaching-card__field">
         <label for="my-classes">{{ 'TEACHING.CLASSES' | translate }}</label>
-        <p-chips inputId="my-classes" formControlName="classes" [allowDuplicate]="false" separator="," styleClass="w-100"></p-chips>
-        <small>{{ 'TEACHING.CLASSES_HINT' | translate }}</small>
+        <app-classroom-selector *ngIf="teaching()" formControlName="classroomIds" [academicYearId]="teaching()?.academicYearId" (ready)="catalogReady.set($event)"></app-classroom-selector>
+        <small>اختر فصولك من سجل المدرسة. تُعتمد اختياراتك مباشرة عند الحفظ.</small>
+        <small *ngIf="teaching()?.unresolvedClasses?.length">الفصول المسجلة سابقًا: {{ teaching()!.unresolvedClasses!.join('، ') }}. عند الحفظ تُستبدل باختياراتك من القائمة.</small>
+        <button *ngIf="!teaching() && !teachingLoading()" type="button" (click)="loadTeaching()">إعادة تحميل بيانات التدريس</button>
       </div>
-      <p class="teaching-card__notice" *ngIf="teachingLoaded() && (!teachingForm.controls.subject.value || !(teachingForm.controls.classes.value?.length))">
+      <p class="teaching-card__notice" *ngIf="teachingLoaded() && (!teachingForm.controls.subject.value || !(teachingForm.controls.classroomIds.value?.length))">
         <i class="pi pi-info-circle"></i>
         {{ 'TEACHING.INCOMPLETE_HINT' | translate }}
       </p>
       <div class="teaching-card__actions">
-        <button pButton type="submit" icon="pi pi-save" [label]="'TEACHING.SAVE' | translate" [loading]="teachingSaving()" [disabled]="teachingLoading()"></button>
+        <button pButton type="submit" icon="pi pi-save" [label]="'TEACHING.SAVE' | translate" [loading]="teachingSaving()" [disabled]="teachingLoading() || !catalogReady() || !teaching()"></button>
       </div>
     </form>
   </section>

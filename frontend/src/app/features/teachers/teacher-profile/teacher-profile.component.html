@@ -61,15 +61,16 @@
         </div>
         <div class="classes-editor" *ngIf="editingClasses()">
           <span class="label">{{ 'TEACHERS.HEADER_CLASSES' | translate }}</span>
-          <p-chips [ngModel]="editableClasses()" (ngModelChange)="editableClasses.set($event)"
-                   [allowDuplicate]="false" separator="," styleClass="w-100"></p-chips>
-          <small class="classes-hint">{{ 'TEACHERS.CLASSES_HINT' | translate }}</small>
+          <app-classroom-selector *ngIf="teaching()" [ngModel]="editableClasses()" (ngModelChange)="editableClasses.set($event)" [academicYearId]="teaching()?.academicYearId" (ready)="catalogReady.set($event)"></app-classroom-selector>
+          <small class="classes-hint">اختر الفصول من سجل المدرسة؛ يمكنك اختيار أكثر من فصل.</small>
+          <small class="classes-hint" *ngIf="teaching()?.unresolvedClasses?.length">الفصول السابقة: {{ teaching()!.unresolvedClasses!.join('، ') }}. تُستبدل عند الحفظ باختيارات القائمة.</small>
+          <button *ngIf="!teaching()" type="button" (click)="beginClassesEdit()">إعادة تحميل بيانات التدريس</button>
           <div class="classes-actions">
             <button pButton type="button" class="p-button-text"
                     [label]="'COMMON.CANCEL' | translate" [disabled]="savingClasses()"
                     (click)="cancelClassesEdit()"></button>
             <button pButton type="button" icon="pi pi-save"
-                    [label]="'COMMON.SAVE' | translate" [loading]="savingClasses()"
+                    [label]="'COMMON.SAVE' | translate" [loading]="savingClasses()" [disabled]="!teaching() || !catalogReady()"
                     (click)="saveClasses()"></button>
           </div>
         </div>

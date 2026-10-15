@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-15T11:31:03.881Z",
+  "results": [
+    {
+      "role": "manager",
+      "width": 390,
+      "realApi": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "role": "manager",
+      "width": 768,
+      "realApi": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "role": "manager",
+      "width": 1440,
+      "realApi": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "role": "teacher",
+      "width": 390,
+      "realApi": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "role": "teacher",
+      "width": 768,
+      "realApi": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "role": "teacher",
+      "width": 1440,
+      "realApi": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    }
+  ]
+}

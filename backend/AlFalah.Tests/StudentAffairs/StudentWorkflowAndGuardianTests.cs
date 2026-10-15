@@ -269,16 +269,16 @@ public sealed class StudentWorkflowAndGuardianTests
         var handler = new CreateClassroomCommandHandler(
             repository,
             CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
-            new FixedTimeProvider(Now));
+            CatalogFor(repository, CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage)));
 
         var result = await handler.Handle(
-            new CreateClassroomCommand(new CreateClassroomRequestDto(3, SchoolStage.Primary, 1, "أ", "1/أ")),
+            new CreateClassroomCommand(new CreateClassroomRequestDto(3, SchoolStage.Primary, 1, "1", "ignored old label", "Room 1")),
             CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         repository.Classroom.Should().NotBeNull();
         repository.Classroom!.SchoolId.Should().Be(42);
-        repository.Classroom.ClassLabel.Should().Be("1/أ");
+        repository.Classroom.ClassLabel.Should().Be(AlFalah.Application.Classrooms.ClassroomIdentity.Label(SchoolStage.Primary, 1, 1));
     }
 
     [Fact]
@@ -291,14 +291,14 @@ public sealed class StudentWorkflowAndGuardianTests
         var handler = new UpdateClassroomCommandHandler(
             repository,
             CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
-            new FixedTimeProvider(Now));
+            CatalogFor(repository, CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage)));
 
         var result = await handler.Handle(
-            new UpdateClassroomCommand(7, new UpdateClassroomRequestDto("1/ب", "ب", false, string.Empty)),
+            new UpdateClassroomCommand(7, new UpdateClassroomRequestDto("ignored old label", "2", false, string.Empty, "Room 2")),
             CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        repository.Classroom!.ClassLabel.Should().Be("1/ب");
+        repository.Classroom!.ClassLabel.Should().Be(AlFalah.Application.Classrooms.ClassroomIdentity.Label(SchoolStage.Primary, 1, 2));
         repository.Classroom.IsActive.Should().BeFalse();
     }
 
@@ -312,7 +312,7 @@ public sealed class StudentWorkflowAndGuardianTests
         var handler = new UpdateClassroomCommandHandler(
             repository,
             CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage),
-            new FixedTimeProvider(Now));
+            CatalogFor(repository, CreateUser(RoleNames.Secretary, PermissionNames.ClassroomManage)));
 
         var result = await handler.Handle(
             new UpdateClassroomCommand(7, new UpdateClassroomRequestDto("Changed", "B", false, string.Empty)),
@@ -497,7 +497,7 @@ public sealed class StudentWorkflowAndGuardianTests
         var handler = new CreateClassroomCommandHandler(
             repository,
             CreateUser(RoleNames.Secretary),
-            new FixedTimeProvider(Now));
+            CatalogFor(repository, CreateUser(RoleNames.Secretary)));
 
         var result = await handler.Handle(
             new CreateClassroomCommand(new CreateClassroomRequestDto(3, SchoolStage.Primary, 1, "A", "1/A")),
@@ -778,6 +778,14 @@ public sealed class StudentWorkflowAndGuardianTests
         stats.TotalClassrooms.Should().Be(2);
         stats.TotalCount.Should().Be(1);
         stats.Items.Should().HaveCount(1);
+    }
+
+    private static AlFalah.Application.Classrooms.IClassroomCatalogService CatalogFor(FakeStudentWorkflowRepository repository, ICurrentUserService user)
+    {
+        var catalog = new AlFalah.Tests.Classrooms.FakeClassroomCatalogRepository();
+        if (repository.Classroom is not null) catalog.Classes.Add(repository.Classroom);
+        catalog.OnAdd = rows => repository.Classroom = rows.Single();
+        return new AlFalah.Application.Classrooms.ClassroomCatalogService(catalog, user);
     }
 
     private static Classroom ExistingClassroom() => new()

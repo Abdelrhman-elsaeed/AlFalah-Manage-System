@@ -2243,6 +2243,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(50)")
                         .UseCollation("Arabic_CI_AS");
 
+                    b.Property<int?>("ClassroomId")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -2258,6 +2261,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("SchoolId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -2272,7 +2278,13 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("InstructorProfileId", "ClassLabel")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
+                        .HasFilter("[IsDeleted] = 0 AND [ClassroomId] IS NULL");
+
+                    b.HasIndex("InstructorProfileId", "ClassroomId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [ClassroomId] IS NOT NULL");
+
+                    b.HasIndex("SchoolId", "ClassroomId");
 
                     b.ToTable("InstructorClasses");
                 });
@@ -2328,6 +2340,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(200)")
                         .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("TeachingRevision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -6421,10 +6439,14 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(50)")
                         .UseCollation("Arabic_CI_AS");
 
+                    b.Property<int?>("SectionNumber")
+                        .HasColumnType("int");
+
                     b.Property<int>("Stage")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("UpdatedByUserId")
@@ -6445,6 +6467,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("SchoolId", "AcademicYearId", "ClassLabel")
                         .IsUnique()
                         .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SchoolId", "AcademicYearId", "Stage", "GradeLevel", "SectionNumber")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [SectionNumber] IS NOT NULL");
 
                     b.ToTable("Classrooms", null, t =>
                         {
@@ -11911,6 +11937,14 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasForeignKey("InstructorProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Classroom");
 
                     b.Navigation("InstructorProfile");
                 });

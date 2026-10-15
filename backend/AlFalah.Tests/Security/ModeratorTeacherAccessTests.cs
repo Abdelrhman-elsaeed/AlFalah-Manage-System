@@ -189,7 +189,7 @@ public sealed class ModeratorTeacherAccessTests
             currentUser,
             guard,
             new AuditLogWriter(context, accessor, NullLogger<AuditLogWriter>.Instance),
-            NullLogger<TeacherService>.Instance);
+            NullLogger<TeacherService>.Instance, new AlFalah.Application.Classrooms.ClassroomCatalogService(new AlFalah.Infrastructure.Repositories.ClassroomCatalogRepository(context), currentUser));
         var controller = new TeachersController(service, currentUser);
         SetHttpContext(controller);
         return controller;

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>الفصول وإسنادات التدريس — نموذج الفلاح</title>
+ <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="prototype.css">
+</head>
+<body>
+<svg class="symbols" xmlns="http://www.w3.org/2000/svg"><defs>
+ <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+ <symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M21 21v-3a6 6 0 0 0-3-5"/></symbol>
+ <symbol id="book" viewBox="0 0 24 24"><path d="M12 21V5M3 3c4-1 6 0 9 2 3-2 5-3 9-2v15c-4-1-6 0-9 2-3-2-5-3-9-2Z"/></symbol>
+ <symbol id="search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></symbol>
+ <symbol id="plus" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
+ <symbol id="close" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+ <symbol id="check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+ <symbol id="paper" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7ZM14 2v6h5M8 12h8M8 16h8"/></symbol>
+ <symbol id="arrow" viewBox="0 0 24 24"><path d="M20 12H4m6-6-6 6 6 6"/></symbol>
+ <symbol id="room" viewBox="0 0 24 24"><path d="M4 22V2h16v20M2 22h20M8 6h2m4 0h2M8 10h2m4 0h2M8 14h2m4 0h2M10 22v-4h4v4"/></symbol>
+</defs></svg>
+<div class="prototype-notice"><span>نموذج تفاعلي للمراجعة</span><span>بيانات تجريبية • الحفظ داخل النموذج فقط</span></div>
+<header class="school-header"><a href="#" class="school-identity"><img src="brand.png" alt="مدارس الفلاح"><span><b>مدارس الفلاح</b><small>الإدارة الأكاديمية</small></span></a><span class="school-name">مدرسة الفلاح التجريبية <span class="connection-dot"></span></span><span class="manager-avatar">م</span></header>
+<div class="app-layout">
+ <aside class="sidebar"><div class="sidebar-heading">تنظيم المدرسة</div><button data-view="assignments" aria-current="page"><svg><use href="#grid"/></svg>إسنادات التدريس</button><button data-view="catalog"><svg><use href="#room"/></svg>سجل الفصول</button><button data-view="teacher"><svg><use href="#users"/></svg>اختيار المعلم لفصوله</button><div class="sidebar-note"><svg><use href="#book"/></svg><strong>من الصف إلى الحصة</strong><p>فصول موحّدة، واختيارات واضحة في كل مكان.</p></div><a href="http://localhost:4200/intelligent-timetable/assignments">العودة للنظام الحالي <svg><use href="#arrow"/></svg></a></aside>
+ <main id="main">
+  <header class="page-heading"><div><div class="breadcrumb">الجدول الذكي <span>/</span> <span id="breadcrumb-current">إسنادات التدريس</span></div><h1 id="page-title">كل إسناد، في مكانه.</h1><p id="page-description">وزّع مواد الفصول، وراجع نصاب كل معلم قبل حفظ التغييرات.</p></div><div class="heading-actions"><label class="context-select">العام الدراسي<select aria-label="العام الدراسي"><option>٢٠٢٦–٢٠٢٧ · الفصل الأول</option></select></label><button class="primary" data-action="export"><svg><use href="#paper"/></svg>كشف الإسنادات</button></div></header>
+  <div id="workspace"></div>
+ </main>
+</div>
+<div id="toast" role="status" hidden></div>
+<dialog id="assignment-dialog" aria-labelledby="assignment-title"><div id="assignment-content"></div></dialog>
+<dialog id="class-dialog" aria-labelledby="class-dialog-title"><form id="class-form"><header class="dialog-header"><div><small>سجل الفصول</small><h2 id="class-dialog-title">أضف شعب الصف دفعة واحدة</h2></div><button type="button" data-close="class-dialog" aria-label="إغلاق"><svg><use href="#close"/></svg></button></header><div class="form-body"><p>اسم الفصل يتكوّن تلقائيًا من الصف ورقم الشعبة.</p><label>الصف<select name="grade"><option value="1">الأول المتوسط</option><option value="2">الثاني المتوسط</option><option value="3">الثالث المتوسط</option></select></label><div class="form-pair"><label>من الشعبة<input name="from" type="number" value="5" min="1" max="50" required></label><label>إلى الشعبة<input name="to" type="number" value="6" min="1" max="50" required></label></div><div class="generated-preview" id="generated-preview"></div><p id="class-error" role="alert" class="error" hidden></p></div><footer class="dialog-footer"><button type="submit" class="primary">إضافة الفصول للنموذج</button><button type="button" data-close="class-dialog">إلغاء</button></footer></form></dialog>
+<dialog id="export-dialog" aria-labelledby="export-title"><header class="dialog-header"><div><small>بنفس تقسيم ورقة المدرسة</small><h2 id="export-title">كشف إسنادات المواد</h2></div><button data-close="export-dialog" aria-label="إغلاق الكشف"><svg><use href="#close"/></svg></button></header><div class="export-tools"><p>بيانات تجريبية • ورق A4 بالعرض • <span id="export-scope"></span></p><button class="primary" data-action="print"><svg><use href="#paper"/></svg>طباعة / حفظ PDF</button></div><div class="paper-scroll"><article id="official-sheet" class="official-sheet"></article></div></dialog>
+<script type="module" src="prototype.js"></script>
+</body></html>

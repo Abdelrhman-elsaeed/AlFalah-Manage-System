@@ -1,0 +1,18 @@
+{
+  "Classrooms": 10,
+  "Links": 4,
+  "Exact": 0,
+  "Ambiguous": 0,
+  "Unmatched": 4,
+  "LetterSections": 10,
+  "SchoolCounts": [
+    {
+      "School": 18,
+      "Count": 2
+    },
+    {
+      "School": 1,
+      "Count": 8
+    }
+  ]
+}
