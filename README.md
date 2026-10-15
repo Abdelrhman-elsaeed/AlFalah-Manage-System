@@ -304,3 +304,9 @@ C27 / D-119: replaced storage feature redirects with native school-root browsing
 ## C34 / D-126 - Change log (2026-10-15)
 
 Delivered the second classroom implementation slice (C3): contextual V2/manual timetable selection, ID conflict normalization, retained-name lesson/roster/gate resolution and complete student lookup paging. Additive local schema71 preserves existing history, signed documents and provider settings. V1 mutations remain retired410. Production assignment UX/PDF remain C4/C5. [Behavior and verification](docs/specs/classroom-catalog/consumers.md).
+
+## C35 / D-127 - Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | Delivered C4 in the existing assignment route: grade-grouped ledger, paged classroom/teacher views and picker, complete draft-aware load, single/co/split/whole pairs, no-op edits, conflict recovery and keyboard focus return.19 Angular/50 backend checks and real/synthetic390/768/1440 browser checks pass; Development build passes. Existing production CSS errors and the assignment CSS warning are disclosed; C5 PDF/C6 pilot remain pending. [Behavior and evidence](docs/specs/classroom-catalog/assignments.md). |

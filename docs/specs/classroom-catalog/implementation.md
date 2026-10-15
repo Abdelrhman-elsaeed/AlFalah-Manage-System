@@ -45,3 +45,7 @@ The migration is installed in the local manual-test environment, not deployed el
 ## Subsequent implementation
 
 C34 now delivers C3 locally, including date/year-bound visit selection, manual timetable normalization, retained-name resolution and complete student lookup paging. Schema71 is additive; C4 assignment UX and C5 assignment PDF remain pending. [Current consumer contracts and verification](consumers.md).
+
+## C35 current delivery
+
+C4 production assignment UX is now delivered locally after C34. [Runtime behavior](assignments.md) and [verification](verification/assignments/README.md) supersede the earlier pending UI status above. C5 saved-revision assignment PDF and C6 pilot acceptance remain pending.

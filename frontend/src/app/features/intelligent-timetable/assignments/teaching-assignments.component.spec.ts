@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { of, Subject, throwError } from 'rxjs';
 import { TeachingAssignmentsComponent } from './teaching-assignments.component';
 import { TeachingAssignmentService } from '../../../core/services/teaching-assignment.service';
 import { TimetableSettingsService } from '../../../core/services/timetable-settings.service';
@@ -61,5 +62,99 @@ describe('Teaching assignments', () => {
     spyOn(window, 'confirm').and.returnValue(true); component.closeDialog(); expect(component.cell(10).members.length).toBe(0);
     component.open(component.data!.requirements[0]); component.toggle(component.data!.teachers[0]); component.confirmCell();
     component.clear(component.data!.requirements[0]); expect(component.workload(1).periods).toBe(0);
+  });
+  it('does not mark unchanged cells as unsaved and reverting releases the draft', () => {
+    component.open(component.data!.requirements[0]); component.confirmCell();
+    expect(component.hasUnsavedChanges()).toBeFalse();
+    component.open(component.data!.requirements[0]); component.toggle(component.data!.teachers[0]); component.confirmCell();
+    expect(component.drafts.size).toBe(1);
+    component.clear(component.data!.requirements[0]);expect(component.hasUnsavedChanges()).toBeFalse();
+  });
+  it('does not warn when a picker selection returns to the same allocation in another order', () => {
+    const data=overview();data.assignments=[{id:10,classSubjectRequirementId:10,mode:'CoTeaching',members:data.teachers.map(t=>({
+      teacherTimetableProfileId:t.id,instructorProfileId:t.instructorProfileId,name:t.name,allocatedPeriodCount:4,allocatedPairedBlockCount:1}))}];
+    component.data=data;component.open(data.requirements[0]);component.removeMember(1);component.toggle(data.teachers[0]);
+    component.mode='CoTeaching';component.modeChanged();
+    expect(component.hasUnsavedChanges()).toBeFalse();const confirmation=spyOn(window,'confirm');component.closeDialog();
+    expect(confirmation).not.toHaveBeenCalled();expect(component.dialogOpen).toBeFalse();
+  });
+  it('keeps stage-local grades separate and pages classrooms without losing off-page load', () => {
+    const data=overview();data.classrooms=Array.from({length:24},(_,i)=>({id:i+1,name:'Class '+(i+1),stage:i<12?1:2,gradeLevel:1}));
+    data.requirements=data.classrooms.map(c=>({...data.requirements[0],id:c.id,classroomId:c.id,classroomName:c.name}));component.data=data;
+    expect(component.gradeGroups.length).toBe(2);expect(component.pageGroups.flatMap(g=>g.classrooms).length).toBe(10);
+    component.open(data.requirements[0]);component.toggle(data.teachers[0]);component.confirmCell();component.matrixPage=3;
+    expect(component.pageGroups.flatMap(g=>g.classrooms).length).toBe(4);expect(component.workload(1).periods).toBe(4);
+    component.selectGrade('2:1');expect(component.rows.length).toBe(12);expect(component.rows.every(c=>c.stage===2)).toBeTrue();
+    component.search='Class 24';component.filtersChanged();expect(component.rows.map(c=>c.id)).toEqual([24]);
+    expect(component.pending).toBe(23);
+  });
+  it('indexes the whole ledger once until the immutable draft or server snapshot changes', () => {
+    const before=component.ledger;component.workload(1);component.rows;component.requirement(10,1);
+    expect(component.ledger).toBe(before);
+    component.open(component.data!.requirements[0]);component.toggle(component.data!.teachers[0]);component.confirmCell();
+    expect(component.ledger).not.toBe(before);expect(component.workload(1).periods).toBe(4);
+  });
+  it('retains an orphan teacher load until the old assignment is explicitly removed', () => {
+    const data=overview();data.assignments=[{id:99,classSubjectRequirementId:99,mode:'SingleTeacher',members:[{teacherTimetableProfileId:1,instructorProfileId:1,name:'Old',allocatedPeriodCount:3,allocatedPairedBlockCount:0}]}];
+    component.data=data;expect(component.workload(1).periods).toBe(3);expect(component.orphanedAssignments.length).toBe(1);
+    component.clearId(99);expect(component.workload(1).periods).toBe(0);expect(component.invalidDraft).toBeFalse();
+  });
+  it('keeps every server picker filter and direction when paging', () => {
+    component.open(component.data!.requirements[0]);component.activeFilter=null;component.visitingFilter=false;
+    component.specialization='Math';component.capacityOnly=true;component.sortTeachers('remaining');component.reverseTeachers();
+    component.lazyTeachers({first:25,rows:25,sortField:'remaining',sortOrder:-1});
+    expect(api.teachers.calls.mostRecent().args[1]).toEqual(jasmine.objectContaining({page:2,pageSize:25,isActive:'',isVisiting:false,specialization:'Math',hasCapacity:true,sort:'remaining',descending:true}));
+  });
+  it('ignores stale teacher searches and preserves selected members after a failed page', () => {
+    component.open(component.data!.requirements[0]);component.toggle(component.data!.teachers[0]);
+    const old=new Subject<any>(),latest=new Subject<any>();api.teachers.and.returnValues(old,latest);
+    component.searchTeachers();component.searchTeachers();latest.error({status:503});
+    old.next({isSuccess:true,data:{items:overview().teachers,totalCount:2}});
+    expect(component.teacherRows).toEqual([]);expect(component.teacherError).not.toBe('');expect(component.selected(1)).toBeTrue();
+  });
+  it('does not accept delayed results from a previously closed picker', () => {
+    const pending=new Subject<any>();api.teachers.and.returnValue(pending);
+    component.open(component.data!.requirements[0]);component.closeDialog();
+    pending.next({isSuccess:true,data:{items:overview().teachers,totalCount:9}});
+    expect(component.teacherTotal).toBe(0);expect(component.dialogOpen).toBeFalse();
+  });
+  it('keeps Escape and navigation protection scoped to real edits', () => {
+    const confirmation=spyOn(window,'confirm').and.returnValue(false);
+    component.open(component.data!.requirements[0]);component.escape();expect(confirmation).not.toHaveBeenCalled();
+    component.open(component.data!.requirements[0]);component.toggle(component.data!.teachers[0]);component.escape();
+    expect(component.dialogOpen).toBeTrue();expect(component.hasUnsavedChanges()).toBeTrue();
+    const event={preventDefault:jasmine.createSpy(),returnValue:undefined} as unknown as BeforeUnloadEvent;
+    component.beforeUnload(event);expect(event.preventDefault).toHaveBeenCalled();
+  });
+  it('prevents edits while the atomic save is running and uses the returned snapshot', () => {
+    const pending=new Subject<any>();api.save.and.returnValue(pending);
+    component.open(component.data!.requirements[0]);component.toggle(component.data!.teachers[0]);component.confirmCell();component.save();component.save();
+    component.clearId(10);component.open(component.data!.requirements[1]);expect(component.dialogOpen).toBeFalse();expect(component.drafts.size).toBe(1);
+    expect(api.save).toHaveBeenCalledTimes(1);pending.next({isSuccess:true,data:{...overview(),revision:4}});pending.complete();
+    expect(component.data!.revision).toBe(4);expect(component.hasUnsavedChanges()).toBeFalse();
+  });
+  it('guards conflict refresh and preserves the draft until an accepted reload succeeds', () => {
+    api.save.and.returnValue(throwError(()=>({status:409})));
+    component.open(component.data!.requirements[0]);component.toggle(component.data!.teachers[0]);component.confirmCell();component.save();
+    const confirmation=spyOn(window,'confirm').and.returnValue(false);component.reload();expect(api.get).not.toHaveBeenCalled();expect(component.conflict).toBeTrue();
+    const pending=new Subject<any>();api.get.and.returnValue(pending);confirmation.and.returnValue(true);component.reload();expect(component.drafts.size).toBe(1);
+    pending.next({isSuccess:true,data:overview()});pending.complete();expect(component.drafts.size).toBe(0);expect(component.conflict).toBeFalse();
+  });
+  it('ignores an old setup response after the manager chooses another setup', () => {
+    const first=new Subject<any>(),second=new Subject<any>();api.get.and.returnValues(first,second);
+    component.chooseSetup(1);component.chooseSetup(2);second.next({isSuccess:true,data:{...overview(),revision:8}});second.complete();
+    first.next({isSuccess:true,data:{...overview(),revision:2}});first.complete();expect(component.data!.revision).toBe(8);expect(component.loading).toBeFalse();
+  });
+  it('renders the grouped ledger, actual-change save bar and labelled native picker controls', async () => {
+    TestBed.resetTestingModule();api.get.and.returnValue(of({isSuccess:true,data:overview(),message:'',errors:[]}));
+    const settings={getOverview:()=>of({isSuccess:true,data:{selectedAcademicYearId:1,selectedProfile:{id:1},academicYears:[],profiles:[]}})};
+    await TestBed.configureTestingModule({imports:[TeachingAssignmentsComponent,NoopAnimationsModule],providers:[provideRouter([]),
+      {provide:TeachingAssignmentService,useValue:api},{provide:TimetableSettingsService,useValue:settings}]}).compileComponents();
+    const fixture=TestBed.createComponent(TeachingAssignmentsComponent);fixture.detectChanges();await fixture.whenStable();fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.grade-divider').length).toBe(1);expect(fixture.nativeElement.querySelector('.draft-bar')).toBeNull();
+    (fixture.nativeElement.querySelector('.assignment-cell') as HTMLButtonElement).click();fixture.detectChanges();await fixture.whenStable();fixture.detectChanges();
+    const checkbox=fixture.nativeElement.querySelector('.teacher-choice input') as HTMLInputElement;expect(checkbox.getAttribute('aria-label')).toContain('اختيار');
+    checkbox.click();fixture.detectChanges();fixture.componentInstance.confirmCell();fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.draft-bar')).not.toBeNull();expect(fixture.nativeElement.querySelector('.changed-cell')).not.toBeNull();
   });
 });

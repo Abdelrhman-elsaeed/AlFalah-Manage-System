@@ -1,6 +1,6 @@
 # Classroom catalogue and teaching assignments — design direction
 
-Status: design/prototype only,2026-10-15. Existing runtime and data remain unchanged.
+Original C32 direction: design/prototype only,2026-10-15. C35 now implements its assignment ledger direction in the existing Angular route; [runtime choices and critique](assignments.md), [visual verification](verification/assignments/README.md). The prototype limitations below describe the original C32 artifact.
 
 ## Visual plan before implementation
 

@@ -167,3 +167,7 @@ C33 / D-125 upgrades the existing /student-affairs/classrooms component into the
 ## C34 / D-126 - Classroom consumer cutover (2026-10-15)
 
 A shared single-class CVA picker now serves V2 visit metadata and manual timetable cells, using the same paged catalogue as teacher multi-selection. Context changes clear invalid selection; lookup failure never supplies a partial list. Student lookup helpers traverse all pages. Mobile timetable sticky columns were reduced after live testing showed they obscured editable lesson cells. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).
+
+## C35 / D-127 - Teaching assignment workspace (2026-10-15)
+
+The existing assignment component now renders a grade-grouped classroom-by-subject ledger,10/20/50 classroom paging, an independently paged teacher summary and a focused server-paged picker. A pure indexed projection caches complete draft-aware loads per immutable snapshot/draft replacement. Existing APIs, single/co/split/whole-pair rules, revision save and route guards remain authoritative. Explicit dialog focus return, no-op draft detection and stale-response guards complete the workflow. This surface opts out of tt-workspace/tt-page-header layout wrappers to avoid their global gradient/box treatment, while retaining platform tokens/shell. [Runtime and verification](specs/classroom-catalog/assignments.md). C5 PDF remains pending.

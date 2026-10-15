@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-15",
+  "angular": {
+    "passed": 19,
+    "failed": 0
+  },
+  "developmentBuild": "passed",
+  "productionBuild": {
+    "status": "blocked",
+    "errorBudgetKb": 32,
+    "errors": {
+      "VisitsV2CssKb": 34.5,
+      "legacyStorageCssKb": 39.34
+    },
+    "errorFilesMatchHEAD": {
+      "frontend/src/app/features/visits-v2/visit-workspace/visit-workspace.component.css": true,
+      "frontend/src/app/features/storage/storage-page.component.css": true
+    },
+    "assignmentCssWarningKb": 18.33,
+    "warningBudgetKb": 16,
+    "budgetRelaxed": false
+  },
+  "businessWrites": "none; editing browser requests use synthetic fixtures"
+}

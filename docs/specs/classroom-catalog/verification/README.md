@@ -44,3 +44,7 @@ The original C32 artifacts above remain design-only evidence. Production catalog
 ## C34 runtime consumers
 
 C3 now has separate [consumer, retained-history, SQL archive, Angular and real-browser evidence](consumers/README.md). Assignment UX/PDF remain future C4/C5 work.
+
+## C35 runtime assignments
+
+C4 now has separate [Angular/backend, real role-based browser, dense fixture and large-school verification](assignments/README.md), with screenshots at390/768/1440. Development build passes; production CSS budget blockers and physical/assistive-technology limits are disclosed there. C5 saved-revision assignment PDF remains pending.

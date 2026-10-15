@@ -1,6 +1,6 @@
 # Implementation handoff and acceptance gates
 
-**C34 status:** C1/C2 foundation and C3 consumer cutover are delivered locally; [C33 foundation](implementation.md), [C34 consumer behavior and evidence](consumers.md). C4 production assignment UX, C5 assignment PDF and C6 pilot acceptance remain pending. This table retains the original full acceptance gates.
+**C35 status:** C1/C2 foundation, C3 consumer cutover and C4 production assignment UX are delivered locally; [C33 foundation](implementation.md), [C34 consumers](consumers.md), [C35 assignment workspace](assignments.md). C5 assignment PDF and C6 pilot acceptance remain pending. Production build is separately blocked by existing CSS budgets; see C35 verification. This table retains the original full acceptance gates.
 
 | Phase | Work | Exit evidence |
 |---|---|---|
@@ -31,6 +31,7 @@
 - [x] Active VisitsV2 uses structured draft selection; V1 writes remain retired410. Prior reports/signed/archive versions remain unchanged.
 - [x] Duty late-departure class filters and student selections validated; retained signed files unchanged.
 - [x] Existing timetable PDF/Excel and retained snapshots, search, ID bookmarks and reference projections preserved.
+- [x] Production grouped assignment ledger, bounded teacher picker/summary, no-op drafts, keyboard/focus and concurrent-save handling (C4); physical assistive-technology and release acceptance remain C6.
 - [ ] New saved-revision assignment PDF and its source-template acceptance (C5).
 - [x] Mapping/backfill idempotency, collision handling, auth comparison, constraints and safe rollback proven.
 - [x] Source scan rerun; every remaining active text comparison categorized before cutover.
