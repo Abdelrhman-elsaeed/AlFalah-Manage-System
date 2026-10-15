@@ -1,0 +1,64 @@
+
+> al-falah-app@0.0.0 build
+> ng build --configuration development
+
+npm.cmd : - Building...
+At line:2 char:1
++ npm.cmd run build -- --configuration development *> ../.audit/storage ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (- Building...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Initial chunk files | Names                         |   Raw size
+chunk-R6TFCBZI.js   | -                             | 1001.29 kB | 
+styles.css          | styles                        |  808.28 kB | 
+main.js             | main                          |  260.49 kB | 
+chunk-YYEOLTKX.js   | -                             |  194.22 kB | 
+polyfills.js        | polyfills                     |   88.09 kB | 
+chunk-FS7MSL5K.js   | -                             |   51.62 kB | 
+chunk-HOW4SHRU.js   | -                             |   33.73 kB | 
+chunk-NQOZJLOR.js   | -                             |   33.07 kB | 
+chunk-4WAXUA6U.js   | -                             |   28.02 kB | 
+chunk-SSSOZ62N.js   | -                             |   13.09 kB | 
+chunk-OD2PVS3H.js   | -                             |    7.83 kB | 
+chunk-5P2CLIHC.js   | -                             |    7.80 kB | 
+chunk-UEGHF7C7.js   | -                             |    7.37 kB | 
+chunk-LZ5C4BNH.js   | -                             |    7.11 kB | 
+chunk-S6APJDXZ.js   | -                             |    4.24 kB | 
+chunk-HTNAI7NN.js   | -                             |    3.87 kB | 
+chunk-FFVMEQBI.js   | -                             |    3.33 kB | 
+chunk-SJQFV65P.js   | -                             |    3.23 kB | 
+chunk-IK6QX75T.js   | -                             |    2.97 kB | 
+chunk-IA3ZOOOI.js   | -                             |    2.72 kB | 
+chunk-22FINO2S.js   | -                             |    2.64 kB | 
+chunk-BCXRV6DC.js   | -                             |    2.36 kB | 
+chunk-GEKRLXHV.js   | -                             |    1.54 kB | 
+chunk-QD3EMCL5.js   | -                             |  803 bytes | 
+chunk-LBCZBBSE.js   | -                             |  424 bytes | 
+chunk-Y7X3ZKBA.js   | -                             |  225 bytes | 
+
+                    | Initial total                 |    2.51 MB
+
+Lazy chunk files    | Names                         |   Raw size
+chunk-UEDWX6AQ.js   | landing-page-component        |    4.25 MB | 
+chunk-5F7J6MVT.js   | student-analyzer-component    |    3.32 MB | 
+chunk-M44XYKTC.js   | -                             |  646.55 kB | 
+chunk-EZMYFMJD.js   | -                             |  641.16 kB | 
+chunk-N3SFYIRZ.js   | school-duty-component         |  617.42 kB | 
+chunk-T3HVRQAW.js   | -                             |  430.32 kB | 
+chunk-WFTLR7HQ.js   | -                             |  422.67 kB | 
+chunk-XAIOL64P.js   | subject-settings-component    |  291.55 kB | 
+chunk-3VMUBZLW.js   | storage-page-component        |  262.44 kB | 
+chunk-G7XZ53BL.js   | visit-workspace-component     |  260.02 kB | 
+chunk-U7C3HTD3.js   | timetable-workspace-component |  237.29 kB | 
+chunk-H72YAL32.js   | -                             |  215.85 kB | 
+chunk-SRHGAO7E.js   | social-worker-crm-component   |  211.54 kB | 
+chunk-H6IYKOIE.js   | -                             |  209.90 kB | 
+chunk-5RGKNBEJ.js   | -                             |  202.98 kB | 
+...and 140 more lazy chunks files. Use "--verbose" to show all the files.
+
+Output location: D:\AlFalah-Manage-System\frontend\dist\al-falah-app
+
+Application bundle generation complete. [47.800 seconds]
+

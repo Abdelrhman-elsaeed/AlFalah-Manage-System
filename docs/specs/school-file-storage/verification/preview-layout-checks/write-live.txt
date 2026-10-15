@@ -1,0 +1,2 @@
+PASS: actual manager UI created a library folder, uploaded a synthetic PDF and read back identical bytes.
+PASS: only this run?s unlinked verification folder/file were trashed through the system and disappeared from the parent listing.

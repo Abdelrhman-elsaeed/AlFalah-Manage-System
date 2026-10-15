@@ -6,7 +6,7 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const origin='http://localhost:4200',type='application/vnd.alfalah.transfer';
 const pdf=readFileSync(resolve('../docs/specs/school-duty/verification/roster-source-pdf/source-eighteen-weeks.pdf'));
-const evidence=resolve('../docs/specs/school-file-storage/verification/download-access-screens');mkdirSync(evidence,{recursive:true});
+const evidence=resolve(process.env.ALFALAH_STORAGE_BROWSER_EVIDENCE||'../docs/specs/school-file-storage/verification/download-access-screens');mkdirSync(evidence,{recursive:true});
 const browser=await chromium.launch({headless:true}),results=[];
 async function fixture(width,delegate=false){
  const user={userId:'synthetic-file-manager',username:'synthetic-file-manager',fullName:delegate?'مشرف التخزين الاصطناعي':'مدير مدرسة التحقق الاصطناعية',activeSchoolId:18,activeSchoolName:'مدرسة التحقق الاصطناعية',roles:[delegate?'Instructor':'SchoolManager'],preferredLanguage:'ar',permissions:['Storage.ViewSchool','Storage.ManageSchool','Storage.ViewOwn','Storage.ManageOwn','Storage.ReviewEvidence']};

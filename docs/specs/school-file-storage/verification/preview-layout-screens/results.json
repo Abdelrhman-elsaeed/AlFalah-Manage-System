@@ -1,0 +1,96 @@
+{
+  "at": "2026-10-15T08:26:49.968Z",
+  "results": [
+    {
+      "width": 390,
+      "fitted": {
+        "dialog": 388,
+        "parent": 364,
+        "host": 364,
+        "stage": 362,
+        "canvas": 342,
+        "viewportHeight": 707,
+        "dialogHeight": 998,
+        "dialogScrollHeight": 998
+      },
+      "expanded": {
+        "dialog": 388,
+        "parent": 364,
+        "host": 364,
+        "stage": 362,
+        "canvas": 342,
+        "viewportHeight": 707,
+        "dialogHeight": 998,
+        "dialogScrollHeight": 998
+      },
+      "archiveWriteControlsAbsent": true,
+      "openLibraryEnabledTools": true,
+      "fitWidth": true,
+      "zoom": true,
+      "inspectorReturn": true,
+      "escapeFocus": true,
+      "syntheticInterceptedApi": true
+    },
+    {
+      "width": 768,
+      "fitted": {
+        "dialog": 731,
+        "parent": 691,
+        "host": 691,
+        "stage": 689,
+        "canvas": 657,
+        "viewportHeight": 591,
+        "dialogHeight": 918,
+        "dialogScrollHeight": 918
+      },
+      "expanded": {
+        "dialog": 766,
+        "parent": 726,
+        "host": 726,
+        "stage": 724,
+        "canvas": 692,
+        "viewportHeight": 652,
+        "dialogHeight": 998,
+        "dialogScrollHeight": 998
+      },
+      "archiveWriteControlsAbsent": true,
+      "openLibraryEnabledTools": true,
+      "fitWidth": true,
+      "zoom": true,
+      "inspectorReturn": true,
+      "escapeFocus": true,
+      "syntheticInterceptedApi": true
+    },
+    {
+      "width": 1440,
+      "fitted": {
+        "dialog": 1198,
+        "parent": 1158,
+        "host": 1158,
+        "stage": 1156,
+        "canvas": 1124,
+        "viewportHeight": 572,
+        "dialogHeight": 918,
+        "dialogScrollHeight": 918
+      },
+      "expanded": {
+        "dialog": 1438,
+        "parent": 1398,
+        "host": 1398,
+        "stage": 1396,
+        "canvas": 1364,
+        "viewportHeight": 652,
+        "dialogHeight": 998,
+        "dialogScrollHeight": 998
+      },
+      "archiveWriteControlsAbsent": true,
+      "openLibraryEnabledTools": true,
+      "fitWidth": true,
+      "zoom": true,
+      "inspectorReturn": true,
+      "escapeFocus": true,
+      "syntheticInterceptedApi": true
+    }
+  ],
+  "providerWrites": 0
+}

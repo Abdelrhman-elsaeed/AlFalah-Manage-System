@@ -6,6 +6,7 @@
     "ENABLE": "تفعيل أرشيف المناوبات",
     "PAGES": "{{count}} صفحة",
     "PAGE": "صفحة {{number}}",
+    "FIT_WIDTH": "ملاءمة العرض",
     "ZOOM_IN": "تكبير الصفحة",
     "ZOOM_OUT": "تصغير الصفحة",
     "PREPARING_PREVIEW": "جارٍ إعداد المعاينة",

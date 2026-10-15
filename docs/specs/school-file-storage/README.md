@@ -1,6 +1,8 @@
 # School File Storage
 
-**Current C30 / D-122 (2026-10-15):** School files uses one native browser for root, map and old folder/file links. Library upload/create and the existing evidence/version services are connected to its own inspector; no old full-page library fallback. Application binary transfer avoids advertising the awaiting Blob request as a download attachment; real errors remain visible. Administrator Personal files navigation is corrected. [Verification](verification/download-access.md). No new migration or verification provider write; owner/physical/desktop IDM acceptance pending.
+**Current C31 / D-123 (2026-10-15):** Preview layout and destination-loading write guards are corrected. Actual manager library create/upload/read-back/cleanup verified; protected archive guidance opens the existing library. [Latest evidence](verification/preview-layout.md). Schema69 and archive settings unchanged.
+
+**Previous C30 / D-122 (2026-10-15):** School files uses one native browser for root, map and old folder/file links. Library upload/create and the existing evidence/version services are connected to its own inspector; no old full-page library fallback. Application binary transfer avoids advertising the awaiting Blob request as a download attachment; real errors remain visible. Administrator Personal files navigation is corrected. [Verification](verification/download-access.md). No new migration or verification provider write; owner/physical/desktop IDM acceptance pending.
 
 The existing [feature kit](plan.md) remains the source of truth for S0–S6. School Duty documents additionally follow the [School Duty kit](../school-duty/README.md), including immutable signatures/artifacts and their protected hierarchy.
 
@@ -31,3 +33,7 @@ School Duty roster template upgrades now retain separate immutable rendering ver
 ## C30 / D-122 — Change log (2026-10-15)
 
 One school-file browser now handles root/map/registered folder/file links, with native metadata/preview/version/evidence/change inspection. Reconnected existing library upload/create operations with stable retries; protected archives retain their boundaries. Fixed administrator Personal files routing and full-card navigation. Shared authenticated binary transport preserves exact bytes and ordinary direct-download contracts while avoiding attachment-style application responses.15 backend and23 focused Angular checks, real native storage/roster downloads at390/768/1440 and synthetic full workflows passed. [Evidence and honest IDM gate](verification/download-access.md). Schema69 and existing settings retained.
+
+## C31 / D-123 ? File preview and destination-safe write controls (2026-10-15)
+
+Owner follow-up delivered: full-width PDF preview, compact metadata, document-only scrolling, Fit width and Expand/Restore. Dedicated layout classes isolate the native viewer from legacy global styles. Protected archives show a library shortcut instead of disabled write tools; current library writes remain on existing services. A real verification exposed and corrected writes during destination loading; late file selections and retries are guarded.27 focused Angular checks, Development build and actual/synthetic390/768/1440 browser checks passed. Real manager create/upload/read-back/cleanup passed in the test library; the first race-reproduction objects were also cleaned. No original files, grants, archive settings or schema69 changes. [Evidence](verification/preview-layout.md). Owner/physical/installed IDM acceptance remains pending.

@@ -280,3 +280,9 @@ C27 / D-119: replaced storage feature redirects with native school-root browsing
 | Date | Change |
 |---|---|
 | 2026-10-15 | Unified School files/map/legacy links in one native browser; restored existing library upload/create and metadata/preview/versions/evidence/change tools. Corrected live administrator navigation and whole-card links. Shared application binary transport prevents attachment-style awaited downloads while retaining genuine errors and exact bytes.15 backend/23 focused Angular and six real browser downloads at390/768/1440 passed; one unrelated overlapping shell assertion remains. [Evidence](docs/specs/school-file-storage/verification/download-access.md). No new migration or verification provider write; owner/physical/installed IDM acceptance pending. |
+
+## C31 / D-123 ? Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | Corrected tiny PDF preview caused by legacy global layout; added full-width document scrolling, Fit width and expanded viewer. Replaced disabled archive write tools with a library shortcut and guarded writes during folder loading after a real wrong-folder reproduction.27 Angular checks/build plus real and synthetic390/768/1440 browser verification passed; real manager create/upload/byte-matched read-back and bounded cleanup verified. [Evidence](docs/specs/school-file-storage/verification/preview-layout.md). No schema, permissions or original file changes; owner/physical acceptance pending. |

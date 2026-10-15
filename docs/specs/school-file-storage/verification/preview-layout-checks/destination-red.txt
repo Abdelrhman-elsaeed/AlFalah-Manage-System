@@ -1,0 +1,49 @@
+
+> al-falah-app@0.0.0 test
+> ng test --watch=false --browsers=ChromeHeadless --ts-config=tsconfig.storage-followup-spec.json --include=src/app/features/storage/storage-drive-browser.component.spec.ts
+
+npm.cmd : - Generating browser application bundles (phase: setup)...
+At line:2 char:1
++ npm.cmd test -- --watch=false --browsers=ChromeHeadless --ts-config=t ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (- Generating br...hase: setup)...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+√ Browser application bundle generation complete.
+15 10 2026 11:24:01.164:INFO [karma-server]: Karma v6.4.4 server started at http://localhost:9876/
+15 10 2026 11:24:01.167:INFO [launcher]: Launching browsers ChromeHeadless with concurrency unlimited
+15 10 2026 11:24:01.172:INFO [launcher]: Starting browser ChromeHeadless
+15 10 2026 11:24:01.972:INFO [Chrome Headless 155.0.0.0 (Windows 10)]: Connected on socket bqhpX75h6ASNkTmGAAAB with id 85426994
+Chrome Headless 155.0.0.0 (Windows 10): Executed 0 of 10 SUCCESS (0 secs / 0 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 1 of 10 SUCCESS (0 secs / 0.694 secs)
+Chrome Headless 155.0.0.0 (Windows 10) Native storage uses the existing library workflow blocks stale write controls and late file selections while a destination folder is still loading FAILED
+	Expected false to be true.
+	    at <Jasmine>
+	    at UserContext.<anonymous> (src/app/features/storage/storage-drive-browser.component.spec.ts:42:117)
+	    at Generator.next (<anonymous>)
+	    at asyncGeneratorStep (node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:3:1)
+	    at _next (node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:17:1)
+	TypeError: Cannot read properties of undefined (reading 'pipe')
+	    at StorageDriveBrowserComponent.sendUpload (src/app/features/storage/storage-drive-browser.component.ts:91:199)
+	    at StorageDriveBrowserComponent.selectedUpload (src/app/features/storage/storage-drive-browser.component.ts:89:288)
+	    at UserContext.<anonymous> (src/app/features/storage/storage-drive-browser.component.spec.ts:44:53)
+	    at Generator.next (<anonymous>)
+	    at asyncGeneratorStep (node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:3:1)
+	    at apply (node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:17:1)
+	    at _ZoneDelegate.invoke (node_modules/zone.js/fesm2015/zone.js:369:28)
+	    at ProxyZoneSpec.onInvoke (node_modules/zone.js/fesm2015/zone-testing.js:2081:39)
+	    at _ZoneDelegate.invoke (node_modules/zone.js/fesm2015/zone.js:368:34)
+	    at ZoneImpl.run (node_modules/zone.js/fesm2015/zone.js:111:43)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 2 of 10 (1 FAILED) (0 secs / 0.739 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 3 of 10 (1 FAILED) (0 secs / 0.768 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 4 of 10 (1 FAILED) (0 secs / 0.787 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 5 of 10 (1 FAILED) (0 secs / 0.803 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 6 of 10 (1 FAILED) (0 secs / 0.817 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 7 of 10 (1 FAILED) (0 secs / 0.835 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 8 of 10 (1 FAILED) (0 secs / 0.853 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 9 of 10 (1 FAILED) (0 secs / 0.865 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 10 of 10 (1 FAILED) (0 secs / 0.877 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 10 of 10 (1 FAILED) (1.351 secs / 0.877 secs)
+TOTAL: 1 FAILED, 9 SUCCESS
+√ Browser application bundle generation complete.
+√ Browser application bundle generation complete.

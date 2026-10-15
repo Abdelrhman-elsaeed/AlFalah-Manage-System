@@ -40,7 +40,7 @@ export class StorageDriveBrowserComponent {
  readonly deleted=signal<Operation[]>([]);
  readonly progress=signal(0);readonly uploading=signal(false);
  fileInfo:DriveItem|null=null;previewUrl='';folderName='';createError='';
- inspectorOpen=false;inspectorVisited=false;
+ inspectorOpen=false;inspectorVisited=false;previewExpanded=false;
  readonlyYear=false;
  private uploadKey='';private pendingUpload:File|null=null;private uploadFolder=0;
  search='';selected:DriveItem|null=null;action='Delete';name='';impact:Impact|null=null;actionError='';previewName='';
@@ -65,6 +65,7 @@ export class StorageDriveBrowserComponent {
   }catch(e){if(sequence!==this.request)return;if(!more)this.data.set(null);this.error.set(this.message(e));}finally{if(sequence===this.request)this.loading.set(false);}}
  open(item:DriveItem){if(this.busy())return;if(item.isFolder)this.go(item.handle);else void this.file(item,false);}
  go(handle:string|null){void this.router.navigate([],{relativeTo:this.route,queryParams:{drive:handle,display:null,folder:null,file:null,search:null},queryParamsHandling:'merge'});}
+ async openLibrary(){if(this.busy()||this.readonlyYear)return;this.busy.set(true);try{const context=await firstValueFrom(this.library.contextInfo(false));if(!context.rootFolderId)throw new Error(this.t('مكتبة المدرسة غير جاهزة. راجع إعدادات مساحة الملفات.','The school library is not ready. Check storage administration.'));await this.router.navigate([],{relativeTo:this.route,queryParams:{folder:context.rootFolderId,drive:null,display:null,file:null,search:null},queryParamsHandling:'merge'});}catch(e){this.showError(this.message(e));}finally{this.busy.set(false);}}
  size(value:number|null){if(value==null)return '—';return value<1024?value+' B':value<1048576?(value/1024).toFixed(1)+' KB':(value/1048576).toFixed(1)+' MB';}
  fileType(item:DriveItem){if(item.mimeType==='application/pdf')return 'PDF';if(item.mimeType.startsWith('image/'))return this.t('صورة','Image');return item.name.split('.').length>1?item.name.split('.').pop()!.toUpperCase():this.t('ملف','File');}
  async file(item:DriveItem,download:boolean){if(this.busy())return;const folder=this.data()?.handle;this.busy.set(true);this.error.set('');try{
@@ -75,23 +76,23 @@ export class StorageDriveBrowserComponent {
    if(!download){this.preview.set(blob);if(item.mimeType!=='application/pdf')this.previewUrl=URL.createObjectURL(blob);}
    else downloadBlob(blob,item.name);
   }catch(e){this.showError(this.message(e));}finally{this.busy.set(false);}}
- closePreview(){if(this.busy())return;this.previewDialog?.nativeElement.close();this.preview.set(null);if(this.previewUrl)URL.revokeObjectURL(this.previewUrl);this.previewUrl='';this.fileInfo=null;this.inspectorOpen=false;this.inspectorVisited=false;this.origin?.focus();}
+ closePreview(){if(this.busy())return;this.previewDialog?.nativeElement.close();this.preview.set(null);if(this.previewUrl)URL.revokeObjectURL(this.previewUrl);this.previewUrl='';this.fileInfo=null;this.inspectorOpen=false;this.inspectorVisited=false;this.previewExpanded=false;this.origin?.focus();}
  downloadPreview(){const blob=this.preview();if(blob)downloadBlob(blob,this.previewName);else if(this.fileInfo)void this.file(this.fileInfo,true);}
  details(){if(!this.fileInfo?.storedFileId)return;this.inspectorOpen=true;this.inspectorVisited=true;}
  get selectedYear(){return Number(this.route.snapshot.queryParamMap.get('academicYearId'))||undefined;}
  inspectorDenied(){this.closePreview();this.showError(this.t('لم تعد لديك صلاحية عرض هذا الملف.','You no longer have access to this file.'));}
  inspectorChanged(){this.closePreview();this.notice.set(this.t('تم تحديث سجل الملف.','The file record has been updated.'));void this.load();}
- openCreate(){if(!this.data()?.writableFolderId||this.busy())return;this.origin=document.activeElement as HTMLElement;this.folderName='';this.createError='';this.createDialog?.nativeElement.showModal();}
+ openCreate(){if(!this.data()?.writableFolderId||this.busy()||this.loading())return;this.origin=document.activeElement as HTMLElement;this.folderName='';this.createError='';this.createDialog?.nativeElement.showModal();}
  closeCreate(){if(this.busy())return;this.createDialog?.nativeElement.close();this.origin?.focus();}
- async create(){const folder=this.data()?.writableFolderId;if(!folder||!this.folderName.trim()||this.busy())return;this.busy.set(true);this.createError='';try{await firstValueFrom(this.library.createFolder(folder,this.folderName.trim()));this.busy.set(false);this.closeCreate();this.notice.set(this.t('تم إنشاء المجلد.','Folder created.'));await this.load();}catch(e){this.createError=this.message(e);}finally{this.busy.set(false);}}
- chooseUpload(){if(this.busy()||!this.data()?.writableFolderId)return;if(this.pendingUpload){this.showError(this.t('تحقق من نتيجة الرفع السابق قبل بدء ملف جديد.','Verify the previous upload before starting a new file.'));return;}this.uploadInput?.nativeElement.click();}
- selectedUpload(event:Event){const input=event.target as HTMLInputElement;const file=input.files?.[0];input.value='';const folder=this.data()?.writableFolderId;if(!file||!folder||this.busy())return;this.pendingUpload=file;this.uploadFolder=folder;this.uploadKey=crypto.randomUUID();this.sendUpload();}
- retryUpload(){if(this.pendingUpload&&!this.busy()&&this.uploadFolder===this.data()?.writableFolderId)this.sendUpload();}
+ async create(){const folder=this.data()?.writableFolderId;if(!folder||!this.folderName.trim()||this.busy()||this.loading())return;this.busy.set(true);this.createError='';try{await firstValueFrom(this.library.createFolder(folder,this.folderName.trim()));this.busy.set(false);this.closeCreate();this.notice.set(this.t('تم إنشاء المجلد.','Folder created.'));await this.load();}catch(e){this.createError=this.message(e);}finally{this.busy.set(false);}}
+ chooseUpload(){if(this.busy()||this.loading()||!this.data()?.writableFolderId)return;if(this.pendingUpload){this.showError(this.t('تحقق من نتيجة الرفع السابق قبل بدء ملف جديد.','Verify the previous upload before starting a new file.'));return;}this.uploadInput?.nativeElement.click();}
+ selectedUpload(event:Event){const input=event.target as HTMLInputElement;const file=input.files?.[0];input.value='';const folder=this.data()?.writableFolderId;if(!file||!folder||this.busy()||this.loading())return;this.pendingUpload=file;this.uploadFolder=folder;this.uploadKey=crypto.randomUUID();this.sendUpload();}
+ retryUpload(){if(this.pendingUpload&&!this.busy()&&!this.loading()&&this.uploadFolder===this.data()?.writableFolderId)this.sendUpload();}
  private sendUpload(){const file=this.pendingUpload;if(!file)return;this.busy.set(true);this.uploading.set(true);this.progress.set(0);this.library.upload(false,this.uploadFolder,file,this.uploadKey).pipe(takeUntilDestroyed(this.destroy)).subscribe({next:event=>{
    if(event.type===HttpEventType.UploadProgress)this.progress.set(Math.min(99,Math.round(100*event.loaded/(event.total||file.size))));
    if(event.type===HttpEventType.Response){this.busy.set(false);this.uploading.set(false);const result=event.body?.data;if(!event.body?.isSuccess||result?.status!=='Completed'){this.showError(this.t('لم يتأكد اكتمال الرفع. أعد المحاولة للتحقق من نفس العملية.','Upload completion is not verified. Retry to check the same operation.'));return;}this.pendingUpload=null;this.library.invalidateContext();this.notice.set(this.t('تم رفع الملف وحفظه في سجل المدرسة.','File uploaded and recorded in school storage.'));void this.load();}
   },error:e=>{this.busy.set(false);this.uploading.set(false);this.showError(this.message(e));}});}
- get canRetryUpload(){return !!this.pendingUpload&&!this.busy()&&this.uploadFolder===this.data()?.writableFolderId;}
+ get canRetryUpload(){return !!this.pendingUpload&&!this.busy()&&!this.loading()&&this.uploadFolder===this.data()?.writableFolderId;}
  get pendingFileName(){return this.pendingUpload?.name;}
  showError(message:string){this.error.set(message);this.origin=document.activeElement as HTMLElement;if(!this.errorDialog?.nativeElement.open)this.errorDialog?.nativeElement.showModal();}
  closeError(){this.errorDialog?.nativeElement.close();this.error.set('');this.origin?.focus();}

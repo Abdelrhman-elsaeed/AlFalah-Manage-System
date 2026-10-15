@@ -1,3 +1,5 @@
+> **Latest C31 / D-123,2026-10-15:** [Full-width preview, usable library write controls and real destination-race verification](preview-layout.md). This entry supersedes historical preview presentation below; existing phase records remain intact.
+
 # S1 — التنفيذ والتحقق وخطة الرجوع
 
 **التاريخ:** 2026-10-03 · **النطاق:** S1 فقط. لا بدء لـ S2.

@@ -6,6 +6,7 @@
     "ENABLE": "Enable the duty archive",
     "PAGES": "{{count}} pages",
     "PAGE": "Page {{number}}",
+    "FIT_WIDTH": "Fit width",
     "ZOOM_IN": "Zoom in",
     "ZOOM_OUT": "Zoom out",
     "PREPARING_PREVIEW": "Preparing preview",

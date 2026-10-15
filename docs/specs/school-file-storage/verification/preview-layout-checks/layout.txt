@@ -1,0 +1,4 @@
+{"width":390,"dialog":388,"parent":364,"host":364,"stage":362,"canvas":342,"viewportHeight":707,"dialogHeight":998,"dialogScrollHeight":998}
+{"width":768,"dialog":731,"parent":691,"host":691,"stage":689,"canvas":657,"viewportHeight":591,"dialogHeight":918,"dialogScrollHeight":918}
+{"width":1440,"dialog":1198,"parent":1158,"host":1158,"stage":1156,"canvas":1124,"viewportHeight":572,"dialogHeight":918,"dialogScrollHeight":918}
+PASS: preview sizing/zoom/expand/inspector return and archive-to-library tools at 390/768/1440

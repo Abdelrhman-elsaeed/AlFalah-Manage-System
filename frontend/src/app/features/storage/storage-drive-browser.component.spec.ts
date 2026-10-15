@@ -1,7 +1,7 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient, HttpEventType, HttpResponse } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { StorageDriveBrowserComponent } from './storage-drive-browser.component';
@@ -10,8 +10,8 @@ import { ApiResponse } from '../../core/models/api-response.model';
 import { StorageUpload } from './storage.models';
 
 describe('Native storage uses the existing library workflow',()=>{
- let c:StorageDriveBrowserComponent;let api:jasmine.SpyObj<StorageApiService>;let http:HttpTestingController;
- beforeEach(async()=>{api=jasmine.createSpyObj('library',['createFolder','upload','invalidateContext','contextInfo']);const params=convertToParamMap({drive:'scoped-folder'});TestBed.configureTestingModule({imports:[StorageDriveBrowserComponent,TranslateModule.forRoot()],providers:[provideHttpClient(),provideHttpClientTesting(),provideRouter([]),{provide:ActivatedRoute,useValue:{queryParamMap:of(params),snapshot:{queryParamMap:params}}},{provide:StorageApiService,useValue:api}]});c=TestBed.createComponent(StorageDriveBrowserComponent).componentInstance;http=TestBed.inject(HttpTestingController);http.expectOne(r=>r.url.endsWith('/storage/drive')).flush({isSuccess:true,data:{name:'Library',handle:'scoped-folder',breadcrumbs:[],items:[],canManage:false,writableFolderId:17}});await Promise.resolve();await Promise.resolve();});
+ let fixture:ComponentFixture<StorageDriveBrowserComponent>;let c:StorageDriveBrowserComponent;let api:jasmine.SpyObj<StorageApiService>;let http:HttpTestingController;
+ beforeEach(async()=>{api=jasmine.createSpyObj('library',['createFolder','upload','invalidateContext','contextInfo']);const params=convertToParamMap({drive:'scoped-folder'});TestBed.configureTestingModule({imports:[StorageDriveBrowserComponent,TranslateModule.forRoot()],providers:[provideHttpClient(),provideHttpClientTesting(),provideRouter([]),{provide:ActivatedRoute,useValue:{queryParamMap:of(params),snapshot:{queryParamMap:params}}},{provide:StorageApiService,useValue:api}]});fixture=TestBed.createComponent(StorageDriveBrowserComponent);c=fixture.componentInstance;http=TestBed.inject(HttpTestingController);http.expectOne(r=>r.url.endsWith('/storage/drive')).flush({isSuccess:true,data:{name:'Library',handle:'scoped-folder',breadcrumbs:[],items:[],canManage:false,writableFolderId:17}});await Promise.resolve();await Promise.resolve();});
  afterEach(()=>http.verify());
  it('does not create a folder in a read-only archive even when its client state is manipulated',async()=>{c.data.set({...c.data()!,writableFolderId:null});c.folderName='Unsafe';await c.create();expect(api.createFolder).not.toHaveBeenCalled();});
  it('reuses the existing folder endpoint with its server-resolved ledger folder',async()=>{spyOn(c,'load').and.resolveTo();api.createFolder.and.returnValue(of({id:18,parentFolderId:17,displayName:'New',kind:'SchoolLibrary',rowVersion:'v1'}));c.folderName='New';await c.create();expect(api.createFolder).toHaveBeenCalledOnceWith(17,'New');});
@@ -25,4 +25,24 @@ describe('Native storage uses the existing library workflow',()=>{
  it('preserves historical-year read-only behavior in the unified browser',async()=>{
   Object.assign(TestBed.inject(ActivatedRoute).snapshot,{queryParamMap:convertToParamMap({drive:'scoped-folder',academicYearId:'2'})});api.contextInfo.and.returnValue(of({schoolId:18,schoolName:'Synthetic',canManage:true,isTeacher:false,connectionState:'Connected',academicYearId:1}));const pending=c.load();http.expectOne(r=>r.url.endsWith('/drive')).flush({isSuccess:true,data:{name:'Library',handle:'scoped-folder',breadcrumbs:[],items:[],canManage:false,writableFolderId:17}});await pending;expect(c.readonlyYear).toBeTrue();expect(c.data()?.writableFolderId).toBeNull();
  });
+ it('shows write tools only for server-resolved writable folders and gives archive managers a library action',()=>{
+  fixture.detectChanges();expect(fixture.nativeElement.querySelectorAll('.write-actions button').length).toBe(2);
+  c.data.set({...c.data()!,canManage:true,writableFolderId:null});fixture.detectChanges();expect(fixture.nativeElement.querySelector('.write-actions')).toBeNull();expect(fixture.nativeElement.querySelector('.drive-write-hint button')).not.toBeNull();
+  c.readonlyYear=true;fixture.detectChanges();expect(fixture.nativeElement.querySelector('.drive-write-hint button')).toBeNull();expect(fixture.nativeElement.querySelector('.drive-write-hint[role=status]')).not.toBeNull();
+ });
+ it('opens the registered school library using its ledger ID, not an archive or provider identifier',async()=>{
+  api.contextInfo.and.returnValue(of({schoolId:18,schoolName:'Synthetic',canManage:true,isTeacher:false,connectionState:'Connected',academicYearId:1,rootFolderId:7}));const navigation=spyOn(TestBed.inject(Router),'navigate').and.resolveTo(true);
+  await c.openLibrary();expect(navigation).toHaveBeenCalledWith([] ,jasmine.objectContaining({queryParams:jasmine.objectContaining({folder:7,drive:null,file:null})}));expect(c.busy()).toBeFalse();
+ });
+ it('does not advertise current-year writes through a historical library shortcut',async()=>{
+  c.readonlyYear=true;await c.openLibrary();expect(api.contextInfo).not.toHaveBeenCalled();
+ });
+ it('blocks stale write controls and late file selections while a destination folder is still loading',async()=>{
+  c.loading.set(true);fixture.detectChanges();
+  expect([...fixture.nativeElement.querySelectorAll('.write-actions button')].every((button:any)=>button.disabled)).toBeTrue();
+  c.folderName='Wrong destination';await c.create();
+  const file=new File(['%PDF-proof'],'proof.pdf');c.selectedUpload({target:{files:[file],value:'proof.pdf'}} as unknown as Event);
+  expect(api.createFolder).not.toHaveBeenCalled();expect(api.upload).not.toHaveBeenCalled();
+ });
+
 });

@@ -1,0 +1,37 @@
+{
+  "previewBefore": {
+    "phone": {
+      "parent": 312,
+      "host": 242,
+      "canvas": 220
+    },
+    "desktop": {
+      "parent": 1044,
+      "host": 254,
+      "canvas": 220
+    },
+    "widthRegression": "Failed before fix",
+    "displayOnlyProbe": "Still narrow",
+    "hostWidth100OnlyDesktopCanvas": 1008
+  },
+  "previewAfterCanvasWidths": [
+    342,
+    657,
+    1124
+  ],
+  "cause": "Legacy global grid sizing shrank the PDF component; native preview now has its own layout and a full-width host.",
+  "destinationRace": {
+    "reproducedWithRealProvider": true,
+    "oldFolderUsedWhileNextFolderLoading": true,
+    "exactSyntheticHashCheckedBeforeCleanup": true,
+    "firstRunObjectsCleaned": true,
+    "regressionRedBeforeFix": true,
+    "loadingButtonsAndHandlersGuarded": true,
+    "finalActualUiCreateUploadReadBackAndCleanup": true
+  },
+  "angularPassed": 27,
+  "backendChanged": false,
+  "migration": false,
+  "existingSchoolFilesTargeted": 0,
+  "providerWrites": "Two bounded synthetic library verification attempts, with all their objects cleaned through system operations; existing archived reads/downloads are separate."
+}
