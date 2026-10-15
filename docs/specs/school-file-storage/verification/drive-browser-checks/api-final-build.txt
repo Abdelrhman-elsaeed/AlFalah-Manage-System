@@ -1,0 +1,11 @@
+  AlFalah.Shared -> D:\AlFalah-Manage-System\backend\AlFalah.Shared\bin\Release\net8.0\AlFalah.Shared.dll
+  AlFalah.Domain -> D:\AlFalah-Manage-System\backend\AlFalah.Domain\bin\Release\net8.0\AlFalah.Domain.dll
+  AlFalah.Application -> D:\AlFalah-Manage-System\backend\AlFalah.Application\bin\Release\net8.0\AlFalah.Application.dll
+  AlFalah.Infrastructure -> D:\AlFalah-Manage-System\backend\AlFalah.Infrastructure\bin\Release\net8.0\AlFalah.Infrastructure.dll
+  AlFalah.Api -> D:\AlFalah-Manage-System\backend\AlFalah.Api\bin\Release\net8.0\AlFalah.Api.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:01:19.30

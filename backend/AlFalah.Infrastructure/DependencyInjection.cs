@@ -119,6 +119,9 @@ public static class DependencyInjection
         services.AddScoped<AlFalah.Application.Storage.IStorageProvider, GoogleStorageProvider>();
         services.AddScoped<AlFalah.Application.Storage.IStorageMapRepository, StorageMapRepository>();
         services.AddScoped<AlFalah.Application.Storage.IStorageMapService, AlFalah.Application.Storage.StorageMapService>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageDriveHandles, StorageDriveHandles>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageDriveBrowserRepository, StorageDriveBrowserRepository>();
+        services.AddScoped<AlFalah.Application.Storage.IStorageDriveBrowserService, AlFalah.Application.Storage.StorageDriveBrowserService>();
         services.AddScoped<AlFalah.Application.Storage.IStorageLibraryService, AlFalah.Application.Storage.StorageLibraryService>();
         services.AddScoped<AlFalah.Application.Storage.IStorageDriveBoundary, StorageDriveBoundary>();
         services.AddScoped<AlFalah.Application.Storage.IStorageAuthorizationService, AlFalah.Application.Storage.StorageAuthorizationService>();

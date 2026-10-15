@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0368c11c-3df3-499d-ba2c-2aacc26d40b9" name="abdelrhman@DESKTOP-FHRP6TC 2026-10-15 07:47:28" runUser="DESKTOP-FHRP6TC\abdelrhman" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-15T07:47:28.3377547+03:00" queuing="2026-10-15T07:47:28.3377551+03:00" start="2026-10-15T07:46:57.0149638+03:00" finish="2026-10-15T07:47:32.9579609+03:00" />
+  <TestSettings name="default" id="04d2bf02-ca76-40a1-90b9-4669bfcf5430">
+    <Deployment runDeploymentRoot="abdelrhman_DESKTOP-FHRP6TC_2026-10-15_07_47_28" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="212d1cef-9170-456a-b236-d988d3478429" testId="2c270ef7-bdfd-595a-56e9-61ee07e4fcc3" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.A_new_link_or_live_management_revocation_invalidates_confirmation_before_any_provider_write" computerName="DESKTOP-FHRP6TC" duration="00:00:00.3921693" startTime="2026-10-15T07:47:31.3923469+03:00" endTime="2026-10-15T07:47:31.3923470+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="212d1cef-9170-456a-b236-d988d3478429" />
+    <UnitTestResult executionId="e7afe5e3-f7cf-4841-a5c2-d90231878d7e" testId="a16f5f52-8abe-25af-787c-9d6a3842894b" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Virtual_school_folder_opens_actual_native_children_and_files_without_feature_routes_or_adoption" computerName="DESKTOP-FHRP6TC" duration="00:00:00.3145901" startTime="2026-10-15T07:47:30.0886203+03:00" endTime="2026-10-15T07:47:30.0886204+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e7afe5e3-f7cf-4841-a5c2-d90231878d7e" />
+    <UnitTestResult executionId="011ddc31-dfa4-42f5-95d5-2bb5373aa3fb" testId="c02923ef-1465-794f-d71f-bbb5ac327b91" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Actual_SQL_rollback_after_trash_keeps_operation_recoverable_and_links_atomic" computerName="DESKTOP-FHRP6TC" duration="00:00:00.3194375" startTime="2026-10-15T07:47:30.9994301+03:00" endTime="2026-10-15T07:47:30.9994301+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="011ddc31-dfa4-42f5-95d5-2bb5373aa3fb" />
+    <UnitTestResult executionId="81ec0997-1586-4e94-8dec-364cbd2e76f1" testId="bc02e952-4e08-284c-5605-73894b8d523f" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Two_contexts_with_same_confirmed_request_commit_one_delete_and_one_audit" computerName="DESKTOP-FHRP6TC" duration="00:00:03.3620702" startTime="2026-10-15T07:47:28.3055623+03:00" endTime="2026-10-15T07:47:28.3056149+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="81ec0997-1586-4e94-8dec-364cbd2e76f1" />
+    <UnitTestResult executionId="104967b5-1cde-406b-aaaf-c3e050bf49c0" testId="00c7a61b-fe95-3eb6-1fb2-fbf0f588bc62" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Ordinary_rename_and_move_update_SQL_and_provider_and_reject_protected_destination" computerName="DESKTOP-FHRP6TC" duration="00:00:00.4152186" startTime="2026-10-15T07:47:32.8054292+03:00" endTime="2026-10-15T07:47:32.8054293+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="104967b5-1cde-406b-aaaf-c3e050bf49c0" />
+    <UnitTestResult executionId="39385241-8a73-4f58-af04-2f36722993d5" testId="a5e066af-408d-810c-fd5e-85741e8d7c1b" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Handles_are_school_actor_root_and_expiry_bound_and_root_itself_cannot_be_deleted" computerName="DESKTOP-FHRP6TC" duration="00:00:00.1796773" startTime="2026-10-15T07:47:31.5738124+03:00" endTime="2026-10-15T07:47:31.5738125+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="39385241-8a73-4f58-af04-2f36722993d5" />
+    <UnitTestResult executionId="3acfdd86-91e0-4d4c-9f82-c1dacf0a7ffb" testId="7388d64d-d10f-f33a-fae8-db01be811353" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Manager_delete_withdraws_approved_active_links_keeps_decisions_and_soft_deletes_ledger" computerName="DESKTOP-FHRP6TC" duration="00:00:00.2215882" startTime="2026-10-15T07:47:32.3895679+03:00" endTime="2026-10-15T07:47:32.3895680+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3acfdd86-91e0-4d4c-9f82-c1dacf0a7ffb" />
+    <UnitTestResult executionId="8c3242f3-31a8-434c-8a8c-6b908d3e5734" testId="efe332e5-3ccd-2567-c1c2-98cea95958c7" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Lost_trash_response_survives_new_context_and_reconciles_without_another_provider_mutation" computerName="DESKTOP-FHRP6TC" duration="00:00:00.2499286" startTime="2026-10-15T07:47:30.6793324+03:00" endTime="2026-10-15T07:47:30.6793325+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8c3242f3-31a8-434c-8a8c-6b908d3e5734" />
+    <UnitTestResult executionId="b03c5770-4413-4dd8-8e3a-a6eb501c55db" testId="4bdfb078-d6ed-09d1-6568-1d0d36e6b778" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Signed_letter_deletion_keeps_completed_identity_frozen_bytes_local_access_and_explicit_restore" computerName="DESKTOP-FHRP6TC" duration="00:00:01.4657345" startTime="2026-10-15T07:47:29.7735292+03:00" endTime="2026-10-15T07:47:29.7735292+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b03c5770-4413-4dd8-8e3a-a6eb501c55db" />
+    <UnitTestResult executionId="cda44f2b-76aa-4b28-b9b3-3111e2383390" testId="99387772-9712-d0c0-d9d7-704a6814cfd5" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Folder_deletion_withdraws_registered_missing_evidence_and_restore_never_invents_its_bytes" computerName="DESKTOP-FHRP6TC" duration="00:00:00.3574277" startTime="2026-10-15T07:47:32.1673896+03:00" endTime="2026-10-15T07:47:32.1673897+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cda44f2b-76aa-4b28-b9b3-3111e2383390" />
+    <UnitTestResult executionId="730e21a8-3140-46ee-9934-d86cb11fc24c" testId="a708d4e6-86ff-8d4b-0f2c-21c2cb8abbce" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Explicit_restore_checks_bytes_preserves_identity_and_does_not_reactivate_withdrawn_evidence" computerName="DESKTOP-FHRP6TC" duration="00:00:00.3393063" startTime="2026-10-15T07:47:30.4287119+03:00" endTime="2026-10-15T07:47:30.4287120+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="730e21a8-3140-46ee-9934-d86cb11fc24c" />
+    <UnitTestResult executionId="0f8d145f-c42f-47f6-b7e4-324434aa5f4e" testId="5879949a-7aa3-ec0b-5d7b-cfc4a73a792a" testName="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Confirmation_rejects_new_evidence_links_and_changed_provider_tree_before_any_write" computerName="DESKTOP-FHRP6TC" duration="00:00:00.2350001" startTime="2026-10-15T07:47:31.8093697+03:00" endTime="2026-10-15T07:47:31.8093697+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0f8d145f-c42f-47f6-b7e4-324434aa5f4e" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Confirmation_rejects_new_evidence_links_and_changed_provider_tree_before_any_write" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="5879949a-7aa3-ec0b-5d7b-cfc4a73a792a">
+      <Execution id="0f8d145f-c42f-47f6-b7e4-324434aa5f4e" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Confirmation_rejects_new_evidence_links_and_changed_provider_tree_before_any_write" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Actual_SQL_rollback_after_trash_keeps_operation_recoverable_and_links_atomic" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="c02923ef-1465-794f-d71f-bbb5ac327b91">
+      <Execution id="011ddc31-dfa4-42f5-95d5-2bb5373aa3fb" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Actual_SQL_rollback_after_trash_keeps_operation_recoverable_and_links_atomic" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Explicit_restore_checks_bytes_preserves_identity_and_does_not_reactivate_withdrawn_evidence" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="a708d4e6-86ff-8d4b-0f2c-21c2cb8abbce">
+      <Execution id="730e21a8-3140-46ee-9934-d86cb11fc24c" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Explicit_restore_checks_bytes_preserves_identity_and_does_not_reactivate_withdrawn_evidence" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Signed_letter_deletion_keeps_completed_identity_frozen_bytes_local_access_and_explicit_restore" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="4bdfb078-d6ed-09d1-6568-1d0d36e6b778">
+      <Execution id="b03c5770-4413-4dd8-8e3a-a6eb501c55db" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Signed_letter_deletion_keeps_completed_identity_frozen_bytes_local_access_and_explicit_restore" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Two_contexts_with_same_confirmed_request_commit_one_delete_and_one_audit" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="bc02e952-4e08-284c-5605-73894b8d523f">
+      <Execution id="81ec0997-1586-4e94-8dec-364cbd2e76f1" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Two_contexts_with_same_confirmed_request_commit_one_delete_and_one_audit" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.A_new_link_or_live_management_revocation_invalidates_confirmation_before_any_provider_write" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="2c270ef7-bdfd-595a-56e9-61ee07e4fcc3">
+      <Execution id="212d1cef-9170-456a-b236-d988d3478429" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="A_new_link_or_live_management_revocation_invalidates_confirmation_before_any_provider_write" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Ordinary_rename_and_move_update_SQL_and_provider_and_reject_protected_destination" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="00c7a61b-fe95-3eb6-1fb2-fbf0f588bc62">
+      <Execution id="104967b5-1cde-406b-aaaf-c3e050bf49c0" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Ordinary_rename_and_move_update_SQL_and_provider_and_reject_protected_destination" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Manager_delete_withdraws_approved_active_links_keeps_decisions_and_soft_deletes_ledger" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="7388d64d-d10f-f33a-fae8-db01be811353">
+      <Execution id="3acfdd86-91e0-4d4c-9f82-c1dacf0a7ffb" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Manager_delete_withdraws_approved_active_links_keeps_decisions_and_soft_deletes_ledger" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Handles_are_school_actor_root_and_expiry_bound_and_root_itself_cannot_be_deleted" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="a5e066af-408d-810c-fd5e-85741e8d7c1b">
+      <Execution id="39385241-8a73-4f58-af04-2f36722993d5" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Handles_are_school_actor_root_and_expiry_bound_and_root_itself_cannot_be_deleted" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Virtual_school_folder_opens_actual_native_children_and_files_without_feature_routes_or_adoption" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="a16f5f52-8abe-25af-787c-9d6a3842894b">
+      <Execution id="e7afe5e3-f7cf-4841-a5c2-d90231878d7e" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Virtual_school_folder_opens_actual_native_children_and_files_without_feature_routes_or_adoption" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Lost_trash_response_survives_new_context_and_reconciles_without_another_provider_mutation" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="efe332e5-3ccd-2567-c1c2-98cea95958c7">
+      <Execution id="8c3242f3-31a8-434c-8a8c-6b908d3e5734" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Lost_trash_response_survives_new_context_and_reconciles_without_another_provider_mutation" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests.Folder_deletion_withdraws_registered_missing_evidence_and_restore_never_invents_its_bytes" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\release\net8.0\alfalah.tests.dll" id="99387772-9712-d0c0-d9d7-704a6814cfd5">
+      <Execution id="cda44f2b-76aa-4b28-b9b3-3111e2383390" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageDriveBrowserSqlTests" name="Folder_deletion_withdraws_registered_missing_evidence_and_restore_never_invents_its_bytes" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="2c270ef7-bdfd-595a-56e9-61ee07e4fcc3" executionId="212d1cef-9170-456a-b236-d988d3478429" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a16f5f52-8abe-25af-787c-9d6a3842894b" executionId="e7afe5e3-f7cf-4841-a5c2-d90231878d7e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c02923ef-1465-794f-d71f-bbb5ac327b91" executionId="011ddc31-dfa4-42f5-95d5-2bb5373aa3fb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bc02e952-4e08-284c-5605-73894b8d523f" executionId="81ec0997-1586-4e94-8dec-364cbd2e76f1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00c7a61b-fe95-3eb6-1fb2-fbf0f588bc62" executionId="104967b5-1cde-406b-aaaf-c3e050bf49c0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a5e066af-408d-810c-fd5e-85741e8d7c1b" executionId="39385241-8a73-4f58-af04-2f36722993d5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7388d64d-d10f-f33a-fae8-db01be811353" executionId="3acfdd86-91e0-4d4c-9f82-c1dacf0a7ffb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="efe332e5-3ccd-2567-c1c2-98cea95958c7" executionId="8c3242f3-31a8-434c-8a8c-6b908d3e5734" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4bdfb078-d6ed-09d1-6568-1d0d36e6b778" executionId="b03c5770-4413-4dd8-8e3a-a6eb501c55db" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="99387772-9712-d0c0-d9d7-704a6814cfd5" executionId="cda44f2b-76aa-4b28-b9b3-3111e2383390" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a708d4e6-86ff-8d4b-0f2c-21c2cb8abbce" executionId="730e21a8-3140-46ee-9934-d86cb11fc24c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5879949a-7aa3-ec0b-5d7b-cfc4a73a792a" executionId="0f8d145f-c42f-47f6-b7e4-324434aa5f4e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="12" executed="12" passed="12" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.2)&#xD;
+[xUnit.net 00:00:00.53]   Discovering: AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.74]   Discovered:  AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.75]   Starting:    AlFalah.Tests&#xD;
+[xUnit.net 00:00:34.77]   Finished:    AlFalah.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -169,6 +169,13 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
             response.Content.Headers.ContentLength ?? metadata.Size);
     }
 
+    public async Task<GoogleDriveFile> RestoreAsync(int schoolId,string fileId,CancellationToken ct=default)
+    {
+        if(string.IsNullOrWhiteSpace(fileId)||fileId.Length>256)throw new ArgumentException("معرّف الملف غير صالح.");
+        var path=$"files/{Uri.EscapeDataString(fileId)}?supportsAllDrives=true&fields={Uri.EscapeDataString(FileFields)}";
+        using var body=new StringContent("{\"trashed\":false}",Encoding.UTF8,"application/json");
+        return ParseFile((await SendAsync(schoolId,HttpMethod.Patch,path,body,false,ct))!);
+    }
     public async Task<bool> TrashAsync(int schoolId, string fileId, string? sharedDriveId, CancellationToken cancellationToken = default)
     {
         // Trash rather than permanently delete: the matrix checkmark must clear immediately,

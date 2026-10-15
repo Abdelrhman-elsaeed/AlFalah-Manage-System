@@ -38,6 +38,8 @@ public sealed class GoogleStorageProvider(IGoogleDriveClient drive) : IStoragePr
     { try { return await drive.RenameAsync(schoolId, id, name, ct); } finally { Invalidate(schoolId, id); } }
     public async Task<bool> TrashAsync(int schoolId, string id, string driveId, CancellationToken ct)
     { try { return await drive.TrashAsync(schoolId, id, driveId, ct); } finally { Invalidate(schoolId, id); } }
+    public async Task<GoogleDriveFile> RestoreAsync(int schoolId, string id, CancellationToken ct)
+    { try { return await drive.RestoreAsync(schoolId,id,ct); } finally { Invalidate(schoolId,id); } }
     public async Task<DriveFileContentDto> ContentAsync(int schoolId, string id, CancellationToken ct)
     {
         var current = await MetadataAsync(schoolId, id, ct) ?? throw new KeyNotFoundException("الملف غير متاح.");

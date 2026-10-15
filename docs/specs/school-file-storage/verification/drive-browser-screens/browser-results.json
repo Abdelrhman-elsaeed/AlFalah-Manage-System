@@ -1,0 +1,56 @@
+{
+  "at": "2026-10-15T04:08:31.231Z",
+  "results": [
+    {
+      "width": 390,
+      "virtualSchoolFolder": true,
+      "actualNativeFolderNavigation": true,
+      "noFeatureRedirect": true,
+      "linkedDeleteConfirmation": true,
+      "cancelFocusReturn": true,
+      "unknownResultReconciledWithoutSecondDelete": true,
+      "restoreLeavesEvidenceWithdrawn": true,
+      "rename": true,
+      "authenticatedBlobDownload": true,
+      "pdfCanvasRendered": true,
+      "noOverflow": true,
+      "deniedClearsData": true,
+      "api": "Synthetic intercepted fixtures only"
+    },
+    {
+      "width": 768,
+      "virtualSchoolFolder": true,
+      "actualNativeFolderNavigation": true,
+      "noFeatureRedirect": true,
+      "linkedDeleteConfirmation": true,
+      "cancelFocusReturn": true,
+      "unknownResultReconciledWithoutSecondDelete": true,
+      "restoreLeavesEvidenceWithdrawn": true,
+      "rename": true,
+      "authenticatedBlobDownload": true,
+      "pdfCanvasRendered": true,
+      "noOverflow": true,
+      "deniedClearsData": true,
+      "api": "Synthetic intercepted fixtures only"
+    },
+    {
+      "width": 1440,
+      "virtualSchoolFolder": true,
+      "actualNativeFolderNavigation": true,
+      "noFeatureRedirect": true,
+      "linkedDeleteConfirmation": true,
+      "cancelFocusReturn": true,
+      "unknownResultReconciledWithoutSecondDelete": true,
+      "restoreLeavesEvidenceWithdrawn": true,
+      "rename": true,
+      "authenticatedBlobDownload": true,
+      "pdfCanvasRendered": true,
+      "noOverflow": true,
+      "deniedClearsData": true,
+      "api": "Synthetic intercepted fixtures only"
+    }
+  ],
+  "driveWrites": 0,
+  "physicalDevice": "Pending",
+  "ownerVisualReview": "Pending"
+}

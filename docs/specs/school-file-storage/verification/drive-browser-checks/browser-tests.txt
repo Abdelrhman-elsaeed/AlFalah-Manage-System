@@ -1,0 +1,1 @@
+Native folder browsing, linked deletion, recovery, download and rendered preview passed at390/768/1440.

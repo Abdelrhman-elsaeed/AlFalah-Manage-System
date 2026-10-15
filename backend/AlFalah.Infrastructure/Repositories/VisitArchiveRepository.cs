@@ -119,8 +119,8 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
     public async Task<IReadOnlyList<int>> DueAsync(DateTimeOffset now, int limit, CancellationToken ct) =>
         await Ops.AsNoTracking().Where(o => o.SnapshotJson != null &&
             db.SchoolGoogleDrives.Any(d => d.SchoolId == o.SchoolId && d.IsEnabled && d.VisitArchiveEnabled) &&
-            (o.Status == VisitArchiveStatus.Pending || o.Status == VisitArchiveStatus.RetryScheduled && o.NextAttemptAtUtc <= now ||
-             o.Status == VisitArchiveStatus.Processing && o.LeaseExpiresAtUtc <= now))
+            (o.LastErrorCode != "DeletedByManager" && (o.Status == VisitArchiveStatus.Pending || o.Status == VisitArchiveStatus.RetryScheduled && o.NextAttemptAtUtc <= now ||
+             o.Status == VisitArchiveStatus.Processing && o.LeaseExpiresAtUtc <= now)))
             .OrderBy(o => o.CreatedAtUtc).ThenBy(o => o.Id).Take(limit).Select(o => o.Id).ToListAsync(ct);
 
     public Task<bool> SchoolEnabledAsync(int schoolId, CancellationToken ct) =>
@@ -169,8 +169,8 @@ public sealed class VisitArchiveRepository(AlFalahDbContext db) : IVisitArchiveR
         db.ChangeTracker.Clear();
         var changed = await db.Set<VisitArchiveOperation>().Where(o => o.Id == id &&
             db.SchoolGoogleDrives.Any(d => d.SchoolId == o.SchoolId && d.IsEnabled && d.VisitArchiveEnabled) &&
-            (o.Status == VisitArchiveStatus.Pending || o.Status == VisitArchiveStatus.RetryScheduled && o.NextAttemptAtUtc <= now ||
-             o.Status == VisitArchiveStatus.Processing && o.LeaseExpiresAtUtc <= now))
+            (o.LastErrorCode != "DeletedByManager" && (o.Status == VisitArchiveStatus.Pending || o.Status == VisitArchiveStatus.RetryScheduled && o.NextAttemptAtUtc <= now ||
+             o.Status == VisitArchiveStatus.Processing && o.LeaseExpiresAtUtc <= now)))
             .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, VisitArchiveStatus.Processing)
                 .SetProperty(o => o.LastErrorCode, o => o.Status == VisitArchiveStatus.Processing ? "ExpiredLease" : o.LastErrorCode)
                 .SetProperty(o => o.LeaseToken, token).SetProperty(o => o.LockedAtUtc, now)

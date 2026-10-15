@@ -44,6 +44,8 @@ async function mockSession(page: Page, role = 'SchoolManager', state = 'Connecte
     if (path.endsWith('/auth/me')) data = user;
     else if (path.endsWith('/auth/schools')) data = [];
     else if (path.endsWith('/storage/access')) data = { canManage, canReviewEvidence };
+    else if (path.endsWith('/storage/drive')) data = {name:'ملفات المدرسة',handle:null,breadcrumbs:[],items:[{handle:'synthetic-school-root',name:'ملفات المدرسة',isFolder:true,mimeType:'application/vnd.google-apps.folder',canModify:false}],nextPageToken:null,canManage};
+    else if (path.endsWith('/drive/operations')) data=[];
     else if (path.endsWith('/storage/map')) data = {schoolName:'مدرسة الاختبار',checkedAt:'2026-10-14T10:00:00Z',registeredFiles:0,nodes:[],spaces:[{key:'library',name:'مكتبة المدرسة',state:'Available',canOpen:true,folderId:7},{key:'teachers',name:'ملفات المعلمين',state:'Available',canOpen:true},{key:'duty',name:'المناوبات',state:'Available',canOpen:false},{key:'visits',name:'أرشيف الزيارات',state:'Available',canOpen:archiveAllowed}]};
     else if (path.endsWith('/storage/setup')) data = {folders:[],teachers:[],archiveEnabled:false,archiveCapabilityReady:true};
     else if (path.endsWith('/setup/visit-archive')) data = {enabled:false};

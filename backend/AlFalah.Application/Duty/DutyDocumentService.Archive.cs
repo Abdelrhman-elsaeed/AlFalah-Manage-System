@@ -32,14 +32,15 @@ public sealed partial class DutyDocumentService
     {
         var state=intent?.State??"Pending";
         if(state is "PendingD3" or "Pending" && (!readiness.Enabled||!readiness.ProcessingEnabled||readiness.ConnectionState!="Connected"))state="SetupUnavailable";
-        if(intent?.ErrorCode is not null&&state=="Archived")state=intent.ErrorCode=="ConnectionUnavailable"?"Disconnected":"NeedsAttention";
+        if(intent?.ErrorCode=="DutyArchiveDeleted")state="Deleted";
+        else if(intent?.ErrorCode is not null&&state=="Archived")state=intent.ErrorCode=="ConnectionUnavailable"?"Disconnected":"NeedsAttention";
         var availability=intent?.ArtifactId is null?intent?.ErrorCode=="DutyArtifactUnavailable"?"Unavailable":"Preparing":"Available";
         string name="",date="";
         try{var frozen=DutyDocumentIntegrity.Validate(doc);name=frozen.GetProperty("Header").GetProperty("ActualTeacher").GetString()??"";date=frozen.GetProperty("Date").GetString()??"";
             if(intent?.ArtifactId is not null)DutyDocumentIntegrity.Validate(artifact??throw DutyDocumentIntegrity.Error());}
         catch(DutyException){availability="Unavailable";}
         return new(doc.Id,doc.Kind,doc.AssignmentRevision,doc.SignedAt,doc.PreviousDocumentId,doc.CorrectionReason,availability,state,
-            manager&&availability!="Unavailable"&&intent is{State:"RetryScheduled" or "NeedsAttention"}&&readiness.Enabled&&readiness.ProcessingEnabled,
+            manager&&availability!="Unavailable"&&intent is{State:"RetryScheduled" or "NeedsAttention"}&&intent.ErrorCode!="DutyArchiveDeleted"&&readiness.Enabled&&readiness.ProcessingEnabled,
             intent?.Attempts??0,intent?.NextAttemptAt,intent?.VerifiedAt,intent?.ErrorCode,name,date,isCurrent);
     }
 }

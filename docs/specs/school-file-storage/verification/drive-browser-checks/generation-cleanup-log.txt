@@ -1,0 +1,5 @@
+Synthetic generated branch moved to trash through the actual storage workflow: أرشيف الزيارات
+Synthetic generated branch moved to trash through the actual storage workflow: المناوبات
+Synthetic generated branch moved to trash through the actual storage workflow: مكتبة المدرسة
+Synthetic generated branch moved to trash through the actual storage workflow: ملفات المعلمين
+Synthetic generation cleanup verified empty; retained SQL snapshots/artifacts/audit were not removed.

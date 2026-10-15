@@ -1,0 +1,35 @@
+Test run for D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Release\net8.0\AlFalah.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+dotnet : [xUnit.net 00:01:21.12]     
+AlFalah.Tests.Storage.VisitArchiveSqlTests.S5_idempotent_SQL_script_applies_twice_on_S4_and_preserves_legacy_data 
+[FAIL]
+At line:3 char:1
++ dotnet test backend/AlFalah.Tests --configuration Release --no-build  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...acy_data [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Failed AlFalah.Tests.Storage.VisitArchiveSqlTests.S5_idempotent_SQL_script_applies_twice_on_S4_and_preserves_legacy_data [8 s]
+  Error Message:
+   Expected (db.Database.GetPendingMigrationsAsync()) to be equal to {"20261005162718_SchoolFileStorageHistoricalImport"}, but {"20261005162718_SchoolFileStorageHistoricalImport", "20261009022905_AddSchoolVisitArchiveActivation", "20261010093544_AddVisitFeedbackNotes", "20261010102731_VisitFeedbackBankAndMultipleNotes", "20261012050404_AddManagedPasswordDisclosure", "20261012144441_AddTimetableCheckpointsAndClones", "20261012181800_AddTimetableCloneIdentity", "20261013071807_AddTimetableChangeAuditDetails", "20261013102255_AddSchoolDutyD1", "20261013102540_AddDutySettingsHistory", "20261013104512_AddDutyTeacherSchoolIntegrity", "20261013113721_PreserveDutyHistoryAcrossTeacherTransfers", "20261013135411_AddSchoolDutyD2", "20261013165202_AddSchoolDutyD3"} contains 13 item(s) too many.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Execution.GivenSelector`1.FailWith(String message, Object[] args)
+   at FluentAssertions.Execution.GivenSelector`1.FailWith(String message, Func`2[] args)
+   at FluentAssertions.Execution.GivenSelectorExtensions.AssertCollectionHasNotTooManyItems[T](GivenSelector`1 givenSelector, Int32 length)
+   at FluentAssertions.Execution.GivenSelectorExtensions.AssertCollectionsHaveSameCount[T](GivenSelector`1 givenSelector, Int32 length)
+   at FluentAssertions.Collections.GenericCollectionAssertions`3.AssertSubjectEquality[TExpectation](IEnumerable`1 expectation, Func`3 equalityComparison, String because, Object[] becauseArgs)
+   at FluentAssertions.Collections.GenericCollectionAssertions`3.Equal(IEnumerable`1 expected, String because, Object[] becauseArgs)
+   at FluentAssertions.Collections.StringCollectionAssertions`2.Equal(String[] expected)
+   at AlFalah.Tests.Storage.VisitArchiveSqlTests.S5_idempotent_SQL_script_applies_twice_on_S4_and_preserves_legacy_data() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Storage\VisitArchiveSqlTests.cs:line 524
+   at AlFalah.Tests.Storage.VisitArchiveSqlTests.S5_idempotent_SQL_script_applies_twice_on_S4_and_preserves_legacy_data() in D:\AlFalah-Manage-System\backend\AlFalah.Tests\Storage\VisitArchiveSqlTests.cs:line 524
+--- End of stack trace from previous location ---
+Results File: D:\AlFalah-Manage-System\.audit\storage-drive-20261015\test-results\c27-storage-visit.trx
+
+Failed!  - Failed:     1, Passed:    28, Skipped:     0, Total:    29, Duration: 1 m 25 s - AlFalah.Tests.dll (net8.0)

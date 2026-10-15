@@ -53,6 +53,7 @@
     "HINT_Delivering": "You can leave this page. Delivery continues independently.",
     "STATE_RetryScheduled": "Delivery will be retried",
     "HINT_RetryScheduled": "Your document is saved. Another delivery attempt is scheduled.",
+    "STATE_Deleted": "Drive copy deleted by the school manager",
     "STATE_NeedsAttention": "Archive delivery needs attention",
     "HINT_NeedsAttention": "The manager can review the issue and retry. The signed copy stays saved.",
     "STATE_Archived": "Verified in the school archive",

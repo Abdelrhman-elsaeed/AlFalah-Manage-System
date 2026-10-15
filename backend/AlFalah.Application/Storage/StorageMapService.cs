@@ -9,7 +9,8 @@ namespace AlFalah.Application.Storage;
 
 public sealed class StorageMapService(IStorageMapRepository repository, IStorageRepository scopes,
     IStorageLibraryRepository library, IStorageAuthorizationService authorization, ICurrentUserService user,
-    IStorageProvider provider, IDutyRepository duty, IVisitArchiveService visits, IOptions<StorageOptions> options) : IStorageMapService
+    IStorageProvider provider, IDutyRepository duty, IVisitArchiveService visits, IOptions<StorageOptions> options,
+    IStorageDriveHandles? handles = null) : IStorageMapService
 {
     public async Task<StorageMapDto> ReadAsync(CancellationToken ct)
     {
@@ -23,9 +24,10 @@ public sealed class StorageMapService(IStorageMapRepository repository, IStorage
         var rows = await repository.RowsAsync(school, ct);
         var context = await library.ContextAsync(school, ct);
         var children = await Children(root.RootItemId);
-        var canDuty = (await duty.AccessAsync(school, user.UserId!, ct))?.Manager == true;
-        var canVisits = false;
-        try { await visits.OperationsStatusAsync(ct); canVisits = true; }
+        var manager=(await authorization.RequireScopeAsync(school,ct)).ManagerUserId==user.UserId;
+        var canDuty = manager||(await duty.AccessAsync(school, user.UserId!, ct))?.Manager == true;
+        var canVisits = manager;
+        try { if(!manager){await visits.OperationsStatusAsync(ct); canVisits = true;} }
         catch (UnauthorizedSchoolAccessException) { }
         catch (KeyNotFoundException) { }
         var spaces = new List<StorageMapSpace>();
@@ -41,7 +43,8 @@ public sealed class StorageMapService(IStorageMapRepository repository, IStorage
             var state = matches.Length > 1 ? "Conflict" : live is null ? tracked is null ? "Missing" : "Unavailable" :
                 !live.IsFolder || live.Trashed || !live.Parents.Contains(root.RootItemId) || live.Name != name ||
                 (live.SharedDriveId ?? "") != root.DriveId ? "Moved" : tracked is null && kind != StorageFolderKind.Teacher ? "Unindexed" : "Available";
-            spaces.Add(new(key, name, state, allowed && state == "Available", tracked?.Folder.Id));
+            spaces.Add(new(key, name, state, allowed && state == "Available", tracked?.Folder.Id,
+                live is null||handles is null?null:handles.ProtectHandle(new(school,root.RootItemId,live.Id,user.UserId!,DateTimeOffset.UtcNow.AddHours(12)))));
         }
         var nodes = new List<StorageMapNode>();
         var libraryRoot = spaces.Single(x => x.Key == "library");

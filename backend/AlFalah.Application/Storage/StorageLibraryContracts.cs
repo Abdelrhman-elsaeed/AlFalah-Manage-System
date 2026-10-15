@@ -75,6 +75,7 @@ public interface IStorageProvider
     Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct);
     Task<GoogleDriveFile> RenameAsync(int schoolId, string id, string name, CancellationToken ct);
     Task<bool> TrashAsync(int schoolId, string id, string driveId, CancellationToken ct);
+    Task<GoogleDriveFile> RestoreAsync(int schoolId, string id, CancellationToken ct) => throw new NotSupportedException();
     Task<DriveFileContentDto> ContentAsync(int schoolId, string id, CancellationToken ct);
     Task<bool> IsWithinAsync(int schoolId, string root, string item, CancellationToken ct);
     Task<GoogleDriveFileList> ChildrenAsync(int schoolId, string parent, string driveId, string? token, CancellationToken ct);

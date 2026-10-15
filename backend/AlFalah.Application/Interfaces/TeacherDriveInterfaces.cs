@@ -48,6 +48,7 @@ public interface IGoogleDriveClient
 
     /// <summary>Moves the file to the credential owner's trash. Returns false when it was already gone.</summary>
     Task<bool> TrashAsync(int schoolId, string fileId, string? sharedDriveId, CancellationToken cancellationToken = default);
+    Task<GoogleDriveFile> RestoreAsync(int schoolId, string fileId, CancellationToken ct = default) => throw new NotSupportedException();
 }
 
 /// <summary>Resolves the signed-in local user to the teacher whose evidence folder they may use.</summary>

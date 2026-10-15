@@ -1,0 +1,77 @@
+{
+  "at": "2026-10-15T04:05:08.705Z",
+  "boundedRootMetadataReads": 14,
+  "results": [
+    {
+      "width": 390,
+      "realLocalApi": true,
+      "interception": false,
+      "realRootFolders": 4,
+      "allNativeStorageNavigation": true,
+      "pdfCanvasRendered": true,
+      "nativeBrowserDownloads": [
+        {
+          "name": "خطاب المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+          "sha256": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+          "bytes": 52963
+        }
+      ],
+      "mutations": 0
+    },
+    {
+      "width": 768,
+      "realLocalApi": true,
+      "interception": false,
+      "realRootFolders": 4,
+      "allNativeStorageNavigation": true,
+      "pdfCanvasRendered": true,
+      "nativeBrowserDownloads": [
+        {
+          "name": "خطاب المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+          "sha256": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+          "bytes": 52963
+        }
+      ],
+      "mutations": 0
+    },
+    {
+      "width": 1440,
+      "realLocalApi": true,
+      "interception": false,
+      "realRootFolders": 4,
+      "allNativeStorageNavigation": true,
+      "pdfCanvasRendered": true,
+      "nativeBrowserDownloads": [
+        {
+          "name": "تقرير-زيارة-1-اعتماد-1.pdf",
+          "sha256": "DA25F3AC410D20B7C4C00C3899BA30B40DB095186610B8D8F810DCD06946E2F1",
+          "bytes": 228723
+        },
+        {
+          "name": "تقرير المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+          "sha256": "7FBE1D60F9764EB3BFA4C63E0BC13AD891CF76C0386D1EAA4843656959221517",
+          "bytes": 73378
+        },
+        {
+          "name": "خطاب المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+          "sha256": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+          "bytes": 52963
+        },
+        {
+          "name": "اختبار مكتبة المدرسة.pdf",
+          "sha256": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+          "bytes": 52963
+        },
+        {
+          "name": "اختبار ملف المعلم.pdf",
+          "sha256": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+          "bytes": 52963
+        }
+      ],
+      "mutations": 0
+    }
+  ],
+  "providerWrites": 0,
+  "ownerVisualReview": "Pending",
+  "physicalDevice": "Pending"
+}

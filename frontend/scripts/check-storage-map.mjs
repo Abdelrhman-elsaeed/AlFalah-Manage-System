@@ -4,7 +4,7 @@ import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const origin=process.env.ALFALAH_STORAGE_UI_ORIGIN||'http://localhost:4200';
-const evidence=resolve('../docs/specs/school-file-storage/verification/storage-map-screens');mkdirSync(evidence,{recursive:true});
+const evidence=resolve('../docs/specs/school-file-storage/verification/drive-map-screens');mkdirSync(evidence,{recursive:true});
 const browser=await chromium.launch({headless:true});const results=[];
 async function fixture(width,lang='ar'){
  const context=await browser.newContext({viewport:{width,height:1000},locale:lang==='ar'?'ar-SA':'en-US'});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -21,6 +21,8 @@ async function fixture(width,lang='ar'){
   else if(path.endsWith('/account/signature/requirement'))data={required:false,hasSignature:true};
   else if(path.endsWith('/storage/access'))data={canManage:true,canReviewEvidence:true};
   else if(path.endsWith('/storage/context'))data={schoolId:18,schoolName:user.activeSchoolName,academicYearId:1,academicYearName:'2026–2027',canManage:true,canReviewEvidence:true,isTeacher:false,connectionState:'Connected',rootFolderId:7};
+  else if(path.endsWith('/storage/drive')){if(state.denied)return route.fulfill({status:403,json:{isSuccess:false,message:'Denied'}});data={name:'ملفات المدرسة',handle:null,breadcrumbs:[],items:[{handle:'synthetic-root',name:'ملفات المدرسة',isFolder:true,mimeType:'application/vnd.google-apps.folder',canModify:false}],nextPageToken:null,canManage:true};}
+  else if(path.endsWith('/drive/operations'))data=[];
   else if(path.endsWith('/storage/map')){state.mapCalls++;if(state.denied)return route.fulfill({status:403,json:{isSuccess:false,message:'Denied'}});data={schoolName:user.activeSchoolName,year:'2026–2027',checkedAt:'2026-10-14T14:00:00Z',registeredFiles:69,spaces:[{key:'library',name:'مكتبة المدرسة',folderId:7,state:'Available',canOpen:true},{key:'teachers',name:'ملفات المعلمين',state:'Available',canOpen:true},{key:'duty',name:'المناوبات',state:'Available',canOpen:true},{key:'visits',name:'أرشيف الزيارات',state:'Available',canOpen:true}],nodes};}
   else if(path.endsWith('/storage/setup')){state.setupCalls++;data={folders:[{key:'duty',name:'المناوبات',parentKey:'root',state:'Exists'}],teachers:[],archiveEnabled:state.schoolEnabled,archiveCapabilityReady:true};}
   else if(path.endsWith('/setup/visit-archive')){if(req.method()==='PUT'){state.schoolEnabled=req.postDataJSON().enabled;state.writes.push({visit:state.schoolEnabled});}data={enabled:state.schoolEnabled};}
@@ -38,15 +40,15 @@ async function fixture(width,lang='ar'){
 }
 try{
  for(const width of [390,768,1440,1920]){
-  const x=await fixture(width),{page,state}=x;await page.goto(origin+'/school-manager/storage');await page.locator('.space-card').last().waitFor();assert.equal(await page.locator('.space-card').count(),4);
+  const x=await fixture(width),{page,state}=x;await page.goto(origin+'/school-manager/storage');await page.locator('.drive-table tbody tr').waitFor();assert.equal(await page.locator('.drive-table tbody tr').count(),1);
   await page.screenshot({path:resolve(evidence,`root-${width}.png`),fullPage:true});await page.getByRole('button',{name:'الخريطة البصرية',exact:true}).click();await page.locator('.domain-grid').waitFor();assert.equal(await page.locator('.standard-node').count(),11);
   assert(await page.locator('.file-entry').evaluate(e=>e.scrollWidth<=e.clientWidth+1));await page.screenshot({path:resolve(evidence,`map-${width}.png`),fullPage:true});
   await page.locator('.domain-actions button').first().click();assert.equal(await page.locator('.standard-node:visible').count(),6);await page.locator('.domain-actions button').first().click();assert.equal(await page.locator('.standard-node:visible').count(),11);
   await page.locator('.domain-grid').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(evidence,`map-domains-${width}.png`),fullPage:true});
   await page.getByRole('searchbox').fill('حقوق المتعلم');assert.equal(await page.locator('.domain').count(),1);await page.getByRole('searchbox').fill('');
   if(width===1440){await page.getByRole('button',{name:'عرض ملء الشاشة',exact:true}).click();await page.waitForFunction(()=>!!document.fullscreenElement);await page.screenshot({path:resolve(evidence,'map-fullscreen-1440.png'),fullPage:true});await page.evaluate(()=>document.exitFullscreen());await page.getByRole('button',{name:'عرض ملء الشاشة',exact:true}).waitFor();}
-  await page.locator('.standard-footer a').first().focus();assert(await page.locator('.standard-footer a').first().evaluate(e=>document.activeElement===e));await page.keyboard.press('Enter');await page.waitForURL('**folder=100');await page.locator('app-storage-page').waitFor();await page.locator('.library-return a').click();await page.getByRole('button',{name:'المجلدات',exact:true}).click();await page.locator('.space-card').last().waitFor();
-  state.denied=true;await page.getByRole('button',{name:'تحديث',exact:true}).click();await page.locator('.entry-error').waitFor();assert.equal(await page.locator('.space-card').count(),0);state.denied=false;await page.getByRole('button',{name:'إعادة المحاولة',exact:true}).click();await page.locator('.space-card').last().waitFor();
+  await page.locator('.standard-footer a').first().focus();assert(await page.locator('.standard-footer a').first().evaluate(e=>document.activeElement===e));await page.keyboard.press('Enter');await page.waitForURL('**folder=100');await page.locator('app-storage-page').waitFor();await page.locator('.library-return a').click();await page.getByRole('button',{name:'المجلدات',exact:true}).click();await page.locator('.drive-table tbody tr').waitFor();
+  await page.getByRole('button',{name:'الخريطة البصرية',exact:true}).click();state.denied=true;await page.getByRole('button',{name:'تحديث',exact:true}).click();await page.locator('.entry-error').waitFor();assert.equal(await page.locator('.root-spaces article').count(),0);state.denied=false;await page.getByRole('button',{name:'إعادة المحاولة',exact:true}).click();await page.locator('.root-spaces article').last().waitFor();
   await page.goto(origin+'/school-manager/storage/admin');await page.locator('.archive-switch').waitFor();assert.equal(state.setupCalls,0);const visits=page.getByRole('switch',{name:'الرفع التلقائي لتقارير الزيارات'});const duty=page.getByRole('switch',{name:'أرشفة المناوبات على Drive'});await duty.waitFor();assert.equal(await page.getByRole('switch').count(),2);
   await visits.click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-storage-admin'))?.archiveStatus===false);await duty.click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-duty-archive-settings'))?.ready()?.enabled===false);assert.deepEqual(state.writes,[{visit:false},{duty:false}]);
   await visits.click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-storage-admin'))?.archiveStatus===true);await duty.click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-duty-archive-settings'))?.ready()?.enabled===true);assert.deepEqual(state.writes,[{visit:false},{duty:false},{visit:true},{duty:true}]);

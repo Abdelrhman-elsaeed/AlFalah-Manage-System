@@ -8,10 +8,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { SUPPRESS_ERROR_TOAST, SUPPRESS_FORBIDDEN_REDIRECT } from '../../core/http/http-context.tokens';
+import { StorageDriveBrowserComponent } from './storage-drive-browser.component';
 import { StoragePageComponent } from './storage-page.component';
 
 export interface LibraryMapNode { id:number; parentId:number|null; name:string; files:number; state:string; }
-export interface LibraryMapSpace { key:string; name:string; state:string; canOpen:boolean; folderId:number|null; }
+export interface LibraryMapSpace { key:string; name:string; state:string; canOpen:boolean; folderId:number|null; browseHandle?:string|null; }
 export interface LibraryMap { schoolName:string; year?:string; checkedAt:string; spaces:LibraryMapSpace[]; nodes:LibraryMapNode[]; registeredFiles:number; }
 
 const copy = {
@@ -19,7 +20,7 @@ const copy = {
  en: {eyebrow:'School workspace',title:'Your school’s files. One clear view.',hint:'Open a workspace or present the library map during committee reviews.',folders:'Folders',map:'Visual map',refresh:'Refresh',loading:'Checking school connectivity and library structure…',retry:'Try again',error:'The school library could not be loaded. Check connectivity and try again.',denied:'This workspace is no longer available to your account.',back:'All school files',full:'Full screen',exit:'Exit full screen',search:'Search domains and standards',treeTitle:'School library map',treeHint:'Domains, standards and registered files. Open a card to explore its contents.',registered:'registered files',standards:'standards',domains:'domains',open:'Open workspace',schoolRoot:'School file root',empty:'Library domains have not been created yet.',setup:'Set up library',updated:'Last checked',unavailable:'Folder needs review',missing:'Not created yet',conflict:'Conflicting names',permission:'Separate permission required',collapse:'Collapse domain',expand:'Show standards',noResults:'No matches for this search.',note:'File counts come from the retained ledger and do not establish evidence approval. Archives are separate from evaluation.',library:'Domains, standards and general school files',teachers:'An independent workspace for each teacher',duty:'Signed responsibility letters and daily reports',visits:'Approved visit documents and archive history',available:'Available',stateHint:'Review the link in library setup.',portal:'School file system',viewFolder:'View files',protected:'Protected archive',tracked:'Verified structure',nodes:'structure folders',noSample:'Your current school data',overview:'Library view',unindexed:'Library link required'}
 };
 
-@Component({selector:'app-storage-files-entry',standalone:true,imports:[CommonModule,FormsModule,RouterLink,StoragePageComponent],
+@Component({selector:'app-storage-files-entry',standalone:true,imports:[CommonModule,FormsModule,RouterLink,StoragePageComponent,StorageDriveBrowserComponent],
  templateUrl:'./storage-files-entry.component.html',styleUrls:['./storage-files-entry.component.css']})
 export class StorageFilesEntryComponent {
  @ViewChild('presentation') presentation?:ElementRef<HTMLElement>;
@@ -42,10 +43,11 @@ export class StorageFilesEntryComponent {
  domainIndex(domain:LibraryMapNode){return Math.max(0,this.domains.findIndex(x=>x.id===domain.id));}
  icon(key:string){return key==='teachers'?'pi-users':key==='duty'?'pi-sun':key==='visits'?'pi-clipboard':'pi-folder-open';}
  state(space:LibraryMapSpace){return space.state==='Available'?space.canOpen?this.t('available'):this.t('permission'):space.state==='Missing'?this.t('missing'):space.state==='Unindexed'?this.t('unindexed'):space.state==='Conflict'?this.t('conflict'):this.t('unavailable');}
- link(space:LibraryMapSpace){return space.key==='duty'?'/school-duty/documents':space.key==='visits'?'/school-manager/storage/visits':space.key==='teachers'?'/teachers':'/school-manager/storage';}
- params(space:LibraryMapSpace){return space.key==='library'?{folder:space.folderId}:{};}
+ link(_:LibraryMapSpace){return '/school-manager/storage';}
+ params(space:LibraryMapSpace){return space.browseHandle?{drive:space.browseHandle}:{};}
  hint(key:string){return this.t(key as 'library'|'teachers'|'duty'|'visits');}
- constructor(){this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroy)).subscribe(p=>{if(p.get('display')==='map')this.mode='map';if(!this.library&&!this.data()&&!this.loading())this.load();});}
+ constructor(){this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroy)).subscribe(p=>{this.mode=p.get('display')==='map'?'map':'folders';if(!this.library&&this.mode==='map'&&!this.data()&&!this.loading())this.load();});}
+ showMap(){this.mode='map';if(!this.data())this.load();}
  load(){if(this.loading())return;const request=++this.sequence;this.loading.set(true);this.error.set('');this.http.get<ApiResponse<LibraryMap>>(`${environment.apiUrl}/api/v1/storage/map`,{context:new HttpContext().set(SUPPRESS_ERROR_TOAST,true).set(SUPPRESS_FORBIDDEN_REDIRECT,true)}).pipe(takeUntilDestroyed(this.destroy)).subscribe({next:r=>{if(request!==this.sequence)return;this.loading.set(false);if(!r.isSuccess||!r.data){this.error.set(this.t('error'));return;}this.data.set(r.data);},error:e=>{if(request!==this.sequence)return;this.loading.set(false);this.data.set(null);this.error.set(e.status===401||e.status===403?this.t('denied'):this.t('error'));}});}
  toggle(id:number){if(this.collapsed.has(id))this.collapsed.delete(id);else this.collapsed.add(id);}
  async fullscreen(){try{if(document.fullscreenElement)await document.exitFullscreen();else await this.presentation?.nativeElement.requestFullscreen();this.full=!!document.fullscreenElement;}catch{this.full=false;}}

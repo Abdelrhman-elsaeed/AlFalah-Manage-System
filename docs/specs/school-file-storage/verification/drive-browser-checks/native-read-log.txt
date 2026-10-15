@@ -1,0 +1,1 @@
+Current Release native signed downloads equal frozen/local/archived bytes; four native branches and no D3_Test verified.

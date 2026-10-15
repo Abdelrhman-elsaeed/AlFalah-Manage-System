@@ -1,0 +1,68 @@
+{
+  "verification": "Current actual Angular rendering; synthetic intercepted APIs only",
+  "results": [
+    {
+      "width": 390,
+      "rootBranches": 4,
+      "mapDomains": 4,
+      "mapStandards": 11,
+      "noOverflow": true,
+      "searchCollapseKeyboard": true,
+      "deniedClearsData": true,
+      "singleActivationLocation": true,
+      "independentSwitches": true,
+      "lazySetup": true
+    },
+    {
+      "width": 768,
+      "rootBranches": 4,
+      "mapDomains": 4,
+      "mapStandards": 11,
+      "noOverflow": true,
+      "searchCollapseKeyboard": true,
+      "deniedClearsData": true,
+      "singleActivationLocation": true,
+      "independentSwitches": true,
+      "lazySetup": true
+    },
+    {
+      "width": 1440,
+      "rootBranches": 4,
+      "mapDomains": 4,
+      "mapStandards": 11,
+      "noOverflow": true,
+      "searchCollapseKeyboard": true,
+      "deniedClearsData": true,
+      "singleActivationLocation": true,
+      "independentSwitches": true,
+      "lazySetup": true
+    },
+    {
+      "width": 1920,
+      "rootBranches": 4,
+      "mapDomains": 4,
+      "mapStandards": 11,
+      "noOverflow": true,
+      "searchCollapseKeyboard": true,
+      "deniedClearsData": true,
+      "singleActivationLocation": true,
+      "independentSwitches": true,
+      "lazySetup": true
+    },
+    {
+      "managerArchivePoll": true,
+      "deliveringToArchived": true,
+      "noDuplicateActivation": true
+    },
+    {
+      "backgroundHttpAndEnvelopeFailure": true,
+      "lastSavedRowsRetained": true,
+      "noRepeatedErrorModal": true,
+      "recoveryClearsNotice": true
+    }
+  ],
+  "english": true,
+  "physicalKeyboard": "Not tested; Playwright keyboard events only",
+  "ownerReview": "Pending",
+  "driveWrites": 0
+}

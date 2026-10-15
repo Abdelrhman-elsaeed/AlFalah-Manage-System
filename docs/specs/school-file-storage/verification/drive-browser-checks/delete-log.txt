@@ -1,0 +1,6 @@
+Verified system/Drive deletion: D3_Test
+Verified system/Drive deletion: أرشيف الزيارات
+Verified system/Drive deletion: المناوبات
+Verified system/Drive deletion: مكتبة المدرسة
+Verified system/Drive deletion: ملفات المعلمين
+Verified actual root completely empty; five durable SQL operations completed.

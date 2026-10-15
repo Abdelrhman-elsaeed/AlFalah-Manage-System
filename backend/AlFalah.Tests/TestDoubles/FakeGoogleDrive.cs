@@ -22,6 +22,9 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
     public int GetFileCalls => Volatile.Read(ref _getFileCalls);
     public bool LoseNextUploadResponse { get; set; }
     public bool LoseNextFolderResponse { get; set; }
+    public bool LoseNextTrashResponse { get; set; }
+    public string IdPrefix { get; init; } = "";
+    public bool TrashDescendants { get; set; }
     public bool FailNextUpload { get; set; }
     public bool RejectNextUpload { get; set; }
     public Func<Task>? BeforeUpload { get; set; }
@@ -29,7 +32,7 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
     public Task<string> AllocateFileIdAsync(int schoolId, CancellationToken ct = default)
     {
         EnsureReachable(schoolId);
-        return Task.FromResult($"reserved-{++_generatedIds}");
+        return Task.FromResult($"{IdPrefix}reserved-{++_generatedIds}");
     }
     public Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct = default)
     {
@@ -76,6 +79,11 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
     public void RestoreExternally(string id)
     {
         if (_nodes.TryGetValue(id, out var node)) node.Trashed = false;
+    }
+    public void SetContentExternally(string id,byte[] content){_nodes[id].Content=content.ToArray();}
+    public async Task<GoogleDriveFile> RestoreAsync(int schoolId,string fileId,CancellationToken ct=default)
+    {
+        RestoreExternally(fileId);return (await GetFileAsync(schoolId,fileId,ct))!;
     }
 
     /// <summary>Simulates a hard delete performed directly in Drive.</summary>
@@ -167,6 +175,8 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
         Trashed.Add(fileId);
         if (!_nodes.TryGetValue(fileId, out var node)) return Task.FromResult(false);
         node.Trashed = true;
+        if(TrashDescendants){var pending=new Queue<string>();pending.Enqueue(fileId);while(pending.Count>0){var parent=pending.Dequeue();foreach(var child in _nodes.Values.Where(x=>x.ParentId==parent)){child.Trashed=true;pending.Enqueue(child.Id);}}}
+        if(LoseNextTrashResponse){LoseNextTrashResponse=false;throw new HttpRequestException("Trash response lost after provider commit");}
         return Task.FromResult(true);
     }
 
@@ -193,7 +203,7 @@ public sealed class FakeGoogleDrive : IGoogleDriveClient
         public string Name { get; set; }
         public string MimeType { get; }
         public string? ParentId { get; set; }
-        public byte[] Content { get; }
+        public byte[] Content { get; set; }
         public bool Trashed { get; set; }
         public IReadOnlyDictionary<string, string>? AppProperties { get; set; }
         public bool IsFolder => MimeType == GoogleDriveFile.FolderMimeType;

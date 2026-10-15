@@ -1,0 +1,17 @@
+Authorized original synthetic-school root verified completely empty before creation
+Actual initial setup creates the library, teacher files, visits and protected duty hierarchy from an empty root
+Repeated initial setup keeps the same provider folder identities
+Teacher's actual acknowledgement automatically renders and delivers its letter before a report exists
+Actual signed report submission automatically renders and delivers the separate report
+Actual visit approval captures the official snapshot and automatically delivers its PDF
+Actual school library upload reaches its provisioned folder
+Actual teacher upload reaches its newly provisioned own folder
+Actual downloaded bytes equal committed immutable hash: خطاب المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf
+Actual downloaded bytes equal committed immutable hash: تقرير المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf
+Actual downloaded bytes equal committed immutable hash: تقرير-زيارة-1-اعتماد-1.pdf
+Actual downloaded bytes equal committed immutable hash: اختبار مكتبة المدرسة.pdf
+Actual downloaded bytes equal committed immutable hash: اختبار ملف المعلم.pdf
+Repeated automatic processing creates no duplicate versions or uploads
+Generation, PDF reads and archive processing send no guardian or human/System messages
+Original credentials, provider root, grants and school activation remain unchanged
+Real empty-root generation complete: 16 checks; five actual file uploads. Fresh SQL and native artifacts retained for bounded cleanup.

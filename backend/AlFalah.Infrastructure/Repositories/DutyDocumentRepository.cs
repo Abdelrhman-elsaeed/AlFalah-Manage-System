@@ -78,7 +78,7 @@ public sealed class DutyDocumentRepository(AlFalahDbContext db) : IDutyDocumentR
     public Task<List<DutyArchiveIntent>> IntentsAsync(int school,int assignment,CancellationToken ct) => Intents.AsTracking().Where(x=>x.SchoolId==school&&db.Set<DutySignedDocument>().Any(d=>d.Id==x.DocumentId&&d.AssignmentId==assignment)).ToListAsync(ct);
     public async Task<List<(int School,int Document)>> DueAsync(DateTimeOffset now,CancellationToken ct)
     {
-        var rows=await Intents.AsNoTracking().Where(x=>
+        var rows=await Intents.AsNoTracking().Where(x=>x.ErrorCode!="DutyArchiveDeleted"&&
             ((x.State=="PendingD3"||x.State=="Pending"||x.State=="RetryScheduled")&&(x.NextAttemptAt==null||x.NextAttemptAt<=now)||x.State=="Delivering"&&x.LeaseExpiresAt<=now)
             && (x.ArtifactId==null || db.SchoolGoogleDrives.Any(d=>d.SchoolId==x.SchoolId&&d.IsEnabled&&d.DutyArchiveEnabled)))
             .OrderBy(x=>x.Id).Take(25).Select(x=>new{x.SchoolId,x.DocumentId}).ToListAsync(ct);
@@ -86,7 +86,7 @@ public sealed class DutyDocumentRepository(AlFalahDbContext db) : IDutyDocumentR
     }
     public async Task<List<(int School,int Document)>> ReconcileDueAsync(CancellationToken ct)
     {
-        var rows=await Intents.AsNoTracking().Where(x=>x.State=="Archived"&&(x.VerifiedAt==null||x.VerifiedAt<DateTimeOffset.UtcNow.AddMinutes(-15)))
+        var rows=await Intents.AsNoTracking().Where(x=>x.State=="Archived"&&x.ErrorCode!="DutyArchiveDeleted"&&(x.VerifiedAt==null||x.VerifiedAt<DateTimeOffset.UtcNow.AddMinutes(-15)))
             .OrderBy(x=>x.VerifiedAt).Take(25).Select(x=>new{x.SchoolId,x.DocumentId}).ToListAsync(ct);
         return rows.Select(x=>(x.SchoolId,x.DocumentId)).ToList();
     }
@@ -109,7 +109,7 @@ public sealed class DutyDocumentRepository(AlFalahDbContext db) : IDutyDocumentR
     public async Task<DutyArchiveIntent?> ClaimAsync(int school,int document,Guid token,DateTimeOffset now,CancellationToken ct)
     {
         db.ChangeTracker.Clear();
-        var changed=await Intents.Where(x=>x.SchoolId==school&&x.DocumentId==document&&
+        var changed=await Intents.Where(x=>x.SchoolId==school&&x.DocumentId==document&&x.ErrorCode!="DutyArchiveDeleted"&&
             ((x.State=="PendingD3"||x.State=="Pending"||x.State=="RetryScheduled")&&(x.NextAttemptAt==null||x.NextAttemptAt<=now)||x.State=="Delivering"&&x.LeaseExpiresAt<=now))
             .ExecuteUpdateAsync(s=>s.SetProperty(x=>x.State,"Delivering").SetProperty(x=>x.LeaseToken,token).SetProperty(x=>x.LeaseExpiresAt,now.AddMinutes(2))
                 .SetProperty(x=>x.LastAttemptAt,now).SetProperty(x=>x.Attempts,x=>x.Attempts+1),ct);
@@ -187,6 +187,7 @@ public sealed class DutyDocumentRepository(AlFalahDbContext db) : IDutyDocumentR
     }
     public async Task MarkAvailabilityAsync(DutyArchiveIntent i,string? error,DateTimeOffset at,CancellationToken ct)
     {
+        if(i.ErrorCode=="DutyArchiveDeleted")return; // Explicit removal is not unexplained drift or an automatic upload retry.
         i.ErrorCode=error;i.VerifiedAt=at;
         if(i.StoredFileVersionId is { } id&&error!="ConnectionUnavailable")
         {

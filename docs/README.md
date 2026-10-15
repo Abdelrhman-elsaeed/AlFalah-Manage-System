@@ -274,3 +274,8 @@ The owner's later instruction authorized original local migrations and library a
 | Date | Change |
 |---|---|
 | 2026-10-14 | D-118: unified independent archive switches, truthful Visit process status, automatic duty archive refresh, shared protected duty folder setup, verified school-root navigation and premium committee library map. Scoped caching/streaming improves measured Drive latency; real designated D3_Test recovery and authenticated native browser downloads verified. [Evidence](specs/school-file-storage/verification/storage-duty-amendment.md). No new schema/credential/root/grant change; owner/physical acceptance and existing production CSS budgets remain pending. |
+
+
+## Change log — 2026-10-15
+
+C27 / D-119: replaced storage feature redirects with native school-root browsing; added manager-confirmed linked deletion, parent-first restore and signed-byte verification. Actual root clearing, guarded isolated empty-root generation and five live Google uploads verified; no migration or production deployment. [Verification](specs/school-file-storage/verification/drive-browser-and-regeneration.md). Owner/physical acceptance remains pending.

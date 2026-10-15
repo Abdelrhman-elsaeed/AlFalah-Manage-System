@@ -1,0 +1,177 @@
+{
+  "amendment": "C27 / D-119",
+  "scope": "Owner-authorized Al-Falah E2E Test School root only; no permanent deletion or production deployment",
+  "initialInventory": {
+    "topLevelFolders": 5,
+    "descendants": 50,
+    "folders": 41,
+    "files": 9
+  },
+  "fiveOriginalDeletionOperationsCompleted": true,
+  "emptyOriginalRootVerified": true,
+  "liveGeneration": {
+    "at": "2026-10-15T03:56:23.2030424+00:00",
+    "checks": [
+      {
+        "step": "Authorized original synthetic-school root verified completely empty before creation",
+        "passed": true
+      },
+      {
+        "step": "Actual initial setup creates the library, teacher files, visits and protected duty hierarchy from an empty root",
+        "passed": true
+      },
+      {
+        "step": "Repeated initial setup keeps the same provider folder identities",
+        "passed": true
+      },
+      {
+        "step": "Teacher's actual acknowledgement automatically renders and delivers its letter before a report exists",
+        "passed": true
+      },
+      {
+        "step": "Actual signed report submission automatically renders and delivers the separate report",
+        "passed": true
+      },
+      {
+        "step": "Actual visit approval captures the official snapshot and automatically delivers its PDF",
+        "passed": true
+      },
+      {
+        "step": "Actual school library upload reaches its provisioned folder",
+        "passed": true
+      },
+      {
+        "step": "Actual teacher upload reaches its newly provisioned own folder",
+        "passed": true
+      },
+      {
+        "step": "Actual downloaded bytes equal committed immutable hash: خطاب المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+        "passed": true
+      },
+      {
+        "step": "Actual downloaded bytes equal committed immutable hash: تقرير المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+        "passed": true
+      },
+      {
+        "step": "Actual downloaded bytes equal committed immutable hash: تقرير-زيارة-1-اعتماد-1.pdf",
+        "passed": true
+      },
+      {
+        "step": "Actual downloaded bytes equal committed immutable hash: اختبار مكتبة المدرسة.pdf",
+        "passed": true
+      },
+      {
+        "step": "Actual downloaded bytes equal committed immutable hash: اختبار ملف المعلم.pdf",
+        "passed": true
+      },
+      {
+        "step": "Repeated automatic processing creates no duplicate versions or uploads",
+        "passed": true
+      },
+      {
+        "step": "Generation, PDF reads and archive processing send no guardian or human/System messages",
+        "passed": true
+      },
+      {
+        "step": "Original credentials, provider root, grants and school activation remain unchanged",
+        "passed": true
+      }
+    ],
+    "hashes": [
+      {
+        "version": 1,
+        "name": "خطاب المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+        "hash": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+        "bytes": 52963
+      },
+      {
+        "version": 2,
+        "name": "تقرير المناوبة - اختبار توليد الملفات معلم اصطناعي - 2026-10-15.pdf",
+        "hash": "7FBE1D60F9764EB3BFA4C63E0BC13AD891CF76C0386D1EAA4843656959221517",
+        "bytes": 73378
+      },
+      {
+        "version": 3,
+        "name": "تقرير-زيارة-1-اعتماد-1.pdf",
+        "hash": "DA25F3AC410D20B7C4C00C3899BA30B40DB095186610B8D8F810DCD06946E2F1",
+        "bytes": 228723
+      },
+      {
+        "version": 4,
+        "name": "اختبار مكتبة المدرسة.pdf",
+        "hash": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+        "bytes": 52963
+      },
+      {
+        "version": 5,
+        "name": "اختبار ملف المعلم.pdf",
+        "hash": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F",
+        "bytes": 52963
+      }
+    ],
+    "realDrive": true,
+    "uploads": 5,
+    "sentinelPreserved": true,
+    "originalSqlReadOnly": true
+  },
+  "generatedTestHierarchyCleaned": true,
+  "originalRegisteredHierarchyRecovered": true,
+  "d3TestRemainsTrashed": true,
+  "ordinaryEvidenceRemainsWithdrawn": true,
+  "originalVersionPointersPreserved": true,
+  "originalTeacherGrantsPreserved": true,
+  "pendingStorageMutations": 0,
+  "operationalMigrationCount": 68,
+  "dutyArchivedDocuments": 2,
+  "visitsCompleted": 2,
+  "finalNativeRead": {
+    "at": "2026-10-15T04:50:02.560Z",
+    "realLocalApi": true,
+    "realDrive": true,
+    "providerWrites": 0,
+    "rootFolders": [
+      "أرشيف الزيارات",
+      "المناوبات",
+      "مكتبة المدرسة",
+      "ملفات المعلمين"
+    ],
+    "d3TestAbsent": true,
+    "matches": [
+      {
+        "name": "خطاب المناوبة - E2E Teacher - 2026-10-15.pdf",
+        "bytes": 58632,
+        "sha256": "AF4E696C5E97AF2BF3EAF7F4E5EB8CE6806E90DC4D9B1E28033A708DEB56F6E5",
+        "frozenLocalArchivedNativeEqual": true
+      },
+      {
+        "name": "خطاب المناوبة - E2E Teacher - 2026-10-21.pdf",
+        "bytes": 63371,
+        "sha256": "2AF2E610EA0C81216A2469AD04C22DE41CCAC61717C8BF5C165BB7A1F7BD23C0",
+        "frozenLocalArchivedNativeEqual": true
+      }
+    ],
+    "calls": 8
+  },
+  "localRuntime": {
+    "build": "Release, current C27 source",
+    "startedAtUtc": "2026-10-15T04:49:31.6011164+00:00",
+    "pid": 13688,
+    "databaseInitialization": false,
+    "schoolActivation": "Owner-selected school flags preserved",
+    "dutyProcessing": true,
+    "visitProcessing": true
+  },
+  "tests": {
+    "fullBackendDebugPassed": 112,
+    "finalFocusedReleasePassed": 12,
+    "focusedTestsOverlapFullSuite": true,
+    "angularPassed": 146,
+    "existingLibraryBrowserPassed": 86,
+    "storageVisitSqlPassed": 28,
+    "storageVisitSqlFailed": 1,
+    "storageVisitFailure": "Existing S5 hard-coded pending-migration assertion; no migration or constraint failure",
+    "productionBuild": "Existing storage-page and visit-workspace CSS budget failures; budgets unchanged"
+  },
+  "ownerVisualAcceptance": "pending",
+  "physicalDeviceAcceptance": "pending"
+}

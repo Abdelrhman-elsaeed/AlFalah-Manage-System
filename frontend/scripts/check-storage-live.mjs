@@ -6,13 +6,13 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 const session=JSON.parse(readFileSync(resolve('../.audit/storage-duty-20261014/browser-private.json'),'utf8').replace(/^\uFEFF/,''));
 const verified=JSON.parse(readFileSync(resolve('../.audit/storage-duty-20261014/live-after.json'),'utf8').replace(/^\uFEFF/,''));
-const evidence=resolve('../docs/specs/school-file-storage/verification/storage-live-screens');mkdirSync(evidence,{recursive:true});
+const evidence=resolve('../docs/specs/school-file-storage/verification/drive-final-screens');mkdirSync(evidence,{recursive:true});
 const browser=await chromium.launch({headless:true});const results=[];
 try{for(const width of [390,768,1440]){
  const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true});const page=await context.newPage();const errors=[];const mutations=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/api/')&&!['GET','OPTIONS'].includes(r.method()))mutations.push({method:r.method(),path:new URL(r.url()).pathname});});
  await page.addInitScript(({token,user})=>{sessionStorage.setItem('alfalah_access_token',token);sessionStorage.setItem('alfalah_user',JSON.stringify(user));},session);
- await page.goto('http://localhost:4200/school-manager/storage');await page.locator('.space-card').last().waitFor();assert.equal(await page.locator('.space-card').count(),4);await page.screenshot({path:resolve(evidence,`actual-root-${width}.png`),fullPage:true});
+ await page.goto('http://localhost:4200/school-manager/storage');await page.locator('.drive-table tbody tr').waitFor();assert.equal(await page.locator('.drive-table tbody tr').count(),1);await page.locator('.drive-item').click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-storage-drive-browser'))?.data()?.items.length===4);await page.screenshot({path:resolve(evidence,`actual-root-${width}.png`),fullPage:true});
  await page.getByRole('button',{name:'الخريطة البصرية',exact:true}).click();await page.locator('.presentation').waitFor();await page.screenshot({path:resolve(evidence,`actual-map-${width}.png`),fullPage:true});
  await page.goto('http://localhost:4200/school-manager/storage/admin');await page.locator('.archive-switch').waitFor();await page.getByRole('switch',{name:'أرشفة المناوبات على Drive'}).waitFor();assert.equal(await page.getByRole('switch').count(),2);await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-storage-admin'))?.operations?.externalWritesEnabled===true&&window.ng.getComponent(document.querySelector('app-storage-admin'))?.archiveStatus===true);assert.equal(await page.getByRole('switch',{name:'الرفع التلقائي لتقارير الزيارات'}).getAttribute('aria-checked'),'true');await page.screenshot({path:resolve(evidence,`actual-switches-${width}.png`),fullPage:true});
  await page.goto('http://localhost:4200/school-duty/documents');await page.locator('.archive-table').waitFor();assert.equal(await page.locator('.archive-pill.verified').count(),verified.bytesEvidence.length);

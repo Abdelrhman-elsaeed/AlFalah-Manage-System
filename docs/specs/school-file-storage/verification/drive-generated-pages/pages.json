@@ -1,0 +1,17 @@
+[
+  {
+    "kind": "letter",
+    "pages": 1,
+    "sha256": "8A75C3442B68B70741D334C99EC086D24B41E6E9F4396D4B46E1EC2DAB9DC95F"
+  },
+  {
+    "kind": "report",
+    "pages": 1,
+    "sha256": "7FBE1D60F9764EB3BFA4C63E0BC13AD891CF76C0386D1EAA4843656959221517"
+  },
+  {
+    "kind": "visit",
+    "pages": 5,
+    "sha256": "DA25F3AC410D20B7C4C00C3899BA30B40DB095186610B8D8F810DCD06946E2F1"
+  }
+]

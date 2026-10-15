@@ -159,3 +159,18 @@ After duty acceptance, specify the manager's `توزيع الصلاحيات` tab
 - [x] Real isolated D3_Test delivery/recovery, frozen-byte equality, current authenticated browser downloads and measured before/after latency.
 - [x] Appropriate backend/frontend/legacy regressions and actual rendered captures; document genuine baseline failures without relaxing budgets.
 - [ ] Owner final visual acceptance and physical-device/keyboard acceptance. See [C26 evidence](../school-file-storage/verification/storage-duty-amendment.md).
+
+
+## C27 / D-119 — Native school storage and confirmed removal (2026-10-15)
+
+The owner's latest storage correction supersedes C26's feature shortcuts. Files has one School files entry and browses actual Drive folders/files inside the verified configured school root, including native/unindexed items. The committee map opens storage folders. The actual current school manager can review linked evidence/subtree impact, explicitly trash files/folders and recover recorded deletions. Rename/move remain protected for signed/system identities. Existing teacher/delegate scope remains enforced; duty delegation does not grant general storage administration.
+
+Durable operations, expiring actor/school/root-bound confirmations, SQL locking, provider reconciliation and atomic evidence/legacy task updates preserve audit and review history. Removing a signed external copy never deletes or rewrites its snapshot/artifact/version identity/completed history; it records intentional deletion, retains local PDF access and excludes automatic recreation. Explicit recovery restores recorded descendants parent first and verifies names, parents and known hashes. Withdrawn evidence approvals are not automatically restored. Native managed signed reads reject altered bytes before streaming.
+
+The owner explicitly authorized clearing the existing Al-Falah E2E Test School root, including D3_Test. All five original branches were trashed through real manager HTTP operations and the empty root verified. Fresh guarded isolated SQL then provisioned all four branches and delivered five real files through acknowledgement, signed report submission, visit approval, library upload and teacher upload. Sixteen live checks passed without messages. Test artifacts are cleaned through their retained isolated ledger, registered history is preserved and D3_Test remains trashed. No new migration, original credential/key/root/grant change, data reset or production deployment. Owner visual and physical-device acceptance remain pending. See the C27 verification report for current final recovery receipts, commands, exact test results and baseline limitations.
+
+- [x] C27: native folder browsing and protected source/school/author isolation.
+- [x] C27: explicit linked-impact deletion, durable uncertainty/SQL rollback/race recovery and retained signing evidence.
+- [x] C27: actual empty-root setup and five real automatic/storage uploads in isolated SQL.
+- [x] C27: responsive mocked presentation plus actual authenticated native previews/downloads; actual PDF pages inspected.
+- [ ] Owner visual acceptance and physical phone/OS-keyboard review.

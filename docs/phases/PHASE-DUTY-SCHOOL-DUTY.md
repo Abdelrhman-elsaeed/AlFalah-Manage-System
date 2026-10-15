@@ -1,7 +1,9 @@
 # School Duty — Feature Phase Tracker
 
+**Current C27 / D-119 (2026-10-15):** Native School files browsing and confirmed deletion/recovery are implemented. The owner-authorized empty-root test delivered five real files; its temporary hierarchy was cleaned, original registered signed history recovered, D3_Test retained in trash, and withdrawn evidence retained as withdrawn. Both local archive processors are ON; no new migration. Earlier OFF/blocked statements describe their historical phase boundaries. [Final evidence](../specs/school-file-storage/verification/drive-browser-and-regeneration.md).
+
 **Status:** D1–D3 IMPLEMENTED / independently VERIFIED — designated synthetic Drive delivery/read/recovery verified; owner visual and physical-device acceptance pending. Local Development manual-test environment running; no production deployment.
-**Updated:** 2026-10-14
+**Updated:** 2026-10-15
 **Spec Kit:** [School Duty](../specs/school-duty/README.md)
 
 ## Authorized work completed
@@ -123,3 +125,12 @@ A switchable committee presentation includes root branches, colored connected li
 Provider metadata returned by a live list is reused only within the scoped request. Mutation outcomes, including lost responses, invalidate the changed ID. New request/verification boundaries reset the cache; connectivity checks stay fresh. An internal verified-metadata streaming seam removes redundant content metadata reads while legacy adapters keep their safe default. Scoped SQL grouping counts library files, excludes both archive source kinds and bounds tree depth/size. All new API responses retain ApiResponse<T>, thin controllers, Application authorization and Infrastructure queries.
 
 See [storage/archive verification](../specs/school-file-storage/verification/storage-duty-amendment.md), current read-only performance/readiness, bounded real Drive recovery and actual/synthetic browser captures. Owner appearance and physical-device review remain pending. No production deployment, destructive history removal, waiting-register feature, external messaging or general feature delegation.
+
+
+## C27 / D-119 — Native school storage and confirmed removal (2026-10-15)
+
+The owner's latest storage correction supersedes C26's feature shortcuts. Files has one School files entry and browses actual Drive folders/files inside the verified configured school root, including native/unindexed items. The committee map opens storage folders. The actual current school manager can review linked evidence/subtree impact, explicitly trash files/folders and recover recorded deletions. Rename/move remain protected for signed/system identities. Existing teacher/delegate scope remains enforced; duty delegation does not grant general storage administration.
+
+Durable operations, expiring actor/school/root-bound confirmations, SQL locking, provider reconciliation and atomic evidence/legacy task updates preserve audit and review history. Removing a signed external copy never deletes or rewrites its snapshot/artifact/version identity/completed history; it records intentional deletion, retains local PDF access and excludes automatic recreation. Explicit recovery restores recorded descendants parent first and verifies names, parents and known hashes. Withdrawn evidence approvals are not automatically restored. Native managed signed reads reject altered bytes before streaming.
+
+The owner explicitly authorized clearing the existing Al-Falah E2E Test School root, including D3_Test. All five original branches were trashed through real manager HTTP operations and the empty root verified. Fresh guarded isolated SQL then provisioned all four branches and delivered five real files through acknowledgement, signed report submission, visit approval, library upload and teacher upload. Sixteen live checks passed without messages. Test artifacts are cleaned through their retained isolated ledger, registered history is preserved and D3_Test remains trashed. No new migration, original credential/key/root/grant change, data reset or production deployment. Owner visual and physical-device acceptance remain pending. See the C27 verification report for current final recovery receipts, commands, exact test results and baseline limitations.
