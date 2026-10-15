@@ -41,6 +41,10 @@ public interface IGoogleDriveClient
 
     /// <summary>Opens the file's bytes for streaming. The caller owns the returned stream.</summary>
     Task<DriveFileContentDto> DownloadAsync(int schoolId, string fileId, CancellationToken cancellationToken = default);
+    // Internal seam for callers that already fetched/authorized current request metadata.
+    // Existing adapters keep their original safe implementation by default.
+    Task<DriveFileContentDto> DownloadVerifiedAsync(int schoolId, GoogleDriveFile metadata, CancellationToken ct = default) =>
+        DownloadAsync(schoolId, metadata.Id, ct);
 
     /// <summary>Moves the file to the credential owner's trash. Returns false when it was already gone.</summary>
     Task<bool> TrashAsync(int schoolId, string fileId, string? sharedDriveId, CancellationToken cancellationToken = default);

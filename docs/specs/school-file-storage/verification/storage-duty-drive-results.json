@@ -1,0 +1,107 @@
+{
+  "at": "2026-10-14T14:21:20.5575897+00:00",
+  "liveProvider": true,
+  "provider": "GoogleDriveClient",
+  "isolatedDatabase": "AlFalahDutyTests_DriveAmendment_6fbfdc11812840009b2511bcc1e0f498",
+  "freshDatabaseGuard": true,
+  "sentinelPreserved": true,
+  "school": 2,
+  "assignment": 1,
+  "testDestination": "D3_Test",
+  "destinationId": "1avLiDxUzt5LFj4KSfIleZGt5Xc47Ki2c",
+  "runName": "Run-20261014-142021-5b372bbe",
+  "runRootId": "1-YWHHBqFo-qL2xfaAEwUFOVaKE5W3lkk",
+  "originalSchoolDutyArchiveEnabled": true,
+  "actualUploads": 2,
+  "simulatedLostResponses": 1,
+  "realSqlRollback": 1,
+  "checks": [
+    {
+      "step": "Protected duty root provisioned before signing and replayed with the same reserved provider identity",
+      "passed": true
+    },
+    {
+      "step": "Actual upload with deliberately lost response remains recoverable; no premature ledger completion",
+      "passed": true
+    },
+    {
+      "step": "Local signed PDF remains available during external uncertainty",
+      "passed": true
+    },
+    {
+      "step": "Reserved provider identity recovered without a second upload; actual Archived state",
+      "passed": true
+    },
+    {
+      "step": "Letter archived before its report exists",
+      "passed": true
+    },
+    {
+      "step": "Actual report upload followed by real SQL rollback retains only the earlier letter ledger version",
+      "passed": true
+    },
+    {
+      "step": "SQL failure recovery reconciles existing bytes without duplicate file or version",
+      "passed": true
+    },
+    {
+      "step": "Actual Drive download, frozen artifact and committed version hash match: Letter",
+      "passed": true
+    },
+    {
+      "step": "Delivered file contained in explicitly authorized D3_Test: Letter",
+      "passed": true
+    },
+    {
+      "step": "Author local and manager protected archived reads return the identical artifact: Letter",
+      "passed": true
+    },
+    {
+      "step": "Actual Drive download, frozen artifact and committed version hash match: Report",
+      "passed": true
+    },
+    {
+      "step": "Delivered file contained in explicitly authorized D3_Test: Report",
+      "passed": true
+    },
+    {
+      "step": "Author local and manager protected archived reads return the identical artifact: Report",
+      "passed": true
+    },
+    {
+      "step": "Repeated processing and reconciliation preserve one hierarchy and exactly two immutable ledger versions",
+      "passed": true
+    },
+    {
+      "step": "Archive and PDF operations create no guardian notices or System/human messages",
+      "passed": true
+    },
+    {
+      "step": "Original school connection, root, flags and encrypted credentials unchanged by this harness",
+      "passed": true
+    }
+  ],
+  "documents": [
+    {
+      "kind": "Letter",
+      "document": 1,
+      "providerItem": "1A-CDi58OAu5SZHCtory4BICFMY9Noj49",
+      "sha256": "A3FB31FA2F30AEEBA843F7AC7C1CCB520AED9E5E1063230C50B0C86AE2683FA3",
+      "bytes": 56815,
+      "providerVersion": "3"
+    },
+    {
+      "kind": "Report",
+      "document": 2,
+      "providerItem": "1geavkhSEgjcAluPKZCU7a4yohZTcJVqt",
+      "sha256": "37A456C537E0A39C27D207495A318C329D9042E3E6C0D0BE42EBB63942F26D74",
+      "bytes": 70612,
+      "providerVersion": "2"
+    }
+  ],
+  "existingProviderDataDeleted": false,
+  "ownerVisualAcceptance": "Pending",
+  "physicalDeviceChecks": "Pending",
+  "originalSchoolActivationPreserved": true,
+  "metadataCorrection": "Legacy hard-coded disabled-source field corrected from read-only captured source flags; the run already verified complete source-record equality. The reproducible harness now emits the actual source flag."
+}

@@ -1,0 +1,23 @@
+// Read-only real local API + configured synthetic school. No intercepted APIs/provider writes.
+import assert from 'node:assert/strict';
+import { chromium } from '@playwright/test';
+import { readFileSync,mkdirSync,writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+const session=JSON.parse(readFileSync(resolve('../.audit/storage-duty-20261014/browser-private.json'),'utf8').replace(/^\uFEFF/,''));
+const verified=JSON.parse(readFileSync(resolve('../.audit/storage-duty-20261014/live-after.json'),'utf8').replace(/^\uFEFF/,''));
+const evidence=resolve('../docs/specs/school-file-storage/verification/storage-live-screens');mkdirSync(evidence,{recursive:true});
+const browser=await chromium.launch({headless:true});const results=[];
+try{for(const width of [390,768,1440]){
+ const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true});const page=await context.newPage();const errors=[];const mutations=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/api/')&&!['GET','OPTIONS'].includes(r.method()))mutations.push({method:r.method(),path:new URL(r.url()).pathname});});
+ await page.addInitScript(({token,user})=>{sessionStorage.setItem('alfalah_access_token',token);sessionStorage.setItem('alfalah_user',JSON.stringify(user));},session);
+ await page.goto('http://localhost:4200/school-manager/storage');await page.locator('.space-card').last().waitFor();assert.equal(await page.locator('.space-card').count(),4);await page.screenshot({path:resolve(evidence,`actual-root-${width}.png`),fullPage:true});
+ await page.getByRole('button',{name:'الخريطة البصرية',exact:true}).click();await page.locator('.presentation').waitFor();await page.screenshot({path:resolve(evidence,`actual-map-${width}.png`),fullPage:true});
+ await page.goto('http://localhost:4200/school-manager/storage/admin');await page.locator('.archive-switch').waitFor();await page.getByRole('switch',{name:'أرشفة المناوبات على Drive'}).waitFor();assert.equal(await page.getByRole('switch').count(),2);await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-storage-admin'))?.operations?.externalWritesEnabled===true&&window.ng.getComponent(document.querySelector('app-storage-admin'))?.archiveStatus===true);assert.equal(await page.getByRole('switch',{name:'الرفع التلقائي لتقارير الزيارات'}).getAttribute('aria-checked'),'true');await page.screenshot({path:resolve(evidence,`actual-switches-${width}.png`),fullPage:true});
+ await page.goto('http://localhost:4200/school-duty/documents');await page.locator('.archive-table').waitFor();assert.equal(await page.locator('.archive-pill.verified').count(),verified.bytesEvidence.length);
+ const downloadPromise=page.waitForEvent('download');await page.locator('.cell-actions button').filter({hasText:'تنزيل'}).first().click();const download=await downloadPromise;const path=await download.path();assert(path);const bytes=readFileSync(path);const hash=createHash('sha256').update(bytes).digest('hex').toUpperCase();assert(verified.bytesEvidence.some(x=>x.sha256===hash));await download.saveAs(resolve(evidence,`actual-authenticated-letter-${width}.pdf`));await page.screenshot({path:resolve(evidence,`actual-archived-${width}.png`),fullPage:true});
+ await page.locator('.cell-actions button').filter({hasText:'معاينة'}).first().click();await page.locator('app-duty-pdf-preview canvas').first().waitFor({timeout:30000});await page.waitForFunction(()=>{const p=window.ng.getComponent(document.querySelector('app-duty-pdf-preview'));return p&&!p.loading()&&!p.error()&&p.pages()>0;});assert(await page.locator('app-duty-pdf-preview canvas').first().evaluate(e=>e.width>0&&e.height>0));await page.screenshot({path:resolve(evidence,`actual-preview-${width}.png`),fullPage:true});
+ assert.deepEqual(errors,[]);assert.deepEqual(mutations,[]);results.push({width,realLocalApi:true,interceptedApi:false,realDriveRootBranches:4,readyVisitProcessing:true,singleSwitchLocation:true,verifiedDutyDocuments:verified.bytesEvidence.length,nativeBrowserDownload:true,actualRenderedPreview:true,sha256:hash,localArchivedEqual:true,providerWrites:0});await context.close();
+ }writeFileSync(resolve(evidence,'browser-results.json'),JSON.stringify({at:new Date().toISOString(),results,ownerReview:'Pending',physicalDevice:'Pending'},null,2));console.log('Actual authenticated school root, processing state, archived documents and native download checks passed at390/768/1440.');
+}finally{await browser.close();}

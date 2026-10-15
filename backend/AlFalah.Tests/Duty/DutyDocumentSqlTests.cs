@@ -24,6 +24,31 @@ namespace AlFalah.Tests.Duty;
 [Collection("Duty SQL")]
 public sealed class DutyDocumentSqlTests(DutySqlFixture fixture)
 {
+    [DutySqlFact] public async Task Setup_root_and_archive_delivery_share_identity_and_recover_lost_create_response()
+    {
+        var w=await Setup();await using var db=fixture.Db();var service=Drive(db,w);
+        w.Drive.LoseNextFolderResponse=true;
+        await FluentActions.Invoking(()=>service.EnsureRootAsync(w.Scene.School,default)).Should().ThrowAsync<HttpRequestException>();
+        var reserved=await db.StorageFolders.AsNoTracking().SingleAsync(x=>x.SchoolId==w.Scene.School&&x.DutyIdentity=="duty");
+        reserved.DutyProvisioned.Should().BeFalse();
+        var root=await service.EnsureRootAsync(w.Scene.School,default);root.Id.Should().Be(reserved.Id);root.DriveItemId.Should().Be(reserved.DriveItemId);
+        (await service.EnsureRootAsync(w.Scene.School,default)).Id.Should().Be(root.Id);
+        var document=await SignLetter(db,w);await Processor(db,w).ProcessBatchAsync(default);
+        (await db.StorageFolders.CountAsync(x=>x.SchoolId==w.Scene.School&&x.DutyIdentity=="duty")).Should().Be(1);
+        w.Drive.ChildIdsOf(w.Root).Should().ContainSingle();
+        (await new DutyDocumentRepository(db).IntentAsync(w.Scene.School,document,default))!.State.Should().Be("TestVerified");
+        w.Drive.Uploads.Should().ContainSingle();
+    }
+    [DutySqlFact] public async Task Setup_root_never_adopts_ambiguous_native_folder_or_recreates_moved_protected_root()
+    {
+        var w=await Setup();await using var db=fixture.Db();w.Drive.AddFolder("native","المناوبات",w.Root);
+        await FluentActions.Invoking(()=>Drive(db,w).EnsureRootAsync(w.Scene.School,default)).Should().ThrowAsync<DutyException>().Where(x=>x.Code=="DutyArchiveIdentity");
+        (await db.StorageFolders.CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(0);
+        w.Drive.RemoveExternally("native");var root=await Drive(db,w).EnsureRootAsync(w.Scene.School,default);
+        w.Drive.MoveExternally(root.DriveItemId,"outside");
+        await FluentActions.Invoking(()=>Drive(db,w).EnsureRootAsync(w.Scene.School,default)).Should().ThrowAsync<DutyException>().Where(x=>x.Code=="DutyArchiveMoved");
+        (await db.StorageFolders.CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(1);
+    }
     [DutySqlFact] public async Task Administrative_archive_is_SQL_paged_filtered_and_keeps_corrected_history_without_teacher_access()
     {
         var w=await Setup(false);await using var db=fixture.Db();

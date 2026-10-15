@@ -1,0 +1,165 @@
+npx.cmd : [WebServer] (node:10644) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:1
++ npx.cmd playwright test --config playwright.storage.config.ts library ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] - Building...
+[WebServer] 
+[WebServer] (node:10644) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 86 tests using 1 worker
+
+(node:8276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] ٥:٤٤:٥٠ م [vite] warning: 
+[WebServer] D:/AlFalah-Manage-System/frontend/.angular/cache/17.3.17/vite/deps/pdfjs-dist.js
+[WebServer] 12258|        const worker = yield import(
+[WebServer] 12259|          /*webpackIgnore: true*/
+[WebServer] 12260|          this.workerSrc
+[WebServer]    |          ^^^^^^^^^^^^^^
+[WebServer] 12261|        );
+[WebServer] 12262|        return worker.WorkerMessageHandler;
+[WebServer] The above dynamic import cannot be analyzed by Vite.
+[WebServer] See https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations for supported 
+dynamic import formats. If this is intended to be left as-is, you can use the /* @vite-ignore */ comment inside the 
+import() call to suppress this warning.
+[WebServer] 
+[WebServer]   Plugin: vite:import-analysis
+[WebServer]   File: D:/AlFalah-Manage-System/frontend/.angular/cache/17.3.17/vite/deps/pdfjs-dist.js?v=83044e86
+  ok  1 [desktop] › e2e\storage\library.spec.ts:79:5 › manager and delegated role use RTL library, server pagination and authorized preview (4.0s)
+  ok  2 [desktop] › e2e\storage\library.spec.ts:134:5 › library search updates automatically while typing and clears without Enter (1.8s)
+  ok  3 [desktop] › e2e\storage\library.spec.ts:153:5 › file table stays stable while a filter request is pending (1.3s)
+  ok  4 [desktop] › e2e\storage\library.spec.ts:175:5 › image preview can expand to the viewport and return to its normal size (1.8s)
+  ok  5 [desktop] › e2e\storage\library.spec.ts:208:5 › file row opens preview directly and keeps a visible loading state until media is ready (1.9s)
+  ok  6 [desktop] › e2e\storage\library.spec.ts:234:5 › folder move offers a browsable destination and prevents selecting the source (2.0s)
+  ok  7 [desktop] › e2e\storage\library.spec.ts:260:5 › file inspector opens from the validated row before slow details and defers evidence requests (1.7s)
+  ok  8 [desktop] › e2e\storage\library.spec.ts:304:5 › file rename action uses a full width button and enables only after a name change (1.7s)
+  ok  9 [desktop] › e2e\storage\library.spec.ts:319:5 › file dialog keeps its tabs usable without horizontal overflow @mobile (1.6s)
+  ok 10 [desktop] › e2e\storage\library.spec.ts:334:5 › file details and sizes fit their RTL columns without horizontal scrolling (1.5s)
+  ok 11 [desktop] › e2e\storage\library.spec.ts:367:5 › library entry requests only the visible folder and file pages (1.4s)
+  ok 12 [desktop] › e2e\storage\library.spec.ts:377:5 › evidence entry does not request unrelated library folders or files (1.1s)
+  ok 13 [desktop] › e2e\storage\library.spec.ts:385:5 › workspace overview uses live counts and links to separate areas (1.2s)
+  ok 14 [desktop] › e2e\storage\library.spec.ts:394:5 › visits row and its icon are visible while archive status is still pending (1.2s)
+  ok 15 [desktop] › e2e\storage\library.spec.ts:408:5 › overview readiness keeps its last numbers while fresh counts arrive (1.3s)
+  ok 16 [desktop] › e2e\storage\library.spec.ts:423:5 › library follows the supplied root cards and nested breadcrumb hierarchy (1.9s)
+  ok 17 [desktop] › e2e\storage\library.spec.ts:449:5 › manager upload dialog sends raw file bytes to the selected folder (2.4s)
+  ok 18 [desktop] › e2e\storage\library.spec.ts:479:5 › storage keeps the platform shell typography and controls (1.7s)
+  ok 19 [desktop] › e2e\storage\library.spec.ts:495:5 › moving between storage tabs does not wait for a repeated context request (1.8s)
+  ok 20 [desktop] › e2e\storage\library.spec.ts:519:5 › storage navigation is present while fresh context is still pending after refresh (1.6s)
+  ok 21 [desktop] › e2e\storage\library.spec.ts:537:5 › returning to the library shows its last rows while the server refreshes (1.9s)
+  ok 22 [desktop] › e2e\storage\library.spec.ts:558:5 › first library load keeps a stable table surface without skeleton rows (1.3s)
+  ok 23 [desktop] › e2e\storage\library.spec.ts:580:5 › manager administration uses live status and routes to teacher folders and import without mock counts (1.7s)
+  ok 24 [desktop] › e2e\storage\library.spec.ts:605:5 › administration direct URL rejects a user without management permission (739ms)
+  ok 25 [desktop] › e2e\storage\library.spec.ts:611:5 › delegate can view administration but cannot see manager-only delegation actions (1.1s)
+  ok 26 [desktop] › e2e\storage\library.spec.ts:620:5 › library manager without review permission cannot open either evidence route (3.1s)
+  ok 27 [desktop] › e2e\storage\library.spec.ts:637:5 › library filter is kept in the URL and applied by the server (1.9s)
+  ok 28 [desktop] › e2e\storage\library.spec.ts:647:5 › search scope switch updates the server query and browser history (1.3s)
+  ok 29 [desktop] › e2e\storage\library.spec.ts:657:5 › historical-year file URL never requests or displays a current-year file (994ms)
+  ok 30 [desktop] › e2e\storage\library.spec.ts:665:5 › double clicking one folder keeps a single breadcrumb for that folder (1.3s)
+  ok 31 [desktop] › e2e\storage\library.spec.ts:681:5 › folder deep link restores its authorized ancestor path and workspace navigation (1.2s)
+  ok 32 [desktop] › e2e\storage\library.spec.ts:703:5 › copied file link reopens the same folder, year, search and page @mobile (1.8s)
+  ok 33 [desktop] › e2e\storage\library.spec.ts:722:5 › folder navigation, file details and browser history preserve the server query (1.8s)
+  ok 34 [desktop] › e2e\storage\library.spec.ts:759:5 › folder list loads the next server page without duplicating folders (1.7s)
+  ok 35 [desktop] › e2e\storage\library.spec.ts:783:5 › delegated reader sees shared navigation without administration or archive links, and archive route is denied @mobile (1.7s)
+  ok 36 [desktop] › e2e\storage\library.spec.ts:796:5 › teacher keeps existing visit workspace access without archive management permission (931ms)
+  ok 37 [desktop] › e2e\storage\library.spec.ts:802:5 › teacher workspace keeps the sidebar flush with the viewport without page overflow (1.4s)
+  ok 38 [desktop] › e2e\storage\library.spec.ts:825:5 › teacher only uses own file endpoints and cancels queued upload before sending (1.5s)
+  ok 39 [desktop] › e2e\storage\library.spec.ts:842:5 › teacher selects a real requirement, uploads to own files, and gets a draft link (1.6s)
+  ok 40 [desktop] › e2e\storage\library.spec.ts:863:5 › no folder state renders without upload actions (902ms)
+  ok 41 [desktop] › e2e\storage\library.spec.ts:870:5 › Drive unavailable state renders without false connection or upload actions (940ms)
+  ok 42 [desktop] › e2e\storage\library.spec.ts:878:5 › protected Office files offer download fallback and no direct mutations (1.4s)
+  ok 43 [desktop] › e2e\storage\library.spec.ts:889:5 › retries preserve upload key and revocation clears previously loaded file data (1.9s)
+(node:16688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 44 [mobile] › e2e\storage\library.spec.ts:79:5 › manager and delegated role use RTL library, server pagination and authorized preview (4.4s)
+  ok 45 [mobile] › e2e\storage\library.spec.ts:134:5 › library search updates automatically while typing and clears without Enter (2.2s)
+  ok 46 [mobile] › e2e\storage\library.spec.ts:153:5 › file table stays stable while a filter request is pending (1.6s)
+  ok 47 [mobile] › e2e\storage\library.spec.ts:175:5 › image preview can expand to the viewport and return to its normal size (2.6s)
+  ok 48 [mobile] › e2e\storage\library.spec.ts:208:5 › file row opens preview directly and keeps a visible loading state until media is ready (2.9s)
+  ok 49 [mobile] › e2e\storage\library.spec.ts:234:5 › folder move offers a browsable destination and prevents selecting the source (2.4s)
+  ok 50 [mobile] › e2e\storage\library.spec.ts:260:5 › file inspector opens from the validated row before slow details and defers evidence requests (2.6s)
+  ok 51 [mobile] › e2e\storage\library.spec.ts:304:5 › file rename action uses a full width button and enables only after a name change (2.1s)
+  ok 52 [mobile] › e2e\storage\library.spec.ts:319:5 › file dialog keeps its tabs usable without horizontal overflow @mobile (2.0s)
+  ok 53 [mobile] › e2e\storage\library.spec.ts:334:5 › file details and sizes fit their RTL columns without horizontal scrolling (2.2s)
+  ok 54 [mobile] › e2e\storage\library.spec.ts:367:5 › library entry requests only the visible folder and file pages (1.3s)
+  ok 55 [mobile] › e2e\storage\library.spec.ts:377:5 › evidence entry does not request unrelated library folders or files (1.2s)
+  ok 56 [mobile] › e2e\storage\library.spec.ts:385:5 › workspace overview uses live counts and links to separate areas (1.1s)
+  ok 57 [mobile] › e2e\storage\library.spec.ts:394:5 › visits row and its icon are visible while archive status is still pending (1.0s)
+  x  58 [mobile] › e2e\storage\library.spec.ts:408:5 › overview readiness keeps its last numbers while fresh counts arrive (45.2s)
+(node:6784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 59 [mobile] › e2e\storage\library.spec.ts:423:5 › library follows the supplied root cards and nested breadcrumb hierarchy (1.8s)
+  ok 60 [mobile] › e2e\storage\library.spec.ts:449:5 › manager upload dialog sends raw file bytes to the selected folder (2.0s)
+  ok 61 [mobile] › e2e\storage\library.spec.ts:479:5 › storage keeps the platform shell typography and controls (1.2s)
+  ok 62 [mobile] › e2e\storage\library.spec.ts:495:5 › moving between storage tabs does not wait for a repeated context request (1.6s)
+  ok 63 [mobile] › e2e\storage\library.spec.ts:519:5 › storage navigation is present while fresh context is still pending after refresh (1.8s)
+  ok 64 [mobile] › e2e\storage\library.spec.ts:537:5 › returning to the library shows its last rows while the server refreshes (2.0s)
+  ok 65 [mobile] › e2e\storage\library.spec.ts:558:5 › first library load keeps a stable table surface without skeleton rows (1.6s)
+  ok 66 [mobile] › e2e\storage\library.spec.ts:580:5 › manager administration uses live status and routes to teacher folders and import without mock counts (2.1s)
+  ok 67 [mobile] › e2e\storage\library.spec.ts:605:5 › administration direct URL rejects a user without management permission (939ms)
+  ok 68 [mobile] › e2e\storage\library.spec.ts:611:5 › delegate can view administration but cannot see manager-only delegation actions (1.2s)
+  ok 69 [mobile] › e2e\storage\library.spec.ts:620:5 › library manager without review permission cannot open either evidence route (2.6s)
+  ok 70 [mobile] › e2e\storage\library.spec.ts:637:5 › library filter is kept in the URL and applied by the server (2.1s)
+  ok 71 [mobile] › e2e\storage\library.spec.ts:647:5 › search scope switch updates the server query and browser history (1.4s)
+  ok 72 [mobile] › e2e\storage\library.spec.ts:657:5 › historical-year file URL never requests or displays a current-year file (1.1s)
+  ok 73 [mobile] › e2e\storage\library.spec.ts:665:5 › double clicking one folder keeps a single breadcrumb for that folder (1.4s)
+  ok 74 [mobile] › e2e\storage\library.spec.ts:681:5 › folder deep link restores its authorized ancestor path and workspace navigation (1.4s)
+  ok 75 [mobile] › e2e\storage\library.spec.ts:703:5 › copied file link reopens the same folder, year, search and page @mobile (2.3s)
+  ok 76 [mobile] › e2e\storage\library.spec.ts:722:5 › folder navigation, file details and browser history preserve the server query (2.0s)
+  ok 77 [mobile] › e2e\storage\library.spec.ts:759:5 › folder list loads the next server page without duplicating folders (2.6s)
+  ok 78 [mobile] › e2e\storage\library.spec.ts:783:5 › delegated reader sees shared navigation without administration or archive links, and archive route is denied @mobile (1.9s)
+  ok 79 [mobile] › e2e\storage\library.spec.ts:796:5 › teacher keeps existing visit workspace access without archive management permission (994ms)
+  ok 80 [mobile] › e2e\storage\library.spec.ts:802:5 › teacher workspace keeps the sidebar flush with the viewport without page overflow (1.4s)
+  ok 81 [mobile] › e2e\storage\library.spec.ts:825:5 › teacher only uses own file endpoints and cancels queued upload before sending (1.7s)
+  ok 82 [mobile] › e2e\storage\library.spec.ts:842:5 › teacher selects a real requirement, uploads to own files, and gets a draft link (1.7s)
+  ok 83 [mobile] › e2e\storage\library.spec.ts:863:5 › no folder state renders without upload actions (998ms)
+  ok 84 [mobile] › e2e\storage\library.spec.ts:870:5 › Drive unavailable state renders without false connection or upload actions (1.1s)
+  ok 85 [mobile] › e2e\storage\library.spec.ts:878:5 › protected Office files offer download fallback and no direct mutations (1.5s)
+  ok 86 [mobile] › e2e\storage\library.spec.ts:889:5 › retries preserve upload key and revocation clears previously loaded file data (2.0s)
+
+
+  1) [mobile] › e2e\storage\library.spec.ts:408:5 › overview readiness keeps its last numbers while fresh counts arrive 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test timeout of 45000ms exceeded.
+    Call log:
+      - waiting for locator('.shell-sidebar__category a[href="/school-manager/storage/overview"]')
+        - locator resolved to <a tooltipposition="left" aria-label="نظرة عامة" _ngcontent-ng-c688921171="" ng-reflect-content="نظرة عامة" ng-reflect-tooltip-position="left" href="/school-manager/storage/overview" ng-reflect-router-link="/school-manager/storage/overvi" class="p-element shell-sidebar__link shell-sidebar__link--nested">…</a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+          - waiting 100ms
+        85 × waiting for element to be visible, enabled and stable
+           - element is not visible
+         - retrying click action
+           - waiting 500ms
+
+
+      415 |   await page.route('**/storage/evidence-counts?**', async route => { await pending; await route.fallback(); });
+      416 |   try {
+    > 417 |     await page.locator('.shell-sidebar__category a[href="/school-manager/storage/overview"]').click();
+          |                                                                                               ^
+      418 |     await expect(page.locator('.overview .ring')).toHaveText('0%');
+      419 |     await expect(page.locator('.overview .ready .skeleton')).toHaveCount(0);
+      420 |   } finally { release(); }
+        at D:\AlFalah-Manage-System\frontend\e2e\storage\library.spec.ts:417:95
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\storage\library-overview-readiness-7c724-s-while-fresh-counts-arrive-mobile\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\storage\library-overview-readiness-7c724-s-while-fresh-counts-arrive-mobile\error-context.md
+
+  1 failed
+    [mobile] › e2e\storage\library.spec.ts:408:5 › overview readiness keeps its last numbers while fresh counts arrive 
+  85 passed (3.8m)

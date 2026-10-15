@@ -21,7 +21,7 @@ public sealed class VisitArchiveOperationsTests
         ((ArchiveSettingsRepository)archive).SchoolEnabled=true;
         var storage=DispatchProxy.Create<IStorageRepository,PermissionRepository>();
         var service=Service(archive,storage,new ArchiveAuthorization(),flags);
-        (await service.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(true,false,false,true));
+        (await service.OperationsStatusAsync()).Should().Be(new VisitArchiveOperationsDto(false,false,false,true));
         // All processor repository methods throw in this proxy; null providers must never be reached.
         var processor=new VisitArchiveProcessor(archive,null!,null!,null!,Options.Create(flags),TimeProvider.System,NullLogger<VisitArchiveProcessor>.Instance);
         (await processor.ProcessBatchAsync()).Should().Be(0);(await processor.ReconcileAsync()).Should().Be(0);

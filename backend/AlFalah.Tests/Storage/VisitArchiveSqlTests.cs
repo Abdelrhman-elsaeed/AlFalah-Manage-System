@@ -504,6 +504,13 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
     public async Task S5_idempotent_SQL_script_applies_twice_on_S4_and_preserves_legacy_data()
     {
         var connection=new SqlConnectionStringBuilder(fixture.Connection);connection.InitialCatalog+="_Script_"+Guid.NewGuid().ToString("N");
+        var masterBuilder=new SqlConnectionStringBuilder(connection.ConnectionString){InitialCatalog="master"};
+        await using(var master=new SqlConnection(masterBuilder.ConnectionString))
+        {
+            await master.OpenAsync();await using var guard=master.CreateCommand();
+            guard.CommandText="SELECT COUNT(*) FROM sys.databases WHERE name=@name";guard.Parameters.AddWithValue("@name",connection.InitialCatalog);
+            if(Convert.ToInt32(await guard.ExecuteScalarAsync())!=0)throw new InvalidOperationException("Existing test database rejected before any migration.");
+        }
         await using var db=new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>().UseSqlServer(connection.ConnectionString).Options);
         var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261004015709_SchoolFileStorageSelfEvaluation");
         await db.Database.ExecuteSqlRawAsync("INSERT INTO EvidenceRequirements (TemplateVersion,Code,DisplayName,Importance,FulfillmentPolicy,MinimumApprovedLinks,SortOrder,IsActive,CreatedAtUtc,UpdatedAtUtc,IsMandatory,FollowUpStatus) VALUES (1,'s5-sentinel','legacy',1,1,1,1,1,SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET(),0,'NotStarted')");
@@ -513,7 +520,7 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         for(var run=0;run<2;run++)foreach(var batch in batches.Where(x=>!string.IsNullOrWhiteSpace(x)))
         {await using var command=db.Database.GetDbConnection().CreateCommand();command.CommandText=batch;await command.ExecuteNonQueryAsync();}
         await db.Database.CloseConnectionAsync();
-        (await db.Database.GetPendingMigrationsAsync()).Should().Equal("20261005162718_SchoolFileStorageHistoricalImport");db.Database.HasPendingModelChanges().Should().BeFalse();
         (await db.EvidenceRequirements.SingleAsync(r=>r.Code=="s5-sentinel")).DisplayName.Should().Be("legacy");
+        (await db.Database.GetPendingMigrationsAsync()).Should().Equal("20261005162718_SchoolFileStorageHistoricalImport");db.Database.HasPendingModelChanges().Should().BeFalse();
     }
 }

@@ -129,7 +129,7 @@ export const routes: Routes = [
         path: 'school-manager/storage',
         canActivate: [storageGuard],
         data: { own: false },
-        loadComponent: () => import('./features/storage/storage-page.component').then(m => m.StoragePageComponent),
+        loadComponent: () => import('./features/storage/storage-files-entry.component').then(m => m.StorageFilesEntryComponent),
         title: translatedTitle('STORAGE.TITLE')
       },
       // School Manager routes

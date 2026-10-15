@@ -1,0 +1,49 @@
+{
+  "at": "2026-10-14T16:31:57.988Z",
+  "results": [
+    {
+      "width": 390,
+      "realLocalApi": true,
+      "interceptedApi": false,
+      "realDriveRootBranches": 4,
+      "readyVisitProcessing": true,
+      "singleSwitchLocation": true,
+      "verifiedDutyDocuments": 2,
+      "nativeBrowserDownload": true,
+      "actualRenderedPreview": true,
+      "sha256": "2AF2E610EA0C81216A2469AD04C22DE41CCAC61717C8BF5C165BB7A1F7BD23C0",
+      "localArchivedEqual": true,
+      "providerWrites": 0
+    },
+    {
+      "width": 768,
+      "realLocalApi": true,
+      "interceptedApi": false,
+      "realDriveRootBranches": 4,
+      "readyVisitProcessing": true,
+      "singleSwitchLocation": true,
+      "verifiedDutyDocuments": 2,
+      "nativeBrowserDownload": true,
+      "actualRenderedPreview": true,
+      "sha256": "2AF2E610EA0C81216A2469AD04C22DE41CCAC61717C8BF5C165BB7A1F7BD23C0",
+      "localArchivedEqual": true,
+      "providerWrites": 0
+    },
+    {
+      "width": 1440,
+      "realLocalApi": true,
+      "interceptedApi": false,
+      "realDriveRootBranches": 4,
+      "readyVisitProcessing": true,
+      "singleSwitchLocation": true,
+      "verifiedDutyDocuments": 2,
+      "nativeBrowserDownload": true,
+      "actualRenderedPreview": true,
+      "sha256": "2AF2E610EA0C81216A2469AD04C22DE41CCAC61717C8BF5C165BB7A1F7BD23C0",
+      "localArchivedEqual": true,
+      "providerWrites": 0
+    }
+  ],
+  "ownerReview": "Pending",
+  "physicalDevice": "Pending"
+}

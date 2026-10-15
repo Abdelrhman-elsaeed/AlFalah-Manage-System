@@ -268,3 +268,9 @@ The owner's later instruction authorized original local migrations and library a
 | Date | Change | Author |
 |---|---|---|
 | 2026-10-06 | D-102: owner-authorized10 original storage migrations, one-row backfill/replay, persisted local library flags, scoped activation buttons and API/Angular restart. Backend30/Angular4/browser30, actual desktop/mobile and checksum restore passed; archive workers OFF, no credential/key changes or Drive deletion. | Codex |
+
+## C26 — Storage/archive follow-up change log
+
+| Date | Change |
+|---|---|
+| 2026-10-14 | D-118: unified independent archive switches, truthful Visit process status, automatic duty archive refresh, shared protected duty folder setup, verified school-root navigation and premium committee library map. Scoped caching/streaming improves measured Drive latency; real designated D3_Test recovery and authenticated native browser downloads verified. [Evidence](specs/school-file-storage/verification/storage-duty-amendment.md). No new schema/credential/root/grant change; owner/physical acceptance and existing production CSS budgets remain pending. |

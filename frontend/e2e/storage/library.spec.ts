@@ -27,6 +27,7 @@ function samplePdf(): Buffer {
 
 const file = { storedFileId: 31, folderId: 7, displayName: 'خطة المدرسة.pdf', size: 1000,
   mimeType: 'application/pdf', uploadedAt: '2026-10-03T10:00:00Z', state: 'Managed', isProtected: false, rowVersion: 'AAAAAAAAAAE=' };
+async function stableBounds(page:Page,selector:string){return page.locator(selector).evaluate(element=>{const b=element.getBoundingClientRect();let y=b.y;for(let p=element.parentElement;p;p=p.parentElement)y+=p.scrollTop;return{y,height:b.height};});}
 async function mockSession(page: Page, role = 'SchoolManager', state = 'Connected', canManage = true, archiveAllowed = true, canReviewEvidence = role !== 'Instructor' && canManage) {
   const user = { userId: 'ui-test', username: 'ui-test', fullName: 'مستخدم الاختبار', activeSchoolId: 1,
     activeSchoolName: 'مدرسة الاختبار', preferredLanguage: 'ar', roles: [role], permissions: ['Storage.ViewSchool', 'Storage.ManageSchool', 'Storage.ViewOwn', 'Storage.ManageOwn'] };
@@ -43,6 +44,9 @@ async function mockSession(page: Page, role = 'SchoolManager', state = 'Connecte
     if (path.endsWith('/auth/me')) data = user;
     else if (path.endsWith('/auth/schools')) data = [];
     else if (path.endsWith('/storage/access')) data = { canManage, canReviewEvidence };
+    else if (path.endsWith('/storage/map')) data = {schoolName:'مدرسة الاختبار',checkedAt:'2026-10-14T10:00:00Z',registeredFiles:0,nodes:[],spaces:[{key:'library',name:'مكتبة المدرسة',state:'Available',canOpen:true,folderId:7},{key:'teachers',name:'ملفات المعلمين',state:'Available',canOpen:true},{key:'duty',name:'المناوبات',state:'Available',canOpen:false},{key:'visits',name:'أرشيف الزيارات',state:'Available',canOpen:archiveAllowed}]};
+    else if (path.endsWith('/storage/setup')) data = {folders:[],teachers:[],archiveEnabled:false,archiveCapabilityReady:true};
+    else if (path.endsWith('/setup/visit-archive')) data = {enabled:false};
     else if (path.endsWith('/storage/context')) data = { schoolId: 1, schoolName: 'مدرسة الاختبار', academicYearId: 1,
       academicYearName: 'السنة الدراسية', canManage, canReviewEvidence, isTeacher: role === 'Instructor', connectionState: state, rootFolderId: 7 };
     else if (path.endsWith('/visits/operations-status')) return route.fulfill({ status: archiveAllowed ? 200 : 403,
@@ -60,6 +64,7 @@ async function mockSession(page: Page, role = 'SchoolManager', state = 'Connecte
     else if (path.endsWith('/storage/review-queue') || path.endsWith('/storage/change-queue')) data = {items:[],total:0,page:1,pageSize:25};
     else if (path.endsWith('/storage/evidence-counts')) data = {files:1,links:0,approvedLinks:0,fulfilledRequirements:0,requirements:11};
     else if (path.endsWith('/storage/delegations')) data = [];
+    else if (path.endsWith('/storage/delegations/candidates')) data = [];
     else if (path.endsWith('/storage/files/31/content')) return route.fulfill({ status: 200, contentType: 'application/pdf', body: samplePdf() });
     else if (path.endsWith('/storage/files/31')) data = { file: { ...file, folderId: Number(new URL(page.url()).searchParams.get('folder')) || 7 }, versions: [{ versionId: 1, versionNumber: 1, size: 1000, mimeType: 'application/pdf', uploadedAt: file.uploadedAt, availability: 'Available' }] };
     else if (path.endsWith('/storage/files') || path.endsWith('/storage/me/files')) {
@@ -73,7 +78,7 @@ async function mockSession(page: Page, role = 'SchoolManager', state = 'Connecte
 
 test('manager and delegated role use RTL library, server pagination and authorized preview', async ({ page }) => {
   const requests = await mockSession(page, 'Secretary'); // Delegate access comes from live API, without a manager role.
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('h1')).toHaveText('مكتبة المدرسة');
   await expect(page.locator('.storage-page')).toHaveAttribute('dir', 'rtl');
   await expect(page.locator('.file-name button')).toHaveText(file.displayName);
@@ -128,7 +133,7 @@ test('manager and delegated role use RTL library, server pagination and authoriz
 
 test('library search updates automatically while typing and clears without Enter', async ({ page }) => {
   const requests = await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('.file-row')).toHaveCount(1);
   const search = page.locator('.search-group input[name="search"]');
   await search.fill('p');
@@ -147,9 +152,9 @@ test('library search updates automatically while typing and clears without Enter
 
 test('file table stays stable while a filter request is pending', async ({ page }) => {
   await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('.file-row')).toHaveCount(1);
-  const before=await page.locator('.file-grid').boundingBox();
+  const before=await stableBounds(page,'.file-grid');
   let release!: () => void;
   const pending = new Promise<void>(resolve => { release = resolve; });
   await page.route('**/api/v1/storage/files?**', async route => {
@@ -161,7 +166,7 @@ test('file table stays stable while a filter request is pending', async ({ page 
     await expect(page).toHaveURL(/filter=video/);
     await expect(page.locator('.file-row')).toHaveCount(1);
     await expect(page.locator('.file-grid-loading')).toHaveCount(0);
-    const during=await page.locator('.file-grid').boundingBox();
+    const during=await stableBounds(page,'.file-grid');
     expect(before && during && Math.abs(before.y-during.y)<2 && Math.abs(before.height-during.height)<2).toBeTruthy();
   } finally { release(); }
   await expect(page.locator('.file-row')).toHaveCount(1);
@@ -179,7 +184,7 @@ test('image preview can expand to the viewport and return to its normal size', a
     body: JSON.stringify({ isSuccess: true, data: { items: [image], total: 1, page: 1, pageSize: 25 } }) }));
   await page.route('**/api/v1/storage/files/31/content?**', route => route.fulfill({ status: 200, contentType: 'image/png',
     body: Buffer.from(imageData, 'base64') }));
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await page.locator('.file-row').filter({ hasText: image.displayName }).getByRole('button', { name: `معاينة ${image.displayName}` }).click();
   const preview = page.getByRole('dialog', { name: 'معاينة' });
   await expect(preview.locator('img.image-preview')).toBeVisible();
@@ -209,7 +214,7 @@ test('file row opens preview directly and keeps a visible loading state until me
     await route.fallback();
   });
   try {
-    await page.goto('/school-manager/storage');
+    await page.goto('/school-manager/storage?folder=7');
     const row = page.locator('.file-row').filter({ hasText: file.displayName }).first();
     const view = row.getByRole('button', { name: `معاينة ${file.displayName}` });
     await expect(view).toBeVisible();
@@ -252,9 +257,9 @@ test('folder move offers a browsable destination and prevents selecting the sour
   await expect(dialog).toBeHidden();
 });
 
-test('file inspector opens from the validated row before slow details and defers evidence requests', async ({ page }) => {
+test('file inspector opens from the validated row before slow details and defers evidence requests', async ({ page,isMobile }) => {
   const requests = await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('.file-name button')).toHaveText(file.displayName);
   let releaseDetails!: () => void;
   const pendingDetails = new Promise<void>(resolve => { releaseDetails = resolve; });
@@ -267,7 +272,8 @@ test('file inspector opens from the validated row before slow details and defers
     await expect(inspector.locator('.inspector-preview')).toBeVisible();
     await expect(inspector.getByRole('tab')).toHaveCount(3);
     const bounds = await inspector.boundingBox();
-    expect(bounds && bounds.width > bounds.height && bounds.x > 0 && bounds.y > 0).toBeTruthy();
+    expect(bounds && bounds.x >= 0 && bounds.y >= 0 && bounds.width <= page.viewportSize()!.width && bounds.height <= page.viewportSize()!.height).toBeTruthy();
+    if(!isMobile)expect(bounds && bounds.width>bounds.height).toBeTruthy();
     expect(await inspector.locator('.inspector-preview').evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(238, 234, 223)');
     expect(Date.now() - started).toBeLessThan(600);
     await expect(inspector.locator('app-storage-evidence')).toHaveCount(0);
@@ -297,7 +303,7 @@ test('file inspector opens from the validated row before slow details and defers
 
 test('file rename action uses a full width button and enables only after a name change', async ({ page }) => {
   await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await page.locator('.file-name button').click();
   const inspector = page.getByRole('dialog', {name:'تفاصيل الملف'});
   await inspector.getByRole('tab', {name:'تعديل الملف'}).click();
@@ -312,7 +318,7 @@ test('file rename action uses a full width button and enables only after a name 
 
 test('file dialog keeps its tabs usable without horizontal overflow @mobile', async ({ page }) => {
   await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await page.locator('.file-name button').click();
   const dialog = page.getByRole('dialog', { name: 'تفاصيل الملف' });
   await expect(dialog.getByRole('tab')).toHaveCount(3);
@@ -360,7 +366,7 @@ test('file details and sizes fit their RTL columns without horizontal scrolling'
 
 test('library entry requests only the visible folder and file pages', async ({ page }) => {
   const requests = await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('.file-name button')).toBeVisible();
   const paths = requests.map(request => new URL(request.url).pathname);
   expect(paths.filter(path => path.endsWith('/storage/folders'))).toHaveLength(1);
@@ -381,7 +387,7 @@ test('workspace overview uses live counts and links to separate areas', async ({
   await page.goto('/school-manager/storage/overview');
   await expect(page.getByRole('heading', { name:/صباح الخير/ })).toBeVisible();
   await expect(page.getByText('0 من 11')).toBeVisible();
-  await expect(page.getByRole('link', { name:/مكتبة المدرسة/ }).first()).toHaveAttribute('href', '/school-manager/storage');
+  await expect(page.getByRole('link', { name:/مكتبة المدرسة/ }).first()).toHaveAttribute('href', '/school-manager/storage?folder=7');
   await page.screenshot({path:`test-results/storage/overview-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
 });
 
@@ -399,16 +405,16 @@ test('visits row and its icon are visible while archive status is still pending'
   } finally { release(); }
 });
 
-test('overview readiness keeps its last numbers while fresh counts arrive', async ({ page }) => {
+test('overview readiness keeps its last numbers while fresh counts arrive', async ({ page,isMobile }) => {
   await mockSession(page);
   await page.goto('/school-manager/storage/overview');
   await expect(page.locator('.overview .ring')).toHaveText('0%');
-  await page.locator('.shell-sidebar__category a[href="/school-manager/storage"]').click();
+  await page.locator(isMobile?'.storage-mobile-nav a[href="/school-manager/storage"]':'.shell-sidebar__category a[href="/school-manager/storage"]').click();
   let release!: () => void;
   const pending = new Promise<void>(resolve => { release = resolve; });
   await page.route('**/storage/evidence-counts?**', async route => { await pending; await route.fallback(); });
   try {
-    await page.locator('.shell-sidebar__category a[href="/school-manager/storage/overview"]').click();
+    await page.locator(isMobile?'.storage-mobile-nav a[href="/school-manager/storage/overview"]':'.shell-sidebar__category a[href="/school-manager/storage/overview"]').click();
     await expect(page.locator('.overview .ring')).toHaveText('0%');
     await expect(page.locator('.overview .ready .skeleton')).toHaveCount(0);
   } finally { release(); }
@@ -422,7 +428,7 @@ test('library follows the supplied root cards and nested breadcrumb hierarchy', 
     body: JSON.stringify({ isSuccess: true, data: { items: new URL(route.request().url()).searchParams.get('parentFolderId') === '7' ? folders : [], total: 5, page: 1, pageSize: 25 } }) }));
   await page.route('**/api/v1/storage/files?**', route => route.fulfill({ contentType: 'application/json',
     body: JSON.stringify({ isSuccess: true, data: { items: [], total: 0, page: 1, pageSize: 25 } }) }));
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('.folder-entry')).toHaveCount(5);
   await expect(page.getByRole('heading', { name: 'مكتبة المدرسة', exact: true })).toBeVisible();
   await page.screenshot({ path: `test-results/storage/library-figma-root-${test.info().project.name}.png`, fullPage: true, animations: 'disabled' });
@@ -454,7 +460,7 @@ test('manager upload dialog sends raw file bytes to the selected folder', async 
       data: { operationId: 12, storedFileId: 31, versionId: 1, status: 'Completed', displayName: 'شاهد.pdf', size: bytes.length,
         mimeType: 'application/pdf', uploadedAt: '2026-10-03T10:00:00Z' } }) });
   });
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await page.getByRole('button', { name: 'رفع ملف' }).click();
   const dialog = page.getByRole('dialog', { name: 'رفع ملف' });
   await expect(dialog.getByText('الوجهة')).toBeVisible();
@@ -510,16 +516,17 @@ test('moving between storage tabs does not wait for a repeated context request',
   expect(requests.filter(request => new URL(request.url).pathname.endsWith('/storage/access'))).toHaveLength(accessCalls);
 });
 
-test('storage sidebar is present while fresh context is still pending after refresh', async ({ page }) => {
+test('storage navigation is present while fresh context is still pending after refresh', async ({ page,isMobile }) => {
   await mockSession(page);
   await page.goto('/school-manager/storage/overview');
-  await expect(page.locator('.shell-sidebar__category').filter({ hasText: 'مساحة الملفات' })).toBeVisible();
+  const navigation=isMobile?page.locator('.storage-mobile-nav'):page.locator('.shell-sidebar__category').filter({ hasText: 'مساحة الملفات' });
+  await expect(navigation).toBeVisible();
   let releaseContext!: () => void;
   const pendingContext = new Promise<void>(resolve => { releaseContext = resolve; });
   await page.route('**/api/v1/storage/context?**', async route => { await pendingContext; await route.fallback(); });
   try {
     await page.reload();
-    await expect(page.locator('.shell-sidebar__category').filter({ hasText: 'مساحة الملفات' })).toBeVisible();
+    await expect(navigation).toBeVisible();
     await expect(page.locator('.overview .columns')).toHaveCount(0);
   } finally {
     releaseContext();
@@ -527,19 +534,19 @@ test('storage sidebar is present while fresh context is still pending after refr
   await expect(page.locator('.overview .columns')).toBeVisible();
 });
 
-test('returning to the library shows its last rows while the server refreshes', async ({ page }) => {
+test('returning to the library shows its last rows while the server refreshes', async ({ page,isMobile }) => {
   await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('.file-name button')).toHaveText(file.displayName);
-  await page.locator('.shell-sidebar__category a[href="/school-manager/storage/overview"]').click();
+  await page.locator(isMobile?'.storage-mobile-nav a[href="/school-manager/storage/overview"]':'.shell-sidebar__category a[href="/school-manager/storage/overview"]').click();
   await expect(page.locator('.overview .columns')).toBeVisible();
   let releaseFiles!: () => void;
   const pendingFiles = new Promise<void>(resolve => { releaseFiles = resolve; });
   await page.route('**/api/v1/storage/files?**', async route => { await pendingFiles; await route.fallback(); });
   try {
     const started = Date.now();
-    await page.locator('.shell-sidebar__category a[href="/school-manager/storage"]').click();
-    await expect(page).toHaveURL(/\/school-manager\/storage$/);
+    await page.locator('.library-shortcuts a').click();
+    await expect(page).toHaveURL(/\/school-manager\/storage\?folder=7$/);
     await expect(page.locator('.file-name button')).toHaveText(file.displayName);
     expect(Date.now() - started).toBeLessThan(600);
     await expect(page.locator('.file-grid-loading')).toHaveCount(0);
@@ -558,8 +565,7 @@ test('first library load keeps a stable table surface without skeleton rows', as
     await heldFiles;
     await route.fallback();
   });
-  await page.locator(isMobile ? '.storage-mobile-nav a[href="/school-manager/storage"]'
-    : '.shell-sidebar__category a[href="/school-manager/storage"]').click();
+  await page.locator('.library-shortcuts a').click();
   try {
     await expect(page.locator('.file-pending')).toBeVisible();
     await expect(page.locator('.file-grid-loading')).toHaveCount(0);
@@ -630,7 +636,7 @@ test('library manager without review permission cannot open either evidence rout
 
 test('library filter is kept in the URL and applied by the server', async ({ page }) => {
   const requests = await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await page.getByRole('group', { name: 'تصفية الملفات' }).getByRole('button', { name: 'PDF' }).click();
   await expect(page).toHaveURL(/filter=pdf/);
   await expect.poll(() => requests.some(request => request.url.includes('/storage/files?') && request.url.includes('filter=pdf'))).toBeTruthy();
@@ -640,7 +646,7 @@ test('library filter is kept in the URL and applied by the server', async ({ pag
 
 test('search scope switch updates the server query and browser history', async ({ page }) => {
   const requests = await mockSession(page);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await page.locator('.search-scope').click();
   await expect(page).toHaveURL(/global=true/);
   await expect.poll(() => requests.some(request => request.url.includes('/storage/files?') && request.url.includes('global=true'))).toBeTruthy();
@@ -664,7 +670,7 @@ test('double clicking one folder keeps a single breadcrumb for that folder', asy
     const items = parent === '7' ? [{ id: 8, parentFolderId: 7, displayName: 'كوكو', kind: 'SchoolLibrary', rowVersion: 'AAAAAAAAAAE=' }] : [];
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ isSuccess: true, data: { items, total: items.length, page: 1, pageSize: 25 } }) });
   });
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await page.locator('.folder-tile').getByText('كوكو').dblclick();
   await expect(page.locator('.breadcrumbs button:not(.folder-back)')).toHaveCount(2);
   await expect(page.locator('.breadcrumbs button').last()).toHaveText('كوكو');
@@ -763,7 +769,7 @@ test('folder list loads the next server page without duplicating folders', async
       : [{ id: 33, parentFolderId: 7, displayName: 'المجلد الأخير', kind: 'SchoolLibrary', rowVersion: '' }]) : [];
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ isSuccess: true, data: { items, total: parent === '7' ? 26 : 0, page: pageNumber, pageSize: 25 } }) });
   });
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.locator('.folder-tile')).toHaveCount(25);
   await page.getByRole('button', {name:'عرض المزيد من المجلدات'}).click();
   await expect(page.locator('.folder-tile')).toHaveCount(26);
@@ -776,7 +782,7 @@ test('folder list loads the next server page without duplicating folders', async
 
 test('delegated reader sees shared navigation without administration or archive links, and archive route is denied @mobile', async ({ page }) => {
   await mockSession(page, 'Secretary', 'Connected', false, false);
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   const nav = page.locator('.shell-sidebar__category').filter({ hasText: 'مساحة الملفات' });
   await expect(nav).toHaveCount(1);
   await expect(nav.getByRole('link', {name:'الإدارة'})).toHaveCount(0);
@@ -863,7 +869,7 @@ test('no folder state renders without upload actions', async ({ page }) => {
 
 test('Drive unavailable state renders without false connection or upload actions', async ({ page }) => {
   await mockSession(page, 'SchoolManager', 'Unavailable');
-  await page.goto('/school-manager/storage');
+  await page.goto('/school-manager/storage?folder=7');
   await expect(page.getByRole('heading', { name: 'الاتصال غير متاح' })).toBeVisible();
   await expect(page.locator('input[type=file]')).toHaveCount(0);
   await expect(page.locator('.file-name')).toHaveCount(0);
@@ -873,7 +879,7 @@ test('protected Office files offer download fallback and no direct mutations', a
   await mockSession(page);
   await page.route('**/api/v1/storage/files/31?**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ isSuccess: true,
     data: { file: { ...file, displayName: 'سجل معتمد.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', isProtected: true }, versions: [] } }) }));
-  await page.goto('/school-manager/storage'); await page.locator('.file-name button').click();
+  await page.goto('/school-manager/storage?folder=7'); await page.locator('.file-name button').click();
   await expect(page.getByRole('button', { name: 'معاينة', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'تنزيل', exact: true })).toBeVisible();
   await expect(page.locator('.inspector-info-grid .inspector-tip')).toBeVisible();
@@ -890,7 +896,7 @@ test('retries preserve upload key and revocation clears previously loaded file d
       ? { isSuccess: false, message: 'انقطع الاتصال أثناء الحفظ' }
       : { isSuccess: true, data: { operationId: 2, status: 'NeedsAttention', displayName: 'شاهد.pdf', size: 8, mimeType: 'application/pdf' } }) });
   });
-  await page.goto('/school-manager/storage'); await expect(page.locator('.file-name button')).toBeVisible();
+  await page.goto('/school-manager/storage?folder=7'); await expect(page.locator('.file-name button')).toBeVisible();
   await page.getByRole('button', { name: 'رفع ملف' }).click();
   await page.getByRole('dialog', { name: 'رفع ملف' }).locator('input[type=file]').setInputFiles({ name: 'شاهد.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.7') });
   await page.getByRole('dialog', { name: 'رفع ملف' }).getByRole('button', { name: 'رفع الملف' }).click();

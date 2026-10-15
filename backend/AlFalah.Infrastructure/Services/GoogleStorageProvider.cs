@@ -23,16 +23,26 @@ public sealed class GoogleStorageProvider(IGoogleDriveClient drive) : IStoragePr
             throw;
         }
     }
-    public Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct) => drive.CreateFolderAsync(schoolId, id, parent, name, ct);
-    public Task<GoogleDriveFile> UploadAsync(int schoolId, string id, string parent, string name, string mime, Stream content, CancellationToken ct) =>
-        drive.UploadAsync(schoolId, new(content, name, mime, parent, null, id), ct);
-    public Task<GoogleDriveFile> UploadArchiveAsync(int schoolId, string id, string parent, string name,
-        Stream content, IReadOnlyDictionary<string, string> identity, CancellationToken ct) =>
-        drive.UploadAsync(schoolId, new(content, name, "application/pdf", parent, null, id, identity), ct);
-    public Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct) => drive.MoveAsync(schoolId, id, oldParent, newParent, ct);
-    public Task<GoogleDriveFile> RenameAsync(int schoolId, string id, string name, CancellationToken ct) => drive.RenameAsync(schoolId, id, name, ct);
-    public Task<bool> TrashAsync(int schoolId, string id, string driveId, CancellationToken ct) => drive.TrashAsync(schoolId, id, driveId, ct);
-    public Task<DriveFileContentDto> ContentAsync(int schoolId, string id, CancellationToken ct) => drive.DownloadAsync(schoolId, id, ct);
+    private void Invalidate(int schoolId, string id) => metadata.TryRemove(schoolId + ":" + id, out _);
+    public async Task<GoogleDriveFile> CreateFolderAsync(int schoolId, string id, string parent, string name, CancellationToken ct)
+    { try { return await drive.CreateFolderAsync(schoolId, id, parent, name, ct); } finally { Invalidate(schoolId, id); } }
+    public async Task<GoogleDriveFile> UploadAsync(int schoolId, string id, string parent, string name, string mime, Stream content, CancellationToken ct)
+    { try { return await drive.UploadAsync(schoolId, new(content, name, mime, parent, null, id), ct); } finally { Invalidate(schoolId, id); } }
+    public async Task<GoogleDriveFile> UploadArchiveAsync(int schoolId, string id, string parent, string name,
+        Stream content, IReadOnlyDictionary<string, string> identity, CancellationToken ct)
+    { try { return await drive.UploadAsync(schoolId, new(content, name, "application/pdf", parent, null, id, identity), ct); }
+      finally { Invalidate(schoolId, id); } }
+    public async Task<GoogleDriveFile> MoveAsync(int schoolId, string id, string oldParent, string newParent, CancellationToken ct)
+    { try { return await drive.MoveAsync(schoolId, id, oldParent, newParent, ct); } finally { Invalidate(schoolId, id); } }
+    public async Task<GoogleDriveFile> RenameAsync(int schoolId, string id, string name, CancellationToken ct)
+    { try { return await drive.RenameAsync(schoolId, id, name, ct); } finally { Invalidate(schoolId, id); } }
+    public async Task<bool> TrashAsync(int schoolId, string id, string driveId, CancellationToken ct)
+    { try { return await drive.TrashAsync(schoolId, id, driveId, ct); } finally { Invalidate(schoolId, id); } }
+    public async Task<DriveFileContentDto> ContentAsync(int schoolId, string id, CancellationToken ct)
+    {
+        var current = await MetadataAsync(schoolId, id, ct) ?? throw new KeyNotFoundException("الملف غير متاح.");
+        return await drive.DownloadVerifiedAsync(schoolId, current, ct);
+    }
     public async Task<bool> IsWithinAsync(int schoolId, string root, string item, CancellationToken ct)
     {
         var node = await MetadataAsync(schoolId, item, ct);
@@ -53,6 +63,14 @@ public sealed class GoogleStorageProvider(IGoogleDriveClient drive) : IStoragePr
         // Match the existing fail-closed guard's bounded ancestry policy.
         return false;
     }
-    public Task<GoogleDriveFileList> ChildrenAsync(int schoolId, string parent, string driveId, string? token, CancellationToken ct) =>
-        drive.ListChildrenAsync(schoolId, new(parent, null, "folder,name,createdTime", 25, token, string.IsNullOrEmpty(driveId) ? null : driveId), ct);
+    public async Task<GoogleDriveFileList> ChildrenAsync(int schoolId, string parent, string driveId, string? token, CancellationToken ct)
+    {
+        var page = await drive.ListChildrenAsync(schoolId, new(parent, null, "folder,name,createdTime", 100, token,
+            string.IsNullOrEmpty(driveId) ? null : driveId), ct);
+        // A list response has the same complete metadata projection as a GET. Reuse it
+        // only within this scoped request; fresh reads/verification still reset the cache.
+        foreach (var item in page.Files)
+            metadata[schoolId + ":" + item.Id] = new Lazy<Task<GoogleDriveFile?>>(() => Task.FromResult<GoogleDriveFile?>(item));
+        return page;
+    }
 }

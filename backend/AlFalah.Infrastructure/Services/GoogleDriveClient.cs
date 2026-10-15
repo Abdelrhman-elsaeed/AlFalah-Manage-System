@@ -134,6 +134,12 @@ public sealed class GoogleDriveClient : IGoogleDriveClient
     {
         var metadata = await GetFileAsync(schoolId, fileId, cancellationToken)
             ?? throw new TeacherDriveAccessDeniedException("لم يعد الملف موجوداً.");
+        return await DownloadVerifiedAsync(schoolId, metadata, cancellationToken);
+    }
+    public async Task<DriveFileContentDto> DownloadVerifiedAsync(int schoolId, GoogleDriveFile metadata, CancellationToken cancellationToken = default)
+    {
+        var fileId = metadata.Id;
+        if (metadata.Trashed || string.IsNullOrWhiteSpace(fileId)) throw new TeacherDriveAccessDeniedException("لم يعد الملف موجوداً.");
         if (metadata.IsFolder) throw new ArgumentException("لا يمكن تنزيل مجلد.");
 
         var token = await _tokens.GetAccessTokenAsync(schoolId, cancellationToken);

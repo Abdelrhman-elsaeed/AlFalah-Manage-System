@@ -148,3 +148,14 @@ After duty acceptance, specify the manager's `توزيع الصلاحيات` tab
 - [x] Reuse existing scoped memberships/fixed two-permission role/audit with serialized idempotent/versioned transactions, SQL uniqueness/rollback and live identity/revocation; no schema migration or automatic operational grants.
 - [x]82 backend (74 SQL),146 Angular,16 actual isolated HTTP checks and rendered four-width delegation/workspace regression; latest local Release API5264/Angular4200 ready. [Evidence](verification/delegation-amendment.md), D-117.
 - [ ] Owner final appearance and physical-device acceptance remain pending.
+
+## C26 — Storage/archive follow-up
+
+- [x] Diagnose retained pending presentation versus actual delivery; refresh the administrative archive without re-signing or extra notices.
+- [x] Single Storage administration location with independent duty/visit on/off switches and truthful process/school states.
+- [x] Restore owner-requested local Visit processing, preserving owner-selected school enablement, existing credentials/roots/grants and68 migrations.
+- [x] Shared protected duty root in library setup; reserved-ID/lost-response recovery and idempotent reapplication on fresh isolated SQL.
+- [x] Verified school-root branch navigation and switchable premium library map with accurate registered counts, search/collapse/fullscreen/English/mobile access.
+- [x] Real isolated D3_Test delivery/recovery, frozen-byte equality, current authenticated browser downloads and measured before/after latency.
+- [x] Appropriate backend/frontend/legacy regressions and actual rendered captures; document genuine baseline failures without relaxing budgets.
+- [ ] Owner final visual acceptance and physical-device/keyboard acceptance. See [C26 evidence](../school-file-storage/verification/storage-duty-amendment.md).

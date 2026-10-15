@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="147e3a7d-69ac-45af-bcc8-e976708ed9d8" name="abdelrhman@DESKTOP-FHRP6TC 2026-10-14 17:58:16" runUser="DESKTOP-FHRP6TC\abdelrhman" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-14T17:58:16.9504055+03:00" queuing="2026-10-14T17:58:16.9504057+03:00" start="2026-10-14T17:57:31.5330135+03:00" finish="2026-10-14T17:58:18.0941975+03:00" />
+  <TestSettings name="default" id="2ce3a9be-2d43-4589-a29f-26920ded40e2">
+    <Deployment runDeploymentRoot="abdelrhman_DESKTOP-FHRP6TC_2026-10-14_17_58_16" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="63cd13d1-f2dd-4aaa-a24d-adbc494a5666" testId="973faeb3-b382-7a65-5438-0eb41232461e" testName="AlFalah.Tests.Storage.StorageMapSqlTests.School_root_map_verifies_branches_and_preserves_separate_archive_teacher_and_school_permissions" computerName="DESKTOP-FHRP6TC" duration="00:00:04.7543083" startTime="2026-10-14T17:58:16.9227693+03:00" endTime="2026-10-14T17:58:16.9228054+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="63cd13d1-f2dd-4aaa-a24d-adbc494a5666" />
+    <UnitTestResult executionId="b6b5565f-2efd-492c-b32e-31aa0c2b468a" testId="cdefc919-724c-c2c3-cab2-e8171255c1de" testName="AlFalah.Tests.Storage.StorageMapSqlTests.Library_setup_provisions_protected_duty_root_in_SQL_and_reapplication_keeps_its_identity_without_activation" computerName="DESKTOP-FHRP6TC" duration="00:00:01.0263657" startTime="2026-10-14T17:58:17.9512587+03:00" endTime="2026-10-14T17:58:17.9512588+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6b5565f-2efd-492c-b32e-31aa0c2b468a" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="AlFalah.Tests.Storage.StorageMapSqlTests.Library_setup_provisions_protected_duty_root_in_SQL_and_reapplication_keeps_its_identity_without_activation" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="cdefc919-724c-c2c3-cab2-e8171255c1de">
+      <Execution id="b6b5565f-2efd-492c-b32e-31aa0c2b468a" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageMapSqlTests" name="Library_setup_provisions_protected_duty_root_in_SQL_and_reapplication_keeps_its_identity_without_activation" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Storage.StorageMapSqlTests.School_root_map_verifies_branches_and_preserves_separate_archive_teacher_and_school_permissions" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="973faeb3-b382-7a65-5438-0eb41232461e">
+      <Execution id="63cd13d1-f2dd-4aaa-a24d-adbc494a5666" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Storage.StorageMapSqlTests" name="School_root_map_verifies_branches_and_preserves_separate_archive_teacher_and_school_permissions" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="973faeb3-b382-7a65-5438-0eb41232461e" executionId="63cd13d1-f2dd-4aaa-a24d-adbc494a5666" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cdefc919-724c-c2c3-cab2-e8171255c1de" executionId="b6b5565f-2efd-492c-b32e-31aa0c2b468a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.2)&#xD;
+[xUnit.net 00:00:00.27]   Discovering: AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.45]   Discovered:  AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.46]   Starting:    AlFalah.Tests&#xD;
+[xUnit.net 00:00:45.77]   Finished:    AlFalah.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -1999,7 +1999,8 @@
     "ENABLED": "Enabled",
     "ACTIVATED": "Automatic delivery is enabled. Pending signed documents will be delivered.",
     "PAUSED": "Automatic delivery is paused. Retained documents remain available.",
-    "RETAINED": "Pausing delivery does not delete documents or signatures. Retained copies remain available when Drive is offline."
+    "RETAINED": "Pausing delivery does not delete documents or signatures. Retained copies remain available when Drive is offline.",
+    "DISABLED": "Off"
   },
   "DUTY_ADMIN": {
     "OFFICIAL_ARCHIVE": "Official school archive",
@@ -2031,7 +2032,8 @@
     "NO_TODAY_DUTY": "No duty scheduled today",
     "NEEDS_REVIEW": "This duty needs administrator review.",
     "RECENT_WEEK": "Previous seven days",
-    "NO_RECENT_DUTY": "No duties recorded in this period."
+    "NO_RECENT_DUTY": "No duties recorded in this period.",
+    "UPDATE_UNAVAILABLE": "Delivery status could not be refreshed. Showing the last saved status; choose Refresh to try again."
   },
   "DUTY_ACCESS": {
     "EYEBROW": "Duty team",

@@ -1,0 +1,37 @@
+{
+  "at": "2026-10-14T16:29:08.5796355+00:00",
+  "readOnly": true,
+  "providerWrites": 0,
+  "operations": {
+    "workerEnabled": true,
+    "externalWritesEnabled": true,
+    "ready": true,
+    "schoolEnabled": true
+  },
+  "flags": [
+    {
+      "SchoolId": 1,
+      "IsEnabled": true,
+      "DutyArchiveEnabled": false,
+      "VisitArchiveEnabled": false
+    },
+    {
+      "SchoolId": 18,
+      "IsEnabled": true,
+      "DutyArchiveEnabled": true,
+      "VisitArchiveEnabled": true
+    }
+  ],
+  "bytesEvidence": [
+    {
+      "document": 1,
+      "sha256": "AF4E696C5E97AF2BF3EAF7F4E5EB8CE6806E90DC4D9B1E28033A708DEB56F6E5",
+      "localArchivedEqual": true
+    },
+    {
+      "document": 2,
+      "sha256": "2AF2E610EA0C81216A2469AD04C22DE41CCAC61717C8BF5C165BB7A1F7BD23C0",
+      "localArchivedEqual": true
+    }
+  ]
+}

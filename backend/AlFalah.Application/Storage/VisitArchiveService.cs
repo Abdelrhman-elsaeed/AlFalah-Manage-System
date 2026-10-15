@@ -34,7 +34,7 @@ public sealed class VisitArchiveService(IVisitArchiveRepository repository, ISto
         await RequireManagementAsync(ct);
         var schoolEnabled = await repository.SchoolEnabledAsync(School, ct);
         var processing = schoolEnabled && options.Value.ArchiveProcessingEnabled;
-        return new(true, processing, processing, schoolEnabled);
+        return new(options.Value.ArchiveProcessingEnabled, processing, processing, schoolEnabled);
     }
     private async Task<bool> AuthorizeAsync(ArchiveVisitScope visit, bool management, CancellationToken ct)
     {

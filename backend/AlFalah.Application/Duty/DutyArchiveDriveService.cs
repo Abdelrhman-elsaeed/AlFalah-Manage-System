@@ -14,6 +14,10 @@ public sealed class DutyArchiveDriveService(IDutyDocumentRepository repo,IStorag
     public async Task<StorageDriveRoot> RootAsync(int school,string? target,CancellationToken ct)
     {
         provider.ResetRequestCache();
+        return await RootCoreAsync(school,target,ct);
+    }
+    private async Task<StorageDriveRoot> RootCoreAsync(int school,string? target,CancellationToken ct)
+    {
         var root=await storage.GetSchoolDriveRootAsync(school,ct)??throw new StorageUnavailableException();
         var meta=await provider.MetadataAsync(school,root.RootItemId,ct);
         if(meta is not {IsFolder:true,Trashed:false} || (meta.SharedDriveId??"")!=root.DriveId)throw new StorageUnavailableException();
@@ -30,38 +34,45 @@ public sealed class DutyArchiveDriveService(IDutyDocumentRepository repo,IStorag
         var s=DutyDocumentIntegrity.Validate(doc);var h=s.GetProperty("Header").Deserialize<DutyExecutionHeader>()!;
         var scope=await repo.ScopeAsync(doc.SchoolId,doc.AssignmentId,ct);
         var date=DateOnly.Parse(s.GetProperty("Date").GetString()!,System.Globalization.CultureInfo.InvariantCulture);
+        var chain=new List<(string Key,string Name)> {("duty","المناوبات"),($"year:{scope.YearId}",h.Year),($"term:{scope.TermId}",$"الفصل الدراسي {h.Semester}"),($"teacher:{doc.AuthorUserId}",await repo.TeacherFolderNameAsync(doc.SchoolId,doc.AuthorUserId,h.ActualTeacher,ct)),($"date:{date:yyyy-MM-dd}",date.ToString("yyyy-MM-dd"))};
+        return await EnsureChainAsync(doc.SchoolId,chain,ct);
+    }
+    public Task<StorageFolder> EnsureRootAsync(int school,CancellationToken ct) =>
+        EnsureChainAsync(school,[("duty","المناوبات")],ct);
+    private async Task<StorageFolder> EnsureChainAsync(int school,IReadOnlyList<(string Key,string Name)> chain,CancellationToken ct)
+    {
+        provider.ResetRequestCache();
         StorageFolder? result=null;
-        if(!await repo.ExclusiveAsync($"folders:{doc.SchoolId}",async token=>
+        if(!await repo.ExclusiveAsync($"folders:{school}",async token=>
         {
-            var root=await RootAsync(doc.SchoolId,null,token);
-            var chain=new List<(string Key,string Name)> {("duty","المناوبات"),($"year:{scope.YearId}",h.Year),($"term:{scope.TermId}",$"الفصل الدراسي {h.Semester}"),($"teacher:{doc.AuthorUserId}",await repo.TeacherFolderNameAsync(doc.SchoolId,doc.AuthorUserId,h.ActualTeacher,token)),($"date:{date:yyyy-MM-dd}",date.ToString("yyyy-MM-dd"))};
+            var root=await RootCoreAsync(school,null,token);
             StorageFolder? parent=null;var identity="";
             foreach(var (key,name) in chain)
             {
                 identity=identity.Length==0?key:identity+"/"+key;
                 var parentItem=parent?.DriveItemId??root.RootItemId;
-                var folder=await repo.FolderAsync(doc.SchoolId,identity,token);
+                var folder=await repo.FolderAsync(school,identity,token);
                 if(folder is null)
                 {
                     // A native folder with the same name is ambiguous; never adopt a browser-selected folder.
                     string? page=null;
-                    do {var children=await provider.ChildrenAsync(doc.SchoolId,parentItem,root.DriveId,page,token);
+                    do {var children=await provider.ChildrenAsync(school,parentItem,root.DriveId,page,token);
                         if(children.Files.Any(x=>!x.Trashed&&x.Name==DutyDocumentIntegrity.SafeName(name)))throw Identity();page=children.NextPageToken;
                     } while(page is not null);
-                    folder=new(){SchoolId=doc.SchoolId,Kind=StorageFolderKind.DutyArchive,DutyIdentity=identity,DisplayName=DutyDocumentIntegrity.SafeName(name),ParentFolderId=parent?.Id,
-                        DriveId=root.DriveId,DriveItemId=await provider.AllocateIdAsync(doc.SchoolId,token)};
+                    folder=new(){SchoolId=school,Kind=StorageFolderKind.DutyArchive,DutyIdentity=identity,DisplayName=DutyDocumentIntegrity.SafeName(name),ParentFolderId=parent?.Id,
+                        DriveId=root.DriveId,DriveItemId=await provider.AllocateIdAsync(school,token)};
                     await repo.SaveFolderAsync(folder,token); // Persist reserved ID BEFORE create.
                 }
                 if(folder.DriveId!=root.DriveId||folder.ParentFolderId!=parent?.Id||folder.Kind!=StorageFolderKind.DutyArchive||!folder.IsActive)throw Identity();
-                provider.ResetRequestCache();var meta=await provider.MetadataAsync(doc.SchoolId,folder.DriveItemId,token);
+                var meta=await provider.MetadataAsync(school,folder.DriveItemId,token);
                 if(meta is null)
                 {
                     if(folder.DutyProvisioned)throw new DutyException("DutyArchiveMissing","مجلد محفوظ مفقود من الأرشيف. يلزم مراجعته. / A retained archive folder is missing. Review is required.",409);
-                    await provider.CreateFolderAsync(doc.SchoolId,folder.DriveItemId,parentItem,folder.DisplayName,token);
-                    provider.ResetRequestCache();meta=await provider.MetadataAsync(doc.SchoolId,folder.DriveItemId,token);
+                    await provider.CreateFolderAsync(school,folder.DriveItemId,parentItem,folder.DisplayName,token);
+                    meta=await provider.MetadataAsync(school,folder.DriveItemId,token);
                 }
                 if(meta is not {IsFolder:true,Trashed:false}||meta.Name!=folder.DisplayName||!meta.Parents.Contains(parentItem))throw Moved();
-                await RootAsync(doc.SchoolId,folder.DriveItemId,token);
+                await RootCoreAsync(school,folder.DriveItemId,token);
                 if(!folder.DutyProvisioned){folder.DutyProvisioned=true;await repo.SaveFolderAsync(folder,token);}
                 parent=folder;
             }
@@ -73,7 +84,8 @@ public sealed class DutyArchiveDriveService(IDutyDocumentRepository repo,IStorag
     { ["schoolId"]=i.SchoolId.ToString(System.Globalization.CultureInfo.InvariantCulture),["dutyDocumentId"]=i.DocumentId.ToString(System.Globalization.CultureInfo.InvariantCulture),["dutyOperation"]=i.OperationIdentity!,["sha256"]=a.Hash };
     public async Task<bool> ExistsAndVerifiedAsync(DutyArchiveIntent i,DutyPdfArtifact a,CancellationToken ct)
     {
-        DutyDocumentIntegrity.Validate(a);var root=await RootAsync(i.SchoolId,null,ct);
+        provider.ResetRequestCache(); // Fresh provider evidence for every verification boundary.
+        DutyDocumentIntegrity.Validate(a);var root=await RootCoreAsync(i.SchoolId,null,ct);
         if(root.DriveId!=i.DriveId||root.RootItemId!=i.SchoolRootItemId)throw Identity();
         var folder=await repo.FolderByIdAsync(i.SchoolId,i.FolderId!.Value,ct)??throw Identity();
         var visited=new HashSet<int>();var node=folder;
@@ -87,7 +99,7 @@ public sealed class DutyArchiveDriveService(IDutyDocumentRepository repo,IStorag
             if(parent is null)break;node=parent;
         }
         if(folder.DriveItemId!=i.FolderItemId)throw Identity();
-        await RootAsync(i.SchoolId,folder.DriveItemId,ct);
+        await RootCoreAsync(i.SchoolId,folder.DriveItemId,ct);
         var item=await provider.MetadataAsync(i.SchoolId,i.ProviderItemId!,ct);
         if(item is null)return false; // Only a definitive provider 404 allows write to the SAME reserved ID.
         if(item.Trashed||!item.Parents.Contains(folder.DriveItemId)||item.Name!=a.FileName||!await provider.IsWithinAsync(i.SchoolId,root.RootItemId,item.Id,ct))throw Moved();

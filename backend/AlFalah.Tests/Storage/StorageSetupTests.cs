@@ -19,7 +19,9 @@ public sealed class StorageSetupTests
         return new(new StorageSetupRepository(h.Context), scopes, new StorageLibraryRepository(h.Context),
             new StorageAuthorizationService(scopes, actor, new StorageDriveBoundary(new TeacherDriveFolderGuard(h.Drive)), TimeProvider.System),
             actor, new GoogleStorageProvider(h.Drive), h.MappingService(actor),
-            Options.Create(new StorageOptions { AdministrationEnabled = true, ReadModelEnabled = true }));
+            Options.Create(new StorageOptions { AdministrationEnabled = true, ReadModelEnabled = true }),
+            new AlFalah.Application.Duty.DutyArchiveDriveService(new DutyDocumentRepository(h.Context), scopes,
+                new StorageLibraryRepository(h.Context), new GoogleStorageProvider(h.Drive)));
     }
 
     [Fact]

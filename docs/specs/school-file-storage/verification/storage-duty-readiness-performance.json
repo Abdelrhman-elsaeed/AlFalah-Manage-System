@@ -1,0 +1,189 @@
+{
+  "at": "2026-10-14T14:25:54.2328523+00:00",
+  "method": "Actual authenticated localhost5264 HTTP; complete response/body time. Same configured E2E school and unchanged provider root/credentials. Samples are bounded observations, not an SLA.",
+  "before": [
+    {
+      "path": "storage/context?own=false",
+      "milliseconds": 2597,
+      "status": 200
+    },
+    {
+      "path": "storage/context?own=false",
+      "milliseconds": 2369,
+      "status": 200
+    },
+    {
+      "path": "storage/setup",
+      "milliseconds": 10451,
+      "status": 200
+    },
+    {
+      "path": "storage/visits/operations-status",
+      "milliseconds": 7,
+      "status": 200
+    },
+    {
+      "path": "school-duty/archive",
+      "milliseconds": 207,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 1,
+      "archived": false,
+      "milliseconds": 24,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 1,
+      "archived": true,
+      "milliseconds": 7592,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 2,
+      "archived": false,
+      "milliseconds": 13,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 2,
+      "archived": true,
+      "milliseconds": 10948,
+      "status": 200
+    }
+  ],
+  "after": [
+    {
+      "path": "storage/context?own=false",
+      "milliseconds": 2254,
+      "status": 200
+    },
+    {
+      "path": "storage/context?own=false",
+      "milliseconds": 1924,
+      "status": 200
+    },
+    {
+      "path": "storage/setup",
+      "milliseconds": 4053,
+      "status": 200
+    },
+    {
+      "path": "storage/visits/operations-status",
+      "milliseconds": 23,
+      "status": 200
+    },
+    {
+      "path": "school-duty/archive",
+      "milliseconds": 234,
+      "status": 200
+    },
+    {
+      "path": "storage/map",
+      "milliseconds": 1676,
+      "status": 200
+    },
+    {
+      "path": "storage/map",
+      "milliseconds": 1510,
+      "status": 200
+    },
+    {
+      "path": "storage/map",
+      "milliseconds": 1508,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 1,
+      "archived": false,
+      "milliseconds": 167,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 1,
+      "archived": true,
+      "milliseconds": 4508,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 2,
+      "archived": false,
+      "milliseconds": 12,
+      "status": 200
+    },
+    {
+      "path": "duty-pdf",
+      "document": 2,
+      "archived": true,
+      "milliseconds": 4739,
+      "status": 200
+    }
+  ],
+  "operations": {
+    "workerEnabled": true,
+    "externalWritesEnabled": true,
+    "ready": true,
+    "schoolEnabled": true
+  },
+  "ownerSelectedSchoolFlags": [
+    {
+      "SchoolId": 1,
+      "IsEnabled": true,
+      "DutyArchiveEnabled": false,
+      "VisitArchiveEnabled": false
+    },
+    {
+      "SchoolId": 18,
+      "IsEnabled": true,
+      "DutyArchiveEnabled": true,
+      "VisitArchiveEnabled": true
+    }
+  ],
+  "frozenArtifacts": [
+    {
+      "document": 1,
+      "sha256": "AF4E696C5E97AF2BF3EAF7F4E5EB8CE6806E90DC4D9B1E28033A708DEB56F6E5",
+      "localArchivedEqual": true
+    },
+    {
+      "document": 2,
+      "sha256": "2AF2E610EA0C81216A2469AD04C22DE41CCAC61717C8BF5C165BB7A1F7BD23C0",
+      "localArchivedEqual": true
+    }
+  ],
+  "providerWritesInReadChecks": 0,
+  "branches": [
+    {
+      "key": "library",
+      "state": "Available",
+      "canOpen": true
+    },
+    {
+      "key": "teachers",
+      "state": "Available",
+      "canOpen": true
+    },
+    {
+      "key": "duty",
+      "state": "Available",
+      "canOpen": true
+    },
+    {
+      "key": "visits",
+      "state": "Available",
+      "canOpen": true
+    }
+  ],
+  "startupInitialization": false,
+  "newMigration": false,
+  "operationalMigrations": 68,
+  "sourceConnectionRenewedByOwner": true,
+  "visitProcessingRestoredByOwnerRequest": true
+}

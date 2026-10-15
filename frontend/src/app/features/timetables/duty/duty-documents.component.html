@@ -26,7 +26,7 @@
       <ng-template #unsigned><p class="unsigned-copy">{{ t(kind==='Letter'?'LETTER_EMPTY':'REPORT_EMPTY') }}</p><div class="empty-status"><i class="pi pi-clock" aria-hidden="true"></i>{{ t('NOT_SIGNED') }}</div></ng-template>
     </article>
   </div>
-  <button class="history-action" *ngIf="canManage && data()?.readiness?.processingEnabled && data()?.readiness?.connectionState==='Connected' && !data()?.readiness?.enabled" (click)="enable()" [disabled]="busy()">{{ t('ENABLE') }}</button>
+
   <footer *ngIf="data()"><i class="pi pi-lock" aria-hidden="true"></i>{{ t('PRIVATE') }}</footer>
 </section>
 <p-dialog [(visible)]="previewOpen" (onHide)="closePreview()" [modal]="true" [header]="t(selected?.kind || 'TITLE')" [dir]="dir" [style]="{width:'1000px',maxWidth:'96vw'}" styleClass="duty-pdf-dialog">

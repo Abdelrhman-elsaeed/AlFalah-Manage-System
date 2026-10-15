@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using AlFalah.Application.Duty;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.TeacherDrive;
 using AlFalah.Application.Interfaces;
@@ -12,7 +13,7 @@ namespace AlFalah.Application.Storage;
 // The school root is configured separately. Setup only creates its known children.
 public sealed class StorageSetupService(IStorageSetupRepository repository, IStorageRepository scopes,
     IStorageLibraryRepository library, IStorageAuthorizationService authorization, ICurrentUserService user, IStorageProvider provider,
-    ITeacherDriveMappingService mappings, IOptions<StorageOptions> options) : IStorageSetupService
+    ITeacherDriveMappingService mappings, IOptions<StorageOptions> options, DutyArchiveDriveService dutyDrive) : IStorageSetupService
 {
     private static readonly (string Code, string Name)[] Domains =
     [ ("1", "الإدارة المدرسية"), ("2", "التعليم والتعلم"), ("3", "نواتج التعلم"), ("4", "البيئة المدرسية") ];
@@ -54,6 +55,7 @@ public sealed class StorageSetupService(IStorageSetupRepository repository, ISto
         }
         yield return ("teachers-root", "root", "ملفات المعلمين", StorageFolderKind.Teacher, null);
         yield return ("archive", "root", "أرشيف الزيارات", StorageFolderKind.VisitArchive, null);
+        yield return ("duty", "root", "المناوبات", StorageFolderKind.DutyArchive, null);
         foreach (var teacher in teachers)
             yield return ($"visit-teacher:{teacher.Id}", "archive", TeacherName(teacher, teachers), StorageFolderKind.VisitArchive, teacher.Id);
     }
@@ -132,6 +134,18 @@ public sealed class StorageSetupService(IStorageSetupRepository repository, ISto
                     ? node.TeacherId is int teacherId
                         ? await repository.TrackedArchiveTeacherAsync(School, parentId, teacherId, ct)
                         : await repository.TrackedChildAsync(School, parentId, node.Name, ct) : null;
+            if (node.Kind == StorageFolderKind.DutyArchive)
+            {
+                // Duty identity is retained permanently. The general recovery consent must
+                // never detach/rebind signed history or adopt an unreserved native folder.
+                var dutyLive = tracked is null ? null : await provider.MetadataAsync(School, tracked.DriveItemId, ct);
+                var valid = dutyLive is { IsFolder: true, Trashed: false } && dutyLive.Name == tracked!.DisplayName && dutyLive.Parents.Contains(parent);
+                var state = tracked is null ? match.State == "Missing" ? "Missing" : "Conflict" : valid ? "Exists" : "NeedsReview";
+                folders.Add(new(node.Key, node.Name, node.ParentKey, state, state is "Conflict" or "NeedsReview"
+                    ? "مجلد المناوبات محمي. راجع الاسم والموضع الأصليين؛ لا يُفصل سجل المستندات أو يُستبدل تلقائيًا." : null));
+                if (valid) { available[node.Key] = dutyLive!.Id; trackedRows[node.Key] = tracked!.Id; }
+                continue;
+            }
             if (node.TeacherId != null && match.State == "Missing" && tracked != null &&
                 await provider.MetadataAsync(School, tracked.DriveItemId, ct) is { IsFolder: true, Trashed: false } live &&
                 live.Parents.Contains(parent)) match = ("NeedsRename", live);
@@ -310,6 +324,14 @@ public sealed class StorageSetupService(IStorageSetupRepository repository, ISto
                     { completed++; await Report("folders", node.Name); continue; }
                     try
                     {
+                        if (node.Key == "duty")
+                        {
+                            var existing = await repository.TrackedRootAsync(School, StorageFolderKind.DutyArchive, token);
+                            var folder = await dutyDrive.EnsureRootAsync(School, token);
+                            known[node.Key] = (folder.DriveItemId, folder.Id);
+                            if (existing is null) { created++; linked++; } else already++;
+                            completed++; await Report("folders", node.Name); continue;
+                        }
                         var tracked = node.Key == "teachers-root" ? null : node.ParentKey == "root"
                             ? await repository.TrackedRootAsync(School, node.Kind, token)
                             : parent.RowId is int parentId

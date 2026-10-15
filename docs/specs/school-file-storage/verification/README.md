@@ -72,3 +72,7 @@ Triggers تمنع دورات الشجرة، اختلاف مدرسة الزيار
 ## تحديث لاحق S5 — 2026-10-05
 
 نُفذت S2–S5 بتكليفات لاحقة صريحة؛ النتائج التاريخية أعلاه تخص S1. [تحقق S5 وعقوده وتشغيله والرجوع](s5-approved-visit-pdf-archive.md)، [الأعداد النهائية](s5-checks.json)، [المطابقة](s5-parity.json)، [PDF الفعلي](s5-pdf-comparison.json)، [الأداء](s5-performance.json)، [migration additive idempotent](s5-migration.sql). SQL جديد معزول/Drive محاكاة/واجهاتRTL؛ الأربعOFF، قيد S0 باقٍ، لا Development API أو Google حي أو S6/cutover.
+
+## C26 — Current storage/archive follow-up
+
+[Verified archive controls, root navigation, library presentation and recovery](storage-duty-amendment.md). Includes current owner-selected activation, actual versus intercepted browser results, bounded real D3_Test writes and explicit baseline limitations. Earlier OFF statements remain historical.

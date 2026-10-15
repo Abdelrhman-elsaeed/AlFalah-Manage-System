@@ -2,7 +2,7 @@
 
 **Status:** D1–D3 implemented; independent isolated SQL/local HTTP, browser and actual PDF verification delivered. Real Drive delivery/read/recovery passed in the explicitly designated synthetic D3_Test destination; final client visual acceptance and physical-device review remain pending. See [D3 verification](verification/d3.md).
 **Current entry (C18):** [School Duty](http://localhost:4200/school-duty) is an independent sidebar page; old timetable duty links redirect with retained context. See [navigation correction](verification/navigation.md).
-**Local manual testing:** The owner subsequently authorized configured local Development migrations and startup on 2026-10-14. API5264/Angular4200 are running; global duty processing is ready, original school enablement remains off, and unrelated Visit processing is disabled; see [local operation](verification/local-manual-testing.md).
+**Local manual testing:** The owner subsequently authorized configured local Development migrations and startup on 2026-10-14. API5264/Angular4200 are running; both archive processors are ready and the owner-selected school18 duty/visit flags are retained ON (school1 OFF); see [local operation](verification/local-manual-testing.md).
 **Created / updated:** 2026-10-13 / 2026-10-14
 **Module:** Independent School Duty sidebar category — `المناوبة`
 **Scope:** One school-wide dismissal duty teacher per operating school day.
@@ -80,3 +80,9 @@ The submitted D3 implementation request authorizes C1–C17, relevant documented
 | 2026-10-13 | Reviewed five supplied images and client conversation; inspected timetable, staff attendance, signatures, student roster and storage code. Created the draft kit with three implementation phases. Incorporated the owner's date-exchange, saved-signature and manager-first decisions. |
 | 2026-10-13 | Owner confirmed equal rotation over the explicitly selected teacher pool, exclusions through duty settings, and school/year/term/actual-teacher/date archival with separate letter/report PDFs. Updated specification, plan, tasks and project memory. |
 | 2026-10-13 | Prepared the English D1 prompt for a new implementation chat and strengthened the frontend visual-quality gate. Reviewed existing standby/daily lesson-cover support versus the supplied official waiting-period register; recorded a later extension recommendation without expanding D1. |
+
+## C26 — Archive/storage follow-up change log
+
+| Date | Change |
+|---|---|
+| 2026-10-14 | D-118: single Storage administration archive switches; live archive refresh; shared protected duty root in initial setup; verified four-branch school navigation and switchable committee library map; scoped metadata/streaming latency improvements. Owner-selected school18 activation retained; local Visit process stop restored. [Actual verification](../school-file-storage/verification/storage-duty-amendment.md); owner/physical review pending. |

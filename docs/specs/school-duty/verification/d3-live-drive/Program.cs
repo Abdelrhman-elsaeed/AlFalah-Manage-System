@@ -22,7 +22,8 @@ using Microsoft.Extensions.Options;
 // Explicitly authorized D3_Test only. Never starts hosted workers, changes the original
 // database, generates keys, deletes provider data, or enables the original school.
 var workspace=Path.GetFullPath(args.Single());
-var privatePath=Path.Combine(workspace,".audit/duty-organized-20261014/live-drive");Directory.CreateDirectory(privatePath);
+var amendment=Environment.GetEnvironmentVariable("ALFALAH_D3_ARCHIVE_AMENDMENT")=="1";
+var privatePath=Path.Combine(workspace,amendment?".audit/storage-duty-20261014/live-drive":".audit/duty-organized-20261014/live-drive");Directory.CreateDirectory(privatePath);
 var config=new ConfigurationBuilder().SetBasePath(Path.Combine(workspace,"backend/AlFalah.Api"))
  .AddJsonFile("appsettings.json").AddJsonFile("appsettings.Development.json").Build();
 foreach(var endpoint in new[]{("ApiBaseUrl","https://www.googleapis.com/drive/v3/"),("UploadBaseUrl","https://www.googleapis.com/upload/drive/v3/"),("TokenEndpoint","https://oauth2.googleapis.com/token")})
@@ -32,7 +33,7 @@ if(!sourceConnection.DataSource.StartsWith("(localdb)\\",StringComparison.Ordina
 await using var original=new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>().UseSqlServer(sourceConnection.ConnectionString).Options);
 var school=await original.Schools.AsNoTracking().SingleAsync(x=>x.Name=="Al-Falah E2E Test School"&&x.IsActive);
 var source=await original.SchoolGoogleDrives.AsNoTracking().SingleAsync(x=>x.SchoolId==school.Id&&x.IsEnabled);
-if(source.RootFolderId.Length==0||source.ProtectedCredential.Length==0||source.DutyArchiveEnabled)throw new InvalidOperationException("Source boundary/disabled duty flag required.");
+if(source.RootFolderId.Length==0||source.ProtectedCredential.Length==0||source.DutyArchiveEnabled&&!amendment)throw new InvalidOperationException("Source boundary/disabled duty flag required; later owner activation requires explicit amendment mode.");
 var before=JsonSerializer.Serialize(source);
 var fixture=new DutySqlFixture();await fixture.InitializeAsync();
 if(!fixture.SentinelPreserved)throw new InvalidOperationException("Fresh migration sentinel lost.");
@@ -61,9 +62,9 @@ var client=new GoogleDriveClient(tokens,dependencies.GetRequiredService<IHttpCli
 var real=new GoogleStorageProvider(client);var provider=new RecoverableRealProvider(real);
 var root=await real.MetadataAsync(scene.School,source.RootFolderId,default);
 if(root is not{IsFolder:true,Trashed:false}||(root.SharedDriveId??"")!=(source.SharedDriveId??"")||root.CanAddChildren==false)throw new InvalidOperationException("Authorized provider root could not be verified.");
-Console.WriteLine("Verified authorized synthetic-school root. Original duty processing remains disabled.");
+Console.WriteLine("Verified authorized synthetic-school root. Original school activation is preserved; writes remain in the designated D3_Test only.");
 // Private durable reservation supports reconciliation after an uncertain create response.
-var rootManifest=Path.Combine(privatePath,"destination-reservation.json");
+var rootManifest=Path.Combine(workspace,".audit/duty-organized-20261014/live-drive/destination-reservation.json");
 string destination;
 if(File.Exists(rootManifest)){
  var record=JsonDocument.Parse(await File.ReadAllTextAsync(rootManifest)).RootElement;
@@ -91,6 +92,9 @@ DutyDocumentService Reader(bool manager=false)=>new(new DutyRepository(db),new D
 DutyExecutionService Execution(bool manager=false)=>new(new DutyRepository(db),new DutyExecutionRepository(db),new TeacherDriveHarness.TestCurrentUser(manager?RoleNames.SchoolManager:RoleNames.Instructor,manager?scene.Manager:scene.Teacher,scene.School,true));
 DutyArchiveProcessor Processor()=>new(repo,new DutyExecutionRepository(db),new DutyPdfRenderer(),drive,provider,enabled,NullLogger<DutyArchiveProcessor>.Instance);
 var checks=new List<object>();void Check(bool condition,string step){if(!condition)throw new InvalidOperationException(step);checks.Add(new{step,passed=true});Console.WriteLine(step);}
+var preparedRoot=await drive.EnsureRootAsync(scene.School,default);
+Check((await drive.EnsureRootAsync(scene.School,default)).Id==preparedRoot.Id&&await db.StorageFolders.CountAsync(x=>x.SchoolId==scene.School)==1,
+    "Protected duty root provisioned before signing and replayed with the same reserved provider identity");
 QuestPDF.Settings.License=QuestPDF.Infrastructure.LicenseType.Community;
 await Reader(true).EnableAsync(true,default);
 var current=await Execution().GetAsync(scene.Assignment,default);
@@ -141,9 +145,9 @@ var after=await original.SchoolGoogleDrives.AsNoTracking().SingleAsync(x=>x.Scho
 Check(JsonSerializer.Serialize(after)==before,"Original school connection, root, flags and encrypted credentials unchanged by this harness");
 var result=new{at=DateTimeOffset.UtcNow,liveProvider=true,provider="GoogleDriveClient",isolatedDatabase=new SqlConnectionStringBuilder(fixture.Connection).InitialCatalog,
  freshDatabaseGuard=true,sentinelPreserved=fixture.SentinelPreserved,school=scene.School,assignment=scene.Assignment,testDestination="D3_Test",destinationId=destination,runName,runRootId=run,
- originalSchoolDutyArchiveEnabled=false,actualUploads=provider.Uploads,simulatedLostResponses=1,realSqlRollback=1,checks,documents=hashes,existingProviderDataDeleted=false,ownerVisualAcceptance="Pending",physicalDeviceChecks="Pending"};
+ originalSchoolDutyArchiveEnabled=source.DutyArchiveEnabled,originalSchoolActivationPreserved=true,actualUploads=provider.Uploads,simulatedLostResponses=1,realSqlRollback=1,checks,documents=hashes,existingProviderDataDeleted=false,ownerVisualAcceptance="Pending",physicalDeviceChecks="Pending"};
 await File.WriteAllTextAsync(Path.Combine(privatePath,"results.json"),JsonSerializer.Serialize(result,new JsonSerializerOptions{WriteIndented=true}));
-var publicPath=Path.Combine(workspace,"docs/specs/school-duty/verification/d3-live-drive-results.json");await File.WriteAllTextAsync(publicPath,JsonSerializer.Serialize(result,new JsonSerializerOptions{WriteIndented=true}));
+var publicPath=Path.Combine(workspace,amendment?"docs/specs/school-file-storage/verification/storage-duty-drive-results.json":"docs/specs/school-duty/verification/d3-live-drive-results.json");await File.WriteAllTextAsync(publicPath,JsonSerializer.Serialize(result,new JsonSerializerOptions{WriteIndented=true}));
 Console.WriteLine($"Real Drive verification complete: {checks.Count} checks, {provider.Uploads} actual uploads.");
 
 sealed class RecoverableRealProvider(IStorageProvider actual):IStorageProvider{

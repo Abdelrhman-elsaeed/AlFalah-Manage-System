@@ -23,6 +23,16 @@ namespace AlFalah.Tests.Evidence;
 /// </summary>
 public sealed class GoogleDriveClientTests
 {
+    [Fact]
+    public async Task Verified_metadata_download_streams_bytes_without_a_second_metadata_request()
+    {
+        var handler=new StubHandler(HttpStatusCode.OK,"%PDF-1.7 synthetic bytes");
+        var client=new GoogleDriveClient(new RecordingTokenService(),new StubClientFactory(handler),new ConfigurationBuilder().Build(),NullLogger<GoogleDriveClient>.Instance);
+        var meta=new GoogleDriveFile("signed-file","signed.pdf","application/pdf",24,null,null,null,null,["root"],false);
+        var content=await client.DownloadVerifiedAsync(1,meta);
+        await using var stream=content.Content;using var reader=new StreamReader(stream);
+        (await reader.ReadToEndAsync()).Should().StartWith("%PDF");handler.Requests.Should().Be(1);handler.LastUrl.Should().Contain("alt=media");
+    }
     private const string QuotaBody = """
         {"error":{"errors":[{"domain":"usageLimits","reason":"storageQuotaExceeded",
         "message":"Service Accounts do not have storage quota."}],"code":403}}
@@ -202,9 +212,11 @@ public sealed class GoogleDriveClientTests
         public HttpMethod? LastMethod { get; private set; }
         public string? LastUrl { get; private set; }
         public string? LastBody { get; private set; }
+        public int Requests { get; private set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            Requests++;
             LastMethod = request.Method;
             LastUrl = request.RequestUri?.ToString();
             LastBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
