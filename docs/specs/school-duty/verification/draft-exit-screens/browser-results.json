@@ -1,0 +1,72 @@
+{
+  "at": "2026-10-15T05:33:41.364Z",
+  "results": [
+    {
+      "width": 390,
+      "language": "ar",
+      "actualAngular": true,
+      "interceptedSyntheticApi": true,
+      "untouchedDraftNoNotice": true,
+      "autosaveNoRandomNotice": true,
+      "centeredThreeSteps": true,
+      "keyboardFocusCycle": true,
+      "continuePreservesInput": true,
+      "okLeavesDraft": true,
+      "noImplicitSigning": true,
+      "submittedNoNotice": true,
+      "wholeWorkspaceGuard": true,
+      "failedSaveRetainsInput": true
+    },
+    {
+      "width": 768,
+      "language": "ar",
+      "actualAngular": true,
+      "interceptedSyntheticApi": true,
+      "untouchedDraftNoNotice": true,
+      "autosaveNoRandomNotice": true,
+      "centeredThreeSteps": true,
+      "keyboardFocusCycle": true,
+      "continuePreservesInput": true,
+      "okLeavesDraft": true,
+      "noImplicitSigning": true,
+      "submittedNoNotice": true,
+      "wholeWorkspaceGuard": true,
+      "failedSaveRetainsInput": true
+    },
+    {
+      "width": 1440,
+      "language": "ar",
+      "actualAngular": true,
+      "interceptedSyntheticApi": true,
+      "untouchedDraftNoNotice": true,
+      "autosaveNoRandomNotice": true,
+      "centeredThreeSteps": true,
+      "keyboardFocusCycle": true,
+      "continuePreservesInput": true,
+      "okLeavesDraft": true,
+      "noImplicitSigning": true,
+      "submittedNoNotice": true,
+      "wholeWorkspaceGuard": true,
+      "failedSaveRetainsInput": true
+    },
+    {
+      "width": 1440,
+      "language": "en",
+      "actualAngular": true,
+      "interceptedSyntheticApi": true,
+      "untouchedDraftNoNotice": true,
+      "autosaveNoRandomNotice": true,
+      "centeredThreeSteps": true,
+      "keyboardFocusCycle": true,
+      "continuePreservesInput": true,
+      "okLeavesDraft": true,
+      "noImplicitSigning": true,
+      "submittedNoNotice": true,
+      "wholeWorkspaceGuard": true,
+      "failedSaveRetainsInput": true
+    }
+  ],
+  "physicalDevice": "Pending",
+  "ownerVisualReview": "Pending",
+  "providerWrites": 0
+}

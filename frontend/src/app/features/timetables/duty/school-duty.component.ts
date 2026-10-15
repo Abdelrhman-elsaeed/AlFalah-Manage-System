@@ -155,7 +155,9 @@ export class SchoolDutyComponent implements OnInit {
     if (section !== 'execution') { this.executionRequestSequence++; this.executionContextKey=''; this.executionLoading.set(false); }
     if (changed) setTimeout(() => document.querySelector<HTMLElement>('.shell-content')?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }));
   }
-  canLeaveSection() { return !this.busy() && !this.execution?.busy(); }
+  prepareExecutionLeave() { return this.execution?.requestLeave() ?? true; }
+  navigationBusy() { return this.busy() || !!this.execution?.busy(); }
+  canLeaveSection() { return this.navigationBusy() ? false : this.prepareExecutionLeave(); }
   get executionOptions() {
     const d = this.data(); if (!d) return [];
     const days = (d.days ?? []).filter(x => d.canManage || x.isMine).map(x => ({ id: x.id, date: x.date, name: `${this.date(x.date, true)} · ${x.teacher}` }));
@@ -210,8 +212,8 @@ export class SchoolDutyComponent implements OnInit {
     if(!this.executionId || resume && !this.canResumeArchive)return;
     void this.router.navigate(['/school-duty/execution'],{queryParams:{execution:this.executionId,termId:this.termId,review:true,resume:resume||null},replaceUrl:true});
   }
-  selectExecution(id: number) {
-    if (!id || id===this.executionId || !this.canLeaveSection()) return;
+  async selectExecution(id: number) {
+    if (!id || id===this.executionId || !await this.canLeaveSection()) return;
     const option = this.executionOptions.find(x => x.id === id); this.executionId = id;
     void this.router.navigate([dutySectionRoute(this.section())], { queryParams: { execution: id, date: option?.date }, queryParamsHandling: 'merge', replaceUrl: true });
   }
@@ -386,6 +388,6 @@ export class SchoolDutyComponent implements OnInit {
     this.busy.set(true); this.api.change(this.manualRequest).subscribe({ next: r => { this.busy.set(false); if (!r.isSuccess) { this.error.set(r.message || this.t('ERROR')); return; } this.manualOpen = false; this.success.set(this.t('CHANGED')); this.load(); }, error: e => this.fail(e) });
   }
   retry() { this.busy.set(true); this.api.retry().subscribe({ next: () => { this.busy.set(false); this.success.set(this.t('RETRY_QUEUED')); this.load(); }, error: e => this.fail(e) }); }
-  refreshForReview() { if(this.section()==='execution' && this.route.snapshot.queryParamMap.get('review')!=='true'){this.loadExecutionDay(true);return;}this.refreshingReview = true; this.load(true); }
+  async refreshForReview() { if(this.section()==='execution' && this.route.snapshot.queryParamMap.get('review')!=='true'){if(await this.canLeaveSection())this.loadExecutionDay(true);return;}this.refreshingReview = true; this.load(true); }
   private fail(e: any) { this.busy.set(false); if (e?.status === 403) this.data.set(null); this.error.set(extractHttpErrorMessage(e) || this.t('ERROR')); }
 }

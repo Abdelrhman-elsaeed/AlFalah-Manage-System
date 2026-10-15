@@ -279,3 +279,8 @@ The owner's later instruction authorized original local migrations and library a
 ## Change log — 2026-10-15
 
 C27 / D-119: replaced storage feature redirects with native school-root browsing; added manager-confirmed linked deletion, parent-first restore and signed-byte verification. Actual root clearing, guarded isolated empty-root generation and five live Google uploads verified; no migration or production deployment. [Verification](specs/school-file-storage/verification/drive-browser-and-regeneration.md). Owner/physical acceptance remains pending.
+
+
+## Change log — 2026-10-15 (C28 / D-120)
+
+- Confirmed the reported missing duty Report is an unsubmitted original draft, with no report archive intent. Added conditional centered draft departure instructions, Continue and OK; saved input, signing ownership and archive rules preserved.155 Angular /32 overlapping focused checks and four actual-browser language/viewport scenarios passed. No new migration/provider write. [Evidence](specs/school-duty/verification/draft-exit.md).

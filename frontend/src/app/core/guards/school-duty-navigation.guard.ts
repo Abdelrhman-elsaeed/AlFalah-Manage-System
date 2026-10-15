@@ -14,7 +14,8 @@ export const schoolDutyManagerGuard: CanActivateFn = () => {
   return auth.activeSchoolId() && auth.hasAnyPermission(['Duty.Manage'])
     ? true : inject(Router).createUrlTree(['/unauthorized']);
 };
-export const schoolDutySectionGuard: CanDeactivateFn<{ canLeave(): boolean }> = component => component.canLeave();
+export const schoolDutySectionGuard: CanDeactivateFn<{ canLeave(): boolean | Promise<boolean> }> = (component, _route, _state, next) =>
+  next?.url?.startsWith('/auth/') || next?.url === '/unauthorized' || component.canLeave();
 export const schoolDutyDelegationGuard:CanActivateFn=()=>{
  const auth=inject(AuthService);return auth.activeSchoolId()&&auth.hasRole('SchoolManager')&&auth.hasAnyPermission(['Duty.Manage'])?true:inject(Router).createUrlTree(['/unauthorized']);
 };
@@ -31,6 +32,10 @@ export const legacySchoolDutyGuard: CanActivateFn = route => {
   return inject(Router).createUrlTree([queryParams['execution'] ? '/school-duty/execution' : '/school-duty'], { queryParams, fragment: route.fragment ?? undefined });
 };
 
-export const schoolDutyUnsavedGuard: CanDeactivateFn<{ hasDraft(): boolean }> = (component, _route, _state, next) =>
-  next?.url?.startsWith('/auth/') || next?.url === '/unauthorized' || !component.hasDraft()
-    || window.confirm(inject(TranslateService).instant('DUTY.LEAVE_DRAFT'));
+export const schoolDutyUnsavedGuard: CanDeactivateFn<{ hasDraft(): boolean; prepareExecutionLeave?(): boolean | Promise<boolean> }> = (component, _route, _state, next) => {
+  if (next?.url?.startsWith('/auth/') || next?.url === '/unauthorized') return true;
+  const message = inject(TranslateService).instant('DUTY.LEAVE_DRAFT');
+  const finish = (allowed: boolean) => allowed && (!component.hasDraft() || window.confirm(message));
+  const execution = component.prepareExecutionLeave?.() ?? true;
+  return execution instanceof Promise ? execution.then(finish) : finish(execution);
+};

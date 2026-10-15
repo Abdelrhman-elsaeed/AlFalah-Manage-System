@@ -1,0 +1,1 @@
+Draft departure browser checks passed at390/768/1440 and English desktop. Synthetic APIs; zero provider writes.

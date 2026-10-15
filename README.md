@@ -263,3 +263,8 @@ The owner-authorized library rollout is running at Angular4200/API5264. Activati
 ## Change log — 2026-10-15
 
 C27 / D-119: replaced storage feature redirects with native school-root browsing; added manager-confirmed linked deletion, parent-first restore and signed-byte verification. Actual root clearing, guarded isolated empty-root generation and five live Google uploads verified; no migration or production deployment. [Verification](docs/specs/school-file-storage/verification/drive-browser-and-regeneration.md). Owner/physical acceptance remains pending.
+
+
+## Change log — 2026-10-15 (C28)
+
+- School Duty now explains leaving actual report work as an unsubmitted draft, with completion steps, Continue and OK. Read-only diagnosis confirms the missing original Report has not been submitted; no agent signing/upload performed.155 Angular checks and responsive Arabic/English browser verification passed. [Verification](docs/specs/school-duty/verification/draft-exit.md).

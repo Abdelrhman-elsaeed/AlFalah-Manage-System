@@ -12,14 +12,18 @@ import { DutyStudentPickerComponent } from './duty-student-picker.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { DutyErrorDirective } from './duty-error.directive';
+import { DutyDraftExitDialogComponent } from './duty-draft-exit-dialog.component';
 
 @Component({ selector: 'app-duty-execution', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, DutyStudentPickerComponent, DutyErrorDirective],
+  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, DutyStudentPickerComponent, DutyErrorDirective, DutyDraftExitDialogComponent],
   templateUrl: './duty-execution.component.html', styleUrls: ['./duty-execution.component.css', './duty-execution-dialog.css', './duty-execution-flow.css'] })
 export class DutyExecutionComponent implements OnInit {
   @Input({ required: true }) assignmentId = 0; @Output() closed = new EventEmitter<void>();
   @Input() inspection = false;
   @ViewChild(DutyStudentPickerComponent) picker?: DutyStudentPickerComponent;
+  @ViewChild(DutyDraftExitDialogComponent) draftExit?: DutyDraftExitDialogComponent;
+  private reportWorkedOn = false;
+  private leaving?: Promise<boolean>;
   private readonly api = inject(DutyExecutionService); readonly translate = inject(TranslateService);
   private readonly router = inject(Router); private readonly auth = inject(AuthService); private readonly destroy = inject(DestroyRef);
   readonly data = signal<DutyExecution | null>(null); readonly loading = signal(true); readonly busy = signal(false);
@@ -61,13 +65,13 @@ export class DutyExecutionComponent implements OnInit {
       this.saved.set(r.data.draft?.savedAt ?? ''); this.step = r.data.acknowledged ? 'report' : 'letter';
       const cached = sessionStorage.getItem(this.cacheKey);
       if (cached && !this.readonly) {
-        try { const local = JSON.parse(cached); this.content = local.content; this.dirty.set(true);
+        try { const local = JSON.parse(cached); this.content = local.content; this.dirty.set(true); this.reportWorkedOn = true;
           if (local.version !== this.draftVersion || local.revision !== r.data.assignmentRevision) this.conflict.set(r.data);
           else this.changes.next(); } catch { sessionStorage.removeItem(this.cacheKey); }
       }
     }, error: e => { this.loading.set(false); this.error.set(extractHttpErrorMessage(e) || this.t('LOAD_ERROR')); } });
   }
-  changed() { this.editSequence++; this.dirty.set(true); this.signAttempt = null; this.cache(); this.changes.next(); }
+  changed() { this.reportWorkedOn = true; this.editSequence++; this.dirty.set(true); this.signAttempt = null; this.cache(); this.changes.next(); }
   private cache() { sessionStorage.setItem(this.cacheKey, JSON.stringify({ content: this.content, version: this.draftVersion, revision: this.data()?.assignmentRevision })); }
   async save(): Promise<boolean> {
     const data = this.data(); if (!data || this.readonly || this.conflict()) return false;
@@ -100,7 +104,7 @@ export class DutyExecutionComponent implements OnInit {
     if ((!this.activeFacts.length && !this.content.noLateStudents) || (!this.content.violations.length && !this.content.noViolations) || !this.content.lastDeparture) {
       this.error.set(this.t('REVIEW_REQUIRED')); return;
     }
-    if (await this.save()) { this.step = 'review'; document.querySelector('.execution-workspace')?.scrollIntoView({ block: 'start' }); }
+    if (await this.save()) { this.reportWorkedOn = true; this.step = 'review'; document.querySelector('.execution-workspace')?.scrollIntoView({ block: 'start' }); }
   }
   async selectStep(step: 'letter' | 'report' | 'review') {
     if (step === 'review') { await this.review(); return; }
@@ -150,7 +154,26 @@ export class DutyExecutionComponent implements OnInit {
   async correctFact(){const f=this.correctingFact;if(!f||!this.correctionReason.trim())return;this.busy.set(true);this.factError='';try{const r=await firstValueFrom(this.api.correctLate(f.id,{expectedRevision:f.revision,observedAt:this.observedAt.slice(0,5)+':00',departureAt:this.departureAt?this.departureAt.slice(0,5)+':00':null,action:this.action,notes:this.notes,reason:this.correctionReason,retract:this.retract,requestId:crypto.randomUUID()}));if(!r.isSuccess)throw new Error(r.message);this.factOpen=false;this.load();}catch(e:any){this.factError=extractHttpErrorMessage(e)||e.message;}finally{this.busy.set(false);}}
   async managerConfirm(){const d=this.data();if(!d||!this.managerReason.trim())return;this.busy.set(true);this.error.set('');try{const r=await firstValueFrom(this.managerAction==='report'?this.api.correct(d.assignmentId,d.assignmentRevision,d.draft!.version,this.managerReason,crypto.randomUUID()):this.api.timing(d.assignmentId,d.assignmentRevision,this.timingAt?this.timingAt+':00':null,this.managerReason));if(!r.isSuccess||!r.data)throw new Error(r.message);this.data.set(r.data);this.managerAction=null;}catch(e:any){this.error.set(extractHttpErrorMessage(e)||e.message);}finally{this.busy.set(false);}}
   async retry(f:DutyLate){this.busy.set(true);try{await firstValueFrom(this.api.retry(f.id));const r=await firstValueFrom(this.api.get(this.assignmentId));if(r.data)this.data.set(r.data);}catch(e){this.error.set(extractHttpErrorMessage(e)||this.t('SAVE_ERROR'));}finally{this.busy.set(false);}}
-  async close(){if(this.busy())return;if(this.dirty()){if(!await this.save())return;}this.closed.emit();}
+  requestLeave(): boolean | Promise<boolean> {
+    if (this.leaving) return this.leaving;
+    if (this.busy()) return false;
+    if (this.readonly || !this.data()?.acknowledged || !this.reportWorkedOn) return true;
+    this.leaving = this.confirmDraftExit().finally(() => this.leaving = undefined);
+    return this.leaving;
+  }
+  private async confirmDraftExit(): Promise<boolean> {
+    if (this.dirty() && !await this.save()) return false;
+    // Input can change while the save request is in flight. Let autosave finish
+    // the newer edit before claiming that all changes are safely saved.
+    if (this.dirty()) return false;
+    // A fresh save may reveal submission or an ownership change in another tab.
+    if (this.readonly) return true;
+    if (!this.draftExit) return false;
+    const leave = await this.draftExit.ask();
+    if (leave) this.reportWorkedOn = false;
+    return leave;
+  }
+  async close(){if(await this.requestLeave())this.closed.emit();}
   @HostListener('window:beforeunload',['$event']) unload(event:BeforeUnloadEvent){if(this.dirty()){this.cache();event.preventDefault();event.returnValue='';}}
   notice(f:DutyLate){return f.notices.at(-1);}
   async openSnapshot(id:number){try{const r=await firstValueFrom(this.api.snapshot(id));if(r.data){this.signedSnapshot=r.data.Snapshot;this.snapshotSignature=r.data.SignatureData;this.snapshotOpen=true;}}catch(e){this.error.set(extractHttpErrorMessage(e)||this.t('LOAD_ERROR'));}}

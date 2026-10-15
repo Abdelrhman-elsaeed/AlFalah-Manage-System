@@ -1,4 +1,5 @@
 <section class="execution-workspace" [dir]="dir" [attr.aria-busy]="loading()">
+  <app-duty-draft-exit-dialog />
   <header class="execution-nav"><button class="text-action" (click)="close()" [disabled]="busy()"><i class="pi" [ngClass]="dir==='rtl'?'pi-arrow-right':'pi-arrow-left'" aria-hidden="true"></i>{{ 'DUTY_EXEC.BACK_DUTY' | translate }}</button><span class="private-label"><i class="pi pi-lock" aria-hidden="true"></i>{{ (data()?.canManage?'DUTY_EXEC.MANAGER_REVIEW':'DUTY_EXEC.OWN_WORKSPACE') | translate }}</span></header>
   <div class="execution-state" *ngIf="loading()"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ 'DUTY_EXEC.LOADING' | translate }}</div>
   <span hidden [dutyError]="error()" (dutyErrorDismissed)="error.set('')"></span>

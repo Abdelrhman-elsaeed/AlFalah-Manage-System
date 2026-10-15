@@ -174,3 +174,14 @@ The owner explicitly authorized clearing the existing Al-Falah E2E Test School r
 - [x] C27: actual empty-root setup and five real automatic/storage uploads in isolated SQL.
 - [x] C27: responsive mocked presentation plus actual authenticated native previews/downloads; actual PDF pages inspected.
 - [ ] Owner visual acceptance and physical phone/OS-keyboard review.
+
+
+## C28 — Intentional draft departure
+
+- [x] Diagnose the reported original missing Report using authenticated HTTP plus independently repeated read-only SQL.
+- [x] Explain draft-only departure after actual report work, with concrete submission steps, Continue report and OK; no random untouched/read-only/submitted prompts.
+- [x] Preserve saves/input on failures, prevent duplicate dialogs/implicit signing, and retain existing authority/time rules.
+- [x] Verify155 Angular checks,32 overlapping focused checks, actual-browser Arabic390/768/1440 and English1440, and visually inspect all four captures.
+- [ ] Owner final visual acceptance and physical-device/keyboard review remain pending.
+
+[Evidence](verification/draft-exit.md).

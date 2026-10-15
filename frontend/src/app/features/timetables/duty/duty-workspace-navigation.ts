@@ -4,7 +4,7 @@ export type DutySection = 'schedule' | 'settings' | 'execution' | 'documents' | 
 export interface DutyWorkspaceNavigation {
   activateSection(section: DutySection): void;
   pageTemplate(section: DutySection): TemplateRef<unknown> | null;
-  canLeaveSection(): boolean;
+  canLeaveSection(): boolean | Promise<boolean>;
 }
 export const DUTY_WORKSPACE_NAVIGATION = new InjectionToken<DutyWorkspaceNavigation>('Duty workspace navigation');
 

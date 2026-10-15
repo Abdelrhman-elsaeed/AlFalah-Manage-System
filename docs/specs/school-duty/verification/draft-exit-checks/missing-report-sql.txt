@@ -1,0 +1,11 @@
+{
+    "readOnly":  true,
+    "assignment":  2,
+    "date":  "2026-10-15",
+    "draftVersion":  6,
+    "savedAt":  "10/14/2026 7:09:36 AM +00:00",
+    "submitted":  false,
+    "signedLetters":  1,
+    "signedReports":  0,
+    "reportArchiveIntents":  0
+}
