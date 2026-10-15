@@ -268,3 +268,15 @@ C27 / D-119: replaced storage feature redirects with native school-root browsing
 ## Change log — 2026-10-15 (C28)
 
 - School Duty now explains leaving actual report work as an unsubmitted draft, with completion steps, Continue and OK. Read-only diagnosis confirms the missing original Report has not been submitted; no agent signing/upload performed.155 Angular checks and responsive Arabic/English browser verification passed. [Verification](docs/specs/school-duty/verification/draft-exit.md).
+
+## C29 / D-121 — Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | School Duty official roster now follows source1: paired weekly tables, ordinary18-week single-page output, readable whole-week continuation, embedded Arabic and blank signatures. Versioned immutable exports retain original snapshots/history; guarded index-only local migration68-to69 applied.102/105 overlapping backend and74 Angular checks plus real native downloads at390/768/1440 passed. [Source/PDF/browser/SQL evidence](docs/specs/school-duty/verification/roster-source.md). Owner/physical/printer acceptance pending; no C29 Drive write/deployment. |
+
+## C30 / D-122 — Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | Unified School files/map/legacy links in one native browser; restored existing library upload/create and metadata/preview/versions/evidence/change tools. Corrected live administrator navigation and whole-card links. Shared application binary transport prevents attachment-style awaited downloads while retaining genuine errors and exact bytes.15 backend/23 focused Angular and six real browser downloads at390/768/1440 passed; one unrelated overlapping shell assertion remains. [Evidence](docs/specs/school-file-storage/verification/download-access.md). No new migration or verification provider write; owner/physical/installed IDM acceptance pending. |

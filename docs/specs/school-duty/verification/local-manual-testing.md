@@ -1,5 +1,7 @@
 # Owner-authorized local migration and manual-test startup — 2026-10-14
 
+**Current C29 / D-121 (2026-10-15):** The official roster now follows source1, with paired nine-week columns, repeated weekly headings and whole-week continuation. Retained snapshots/bytes survive template upgrades; the owner-authorized local Development index-only migration advanced schema68 to69 after fresh isolated SQL validation. Both archive processors remain ON with prior school settings retained; no C29 Drive write. [Verification](roster-source.md). Owner visual/physical/printer acceptance remains pending.
+
 The owner explicitly requested applying necessary migrations and running the project for manual testing. This later request authorizes migration of the configured **local Development database** and local startup, superseding the earlier no-original-database-migration restriction for this operation. It does not authorize production deployment or external duty/visit archive delivery. D3 implementation evidence remains in [d3.md](d3.md).
 
 ## Executed operation
@@ -71,3 +73,17 @@ The owner's latest storage correction supersedes C26's feature shortcuts. Files 
 Durable operations, expiring actor/school/root-bound confirmations, SQL locking, provider reconciliation and atomic evidence/legacy task updates preserve audit and review history. Removing a signed external copy never deletes or rewrites its snapshot/artifact/version identity/completed history; it records intentional deletion, retains local PDF access and excludes automatic recreation. Explicit recovery restores recorded descendants parent first and verifies names, parents and known hashes. Withdrawn evidence approvals are not automatically restored. Native managed signed reads reject altered bytes before streaming.
 
 The owner explicitly authorized clearing the existing Al-Falah E2E Test School root, including D3_Test. All five original branches were trashed through real manager HTTP operations and the empty root verified. Fresh guarded isolated SQL then provisioned all four branches and delivered five real files through acknowledgement, signed report submission, visit approval, library upload and teacher upload. Sixteen live checks passed without messages. Test artifacts are cleaned through their retained isolated ledger, registered history is preserved and D3_Test remains trashed. No new migration, original credential/key/root/grant change, data reset or production deployment. Owner visual and physical-device acceptance remain pending. See the C27 verification report for current final recovery receipts, commands, exact test results and baseline limitations.
+
+## C29 — Current runtime and additive roster migration (2026-10-15)
+
+The current API is the rebuilt Debug/net8.0 application on5264, with Angular watch on4200. The source1 roster renderer is `school-duty/roster-source-2026-v5`. Fresh guarded SQL validated the index-only migration before its authorized local application, schema68 to69; prior artifact/signature hashes, version pointers and existing settings were preserved. No original credential/key/root/grant changes or seeding occurred. The startup command retains:
+
+```powershell
+dotnet --roll-forward Major backend/AlFalah.Api/bin/Debug/net8.0/AlFalah.Api.dll --urls http://localhost:5264 --environment Development --Database:InitializeOnStartup=false --SchoolDutyArchive:ProcessingEnabled=true --SchoolFileStorage:ArchiveProcessingEnabled=true
+```
+
+Run with API content-root/working directory `backend/AlFalah.Api` and resolve the DLL path from that directory when restarting. Both archive processors and existing owner-selected school18 flags remain ON; school1 remains OFF. Earlier schema68/Release/OFF statements are dated historical receipts. [Current tests, source comparison and non-destructive rollback](roster-source.md).
+
+## C30 — Current download/storage runtime (2026-10-15)
+
+The current Debug API5264 and Angular4200 include shared binary-transfer negotiation and the single native School files browser/inspector. Initialization is OFF; both existing archive process flags and owner-selected school activation choices are retained. Schema remains69; no C30 migration or provider write from verification scripts. [Tests and manual-review boundaries](../../school-file-storage/verification/download-access.md). Existing C29 roster/signed PDF bytes remain preserved.

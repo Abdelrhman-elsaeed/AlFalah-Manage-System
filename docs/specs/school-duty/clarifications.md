@@ -162,3 +162,9 @@ The owner explicitly authorized clearing the existing Al-Falah E2E Test School r
 ## C28 — Owner-confirmed draft departure explanation (2026-10-15)
 
 The owner requested a centered, acknowledged explanation only when leaving actual report work as an unsubmitted draft, with clear completion steps and an OK button; random load/refresh notices are explicitly unwanted. Continue report is provided as a second useful action. This changes no signing, timing, ownership or automatic-archive rule. The actual 2026-10-15 missing Report was independently diagnosed as an unsubmitted draft, with zero signed Reports/archive intents. [Evidence](verification/draft-exit.md).
+
+## C29 — Owner-confirmed source1 roster layout (2026-10-15)
+
+The owner's supplied1.jpeg is the current official roster layout reference. Reopen it visually and verify its recorded fingerprint; reproduce organization and column/signature positions using current frozen school/plan values, never photographed personal data. This replaces the older sparse four-week pagination decision: ordinary18-week output fits one A4 page with nine weeks per side, with whole-week continuation when content requires it.
+
+A layout upgrade receives a separate roster renderer identity and retained artifact. Use the earliest existing snapshot, retain every older artifact, and keep the signed letter/report renderer identity unchanged. Version-aware SQL uniqueness is required; the narrowly additive local index migration is covered by the owner's existing local manual-test migration authorization. No new roster archive obligation or external upload is authorized by this request. [Evidence](verification/roster-source.md).

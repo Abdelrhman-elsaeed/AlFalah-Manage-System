@@ -1,0 +1,44 @@
+{
+  "at": "2026-10-15T06:51:15.248Z",
+  "results": [
+    {
+      "width": 390,
+      "realLocalApi": true,
+      "interceptedApi": false,
+      "nativeAuthenticatedDownload": true,
+      "sha256": "7BA8CAA14B330728C6D4DAD19CE16D306C632B8C9C6E0BB28ED19027B46150AC",
+      "repeatAndFilterBytesEqual": true,
+      "buttonInsideSchedule": true,
+      "oneExportButton": true,
+      "minimum44px": true,
+      "noSigningOrArchiveRequests": true
+    },
+    {
+      "width": 768,
+      "realLocalApi": true,
+      "interceptedApi": false,
+      "nativeAuthenticatedDownload": true,
+      "sha256": "7BA8CAA14B330728C6D4DAD19CE16D306C632B8C9C6E0BB28ED19027B46150AC",
+      "repeatAndFilterBytesEqual": true,
+      "buttonInsideSchedule": true,
+      "oneExportButton": true,
+      "minimum44px": true,
+      "noSigningOrArchiveRequests": true
+    },
+    {
+      "width": 1440,
+      "realLocalApi": true,
+      "interceptedApi": false,
+      "nativeAuthenticatedDownload": true,
+      "sha256": "7BA8CAA14B330728C6D4DAD19CE16D306C632B8C9C6E0BB28ED19027B46150AC",
+      "repeatAndFilterBytesEqual": true,
+      "buttonInsideSchedule": true,
+      "oneExportButton": true,
+      "minimum44px": true,
+      "noSigningOrArchiveRequests": true
+    }
+  ],
+  "physicalDevice": "Pending",
+  "ownerVisualReview": "Pending",
+  "driveWrites": 0
+}

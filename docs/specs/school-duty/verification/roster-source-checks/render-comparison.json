@@ -1,0 +1,22 @@
+{
+  "sharedPdfSettings": "original unchanged; temporary cache override reverted",
+  "engine": "PDF.js4.10.38",
+  "defaultVsExperimentalSchoolPages": {
+    "pages": 3,
+    "pixelIdentical": true
+  },
+  "defaultVsExperimentalLongArabicPages": {
+    "pages": 3,
+    "pixelIdentical": true
+  },
+  "principalAcceptancePages": 13,
+  "nativeRasterIntermediates": "private diagnostic only; not used as visual acceptance evidence",
+  "viewports": [
+    390,
+    768,
+    1440
+  ],
+  "physicalDeviceAndPrinter": "Pending owner review",
+  "sourcePhotographIncluded": false,
+  "c29ExternalWrites": 0
+}

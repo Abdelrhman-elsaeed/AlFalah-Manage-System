@@ -243,3 +243,19 @@ The owner's latest storage correction supersedes C26's feature shortcuts. Files 
 Durable operations, expiring actor/school/root-bound confirmations, SQL locking, provider reconciliation and atomic evidence/legacy task updates preserve audit and review history. Removing a signed external copy never deletes or rewrites its snapshot/artifact/version identity/completed history; it records intentional deletion, retains local PDF access and excludes automatic recreation. Explicit recovery restores recorded descendants parent first and verifies names, parents and known hashes. Withdrawn evidence approvals are not automatically restored. Native managed signed reads reject altered bytes before streaming.
 
 The owner explicitly authorized clearing the existing Al-Falah E2E Test School root, including D3_Test. All five original branches were trashed through real manager HTTP operations and the empty root verified. Fresh guarded isolated SQL then provisioned all four branches and delivered five real files through acknowledgement, signed report submission, visit approval, library upload and teacher upload. Sixteen live checks passed without messages. Test artifacts are cleaned through their retained isolated ledger, registered history is preserved and D3_Test remains trashed. No new migration, original credential/key/root/grant change, data reset or production deployment. Owner visual and physical-device acceptance remain pending. See the C27 verification report for current final recovery receipts, commands, exact test results and baseline limitations.
+
+## C30 / D-122 — One school browser and application download transport (2026-10-15)
+
+The owner's latest clarification requires one School files experience, including folders opened from the visual map. Remove the old full-page library fallback from `StorageFilesEntryComponent`; reuse existing **services**, not a second file-browsing frontend. `StorageDriveBrowserComponent` is the sole school-folder presenter and hosts `StorageFileInspectorComponent`, which reuses the existing details/version/evidence/change services. Separate teacher-private storage and evidence review retain their scoped workflows.
+
+Thin GET drive/resolve translates existing school-library folder/file IDs into existing protected handles after live authorization, scoped SQL lookup, root containment and current parent checks. Native DTOs expose eligible registered library destinations, not arbitrary provider IDs. Upload/create reuse the established ledger/provider services; automatic archives stay protected. Live school-management state selects school navigation, with no Personal files item for administrators and a safe bookmark redirect.
+
+Global binary result/client interceptors negotiate an application transfer without changing bytes/streams, then offer a browser Blob download. Ordinary direct file responses and failures remain intact; roster gains an extension-free alias. No migration, data reset, credentials/root/grant change or new archive obligation. [Full verification](verification/download-access.md).
+
+- [x] Diagnose the attachment/awaited-request failure and retain genuine network errors.
+- [x] Restore eligible library upload/create, native preview/details/versions/evidence/change workflow and same-key retry.
+- [x] Remove the old school-library browsing fallback for all School files folder/file/map entry paths.
+- [x] Make entire available cards keyboard/click targets while keeping collapse independent.
+- [x] Hide administrator Personal files, preserve ordinary teacher scope and redirect administrator bookmarks.
+- [x] Verify15 backend/23 focused Angular checks, real read-only downloads at390/768/1440, synthetic write/retry presentation, builds and current runtime.
+- [ ] Owner appearance/physical-device/assistive-technology and actual installed desktop IDM acceptance.

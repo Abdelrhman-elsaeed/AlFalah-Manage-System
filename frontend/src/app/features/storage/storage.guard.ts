@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { StorageApiService } from './storage-api.service';
 import { VisitArchiveApiService } from './visit-archive-api.service';
@@ -10,12 +10,24 @@ export const storageGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const archive = inject(VisitArchiveApiService);
+  const api = inject(StorageApiService);
   if (!auth.isAuthenticated()) return router.createUrlTree(['/auth/school-login']);
   const url = new URL(state.url, 'http://localhost');
   const review = route.data['view'] === 'review' || (!route.data['own'] && url.pathname === '/school-manager/storage' &&
     (url.searchParams.get('view') === 'review' || url.searchParams.has('requirement') && !url.searchParams.has('file')));
-  return inject(StorageApiService).accessInfo(route.data['own'] === true).pipe(
-    switchMap(access => route.data['manage'] === true && !access.canManage
+  // Old personal bookmarks remain useful after an administrator grant. Resolve
+  // live school management first, without weakening the personal-folder policy.
+  const scope = route.data['own'] === true
+    ? api.accessInfo(false).pipe(
+        catchError(error => error.status === 403 ? of(null) : throwError(() => error)),
+        switchMap(school => school?.canManage
+          ? of({ redirectToSchool: true, ...school })
+          : api.accessInfo(true).pipe(map(own => ({ redirectToSchool: false, ...own })))))
+    : api.accessInfo(false).pipe(map(access => ({ redirectToSchool: false, ...access })));
+  return scope.pipe(
+    switchMap(access => access.redirectToSchool
+      ? of(router.createUrlTree(['/school-manager/storage']))
+      : route.data['manage'] === true && !access.canManage
       ? of(router.createUrlTree(['/unauthorized']))
       : review && !access.canReviewEvidence
         ? of(router.createUrlTree(['/unauthorized']))

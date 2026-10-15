@@ -15,6 +15,7 @@ public sealed class DutyDocumentController(IDutyDocumentService service) : Contr
     [HttpGet("documents/{id:int}/pdf")]
     public async Task<IActionResult> Pdf(int id,[FromQuery] bool archived,CancellationToken ct)=>Content(await service.ContentAsync(id,archived,ct));
     [HttpGet("plans/roster.pdf")]
+    [HttpGet("plans/roster/content")]
     public async Task<IActionResult> Roster([FromQuery]int termId,[FromQuery]int revision,CancellationToken ct)=>Content(await service.RosterAsync(termId,revision,ct));
     [HttpPost("documents/{id:int}/archive/retry")]
     public async Task<IActionResult> Retry(int id,CancellationToken ct){await service.RetryAsync(id,ct);return Accepted(ApiResponse<bool>.Success(true));}

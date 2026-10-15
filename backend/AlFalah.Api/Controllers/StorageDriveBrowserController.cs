@@ -9,6 +9,9 @@ namespace AlFalah.Api.Controllers;
 [ApiController,Authorize,Route("api/v1/storage/drive"),EnableRateLimiting("teacher-drive")]
 public sealed class StorageDriveBrowserController(IStorageDriveBrowserService service):ControllerBase
 {
+    [HttpGet("resolve")]
+    public async Task<IActionResult> Resolve([FromQuery]int? folderId,[FromQuery]int? fileId,CancellationToken ct)=>
+        Ok(ApiResponse<DriveBrowserResolution>.Success(await service.ResolveAsync(folderId,fileId,ct)));
     [HttpGet]
     public async Task<IActionResult> Browse([FromQuery]string? handle,[FromQuery]string? pageToken,CancellationToken ct)=>
         Ok(ApiResponse<DriveBrowserPage>.Success(await service.BrowseAsync(handle,pageToken,ct)));

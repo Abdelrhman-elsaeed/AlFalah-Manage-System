@@ -16,6 +16,19 @@ public sealed class StorageDriveBrowserService(IStorageDriveBrowserRepository re
 {
     private int School=>user.ActiveSchoolId??throw Denied();
     private string Actor=>user.UserId??throw Denied();
+    public async Task<DriveBrowserResolution> ResolveAsync(int? folder,int? file,CancellationToken ct)
+    {
+        if(folder is <=0||file is <=0||folder==null&&file==null)throw new ArgumentException("اختر مجلدًا أو ملفًا صالحًا.");
+        var root=await RootAsync(false,ct);
+        var reference=await repository.LibraryReferenceAsync(School,folder,file,ct)??throw new KeyNotFoundException("المجلد أو الملف غير متاح.");
+        var location=await ItemAsync(reference.Folder,root,ct);await BranchAsync(location,root,ct);
+        if(!location.IsFolder)throw Denied();
+        DriveBrowserItem? selected=null;
+        if(reference.File is not null){var content=await ItemAsync(reference.File,root,ct);var protection=await BranchAsync(content,root,ct);
+            if(content.IsFolder||!content.Parents.Contains(location.Id))throw new StorageConflictException();
+            selected=new(handles.ProtectHandle(Handle(root,content.Id)),content.Name,false,content.Size,content.MimeType,content.ModifiedTime,false,protection,file,reference.FolderId);}
+        return new(handles.ProtectHandle(Handle(root,location.Id)),selected);
+    }
     private static UnauthorizedSchoolAccessException Denied()=>new("لا تملك صلاحية الوصول إلى ملفات هذه المدرسة.");
     private async Task<StorageDriveRoot> RootAsync(bool mutation,CancellationToken ct)
     {
@@ -75,8 +88,9 @@ public sealed class StorageDriveBrowserService(IStorageDriveBrowserRepository re
         if(handle==null)return new("ملفات المدرسة",null,[],[new(handles.ProtectHandle(Handle(root,root.RootItemId)),"ملفات المدرسة",true,null,GoogleDriveFile.FolderMimeType,null,false,"SchoolRoot")],null,access.CanManage&&actualManager);
         var decoded=handles.ReadHandle(handle);Validate(decoded,root);
         var folder=await ItemAsync(decoded.Item,root,ct);if(!folder.IsFolder)throw new ArgumentException("اختر مجلدًا.");
-        await BranchAsync(folder,root,ct);
+        var folderProtection=await BranchAsync(folder,root,ct);
         var page=await provider.ChildrenAsync(School,folder.Id,root.DriveId,pageToken,ct);
+        var registered = (await repository.RegisteredFilesAsync(School, page.Files.Select(x => x.Id).ToArray(), ct)).ToDictionary(x => x.Item);
         var items=new List<DriveBrowserItem>();
         foreach(var item in page.Files.Where(x=>!x.Trashed&&x.Parents.Count==1&&x.Parents[0]==folder.Id&&(x.SharedDriveId??"")==root.DriveId))
         {
@@ -84,14 +98,20 @@ public sealed class StorageDriveBrowserService(IStorageDriveBrowserRepository re
             try{await ItemAsync(item.Id,root,ct);protection=await BranchAsync(item,root,ct);}catch(UnauthorizedSchoolAccessException){continue;}
             if(folder.Id==root.RootItemId&&item.Name is "مكتبة المدرسة" or "ملفات المعلمين" or "المناوبات" or "أرشيف الزيارات")protection="SystemFolder";
             // Mutation eligibility is re-evaluated for the exact action and linked descendants at confirmation.
+            registered.TryGetValue(item.Id, out var ledger);
             items.Add(new(handles.ProtectHandle(Handle(root,item.Id)),item.Name,item.IsFolder,item.Size,item.MimeType,item.ModifiedTime,
-                access.CanManage&&actualManager,protection));
+                access.CanManage&&actualManager,protection,ledger?.Id,ledger?.FolderId));
         }
         var crumbs=new List<DriveBrowserCrumb>();var node=folder;var seen=new HashSet<string>();
         while(seen.Add(node.Id)&&seen.Count<=64){crumbs.Insert(0,new(handles.ProtectHandle(Handle(root,node.Id)),node.Id==root.RootItemId?"ملفات المدرسة":node.Name));
             if(node.Id==root.RootItemId)break;node=await provider.MetadataAsync(School,node.Parents.Single(),ct)??throw Denied();}
         await auth.RequireSchoolPermissionAsync(School,PermissionNames.StorageViewSchool,ct);
-        return new(folder.Id==root.RootItemId?"ملفات المدرسة":folder.Name,handle,crumbs,items,page.NextPageToken,access.CanManage&&actualManager);
+        var placement = await repository.DestinationAsync(School, folder.Id, ct);
+        // Bridge into the existing validated library upload/create workflow. This
+        // grants no new destinations and never writes into automated archives.
+        int? writable = access.CanManage && options.Value.AdministrationEnabled && folderProtection==null &&
+            placement is { Kind: StorageFolderKind.SchoolLibrary, Owner: null } ? placement.Id : null;
+        return new(folder.Id==root.RootItemId?"ملفات المدرسة":folder.Name,handle,crumbs,items,page.NextPageToken,access.CanManage&&actualManager,writable);
     }
     public async Task<DriveFileContentDto> ContentAsync(string handle,CancellationToken ct)
     {

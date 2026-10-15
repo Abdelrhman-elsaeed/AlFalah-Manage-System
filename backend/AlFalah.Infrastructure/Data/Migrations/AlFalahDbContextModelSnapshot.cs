@@ -1350,7 +1350,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("SchoolId", "DocumentId");
 
-                    b.HasIndex("SchoolId", "PlanId", "PlanRevision")
+                    b.HasIndex("SchoolId", "PlanId", "PlanRevision", "RendererVersion")
                         .IsUnique()
                         .HasFilter("[PlanId] IS NOT NULL");
 

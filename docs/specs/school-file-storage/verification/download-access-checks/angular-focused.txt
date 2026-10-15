@@ -1,0 +1,44 @@
+
+> al-falah-app@0.0.0 test
+> ng test --watch=false --browsers=ChromeHeadless --ts-config=tsconfig.storage-followup-spec.json --include=src/app/core/interceptors/browser-transfer.interceptor.spec.ts --include=src/app/features/storage/storage-navigation.spec.ts --include=src/app/features/storage/storage-drive-browser.component.spec.ts --include=src/app/features/storage/storage-file-inspector.component.spec.ts --include=src/app/features/storage/storage-api.service.spec.ts --include=src/app/features/timetables/duty/duty-roster-export.component.spec.ts
+
+npm.cmd : - Generating browser application bundles (phase: setup)...
+At line:2 char:1
++ npm.cmd test -- --watch=false --browsers=ChromeHeadless --ts-config=t ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (- Generating br...hase: setup)...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+√ Browser application bundle generation complete.
+15 10 2026 10:39:02.183:INFO [karma-server]: Karma v6.4.4 server started at http://localhost:9876/
+15 10 2026 10:39:02.185:INFO [launcher]: Launching browsers ChromeHeadless with concurrency unlimited
+15 10 2026 10:39:02.238:INFO [launcher]: Starting browser ChromeHeadless
+15 10 2026 10:39:03.571:INFO [Chrome Headless 155.0.0.0 (Windows 10)]: Connected on socket JrYZVfGCiZZfYQDOAAAB with id 51215363
+Chrome Headless 155.0.0.0 (Windows 10): Executed 0 of 23 SUCCESS (0 secs / 0 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 1 of 23 SUCCESS (0 secs / 0.022 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 2 of 23 SUCCESS (0 secs / 0.029 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 3 of 23 SUCCESS (0 secs / 0.033 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 4 of 23 SUCCESS (0 secs / 0.041 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 5 of 23 SUCCESS (0 secs / 0.046 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 6 of 23 SUCCESS (0 secs / 0.049 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 7 of 23 SUCCESS (0 secs / 0.056 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 8 of 23 SUCCESS (0 secs / 0.06 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 9 of 23 SUCCESS (0 secs / 0.063 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 10 of 23 SUCCESS (0 secs / 0.066 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 11 of 23 SUCCESS (0 secs / 0.357 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 12 of 23 SUCCESS (0 secs / 0.369 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 13 of 23 SUCCESS (0 secs / 0.379 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 14 of 23 SUCCESS (0 secs / 0.39 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 15 of 23 SUCCESS (0 secs / 0.402 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 16 of 23 SUCCESS (0 secs / 0.409 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 17 of 23 SUCCESS (0 secs / 0.419 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 18 of 23 SUCCESS (0 secs / 0.422 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 19 of 23 SUCCESS (0 secs / 0.426 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 20 of 23 SUCCESS (0 secs / 0.436 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 21 of 23 SUCCESS (0 secs / 0.445 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 22 of 23 SUCCESS (0 secs / 0.451 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 23 of 23 SUCCESS (0 secs / 0.457 secs)
+Chrome Headless 155.0.0.0 (Windows 10): Executed 23 of 23 SUCCESS (0.491 secs / 0.457 secs)
+TOTAL: 23 SUCCESS
+√ Browser application bundle generation complete.
+√ Browser application bundle generation complete.

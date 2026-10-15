@@ -1,0 +1,20 @@
+{
+  "oldAwaitedAttachment": {
+    "status": 200,
+    "contentType": "application/pdf",
+    "attachmentFileName": true,
+    "applicationTransferAssertion": "Failed before correction"
+  },
+  "newTransfer": {
+    "status": 200,
+    "contentType": "application/vnd.alfalah.transfer",
+    "attachmentFileName": false,
+    "bytesUnchanged": true,
+    "realNetworkFailuresPreserved": true
+  },
+  "singleSchoolFileBrowser": true,
+  "legacyFolderAndFileLinksResolveServerSide": true,
+  "newMigration": false,
+  "verificationProviderWrites": 0,
+  "actualIdmExtension": "Owner desktop confirmation pending; synthetic takeover-policy replay passed"
+}

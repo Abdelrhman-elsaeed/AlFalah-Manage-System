@@ -1,0 +1,13 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+D:\AlFalah-Manage-System\backend\AlFalah.Tests\Storage\StorageDriveBrowserSqlTests.cs(102,31): warning EF1002: Method 'ExecuteSqlRawAsync' inserts interpolated strings directly into the SQL, without any protection against SQL injection. Consider using 'ExecuteSqlAsync' instead, which protects against SQL injection, or make sure that the value is sanitized and suppress the warning. [D:\AlFalah-Manage-System\backend\AlFalah.Tests\AlFalah.Tests.csproj]
+D:\AlFalah-Manage-System\backend\AlFalah.Tests\Storage\StorageDriveBrowserSqlTests.cs(105,39): warning EF1002: Method 'ExecuteSqlRawAsync' inserts interpolated strings directly into the SQL, without any protection against SQL injection. Consider using 'ExecuteSqlAsync' instead, which protects against SQL injection, or make sure that the value is sanitized and suppress the warning. [D:\AlFalah-Manage-System\backend\AlFalah.Tests\AlFalah.Tests.csproj]
+  AlFalah.Tests -> D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll
+Test run for D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: D:\AlFalah-Manage-System\.audit\roster-source-20261015\results\roster-final-v5.trx
+
+Passed!  - Failed:     0, Passed:   105, Skipped:     0, Total:   105, Duration: 2 m - AlFalah.Tests.dll (net8.0)

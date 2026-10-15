@@ -1,0 +1,1 @@
+Real authenticated official roster downloads passed at390/768/1440, including retained-byte equality and unchanged full-plan scope after filtering.

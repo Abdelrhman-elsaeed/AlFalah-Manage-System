@@ -185,3 +185,17 @@ The owner explicitly authorized clearing the existing Al-Falah E2E Test School r
 - [ ] Owner final visual acceptance and physical-device/keyboard review remain pending.
 
 [Evidence](verification/draft-exit.md).
+
+## C29 — Source1 official roster PDF (2026-10-15)
+
+- [x] Reopen the private source and verify its recorded fingerprint before composing the template.
+- [x] Reproduce the official header/title/code/year/term, paired nine-week halves, repeated weekly columns and blank signature/footer positions.
+- [x] Preserve frozen provenance and retain older template artifacts through a separate roster renderer identity and SQL uniqueness.
+- [x] Validate the additive migration on fresh guarded SQL first, retain a sentinel/history on reapplication, then apply only the authorized local index migration.
+- [x] Put one download button beside the schedule heading; guard duplicate clicks/stale responses and verify real authenticated native downloads at390/768/1440.
+- [x] Inspect all13 PDF.js-rendered pages, including ordinary/long/duplicate/closure/exam/partial/seven-day/extended-period fixtures; compare frozen/generated/downloaded hashes.
+- [x] Complete102 broad/105 expanded overlapping backend checks,74 Angular checks, Development frontend/backend builds and final5 renderer checks with original shared settings.
+- [x] Update feature/project/phase/decision evidence and leave the current local frontend/backend running.
+- [ ] Owner final source-fidelity/appearance approval and physical-device/printer acceptance.
+
+[Commands, exact boundaries and artifacts](verification/roster-source.md). No C29 external provider writes or changes to signing, notifications or archive obligations.

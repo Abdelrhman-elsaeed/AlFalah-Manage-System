@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/app/core/interceptors/browser-transfer.interceptor.spec.ts",
+    "src/app/features/storage/storage-navigation.spec.ts",
+    "src/app/features/storage/storage-drive-browser.component.spec.ts",
+    "src/app/features/storage/storage-file-inspector.component.spec.ts",
+    "src/app/features/storage/storage-api.service.spec.ts",
+    "src/app/shared/layout/shell/shell-navigation.spec.ts",
+    "src/app/features/timetables/duty/duty-roster-export.component.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

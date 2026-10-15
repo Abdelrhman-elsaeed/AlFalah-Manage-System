@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="3d094eb3-b054-4a4a-8942-34ff6a2bb26c" name="abdelrhman@DESKTOP-FHRP6TC 2026-10-15 09:37:17" runUser="DESKTOP-FHRP6TC\abdelrhman" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-15T09:37:17.5957376+03:00" queuing="2026-10-15T09:37:17.5957378+03:00" start="2026-10-15T09:37:13.9066950+03:00" finish="2026-10-15T09:38:09.8225490+03:00" />
+  <TestSettings name="default" id="0203c92d-ff5f-460e-8be7-cfe4f0afaaba">
+    <Deployment runDeploymentRoot="abdelrhman_DESKTOP-FHRP6TC_2026-10-15_09_37_17" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="278ef6bd-ca39-4cc8-8873-fefe981719c7" testId="8c0346ef-5259-3687-5062-0d16c998166b" testName="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-long-names-closures&quot;, weeks: 18, longNames: True, days: 5)" computerName="DESKTOP-FHRP6TC" duration="00:00:00.3670786" startTime="2026-10-15T09:37:17.8275396+03:00" endTime="2026-10-15T09:37:17.8275399+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="278ef6bd-ca39-4cc8-8873-fefe981719c7" />
+    <UnitTestResult executionId="bd3db563-cafc-4333-83c3-971257bb19b4" testId="4a157c97-c0bc-bc29-df0b-d9907f39662f" testName="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-eighteen-weeks&quot;, weeks: 18, longNames: False, days: 5)" computerName="DESKTOP-FHRP6TC" duration="00:00:00.5022487" startTime="2026-10-15T09:37:17.4611321+03:00" endTime="2026-10-15T09:37:17.4611789+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bd3db563-cafc-4333-83c3-971257bb19b4" />
+    <UnitTestResult executionId="42611938-c322-4bfe-94a1-a7211ab870c1" testId="8592237a-5fa0-eff2-9196-555698ecb1a8" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Source_roster_upgrade_retains_old_bytes_and_first_snapshot_without_changing_the_plan_or_signing" computerName="DESKTOP-FHRP6TC" duration="00:00:02.6946348" startTime="2026-10-15T09:38:08.9263739+03:00" endTime="2026-10-15T09:38:08.9263741+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="42611938-c322-4bfe-94a1-a7211ab870c1" />
+    <UnitTestResult executionId="6a92d563-b2be-42a0-9989-7b8b28bcb18a" testId="40f6e33e-d13f-68a2-fa2f-a4c2ebedc468" testName="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-partial-weeks&quot;, weeks: 2, longNames: False, days: 5)" computerName="DESKTOP-FHRP6TC" duration="00:00:00.0301213" startTime="2026-10-15T09:37:18.1142565+03:00" endTime="2026-10-15T09:37:18.1142569+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6a92d563-b2be-42a0-9989-7b8b28bcb18a" />
+    <UnitTestResult executionId="662fee88-e252-4a20-a2b6-b678d531ed63" testId="d607fe90-2e7e-3aae-ae70-b4e8beed7217" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_version_migration_applies_twice_on_fresh_previous_schema_and_preserves_frozen_artifact" computerName="DESKTOP-FHRP6TC" duration="00:00:16.1468758" startTime="2026-10-15T09:38:06.2294957+03:00" endTime="2026-10-15T09:38:06.2294959+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="662fee88-e252-4a20-a2b6-b678d531ed63" />
+    <UnitTestResult executionId="f63bb93a-9bb2-4572-affe-8cf9897f07a7" testId="7c8d1e81-2ecb-9083-ee25-81331e969ad6" testName="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-seven-study-days&quot;, weeks: 18, longNames: False, days: 7)" computerName="DESKTOP-FHRP6TC" duration="00:00:00.3015692" startTime="2026-10-15T09:37:18.4160901+03:00" endTime="2026-10-15T09:37:18.4160908+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f63bb93a-9bb2-4572-affe-8cf9897f07a7" />
+    <UnitTestResult executionId="8bf3d66a-8900-41b4-b5f3-c6e4dca2ec08" testId="340a0abb-eb7f-8a42-c399-758106e57369" testName="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-full-year&quot;, weeks: 43, longNames: False, days: 5)" computerName="DESKTOP-FHRP6TC" duration="00:00:00.2562157" startTime="2026-10-15T09:37:18.0839774+03:00" endTime="2026-10-15T09:37:18.0839776+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8bf3d66a-8900-41b4-b5f3-c6e4dca2ec08" />
+    <UnitTestResult executionId="1fcb1105-52d0-49e4-a028-afbaadef4013" testId="450be004-d648-2aba-bd11-19081aca8d85" testName="AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation" computerName="DESKTOP-FHRP6TC" duration="00:00:00.4752930" startTime="2026-10-15T09:38:09.4022942+03:00" endTime="2026-10-15T09:38:09.4022943+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1fcb1105-52d0-49e4-a028-afbaadef4013" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="450be004-d648-2aba-bd11-19081aca8d85">
+      <Execution id="1fcb1105-52d0-49e4-a028-afbaadef4013" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Roster_export_is_frozen_to_plan_revision_and_has_no_archive_obligation" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Source_roster_upgrade_retains_old_bytes_and_first_snapshot_without_changing_the_plan_or_signing" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="8592237a-5fa0-eff2-9196-555698ecb1a8">
+      <Execution id="42611938-c322-4bfe-94a1-a7211ab870c1" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Source_roster_upgrade_retains_old_bytes_and_first_snapshot_without_changing_the_plan_or_signing" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-long-names-closures&quot;, weeks: 18, longNames: True, days: 5)" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="8c0346ef-5259-3687-5062-0d16c998166b">
+      <Execution id="278ef6bd-ca39-4cc8-8873-fefe981719c7" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyRosterRendererTests" name="Source_roster_keeps_every_canonical_day_and_frozen_provenance" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-full-year&quot;, weeks: 43, longNames: False, days: 5)" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="340a0abb-eb7f-8a42-c399-758106e57369">
+      <Execution id="8bf3d66a-8900-41b4-b5f3-c6e4dca2ec08" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyRosterRendererTests" name="Source_roster_keeps_every_canonical_day_and_frozen_provenance" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyDocumentSqlTests.Roster_version_migration_applies_twice_on_fresh_previous_schema_and_preserves_frozen_artifact" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="d607fe90-2e7e-3aae-ae70-b4e8beed7217">
+      <Execution id="662fee88-e252-4a20-a2b6-b678d531ed63" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyDocumentSqlTests" name="Roster_version_migration_applies_twice_on_fresh_previous_schema_and_preserves_frozen_artifact" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-partial-weeks&quot;, weeks: 2, longNames: False, days: 5)" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="40f6e33e-d13f-68a2-fa2f-a4c2ebedc468">
+      <Execution id="6a92d563-b2be-42a0-9989-7b8b28bcb18a" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyRosterRendererTests" name="Source_roster_keeps_every_canonical_day_and_frozen_provenance" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-eighteen-weeks&quot;, weeks: 18, longNames: False, days: 5)" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="4a157c97-c0bc-bc29-df0b-d9907f39662f">
+      <Execution id="bd3db563-cafc-4333-83c3-971257bb19b4" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyRosterRendererTests" name="Source_roster_keeps_every_canonical_day_and_frozen_provenance" />
+    </UnitTest>
+    <UnitTest name="AlFalah.Tests.Duty.DutyRosterRendererTests.Source_roster_keeps_every_canonical_day_and_frozen_provenance(name: &quot;source-seven-study-days&quot;, weeks: 18, longNames: False, days: 7)" storage="d:\alfalah-manage-system\backend\alfalah.tests\bin\debug\net8.0\alfalah.tests.dll" id="7c8d1e81-2ecb-9083-ee25-81331e969ad6">
+      <Execution id="f63bb93a-9bb2-4572-affe-8cf9897f07a7" />
+      <TestMethod codeBase="D:\AlFalah-Manage-System\backend\AlFalah.Tests\bin\Debug\net8.0\AlFalah.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AlFalah.Tests.Duty.DutyRosterRendererTests" name="Source_roster_keeps_every_canonical_day_and_frozen_provenance" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="8c0346ef-5259-3687-5062-0d16c998166b" executionId="278ef6bd-ca39-4cc8-8873-fefe981719c7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4a157c97-c0bc-bc29-df0b-d9907f39662f" executionId="bd3db563-cafc-4333-83c3-971257bb19b4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8592237a-5fa0-eff2-9196-555698ecb1a8" executionId="42611938-c322-4bfe-94a1-a7211ab870c1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="40f6e33e-d13f-68a2-fa2f-a4c2ebedc468" executionId="6a92d563-b2be-42a0-9989-7b8b28bcb18a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d607fe90-2e7e-3aae-ae70-b4e8beed7217" executionId="662fee88-e252-4a20-a2b6-b678d531ed63" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7c8d1e81-2ecb-9083-ee25-81331e969ad6" executionId="f63bb93a-9bb2-4572-affe-8cf9897f07a7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="340a0abb-eb7f-8a42-c399-758106e57369" executionId="8bf3d66a-8900-41b4-b5f3-c6e4dca2ec08" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="450be004-d648-2aba-bd11-19081aca8d85" executionId="1fcb1105-52d0-49e4-a028-afbaadef4013" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="8" executed="8" passed="8" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.2)&#xD;
+[xUnit.net 00:00:00.48]   Discovering: AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.77]   Discovered:  AlFalah.Tests&#xD;
+[xUnit.net 00:00:00.79]   Starting:    AlFalah.Tests&#xD;
+[xUnit.net 00:00:53.30]   Finished:    AlFalah.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

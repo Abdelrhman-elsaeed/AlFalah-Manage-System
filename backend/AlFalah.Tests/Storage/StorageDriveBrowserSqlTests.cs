@@ -64,6 +64,17 @@ public sealed class StorageDriveBrowserSqlTests(DutySqlFixture fixture)
         var root=await api.BrowseAsync(home.Items.Single().Handle,null,default);root.Items.Should().HaveCount(5);
         root.Items.Should().Contain(x=>x.Name=="المناوبات");root.Items.Should().Contain(x=>x.Name=="مجلد إضافي");
         var library=await api.BrowseAsync(root.Items.Single(x=>x.Name=="مكتبة المدرسة").Handle,null,default);library.Items.Should().ContainSingle();
+        library.WritableFolderId.Should().Be(w.Library);
+        library.Items[0].StoredFileId.Should().Be(w.File);library.Items[0].FolderId.Should().Be(w.Library);
+        root.WritableFolderId.Should().BeNull();
+        var resolved=await api.ResolveAsync(w.Library,w.File,default);
+        handles.ReadHandle(resolved.Handle).Item.Should().Be(Alias(w,"library"));
+        handles.ReadHandle(resolved.OpenFile!.Handle).Item.Should().Be(handles.ReadHandle(library.Items[0].Handle).Item);
+        var other=await Seed();
+        await FluentActions.Awaiting(()=>api.ResolveAsync(other.Library,null,default)).Should().ThrowAsync<KeyNotFoundException>();
+        await FluentActions.Awaiting(()=>api.ResolveAsync(w.Library,other.File,default)).Should().ThrowAsync<KeyNotFoundException>();
+        (await api.BrowseAsync(root.Items.Single(x=>x.Name=="المناوبات").Handle,null,default)).WritableFolderId.Should().BeNull();
+        (await api.BrowseAsync(root.Items.Single(x=>x.Name=="مجلد إضافي").Handle,null,default)).WritableFolderId.Should().BeNull();
         var content=await api.ContentAsync(library.Items[0].Handle,default);await using var stream=content.Content;stream.Length.Should().BeGreaterThan(0);
         (await db.StorageFolders.CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(1);
     }

@@ -170,3 +170,7 @@ The owner explicitly authorized clearing the existing Al-Falah E2E Test School r
 ## C28 — Draft-only departure notice (2026-10-15)
 
 After actual report work, leaving the editor first saves pending input and opens a centered, restrained gold/green dialog. It clearly states that the report has not been submitted/uploaded, lists completion → Review report → Sign and submit report, and offers Continue report plus OK (leave as draft). Continue/Escape preserves the editor; failed saves show the existing error and never claim saved success. Focus enters Continue, Tab/Shift+Tab cycles, focus returns, 48px controls/RTL/LTR/reduced motion and bounded phone scrolling apply. Untouched/signed/read-only views stay silent. [Four inspected captures and actual-browser checks](verification/draft-exit.md).
+
+## C29 — Official roster download placement (2026-10-15)
+
+One Official duty roster button appears inside the schedule-panel heading, reachable at390/768/1440 without overflow and with a minimum44px action height. Download is authenticated and native, guards duplicate clicks and stale term/revision responses, and rejects non-PDF content. Teacher filters do not silently filter the official full-plan export. Source-style PDFs use black print contrast, embedded Amiri, paired weekly tables and blank signature columns. Actual browser downloads and PDF.js pages are retained in [C29 evidence](verification/roster-source.md); viewport simulation does not establish physical-device/printer or owner appearance acceptance.

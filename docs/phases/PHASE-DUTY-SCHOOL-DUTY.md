@@ -1,5 +1,7 @@
 # School Duty — Feature Phase Tracker
 
+**Current C29 / D-121 (2026-10-15):** The official roster now follows source1, with paired nine-week columns, repeated weekly headings and whole-week continuation. Retained snapshots/bytes survive template upgrades; the owner-authorized local Development index-only migration advanced schema68 to69 after fresh isolated SQL validation. Both archive processors remain ON with prior school settings retained; no C29 Drive write. [Verification](../specs/school-duty/verification/roster-source.md). Owner visual/physical/printer acceptance remains pending.
+
 **Current C27 / D-119 (2026-10-15):** Native School files browsing and confirmed deletion/recovery are implemented. The owner-authorized empty-root test delivered five real files; its temporary hierarchy was cleaned, original registered signed history recovered, D3_Test retained in trash, and withdrawn evidence retained as withdrawn. Both local archive processors are ON; no new migration. Earlier OFF/blocked statements describe their historical phase boundaries. [Final evidence](../specs/school-file-storage/verification/drive-browser-and-regeneration.md).
 
 **Status:** D1–D3 IMPLEMENTED / independently VERIFIED — designated synthetic Drive delivery/read/recovery verified; owner visual and physical-device acceptance pending. Local Development manual-test environment running; no production deployment.
@@ -139,3 +141,11 @@ The owner explicitly authorized clearing the existing Al-Falah E2E Test School r
 ## C28 — Draft departure explanation delivered (2026-10-15)
 
 The reported missing Drive report is an unsubmitted existing draft, not a failed report delivery: one signed archived Letter, zero signed Reports/report intents. Intentional report work now gets a centered save-before-exit explanation, completion steps, Continue and OK.155 Angular checks,32 overlapping final checks and Arabic390/768/1440 plus English1440 actual-browser scenarios passed with synthetic APIs. No original signature/submission/configuration/migration/Drive write. [Verification](../specs/school-duty/verification/draft-exit.md). Owner/physical acceptance remains pending.
+
+## C29 — Official roster source refinement delivered (2026-10-15)
+
+Owner-requested source1 layout is implemented within D3: ordinary18-week paired table, complete-week continuation, actual frozen school values, blank signatures, versioned immutable artifacts and schedule-panel download. Index-only migration69 passed fresh isolated SQL then the authorized local migration.102/105 overlapping backend,74 Angular, final5 renderer and actual native browser download checks passed. All13 principal PDF.js pages inspected. API5264/Angular4200 remain running; no C29 Drive writes. [Evidence](../specs/school-duty/verification/roster-source.md). Owner/physical/printer acceptance pending; stop after this amendment.
+
+## C30 — Shared file-download transport (2026-10-15)
+
+Official PDF application transfers now avoid attachment-style Blob responses before the final browser download. Legacy direct PDF routes and frozen bytes remain intact. Real authenticated roster/storage downloads passed at390/768/1440; separate storage UI unification preserves backend permissions and archive boundaries. [Evidence](../specs/school-file-storage/verification/download-access.md). No new duty schema/business commit or archive obligation; stop after the authorized follow-up.

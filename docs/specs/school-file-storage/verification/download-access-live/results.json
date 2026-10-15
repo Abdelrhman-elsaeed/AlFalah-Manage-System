@@ -1,0 +1,57 @@
+{
+  "at": "2026-10-15T07:57:25.236Z",
+  "results": [
+    {
+      "width": 390,
+      "actualLocalApi": true,
+      "interceptedApi": false,
+      "nativeStorageAndRosterDownloads": true,
+      "metadataPreview": true,
+      "schoolToolsRestored": true,
+      "singleSchoolBrowser": true,
+      "legacyFolderLinkUsesNativeBrowser": true,
+      "dialogFocusReturn": true,
+      "personalBookmarkRedirect": true,
+      "noPersonalAdminTab": true,
+      "noFalseError": true,
+      "rosterHash": "7BA8CAA14B330728C6D4DAD19CE16D306C632B8C9C6E0BB28ED19027B46150AC",
+      "storageHash": "620EC4E7E1C46AE9DF6D7352F324712BC285CB883AB6EA0E85C5627CFE40E036"
+    },
+    {
+      "width": 768,
+      "actualLocalApi": true,
+      "interceptedApi": false,
+      "nativeStorageAndRosterDownloads": true,
+      "metadataPreview": true,
+      "schoolToolsRestored": true,
+      "singleSchoolBrowser": true,
+      "legacyFolderLinkUsesNativeBrowser": true,
+      "dialogFocusReturn": true,
+      "personalBookmarkRedirect": true,
+      "noPersonalAdminTab": true,
+      "noFalseError": true,
+      "rosterHash": "7BA8CAA14B330728C6D4DAD19CE16D306C632B8C9C6E0BB28ED19027B46150AC",
+      "storageHash": "620EC4E7E1C46AE9DF6D7352F324712BC285CB883AB6EA0E85C5627CFE40E036"
+    },
+    {
+      "width": 1440,
+      "actualLocalApi": true,
+      "interceptedApi": false,
+      "nativeStorageAndRosterDownloads": true,
+      "metadataPreview": true,
+      "schoolToolsRestored": true,
+      "singleSchoolBrowser": true,
+      "legacyFolderLinkUsesNativeBrowser": true,
+      "dialogFocusReturn": true,
+      "personalBookmarkRedirect": true,
+      "noPersonalAdminTab": true,
+      "noFalseError": true,
+      "rosterHash": "7BA8CAA14B330728C6D4DAD19CE16D306C632B8C9C6E0BB28ED19027B46150AC",
+      "storageHash": "620EC4E7E1C46AE9DF6D7352F324712BC285CB883AB6EA0E85C5627CFE40E036"
+    }
+  ],
+  "providerWrites": 0,
+  "migrations": 0,
+  "actualIdmExtension": "Not installed in automated browser; owner desktop confirmation pending",
+  "physicalDevice": "Pending"
+}

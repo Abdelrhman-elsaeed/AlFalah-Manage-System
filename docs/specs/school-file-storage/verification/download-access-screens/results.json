@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-15T07:53:33.081Z",
+  "results": [
+    {
+      "width": 390,
+      "syntheticInterceptedApi": true,
+      "extensionTakeoverPolicyReplay": true,
+      "metadataAndExistingLedger": true,
+      "singleSchoolBrowser": true,
+      "legacyFolderAndFileLinks": true,
+      "uploadLostResponseSameIdentity": true,
+      "existingFolderCreation": true,
+      "trueNetworkFailureVisible": true,
+      "wholeCardsClickable": true,
+      "collapseIndependent": true,
+      "adminOwnTabHidden": true
+    },
+    {
+      "width": 768,
+      "syntheticInterceptedApi": true,
+      "extensionTakeoverPolicyReplay": true,
+      "metadataAndExistingLedger": true,
+      "singleSchoolBrowser": true,
+      "legacyFolderAndFileLinks": true,
+      "uploadLostResponseSameIdentity": true,
+      "existingFolderCreation": true,
+      "trueNetworkFailureVisible": true,
+      "wholeCardsClickable": true,
+      "collapseIndependent": true,
+      "adminOwnTabHidden": true
+    },
+    {
+      "width": 1440,
+      "syntheticInterceptedApi": true,
+      "extensionTakeoverPolicyReplay": true,
+      "metadataAndExistingLedger": true,
+      "singleSchoolBrowser": true,
+      "legacyFolderAndFileLinks": true,
+      "uploadLostResponseSameIdentity": true,
+      "existingFolderCreation": true,
+      "trueNetworkFailureVisible": true,
+      "wholeCardsClickable": true,
+      "collapseIndependent": true,
+      "adminOwnTabHidden": true
+    }
+  ],
+  "instructorDelegate": true,
+  "realProviderWrites": 0,
+  "physicalDevice": "Pending",
+  "actualIdmExtension": "Not installed; takeover policy replay only"
+}

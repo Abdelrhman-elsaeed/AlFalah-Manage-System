@@ -1,0 +1,5 @@
+source-eighteen-weeks: school-duty/roster-source-2026-v5; 90 rows; layout caching=True; milliseconds=474
+source-long-names-closures: school-duty/roster-source-2026-v5; 90 rows; layout caching=True; milliseconds=301
+source-full-year: school-duty/roster-source-2026-v5; 215 rows; layout caching=True; milliseconds=209
+source-seven-study-days: school-duty/roster-source-2026-v5; 126 rows; layout caching=True; milliseconds=257
+source-partial-weeks: school-duty/roster-source-2026-v5; 10 rows; layout caching=True; milliseconds=29

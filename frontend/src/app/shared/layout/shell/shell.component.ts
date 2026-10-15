@@ -469,17 +469,17 @@ export class ShellComponent implements OnInit {
     const duty: NavCategory[] = dutyAllowed ? [{ id: 'duty', labelKey: 'DUTY.TITLE', icon: 'pi pi-sun',
       items: DUTY_SECTIONS.filter(x => (!x.managerOnly || dutyManager)&&(!x.ownerOnly||this.authService.hasRole('SchoolManager'))).map(x => ({ labelKey: x.id === 'execution' && !dutyManager ? 'DUTY_PAGES.MY_EXECUTION' : x.id === 'documents' && !dutyManager ? 'DUTY_PAGES.MY_DOCUMENTS' : x.key, icon: x.icon, route: dutySectionRoute(x.id), exact: true })) }] : [];
     const storageItems: NavItem[] = [];
-    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess()) storageItems.push(
+    if ((!this.isInstructorOnly() || this.canManageSchoolStorage()) && this.hasSchoolStorageAccess()) storageItems.push(
       { labelKey: 'نظرة عامة', icon: 'pi pi-th-large', route: '/school-manager/storage/overview', exact: true },
       { labelKey: 'الملفات', icon: 'pi pi-folder', route: '/school-manager/storage', exact: true }
     );
-    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canReviewSchoolEvidence()) storageItems.push(
+    if ((!this.isInstructorOnly() || this.canManageSchoolStorage()) && this.hasSchoolStorageAccess() && this.canReviewSchoolEvidence()) storageItems.push(
       { labelKey: 'الشواهد', icon: 'pi pi-check-circle', route: '/school-manager/storage/evidence', exact: true });
-    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess()) storageItems.push(
+    if ((!this.isInstructorOnly() || this.canManageSchoolStorage()) && this.hasSchoolStorageAccess()) storageItems.push(
       { labelKey: 'التقويم', icon: 'pi pi-chart-line', route: '/school-manager/storage/readiness' });
-    if (this.hasOwnStorageAccess()) storageItems.push({ labelKey: 'ملفاتي', icon: 'pi pi-folder-open', route: '/instructor/my-files' });
-    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canViewStorageArchive()) storageItems.push({ labelKey: 'الزيارات', icon: 'pi pi-clipboard', route: '/school-manager/storage/visits' });
-    if (!this.isInstructorOnly() && this.hasSchoolStorageAccess() && this.canManageSchoolStorage()) storageItems.push({ labelKey: 'الإدارة', icon: 'pi pi-cog', route: '/school-manager/storage/admin' });
+    if (this.hasOwnStorageAccess() && !this.canManageSchoolStorage() && !this.authService.hasRole('SchoolManager')) storageItems.push({ labelKey: 'ملفاتي', icon: 'pi pi-folder-open', route: '/instructor/my-files' });
+    if ((!this.isInstructorOnly() || this.canManageSchoolStorage()) && this.hasSchoolStorageAccess() && this.canViewStorageArchive()) storageItems.push({ labelKey: 'الزيارات', icon: 'pi pi-clipboard', route: '/school-manager/storage/visits' });
+    if ((!this.isInstructorOnly() || this.canManageSchoolStorage()) && this.hasSchoolStorageAccess() && this.canManageSchoolStorage()) storageItems.push({ labelKey: 'الإدارة', icon: 'pi pi-cog', route: '/school-manager/storage/admin' });
     const storage: NavCategory[] = storageItems.length ? [{ id: 'storage', labelKey: 'مساحة الملفات', icon: 'pi pi-folder-open', items: storageItems }] : [];
     if (this.isInstructorOnly()) return [...duty, ...storage];
     return [...duty, ...storage, ...this.categories]
@@ -506,17 +506,17 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    if (!this.isInstructorOnly()) this.storageApi.accessInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.storageApi.accessInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: access => { this.hasSchoolStorageAccess.set(true); this.canManageSchoolStorage.set(access.canManage); this.canReviewSchoolEvidence.set(access.canReviewEvidence); },
       error: error => { if (error?.status === 401 || error?.status === 403) { this.hasSchoolStorageAccess.set(false); this.canManageSchoolStorage.set(false); this.canReviewSchoolEvidence.set(false); } }
     });
     if (!this.isInstructorOnly()) this.storageApi.contextInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: context => this.storageAcademicYearName.set(context.academicYearName || null), error: () => {}
     });
-    if (this.authService.hasRole('Instructor')) this.storageApi.accessInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    if (this.authService.hasRole('Instructor') && !this.authService.hasRole('SchoolManager') && !this.canManageSchoolStorage()) this.storageApi.accessInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.hasOwnStorageAccess.set(true), error: error => { if (error?.status === 401 || error?.status === 403) this.hasOwnStorageAccess.set(false); }
     });
-    if (this.authService.hasRole('Instructor')) this.storageApi.contextInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    if (this.authService.hasRole('Instructor') && !this.authService.hasRole('SchoolManager') && !this.canManageSchoolStorage()) this.storageApi.contextInfo(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: context => { if (!this.storageAcademicYearName()) this.storageAcademicYearName.set(context.academicYearName || null); }, error: () => {}
     });
     // This read enforces both Storage.ViewArchive and Visit.View on the server.

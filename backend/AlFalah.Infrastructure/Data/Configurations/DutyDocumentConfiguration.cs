@@ -13,7 +13,7 @@ public sealed class DutyPdfArtifactConfiguration : IEntityTypeConfiguration<Duty
         b.HasOne<DutySignedDocument>().WithMany().HasForeignKey(x => new { x.SchoolId, x.DocumentId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.NoAction);
         b.HasOne<DutyPlan>().WithMany().HasForeignKey(x => new { x.SchoolId, x.PlanId }).HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.NoAction);
         b.HasIndex(x => x.DocumentId).IsUnique().HasFilter("[DocumentId] IS NOT NULL");
-        b.HasIndex(x => new { x.SchoolId, x.PlanId, x.PlanRevision }).IsUnique().HasFilter("[PlanId] IS NOT NULL");
+        b.HasIndex(x => new { x.SchoolId, x.PlanId, x.PlanRevision, x.RendererVersion }).IsUnique().HasFilter("[PlanId] IS NOT NULL");
         b.Property(x => x.Hash).HasMaxLength(64); b.Property(x => x.ProvenanceHash).HasMaxLength(64);
         b.Property(x => x.RendererVersion).HasMaxLength(80); b.Property(x => x.FileName).HasMaxLength(512);
     }

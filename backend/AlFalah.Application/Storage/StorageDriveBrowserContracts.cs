@@ -3,10 +3,13 @@ using AlFalah.Domain.Entities.Storage;
 namespace AlFalah.Application.Storage;
 
 public sealed record DriveBrowserItem(string Handle, string Name, bool IsFolder, long? Size, string MimeType,
-    DateTimeOffset? ModifiedAt, bool CanModify, string? Protection);
+    DateTimeOffset? ModifiedAt, bool CanModify, string? Protection, int? StoredFileId = null, int? FolderId = null);
 public sealed record DriveBrowserCrumb(string Handle, string Name);
 public sealed record DriveBrowserPage(string Name, string? Handle, IReadOnlyList<DriveBrowserCrumb> Breadcrumbs,
-    IReadOnlyList<DriveBrowserItem> Items, string? NextPageToken, bool CanManage);
+    IReadOnlyList<DriveBrowserItem> Items, string? NextPageToken, bool CanManage, int? WritableFolderId = null);
+public sealed record DriveRegisteredFile(string Item, int Id, int FolderId);
+public sealed record DriveLibraryReference(int FolderId, string Folder, string? File);
+public sealed record DriveBrowserResolution(string Handle, DriveBrowserItem? OpenFile);
 public sealed record DriveImpactRequest(string Handle, string Action, string? Name = null, string? Destination = null);
 public sealed record DriveImpactDto(string Ticket, string Name, string Action, int Files, int Folders,
     IReadOnlyList<string> LinkedTo, int LinkedCount, int SignedDocuments, string Warning);
@@ -31,6 +34,8 @@ public interface IStorageDriveHandles
 }
 public interface IStorageDriveBrowserRepository
 {
+    Task<IReadOnlyList<DriveRegisteredFile>> RegisteredFilesAsync(int school, IReadOnlyList<string> items, CancellationToken ct);
+    Task<DriveLibraryReference?> LibraryReferenceAsync(int school, int? folder, int? file, CancellationToken ct);
     Task<DriveLedgerImpact> ImpactAsync(int school, IReadOnlyList<string> providerIds, CancellationToken ct);
     Task<IReadOnlyList<string>> ProtectionAsync(int school, IReadOnlyList<string> providerIds, CancellationToken ct);
     Task<DriveFolderPlacement?> DestinationAsync(int school, string item, CancellationToken ct);
@@ -48,6 +53,7 @@ public interface IStorageDriveBrowserRepository
 }
 public interface IStorageDriveBrowserService
 {
+    Task<DriveBrowserResolution> ResolveAsync(int? folder, int? file, CancellationToken ct);
     Task<DriveBrowserPage> BrowseAsync(string? handle, string? pageToken, CancellationToken ct);
     Task<DTOs.TeacherDrive.DriveFileContentDto> ContentAsync(string handle, CancellationToken ct);
     Task<DriveImpactDto> ImpactAsync(DriveImpactRequest request, CancellationToken ct);

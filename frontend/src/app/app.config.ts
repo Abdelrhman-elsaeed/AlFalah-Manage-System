@@ -8,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { Observable, firstValueFrom, of } from 'rxjs';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { browserTransferInterceptor } from './core/interceptors/browser-transfer.interceptor';
 import { AuthService } from './core/services/auth.service';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -33,7 +34,7 @@ function initAuthSession(auth: AuthService) {
 export class StoragePreloadingStrategy implements PreloadingStrategy {
   private readonly auth = inject(AuthService);
   preload(route: Route, load: () => Observable<unknown>): Observable<unknown> {
-    return this.auth.isAuthenticated() && (route.path?.startsWith('school-manager/storage') || route.path === 'my-files')
+    return this.auth.isAuthenticated() && (route.path?.startsWith('school-manager/storage') || route.path === 'instructor/my-files')
       ? load() : of(null);
   }
 }
@@ -41,7 +42,7 @@ export class StoragePreloadingStrategy implements PreloadingStrategy {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withPreloading(StoragePreloadingStrategy)),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([browserTransferInterceptor, authInterceptor])),
     MessageService,
     importProvidersFrom(BrowserAnimationsModule),
     importProvidersFrom(

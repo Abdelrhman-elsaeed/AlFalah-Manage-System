@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-15
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -284,3 +284,15 @@ C27 / D-119: replaced storage feature redirects with native school-root browsing
 ## Change log — 2026-10-15 (C28 / D-120)
 
 - Confirmed the reported missing duty Report is an unsubmitted original draft, with no report archive intent. Added conditional centered draft departure instructions, Continue and OK; saved input, signing ownership and archive rules preserved.155 Angular /32 overlapping focused checks and four actual-browser language/viewport scenarios passed. No new migration/provider write. [Evidence](specs/school-duty/verification/draft-exit.md).
+
+## C29 / D-121 — Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | School Duty official roster now follows source1: paired weekly tables, ordinary18-week single-page output, readable whole-week continuation, embedded Arabic and blank signatures. Versioned immutable exports retain original snapshots/history; guarded index-only local migration68-to69 applied.102/105 overlapping backend and74 Angular checks plus real native downloads at390/768/1440 passed. [Source/PDF/browser/SQL evidence](specs/school-duty/verification/roster-source.md). Owner/physical/printer acceptance pending; no C29 Drive write/deployment. |
+
+## C30 / D-122 — Change log (2026-10-15)
+
+| Date | Change |
+|---|---|
+| 2026-10-15 | Unified School files/map/legacy links in one native browser; restored existing library upload/create and metadata/preview/versions/evidence/change tools. Corrected live administrator navigation and whole-card links. Shared application binary transport prevents attachment-style awaited downloads while retaining genuine errors and exact bytes.15 backend/23 focused Angular and six real browser downloads at390/768/1440 passed; one unrelated overlapping shell assertion remains. [Evidence](specs/school-file-storage/verification/download-access.md). No new migration or verification provider write; owner/physical/installed IDM acceptance pending. |

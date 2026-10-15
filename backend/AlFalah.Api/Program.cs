@@ -36,6 +36,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services
     .AddControllers(options =>
     {
+        options.Filters.Add<AlFalah.Api.Filters.BrowserTransferFilter>();
         // Accept UTF-8 body even when Content-Type omits the charset (some HTTP clients
         // — notably older curl invocations and certain Angular HttpClient configurations
         // — send `application/json` without `; charset=utf-8`). ASP.NET Core's defaults
@@ -226,7 +227,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
-            .WithExposedHeaders("Content-Disposition", "X-Signature-Required")
+            .WithExposedHeaders("Content-Disposition", "X-Signature-Required", "X-AlFalah-Content-Type", "X-AlFalah-File-Name", "X-Document-SHA256")
             .AllowAnyMethod()
             .AllowCredentials();
     });

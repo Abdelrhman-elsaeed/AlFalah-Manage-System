@@ -18,12 +18,12 @@ export class DutyRosterExportComponent {
   readonly busy = signal(false); readonly error = signal('');
   async download() {
     if (this.busy()) return;
-    const term = this.termId; this.busy.set(true); this.error.set('');
+    const term = this.termId, revision = this.revision; this.busy.set(true); this.error.set('');
     try {
-      const response = await firstValueFrom(this.api.roster(term, this.revision));
-      if (term !== this.termId) return;
+      const response = await firstValueFrom(this.api.roster(term, revision));
+      if (term !== this.termId || revision !== this.revision) return;
       if (!await isDutyPdf(response.body)) throw new Error(this.translate.instant('DUTY_DOC.UNAVAILABLE'));
-      if (term !== this.termId) return;
+      if (term !== this.termId || revision !== this.revision) return;
       const url = URL.createObjectURL(response.body!); const a = document.createElement('a'); a.href = url;
       a.download = filenameFromContentDisposition(response.headers.get('Content-Disposition')) || 'school-duty.pdf';
       document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);

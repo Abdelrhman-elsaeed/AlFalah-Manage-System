@@ -227,3 +227,9 @@ The owner explicitly authorized clearing the existing Al-Falah E2E Test School r
 ## C28 — Intentional unsubmitted-report departure (2026-10-15)
 
 An editable acknowledged report worked on in the current session must explain its unsubmitted state before application-controlled departure, even after autosave. Save dirty content first; failed/conflicted saves retain input and block departure. A centered Arabic/English notice gives completion steps, Continue report and OK-to-leave-as-draft. No notice on initial/view-only load, autosave itself, manager/historical inspection or after submission. Never sign/submit/notify implicitly. Native browser closing retains its existing unsaved-cache protection; it cannot host a custom awaited HTML dialog. [Diagnosis and verification](verification/draft-exit.md).
+
+## C29 — Current source1 roster output (2026-10-15)
+
+The owner requires the roster PDF to follow the supplied1.jpeg. This supersedes D-110's earlier four-week-per-page composition. Preserve administrative header/logo/school positions, bordered title/form code, actual year/term, paired RTL tables with repeated week/day/date/name/signature/notes columns and separate educational-agent/manager footer positions. Up to18 ordinary weeks fit one A4 sheet; long names or extended periods use complete-week continuation without dropped dates or invented signatures. Existing canonical Gregorian dates and frozen branding rules apply.
+
+The visible export button belongs beside the schedule heading. It exports the full frozen plan revision regardless of the screen's teacher/ten-day filter. Each template version retains its own immutable bytes/hash using the earliest retained snapshot for that revision; subsequent name/branding changes cannot rewrite it. Roster rendering remains schedule-only and creates no letter/report archive obligation, signing or notices. [Verification](verification/roster-source.md).

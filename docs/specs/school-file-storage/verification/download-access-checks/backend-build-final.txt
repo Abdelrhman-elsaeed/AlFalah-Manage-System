@@ -1,0 +1,11 @@
+  AlFalah.Shared -> D:\AlFalah-Manage-System\.audit\storage-download-20261015\api-build\AlFalah.Shared.dll
+  AlFalah.Domain -> D:\AlFalah-Manage-System\.audit\storage-download-20261015\api-build\AlFalah.Domain.dll
+  AlFalah.Application -> D:\AlFalah-Manage-System\.audit\storage-download-20261015\api-build\AlFalah.Application.dll
+  AlFalah.Infrastructure -> D:\AlFalah-Manage-System\.audit\storage-download-20261015\api-build\AlFalah.Infrastructure.dll
+  AlFalah.Api -> D:\AlFalah-Manage-System\.audit\storage-download-20261015\api-build\AlFalah.Api.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:01:35.11

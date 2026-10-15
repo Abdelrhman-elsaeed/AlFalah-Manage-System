@@ -9,7 +9,7 @@ using QuestPDF.Infrastructure;
 namespace AlFalah.Infrastructure.Services;
 
 /// <summary>Official source 1/4/5 forms. Never resolves a mutable asset or account.</summary>
-public sealed class DutyPdfRenderer : IDutyPdfRenderer
+public sealed partial class DutyPdfRenderer : IDutyPdfRenderer
 {
     public string Version => "school-duty/official-2026-v2";
     private const string Ink = "#172C25", Rule = "#7C8D83", Green = "#174B36", Tint = "#EDF3EF";
@@ -172,52 +172,6 @@ public sealed class DutyPdfRenderer : IDutyPdfRenderer
                 Cell(t.Cell()).MinHeight(14).AlignRight().Text(line.Name).FontSize(9);
                 TextCell(t.Cell(),line.Class); TextCell(t.Cell(),line.Time.Length>=5 ? line.Time[..5] : line.Time);
                 Cell(t.Cell()).AlignRight().Text(line.Action).FontSize(9); Cell(t.Cell()).AlignRight().Text(line.Notes).FontSize(9);
-            }
-        });
-    }
-    public DutyPdf Roster(DutyRosterSnapshot s)
-    {
-        PdfTheme.EnsureFonts();
-        var weeks = s.Rows.GroupBy(x => (x.Date.DayNumber-s.From.DayNumber+(int)s.From.DayOfWeek)/7).OrderBy(x=>x.Key).ToArray();
-        var pdf = Document.Create(root =>
-        {
-            foreach(var batch in weeks.Chunk(4)) root.Page(p =>
-            {
-                var logo = s.Logo is {State:"Frozen",Data:not null} ? Convert.FromBase64String(s.Logo.Data.Split(',').Last()) : null;
-                if (logo is not null && DutyDocumentIntegrity.Hash(logo)!=s.Logo!.Hash) throw DutyDocumentIntegrity.Error();
-                Frame(p,s.Header,logo);
-                p.Content().PaddingTop(12).Column(col =>
-                {
-                    col.Item().Element(x => Title(x,s.Header,"جدول المناوبة","QF71-B-2-2"));
-                    col.Item().PaddingTop(10).Row(row =>
-                    {
-                        row.RelativeItem().Column(right => { foreach(var week in batch.Take(2)) right.Item().PaddingBottom(10).Element(x=>Week(x,week.Key+1,week.ToArray())); });
-                        row.ConstantItem(10);
-                        row.RelativeItem().Column(left => { foreach(var week in batch.Skip(2)) left.Item().PaddingBottom(10).Element(x=>Week(x,week.Key+1,week.ToArray())); });
-                    });
-                    col.Item().PaddingTop(16).Row(r =>
-                    {
-                        r.RelativeItem().Text("وكيل الشؤون التعليمية: __________\nالتوقيع: __________").FontSize(9);
-                        r.RelativeItem().Text($"مدير المدرسة: {s.Header.Manager}\nالتوقيع: __________").FontSize(9);
-                    });
-                });
-            });
-        }).GeneratePdf();
-        return new(pdf,$"جدول المناوبة - {DutyDocumentIntegrity.SafeName(s.Header.Year)} - {Term(s.Header.Semester)}.pdf",DutyDocumentIntegrity.Hash(pdf),Version);
-    }
-    private static void Week(IContainer c,int week,IReadOnlyList<DutyRosterRow> rows)
-    {
-        c.ShowEntire().Table(t =>
-        {
-            t.ColumnsDefinition(d => { d.ConstantColumn(30); d.ConstantColumn(37); d.ConstantColumn(53); d.RelativeColumn(2.3f); d.RelativeColumn(1); d.RelativeColumn(1.4f); });
-            foreach(var label in new[]{"أسبوع","اليوم","التاريخ","الاسم","التوقيع","ملاحظات"}) Cell(t.Cell(),true).Text(label).FontSize(8);
-            TextCell(t.Cell().RowSpan((uint)rows.Count),week.ToString(CultureInfo.InvariantCulture));
-            foreach(var r in rows)
-            {
-                Cell(t.Cell()).Text(Days[(int)r.Date.DayOfWeek]).FontSize(8);
-                Cell(t.Cell()).Text(r.Date.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)).FontSize(8);
-                Cell(t.Cell()).MinHeight(30).Text(r.Teacher).FontSize(9);
-                TextCell(t.Cell(),""); Cell(t.Cell()).Text(r.Notes).FontSize(8);
             }
         });
     }

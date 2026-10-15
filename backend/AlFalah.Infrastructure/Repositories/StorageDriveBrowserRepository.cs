@@ -16,6 +16,23 @@ namespace AlFalah.Infrastructure.Repositories;
 
 public sealed class StorageDriveBrowserRepository(AlFalahDbContext db, EvidenceSubmissionService legacyWriter) : IStorageDriveBrowserRepository
 {
+    public async Task<DriveLibraryReference?> LibraryReferenceAsync(int school, int? folder, int? file, CancellationToken ct)
+    {
+        if (file.HasValue)
+            return await db.StoredFileVersions.AsNoTracking().Where(x => x.SchoolId == school && x.StoredFile.SchoolId == school &&
+                x.StoredFileId == file && x.StoredFile.CurrentVersionId == x.Id &&
+                (!folder.HasValue || x.StoredFile.FolderId == folder) && x.StoredFile.Folder.IsActive &&
+                x.StoredFile.Folder.Kind == StorageFolderKind.SchoolLibrary && x.StoredFile.Folder.OwnerTeacherId == null)
+                .Select(x => new DriveLibraryReference(x.StoredFile.FolderId, x.StoredFile.Folder.DriveItemId, x.DriveItemId)).SingleOrDefaultAsync(ct);
+        return await db.StorageFolders.AsNoTracking().Where(x => x.SchoolId == school && x.Id == folder && x.IsActive &&
+            x.Kind == StorageFolderKind.SchoolLibrary && x.OwnerTeacherId == null)
+            .Select(x => new DriveLibraryReference(x.Id, x.DriveItemId, null)).SingleOrDefaultAsync(ct);
+    }
+    public async Task<IReadOnlyList<DriveRegisteredFile>> RegisteredFilesAsync(int school, IReadOnlyList<string> items, CancellationToken ct) =>
+        await db.StoredFileVersions.AsNoTracking().Where(x => x.SchoolId == school && x.StoredFile.SchoolId == school &&
+            x.StoredFile.Folder.OwnerTeacherId == null && x.StoredFile.Folder.Kind == StorageFolderKind.SchoolLibrary &&
+            x.StoredFile.CurrentVersionId == x.Id && items.Contains(x.DriveItemId))
+            .Select(x => new DriveRegisteredFile(x.DriveItemId, x.StoredFileId, x.StoredFile.FolderId)).ToListAsync(ct);
     private async Task<int[]> FolderScopeAsync(int school,IReadOnlyList<string> ids,CancellationToken ct)
     {
         var roots=await db.StorageFolders.AsNoTracking().Where(x=>x.SchoolId==school&&ids.Contains(x.DriveItemId)).Select(x=>x.Id).ToArrayAsync(ct);

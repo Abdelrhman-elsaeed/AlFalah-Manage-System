@@ -64,7 +64,9 @@ public sealed class DutyDocumentRepository(AlFalahDbContext db) : IDutyDocumentR
         d.DutyArchiveEnabled=enabled; Audit(school,"Activation",actor,enabled.ToString()); await db.SaveChangesAsync(ct);
     }
     public Task<DutyPdfArtifact?> ArtifactAsync(int school,int document,CancellationToken ct) => db.Set<DutyPdfArtifact>().AsNoTracking().SingleOrDefaultAsync(x=>x.SchoolId==school&&x.DocumentId==document,ct);
-    public Task<DutyPdfArtifact?> RosterArtifactAsync(int school,int plan,int revision,CancellationToken ct) => db.Set<DutyPdfArtifact>().AsNoTracking().SingleOrDefaultAsync(x=>x.SchoolId==school&&x.PlanId==plan&&x.PlanRevision==revision,ct);
+    public Task<DutyPdfArtifact?> RosterArtifactAsync(int school,int plan,int revision,CancellationToken ct,string? rendererVersion=null) => db.Set<DutyPdfArtifact>().AsNoTracking()
+        .Where(x=>x.SchoolId==school&&x.PlanId==plan&&x.PlanRevision==revision&&(rendererVersion==null||x.RendererVersion==rendererVersion))
+        .OrderBy(x=>x.Id).FirstOrDefaultAsync(ct);
     public async Task AddArtifactAsync(DutyPdfArtifact artifact,CancellationToken ct)
     {
         DutyDocumentIntegrity.Validate(artifact); db.Add(artifact); await db.SaveChangesAsync(ct);

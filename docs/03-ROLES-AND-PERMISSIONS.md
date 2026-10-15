@@ -190,3 +190,9 @@ review/complaint button.
 ## S6 import authorization — D-100
 
 Historical import administration uses existing Storage.ManageSchool with live SchoolScope/active membership/role; an actual manager or currently valid direct delegate must also have the persisted storage permission when the feature is enabled. Teachers cannot manage/import school metadata. Responsible-member suggestions are current scoped user identities and require human mapping. No new role/permission or automatic delegation was created. With all flags OFF, the actual current manager may view only Disabled status/settings navigation; this does not bypass enabled import/content permissions.
+
+## C30 / D-122 — Storage menu and destination parity (2026-10-15)
+
+Actual school managers and live school-storage administrators receive the School files navigation, including Instructor-role delegates. Personal files is hidden for them; its old URL resolves live school access and redirects to School files. Ordinary teachers retain their actual own-folder grant checks. The menu does not confer backend rights: existing per-school authorization, teacher-root boundaries, protected archive policies and actual-manager-only confirmed native deletion remain enforced.
+
+Upload/create are reconnected only to server-resolved eligible school-library folders through existing services. Automatic duty/visit archive destinations stay protected. A registered numeric folder/file link is resolved by scoped SQL plus live provider-root/parent validation, never by trusting browser provider IDs. No role/permission/grant schema change. [Verification](specs/school-file-storage/verification/download-access.md).

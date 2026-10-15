@@ -66,6 +66,7 @@ public static class DutyDocumentIntegrity
 public interface IDutyPdfRenderer
 {
     string Version { get; }
+    string RosterVersion => Version;
     DutyPdf Signed(DutySignedDocument document);
     DutyPdf Roster(DutyRosterSnapshot snapshot);
 }
@@ -75,7 +76,7 @@ public interface IDutyDocumentRepository
     Task<DutyArchiveReadiness> ReadinessAsync(int school, CancellationToken ct);
     Task SetEnabledAsync(int school, bool enabled, string actor, CancellationToken ct);
     Task<DutyPdfArtifact?> ArtifactAsync(int school, int document, CancellationToken ct);
-    Task<DutyPdfArtifact?> RosterArtifactAsync(int school, int plan, int revision, CancellationToken ct);
+    Task<DutyPdfArtifact?> RosterArtifactAsync(int school, int plan, int revision, CancellationToken ct, string? rendererVersion = null);
     Task AddArtifactAsync(DutyPdfArtifact artifact, CancellationToken ct);
     Task<DutyArchiveIntent?> IntentAsync(int school, int document, CancellationToken ct);
     Task<List<DutyArchiveIntent>> IntentsAsync(int school, int assignment, CancellationToken ct);

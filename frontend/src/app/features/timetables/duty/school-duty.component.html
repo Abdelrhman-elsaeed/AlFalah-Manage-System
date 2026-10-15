@@ -7,7 +7,6 @@
       <label class="term-select" *ngIf="section() !== 'execution' && section() !== 'permissions'"><span class="sr-only">{{ 'DUTY.TERM' | translate }}</span><app-clearable-select inputId="duty-term" [options]="termOptions()" optionLabel="name" optionValue="id" [ngModel]="termId" (ngModelChange)="switchTerm($event)" [clearable]="false" [disabled]="busy()" /></label>
       <button *ngIf="d.canManage && d.termId && section() === 'schedule'" pButton class="settings-button" icon="pi pi-sliders-h" [label]="'DUTY.SETTINGS' | translate" (click)="goToSettings()"></button>
       <button pButton class="p-button-text" icon="pi pi-refresh" [label]="'DUTY.REFRESH' | translate" [disabled]="navigationBusy()" (click)="refreshForReview()"></button>
-      <app-duty-roster-export *ngIf="d.termId && d.planRevision && section() === 'schedule'" [termId]="d.termId" [revision]="d.planRevision" />
     </div>
   </header>
   <nav class="duty-section-navigation" [attr.aria-label]="'DUTY_PAGES.NAVIGATION' | translate"><a *ngFor="let item of sectionOptions; trackBy:trackSection" [routerLink]="sectionRoute(item.id)" [queryParams]="item.id === 'documents' ? {termId:termId,execution:executionId} : {termId:termId}" [attr.aria-current]="section() === item.id ? 'page' : null"><i [class]="item.icon" aria-hidden="true"></i>{{ item.key | translate }}</a></nav>
@@ -49,7 +48,7 @@
       <div class="retry-banner" *ngIf="d.canManage && d.pendingRetries"><i class="pi pi-sync" aria-hidden="true"></i><span>{{ 'DUTY.RECONCILING' | translate:{ count:d.pendingRetries } }}</span><button pButton class="p-button-text" [label]="'DUTY.RETRY' | translate" [disabled]="busy()" (click)="retry()"></button></div>
       <div class="main-grid">
         <section class="schedule-panel">
-          <header class="panel-heading"><div><span class="eyebrow">{{ 'DUTY.SCHEDULE_KICKER' | translate }}</span><h2>{{ 'DUTY.SCHEDULE' | translate }}</h2></div><span class="page-count">{{ 'DUTY_PAGES.TEN_DAYS' | translate }}</span></header>
+          <header class="panel-heading"><div><span class="eyebrow">{{ 'DUTY.SCHEDULE_KICKER' | translate }}</span><h2>{{ 'DUTY.SCHEDULE' | translate }}</h2></div><div class="roster-heading-actions"><span class="page-count">{{ 'DUTY_PAGES.TEN_DAYS' | translate }}</span><app-duty-roster-export *ngIf="d.termId && d.planRevision" [termId]="d.termId" [revision]="d.planRevision" /></div></header>
           <div class="schedule-toolbar">
             <div class="schedule-filters" role="group" [attr.aria-label]="'DUTY.SCHEDULE_VIEW' | translate"><button type="button" [attr.aria-pressed]="filter() === 'mine' && !teacher()" (click)="selectScheduleFilter('mine')">{{ 'DUTY.MY_DATES' | translate }}</button><button type="button" [attr.aria-pressed]="filter() === 'all' && !teacher()" (click)="selectScheduleFilter('all')">{{ 'DUTY.ALL_TEACHERS' | translate }}</button></div>
             <label class="teacher-filter"><span class="sr-only">{{ 'DUTY.FILTER_TEACHER' | translate }}</span><app-clearable-select inputId="duty-teacher-filter" [options]="scheduleTeachers()" optionLabel="name" optionValue="userId" [ngModel]="teacher()" (ngModelChange)="selectScheduleTeacher($event)" [placeholder]="'DUTY.FILTER_TEACHER' | translate" [filter]="true" /></label>

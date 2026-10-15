@@ -72,8 +72,21 @@ public sealed partial class DutyDocumentService(IDutyRepository duty, IDutyExecu
             var state = await duty.LoadAsync(School,ct);
             var plan = state.Plans.SingleOrDefault(x=>x.AcademicTermId==term) ?? throw new DutyException("DutyNotFound","الجدول غير متاح. / Roster unavailable.",404);
             if (revision != plan.Revision) throw new DutyException("DutyRevisionConflict","تغيّر جدول المناوبة. حدّثه ثم نزّل النسخة الحالية. / Duty roster changed. Refresh and download the current revision.",409);
-            artifact = await repo.RosterArtifactAsync(School,plan.Id,revision,ct);
+            artifact = await repo.RosterArtifactAsync(School,plan.Id,revision,ct,renderer.RosterVersion);
             if (artifact is not null) return true;
+            // A new presentation of an existing plan revision uses its first frozen
+            // snapshot. Later profile/branding edits cannot rewrite roster history.
+            var prior = await repo.RosterArtifactAsync(School,plan.Id,revision,ct);
+            if (prior is not null)
+            {
+                DutyDocumentIntegrity.Validate(prior);
+                var retained = JsonSerializer.Deserialize<DutyRosterSnapshot>(prior.ProvenanceJson) ?? throw DutyDocumentIntegrity.Error();
+                if (retained.SchoolId != School || retained.PlanId != plan.Id || retained.Revision != revision) throw DutyDocumentIntegrity.Error();
+                var updated = renderer.Roster(retained);
+                artifact = new() { SchoolId=School,PlanId=plan.Id,PlanRevision=revision,ProvenanceJson=prior.ProvenanceJson,ProvenanceHash=prior.ProvenanceHash,
+                    Bytes=updated.Bytes,Hash=updated.Hash,FileName=updated.FileName,RendererVersion=updated.RendererVersion,PreparedAt=DateTimeOffset.UtcNow };
+                await repo.AddArtifactAsync(artifact,ct); return true;
+            }
             var settings = DutyRotation.Settings(plan); var a = state.Assignments.FirstOrDefault(x=>x.DutyPlanId==plan.Id)
                 ?? throw new DutyException("DutyNotFound","لا يوجد جدول منشور. / No published roster.",404);
             var header = await execution.HeaderAsync(School,a,plan,ct);

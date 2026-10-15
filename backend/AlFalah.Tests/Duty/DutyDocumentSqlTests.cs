@@ -343,6 +343,63 @@ public sealed class DutyDocumentSqlTests(DutySqlFixture fixture)
         var stress=original with {From=new(2026,9,6),To=new(2027,1,7),Rows=Enumerable.Range(0,124).Select(n=>new DutyRosterRow(new DateOnly(2026,9,6).AddDays(n),n is >30 and <36?"إجازة رسمية":n>115?"الاختبارات — وفق الخطة المعتمدة":"عبدالله عبدالرحمن محمد معلم التحقق الاصطناعي", "", n is >30 and <36)).Where(x=>(int)x.Date.DayOfWeek<5).ToArray()};
         ExportBytes("roster-long-names-closures-exams",new DutyPdfRenderer().Roster(stress));
     }
+    [DutySqlFact] public async Task Source_roster_upgrade_retains_old_bytes_and_first_snapshot_without_changing_the_plan_or_signing()
+    {
+        var w=await Setup(false);await using var db=fixture.Db();var plan=await db.Set<DutyPlan>().SingleAsync(x=>x.SchoolId==w.Scene.School);
+        var execution=await Execution(db,w).GetAsync(w.Scene.Assignment,default);
+        var snapshot=new DutyRosterSnapshot(w.Scene.School,plan.Id,plan.Revision,execution.Header,w.Scene.Date,w.Scene.Date,[0,1,2,3,4],
+            [new(w.Scene.Date,execution.Header.ActualTeacher,"",false)],plan.TimeZoneId,new(null,null,"UnavailableAtSigning"));
+        var json=JsonSerializer.Serialize(snapshot);var oldPdf=new DutyPdfRenderer().Roster(snapshot);
+        var old=new DutyPdfArtifact{SchoolId=w.Scene.School,PlanId=plan.Id,PlanRevision=plan.Revision,
+            ProvenanceJson=json,ProvenanceHash=DutyDocumentIntegrity.Hash(json),Bytes=oldPdf.Bytes,Hash=oldPdf.Hash,
+            FileName=oldPdf.FileName,RendererVersion="school-duty/retained-source-test-v1",PreparedAt=DateTimeOffset.UtcNow.AddDays(-1)};
+        db.Add(old);await db.SaveChangesAsync();db.ChangeTracker.Clear();
+        (await db.Users.SingleAsync(x=>x.Id==w.Scene.Teacher)).FirstName="Changed after frozen export";await db.SaveChangesAsync();
+        var updated=await Reader(db,w).RosterAsync(w.Scene.Term,plan.Revision,default);
+        updated.RendererVersion.Should().Be(new DutyPdfRenderer().RosterVersion);
+        (await Reader(db,w).RosterAsync(w.Scene.Term,plan.Revision,default)).Bytes.Should().Equal(updated.Bytes);
+        var retained=await db.Set<DutyPdfArtifact>().AsNoTracking().Where(x=>x.SchoolId==w.Scene.School).OrderBy(x=>x.Id).ToArrayAsync();
+        retained.Should().HaveCount(2);retained.Should().OnlyContain(x=>x.ProvenanceJson==json&&x.ProvenanceHash==old.ProvenanceHash);
+        retained[0].Bytes.Should().Equal(oldPdf.Bytes);retained[0].Hash.Should().Be(oldPdf.Hash);
+        (await db.Set<DutyArchiveIntent>().CountAsync(x=>x.SchoolId==w.Scene.School)).Should().Be(0);
+        (await db.Set<DutyPlan>().SingleAsync(x=>x.Id==plan.Id)).Revision.Should().Be(plan.Revision);
+        // The database allows a new renderer, but rejects duplicates of the same renderer.
+        var latest=retained[1];db.Set<DutyPdfArtifact>().Add(new(){SchoolId=w.Scene.School,PlanId=plan.Id,PlanRevision=plan.Revision,
+            ProvenanceJson=json,ProvenanceHash=old.ProvenanceHash,Bytes=latest.Bytes,Hash=latest.Hash,
+            FileName=latest.FileName,RendererVersion=latest.RendererVersion,PreparedAt=DateTimeOffset.UtcNow});
+        await FluentActions.Invoking(()=>db.SaveChangesAsync()).Should().ThrowAsync<DbUpdateException>();
+        fixture.SentinelPreserved.Should().BeTrue();
+    }
+    [DutySqlFact] public async Task Roster_version_migration_applies_twice_on_fresh_previous_schema_and_preserves_frozen_artifact()
+    {
+        QuestPDF.Settings.License=QuestPDF.Infrastructure.LicenseType.Community;
+        var connection=new SqlConnectionStringBuilder(fixture.Connection){InitialCatalog="AlFalahDutyTests_RosterMigration_"+Guid.NewGuid().ToString("N")};
+        await using(var master=new SqlConnection(new SqlConnectionStringBuilder(connection.ConnectionString){InitialCatalog="master"}.ConnectionString))
+        {
+            await master.OpenAsync();await using var check=master.CreateCommand();check.CommandText="SELECT COUNT(*) FROM sys.databases WHERE name=@name";check.Parameters.AddWithValue("@name",connection.InitialCatalog);
+            if(Convert.ToInt32(await check.ExecuteScalarAsync())!=0)throw new InvalidOperationException("Existing database rejected before ANY migration");
+        }
+        await using var db=new AlFalahDbContext(new DbContextOptionsBuilder<AlFalahDbContext>().UseSqlServer(connection.ConnectionString).Options);
+        var migrations=db.Database.GetMigrations().ToArray();var latest=migrations.Single(x=>x.EndsWith("_VersionDutyRosterRenderings"));var previous=migrations[Array.IndexOf(migrations,latest)-1];
+        var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync(previous);
+        var actor="roster-migration-sentinel";db.Users.Add(new(){Id=actor,UserName=actor,FirstName="Synthetic",LastName="Sentinel",IsActive=true});
+        var school=new School{Name="Roster migration sentinel",City="Synthetic",Stage=SchoolStage.Primary,ManagerUserId=actor};db.Add(school);
+        var year=new AcademicYear{Code=actor,NameAr="Synthetic sentinel",StartsOn=new(2026,1,1),EndsOn=new(2026,12,31),IsActive=true};db.Add(year);await db.SaveChangesAsync();
+        var term=new AlFalah.Domain.Entities.StudentAffairs.AcademicTerm{SchoolId=school.Id,AcademicYearId=year.Id,Semester=TimetableSemester.First,StartsOn=year.StartsOn,EndsOn=year.EndsOn,CreatedByUserId=actor,UpdatedByUserId=actor};db.Add(term);await db.SaveChangesAsync();
+        var plan=new DutyPlan{SchoolId=school.Id,AcademicTermId=term.Id,Revision=1,PublishedByUserId=actor,PublishedAt=DateTimeOffset.UtcNow,SettingsJson="{}"};db.Add(plan);await db.SaveChangesAsync();
+        var header=new DutyExecutionHeader(school.Name,"Synthetic","",null,null,"Synthetic manager","2026",1,"","",false);
+        var snapshot=new DutyRosterSnapshot(school.Id,plan.Id,1,header,new(2026,9,6),new(2026,9,6),[0],[new(new(2026,9,6),"Synthetic sentinel teacher","",false)],"Africa/Cairo");
+        var json=JsonSerializer.Serialize(snapshot);var pdf=new DutyPdfRenderer().Roster(snapshot);
+        var artifact=new DutyPdfArtifact{SchoolId=school.Id,PlanId=plan.Id,PlanRevision=1,Bytes=pdf.Bytes,Hash=pdf.Hash,FileName=pdf.FileName,RendererVersion="retained-previous-template",ProvenanceJson=json,ProvenanceHash=DutyDocumentIntegrity.Hash(json),PreparedAt=DateTimeOffset.UtcNow};db.Add(artifact);await db.SaveChangesAsync();
+        var script=migrator.GenerateScript(previous,latest,MigrationsSqlGenerationOptions.Idempotent);
+        script.Should().NotContain("DELETE FROM").And.NotContain("DROP TABLE");
+        await db.Database.OpenConnectionAsync();
+        for(var i=0;i<2;i++)foreach(var batch in System.Text.RegularExpressions.Regex.Split(script,@"^GO\s*$",System.Text.RegularExpressions.RegexOptions.Multiline).Where(x=>!string.IsNullOrWhiteSpace(x)))await db.Database.ExecuteSqlRawAsync(batch);
+        await db.Database.CloseConnectionAsync();db.ChangeTracker.Clear();
+        (await db.Schools.SingleAsync()).Name.Should().Be("Roster migration sentinel");
+        var retained=await db.Set<DutyPdfArtifact>().SingleAsync();retained.Bytes.Should().Equal(pdf.Bytes);retained.Hash.Should().Be(pdf.Hash);retained.ProvenanceJson.Should().Be(json);
+        (await db.Database.GetPendingMigrationsAsync()).Should().BeEmpty();
+    }
     [DutySqlFact] public async Task Substitute_signature_has_own_position_and_long_tables_have_continuation_pages()
     {
         var w=await Setup(false);await using var db=fixture.Db();var manager=new DutyService(new DutyRepository(db),new TeacherDriveHarness.TestCurrentUser(RoleNames.SchoolManager,w.Scene.Manager,w.Scene.School,true));
@@ -441,6 +498,8 @@ public sealed class DutyDocumentSqlTests(DutySqlFixture fixture)
         for(var n=0;n<2;n++)foreach(var batch in System.Text.RegularExpressions.Regex.Split(script,@"^GO\s*$",System.Text.RegularExpressions.RegexOptions.Multiline).Where(x=>!string.IsNullOrWhiteSpace(x)))await db.Database.ExecuteSqlRawAsync(batch);
         await db.Database.CloseConnectionAsync();
         (await db.Schools.SingleAsync()).Name.Should().Be("D3 script sentinel");var drive=await db.SchoolGoogleDrives.SingleAsync();drive.ProtectedCredential.Should().Be("script-sentinel-credential");drive.RootFolderId.Should().Be("script-sentinel-root");drive.DutyArchiveEnabled.Should().BeFalse();
+        (await db.Database.GetPendingMigrationsAsync()).Should().Equal("20261015060717_VersionDutyRosterRenderings");
+        await migrator.MigrateAsync("20261015060717_VersionDutyRosterRenderings");
         (await db.Database.GetPendingMigrationsAsync()).Should().BeEmpty();db.Database.HasPendingModelChanges().Should().BeFalse();
     }
     [DutySqlFact] public async Task Lost_folder_create_response_reconciles_persisted_reservation_without_duplicate_folders()

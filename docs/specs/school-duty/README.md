@@ -1,5 +1,9 @@
 # School Duty — Feature Spec Kit
 
+**Current C30 / D-122 (2026-10-15):** School files uses one native browser for root, map and old folder/file links. Library upload/create and the existing evidence/version services are connected to its own inspector; no old full-page library fallback. Application binary transfer avoids advertising the awaiting Blob request as a download attachment; real errors remain visible. Administrator Personal files navigation is corrected. [Verification](../school-file-storage/verification/download-access.md). No new migration or verification provider write; owner/physical/desktop IDM acceptance pending.
+
+**Current C29 / D-121 (2026-10-15):** The official roster now follows source1, with paired nine-week columns, repeated weekly headings and whole-week continuation. Retained snapshots/bytes survive template upgrades; the owner-authorized local Development index-only migration advanced schema68 to69 after fresh isolated SQL validation. Both archive processors remain ON with prior school settings retained; no C29 Drive write. [Verification](verification/roster-source.md). Owner visual/physical/printer acceptance remains pending.
+
 **Current C27 / D-119 (2026-10-15):** Native School files browsing and confirmed deletion/recovery are implemented. The owner-authorized empty-root test delivered five real files; its temporary hierarchy was cleaned, original registered signed history recovered, D3_Test retained in trash, and withdrawn evidence retained as withdrawn. Both local archive processors are ON; no new migration. Earlier OFF/blocked statements describe their historical phase boundaries. [Final evidence](../school-file-storage/verification/drive-browser-and-regeneration.md).
 
 **Status:** D1–D3 implemented; independent isolated SQL/local HTTP, browser and actual PDF verification delivered. Real Drive delivery/read/recovery passed in the explicitly designated synthetic D3_Test destination; final client visual acceptance and physical-device review remain pending. See [D3 verification](verification/d3.md).
@@ -102,3 +106,11 @@ The owner explicitly authorized clearing the existing Al-Falah E2E Test School r
 ## Change log — 2026-10-15 (C28)
 
 Diagnosed the missing 2026-10-15 Drive report: existing version6 is unsubmitted, with no signed Report/archive intent. Added an intentional-work-only draft departure dialog with completion steps, Continue and OK; save failure/input/permission/signature behavior is preserved.155 Angular checks plus32 overlapping final focused checks and four actual-browser viewport/language scenarios passed. No backend mutation/migration/provider write. [Verification](verification/draft-exit.md).
+
+## C29 / D-121 — Official roster change log (2026-10-15)
+
+Source1 was reopened and fingerprint-checked. The schedule-panel download now reproduces its monochrome official organization, embedded Arabic type, two touching table halves and separate blank administrative signatures. A normal18-week fixture fits one page; long names/extended periods continue as whole weeks. Renderer `school-duty/roster-source-2026-v5` has immutable versioned provenance. The local index-only migration was applied after fresh guarded SQL verification.102/102 broad backend,105/105 expanded backend,74/74 Angular and live authenticated native downloads at390/768/1440 passed; counts overlap. [Source/output comparison and evidence](verification/roster-source.md).
+
+## C30 / D-122 — Shared download correction (2026-10-15)
+
+Roster/signed-document Blob requests now use the shared application transfer contract before the final browser download. Roster has an extension-free content alias while its old direct PDF route remains supported. Frozen PDFs/hash/provenance, renderer versions and letter/report archive obligations are unchanged. Real roster and existing storage downloads passed at390/768/1440 with equal bytes and no false error; ordinary network failures remain errors. [Storage/unified-browser follow-up](../school-file-storage/verification/download-access.md). No new migration or signing/submission/provider-write verification.

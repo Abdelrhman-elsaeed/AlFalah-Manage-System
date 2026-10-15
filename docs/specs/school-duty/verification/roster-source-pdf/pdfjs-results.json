@@ -1,0 +1,38 @@
+[
+  {
+    "file": "source-eighteen-weeks.pdf",
+    "pages": 1,
+    "engine": "PDF.js4.10.38",
+    "actualCanvasRendering": true
+  },
+  {
+    "file": "source-full-year.pdf",
+    "pages": 3,
+    "engine": "PDF.js4.10.38",
+    "actualCanvasRendering": true
+  },
+  {
+    "file": "source-long-names-closures.pdf",
+    "pages": 3,
+    "engine": "PDF.js4.10.38",
+    "actualCanvasRendering": true
+  },
+  {
+    "file": "source-partial-weeks.pdf",
+    "pages": 1,
+    "engine": "PDF.js4.10.38",
+    "actualCanvasRendering": true
+  },
+  {
+    "file": "source-seven-study-days.pdf",
+    "pages": 2,
+    "engine": "PDF.js4.10.38",
+    "actualCanvasRendering": true
+  },
+  {
+    "file": "actual-school-roster.pdf",
+    "pages": 3,
+    "engine": "PDF.js4.10.38",
+    "actualCanvasRendering": true
+  }
+]

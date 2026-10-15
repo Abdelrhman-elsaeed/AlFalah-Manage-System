@@ -1,0 +1,69 @@
+[
+  {
+    "file": "source-eighteen-weeks.pdf",
+    "pages": 1,
+    "rows": 90,
+    "allCanonicalDatesExactlyOnce": true,
+    "sha256": "9981FC412B82D56E820C30B3721783CF4067500C70BBCB46B6C1DCD2EDDE5A6E",
+    "renderer": "school-duty/roster-source-2026-v5",
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ]
+  },
+  {
+    "file": "source-full-year.pdf",
+    "pages": 3,
+    "rows": 215,
+    "allCanonicalDatesExactlyOnce": true,
+    "sha256": "4D7A685F4FF5ECC63226B27277888B78EECCB2E62F0E0E7911A04FD1891071B2",
+    "renderer": "school-duty/roster-source-2026-v5",
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ]
+  },
+  {
+    "file": "source-long-names-closures.pdf",
+    "pages": 3,
+    "rows": 90,
+    "allCanonicalDatesExactlyOnce": true,
+    "sha256": "7DDC3BF624CEC04351944F23D7A94D57727B994D8CCAC6D36B6E46EE887F3213",
+    "renderer": "school-duty/roster-source-2026-v5",
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ]
+  },
+  {
+    "file": "source-partial-weeks.pdf",
+    "pages": 1,
+    "rows": 10,
+    "allCanonicalDatesExactlyOnce": true,
+    "sha256": "389B2FB8BF2F13AF4A97BCF114FA568138E3ACC8751B75CDD945957810E233DB",
+    "renderer": "school-duty/roster-source-2026-v5",
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ]
+  },
+  {
+    "file": "source-seven-study-days.pdf",
+    "pages": 2,
+    "rows": 126,
+    "allCanonicalDatesExactlyOnce": true,
+    "sha256": "FFB1BAA017D9BEBAE2F2A578982151DC3F6664964E8E06DF85817866A1B4FDEE",
+    "renderer": "school-duty/roster-source-2026-v5",
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ]
+  },
+  {
+    "file": "actual-school-roster.pdf",
+    "pages": 3,
+    "sha256": "7BA8CAA14B330728C6D4DAD19CE16D306C632B8C9C6E0BB28ED19027B46150AC",
+    "realLocalApi": true,
+    "syntheticSchool": true
+  }
+]

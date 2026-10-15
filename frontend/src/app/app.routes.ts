@@ -92,6 +92,11 @@ export const routes: Routes = [
 
       // Live storage permission/delegation guard, outside the manager role subtree.
       {
+        path: 'instructor/my-files', canActivate: [storageGuard], data: {own: true},
+        loadComponent: () => import('./features/storage/storage-page.component').then(m => m.StoragePageComponent),
+        title: translatedTitle('STORAGE.OWN_TITLE')
+      },
+      {
         path: 'school-manager/storage/overview', canActivate: [storageGuard], data: {own: false},
         loadComponent: () => import('./features/storage/storage-overview-page.component').then(m => m.StorageOverviewPageComponent),
         title: 'مساحة الملفات — نظرة عامة'
@@ -206,13 +211,6 @@ export const routes: Routes = [
             loadComponent: () => import('./features/visits/visit-detail/visit-detail.component')
               .then(m => m.VisitDetailComponent),
             title: translatedTitle('ROUTE_TITLES.VISIT_REPORT')
-          },
-          {
-            path: 'my-files',
-            canActivate: [storageGuard],
-            data: { own: true },
-            loadComponent: () => import('./features/storage/storage-page.component').then(m => m.StoragePageComponent),
-            title: translatedTitle('STORAGE.OWN_TITLE')
           },
           {
             path: 'evidence-files',
