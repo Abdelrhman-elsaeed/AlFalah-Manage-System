@@ -90,6 +90,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             teacherQuery = teacherQuery.Where(x => x.UserId == currentUserId);
         }
 
+        var classYearIds = academicYears.Where(y => y.IsActive).Select(y => y.Id).ToArray();
         var teacherRows = await teacherQuery
             .Select(x => new
             {
@@ -98,7 +99,12 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 FullName = x.User.FirstName + " " + x.User.LastName,
                 x.EmployeeNumber,
                 x.SubjectSpecialization,
-                Classes = x.Classes.OrderBy(c => c.SortOrder).Select(c => c.ClassLabel).ToList()
+                Classes = x.Classes.Where(c => c.SchoolId == resolvedSchoolId && c.ClassroomId != null &&
+                        c.Classroom != null && c.Classroom.IsActive && c.Classroom.AcademicYear.IsActive &&
+                        classYearIds.Contains(c.Classroom.AcademicYearId))
+                    .OrderBy(c => c.Classroom!.Stage).ThenBy(c => c.Classroom!.GradeLevel)
+                    .ThenBy(c => c.Classroom!.SectionNumber).ThenBy(c => c.Classroom!.Section)
+                    .Select(c => c.Classroom!.ClassLabel).ToList()
             })
             .ToListAsync(cancellationToken);
         var printProfiles = timetableSetupProfileId is int setupId

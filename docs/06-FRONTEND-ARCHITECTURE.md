@@ -162,3 +162,8 @@ Design/prototype only, explicitly selected by the owner. Existing structured Cla
 ## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
 
 C33 / D-125 upgrades the existing /student-affairs/classrooms component into the manager catalogue: grade/stage navigation, bulk numeric sections, generated names, location, retained legacy labels, edit/activation, search and paging. A shared CVA grouped multi-select replaces chips in account teaching and manager teacher-profile editors; every options page is read and failed/stale lookups cannot clear selection or enable Save. No duplicate classroom frontend was added. Assignment UX/PDF remain C4/C5. [Implementation](specs/classroom-catalog/implementation.md).
+
+
+## C34 / D-126 - Classroom consumer cutover (2026-10-15)
+
+A shared single-class CVA picker now serves V2 visit metadata and manual timetable cells, using the same paged catalogue as teacher multi-selection. Context changes clear invalid selection; lookup failure never supplies a partial list. Student lookup helpers traverse all pages. Mobile timetable sticky columns were reduced after live testing showed they obscured editable lesson cells. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).

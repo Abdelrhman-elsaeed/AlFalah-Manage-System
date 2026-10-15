@@ -16,6 +16,7 @@ export interface VisitV2ObservationCard {
   rubricVersionId: number; rubricVersionNumber: number; domains: VisitV2Domain[]; scoreLabels: VisitV2ScoreLabel[];
 }
 export interface CreateVisitV2Request {
+  classroomId?: number | null;
   instructorId: string; visitCategory: number; visitSequence: number; visitDate: string;
   classroomPeriod: number; subject: string; gradeClass: string; lessonTitle: string;
   presentCount: number; absentCount: number; notes?: string | null;
@@ -39,6 +40,7 @@ export interface VisitV2Treatment {
   successIndicators: string; source: number; sortOrder: number;
 }
 export interface VisitV2Detail {
+  classroomId?: number | null;
   id: number; schoolId: number; schoolName: string; instructorId: string; instructorName: string;
   evaluatorName: string; evaluatorRole: string; visitCategory: number; visitCategoryLabelAr: string;
   visitSequence: number; visitSequenceLabelAr: string; status: number; statusLabelAr: string;

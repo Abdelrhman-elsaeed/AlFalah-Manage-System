@@ -2,6 +2,8 @@ import { RouterLink } from '@angular/router';
 import { TimetableSettingsService } from '../../core/services/timetable-settings.service';
 import { TimetableSetupProfile } from '../../core/models/timetable-settings.models';
 import { ClearableSelectComponent } from '../../shared/components/clearable-select/clearable-select.component';
+import { ClassroomPickerComponent } from '../../shared/components/classroom-selector/classroom-picker.component';
+import { ClassroomOption } from '../../core/services/classroom-catalog.service';
 import { BellSchedule, effectivePeriods } from '../../core/models/bell-schedule.models';
 import { effectiveIntervals } from '../../core/models/schedule-break.models';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -57,7 +59,7 @@ interface DisplayDay {
 @Component({
   selector: 'app-school-timetable',
   standalone: true,
-  imports: [RouterLink, ClearableSelectComponent, CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule,
+  imports: [RouterLink, ClearableSelectComponent, ClassroomPickerComponent, CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule,
     InlineSwapChooserComponent, SwapAnalysisOverlayComponent, SwapGridLegendComponent, SwapModeBarComponent, SwapReviewDialogComponent],
   providers: [InlineSwapSessionStore],
   templateUrl: './school-timetable.component.html',
@@ -159,6 +161,8 @@ export class SchoolTimetableComponent implements OnInit {
   selectedCell: CellAddress | null = null;
   draftType: 0 | TimetableEntryType = 0;
   draftClass = '';
+  draftClassroomId: number | null = null;
+  readonly classroomReady = signal(false);
   draftSubject = '';
   newTitle = '';
   checkpointName = '';
@@ -377,6 +381,8 @@ export class SchoolTimetableComponent implements OnInit {
     const entry = this.getEntry(teacher.instructorProfileId, day, period);
     this.draftType = entry?.entryType ?? 0;
     this.draftClass = entry?.classLabel ?? teacher.classes[0] ?? '';
+    this.draftClassroomId = entry?.classroomId ?? null;
+    this.classroomReady.set(false);
     this.draftSubject = entry?.subject ?? teacher.subject ?? '';
     this.cellDialogTab.set('edit');
     this.cellDialogVisible.set(true);
@@ -512,7 +518,7 @@ export class SchoolTimetableComponent implements OnInit {
     } else if (this.draftType === 2) {
       next[key] = { id: null, instructorProfileId: cell.teacherId, day: cell.day, period: cell.period, entryType: 2, classLabel: null, subject: null };
     } else {
-      if (!this.draftClass.trim() || !this.draftSubject.trim()) {
+      if (!this.draftClassroomId || !this.classroomReady() || !this.draftSubject.trim()) {
         this.toast.warn('الفصل والمادة مطلوبان للحصة', '');
         return;
       }
@@ -524,12 +530,17 @@ export class SchoolTimetableComponent implements OnInit {
         period: cell.period,
         entryType: 1,
         classLabel: this.draftClass.trim(),
+        classroomId: this.draftClassroomId,
         subject: this.draftSubject.trim()
       };
     }
     this.entries.set(next);
     this.dirty.set(true);
     this.cellDialogVisible.set(false);
+  }
+
+  classroomChanged(classroom: ClassroomOption | null): void {
+    this.draftClass = classroom?.label ?? '';
   }
 
   getEntry(teacherId: number, day: TimetableDay, period: number): TimetableEntry | null {

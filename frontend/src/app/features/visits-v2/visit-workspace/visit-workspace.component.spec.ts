@@ -9,6 +9,7 @@ import { ComplaintsService } from '../../../core/services/complaints.service';
 import { TeachersService } from '../../../core/services/teachers.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { VisitsV2Service } from '../../../core/services/visits-v2.service';
+import { ClassroomCatalogService } from '../../../core/services/classroom-catalog.service';
 import { VisitWorkspaceComponent } from './visit-workspace.component';
 
 describe('VisitWorkspaceComponent interaction stability', () => {
@@ -66,6 +67,7 @@ describe('VisitWorkspaceComponent interaction stability', () => {
     await TestBed.configureTestingModule({
       imports: [VisitWorkspaceComponent, TranslateModule.forRoot()],
       providers: [
+        { provide: ClassroomCatalogService, useValue: { all: () => of({context:{years:[],stage:'Primary',isManager:true,isMember:true},items:[{id:1,label:'Class',stage:'Primary',gradeLevel:1,isActive:true}],hasMore:false}),gradeLabel:()=> 'Grade' } },
         { provide: VisitsV2Service, useValue: visits },
         { provide: ComplaintsService, useValue: jasmine.createSpyObj('ComplaintsService', ['create']) },
         {
@@ -98,6 +100,32 @@ describe('VisitWorkspaceComponent interaction stability', () => {
     expect(getComputedStyle(loader!).position)
       .withContext('the visits loader must never cover the fixed application shell')
       .not.toBe('fixed');
+  });
+
+  it('requires a resolved classroom ID and clears it when teacher or date changes', () => {
+    Object.assign(component.model,{instructorId:'teacher',subject:'Math',lessonTitle:'Lesson',gradeClass:'forged text'});
+    component.classroomReady.set(true);
+    expect((component as any).validMetadata()).toBeFalse();
+    component.model.classroomId=1;
+    expect((component as any).validMetadata()).toBeTrue();
+    expect((component as any).updateRequest().classroomId).toBe(1);
+    component.teacherChanged();expect(component.model.classroomId).toBeNull();expect(component.model.gradeClass).toBe('');
+    component.model.classroomId=1;component.visitDateChanged();
+    expect(component.model.classroomId).toBeNull();expect(component.classroomReady()).toBeFalse();
+  });
+
+  it('does not turn an old report label into a new classroom selection', () => {
+    (component as any).applyDetail({...component.model,id:20,domains:card.domains,gradeClass:'Retained old label',classroomId:null});
+    expect(component.model.gradeClass).toBe('Retained old label');
+    expect(component.model.classroomId).toBeNull();expect((component as any).validMetadata()).toBeFalse();
+  });
+
+  it('keeps a validated selection usable after saving on the scoring step', () => {
+    component.model.classroomId=1;component.classroomReady.set(true);component.cardStep.set(2);
+    (component as any).applyDetail({...component.model,id:20,domains:card.domains});
+    expect(component.classroomReady()).toBeTrue();
+    (component as any).applyDetail({...component.model,id:21,domains:card.domains,classroomId:999});
+    expect(component.classroomReady()).toBeFalse();
   });
 
   it('does not refetch a tab that was already loaded', () => {

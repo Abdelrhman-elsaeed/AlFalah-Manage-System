@@ -23,16 +23,32 @@ public sealed class SubjectAssignmentService(ISubjectRepository repository)
     public async Task<List<TimetableEntryDto>> ValidateAsync(SchoolTimetable timetable, IReadOnlyList<TimetableEntryDto> entries,
         BellScheduleDto schedule, bool publishing, CancellationToken ct)
     {
+        var classes = await repository.GetClassroomsAsync(timetable.SchoolId, timetable.AcademicYearId, ct);
+        SubjectClassroomDto? Classroom(TimetableEntryDto entry)
+        {
+            var matches = classes.Where(c => entry.ClassroomId.HasValue ? c.Id == entry.ClassroomId :
+                string.Equals(c.Name, entry.ClassLabel?.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                c.LegacyLabels.Any(label => string.Equals(label, entry.ClassLabel?.Trim(), StringComparison.OrdinalIgnoreCase))).ToArray();
+            if (matches.Length == 1) return matches[0];
+            // Only unchanged, already retained unstructured class references may remain unresolved.
+            if (!entry.ClassroomId.HasValue && timetable.Entries.Any(old => !old.IsDeleted && old.ClassroomId == null &&
+                old.ClassLabel == entry.ClassLabel && old.EntryType == TimetableEntryType.Lesson)) return null;
+            throw new ArgumentException("اختر فصلًا من سجل المدرسة والعام الخاصين بهذا الجدول؛ الفصل غير متاح أو ملتبس.");
+        }
         if (!timetable.TimetableSetupProfileId.HasValue)
         {
             if (entries.Any(e => e.SubjectId.HasValue || e.ClassSubjectRequirementId.HasValue || e.RoomId.HasValue))
                 throw new ArgumentException("ربط المادة يتطلب ملف إعداد للجدول.");
-            return entries.ToList();
+            var manual = entries.Select(e => e.EntryType != TimetableEntryType.Lesson ? e : Classroom(e) is { } classroom
+                ? e with {ClassroomId = classroom.Id, ClassLabel = classroom.Name} : e).ToList();
+            if (manual.Where(e => e.EntryType == TimetableEntryType.Lesson).GroupBy(e => new {e.Day,e.Period,Class=ClassKey(e)}).Any(g => g.Count() > 1))
+                throw new ArgumentException("الفصل مسند لأكثر من معلم في الوقت نفسه.");
+            return manual;
         }
         var setup = await repository.GetSetupAsync(timetable.SchoolId, timetable.TimetableSetupProfileId.Value, ct) ?? throw new KeyNotFoundException();
         var requirements = await repository.GetRequirementsAsync(timetable.SchoolId, setup.Id, ct);
         var subjects = await repository.GetSubjectsAsync(timetable.SchoolId, ct);
-        var classes = await repository.GetClassroomsAsync(timetable.SchoolId, setup.AcademicYearId, ct);
+        if (setup.AcademicYearId != timetable.AcademicYearId) throw new ArgumentException("عام إعداد الجدول لا يطابق عام الجدول.");
         var rooms = await repository.GetRoomsAsync(timetable.SchoolId, ct);
         var assignmentHistory = await repository.GetTeachingAssignmentsAsync(timetable.SchoolId, setup.Id, ct);
         var assignments = assignmentHistory.Where(a => !a.IsDeleted).ToArray();
@@ -45,16 +61,16 @@ public sealed class SubjectAssignmentService(ISubjectRepository repository)
                     throw new ArgumentException("خانة الانتظار لا ترتبط بمادة أو غرفة.");
                 normalized.Add(e); continue;
             }
-            var classroom = e.ClassroomId.HasValue ? classes.SingleOrDefault(c => c.Id == e.ClassroomId)
-                : classes.SingleOrDefault(c => string.Equals(c.Name, e.ClassLabel, StringComparison.OrdinalIgnoreCase));
+            var classroom = Classroom(e);
             var subject = e.SubjectId.HasValue ? subjects.SingleOrDefault(s => s.Id == e.SubjectId)
                 : subjects.SingleOrDefault(s => string.Equals(s.Name, e.Subject, StringComparison.OrdinalIgnoreCase));
             var r = requirements.SingleOrDefault(r => r.ClassroomId == classroom?.Id && r.SubjectId == subject?.Id);
             if (r is null)
             {
-                if (e.ClassSubjectRequirementId.HasValue || e.SubjectId.HasValue || e.RoomId.HasValue || e.ClassroomId.HasValue)
+                if (e.ClassSubjectRequirementId.HasValue || e.SubjectId.HasValue || e.RoomId.HasValue)
                     throw new ArgumentException("إعداد المادة للفصل غير موجود في هذا الجدول.");
-                normalized.Add(e); continue; // Existing legacy text subjects remain readable/editable.
+                normalized.Add(classroom is null ? e : e with {ClassroomId = classroom.Id, ClassLabel = classroom.Name});
+                continue; // Retain unconfigured legacy subjects without inventing subject quotas.
             }
             if (e.ClassSubjectRequirementId.HasValue && e.ClassSubjectRequirementId != r.Id)
                 throw new ArgumentException("مصدر إعداد المادة لا يطابق الفصل والمادة.");
@@ -78,7 +94,7 @@ public sealed class SubjectAssignmentService(ISubjectRepository repository)
                 assignment?.Mode == "CoTeaching" && rows.Select(e => e.InstructorProfileId).Distinct().Count() == rows.Length &&
                 rows.All(e => assignment.Members.Any(m => m.Teacher.InstructorProfileId == e.InstructorProfileId));
         }
-        if (normalized.Where(x => x.EntryType == TimetableEntryType.Lesson).GroupBy(x => new { x.Day, x.Period, Class = x.ClassLabel?.Trim().ToUpperInvariant() })
+        if (normalized.Where(x => x.EntryType == TimetableEntryType.Lesson).GroupBy(x => new { x.Day, x.Period, Class = ClassKey(x) })
             .Any(g => g.Count() > 1 && !SharedOccurrence(g)))
             throw new ArgumentException("الفصل مسند لأكثر من معلم في الوقت نفسه؛ التزامن مسموح فقط لمعلمي إسناد التدريس المشترك نفسه.");
         if (normalized.Where(x => x.RoomId.HasValue).GroupBy(x => new { x.RoomId, x.Day, x.Period }).Any(g => g.Count() > 1 && !SharedOccurrence(g)))
@@ -126,6 +142,8 @@ public sealed class SubjectAssignmentService(ISubjectRepository repository)
         setup.Revision++;
         return normalized;
     }
+    private static string ClassKey(TimetableEntryDto entry) => entry.ClassroomId.HasValue
+        ? "id:" + entry.ClassroomId.Value : "legacy:" + entry.ClassLabel?.Trim().ToUpperInvariant();
     private static int CountPairs(IReadOnlyList<TimetableEntryDto> placed, BellScheduleDto schedule)
     {
         var pairs = 0;

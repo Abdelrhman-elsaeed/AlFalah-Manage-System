@@ -6,7 +6,7 @@ import {
   HttpResponse
 } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SUPPRESS_ERROR_TOAST, SUPPRESS_FORBIDDEN_REDIRECT } from '../http/http-context.tokens';
 import { ApiResponse } from '../models/api-response.model';
@@ -56,11 +56,17 @@ export class DailyOperationsService {
     .set(SUPPRESS_ERROR_TOAST, true)
     .set(SUPPRESS_FORBIDDEN_REDIRECT, true);
 
-  getClassrooms(): Observable<ApiResponse<ClassroomPage>> {
-    return this.http.get<ApiResponse<ClassroomPage>>(`${this.api}/classrooms`, {
-      context: this.callerHandlesErrors,
-      params: new HttpParams().set('pageSize', 100)
-    });
+  getClassrooms(academicYearId?: number): Observable<ApiResponse<ClassroomPage>> {
+    const page = (number: number) => this.http.get<ApiResponse<ClassroomPage>>(`${this.api}/classrooms`, {
+      context: this.callerHandlesErrors, params: new HttpParams().set('pageSize',100).set('pageNumber',number)
+        .set(academicYearId ? 'academicYearId' : 'currentYearOnly', academicYearId ?? true)
+    }).pipe(map(response => {
+      if (!response.isSuccess || !response.data) throw new Error(response.message || 'تعذر تحميل الفصول.');
+      return response;
+    }));
+    return page(1).pipe(expand(response => response.data!.hasNext ? page(response.data!.page + 1) : EMPTY),
+      reduce((all, response) => ({...response, data:{...response.data!,items:[...(all?.data?.items ?? []),...response.data!.items]}}),null as ApiResponse<ClassroomPage> | null),
+      map(response => response!));
   }
 
   getAcademicYears(): Observable<ApiResponse<readonly AcademicYearLookupDto[]>> {

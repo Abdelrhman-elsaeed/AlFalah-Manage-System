@@ -504,3 +504,8 @@ Design/prototype only, explicitly selected by the owner. Existing structured Cla
 ## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
 
 C33 / D-125 adds GET /api/v1/classroom-catalog (school/year-scoped SQL pages100), POST /api/v1/classroom-catalog/batch and PATCH /api/v1/classroom-catalog/{id}. Existing account/teacher teaching endpoints accept ClassroomIds, AcademicYearId and TeachingRevision; omissions preserve links, stale sets409, invalid school/year/inactive/deleted IDs400. Old classroom create/update handlers delegate to the same service. Legacy label arrays can echo existing values but cannot replace the revisioned set. [Exact DTOs and behavior](specs/classroom-catalog/implementation.md).
+
+
+## C34 / D-126 - Classroom consumer cutover (2026-10-15)
+
+The existing catalogue GET additionally accepts onDate=YYYY-MM-DD and rejects a conflicting explicit year. V2 create/update/detail carry classroomId; create/edit/finalize validate it against school/date/year before mutation. GET /classrooms adds currentYearOnly for live directory lookup without removing explicit-year history. No new permission or V1 write route was activated. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).

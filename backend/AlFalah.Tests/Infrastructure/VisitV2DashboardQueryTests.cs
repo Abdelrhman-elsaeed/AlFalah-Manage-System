@@ -33,6 +33,7 @@ public sealed class VisitV2DashboardQueryTests
                 "VisitDate" TEXT NOT NULL DEFAULT '',
                 "Subject" TEXT NULL,
                 "GradeClass" TEXT NULL,
+                "ClassroomId" INTEGER NULL,
                 "LessonTitle" TEXT NULL,
                 "PresentCount" INTEGER NOT NULL DEFAULT 0,
                 "AbsentCount" INTEGER NOT NULL DEFAULT 0,

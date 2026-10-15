@@ -137,6 +137,7 @@ describe('School timetable empty grid', () => {
     (component as any).applyTimetable(timetable);
 
     component.openCell(component.catalog()!.teachers[0], 2, 1);
+    component.classroomReady.set(true);
     component.draftSubject = 'رياضيات متقدمة';
     component.saveCell();
 

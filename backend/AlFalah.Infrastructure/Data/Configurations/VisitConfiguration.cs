@@ -9,6 +9,8 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
     public void Configure(EntityTypeBuilder<Visit> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.HasOne(x => x.Classroom).WithMany().HasForeignKey(x => new { x.SchoolId, x.ClassroomId })
+            .HasPrincipalKey(x => new { x.SchoolId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.RowVersion).IsRowVersion();
         builder.Property(x => x.ApprovalRevision).HasDefaultValue(0);
         builder.ToTable(t => t.HasTrigger("TR_Visits_ApprovalRevision"));

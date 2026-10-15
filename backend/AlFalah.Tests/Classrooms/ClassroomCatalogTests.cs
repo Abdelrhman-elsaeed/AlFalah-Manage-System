@@ -15,7 +15,7 @@ public sealed class FakeClassroomCatalogRepository : IClassroomCatalogRepository
     public List<InstructorClass> Links = [];
     public List<AuditLog> Audits = [];
     public Action<IReadOnlyList<Classroom>>? OnAdd;
-    public bool LegacyScheduleReferences;
+    public List<ClassroomLabelHistory> Labels = [];
     public Task<CatalogContext> ContextAsync(int school, string actor, CancellationToken ct) => Task.FromResult(Context);
     public Task<IReadOnlyList<Classroom>> ClassroomsAsync(int school, int year, CancellationToken ct) => Task.FromResult<IReadOnlyList<Classroom>>(Classes.Where(c => c.SchoolId == school && c.AcademicYearId == year && !c.IsDeleted).ToArray());
     public async Task<IReadOnlyList<Classroom>> PageAsync(int school, int year, int page, bool inactive, CancellationToken ct) =>
@@ -24,7 +24,8 @@ public sealed class FakeClassroomCatalogRepository : IClassroomCatalogRepository
     public Task AddAsync(IReadOnlyList<Classroom> rows, CancellationToken ct) { Classes.AddRange(rows); OnAdd?.Invoke(rows); return Task.CompletedTask; }
     public Task<Classroom?> ForUpdateAsync(int school, int id, CancellationToken ct) => Task.FromResult(Classes.SingleOrDefault(c => c.SchoolId == school && c.Id == id));
     public Task SaveAsync(CancellationToken ct) => Task.CompletedTask;
-    public Task<bool> HasLegacyScheduleReferencesAsync(Classroom classroom, CancellationToken ct) => Task.FromResult(LegacyScheduleReferences);
+    public Task<IReadOnlyList<ClassroomLabelHistory>> LabelsAsync(int school, int year, CancellationToken ct) => Task.FromResult<IReadOnlyList<ClassroomLabelHistory>>(Labels.Where(l => l.SchoolId == school && l.AcademicYearId == year).ToArray());
+    public void AddLabel(ClassroomLabelHistory label) => Labels.Add(label);
     public void AddAssociation(InstructorClass row) => Links.Add(row);
     public void Audit(AuditLog row) => Audits.Add(row);
 }
@@ -115,11 +116,13 @@ public sealed class ClassroomCatalogTests
         await FluentActions.Invoking(()=>Service().UpdateAsync(7,new("2",true,"Room",revision),default)).Should().ThrowAsync<ClassroomCatalogConflictException>();
     }
     [Fact]
-    public async Task Rename_cannot_orphan_legacy_timetable_name_references()
+    public async Task Rename_retains_legacy_name_bindings_and_reserves_them_against_reuse()
     {
-        var row=Row(7); repository.Classes.Add(row); repository.LegacyScheduleReferences=true;
-        await FluentActions.Invoking(()=>Service().UpdateAsync(7,new("1",true,"Room",row.UpdatedAt.ToString("O")),default)).Should().ThrowAsync<ArgumentException>();
-        row.ClassLabel.Should().Be("class-7");
+        var row=Row(7); repository.Classes.Add(row);
+        await Service().UpdateAsync(7,new("1",true,"Room",row.UpdatedAt.ToString("O")),default);
+        repository.Labels.Select(x=>x.Label).Should().Contain("class-7").And.Contain(row.ClassLabel);
+        repository.Labels.Should().OnlyContain(x=>x.ClassroomId==7 && x.SchoolId==42 && x.AcademicYearId==3);
+        await FluentActions.Invoking(()=>Service().CreateAsync(new(3,1,["1"],"Room"),default)).Should().ThrowAsync<ArgumentException>();
     }
     [Fact]
     public async Task Ordinary_member_cannot_replace_another_teachers_selection()

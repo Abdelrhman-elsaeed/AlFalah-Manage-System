@@ -86,14 +86,15 @@ public sealed class StorageSqlFixture : IAsyncLifetime
         var task = new EvidenceTask { Code = "S1-TASK", NameAr = "مهمة اختبار", Category = "اختبار", IsActive = true };
         db.AddRange(year, task);
         await db.SaveChangesAsync();
-        var teacher = new InstructorProfile { UserId = TeacherDriveHarness.TeacherAUserId, SchoolId = school.Id };
-        db.InstructorProfiles.Add(teacher);
+        // This baseline predates TeachingRevision: seed only columns present then.
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO InstructorProfiles (UserId,SchoolId,IsActive,CreatedAt,UpdatedAt,IsDeleted) VALUES ({TeacherDriveHarness.TeacherAUserId},{school.Id},1,SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET(),0)");
+        var teacherId = await db.InstructorProfiles.Where(p => p.UserId == TeacherDriveHarness.TeacherAUserId).Select(p => p.Id).SingleAsync();
         db.UserSchoolRoles.AddRange(new UserSchoolRole { SchoolId = school.Id, UserId = TeacherDriveHarness.ManagerUserId, RoleId = "manager" },
             new UserSchoolRole { SchoolId = school.Id, UserId = TeacherDriveHarness.TeacherAUserId, RoleId = "teacher" });
         await db.SaveChangesAsync();
         db.TeacherEvidenceSubmissions.Add(new TeacherEvidenceSubmission
         {
-            SchoolId = school.Id, TeacherId = teacher.Id, TaskId = task.Id, AcademicYearId = year.Id,
+            SchoolId = school.Id, TeacherId = teacherId, TaskId = task.Id, AcademicYearId = year.Id,
             DriveId = "test-drive", DriveItemId = "legacy-item", ParentItemId = "teacher-root", FileName = "شاهد.pdf",
             FileExtension = ".pdf", MimeType = "application/pdf", SizeInBytes = 25,
             UploadStatus = EvidenceUploadStatus.Completed, ReviewStatus = EvidenceReviewStatus.Approved,

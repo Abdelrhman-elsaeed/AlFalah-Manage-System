@@ -19,6 +19,8 @@ import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/h
 import { downloadBlob, fileNameFromResponse } from '../../../core/utils/browser-download';
 import { applyQuickScore, liveTotals, suggestedScore } from '../visit-v2-calculator';
 import { VisitArchiveBadgeComponent } from '../../storage/visit-archive-badge.component';
+import { ClassroomPickerComponent } from '../../../shared/components/classroom-selector/classroom-picker.component';
+import { ClassroomOption } from '../../../core/services/classroom-catalog.service';
 
 type FeedbackKind = 'strength' | 'improvement';
 type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report' | 'bank';
@@ -26,7 +28,7 @@ type WorkspaceTab = 'card' | 'archive' | 'dashboard' | 'report' | 'bank';
 @Component({
   selector: 'app-visit-v2-workspace',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, VisitArchiveBadgeComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, VisitArchiveBadgeComponent, ClassroomPickerComponent],
   templateUrl: './visit-workspace.component.html',
   styleUrls: ['./visit-workspace.component.css']
 })
@@ -41,6 +43,8 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
   private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly enabled = signal<boolean | null>(null);
+  readonly classroomReady = signal(false);
+  private teachingRequestVersion = 0;
   readonly busy = signal(false);
   readonly cardLoading = signal(false);
   readonly archiveLoading = signal(false);
@@ -288,12 +292,25 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
 
   teacherChanged(): void {
     this.markDirty();
+    const teacher = this.model.instructorId;
+    const request = ++this.teachingRequestVersion;
+    this.model.classroomId = null;
+    this.model.gradeClass = '';
     if (!this.model.instructorId) return;
     this.teachers.getTeaching(this.model.instructorId, true).subscribe(response => {
-      if (!response.data) return;
+      if (!response.data || request !== this.teachingRequestVersion || this.model.instructorId !== teacher) return;
       this.model.subject = response.data.subject ?? this.model.subject;
-      this.model.gradeClass = response.data.classes?.[0] ?? this.model.gradeClass;
     });
+  }
+  classroomChanged(classroom: ClassroomOption | null): void {
+    this.model.gradeClass = classroom?.label ?? '';
+    this.markDirty();
+  }
+  visitDateChanged(): void {
+    this.model.classroomId = null;
+    this.model.gradeClass = '';
+    this.classroomReady.set(false);
+    this.markDirty();
   }
 
   indicatorChanged(standard: VisitV2Standard): void {
@@ -643,7 +660,7 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private validMetadata(): boolean {
-    return !!this.model.instructorId && !!this.model.subject.trim() && !!this.model.gradeClass.trim()
+    return !!this.model.instructorId && !!this.model.subject.trim() && !!this.model.classroomId && this.classroomReady()
       && !!this.model.lessonTitle.trim() && this.model.classroomPeriod >= 1 && this.model.classroomPeriod <= 7
       && this.model.presentCount >= 0 && this.model.absentCount >= 0;
   }
@@ -666,13 +683,16 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private applyDetail(detail: VisitV2Detail): void {
+    const sameSelection = this.model.classroomId === detail.classroomId &&
+      this.model.visitDate === detail.visitDate.substring(0, 10) && !!detail.classroomId;
+    this.classroomReady.set(this.classroomReady() && sameSelection);
     this.detail.set(detail);
     this.domains.set(this.cloneDomains(detail.domains));
     this.expandedEvidence.set(new Set<number>());
     this.model = {
       instructorId: detail.instructorId, visitCategory: detail.visitCategory, visitSequence: detail.visitSequence,
       visitDate: detail.visitDate.substring(0, 10), classroomPeriod: detail.classroomPeriod,
-      subject: detail.subject, gradeClass: detail.gradeClass, lessonTitle: detail.lessonTitle,
+      subject: detail.subject, classroomId: detail.classroomId ?? null, gradeClass: detail.gradeClass, lessonTitle: detail.lessonTitle,
       presentCount: detail.presentCount, absentCount: detail.absentCount, notes: detail.notes
     };
   }
@@ -707,7 +727,7 @@ export class VisitWorkspaceComponent implements OnInit, AfterViewInit, OnDestroy
   private emptyModel(): CreateVisitV2Request {
     return {
       instructorId: '', visitCategory: 2, visitSequence: 1, visitDate: new Date().toISOString().substring(0, 10),
-      classroomPeriod: 1, subject: '', gradeClass: '', lessonTitle: '', presentCount: 0, absentCount: 0, notes: ''
+      classroomPeriod: 1, subject: '', classroomId: null, gradeClass: '', lessonTitle: '', presentCount: 0, absentCount: 0, notes: ''
     };
   }
 

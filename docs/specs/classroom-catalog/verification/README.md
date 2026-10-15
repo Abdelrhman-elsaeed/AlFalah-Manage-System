@@ -40,3 +40,7 @@ Physical devices, assistive-technology acceptance, production load/performance, 
 ## C33 runtime foundation
 
 The original C32 artifacts above remain design-only evidence. Production catalogue and teacher-selection implementation now has separate [SQL, Angular, live-browser and migration verification](implementation/README.md).
+
+## C34 runtime consumers
+
+C3 now has separate [consumer, retained-history, SQL archive, Angular and real-browser evidence](consumers/README.md). Assignment UX/PDF remain future C4/C5 work.

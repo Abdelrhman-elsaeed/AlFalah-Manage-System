@@ -105,7 +105,7 @@ public sealed class SubjectPhase5Tests
         (await h.Handle(new AllocateSubjectToClassesCommand(1, request), default)).IsSuccess.Should().BeTrue();
         var schedule = (await h.Handle(new GetSubjectsQuery(1), default)).Data!.Schedule!;
         var service = new SubjectAssignmentService(new SubjectRepository(db));
-        var timetable = new SchoolTimetable { SchoolId = 1, TimetableSetupProfileId = 1 };
+        var timetable = new SchoolTimetable { SchoolId = 1, AcademicYearId = 1, TimetableSetupProfileId = 1 };
         var late = new TimetableEntryDto(1, TimetableDay.Saturday, 2, TimetableEntryType.Lesson, "1/A", "رياضيات");
         var linked = await service.ValidateAsync(timetable, [late], schedule, true, default);
         linked.Single().RoomId.Should().Be(1); linked.Single().SubjectId.Should().Be(1);
@@ -183,7 +183,7 @@ public sealed class SubjectPhase5Tests
         var entry = new TimetableEntryDto(1, TimetableDay.Saturday, 1, TimetableEntryType.Lesson, "1/A", "نشاط",
             ClassroomId: 1, SubjectId: 2, ClassSubjectRequirementId: activity.Id);
         var service = new SubjectAssignmentService(new SubjectRepository(db));
-        var timetable = new SchoolTimetable { SchoolId = 1, TimetableSetupProfileId = 1 };
+        var timetable = new SchoolTimetable { SchoolId = 1, AcademicYearId = 1, TimetableSetupProfileId = 1 };
 
         await service.Invoking(x => x.ValidateAsync(timetable, [entry], overview.Schedule!, false, default))
             .Should().ThrowAsync<ArgumentException>().WithMessage("*الحصة المثبتة*");

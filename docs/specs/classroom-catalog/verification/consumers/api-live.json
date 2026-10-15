@@ -1,0 +1,21 @@
+{
+  "noBusinessWrites": true,
+  "results": [
+    {
+      "name": "school date",
+      "status": 200
+    },
+    {
+      "name": "unknown date",
+      "status": 400
+    },
+    {
+      "name": "conflicting year",
+      "status": 400
+    },
+    {
+      "name": "anonymous",
+      "status": 401
+    }
+  ]
+}

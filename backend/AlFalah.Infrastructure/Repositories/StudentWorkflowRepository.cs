@@ -850,6 +850,9 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
 
         if (query.AcademicYearId.HasValue)
             dbQuery = dbQuery.Where(c => c.AcademicYearId == query.AcademicYearId.Value);
+        else if (query.CurrentYearOnly)
+            dbQuery = dbQuery.Where(c => _context.AcademicTerms.Any(t => t.SchoolId == schoolId && !t.IsDeleted &&
+                t.IsActive && t.AcademicYear.IsActive && t.AcademicYearId == c.AcademicYearId));
 
         if (query.AcademicTermId.HasValue)
             dbQuery = dbQuery.Where(c => c.Enrollments.Any(e => e.SchoolId == schoolId
@@ -868,7 +871,7 @@ public sealed class StudentWorkflowRepository : IStudentWorkflowRepository
         var classrooms = await dbQuery
             .OrderBy(c => c.Stage)
             .ThenBy(c => c.GradeLevel)
-            .ThenBy(c => c.Section)
+            .ThenBy(c => c.SectionNumber ?? int.MaxValue).ThenBy(c => c.Section)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Include(c => c.AcademicYear)

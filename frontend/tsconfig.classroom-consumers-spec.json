@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.classroom-spec.json",
+  "include": [
+    "src/app/features/student-affairs/classrooms-management/classrooms-management.component.spec.ts",
+    "src/app/core/services/classroom-catalog.service.spec.ts",
+    "src/app/core/services/daily-operations.service.spec.ts",
+    "src/app/shared/components/classroom-selector/*.spec.ts",
+    "src/app/features/visits-v2/visit-workspace/visit-workspace.component.spec.ts",
+    "src/app/features/timetables/school-timetable.component.spec.ts"
+  ]
+}

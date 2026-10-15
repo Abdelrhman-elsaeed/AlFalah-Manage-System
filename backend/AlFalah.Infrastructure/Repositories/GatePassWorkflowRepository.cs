@@ -232,14 +232,15 @@ public sealed class GatePassWorkflowRepository : IGatePassWorkflowRepository
 
         var fallbackMatches = await PublishedEntries(schoolId, academicYearId, semester, day)
             .Where(entry => entry.Period == period.Sequence && entry.SchoolTimetable.BellScheduleRevisionId == schedule.RevisionId)
-            .Where(entry => entry.ClassroomId == null && entry.ClassLabel == classroomLabel)
-            .Select(entry => new GatePassTimetableSnapshot(
-                entry.SchoolTimetableId,
-                entry.Id,
+            .Where(entry => entry.ClassroomId == null).WithResolvedClassroom(_context)
+            .Where(row => row.Classroom != null && row.Classroom.Id == classroomId)
+            .Select(row => new GatePassTimetableSnapshot(
+                row.Entry.SchoolTimetableId,
+                row.Entry.Id,
                 _context.Set<AlFalah.Domain.Entities.TimetableSubstitutionMovement>().Where(m => m.SchoolId == schoolId &&
-                    m.SchoolTimetableEntryId == entry.Id && m.Substitution.LocalDate == localDate && m.Substitution.Kind == "Substitution")
-                    .OrderByDescending(m => m.TimetableSubstitutionId).Select(m => (int?)m.ToTeacherId).FirstOrDefault() ?? entry.InstructorProfileId,
-                entry.Period))
+                    m.SchoolTimetableEntryId == row.Entry.Id && m.Substitution.LocalDate == localDate && m.Substitution.Kind == "Substitution")
+                    .OrderByDescending(m => m.TimetableSubstitutionId).Select(m => (int?)m.ToTeacherId).FirstOrDefault() ?? row.Entry.InstructorProfileId,
+                row.Entry.Period))
             .Take(2)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

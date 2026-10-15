@@ -47,7 +47,10 @@ public sealed record CreateVisitV2RequestDto(
     string LessonTitle,
     int PresentCount,
     int AbsentCount,
-    string? Notes);
+    string? Notes)
+{
+    public int? ClassroomId { get; init; }
+}
 
 public sealed record VisitV2ScoreInputDto(
     int RubricStandardId,
@@ -75,7 +78,10 @@ public sealed record UpdateVisitV2RequestDto(
     int PresentCount,
     int AbsentCount,
     string? Notes,
-    IReadOnlyList<VisitV2ScoreInputDto> Scores);
+    IReadOnlyList<VisitV2ScoreInputDto> Scores)
+{
+    public int? ClassroomId { get; init; }
+}
 
 public sealed record VisitV2DomainAnalysisDto(
     int RubricDomainId,
@@ -151,7 +157,10 @@ public sealed record VisitV2DetailDto(
     DateTimeOffset? ApprovedAt,
     string? RejectionReason,
     string? ReopenReason,
-    bool IsReadOnly);
+    bool IsReadOnly)
+{
+    public int? ClassroomId { get; init; }
+}
 
 public sealed class VisitV2ArchiveQuery : PagedQuery
 {

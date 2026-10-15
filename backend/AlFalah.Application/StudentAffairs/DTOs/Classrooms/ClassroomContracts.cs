@@ -7,6 +7,7 @@ namespace AlFalah.Application.StudentAffairs.DTOs.Classrooms;
 
 public sealed class ClassroomListQuery : StudentAffairsPageQuery
 {
+    public bool CurrentYearOnly { get; set; }
     public int? AcademicYearId { get; set; }
     public int? AcademicTermId { get; set; }
 }

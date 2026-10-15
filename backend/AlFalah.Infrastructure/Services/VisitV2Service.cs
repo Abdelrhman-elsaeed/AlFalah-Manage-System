@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text.Json;
 using AlFalah.Application.Analysis;
+using AlFalah.Application.Classrooms;
 using AlFalah.Application.Common;
 using AlFalah.Application.DTOs.Visits;
 using AlFalah.Application.Interfaces;
@@ -21,6 +22,7 @@ public sealed class VisitV2Service(
     SchoolScopeGuard schoolScope,
     AuditLogWriter audit,
     ILogger<VisitV2Service> logger,
+    IVisitClassroomSelectionService classrooms,
     IVisitArchiveCaptureService? archiveCapture = null) : IVisitV2Service
 {
     public VisitV2AvailabilityDto GetAvailability() =>
@@ -55,6 +57,7 @@ public sealed class VisitV2Service(
 
         if (!await repository.IsActiveInstructorAsync(request.InstructorId, schoolId, cancellationToken))
             throw new ArgumentException("المعلم المحدد غير نشط أو غير تابع للمدرسة الحالية.");
+        var classroom = await classrooms.ResolveAsync(schoolId, request.VisitDate, request.ClassroomId, null, cancellationToken);
 
         var evaluatorId = currentUser.UserId ?? throw new UnauthorizedAccessException("المستخدم غير مسجل الدخول.");
         var evaluator = await repository.GetUserAsync(evaluatorId, cancellationToken)
@@ -74,7 +77,8 @@ public sealed class VisitV2Service(
             VisitDate = request.VisitDate,
             ClassroomPeriod = request.ClassroomPeriod,
             Subject = request.Subject.Trim(),
-            GradeClass = request.GradeClass.Trim(),
+            GradeClass = classroom.Label,
+            ClassroomId = classroom.Id,
             LessonTitle = request.LessonTitle.Trim(),
             PresentCount = request.PresentCount,
             AbsentCount = request.AbsentCount,
@@ -116,6 +120,7 @@ public sealed class VisitV2Service(
         ValidateEnums(request.VisitCategory, request.VisitSequence);
         var visit = await GetAuthorizedVisitAsync(id, true, true, cancellationToken);
         EnsureEditable(visit);
+        var classroom = await classrooms.ResolveAsync(visit.SchoolId, request.VisitDate, request.ClassroomId, visit, cancellationToken);
 
         var expectedIds = visit.Scores.Select(s => s.RubricStandardId).OrderBy(x => x).ToArray();
         var submittedIds = request.Scores.Select(s => s.RubricStandardId).OrderBy(x => x).ToArray();
@@ -149,7 +154,8 @@ public sealed class VisitV2Service(
             visit.VisitDate = request.VisitDate;
             visit.ClassroomPeriod = request.ClassroomPeriod;
             visit.Subject = request.Subject.Trim();
-            visit.GradeClass = request.GradeClass.Trim();
+            visit.GradeClass = classroom.Label;
+            visit.ClassroomId = classroom.Id;
             visit.LessonTitle = request.LessonTitle.Trim();
             visit.PresentCount = request.PresentCount;
             visit.AbsentCount = request.AbsentCount;
@@ -200,6 +206,7 @@ public sealed class VisitV2Service(
         EnsureEnabled();
         var visit = await GetAuthorizedVisitAsync(id, true, true, cancellationToken);
         EnsureEditable(visit);
+        _ = await classrooms.ResolveAsync(visit.SchoolId, visit.VisitDate, visit.ClassroomId, visit, cancellationToken);
         if (visit.Scores.Count == 0 || visit.Scores.Any(s => s.Score is null or < 1 or > 4))
             throw new BusinessRuleException("يجب رصد جميع معايير الزيارة بدرجات من 1 إلى 4 قبل الإنهاء.");
 
@@ -800,7 +807,8 @@ public sealed class VisitV2Service(
                 .Select(t => new VisitV2TreatmentDto(t.Id, t.RubricDomainId, t.DomainNameArSnapshot, t.Goal,
                     t.Actions, t.SuccessIndicators, (int)t.Source, t.SortOrder)).ToList(),
             visit.CreatedAt, visit.UpdatedAt, visit.SubmittedAt, visit.ApprovedAt, visit.RejectionReason,
-            visit.ReopenReason, visit.Status is not (VisitStatus.Draft or VisitStatus.RejectedForChanges or VisitStatus.Reopened));
+            visit.ReopenReason, visit.Status is not (VisitStatus.Draft or VisitStatus.RejectedForChanges or VisitStatus.Reopened))
+        { ClassroomId = visit.ClassroomId };
     }
 
     private static string StatusLabel(VisitStatus status) => status switch

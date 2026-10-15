@@ -1,13 +1,13 @@
 # Implementation handoff and acceptance gates
 
-**C33 status:** The owner authorized implementation after C0 review. C1 identity/mapping and the C2 catalogue/teacher-selection foundation are implemented locally; [runtime scope and verification](implementation.md). Remaining consumer conversion and assignment UI/PDF phases are not claimed complete. This table retains the original full acceptance gates.
+**C34 status:** C1/C2 foundation and C3 consumer cutover are delivered locally; [C33 foundation](implementation.md), [C34 consumer behavior and evidence](consumers.md). C4 production assignment UX, C5 assignment PDF and C6 pilot acceptance remain pending. This table retains the original full acceptance gates.
 
 | Phase | Work | Exit evidence |
 |---|---|---|
 | **C0 — Discovery/design** | Inspect source image and consumers, capture owner decisions, publish proposed model/UX/export and standalone prototype | Impact map, reproducible source inventory, screenshots390/768/1440, interactive workflows, sample PDF; delivered2026-10-15. |
 | **C1 — Read-only mapping and additive identity** | Inspect operational data under authorized scope; finalize stage metadata, duplicate/letter mappings, bridge revisions and specialization category; additive migration tested in isolated SQL first | Counts for exact/ambiguous/orphan/duplicate cases, preserved IDs/history, rollback/read compatibility tests and school/teacher authorization baseline. No blind operational conversion. |
 | **C2 — Shared catalogue + teacher association** | Scoped/paged options; derived names; atomic bulk sections with location handling; current-year ID multi-select in account, manager profile and user teaching writes; self confirms directly | All paths use one policy; rejection tests for foreign school/year/deleted IDs, stale revision, partial updates, duplicate sections, selected values off-page and >100 classrooms. |
-| **C3 — Consumers and authorization cutover** | ID joins for teacher class scope; visitsV1/V2 drafts, manual/legacy timetable resolution, enrollment import, labels/filter/bookmarks and dashboards | Current lesson, attendance, permits, student rosters and all migrated string-identity consumers verified. Historical visit/duty PDFs and timetable snapshots hash-identical. No unreviewed access widening or loss. |
+| **C3 — Consumers and authorization cutover** | ID joins for teacher class scope; active V2 drafts (V1 writes remain retired410), manual/legacy timetable resolution, enrollment/import review, labels/filter/bookmarks and dashboards | Current lesson, attendance, permits, student rosters and all migrated string-identity consumers verified. Historical visit/duty PDFs and timetable snapshots hash-identical. No unreviewed access widening or loss. |
 | **C4 — Production assignment UX** | Port approved visual design into existing Angular module; preserve current server picker/search/paging/filter modes, save transaction and guards | Component tests plus actual role-based browser tests, empty/loading/error/denied/conflict, large-school performance, phone/tablet/desktop, keyboard/screen-reader/reduced-motion and unsaved state checks. |
 | **C5 — Assignment PDF** | Separate saved-revision projection/renderer, explicit scope, source header/grouping, categorization, appendices and continuation | Real API/SQL/export checks; readable24-row A4 landscape and large/long-name cases; arithmetic co/split/pair validation; retained revision and C30 download/IDM policy; no new Drive obligation. |
 | **C6 — Pilot/review** | Per-school mapping/cutover telemetry and rollback rehearsal | Owner approves appearance/source parity and physical devices/printer; authorized pilot verified; documented operational release decision. |
@@ -17,22 +17,23 @@
 - [x] Existing Classroom entity and IDs retained; no parallel classroom system.
 - [x] Manager catalogue reachable in correct navigation, with current permission checks.
 - [x] Stage-local numeric grade/section identity and duplicate constraints; physical room/location separate.
-- [ ] School/year boundaries and historical selected-ID hydration across all selectors.
+- [x] School/year boundaries and historical selected-ID hydration across all selectors.
 - [x] Account teaching editor and manager teacher profile stop accepting free-text classes.
 - [x] User/teacher creation and synchronization paths preserve existing associations unless explicitly changed.
 - [x] Teacher self-confirmation is immediate; no pending approval requirement added.
 - [x] TeacherContext list and access membership use ID joins with existing role/enrollment conditions.
-- [ ] CurrentLessonEntry and gate legacy resolution are classified and tested.
-- [ ] Student enrollment, transfers, import, daily attendance and session delay remain term-correct.
-- [ ] Conduct, academic concerns, recognition, referrals, summons, guardian, security, messaging and dashboards covered.
-- [ ] Intelligent timetable settings, teacher profiles, subjects and requirements use the same catalogue.
-- [ ] Assignment single/co/split, whole pairs, draft-aware load, teacher paging and atomic revision saves retained.
-- [ ] Manual/generated import/save/publish/review/repair/substitution/swap/restore conflict semantics retained.
-- [ ] Both VisitsV1 and VisitsV2 use structured draft selection; prior reports/signed/archive versions unchanged.
-- [ ] Duty late-departure class filters and student selections validated; retained signed files unchanged.
-- [ ] Timetable PDF/Excel, assignment PDF, search, localization, old bookmarks and reference projections covered.
-- [ ] Mapping/backfill idempotency, collision handling, auth comparison, constraints and safe rollback proven.
-- [ ] Source scan rerun; every remaining active text comparison categorized before cutover.
+- [x] CurrentLessonEntry and gate legacy resolution are classified and tested.
+- [x] Student enrollment, transfers, import, daily attendance and session delay remain term-correct.
+- [x] Conduct, academic concerns, recognition, referrals, summons, guardian, security, messaging and dashboards covered.
+- [x] Intelligent timetable settings, teacher profiles, subjects and requirements use the same catalogue.
+- [x] Assignment single/co/split, whole pairs, draft-aware load, teacher paging and atomic revision saves retained.
+- [x] Manual/generated import/save/publish/review/repair/substitution/swap/restore conflict semantics retained.
+- [x] Active VisitsV2 uses structured draft selection; V1 writes remain retired410. Prior reports/signed/archive versions remain unchanged.
+- [x] Duty late-departure class filters and student selections validated; retained signed files unchanged.
+- [x] Existing timetable PDF/Excel and retained snapshots, search, ID bookmarks and reference projections preserved.
+- [ ] New saved-revision assignment PDF and its source-template acceptance (C5).
+- [x] Mapping/backfill idempotency, collision handling, auth comparison, constraints and safe rollback proven.
+- [x] Source scan rerun; every remaining active text comparison categorized before cutover.
 
 ## Test matrix for future implementation
 

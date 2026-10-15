@@ -11,7 +11,7 @@ public sealed class ClassroomCatalogController(IClassroomCatalogService service)
 {
     [HttpGet]
     public Task<IActionResult> Options([FromQuery] int? academicYearId, [FromQuery] int page = 1,
-        [FromQuery] bool includeInactive = false, CancellationToken ct = default) => Respond(() => service.OptionsAsync(academicYearId, page, includeInactive, ct));
+        [FromQuery] bool includeInactive = false, CancellationToken ct = default, [FromQuery] DateOnly? onDate = null) => Respond(() => service.OptionsAsync(academicYearId, page, includeInactive, ct, onDate));
     [HttpPost("batch")]
     public Task<IActionResult> Create(ClassroomBatch request, CancellationToken ct) => Respond(() => service.CreateAsync(request, ct));
     [HttpPatch("{id:int}")]

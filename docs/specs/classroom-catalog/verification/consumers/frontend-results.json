@@ -1,0 +1,7 @@
+{
+  "passed": 46,
+  "failed": 0,
+  "browser": "Chrome Headless",
+  "tsconfig": "frontend/tsconfig.classroom-consumers-spec.json",
+  "generalRepositorySuiteClaimed": false
+}

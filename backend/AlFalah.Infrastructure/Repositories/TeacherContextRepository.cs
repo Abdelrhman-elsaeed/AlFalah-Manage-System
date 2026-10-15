@@ -37,7 +37,7 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
                         && assignment.ClassroomId == classroom.Id && assignment.SchoolId == classroom.SchoolId)))
             .OrderBy(classroom => classroom.Stage)
             .ThenBy(classroom => classroom.GradeLevel)
-            .ThenBy(classroom => classroom.Section)
+            .ThenBy(classroom => classroom.SectionNumber ?? int.MaxValue).ThenBy(classroom => classroom.Section)
             .Select(classroom => new ClassroomDto(
                 classroom.Id,
                 classroom.ClassLabel,
@@ -192,31 +192,32 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
         var entry = await _context.SchoolTimetableEntries
             .AsNoTracking()
             .ForTeacherOn(_context, localDate, teacher.InstructorProfileId)
-            .Where(e => e.Id == timetableEntryId
-                && e.SchoolId == schoolId
-                && e.Day == AlFalah.Application.IntelligentTimetable.BellScheduleResolver.ToDay(localDate.DayOfWeek)
+            .WithResolvedClassroom(_context)
+            .Where(x => x.Entry.Id == timetableEntryId
+                && x.Entry.SchoolId == schoolId
+                && x.Entry.Day == AlFalah.Application.IntelligentTimetable.BellScheduleResolver.ToDay(localDate.DayOfWeek)
                 && timingRevisionId != null
-                && e.SchoolTimetable.BellScheduleRevisionId == timingRevisionId
-                && e.ClassroomId != null
-                && e.Classroom!.IsActive
-                && e.SchoolTimetable.SchoolId == schoolId
-                && e.SchoolTimetable.IsPublished)
-            .Select(e => new
+                && x.Entry.SchoolTimetable.BellScheduleRevisionId == timingRevisionId
+                && x.Classroom != null
+                && x.Classroom!.IsActive
+                && x.Entry.SchoolTimetable.SchoolId == schoolId
+                && x.Entry.SchoolTimetable.IsPublished)
+            .Select(x => new
             {
-                e.Id,
-                e.Period,
-                Subject = e.Subject ?? e.InstructorProfile.SubjectSpecialization ?? string.Empty,
+                Id = x.Entry.Id,
+                Period = x.Entry.Period,
+                Subject = x.Entry.Subject ?? x.Entry.InstructorProfile.SubjectSpecialization ?? string.Empty,
                 Classroom = new TeacherClassroomSnapshot(
-                    e.Classroom!.Id,
-                    e.Classroom.ClassLabel,
-                    e.Classroom.Stage,
-                    e.Classroom.GradeLevel,
-                    e.Classroom.Section),
+                    x.Classroom!.Id,
+                    x.Classroom.ClassLabel,
+                    x.Classroom.Stage,
+                    x.Classroom.GradeLevel,
+                    x.Classroom.Section),
                 Timetable = new PublishedTimetableSnapshot(
-                    e.SchoolTimetable.Id,
-                    e.SchoolTimetable.AcademicYearId,
-                    e.SchoolTimetable.Semester,
-                    e.SchoolTimetable.Revision)
+                    x.Entry.SchoolTimetable.Id,
+                    x.Entry.SchoolTimetable.AcademicYearId,
+                    x.Entry.SchoolTimetable.Semester,
+                    x.Entry.SchoolTimetable.Revision)
             })
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -363,18 +364,19 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
         var entries = _context.SchoolTimetableEntries
             .AsNoTracking()
             .ForTeacherOn(_context, lookup.SchoolLocalDate, instructorProfileId)
-            .Where(entry => entry.SchoolId == lookup.SchoolId
-                && entry.SchoolTimetableId == timetableId
-                && entry.EntryType == TimetableEntryType.Lesson
-                && entry.ClassroomId != null
+            .WithResolvedClassroom(_context)
+            .Where(entry => entry.Entry.SchoolId == lookup.SchoolId
+                && entry.Entry.SchoolTimetableId == timetableId
+                && entry.Entry.EntryType == TimetableEntryType.Lesson
+                && entry.Classroom != null
                 && entry.Classroom!.IsActive);
 
         if (lookup.SchoolLocalDay is not null && lookup.CurrentPeriod is not null)
         {
             var current = await ProjectPeriod(entries
-                    .Where(entry => entry.Day == lookup.SchoolLocalDay
-                        && entry.Period == lookup.CurrentPeriod
-                        && (lookup.SchoolTimetableEntryId == null || entry.Id == lookup.SchoolTimetableEntryId)))
+                    .Where(entry => entry.Entry.Day == lookup.SchoolLocalDay
+                        && entry.Entry.Period == lookup.CurrentPeriod
+                        && (lookup.SchoolTimetableEntryId == null || entry.Entry.Id == lookup.SchoolTimetableEntryId)))
                 .SingleOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
             if (current is not null || !lookup.AllowOffHoursFallback)
@@ -390,9 +392,9 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
         if (lookup.SchoolLocalDay is not null)
         {
             var sameDay = await ProjectPeriod(entries
-                    .Where(entry => entry.Day == lookup.SchoolLocalDay)
-                    .OrderBy(entry => entry.Period == lookup.FallbackPeriod ? 0 : 1)
-                    .ThenBy(entry => entry.Period))
+                    .Where(entry => entry.Entry.Day == lookup.SchoolLocalDay)
+                    .OrderBy(entry => entry.Entry.Period == lookup.FallbackPeriod ? 0 : 1)
+                    .ThenBy(entry => entry.Entry.Period))
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
             if (sameDay is not null)
@@ -402,8 +404,8 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
         }
 
         return await ProjectPeriod(entries
-                .OrderBy(entry => entry.Day)
-                .ThenBy(entry => entry.Period))
+                .OrderBy(entry => entry.Entry.Day)
+                .ThenBy(entry => entry.Entry.Period))
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
     }
@@ -445,11 +447,11 @@ public sealed class TeacherContextRepository : ITeacherContextRepository
             .ConfigureAwait(false);
 
     private static IQueryable<TeacherTimetablePeriodSnapshot> ProjectPeriod(
-        IQueryable<AlFalah.Domain.Entities.SchoolTimetableEntry> entries) =>
+        IQueryable<ResolvedTimetableClassroom> entries) =>
         entries.Select(entry => new TeacherTimetablePeriodSnapshot(
-            entry.Id,
-            entry.Period,
-            entry.Subject ?? entry.InstructorProfile.SubjectSpecialization ?? string.Empty,
+            entry.Entry.Id,
+            entry.Entry.Period,
+            entry.Entry.Subject ?? entry.Entry.InstructorProfile.SubjectSpecialization ?? string.Empty,
             new TeacherClassroomSnapshot(
                 entry.Classroom!.Id,
                 entry.Classroom.ClassLabel,

@@ -1,4 +1,7 @@
 using AlFalah.Application.Common;
+using AlFalah.Application.Classrooms;
+using AlFalah.Tests.Classrooms;
+using AlFalah.Domain.Entities.StudentAffairs;
 using AlFalah.Application.DTOs.Visits;
 using AlFalah.Application.Interfaces;
 using AlFalah.Domain.Entities;
@@ -119,6 +122,19 @@ public sealed class VisitV2WorkflowTests
     }
 
     [Fact]
+    public async Task A_legacy_draft_requires_an_explicit_classroom_before_finalization_without_mutating_history()
+    {
+        await using var db=Database();
+        var visit=Visit(VisitStatus.Draft,ExperienceVersion.PrototypeV2,7);
+        visit.ClassroomId=null;var oldLabel=visit.GradeClass;
+        var repository=new WorkflowRepository(visit,db);
+        await FluentActions.Invoking(()=>Service(repository,db,new CurrentUser(7)).FinalizeAsync(visit.Id))
+            .Should().ThrowAsync<ArgumentException>();
+        visit.Status.Should().Be(VisitStatus.Draft);visit.GradeClass.Should().Be(oldLabel);
+        repository.TransactionCount.Should().Be(0);
+    }
+
+    [Fact]
     public async Task Feedback_notes_are_saved_and_returned_with_their_standard()
     {
         await using var db = Database();
@@ -126,15 +142,17 @@ public sealed class VisitV2WorkflowTests
         var service = Service(new WorkflowRepository(visit, db), db, new CurrentUser(7));
         var request = new UpdateVisitV2RequestDto(
             (int)visit.VisitCategory, (int)visit.VisitSequence, visit.VisitDate,
-            1, "رياضيات", "2/أ", "درس", 20, 1, null,
+            1, "رياضيات", "forged class text", "درس", 20, 1, null,
             new[] { new VisitV2ScoreInputDto(21, 3, null, Array.Empty<int>())
             {
                 StrengthNotes = ["  تميز في تنويع الأنشطة  ", "تفاعل واضح مع الطلاب"],
                 ImprovementNotes = ["تحسين التقويم البنائي", "تنويع الأسئلة"]
-            } });
+            } }) { ClassroomId = 101 };
 
         var result = await service.UpdateAsync(visit.Id, request);
 
+        result.ClassroomId.Should().Be(101);result.GradeClass.Should().Be(visit.GradeClass);
+        result.GradeClass.Should().NotBe("forged class text");
         visit.Scores.Single().StrengthNote.Should().Be("تميز في تنويع الأنشطة");
         result.Domains.Single().Standards.Single().StrengthNotes.Should().Equal("تميز في تنويع الأنشطة", "تفاعل واضح مع الطلاب");
         result.Domains.Single().Standards.Single().ImprovementNotes.Should().Equal("تحسين التقويم البنائي", "تنويع الأسئلة");
@@ -164,7 +182,11 @@ public sealed class VisitV2WorkflowTests
             new EnabledFlags(),
             new SchoolScopeGuard(db, currentUser, NullLogger<SchoolScopeGuard>.Instance),
             new AuditLogWriter(db, new HttpContextAccessor(), NullLogger<AuditLogWriter>.Instance),
-            NullLogger<VisitV2Service>.Instance);
+            NullLogger<VisitV2Service>.Instance,
+            new VisitClassroomSelectionService(new FakeClassroomCatalogRepository {
+                Context = new(SchoolStage.Primary,true,true,[new(3,"Synthetic",true,new(2000,1,1),new(2100,1,1))]),
+                Classes = [new Classroom {Id=101,SchoolId=currentUser.ActiveSchoolId ?? 7,AcademicYearId=3,ClassLabel="2/أ",IsActive=true}]
+            },currentUser));
 
     private static AlFalahDbContext Database() => new(
         new DbContextOptionsBuilder<AlFalahDbContext>()
@@ -204,6 +226,7 @@ public sealed class VisitV2WorkflowTests
             ClassroomPeriod = 1,
             Subject = "رياضيات",
             GradeClass = "2/أ",
+            ClassroomId = 101,
             LessonTitle = "درس",
             Scores = new List<VisitScore>
             {

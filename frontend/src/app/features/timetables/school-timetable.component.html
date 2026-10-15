@@ -252,8 +252,8 @@
     <ng-container *ngIf="draftType === 1">
       <label>
         <span>الفصل</span>
-        <input pInputText [(ngModel)]="draftClass" list="teacher-classes" maxlength="50" placeholder="مثال: 3/1" [readonly]="!!selectedEntry()?.classSubjectRequirementId">
-        <datalist id="teacher-classes"><option *ngFor="let item of selectedTeacher()?.classes" [value]="item"></option></datalist>
+          <app-classroom-picker [(ngModel)]="draftClassroomId" [academicYearId]="timetable()?.academicYearId" (selected)="classroomChanged($event)" (ready)="classroomReady.set($event)" [disabled]="!!selectedEntry()?.classSubjectRequirementId"></app-classroom-picker>
+          <small *ngIf="selectedEntry() && !selectedEntry()?.classroomId">الفصل المحفوظ: {{ selectedEntry()?.classLabel }}. اختر مقابله من السجل لتعديله.</small>
       </label>
       <label>
         <span>المادة</span>

@@ -52,7 +52,7 @@ public sealed class VisitArchiveSqlFixture : IAsyncLifetime
 [Collection("Visit archive SQL")]
 public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
 {
-    private sealed record World(int School, string Teacher, string Moderator, string Root, FakeGoogleDrive Drive);
+    private sealed record World(int School, string Teacher, string Moderator, string Root, FakeGoogleDrive Drive, int Classroom);
     private sealed class Flags : IFeatureFlagService { public bool IsVisitsV2Enabled(int? schoolId = null) => true; }
     // The school activation controls external archive work even with legacy archive flags off.
     private static readonly StorageOptions On = new() { ReadModelEnabled = true, AdministrationEnabled = true };
@@ -62,6 +62,7 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         ICurrentUserService user = moderator ? new TeacherDriveHarness.TestCurrentUser(RoleNames.Moderator, world.Moderator, world.School, true) : TeacherDriveHarness.Manager(world.School);
         return new(new VisitV2Repository(db), new VisitV2DocumentService(new ImageAssetLoader()), user, new Flags(),
             new SchoolScopeGuard(db, user, NullLogger<SchoolScopeGuard>.Instance), Audit(db), NullLogger<VisitV2Service>.Instance,
+            new AlFalah.Application.Classrooms.VisitClassroomSelectionService(new ClassroomCatalogRepository(db),user),
             new VisitArchiveCaptureService(new VisitArchiveRepository(db), freezer ?? new VisitArchiveAssetFreezer(new ImageAssetLoader())));
     }
     private VisitArchiveProcessor Processor(AlFalahDbContext db, World world, StorageOptions? flags = null)
@@ -95,6 +96,9 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         var profile = new InstructorProfile { UserId = teacher.Id, SchoolId = school.Id }; db.Add(profile);
         db.UserSchoolRoles.AddRange(new() { SchoolId = school.Id, UserId = TeacherDriveHarness.ManagerUserId, RoleId = "manager" },
             new() { SchoolId = school.Id, UserId = teacher.Id, RoleId = "teacher" }, new() { SchoolId = school.Id, UserId = moderator.Id, RoleId = "s5-moderator" });
+        var year = new AcademicYear { Code="s5-"+key[..24],NameAr="2026-2027",StartsOn=new(2026,8,1),EndsOn=new(2027,7,31),IsActive=true };
+        var classroom = new AlFalah.Domain.Entities.StudentAffairs.Classroom {SchoolId=school.Id,AcademicYear=year,ClassLabel="الأول أ",Stage=SchoolStage.Primary,GradeLevel=1,Section="1",CreatedByUserId=TeacherDriveHarness.ManagerUserId,UpdatedByUserId=TeacherDriveHarness.ManagerUserId};
+        db.Add(classroom);db.AcademicTerms.Add(new(){SchoolId=school.Id,AcademicYear=year,Semester=TimetableSemester.First,IsActive=true,StartsOn=year.StartsOn,EndsOn=year.EndsOn,CreatedByUserId=TeacherDriveHarness.ManagerUserId,UpdatedByUserId=TeacherDriveHarness.ManagerUserId});
         var root = "s5-root-" + key;
         db.SchoolGoogleDrives.Add(new() { SchoolId = school.Id, RootFolderId = root, ProtectedCredential = "s5-unchanged-sentinel", IsEnabled = true, VisitArchiveEnabled = true });
         db.SchoolReportSettings.Add(new() { SchoolId = school.Id, ReportHeaderText = "مدارس الفلاح — مدرسة التحقق", ReportFooterText = "وثيقة اعتماد مدرسية", PrimaryColor = "#0F7132" });
@@ -106,12 +110,12 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         if (!await db.UserSignatures.AnyAsync(s => s.UserId == TeacherDriveHarness.ManagerUserId)) db.UserSignatures.Add(new() { UserId = TeacherDriveHarness.ManagerUserId, SignatureDrawnData = signature });
         await db.SaveChangesAsync();
         await new RubricV2Seeder(db, NullLogger<RubricV2Seeder>.Instance).SeedAsync();
-        return new(school.Id, teacher.Id, moderator.Id, root, new FakeGoogleDrive().AddFolder(root, "مدرسة").AddFolder(root + "-teacher", "معلم", root).AddFolder("outside", "خارج المدرسة"));
+        return new(school.Id, teacher.Id, moderator.Id, root, new FakeGoogleDrive().AddFolder(root, "مدرسة").AddFolder(root + "-teacher", "معلم", root).AddFolder("outside", "خارج المدرسة"), classroom.Id);
     }
     private async Task<int> Create(AlFalahDbContext db, World world, bool moderator = false)
     {
         var visit = await Visits(db, world, moderator).CreateAsync(new(world.Teacher, 1, 1, DateTimeOffset.UtcNow, 2,
-            "اللغة العربية", "الأول أ", "درس الاعتماد الأصلي", 24, 1, "ملاحظات محفوظة"));
+            "اللغة العربية", "الأول أ", "درس الاعتماد الأصلي", 24, 1, "ملاحظات محفوظة") {ClassroomId=world.Classroom});
         // Real score graph exists from the real V2 service, all scores default to one.
         return visit.Id;
     }
@@ -521,6 +525,8 @@ public sealed class VisitArchiveSqlTests(VisitArchiveSqlFixture fixture)
         {await using var command=db.Database.GetDbConnection().CreateCommand();command.CommandText=batch;await command.ExecuteNonQueryAsync();}
         await db.Database.CloseConnectionAsync();
         (await db.EvidenceRequirements.SingleAsync(r=>r.Code=="s5-sentinel")).DisplayName.Should().Be("legacy");
-        (await db.Database.GetPendingMigrationsAsync()).Should().Equal("20261005162718_SchoolFileStorageHistoricalImport");db.Database.HasPendingModelChanges().Should().BeFalse();
+        (await db.Database.GetPendingMigrationsAsync()).Should().Equal(db.Database.GetMigrations()
+            .SkipWhile(m=>m!="20261005112201_SchoolFileStorageVisitArchive").Skip(1));
+        db.Database.HasPendingModelChanges().Should().BeFalse();
     }
 }

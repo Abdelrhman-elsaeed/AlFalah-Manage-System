@@ -28,29 +28,18 @@ public sealed class CurrentLessonEntryRepository(AlFalahDbContext context) : ICu
                 && entry.Day == day
                 && entry.Period == periodSequence);
 
-        if (classroomId.HasValue)
-        {
-            var normalizedLabel = classroomLabel?.Trim();
-            query = query.Where(entry => entry.ClassroomId == classroomId.Value
-                || (entry.ClassroomId == null
-                    && normalizedLabel != null
-                    && entry.ClassLabel == normalizedLabel));
-        }
-
-        var baseEntries = await query
-            .Select(entry => new EntryProjection(
-                entry.Id,
-                entry.ClassroomId,
-                entry.Classroom == null ? entry.ClassLabel ?? string.Empty : entry.Classroom.ClassLabel,
-                entry.Classroom == null ? null : entry.Classroom.Stage,
-                entry.Classroom == null ? null : entry.Classroom.GradeLevel,
-                entry.Classroom == null ? null : entry.Classroom.Section,
-                entry.Subject ?? entry.InstructorProfile.SubjectSpecialization ?? string.Empty,
-                entry.InstructorProfileId,
-                entry.InstructorProfile.UserId,
-                (entry.InstructorProfile.User.FirstName + " " + entry.InstructorProfile.User.LastName).Trim()))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var resolved = query.WithResolvedClassroom(context);
+        if (classroomId.HasValue) resolved = resolved.Where(x => x.Classroom != null && x.Classroom.Id == classroomId.Value);
+        var baseEntries = await resolved.Select(x => new EntryProjection(
+                x.Entry.Id, x.Classroom == null ? null : x.Classroom.Id,
+                x.Classroom == null ? x.Entry.ClassLabel ?? string.Empty : x.Classroom.ClassLabel,
+                x.Classroom == null ? null : x.Classroom.Stage,
+                x.Classroom == null ? null : x.Classroom.GradeLevel,
+                x.Classroom == null ? null : x.Classroom.Section,
+                x.Entry.Subject ?? x.Entry.InstructorProfile.SubjectSpecialization ?? string.Empty,
+                x.Entry.InstructorProfileId, x.Entry.InstructorProfile.UserId,
+                (x.Entry.InstructorProfile.User.FirstName + " " + x.Entry.InstructorProfile.User.LastName).Trim()))
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
 
         if (baseEntries.Count == 0) return Array.Empty<CurrentLessonEntry>();
 

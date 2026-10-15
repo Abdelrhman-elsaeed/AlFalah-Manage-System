@@ -1,0 +1,59 @@
+{
+  "at": "2026-10-15T12:18:28.542Z",
+  "results": [
+    {
+      "feature": "visits",
+      "width": 390,
+      "realApi": true,
+      "contextQueryVerified": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "feature": "timetable",
+      "width": 390,
+      "realApi": true,
+      "contextQueryVerified": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "feature": "visits",
+      "width": 768,
+      "realApi": true,
+      "contextQueryVerified": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "feature": "timetable",
+      "width": 768,
+      "realApi": true,
+      "contextQueryVerified": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "feature": "visits",
+      "width": 1440,
+      "realApi": true,
+      "contextQueryVerified": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "feature": "timetable",
+      "width": 1440,
+      "realApi": true,
+      "contextQueryVerified": true,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    }
+  ]
+}

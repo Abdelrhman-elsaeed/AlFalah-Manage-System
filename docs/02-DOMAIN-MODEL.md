@@ -311,3 +311,8 @@ Design/prototype only, explicitly selected by the owner. Existing structured Cla
 ## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
 
 C33 / D-125 implements the existing Classroom catalogue foundation: nullable numeric SectionNumber, school/classroom ID association on InstructorClass, TeachingRevision concurrency, exact-only additive backfill and retained historical labels. Manager-generated stage-local names and direct teacher multi-selection are live locally; no parallel class table. Existing profile school-transfer behavior is retained with explicit current-school checks. [Runtime decisions and limits](specs/classroom-catalog/implementation.md).
+
+
+## C34 / D-126 - Classroom consumer cutover (2026-10-15)
+
+ClassroomLabelHistory retains append-only school/year/name bindings to existing classroom IDs. Visits add nullable ClassroomId; GradeClass remains the recorded snapshot. New/editable V2 observations require an explicitly selected ID. Published timetables retain their original entries/versions and resolve old names read-only. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).

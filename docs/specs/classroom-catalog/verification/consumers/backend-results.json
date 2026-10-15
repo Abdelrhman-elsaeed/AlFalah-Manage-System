@@ -1,0 +1,2574 @@
+{
+  "total": 513,
+  "passed": 513,
+  "failed": 0,
+  "skipped": 0,
+  "method": "Latest outcome per unique test name; broad regression plus final archive replay after historical fixture corrections.",
+  "tests": {
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Candidate_search_honors_cancellation_before_entering_the_hot_loop": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0017351",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_prevents_two_classes_from_using_the_same_required_room_at_one_fixed_time": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0064477",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.SummonScheduleNotification_PreservesRealActorForForeignKeyBackedAudit": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1685129",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.TeacherQuickAction_WhenTimetableScopeCannotBeProven_DoesNotSave": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0014818",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.AttendanceAggregates_WriteEventsToTransactionalOutbox": {
+      "outcome": "Passed",
+      "duration": "00:00:00.4382242",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.UpdateStudentCommand_WithCrossSchoolId_ReturnsNotFoundWithoutMutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0075703",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.TeacherAcknowledge_RequiresExactInstructorRoleAndPermission(role: \"Instructor\", permission: \"GatePass.View\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0010738",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherTopPriorityHandlerRegistrationTests.ApplicationAssembly_Contains_TeacherTopPriorityHandler": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0020176",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.SendConversationMessageCommandHandler_Denies_NonParticipant": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0063317",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Pdf_brand_text_rejects_corrupted_question_mark_sequences(value: \"\u0646\u0635 \u0639\u0631\u0628\u064a \u0633\u0644\u064a\u0645\", fallback: \"\u0628\u062f\u064a\u0644\", expected: \"\u0646\u0635 \u0639\u0631\u0628\u064a \u0633\u0644\u064a\u0645\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006916",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Invalid_modes_and_member_counts_are_rejected(mode: \"Invalid\", count: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003701",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Last_period_boundary(count: 2, warning: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0898702",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.GetReferralsQuery_WhenUnauthorized_ReturnsFail": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0103917",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_FailsClosedWithoutAnActiveCanonicalLesson(kind: Break)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000310",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Concurrent_approval_requests_use_SQL_rowversion_and_unique_revision_without_duplicate_outbox": {
+      "outcome": "Passed",
+      "duration": "00:00:03.4972536",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Controllers.LegacyVisitWriteCutoverTests.Every_legacy_write_endpoint_returns_410(action: \"reopen\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008817",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 49, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0646\u062e\u0641\u0636\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000176",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetConversationsQueryHandler_Returns_Success_When_Authorized": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0037852",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Secretary_CannotApproveRejectOrExecuteGatePass_EvenWithInjectedPermissions": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0024362",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Clone_creates_an_independent_draft_with_source_provenance_and_isolated_entries": {
+      "outcome": "Passed",
+      "duration": "00:00:01.3655194",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Consecutive_boundary(count: 3, warning: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018783",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Revisions_preserve_published_times_and_only_invalidate_draft_dependents": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0611764",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentsStatsQuery_WhenSecretary_FailsPermissionDenied": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0013075",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Publish_rejects_a_double_period_whose_second_half_is_placed_with_another_teacher": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0583545",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianMessageWithoutConfiguredOfficeHoursIsAcceptedAndRemainsPending": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0426302",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Controllers.LegacyVisitWriteCutoverTests.Every_legacy_write_endpoint_returns_410(action: \"delete\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002159",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetStudentGuardianOptions_RequiresExactOfficerRole": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0037082",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.DeleteStudentCommand_SoftDeletesStudentAndUnassignsEnrollments": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0062431",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Assignment_changes_invalidate_drafts_without_mutating_published_timetables": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0724770",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Approve_DuringBreak_IsRejectedWithoutMutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0054595",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Ordered_periods_can_touch_or_have_gaps_but_cannot_overlap_or_run_backwards(secondStart: \"07:44\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0044848",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityTransitions_WriteEachDomainEventToOutboxExactlyOnce": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2289747",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.GetStudentAttendanceSheetQueryHandler_Returns_Sheet_When_Authorized": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0087650",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.MessagingAudit_Denies_NonManager_With_InjectedPermission": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0034537",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Invalid_modes_and_member_counts_are_rejected(mode: \"CoTeaching\", count: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003676",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_boundaries_allow_flexible_duration_but_never_midnight_crossing(start: \"23:45\", end: \"00:30\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0011819",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_RejectsStaleVersionAndCrossSchoolRecord": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0016997",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"07:45\", end: \"07:51\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009799",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentAffairsRequestContractTests.Every_student_affairs_request_has_a_handler_or_an_explicit_deferred_workstream": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1283167",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Co_teachers_share_one_occurrence_and_reassignment_invalidates_old_placements": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1363203",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Fourth_consecutive_period_is_yellow": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0029747",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.SQL_failure_after_Drive_commit_reconciles_reserved_identity_without_a_second_upload": {
+      "outcome": "Passed",
+      "duration": "00:00:01.2993937",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.External_missing_is_not_SQL_success_and_authorized_recreation_preserves_original_file_version(action: \"folder-move\")": {
+      "outcome": "Passed",
+      "duration": "00:00:01.2889236",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Saves_profile_flags_and_bulk_grid_atomically_with_audit_and_rejects_stale_revision": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0790503",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.A_double_period_cannot_be_split_into_one_period_per_teacher": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0091238",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Forbidden_roles_and_view_only_users_cannot_read_or_edit(role: \"Instructor\", manage: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0160765",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"academic\", role: \"Instructor\", permission: \"Behavior.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0001415",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.BiometricImportWorkflowTests.ZajelBiometricWorkbookReader_ParsesFlexibleHeadersAndArabicDigits": {
+      "outcome": "Passed",
+      "duration": "00:00:02.1038230",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Breaks_render_in_pdf_without_becoming_excel_assignment_columns": {
+      "outcome": "Passed",
+      "duration": "00:00:00.6712812",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Manage_permission_and_role_exclusions_apply_to_queries_and_commands(role: \"Secretary\", manage: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0282463",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 0, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0646\u062e\u0641\u0636\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000243",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.First_load_defaults_to_all_effective_periods_without_writing_a_profile": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0437394",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.GetAbsenceExcusesQueryHandler_Returns_Fail_When_Unauthorized": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0013854",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.GetSummonsQuery_WhenAuthorized_ReturnsPagedResult": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0116077",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Regenerate_places_configured_fixed_slots_and_returns_the_setup_identity_to_the_UI": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1096232",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: RoomDoubleBooking)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018629",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentAnalyticsProfileQuery_WhenSocialWorker_ReturnsProfile": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0052327",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.GetStudentAttendanceRecordsQueryHandler_Returns_Paged_Records_When_Authorized": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0104879",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_rejects_a_subject_without_a_teaching_assignment": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0016492",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Co_teachers_and_pairs_move_together_in_a_structural_swap": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0107309",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"09:10\", end: \"09:25\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009210",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"behavior\", role: \"Secretary\", permission: \"Behavior.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0106090",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_RequiresExactRolePermissionAndActiveSchool(role: \"SecurityGuard\", permission: \"GatePass.AcknowledgeSecurity\", schoolId: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006943",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Controllers.LegacyVisitWriteCutoverTests.Every_legacy_write_endpoint_returns_410(action: \"update\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004701",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SubmitExcuse_RequiresGuardianCapabilityAndAppendsPendingEvent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0119916",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_rejects_more_fixed_slots_than_the_subject_weekly_load": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0013476",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.ApplicationAssembly_Registers_All_GatePass_And_Messaging_Handlers": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1029963",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Batch_capacity_is_school_setup_wide_and_failed_validation_writes_nothing": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1047256",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Readiness_marks_classrooms_incomplete_when_any_location_is_missing": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0022029",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Cover_is_live_date_scoped_audited_versioned_and_idempotent": {
+      "outcome": "Passed",
+      "duration": "00:00:05.6046189",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_RequiresExactOfficerRoleAndPermission(role: \"StudentAffairsOfficer\", hasPermission: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0147848",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: MissingAssignment)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0007835",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianDeliveryRespectsOfficeHourStartAndEnd(instant: \"2026-10-04T05:30:00Z\", expected: QueuedUntilOfficeHours)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0547073",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Intact_pair_is_exempt_and_a_break_splits_it": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0053056",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_FailsClosedWithoutAnActiveCanonicalLesson(kind: NoPublishedSchedule)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000463",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Missing_foreign_wrong_year_inactive_and_deleted_selection_cannot_be_saved(id: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004969",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 64, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u062a\u0648\u0633\u0637\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000206",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityQueue_RequiresExactRoleAndUsesActiveSchoolAndServerTime": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0062899",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Ef_model_configures_tenant_key_unique_scope_and_revision_concurrency": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0056301",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_FailsClosedWithoutAnActiveCanonicalLesson(kind: AmbiguousPublishedSchedule)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000319",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.MorningDelayRule_TenthOccurrence_CreatesReferralAndSummonOnce": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0999217",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Invalid_sections_are_rejected(section: \"2147483648\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0007612",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.Existing_single_feedback_note_is_returned_as_the_first_list_item": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0032397",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.StaffCanSendOutsideOfficeHoursWithoutAnyConfiguredOccurrence(threadType: GuardianSocialWorker, staffRole: \"SocialWorker\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0196499",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.Calculate_ScoreOutOfRange_ThrowsArgumentOutOfRangeException(invalidScore: 5)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006707",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SaveChanges_WritesDomainEventToOutboxWithGeneratedGatePassId": {
+      "outcome": "Passed",
+      "duration": "00:00:04.6293400",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.BiometricImportWorkflowTests.ImportZajel_UsesCutoffPlusGraceBoundaryAndCairoOffset": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0055830",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentAnalyticsProfileAsync_WhenStudentHasNoHistory_ReturnsCleanProfile": {
+      "outcome": "Passed",
+      "duration": "00:00:05.9632656",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CreateConversation_OfficerCanStartGuardianThread_WithExplicitPermission": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0014311",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Bounded_backoff_reaches_attention_and_success_cannot_be_retried_or_recreated": {
+      "outcome": "Passed",
+      "duration": "00:00:03.3327625",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Partial_update_and_unchanged_legacy_preserve_links_but_new_free_text_is_rejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0126604",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Explicit_rename_keeps_classroom_ID_and_associations_and_rejects_stale_edits": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0080655",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_PrototypeTruthTable_MatchesVerbatim(totalInd: 2, checkedInd: 0, expectedScore: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000126",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.FeatureFlagService_DefaultIsOff": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002966",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Unavailable_teacher_and_teacher_collision_are_red": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0027681",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Readiness_repository_reads_the_complete_saved_setup": {
+      "outcome": "Passed",
+      "duration": "00:00:00.3450158",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_RequiresExactRolePermissionAndActiveSchool(role: \"SecurityGuard\", permission: \"GatePass.Execute\", schoolId: 42)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003685",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Digits_are_normalized_without_guessing_letter_sections(value: \"10\", number: 10)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002238",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_BoundariesAndEdgeCases": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0021122",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Create_UsesActiveSchoolAndAppendsRequestedEvent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0098671",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.AbsenceRule_UsesDistinctUnexcusedDays_AndTriggersThreeFiveTenActions": {
+      "outcome": "Passed",
+      "duration": "00:00:00.4316972",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Invalid_modes_and_member_counts_are_rejected(mode: \"SingleTeacher\", count: 2)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0016465",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_BeforeStartOrWithMissingWindow_IsRejected(caseNumber: 2)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0012037",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Manage_permission_is_required_for_reads_and_writes(role: \"Secretary\", manage: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0092143",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Idle_gap_boundary(finalPeriod: 5, warning: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006221",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_handles_a_realistic_eighteen_class_load_with_parallel_activity_slots": {
+      "outcome": "Passed",
+      "duration": "00:00:06.7173074",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"behavior\", role: \"Instructor\", permission: \"AcademicConcern.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0001203",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: ClassroomDoubleBooking)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1012837",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.StrengthsThreshold_75Percent_Included_74Percent_Excluded": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0017004",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Dump_professional_v2_visit_report_for_visual_review": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0080590",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_rejects_a_fixed_slot_when_the_assigned_teacher_is_unavailable": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0033426",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.NoorExport_SelectsOnlyAcceptedAbsentExcusedRowsWithinSchoolAndDateRange": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0867491",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Day_overrides_are_isolated_and_holidays_and_gaps_resolve_to_null": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0379597",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Published_review_remains_pinned_to_the_publication_snapshot_after_setup_changes": {
+      "outcome": "Passed",
+      "duration": "00:00:06.9198356",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Inline_same_day_contract_projects_server_proposals_to_grid_cells": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1569151",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.IntermediateTimetableSeedPlanTests.Every_class_week_fills_all_study_slots_with_the_expected_curriculum": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0572003",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetGuardianTeacherOptionsQueryHandler_RequiresGuardianRole": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0044937",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Reopen_reapprove_keeps_snapshot_history_and_a_late_old_worker_cannot_replace_new_Current": {
+      "outcome": "Passed",
+      "duration": "00:00:01.8772410",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Conflicting_provider_identity_never_becomes_success_or_triggers_blind_reupload": {
+      "outcome": "Passed",
+      "duration": "00:00:01.6507181",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.GetAssignableSocialWorkers_ReturnsOnlyRepositoryScopedOptionsForOfficer": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0097556",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Paired_cover_is_persisted_as_one_change_and_both_slots_become_live": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1234343",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.TeacherQuickActions_UseScopedTimetableAndAppendOnlyFactEvents": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0363755",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Controllers.LegacyVisitWriteCutoverTests.Every_legacy_write_endpoint_returns_410(action: \"reject\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004684",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_RejectsInvalidOrNonCurrentValidityWindow(fromMinutes: 6, untilMinutes: 5)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000245",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: UnavailableSlot)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0047780",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.CreateSummonCommand_WithValidLinkedGuardian_CreatesSummon": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0173427",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_RejectsInvalidOrNonCurrentValidityWindow(fromMinutes: 5, untilMinutes: 5)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0013564",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Paired_blocks_cannot_cross_gaps_but_early_preference_does_not_limit_weekly_capacity": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0318457",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_FailsClosedWithoutAnActiveCanonicalLesson(kind: NonStudyDay)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000357",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_boundaries_allow_flexible_duration_but_never_midnight_crossing(start: \"00:00\", end: \"23:59\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0013504",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Direct_swap_and_three_way_cycles_are_explicit_same_day_and_safe": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0317456",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Exact_maximum_is_allowed_and_inactive_class_assignments_can_be_removed": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2004107",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 5, utcMinute: 55, expected: ActiveLesson, period: 3)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0001592",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.AttendanceSheet_UsesOnlyActiveDatedRosterAndReturnsDeterministicRevision": {
+      "outcome": "Passed",
+      "duration": "00:00:00.4943475",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"06:00\", end: \"09:00\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018994",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentsStatsQuery_WhenOfficerOrSocialWorker_ReturnsStats": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0046932",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Every_saved_timetable_change_records_automatic_audit_details": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0850820",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.UpdateClassroomCommand_WhenSecretaryHasPermission_UpdatesMutableFields": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0555696",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: ScheduleCountMismatch)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0007025",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.SchedulePendingSummon_ValidatesGuardianAndVersion_ThenAppendsHistoryAndEvent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0165718",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentAffairsSettingsHandlerTests.GetSettings_WhenNoSettingsExist_ReturnsDefaultBaseline": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0283141",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Drive_failure_or_lost_response_recovers_without_another_file_and_preserves_Approved(loseResponse: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:01.6616650",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Checkpoint_and_clone_reject_stale_invalid_and_unauthorized_requests_without_writes": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1313099",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Co_teaching_charges_full_quota_to_every_member_and_split_owns_whole_pairs": {
+      "outcome": "Passed",
+      "duration": "00:00:00.8817418",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Hard_override_and_empty_reason_are_rejected_and_soft_override_records_actor": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0289960",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Break_overlap_invalid_period_inactive_reference_and_maximum_load_block": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0035390",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.ReviewSummonAutomationImpactCommand_WhenAuthorized_UpdatesDecision": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0247121",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Early_preference_and_cluster_checks_are_soft": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0029316",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.GetReferralsQuery_WhenAuthorized_ReturnsPagedResult": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0027494",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentAnalyticsProfileAsync_WhenStudentHasReferralsAndDelays_AggregatesCorrectly": {
+      "outcome": "Passed",
+      "duration": "00:00:00.3438917",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.DeleteClassroomCommand_WhenActiveEnrollmentsAndForced_UnassignsAndSoftDeletes": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0060396",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Regenerate_rejects_a_stale_revision_without_changing_entries_or_versions": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1243044",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Missing_foreign_wrong_year_inactive_and_deleted_selection_cannot_be_saved(id: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008159",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.Calculate_EmptyInput_ThrowsArgumentException": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008717",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.OfficerWithPermission_CreatesLivePermitFromCanonicalLessonSnapshot": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0161054",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Checkpoint_can_be_restored_without_rewriting_history_and_clones_do_not_become_current": {
+      "outcome": "Passed",
+      "duration": "00:00:00.4847609",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Controllers.LegacyVisitWriteCutoverTests.Every_legacy_write_endpoint_returns_410(action: \"approve\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002025",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Controllers.LegacyVisitWriteCutoverTests.Every_legacy_write_endpoint_returns_410(action: \"create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0083643",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Guardian_CannotReadOrCancelAnotherGuardiansGatePass": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0054453",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.Calculate_NullInput_ThrowsArgumentNullException": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0015879",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.SchoolOversight_Uses_Resolved_SchoolLocalDate_And_ServerInstant": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0050881",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Consecutive_boundary(count: 4, warning: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0033229",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Abandoned_lease_is_claimable_after_process_restart_and_renewal_prevents_early_reclaim": {
+      "outcome": "Passed",
+      "duration": "00:00:01.2440417",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.An_unchanged_ID_keeps_the_recorded_report_label_after_rename": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0017431",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Overlap_feedback_includes_nonadjacent_periods_inside_a_long_period": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0025511",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Create_academic_year_rejects_duplicate_school_scope": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0514672",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianDeliveryRespectsOfficeHourStartAndEnd(instant: \"2026-10-04T04:50:00Z\", expected: SentImmediately)": {
+      "outcome": "Passed",
+      "duration": "00:00:01.6221670",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"08:35\", end: \"09:00\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0011832",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.Cross_school_transition_is_rejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0065363",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.Calculate_ScoreOutOfRange_ThrowsArgumentOutOfRangeException(invalidScore: -1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0044793",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_AtExactEnd_IsRejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0109135",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Idle_gap_boundary(finalPeriod: 4, warning: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0047900",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Bulk_preserves_customizations_until_explicit_overwrite_and_rejects_stale_revisions": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0829910",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Rejects_duplicate_foreign_inactive_and_stale_requests": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1382460",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.List_DelegatesServerSideObjectScope(role: \"Instructor\", expectedScope: Instructor)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000288",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.NotificationPolicy_ImmediateIsDelivered_BehaviorRequiresApproval": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1982891",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_prefers_the_configured_room_but_keeps_alternatives_available": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0126659",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.ObservationAndImprovement_RequireOrderedStatesAndEvidence": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0274854",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 4, utcMinute: 0, expected: ActiveLesson, period: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000768",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.AttendPendingSummon_SetsServerAttendanceAndMeetingSummary": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0218572",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.Feedback_notes_are_saved_and_returned_with_their_standard": {
+      "outcome": "Passed",
+      "duration": "00:00:04.4154390",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Teacher_conflict_offers_safe_swap_as_well_as_move": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0346770",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"23:50\", end: \"00:10\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0014351",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Breaks_are_immutable_and_current_context_never_returns_a_lesson_in_them": {
+      "outcome": "Passed",
+      "duration": "00:00:00.5086083",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Writes_enforce_school_scope_and_permissions(school: 1, manage: False, role: \"Secretary\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1279556",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Early_and_late_preferences_use_the_same_soft_window": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004711",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_executes_atomically_and_persists_both_days": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2096436",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 65, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0631\u062a\u0641\u0639\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000171",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_honors_allowed_days_for_every_generated_occurrence": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0084800",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.ObservationBeforeAttendance_IsRejectedWithoutMutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018171",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.NoShow_KeepsPendingAndAppendsAppointmentHistory": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0174042",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.FeatureFlagService_SchoolPilot_EnablesOnlyAllowlistedSchool": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0023062",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_PrototypeTruthTable_MatchesVerbatim(totalInd: 3, checkedInd: 0, expectedScore: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000145",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 84, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0631\u062a\u0641\u0639\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004378",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityGuard_CannotUseBroadDetailHistoryOrCancelWithInjectedPermissions": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0173491",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.AddReferralActionCommand_AddsActionWithoutImplicitStateChange": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0142825",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: ViolatedFixedSlot)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0023662",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.External_missing_is_not_SQL_success_and_authorized_recreation_preserves_original_file_version(action: \"delete\")": {
+      "outcome": "Passed",
+      "duration": "00:00:01.6487620",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Failed_regeneration_keeps_the_existing_timetable_and_version_history_unchanged": {
+      "outcome": "Passed",
+      "duration": "00:00:00.4483008",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianDeliveryRespectsOfficeHourStartAndEnd(instant: \"2026-10-04T05:00:00Z\", expected: SentImmediately)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0362894",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentAffairsSettingsHandlerTests.ResetSettings_ReturnsDefaultBaseline": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0275230",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogSqlTests.Fresh_SQL_migration_preserves_legacy_and_enforces_catalogue_scope_identity_concurrency_and_rollback_guard": {
+      "outcome": "Passed",
+      "duration": "00:00:45.0939099",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Instructor_sees_only_published_schedule_and_published_snapshot_rejects_direct_edits": {
+      "outcome": "Passed",
+      "duration": "00:00:00.3050514",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Pdf_brand_text_rejects_corrupted_question_mark_sequences(value: \"0112345678 \u00b7 ????? ?????\", fallback: \"\u0632\u064a\u0627\u0631\u0629 #3026\", expected: \"\u0632\u064a\u0627\u0631\u0629 #3026\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000335",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Invalid_sections_are_rejected(section: \"0\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003513",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentGuardiansQuery_WhenSocialWorker_ReturnsGuardians": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0029011",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentByIdQuery_WhenGuardianIsNotLinked_ReturnsNotFoundWithoutLoadingStudent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0021547",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Concurrent_first_profile_creation_conflicts_with_a_prevalidated_assignment": {
+      "outcome": "Passed",
+      "duration": "00:00:00.6780073",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Notification_outbox_dispatch_is_deduplicated_and_notifies_both_teachers": {
+      "outcome": "Passed",
+      "duration": "00:00:00.6251800",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 25, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0646\u062e\u0641\u0636\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000162",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Gate_pass_resolution_selects_the_exact_period_and_never_a_teacher_in_a_gap": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1340072",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.TeacherQuickAction_OverridePermissionDoesNotBypassMissingCurrentLesson": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0046195",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.NonTargetOrOutOfWindowTeacher_CannotAcknowledge": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0019508",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.Calculate_ScoreOutOfRange_ThrowsArgumentOutOfRangeException(invalidScore: 0)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009850",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.Workflow_transitions_are_owned_by_v2_and_audited(action: \"reject\", initial: PendingApproval, expected: RejectedForChanges)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0195500",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_WithStaleRevision_DoesNotMutateOrSave": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0036540",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Repair_is_persisted_audited_versioned_and_reanalyzed_and_replay_rejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1103106",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.List_DelegatesServerSideObjectScope(role: \"StudentAffairsOfficer\", expectedScope: Officer)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0111170",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.FeatureFlagService_WhenEnabled_ReturnsTrue": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003740",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetGatePassesQueryHandler_Returns_Success_When_Authorized": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0070391",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_PrototypeTruthTable_MatchesVerbatim(totalInd: 3, checkedInd: 3, expectedScore: 4)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006321",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.AssignReferralCommand_WhenAuthorized_AssignsSocialWorkerAndAddsAction": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0227923",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"06:30\", end: \"07:00\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0010686",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.ReviewExcuse_WithStaleVersion_DoesNotMutateOrSave": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0017506",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.List_DelegatesServerSideObjectScope(role: \"Guardian\", expectedScope: Guardian)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0007470",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Amiri_fonts_are_embedded_in_the_infrastructure_assembly": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0082954",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Date_selects_the_school_year_instead_of_the_globally_active_year": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0155302",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_RequiresExactOfficerRoleAndPermission(role: \"Instructor\", hasPermission: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006599",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Proposals_are_ranked_pure_and_resolve_conflicts_without_new_hard_errors": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0084534",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Regenerate_rejects_unauthorized_users_before_modifying_the_schedule": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1194999",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherTopPriorityHandlerRegistrationTests.Handler_Resolves_Current_Period_And_Maps_Complete_Frontend_Context": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1131633",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianQueueUsesEarliestRecurringOfficeHourAndReleasesOnlyWhenDue": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1841452",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Persists_room_alternatives_and_reconciles_children_and_marks_existing_timetable_stale": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1942843",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Overlapping_real_time_windows_conflict_even_with_different_sequences": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0052455",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.ApplyBulkRating_AllFourLevels_ProduceConsistentAggregates(bulkScore: 4, expectedTotal: 100, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0631\u062a\u0641\u0639\u0629 \u062c\u062f\u0627\u064b\", expectedStrengthCount: 5, expectedWeaknessCount: 0)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008911",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Returns_original_and_effective_instructor_with_substitution_identity": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0139560",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_rejects_two_fixed_lessons_that_require_the_same_teacher_at_the_same_time": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0039279",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 4, utcMinute: 50, expected: ActiveLesson, period: 2)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000747",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Ordered_periods_can_touch_or_have_gaps_but_cannot_overlap_or_run_backwards(secondStart: \"07:45\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008570",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Concurrent_setup_changes_reject_a_preloaded_assignment_save": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0745478",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SubmitExcuse_ReusedIdempotencyKeyWithDifferentPayload_IsRejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0242507",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Manage_permission_and_role_exclusions_apply_to_queries_and_commands(role: \"Guardian\", manage: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0451678",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Create_school_scope_does_not_replace_the_platform_global_active_year": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0741004",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Manual_assignment_cannot_place_another_subject_in_a_fixed_slot": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0971154",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Digits_are_normalized_without_guessing_letter_sections(value: \" \u0660\u0661 \", number: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004098",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.BiometricImportWorkflowTests.ImportZajel_ExactDuplicateDoesNotPersistAnotherMutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0118213",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Drive_failure_or_lost_response_recovers_without_another_file_and_preserves_Approved(loseResponse: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:01.3057066",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Analysis_history_is_immutable_and_old_findings_become_stale_after_setup_changes": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0933573",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.ApplyBulkRating_InvalidScore_ThrowsArgumentOutOfRangeException(invalidScore: 5)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0007418",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Approve_WithMatchingVersion_SnapshotsTimetableAndAppendsEvent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0151348",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Repair_moves_a_paired_block_as_a_whole": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0450707",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.WeaknessesThreshold_64Percent_Included_65Percent_Excluded": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0063665",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"delay\", role: \"Instructor\", permission: \"Behavior.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0001219",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_OutsideExecutionWindow_DoesNotMutateOrSave": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0109412",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.BehaviorAndSummonsAggregates_WriteGeneratedIdsToOutbox": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1333416",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_places_the_same_fixed_subject_for_multiple_classes_at_one_unified_time": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0050562",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Archive_listing_is_SQL_paginated_scoped_and_stably_sorted_with_combined_filters": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2994111",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Csv_has_utf8_bom_exactly_22_columns_and_escapes_values": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0188285",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.SummonTransition_WithStaleRowVersion_DoesNotSave": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0841548",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.RejectExcuse_LeavesOfficialAttendanceAbsent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0092475",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Distinguishes_non_study_missing_and_ambiguous_publication": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0026061",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Embedded_Amiri_assets_are_real_font_files": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0021933",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.ApplyBulkRating_AllFourLevels_ProduceConsistentAggregates(bulkScore: 3, expectedTotal: 75, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0631\u062a\u0641\u0639\u0629\", expectedStrengthCount: 5, expectedWeaknessCount: 0)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000905",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.Workflow_transitions_are_owned_by_v2_and_audited(action: \"reopen\", initial: Approved, expected: Reopened)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0111723",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.DeleteClassroomCommand_WhenNoActiveEnrollments_SoftDeletesClassroom": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0015810",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.AcceptReferralCommand_MovesStatusToInProgress": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0087193",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Ordered_periods_can_touch_or_have_gaps_but_cannot_overlap_or_run_backwards(secondStart: \"06:00\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0016884",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Infrastructure.VisitV2DashboardQueryTests.Dashboard_aggregation_executes_on_a_relational_provider_with_and_without_rows": {
+      "outcome": "Passed",
+      "duration": "00:00:07.2829265",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherTopPriorityHandlerRegistrationTests.TeacherClassrooms_Returns_Only_Repository_Assigned_Classrooms": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0056544",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Publication_always_checks_current_inputs_and_accepts_soft_only_timetables": {
+      "outcome": "Passed",
+      "duration": "00:00:00.4722117",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Scope_permissions_names_and_selection_are_enforced_in_handlers": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1211862",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Scheduled_standby_can_cover_a_lesson_without_changing_the_weekly_standby": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0073878",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Individual_subject_distribution_boundary(count: 1, warning: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0005907",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.BiometricImportWorkflowTests.ImportZajel_WhenRoleIsNotSecretary_IsDeniedBeforeReadingWorkbook": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0025989",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Authorized_yellow_acceptance_requires_and_records_reason(role: \"Secretary\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0719272",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_UsesServerTimeAndAppendsStudentExitedEvent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0046964",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.V2_zip_export_uses_batch_repository_data_and_v2_documents": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0172600",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.SchoolOversight_Requires_Exact_Manager_Role_And_Permission": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0034255",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.OfficerRevoke_RecordsServerActorTimeAndReason": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0149997",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.Workflow_transitions_are_owned_by_v2_and_audited(action: \"approve\", initial: PendingApproval, expected: Approved)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2905759",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Reject_pending_and_reopen_never_create_an_extra_operation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0836805",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_RejectsOversizedNotesAndStaleVersion": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0022854",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.ZajelReader_ParsesApprovedArabicSchema": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0387104",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.AssignReferralCommand_WhenCaseAlreadyStarted_DoesNotChangeOwnerOrState": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0068928",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Prepared_swap_validation_matches_the_full_validator_for_generated_moves": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0108214",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Manage_permission_and_role_exclusions_apply_to_queries_and_commands(role: \"Instructor\", manage: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0189317",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Missing_foreign_wrong_year_inactive_and_deleted_selection_cannot_be_saved(id: 100)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0005061",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Live_structural_swap_keeps_publication_and_creates_fresh_analysis": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1910068",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"07:44\", end: \"07:50\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0010139",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentAnalyticsProfileQuery_WhenSecretary_FailsPermissionDenied": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0013102",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_AtExactEndOrDirectlyFromApproved_IsRejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0019446",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Ordinary_member_cannot_replace_another_teachers_selection": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0146262",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: NonStudyDayPlacement)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0005619",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_boundaries_allow_flexible_duration_but_never_midnight_crossing(start: \"07:00\", end: \"07:00\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008477",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Writes_enforce_school_scope_and_permissions(school: 1, manage: True, role: \"Instructor\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0803085",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Foreign_school_and_ambiguous_or_missing_year_are_denied": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0230404",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CreateConversation_AssignedSocialWorkerCanStartReferralGuardianThread": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0035469",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Default_inheritance_variations_revision_history_and_period_edits_remain_independent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2597370",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Documents_generate_A4_color_and_monochrome_pdfs_and_round_trip_excel_template": {
+      "outcome": "Passed",
+      "duration": "00:00:00.8679158",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Individual_subject_distribution_boundary(count: 2, warning: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018351",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 85, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0631\u062a\u0641\u0639\u0629 \u062c\u062f\u0627\u064b\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000201",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.UpdateMyOfficeHoursCommandHandler_RequiresExactInstructorRole": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0041222",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.External_missing_is_not_SQL_success_and_authorized_recreation_preserves_original_file_version(action: \"trash\")": {
+      "outcome": "Passed",
+      "duration": "00:00:01.9233283",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_moves_day_and_period_and_uses_the_destination_day_time": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0047603",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Operations_status_is_authorized_and_reflects_worker_and_external_write_flags": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0446070",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.CreateStudentEnrollment_WhenPeriodOverlaps_RejectsWithoutWriting": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0044412",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Pdf_brand_text_rejects_corrupted_question_mark_sequences(value: \"?????? ?????? - ?????? ?????\", fallback: \"\u0645\u062f\u0631\u0633\u0629 \u0627\u0644\u0641\u0644\u0627\u062d \u0627\u0644\u0646\u0645\u0648\u0630\u062c\u064a\u0629\", expected: \"\u0645\u062f\u0631\u0633\u0629 \u0627\u0644\u0641\u0644\u0627\u062d \u0627\u0644\u0646\u0645\u0648\u0630\u062c\u064a\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0010738",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Manage_permission_is_required_for_reads_and_writes(role: \"Instructor\", manage: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0169913",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.ApplicationAssembly_Registers_All_Attendance_And_Excuse_Handlers": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2408352",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.UpdateClassroomCommand_WithCrossSchoolId_ReturnsNotFoundWithoutMutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0054035",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.EquivalentCreate_ReturnsExistingPermitWithoutDuplicateEffects": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0183633",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_RequiresExactRolePermissionAndActiveSchool(role: \"SecurityGuard\", permission: \"GatePass.AcknowledgeSecurity\", schoolId: 42)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000267",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Current_school_teacher_and_revoked_delegate_permissions_protect_every_archive_and_generic_file_path": {
+      "outcome": "Passed",
+      "duration": "00:00:03.7211879",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Digits_are_normalized_without_guessing_letter_sections(value: \"\u06f1\u06f2\", number: 12)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000295",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_RejectsInvalidVerificationWithoutMutation(method: 999, verificationNote: \"Verified\", gateNote: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004014",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Single_assignment_load_audit_unassign_and_reassign_are_persisted": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1273666",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentAffairsSettingsHandlerTests.ApplicationAssembly_Contains_GetStudentAffairsSettingsQueryHandler": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1150966",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Flags_default_OFF_and_SQL_snapshots_and_PDF_bytes_are_immutable_and_retained_on_rollback": {
+      "outcome": "Passed",
+      "duration": "00:00:00.5465364",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentAffairsSettingsHandlerTests.GetSettings_WhenSettingsExist_ReturnsCustomSettings": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0050713",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 50, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u062a\u0648\u0633\u0637\u0629\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0045377",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.V1_visit_cannot_enter_a_v2_mutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0089644",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Archive_list_5000_operations_uses_bounded_SQL_pages_and_never_selects_report_blobs": {
+      "outcome": "Passed",
+      "duration": "00:00:08.8740117",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Create_validator_rejects_missing_name_and_invalid_scope": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0534684",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Member_can_read_past_one_hundred_but_only_authorized_staff_can_write": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0096866",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Every_conflicting_break_and_lesson_is_reported": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0075374",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GuardianManagement_WhenSecretaryHasStudentManage_IsAuthorizedAcrossHandlers": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0126207",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentByIdQuery_WhenFound_ReturnsStudentDetails": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0066698",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Timing_changes_preserve_exact_times_only_and_require_explicit_review": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1419628",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"recognition\", role: \"Secretary\", permission: \"Recognition.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0057405",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.ResolveAndReopenReferralCommands_FollowWorkflow": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0170278",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Authorized_yellow_acceptance_requires_and_records_reason(role: \"SchoolManager\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0836028",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_respects_split_quota_between_teachers": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0130921",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Settings_access_excludes_instructors_even_if_legacy_timetable_view_is_present": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003207",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Real_manual_and_automatic_approval_stage_exactly_one_snapshot_and_shared_official_PDF(manual: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:02.3832559",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_RejectsInvalidOrNonCurrentValidityWindow(fromMinutes: -5, untilMinutes: -1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004087",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.AcceptExcuse_ChangesOfficialAttendanceToAbsentExcused": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0030404",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.ExecuteContract_DoesNotAcceptClientExitTime": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0020999",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_PrototypeTruthTable_MatchesVerbatim(totalInd: 2, checkedInd: 2, expectedScore: 4)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006416",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_PrototypeTruthTable_MatchesVerbatim(totalInd: 2, checkedInd: 1, expectedScore: 3)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000156",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_PrototypeTruthTable_MatchesVerbatim(totalInd: 3, checkedInd: 1, expectedScore: 2)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000227",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.ReviewExcuse_WhenSecretaryHasInjectedReviewPermission_IsStillDenied": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0038637",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Fixed_subject_slots_are_bulk_idempotent_reject_conflicts_and_can_be_unpinned": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1402439",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Checkpoint_records_name_note_actor_without_changing_the_timetable_revision": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2081483",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.MessagingAuditDto_Serializes_Metadata_Without_Confidential_Fields": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1202547",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.CreateClassroomCommand_WhenSecretaryHasPermission_CreatesSchoolScopedClassroom": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0450081",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_AtExactStart_Succeeds_AndCrossSchoolIsHidden": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0017995",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Ordered_periods_can_touch_or_have_gaps_but_cannot_overlap_or_run_backwards(secondStart: \"07:50\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0012407",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.SuggestScore_PrototypeTruthTable_MatchesVerbatim(totalInd: 3, checkedInd: 2, expectedScore: 3)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000143",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Planned_load_prevents_lowering_maximum_and_requirement_quota_changes": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0880450",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Create_ReusedIdempotencyKeyWithDifferentPayload_IsRejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0146268",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Forbidden_roles_and_view_only_users_cannot_read_or_edit(role: \"Secretary\", manage: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0114131",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Legacy_teacher_browser_never_discloses_archive_moved_inside_teacher_grant_even_if_properties_are_removed": {
+      "outcome": "Passed",
+      "duration": "00:00:02.6031623",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentsQuery_WhenAuthorized_ReturnsPagedStudents": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0054187",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_reports_exhausted_constraints_as_infeasible": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0362398",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_AtExactStart_AddsOneTransitionAndEvent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0115784",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.CreateClassroom_WhenSecretaryLacksExplicitPermission_IsDenied": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0015202",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Writes_enforce_school_scope_and_permissions(school: 2, manage: True, role: \"Secretary\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1075946",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_places_all_co_teachers_in_the_same_occurrence": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0049911",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_sequences_must_be_positive_unique_and_contiguous(first: 1, second: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0012066",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Readiness_allows_an_active_classroom_without_students_when_location_is_present": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0094301",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Selecting_second_half_covers_both_periods": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0021990",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.TargetTeacherAcknowledge_AddsOneReceiptWithoutChangingGatePassStatus": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0083274",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Invalid_sections_are_rejected(section: \"A\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006208",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentGuardiansQuery_WhenGuardianViewPermission_ReturnsGuardians": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0016611",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Closing_assigned_cell_keeps_lesson_and_reports_violation_but_lowering_load_is_rejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0933167",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Fixed_slot_repair_search_is_bounded_on_a_realistic_timetable": {
+      "outcome": "Passed",
+      "duration": "00:00:02.9064141",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Rejects_foreign_scope_invalid_counts_days_rooms_and_fixed_slots_without_partial_writes": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0606608",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.S5_idempotent_SQL_script_applies_twice_on_S4_and_preserves_legacy_data": {
+      "outcome": "Passed",
+      "duration": "00:00:06.6900887",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.TeacherAcknowledge_RequiresExactInstructorRoleAndPermission(role: \"Secretary\", permission: \"GatePass.AcknowledgeTeacher\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002125",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_FailsClosedWithoutAnActiveCanonicalLesson(kind: Gap)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008910",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Manage_permission_is_required_for_reads_and_writes(role: \"Guardian\", manage: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0133813",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_FailsClosedWithoutAnActiveCanonicalLesson(kind: OutsideSchoolHours)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0087522",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Teacher_selection_is_immediate_ID_based_revisioned_and_preserves_prior_year_history": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0785826",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Missing_study_days_invalid_zones_and_hidden_periods_are_rejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0108717",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 4, utcMinute: 45, expected: Gap, period: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000592",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.AssignReferralCommand_WithPermissionButWrongRole_IsDenied": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0099865",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CreateConversation_RequiresPermissionForSelectedThreadType": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0206322",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_RequiresExactOfficerRoleAndPermission(role: \"SchoolManager\", hasPermission: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000230",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.External_missing_is_not_SQL_success_and_authorized_recreation_preserves_original_file_version(action: \"move\")": {
+      "outcome": "Passed",
+      "duration": "00:00:05.5480659",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Recorded_absence_disqualifies_a_replacement": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1289603",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.Calculate_AllFivePrototypeSeededVisits_MatchesGoldenCalculations100Percent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0146098",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.GetStudentAttendanceHistoryQueryHandler_Returns_History_When_Authorized": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0055739",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_honors_cancellation_before_searching": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0024580",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Invalid_modes_and_member_counts_are_rejected(mode: \"SplitQuota\", count: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0007112",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.EnrollmentTarget_RequiresSchoolTermYearAndEffectiveDateToMatch": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0590468",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Approve_WithStaleVersion_ReturnsConflictWithoutMutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0104692",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Persisted_revision_rows_cannot_be_modified": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0200764",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.LocalFileStorageServiceTests.StoreAsync_UsesInvariantGregorianFolderUnderArabicCulture": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0342079",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_sequences_must_be_positive_unique_and_contiguous(first: 0, second: 2)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0007205",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.School_manager_finalize_is_approved_atomically": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0593921",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.CorrectStudentAttendanceCommandHandler_Updates_Status_And_Returns_Dto": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0120811",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Acknowledge_IsIdempotent_AndRejectsExpiredOrRevokedPermits": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0027131",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.SchoolInstructorOptions_Requires_Exact_Manager_Role": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0032329",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 4, utcMinute: 44, expected: ActiveLesson, period: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0074826",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Fails_closed_when_the_published_timezone_is_invalid": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0126917",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_rejects_load_above_the_teacher_weekly_maximum": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0037356",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Save_rejects_class_conflict_but_allows_parallel_standby": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1518874",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.OnlySnapshottedTargetInstructorCanAcknowledge_AndStaleVersionDoesNotMutate": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0042019",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Missing_foreign_wrong_year_inactive_and_deleted_selection_cannot_be_saved(id: 4)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009215",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Late_preference_is_reported_as_a_soft_warning_when_outside_the_window": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0025098",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Blank_names_categories_holidays_and_duplicate_days_are_rejected": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0305602",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Profile_list_query_filters_and_orders_entities_before_projection_to_sql_server": {
+      "outcome": "Passed",
+      "duration": "00:00:06.2382174",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SubmitExcuse_RejectsSpoofedPdfBeforeStorage": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0020032",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Rejects_other_schools_inactive_teachers_negative_load_duplicate_and_foreign_cells": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0799311",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.NeutralZone_Between65And74_NeitherStrengthNorWeakness": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009096",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_keeps_a_paired_block_adjacent_without_crossing_a_break": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1400424",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Acknowledge_RequiresExactInstructorRoleAndPermission(role: \"Secretary\", permission: \"ClassroomEntryPermit.Acknowledge\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0006535",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.Invalid_transition_returns_a_safe_business_message": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0047121",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Busy_same_day_candidate_search_completes_within_the_interactive_budget": {
+      "outcome": "Passed",
+      "duration": "00:00:00.5273847",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Confirmation_revalidates_availability_and_red_is_never_overridden": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0864139",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Foreign_year_school_deleted_inactive_and_duplicate_IDs_are_rejected_before_mutation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0152722",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Concurrent_bulk_requests_cannot_overwrite_rules_seen_before_another_save": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0602678",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.IntermediateTimetableSeedPlanTests.Every_declared_pair_stays_adjacent_on_one_study_day": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0114416",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: DisallowedDay)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018445",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_RequiresExactRolePermissionAndActiveSchool(role: \"Secretary\", permission: \"GatePass.AcknowledgeSecurity\", schoolId: 42)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0131058",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Invalid_multi_day_save_is_atomic_and_compares_each_effective_day": {
+      "outcome": "Passed",
+      "duration": "00:00:05.8444474",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.ManagerGatePassAudit_Denies_Officer_With_InjectedPermission": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0039106",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.StaffCanSendOutsideOfficeHoursWithoutAnyConfiguredOccurrence(threadType: GuardianTeacher, staffRole: \"Instructor\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0780381",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.School_scope_role_permissions_and_management_override_are_enforced": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0312293",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Removal_is_class_scoped_and_historical_links_block_removal": {
+      "outcome": "Passed",
+      "duration": "00:00:00.3162985",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.GetPerformanceLevel_ExactThresholdBoundaries(scoreOrPercent: 100, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0631\u062a\u0641\u0639\u0629 \u062c\u062f\u0627\u064b\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000160",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Granted_moderator_can_manage_and_restore_creates_a_new_version": {
+      "outcome": "Passed",
+      "duration": "00:00:00.4915676",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.GetAbsenceExcusesQueryHandler_Returns_Excuses_When_Authorized": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0051940",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.SecurityAcknowledge_BeforeStartOrWithMissingWindow_IsRejected(caseNumber: 1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002106",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.ApplyBulkRating_InvalidScore_ThrowsArgumentOutOfRangeException(invalidScore: 0)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0011561",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Unauthorized_yellow_override_school_leak_and_viewer_execution_are_blocked": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0568812",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_PreservesAcceptedAbsentExcusedRow": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0017473",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Invalid_sections_are_rejected(section: \"-1\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003723",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: BrokenPairedBlock)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0011004",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentGuardiansQuery_WhenUnauthorized_Fails": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018972",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CloseConversationCommandHandler_Returns_Conflict_Response_For_Stale_RowVersion": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0044716",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.CreateReferralCommand_ReplayingSameIdempotencyKey_ReturnsExistingReferral": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0032091",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Last_period_boundary(count: 3, warning: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018846",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Acknowledge_RequiresExactInstructorRoleAndPermission(role: \"Instructor\", permission: \"ClassroomEntryPermit.View\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0167317",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Invalid_sections_are_rejected(section: \"1.5\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0058646",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Academic_year_validator_rejects_overlapping_or_out_of_range_semesters": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0532151",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.DeleteClassroomCommand_WhenActiveEnrollmentsAndNotForced_LeavesClassroomUntouched": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0021242",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Services.VisitV2WorkflowTests.A_legacy_draft_requires_an_explicit_classroom_before_finalization_without_mutating_history": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0037160",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Free_teacher_is_green_and_cover_does_not_rewrite_assignment_quota": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0016283",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Invalid_sections_are_rejected(section: \"\u0623\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003781",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.BiometricDelay_UsesActiveSchoolAndAppendsEvent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0131514",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_RejectsInvalidVerificationWithoutMutation(method: Visual, verificationNote: \"   \", gateNote: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0046998",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Every_weekday_is_supported_and_there_is_no_eight_or_byte_period_limit": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0033990",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_places_a_fixed_subject_in_its_exact_slot": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0018429",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Valid_normalized_timetable_has_no_hard_errors": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0022294",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.BiometricImportWorkflowTests.ImportZajel_UnmatchedOrCrossSchoolIdentity_IsReportedWithoutWriting": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0776296",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.NoorWriter_WritesRequiredColumnsAndKeepsNationalIdAsText": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1691041",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Zero_is_a_hard_limit_and_unavailability_blocks_lessons_and_standby": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1027759",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_RequiresExactRolePermissionAndActiveSchool(role: \"Secretary\", permission: \"GatePass.Execute\", schoolId: 42)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0003859",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.ApplyBulkRating_AllFourLevels_ProduceConsistentAggregates(bulkScore: 1, expectedTotal: 25, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u0646\u062e\u0641\u0636\u0629\", expectedStrengthCount: 0, expectedWeaknessCount: 5)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0001211",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Outbox_failure_rolls_back_approval_analysis_and_revision_in_the_same_SQL_transaction": {
+      "outcome": "Passed",
+      "duration": "00:00:00.2473030",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_boundaries_allow_flexible_duration_but_never_midnight_crossing(start: \"08:00\", end: \"07:00\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008839",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 5, utcMinute: 35, expected: Break, period: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002158",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.SocialWorkerWorkflowTests.CreateReferralCommand_WithValidEnrollment_CreatesAndReturnsDto": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0177927",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.CreateStudentEnrollment_WhenAcademicTermDoesNotMatchClassroom_RejectsWithoutWriting": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0097504",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_ranks_late_preference_by_the_configured_window": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0010435",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Two_workers_and_expired_lease_during_blocked_upload_do_not_duplicate_execution": {
+      "outcome": "Passed",
+      "duration": "00:00:00.9433291",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.StaffCanSendOutsideOfficeHoursWithoutAnyConfiguredOccurrence(threadType: GuardianStudentAffairs, staffRole: \"StudentAffairsOfficer\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0295554",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Published_source_can_be_checkpointed_and_cloned_without_losing_publication": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1585573",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.ApplyBulkRating_AllFourLevels_ProduceConsistentAggregates(bulkScore: 2, expectedTotal: 50, expectedLevel: \"\u0645\u062a\u062d\u0642\u0642 \u0628\u062f\u0631\u062c\u0629 \u0645\u062a\u0648\u0633\u0637\u0629\", expectedStrengthCount: 0, expectedWeaknessCount: 5)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0504049",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Controllers.LegacyVisitWriteCutoverTests.Every_legacy_write_endpoint_returns_410(action: \"submit\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002023",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceMediatRTests.DownloadAbsenceExcuseAttachmentQueryHandler_Returns_Authorized_File": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0132674",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.LocalFileStorageServiceTests.ReadBytesAsync_RecoversLegacyDirectionMarkLostByVarcharColumn": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0356799",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_rejects_cross_day_candidates_that_touch_confirmed_future_cover": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1149302",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"07:45\", end: \"07:50\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0011260",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeachingAssignmentPhase6Tests.Teacher_search_filters_sorts_and_paginates_without_losing_total_load": {
+      "outcome": "Passed",
+      "duration": "00:00:01.1641423",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableGenerationTests.Generator_reports_search_limit_separately_from_infeasibility": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0019135",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Rename_retains_legacy_name_bindings_and_reserves_them_against_reuse": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0107381",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.ScheduleBreakPhase3Tests.Exact_intervals_allow_adjacency_outside_lessons_and_gaps(start: \"07:00\", end: \"07:00\", valid: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0060356",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_marks_disallowed_destination_days_red": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0094218",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.ClassroomEntryPermitWorkflowTests.Create_RequiresExactOfficerRoleAndPermission(role: \"Secretary\", hasPermission: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0000179",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Missing_foreign_wrong_year_inactive_and_deleted_selection_cannot_be_saved(id: 5)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0005986",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_WithSameContent_IsIdempotentNoOp": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0039705",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Periodic_reconciliation_marks_external_loss_and_never_recreates_without_authorization": {
+      "outcome": "Passed",
+      "duration": "00:00:01.1980134",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Manager_current_schedule_prefers_the_generated_populated_timetable_over_an_empty_draft": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0378256",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.BiometricImportWorkflowTests.ImportZajelBiometricCommandHandler_WhenReuploadedOnSameDay_UpdatesExistingDelaysIdempotently": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0031959",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Co_teaching_counts_one_occurrence_and_does_not_double_book_class_or_room": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0085419",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 3, utcMinute: 59, expected: OutsideSchoolHours, period: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0036920",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Forbidden_roles_and_view_only_users_cannot_read_or_edit(role: \"Guardian\", manage: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0070289",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Regenerate_turns_a_published_schedule_into_a_reviewable_draft_and_keeps_version_history": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1378241",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"academic\", role: \"Secretary\", permission: \"AcademicConcern.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0130642",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.LocalFileStorageServiceTests.StoreAsync_DefaultRootStaysWithApplicationContentAcrossBuildConfigurations": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0273327",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.CurrentLessonResolverTests.Uses_school_timezone_half_open_boundaries_breaks_and_gaps(utcHour: 6, utcMinute: 40, expected: OutsideSchoolHours, period: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0011251",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Catalog_maps_teacher_print_profile_for_the_selected_timetable_setup": {
+      "outcome": "Passed",
+      "duration": "00:00:05.1173194",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_sequences_must_be_positive_unique_and_contiguous(first: 1, second: 3)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0103684",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Stale_expired_and_tampered_proposals_never_write": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0955814",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Preferred_and_alternative_rooms_are_both_valid_review_targets": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0021886",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Readiness_marks_a_complete_seeded_setup_as_fully_ready": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0095497",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"recognition\", role: \"Instructor\", permission: \"Behavior.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0002257",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.BiometricImportWorkflowTests.ImportZajelBiometricCommandHandler_WhenStudentsLate_CreatesDelaysUsingIdentityNumber": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0025299",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.BellSchedulePhase2Tests.Period_boundaries_allow_flexible_duration_but_never_midnight_crossing(start: \"07:00\", end: \"07:01\", valid: True)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0008314",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SchoolTimetableServiceTests.Regenerate_builds_a_complete_draft_and_records_a_version_without_user_side_effects_before_the_call": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1116005",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.GatePassWorkflowTests.Execute_RequiresExactRolePermissionAndActiveSchool(role: \"SecurityGuard\", permission: \"GatePass.Execute\", schoolId: null)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009639",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.TeacherActionsAndSummonsWorkflowTests.EveryQuickAction_RequiresExactInstructorRoleAndMatchingPermission(action: \"delay\", role: \"Secretary\", permission: \"SessionDelay.Create\")": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0071801",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Missing_foreign_wrong_year_inactive_and_deleted_selection_cannot_be_saved(id: 3)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0023086",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.All_ten_hard_checks_are_enforced(rule: TeacherDoubleBooking)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0042797",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_MarksSubmittedStudentAbsentAndEveryoneElsePresent": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0357797",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.ClassroomCatalogTests.Batch_is_atomic_and_school_stage_local_and_keeps_physical_location_separate": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0300823",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.SubjectPhase5Tests.Manual_placements_obey_rooms_days_and_publish_quotas_while_early_is_soft": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1042284",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentsStatsAsync_WithRealDbContext_ReturnsTotalClassrooms": {
+      "outcome": "Passed",
+      "duration": "00:00:00.1696325",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Missing_foreign_wrong_year_inactive_and_deleted_selection_cannot_be_saved(id: 0)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009064",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Real_manual_and_automatic_approval_stage_exactly_one_snapshot_and_shared_official_PDF(manual: False)": {
+      "outcome": "Passed",
+      "duration": "00:00:02.5578245",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Reports.VisitV2DocumentServiceTests.Pdf_uses_safe_branding_and_signature_fallbacks": {
+      "outcome": "Passed",
+      "duration": "00:00:00.3948794",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Storage.VisitArchiveSqlTests.Teacher_grant_nested_inside_protected_archive_blocks_read_and_external_writes": {
+      "outcome": "Passed",
+      "duration": "00:00:01.9157642",
+      "sourceRun": "consumers-archive.trx"
+    },
+    "AlFalah.Tests.Classrooms.VisitClassroomSelectionTests.Inactive_existing_reference_can_be_retained_but_a_new_one_cannot_be_added": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0056368",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.A_lesson_at_the_same_time_is_not_offered_as_a_no_op_swap": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0009507",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentWorkflowAndGuardianTests.GetStudentGuardiansQuery_WhenStudentIsOutsideSocialWorkerAssignments_ReturnsNotFound": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0056545",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableReviewPhase7Tests.Tampered_movement_is_rejected_without_a_snapshot": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0428851",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Timetables.TimetableSettingsPhase1Tests.Create_academic_year_reuses_global_year_and_creates_two_school_terms": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0994908",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.Analysis.VisitV2AnalysisEngineTests.ApplyBulkRating_InvalidScore_ThrowsArgumentOutOfRangeException(invalidScore: -1)": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0004494",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.Phase5AutomationsAndIntegrationsTests.BehaviorRule_TenthIncident_CreatesOneLedgerReferralAndPendingSummon": {
+      "outcome": "Passed",
+      "duration": "00:00:01.6172860",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.StudentAffairsSettingsHandlerTests.CreateSettings_WithInvalidThresholdOrder_FailsValidation": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0144636",
+      "sourceRun": "consumers-regression.trx"
+    },
+    "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.TeacherWithFutureOfficeHoursStillSendsImmediately": {
+      "outcome": "Passed",
+      "duration": "00:00:00.0562583",
+      "sourceRun": "consumers-regression.trx"
+    }
+  }
+}

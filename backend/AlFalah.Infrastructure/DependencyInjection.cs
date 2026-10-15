@@ -190,6 +190,7 @@ public static class DependencyInjection
         services.AddScoped<SubjectAssignmentService>();
         services.AddScoped<AlFalah.Application.Classrooms.IClassroomCatalogRepository, ClassroomCatalogRepository>();
         services.AddScoped<AlFalah.Application.Classrooms.IClassroomCatalogService, AlFalah.Application.Classrooms.ClassroomCatalogService>();
+        services.AddScoped<AlFalah.Application.Classrooms.IVisitClassroomSelectionService, AlFalah.Application.Classrooms.VisitClassroomSelectionService>();
         services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
         services.AddScoped<TeachingAssignmentService>();
         services.AddScoped<ITimetableReviewRepository, TimetableReviewRepository>();

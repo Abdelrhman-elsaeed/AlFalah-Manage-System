@@ -299,3 +299,8 @@ C27 / D-119: replaced storage feature redirects with native school-root browsing
 | Date | Change |
 |---|---|
 | 2026-10-15 | Implemented manager classroom catalogue on its existing route, stage-local numeric bulk sections, location/edit/activation, exact-only schema70 migration and shared revisioned teacher ID multi-select. Existing data/artifacts/Drive settings preserved.117 backend/SQL and11 Angular checks plus actual390/768/1440 browser verification passed; unrelated broader-suite failures disclosed. Remaining consumer conversion and assignment UI/PDF pending. [Implementation](docs/specs/classroom-catalog/implementation.md). |
+
+
+## C34 / D-126 - Change log (2026-10-15)
+
+Delivered the second classroom implementation slice (C3): contextual V2/manual timetable selection, ID conflict normalization, retained-name lesson/roster/gate resolution and complete student lookup paging. Additive local schema71 preserves existing history, signed documents and provider settings. V1 mutations remain retired410. Production assignment UX/PDF remain C4/C5. [Behavior and verification](docs/specs/classroom-catalog/consumers.md).

@@ -128,7 +128,7 @@ public sealed class TeachingAssignmentPhase6Tests
         var entries = (from teacher in new[] { 1, 2 } from day in new[] { TimetableDay.Saturday, TimetableDay.Sunday } from period in new[] { 1, 2 }
             select new TimetableEntryDto(teacher, day, period, TimetableEntryType.Lesson, "1/A", "Math")).ToArray();
         var validator = new SubjectAssignmentService(new SubjectRepository(db));
-        var timetable = new SchoolTimetable { SchoolId = 1, TimetableSetupProfileId = 1 };
+        var timetable = new SchoolTimetable { SchoolId = 1, AcademicYearId = 1, TimetableSetupProfileId = 1 };
         (await validator.ValidateAsync(timetable, entries, schedule, true, default)).Should().HaveCount(8);
         await validator.Invoking(s => s.ValidateAsync(timetable, entries.Skip(1).ToArray(), schedule, false, default)).Should().ThrowAsync<ArgumentException>();
         // Release any locally incremented validation fence before the assignment save.
@@ -186,7 +186,7 @@ public sealed class TeachingAssignmentPhase6Tests
         var schedule = (await new SubjectService(new SubjectRepository(db), new BellScheduleRepository(db)).GetAsync(1, 1, default)).Schedule!;
         schedule = schedule with { DefaultPeriods = [schedule.DefaultPeriods[0], schedule.DefaultPeriods[1] with { StartLocalTime = new(7,45) }] };
         TimetableEntryDto Entry(int teacher, int day, int period) => new(teacher, (TimetableDay)day, period, TimetableEntryType.Lesson, "1/A", "Math");
-        var validator = new SubjectAssignmentService(new SubjectRepository(db)); var timetable = new SchoolTimetable { SchoolId = 1, TimetableSetupProfileId = 1 };
+        var validator = new SubjectAssignmentService(new SubjectRepository(db)); var timetable = new SchoolTimetable { SchoolId = 1, AcademicYearId = 1, TimetableSetupProfileId = 1 };
         await validator.Invoking(s => s.ValidateAsync(timetable, [Entry(1,1,1), Entry(2,1,2), Entry(1,2,1), Entry(1,3,1)], schedule, true, default)).Should().ThrowAsync<ArgumentException>();
         await validator.Invoking(s => s.ValidateAsync(timetable, [Entry(1,1,1), Entry(1,1,2), Entry(1,2,1), Entry(2,2,2)], schedule, true, default)).Should().NotThrowAsync();
     }

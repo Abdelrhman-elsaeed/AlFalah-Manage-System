@@ -477,6 +477,8 @@ public sealed class SchoolTimetableServiceTests
             context.InstructorProfiles.AddRange(
                 new InstructorProfile { Id = 1, UserId = InstructorId, SchoolId = 1, EmployeeNumber = "T-1", SubjectSpecialization = "رياضيات", IsActive = true },
                 new InstructorProfile { Id = 2, UserId = "teacher-2", SchoolId = 1, EmployeeNumber = "T-2", SubjectSpecialization = "علوم", IsActive = true });
+            context.Classrooms.AddRange(new() {Id=1,SchoolId=1,AcademicYearId=1,ClassLabel="3/1"},
+                new() {Id=2,SchoolId=1,AcademicYearId=1,ClassLabel="4/1"});
             await context.SaveChangesAsync();
             await BellScheduleTestData.SeedAsync(context);
             return new TimetableHarness(context);
@@ -503,7 +505,6 @@ public sealed class SchoolTimetableServiceTests
             var timing = await _context.Set<BellScheduleRevision>().SingleAsync();
             foreach (var i in new[] { 1, 2 })
             {
-                _context.Classrooms.Add(new() { Id = i, SchoolId = 1, AcademicYearId = 1, ClassLabel = i == 1 ? "3/1" : "4/1" });
                 _context.Add(new SubjectDefinition { Id = i, SchoolId = 1, Name = i == 1 ? "رياضيات" : "علوم" });
                 _context.TeacherTimetableProfiles.Add(new() { Id = i, SchoolId = 1, TimetableSetupProfileId = setup.Id,
                     InstructorProfileId = i, BellScheduleRevisionId = timing.Id, MaximumWeeklyPeriods = 20 });

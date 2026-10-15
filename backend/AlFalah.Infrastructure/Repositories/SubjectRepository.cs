@@ -18,8 +18,9 @@ public sealed class SubjectRepository(AlFalahDbContext db) : ISubjectRepository
         await db.Set<TimetableRoom>().AsNoTracking().Where(x => x.SchoolId == schoolId && x.IsActive).OrderBy(x => x.Name).Select(x => new RoomDto(x.Id, x.Name)).ToListAsync(ct);
     public async Task<IReadOnlyList<SubjectClassroomDto>> GetClassroomsAsync(int schoolId, int yearId, CancellationToken ct) =>
         await db.Classrooms.AsNoTracking().Where(x => x.SchoolId == schoolId && x.AcademicYearId == yearId && x.IsActive && !x.IsDeleted)
-            .OrderBy(x => x.Stage).ThenBy(x => x.GradeLevel).ThenBy(x => x.ClassLabel)
-            .Select(x => new SubjectClassroomDto(x.Id, x.ClassLabel, (int)x.Stage, x.GradeLevel)).ToListAsync(ct);
+            .OrderBy(x => x.Stage).ThenBy(x => x.GradeLevel).ThenBy(x => x.SectionNumber ?? int.MaxValue).ThenBy(x => x.Section)
+            .Select(x => new SubjectClassroomDto(x.Id, x.ClassLabel, (int)x.Stage, x.GradeLevel)
+            { LegacyLabels = db.ClassroomLabelHistory.Where(a => a.SchoolId == schoolId && a.AcademicYearId == yearId && a.ClassroomId == x.Id).Select(a => a.Label).ToArray() }).ToListAsync(ct);
     public async Task<IReadOnlyList<ClassSubjectRequirement>> GetRequirementsAsync(int schoolId, int setupId, CancellationToken ct) =>
         await db.Set<ClassSubjectRequirement>().AsTracking().Where(x => x.SchoolId == schoolId && x.TimetableSetupProfileId == setupId)
             .Include(x => x.AllowedDays).Include(x => x.FixedSlots).Include(x => x.Rooms).ToListAsync(ct);

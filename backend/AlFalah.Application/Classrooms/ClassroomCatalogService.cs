@@ -22,12 +22,19 @@ public sealed class ClassroomCatalogService(IClassroomCatalogRepository reposito
         ? id : throw new ArgumentException("حدّد عامًا دراسيًا نشطًا واحدًا للمدرسة قبل اختيار الفصول.");
     public static ClassroomOption Option(Classroom c) => new(c.Id, c.ClassLabel, c.Stage, c.GradeLevel, c.Section,
         c.SectionNumber, c.AcademicYearId, c.IsActive, c.PhysicalLocation, c.UpdatedAt.ToString("O"));
-    public async Task<ClassroomOptionsPage> OptionsAsync(int? year, int page, bool includeInactive, CancellationToken ct)
+    public async Task<ClassroomOptionsPage> OptionsAsync(int? year, int page, bool includeInactive, CancellationToken ct, DateOnly? onDate = null)
     {
-        var context = await Context(ct); var selected = year ?? CurrentYear(context);
+        var context = await Context(ct);
+        var selected = onDate.HasValue ? YearAt(context, onDate.Value) : year ?? CurrentYear(context);
+        if (year.HasValue && selected != year.Value) throw new ArgumentException("العام الدراسي لا يطابق تاريخ الزيارة.");
         if (page < 1 || page > 100000 || context.Years.All(y => y.Id != selected)) throw new ArgumentException("العام أو الصفحة غير صالحين.");
         var rows = await repository.PageAsync(School, selected, page, includeInactive, ct);
         return new(context, rows.Take(100).Select(Option).ToArray(), rows.Count > 100);
+    }
+    public static int YearAt(CatalogContext context, DateOnly date)
+    {
+        var years = context.Years.Where(y => y.StartsOn <= date && y.EndsOn >= date).Select(y => y.Id).Distinct().ToArray();
+        return years is [var id] ? id : throw new ArgumentException("لا يوجد عام دراسي واحد محدد للمدرسة في هذا التاريخ. راجع إعدادات الأعوام الدراسية.");
     }
     public async Task<IReadOnlyList<ClassroomOption>> CreateAsync(ClassroomBatch batch, CancellationToken ct)
     {
@@ -40,6 +47,9 @@ public sealed class ClassroomCatalogService(IClassroomCatalogRepository reposito
         var sections = batch.Sections.Select(ClassroomIdentity.Section).ToArray();
         if (sections.Distinct().Count() != sections.Length) throw new ArgumentException("أرقام الشعب مكررة؛ لم تتم إضافة أي فصل.");
         var existing = await repository.ClassroomsAsync(School, batch.AcademicYearId, ct);
+        var labels = await repository.LabelsAsync(School, batch.AcademicYearId, ct);
+        if (sections.Any(s => labels.Any(l => string.Equals(l.Label, ClassroomIdentity.Label(context.Stage, batch.GradeLevel, s), StringComparison.OrdinalIgnoreCase))))
+            throw new ArgumentException("اسم إحدى الشعب مرتبط بسجل فصل سابق. لا يمكن إعادة استخدامه لفصل آخر.");
         if (existing.Any(c => c.Stage == context.Stage && c.GradeLevel == batch.GradeLevel && sections.Contains(c.SectionNumber ?? NumericSection(c.Section))))
             throw new ArgumentException("إحدى الشعب موجودة بالفعل؛ لم تتم إضافة أي فصل.");
         var now = DateTimeOffset.UtcNow;
@@ -62,13 +72,17 @@ public sealed class ClassroomCatalogService(IClassroomCatalogRepository reposito
         if (row.UpdatedAt.ToString("O") != edit.Revision) throw new ClassroomCatalogConflictException();
         var section = ClassroomIdentity.Section(edit.Section);
         var label = ClassroomIdentity.Label(row.Stage, row.GradeLevel, section);
-        if (label != row.ClassLabel && await repository.HasLegacyScheduleReferencesAsync(row, ct))
-            throw new ArgumentException("الفصل مرتبط بحصص قديمة بالاسم. يلزم ربط هذه الحصص بمعرّف الفصل قبل تغيير ترقيمه.");
+        var labels = await repository.LabelsAsync(School, row.AcademicYearId, ct);
+        if (labels.Any(l => l.ClassroomId != id && string.Equals(l.Label, label, StringComparison.OrdinalIgnoreCase)))
+            throw new ArgumentException("هذا الاسم مرتبط بفصل آخر في السجل التاريخي؛ اختر رقم شعبة مختلفًا.");
         if (string.IsNullOrWhiteSpace(edit.PhysicalLocation) || edit.PhysicalLocation.Trim().Length > 120) throw new ArgumentException("حدّد موقع الفصل.");
         var classes = await repository.ClassroomsAsync(School, row.AcademicYearId, ct);
         if (classes.Any(c => c.Id != id && c.Stage == row.Stage && c.GradeLevel == row.GradeLevel && (c.SectionNumber ?? NumericSection(c.Section)) == section))
             throw new ArgumentException("رقم الشعبة موجود لهذا الصف بالفعل.");
         var old = new { row.ClassLabel, row.Section, row.IsActive, row.PhysicalLocation };
+        foreach (var retained in new[] {row.ClassLabel, label}.Distinct(StringComparer.OrdinalIgnoreCase))
+            if (!labels.Any(l => string.Equals(l.Label, retained, StringComparison.OrdinalIgnoreCase)))
+                repository.AddLabel(new() { SchoolId = School, AcademicYearId = row.AcademicYearId, ClassroomId = id, Label = retained });
         row.SectionNumber = section; row.Section = section.ToString(System.Globalization.CultureInfo.InvariantCulture);
         row.ClassLabel = label; row.IsActive = edit.IsActive;
         row.PhysicalLocation = edit.PhysicalLocation.Trim(); row.UpdatedAt = DateTimeOffset.UtcNow; row.UpdatedByUserId = Actor;

@@ -205,3 +205,7 @@ Design/prototype only, explicitly selected by the owner. Existing structured Cla
 ## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
 
 C33 / D-125 exposes the single classroom-management page to SchoolManager and existing classroom staff. Catalogue reads require active membership in the selected school; writes require its actual ManagerUserId, global authority or existing Classroom.Manage/StudentEnrollment.Manage. Teacher selection remains hard-self or the existing scoped User.Edit manager path, with no approval queue; it uses IDs and a revision. No role/permission seeds or student-administration grants were added. [Contracts and scope](specs/classroom-catalog/implementation.md).
+
+## C34 / D-126 - Classroom consumer boundaries (2026-10-15)
+
+No grants or role seeds change. V2 visit classroom selection requires active school membership and a classroom in the year corresponding to the visit date, in addition to the existing visit permissions. Published lesson/roster/gate compatibility resolves only exact same-school/year classroom names or retained bindings; ambiguous references fail closed and client labels never establish access. Existing enrollment, guardian and student-action rules remain. V1 write endpoints stay410. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).

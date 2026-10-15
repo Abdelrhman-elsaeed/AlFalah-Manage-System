@@ -119,6 +119,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<AcademicTerm> AcademicTerms => Set<AcademicTerm>();
     public DbSet<SchoolStudentAffairsSettings> SchoolStudentAffairsSettings => Set<SchoolStudentAffairsSettings>();
     public DbSet<Classroom> Classrooms => Set<Classroom>();
+    public DbSet<ClassroomLabelHistory> ClassroomLabelHistory => Set<ClassroomLabelHistory>();
     public DbSet<StudentEnrollment> StudentEnrollments => Set<StudentEnrollment>();
 
     // Student Affairs - attendance and conduct
@@ -317,6 +318,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     private void UpdateTimestamps()
     {
+        if (ChangeTracker.Entries<ClassroomLabelHistory>().Any(e => e.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Classroom name bindings are retained; append a new binding instead of changing history.");
         if (ChangeTracker.Entries().Any(x => x.Entity is AlFalah.Domain.Entities.Duty.DutySignedDocument or AlFalah.Domain.Entities.Duty.DismissalLatenessRevision
             && x.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Signed duty documents and lateness revisions are immutable.");

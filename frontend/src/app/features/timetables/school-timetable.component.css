@@ -510,6 +510,8 @@ tbody tr:nth-child(even) .schedule-cell { background: #fafcfb; }
 }
 
 @media (max-width: 480px) {
+  .grid-shell { --tt-teacher-width: 132px; --tt-total-width: 40px; }
+  .grid-shell .teacher-column { padding: .45rem .3rem; overflow-wrap: anywhere; }
   .history-event { grid-template-columns: 30px minmax(0, 1fr); gap: .45rem; }
   .history-dot { width: 28px; height: 28px; font-size: .65rem; }
   .history-card-head { align-items: flex-start; flex-direction: column; gap: .2rem; }

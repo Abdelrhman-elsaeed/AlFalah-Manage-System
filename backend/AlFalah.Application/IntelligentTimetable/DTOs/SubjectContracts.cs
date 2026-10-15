@@ -5,7 +5,10 @@ namespace AlFalah.Application.IntelligentTimetable.DTOs;
 
 public sealed record SubjectDto(int Id, string Name, string Color, int Revision);
 public sealed record RoomDto(int Id, string Name);
-public sealed record SubjectClassroomDto(int Id, string Name, int Stage, int GradeLevel);
+public sealed record SubjectClassroomDto(int Id, string Name, int Stage, int GradeLevel)
+{
+    public IReadOnlyList<string> LegacyLabels { get; init; } = [];
+}
 public sealed record FixedSubjectSlot(int Day, int Period);
 public sealed record SubjectRulesRequest(int IndividualPeriodCount, int PairedBlockCount, string TimePreference,
     int? EarliestPeriodSequence, int? LatestPreferredPeriodSequence, IReadOnlyList<int> AllowedDays,

@@ -59,6 +59,8 @@ public class Visit
 
     /// <summary>Grade/class label (Arabic text, optional).</summary>
     public string? GradeClass { get; set; }
+    public int? ClassroomId { get; set; }
+    public AlFalah.Domain.Entities.StudentAffairs.Classroom? Classroom { get; set; }
 
     // D-62 — desktop-parity: lesson title + الحضور/الغياب. Nullable in DB so
     // existing rows (pre-D-62) keep opening without error; the form makes

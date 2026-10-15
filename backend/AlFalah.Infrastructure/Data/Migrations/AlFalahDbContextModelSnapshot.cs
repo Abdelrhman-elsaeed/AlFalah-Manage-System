@@ -6619,6 +6619,43 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ClassroomLabelHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicYearId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClassroomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(50)")
+                        .UseCollation("Arabic_CI_AS");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId", "AcademicYearId", "ClassroomId");
+
+                    b.HasIndex("SchoolId", "AcademicYearId", "Label")
+                        .IsUnique();
+
+                    b.ToTable("ClassroomLabelHistory");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationMessage", b =>
                 {
                     b.Property<int>("Id")
@@ -10687,6 +10724,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("ClassroomId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ClassroomPeriod")
                         .HasColumnType("int");
 
@@ -10829,6 +10869,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.HasIndex("Status");
 
                     b.HasIndex("VisitDate");
+
+                    b.HasIndex("SchoolId", "ClassroomId");
 
                     b.HasIndex("SchoolId", "InstructorId");
 
@@ -13402,6 +13444,18 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("TargetInstructorProfile");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ClassroomLabelHistory", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "AcademicYearId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "AcademicYearId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Classroom");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.StudentAffairs.ConversationMessage", b =>
                 {
                     b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
@@ -15312,7 +15366,15 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("AlFalah.Domain.Entities.StudentAffairs.Classroom", "Classroom")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ClassroomId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ApprovedByUser");
+
+                    b.Navigation("Classroom");
 
                     b.Navigation("CreatedByUser");
 

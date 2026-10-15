@@ -1,6 +1,6 @@
 # Classroom catalogue and teaching assignments
 
-**Current status: C33 / D-125 implements the catalogue and teacher-selection foundation.** The owner approved implementation after C32. [Runtime behavior, contracts, migration and remaining phases](implementation.md). [Implementation verification](verification/implementation/README.md). The following C32 section records the earlier design-only delivery.
+**Current status: C34 / D-126 delivers consumer cutover after the C33 catalogue/teacher-selection foundation.** [Current behavior and verification](consumers.md). Production assignment UI/PDF remain pending. The owner approved implementation after C32. [Runtime behavior, contracts, migration and remaining phases](implementation.md). [Implementation verification](verification/implementation/README.md). The following C32 section records the earlier design-only delivery.
 
 **C32 / D-124 · 2026-10-15 · Discovery, design and interactive prototype delivered. Production implementation NOT started.**
 
