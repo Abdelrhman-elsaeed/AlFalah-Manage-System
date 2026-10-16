@@ -17,6 +17,7 @@ public class SchoolTimetable : IHasDomainEvents
     public int? SetupRevision { get; set; }
     public TimetableSemester Semester { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string StandbySettingsJson { get; set; } = "{}";
     public bool IsPublished { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
     public string? PublishedByUserId { get; set; }

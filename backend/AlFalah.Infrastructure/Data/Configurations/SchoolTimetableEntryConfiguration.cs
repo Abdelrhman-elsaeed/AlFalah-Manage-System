@@ -18,6 +18,7 @@ public sealed class SchoolTimetableEntryConfiguration : IEntityTypeConfiguration
                 "([EntryType] = 1 AND [ClassLabel] IS NOT NULL AND [Subject] IS NOT NULL) OR ([EntryType] = 2 AND [ClassLabel] IS NULL AND [Subject] IS NULL)");
         });
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.StandbySource).HasMaxLength(16);
         builder.ToTable("SchoolTimetableEntries", table => table.HasCheckConstraint("CK_TimetableEntry_SubjectSource",
             "[ClassSubjectRequirementId] IS NULL OR ([ClassroomId] IS NOT NULL AND [SubjectId] IS NOT NULL AND [EntryType] = 1)"));
         builder.HasOne(x => x.SubjectDefinition).WithMany().HasForeignKey(x => new { x.SchoolId, x.SubjectId })

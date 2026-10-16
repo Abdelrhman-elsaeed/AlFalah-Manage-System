@@ -21,13 +21,15 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     private readonly ISchoolTimetableDocumentService _documents;
     private readonly ICurrentUserService _currentUser;
     private readonly SchoolScopeGuard _scopeGuard;
+    private readonly IWeeklyStandbyRepository _standbyRepository;
+    private readonly WeeklyStandbyEngine _standby;
 
     public SchoolTimetableService(
         ISchoolTimetableRepository repository,
         ISchoolTimetableDocumentService documents,
         ICurrentUserService currentUser,
         SchoolScopeGuard scopeGuard, IBellScheduleRepository timings, TeacherAvailabilityService availability, SubjectAssignmentService subjects,
-        TimetableReviewService review, TimetableGenerationService generation)
+        TimetableReviewService review, TimetableGenerationService generation, IWeeklyStandbyRepository standbyRepository, WeeklyStandbyEngine standby)
     {
         _repository = repository;
         _documents = documents;
@@ -38,6 +40,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         _subjects = subjects;
         _review = review;
         _generation = generation;
+        _standbyRepository = standbyRepository;
+        _standby = standby;
     }
 
     public async Task<IReadOnlyList<TimetableListItemDto>> ListAsync(int academicYearId, TimetableSemester semester,
@@ -255,7 +259,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         if (timetable.TimetableSetupProfileId is null || timetable.BellScheduleRevisionId is null)
             throw new ArgumentException("اربط الجدول بملف إعداد وتوقيت صالح قبل إعادة التوليد.");
 
-        var generated = await _generation.GenerateAsync(timetableId, request.Revision, cancellationToken);
+        var generated = (await _generation.GenerateAsync(timetableId, request.Revision, cancellationToken))
+            .Concat(SnapshotEntries(timetable.Entries).Where(x => x.EntryType == TimetableEntryType.Standby)).ToArray();
         await _availability.ValidateAssignmentsAsync(timetable, generated, cancellationToken);
         var timing = await _timings.GetRevisionAsync(timetable.SchoolId, timetable.BellScheduleRevisionId.Value, cancellationToken)
             ?? throw new ArgumentException("توقيت الجدول الحالي غير صالح.");
@@ -369,7 +374,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 var timing = source.BellScheduleRevisionId.HasValue
                     ? await _timings.GetRevisionAsync(source.SchoolId, source.BellScheduleRevisionId.Value, cancellationToken)
                     : null;
-                snapshot = new TimetableSnapshotDto(source.Title, SnapshotEntries(source.Entries), timing);
+                snapshot = new TimetableSnapshotDto(source.Title, SnapshotEntries(source.Entries), timing,
+                    source.TimetableSetupProfileId, source.SetupRevision, source.StandbySettingsJson);
             }
 
             var bellRevisionId = snapshot.BellSchedule?.RevisionId ?? source.BellScheduleRevisionId;
@@ -383,6 +389,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 AcademicYearId = source.AcademicYearId,
                 Semester = source.Semester,
                 Title = title,
+                StandbySettingsJson = snapshot.StandbySettingsJson ?? source.StandbySettingsJson,
                 BellScheduleRevisionId = bellRevisionId,
                 TimetableSetupProfileId = source.TimetableSetupProfileId,
                 SetupRevision = source.SetupRevision,
@@ -401,6 +408,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 Day = x.Day,
                 Period = x.Period,
                 EntryType = x.EntryType,
+                IsStandbyLocked = x.EntryType == TimetableEntryType.Standby && (x.IsStandbyLocked ?? true),
+                StandbySource = x.EntryType == TimetableEntryType.Standby ? x.StandbySource ?? "Manual" : null,
                 ClassLabel = x.ClassLabel,
                 Subject = x.Subject,
                 ClassroomId = x.ClassroomId,
@@ -445,8 +454,10 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             ?? throw new InvalidOperationException("تعذر قراءة نسخة الجدول المحفوظة.");
         if (snapshot.BellSchedule is not null)
             timetable.BellScheduleRevisionId = snapshot.BellSchedule.RevisionId;
+        timetable.StandbySettingsJson = snapshot.StandbySettingsJson ?? "{}";
         var requests = snapshot.Entries.Select(x => new SaveTimetableEntryRequest(
-            x.InstructorProfileId, x.Day, x.Period, x.EntryType, x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId)).ToList();
+            x.InstructorProfileId, x.Day, x.Period, x.EntryType, x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId,
+            x.IsStandbyLocked, x.StandbySource)).ToList();
         var entries = await NormalizeAndValidateEntriesAsync(timetable, requests, cancellationToken);
         await ReplaceAsync(timetable, snapshot.Title, entries, TimetableChangeKind.Restored, versionNumber, cancellationToken);
         return await GetByIdAsync(timetableId, cancellationToken);
@@ -550,6 +561,12 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
         await _repository.ExecuteInTransactionAsync(async ct =>
         {
             var previousTitle = timetable.Title;
+            var timing = timetable.BellScheduleRevisionId.HasValue
+                ? await _timings.GetRevisionAsync(timetable.SchoolId, timetable.BellScheduleRevisionId.Value, ct) : null;
+            var zone = TimeZoneInfo.FindSystemTimeZoneById(timing?.SchoolTimeZoneId ?? "Africa/Cairo");
+            var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone).DateTime);
+            if ((await _standbyRepository.GetProtectedCellsAsync(timetable.SchoolId, timetable.Id, today, ct)).Count > 0)
+                throw new InvalidOperationException("توجد تغطية يومية مؤكدة مرتبطة بحصص هذا الجدول؛ راجع التكليفات قبل استبدال الحصص أو إعادة التوليد.");
             var previousEntries = SnapshotEntries(timetable.Entries);
             var currentEntries = timetable.Entries.Where(x => !x.IsDeleted).ToList();
             _repository.SoftDeleteEntries(currentEntries, now);
@@ -563,6 +580,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                 Day = x.Day,
                 Period = x.Period,
                 EntryType = x.EntryType,
+                IsStandbyLocked = x.EntryType == TimetableEntryType.Standby && (x.IsStandbyLocked ?? true),
+                StandbySource = x.EntryType == TimetableEntryType.Standby ? x.StandbySource ?? "Manual" : null,
                 ClassLabel = x.ClassLabel,
                 Subject = x.Subject,
                 ClassroomId = x.ClassroomId,
@@ -615,7 +634,7 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
             .MaxAsync(cancellationToken) ?? 0;
         var timing = timetable.BellScheduleRevisionId.HasValue ? await _timings.GetRevisionAsync(timetable.SchoolId, timetable.BellScheduleRevisionId.Value, cancellationToken) : null;
         var snapshot = JsonSerializer.Serialize(new TimetableSnapshotDto(timetable.Title, entries, timing,
-            timetable.TimetableSetupProfileId, timetable.SetupRevision));
+            timetable.TimetableSetupProfileId, timetable.SetupRevision, timetable.StandbySettingsJson));
         await _repository.AddVersionAsync(new SchoolTimetableVersion
         {
             SchoolTimetableId = timetable.Id,
@@ -681,14 +700,15 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
     private static string EntrySignature(TimetableEntryDto entry) => JsonSerializer.Serialize(new
     {
         entry.EntryType, entry.ClassLabel, entry.Subject, entry.ClassroomId, entry.SubjectId,
-        entry.ClassSubjectRequirementId, entry.RoomId
+        entry.ClassSubjectRequirementId, entry.RoomId, entry.IsStandbyLocked, entry.StandbySource
     });
 
     private static IReadOnlyList<TimetableEntryDto> SnapshotEntries(IEnumerable<SchoolTimetableEntry> entries) =>
         entries.Where(x => !x.IsDeleted).OrderBy(x => x.InstructorProfileId).ThenBy(x => x.Day).ThenBy(x => x.Period)
             .Select(x => new TimetableEntryDto(x.InstructorProfileId, x.Day, x.Period, x.EntryType,
                 x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId,
-                x.SubjectDefinition?.Color, x.Room?.Name, x.Id)).ToArray();
+                x.SubjectDefinition?.Color, x.Room?.Name, x.Id,
+                x.EntryType == TimetableEntryType.Standby ? x.StandbySource == null || x.IsStandbyLocked : null, x.StandbySource)).ToArray();
 
     private static IReadOnlyList<TimetableEntryDto> SnapshotEntries(IEnumerable<TimetableEntryDto> entries) =>
         entries.Select(x => x with { Id = null }).ToArray();
@@ -716,7 +736,12 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
 
             if (item.EntryType == TimetableEntryType.Standby)
             {
-                entries.Add(new TimetableEntryDto(item.InstructorProfileId, item.Day, item.Period, item.EntryType, null, null));
+                var previous = timetable.Entries.FirstOrDefault(x => !x.IsDeleted && x.InstructorProfileId == item.InstructorProfileId &&
+                    x.Day == item.Day && x.Period == item.Period && x.EntryType == TimetableEntryType.Standby);
+                var source = item.StandbySource ?? previous?.StandbySource ?? "Manual";
+                if (source is not ("Manual" or "Fair")) throw new ArgumentException("مصدر خانة الانتظار غير صالح.");
+                entries.Add(new TimetableEntryDto(item.InstructorProfileId, item.Day, item.Period, item.EntryType, null, null,
+                    IsStandbyLocked: item.IsStandbyLocked ?? (previous is null || previous.StandbySource is null || previous.IsStandbyLocked), StandbySource: source));
                 continue;
             }
 
@@ -732,7 +757,19 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
 
         // Subject validation resolves logical occurrences before checking classroom conflicts.
         await _availability.ValidateAssignmentsAsync(timetable, entries, cancellationToken);
-        return await _subjects.ValidateAsync(timetable, entries, timing, false, cancellationToken);
+        var validated = await _subjects.ValidateAsync(timetable, entries, timing, false, cancellationToken);
+        if (entries.Any(x => x.EntryType == TimetableEntryType.Standby))
+        {
+            var context = await _standbyRepository.GetValidationContextAsync(schoolId, timetable.Id, cancellationToken) ?? throw new KeyNotFoundException();
+            var simulated = TimetableRepairEngine.Simulate(context, []);
+            simulated.Timetable.Entries = validated.Select((x, i) => new SchoolTimetableEntry { Id = i + 1, SchoolId = schoolId,
+                SchoolTimetableId = timetable.Id, InstructorProfileId = x.InstructorProfileId, Day = x.Day, Period = x.Period,
+                EntryType = x.EntryType, ClassLabel = x.ClassLabel, Subject = x.Subject, ClassroomId = x.ClassroomId,
+                SubjectId = x.SubjectId, ClassSubjectRequirementId = x.ClassSubjectRequirementId, RoomId = x.RoomId }).ToList();
+            var view = _standby.Inspect(simulated, new());
+            if (!view.Ready) throw new ArgumentException(string.Join(" ", view.Issues));
+        }
+        return validated;
     }
 
     private async Task<SchoolTimetableDto> LoadDtoAsync(
@@ -762,7 +799,8 @@ public sealed class SchoolTimetableService : ISchoolTimetableService
                     .OrderBy(e => e.InstructorProfileId).ThenBy(e => e.Day).ThenBy(e => e.Period)
                     .Select(e => new TimetableEntryDto(e.InstructorProfileId, e.Day, e.Period, e.EntryType, e.ClassLabel, e.Subject, e.ClassroomId, e.SubjectId, e.ClassSubjectRequirementId, e.RoomId,
                         e.SubjectDefinition != null ? e.SubjectDefinition.Color : null,
-                        e.Room != null ? e.Room.Name : null, e.Id))
+                        e.Room != null ? e.Room.Name : null, e.Id,
+                        e.EntryType == TimetableEntryType.Standby ? e.StandbySource == null || e.IsStandbyLocked : null, e.StandbySource))
                     .ToList()))
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new KeyNotFoundException("الجدول غير موجود.");

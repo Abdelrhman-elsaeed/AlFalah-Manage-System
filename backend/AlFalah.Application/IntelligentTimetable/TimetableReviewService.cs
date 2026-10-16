@@ -153,7 +153,9 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
     public async Task<SchoolTimetableVersion> Snapshot(TimetableValidationContext c, TimetableChangeKind kind, CancellationToken ct)
     {
         var entries = c.Timetable.Entries.Where(x => !x.IsDeleted).Select(x => new TimetableEntryDto(x.InstructorProfileId, x.Day, x.Period,
-            x.EntryType, x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId, Id: x.Id)).ToArray();
+            x.EntryType, x.ClassLabel, x.Subject, x.ClassroomId, x.SubjectId, x.ClassSubjectRequirementId, x.RoomId, Id: x.Id,
+            IsStandbyLocked: x.EntryType == TimetableEntryType.Standby ? x.StandbySource == null || x.IsStandbyLocked : null,
+            StandbySource: x.StandbySource)).ToArray();
         BellPeriodDto Period(BellPeriod p) => new(p.Sequence, p.DisplayLabel, p.StartLocalTime, p.EndLocalTime);
         var s = c.Schedule;
         BellScheduleDto? schedule = s is null ? null : new(s.BellScheduleTemplateId, s.Id, s.SchoolId, c.Timetable.AcademicYearId,
@@ -175,7 +177,7 @@ public sealed class TimetableReviewService(ITimetableReviewRepository repository
                 new TimetableChangeDetailDto("operation", kind == TimetableChangeKind.Published ? "نشر الجدول" : "تعديل من شاشة المراجعة", 1)
             }),
             SnapshotJson = JsonSerializer.Serialize(new TimetableSnapshotDto(c.Timetable.Title, entries, schedule,
-                c.Timetable.TimetableSetupProfileId, c.Timetable.SetupRevision)) };
+                c.Timetable.TimetableSetupProfileId, c.Timetable.SetupRevision, c.Timetable.StandbySettingsJson)) };
         repository.AddVersion(version);
         return version;
     }

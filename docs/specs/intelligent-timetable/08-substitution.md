@@ -2,6 +2,8 @@
 
 > **Standby discovery (2026-10-16):** The existing `Standby` cell and daily substitution engine are retained as the foundation for the separate waiting-period register. The official `QF71-B-2-1` distribution/execution record is not implemented by this phase. See [standby-periods-discovery](10-standby-periods-discovery.md). Do not conflate it with School Duty dismissal supervision.
 
+> **Current delivery plan:** [English phase index](standby-periods/README.md), [master weekly/PDF plan](11-standby-weekly-and-pdf-plan.md). New weekly manual/fair allocation follows completed teaching and natural availability bounds. C38 delivers [weekly phase 1](standby-periods/weekly-implementation.md); daily coverage modernization and the official register remain phases 2 and 3. The existing Phase 8 implementation below remains the daily baseline.
+
 **Module:** Intelligent Timetable (الجدول الذكي)  
 **Status:** Implemented — see [Phase 8 delivery notes](../../phases/PHASE-TT-08-SUBSTITUTION.md)
 **Primary actor:** Authorized timetable editor

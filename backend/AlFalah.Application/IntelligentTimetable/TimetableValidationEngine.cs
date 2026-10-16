@@ -139,7 +139,7 @@ public sealed class TimetableValidationEngine
                 if (maximum > 3) Add(ViolationRuleCode.ExcessiveConsecutive, "أكثر من ثلاث حصص متتالية للمعلم.", sorted[0], sorted.Select(x => x.Id));
                 var gaps = Periods(c.Schedule, (int)day.Key).Count(p => p.Sequence > sorted[0].Period && p.Sequence < sorted[^1].Period &&
                     !entries.Any(x => x.InstructorProfileId == teacher.InstructorProfileId && x.Day == day.Key && x.Period == p.Sequence));
-                if (gaps > 2) Add(ViolationRuleCode.ExcessiveGaps, "أكثر من حصتي انتظار في اليوم للمعلم.", sorted[0], sorted.Select(x => x.Id));
+                if (gaps > 2) Add(ViolationRuleCode.ExcessiveGaps, "أكثر من فترتي فراغ بين حصص المعلم في اليوم.", sorted[0], sorted.Select(x => x.Id));
             }
         }
         foreach (var r in c.Requirements.Where(x => !x.IsDeleted && x.Classroom.IsActive && !x.Classroom.IsDeleted && x.Subject.IsActive && !x.Subject.IsDeleted))

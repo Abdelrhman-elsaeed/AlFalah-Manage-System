@@ -523,3 +523,4 @@ tbody tr:nth-child(even) .schedule-cell { background: #fafcfb; }
   .teacher-view-switcher small { display: none; }
   .loading-state, .empty-state { min-height: 300px; padding: 1rem; }
 }
+.standby-workspace-tabs{display:flex;gap:10px;margin:18px 0;flex-wrap:wrap}.standby-workspace-tabs button{display:flex;align-items:center;gap:9px;font:inherit;font-size:13px;font-weight:700;padding:12px 20px;border:1px solid #d3dfd6;border-radius:11px;background:#fff;color:#51665a;cursor:pointer}.standby-workspace-tabs button.active{background:#edf7ef;border-color:#187344;color:#14583e;box-shadow:inset 0 -3px #187344}.standby-workspace-tabs button:disabled{opacity:.6;cursor:default}.standby-workspace-tabs button:focus-visible{outline:3px solid #bc962f;outline-offset:3px}

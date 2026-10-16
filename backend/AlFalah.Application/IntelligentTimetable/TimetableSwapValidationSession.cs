@@ -31,7 +31,7 @@ internal sealed class TimetableSwapValidationSession
     private const string BrokenPair = "الحصص المزدوجة غير متصلة أو يفصلها وقت استراحة.";
     private const string ExcessiveConsecutive = "أكثر من ثلاث حصص متتالية للمعلم.";
     private const string UnfairLastPeriods = "أكثر من حصتين أخيرتين أسبوعياً للمعلم.";
-    private const string ExcessiveGaps = "أكثر من حصتي انتظار في اليوم للمعلم.";
+    private const string ExcessiveGaps = "أكثر من فترتي فراغ بين حصص المعلم في اليوم.";
     private const string SubjectConcentration = "تكرار المادة في اليوم؛ الحد حصة فردية واحدة باستثناء الحصص المزدوجة.";
     private const string EarlyPreference = "لم تتحقق أفضلية الحصة المبكرة.";
     private const string LatePreference = "لم تتحقق أفضلية الحصة المتأخرة.";

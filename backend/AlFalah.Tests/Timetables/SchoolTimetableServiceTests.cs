@@ -80,7 +80,7 @@ public sealed class SchoolTimetableServiceTests
     }
 
     [Fact]
-    public async Task Save_rejects_class_conflict_but_allows_parallel_standby()
+    public async Task Save_rejects_class_conflict_and_standby_before_teaching_completion()
     {
         await using var harness = await TimetableHarness.CreateAsync();
         var service = harness.Service(harness.Manager());
@@ -100,8 +100,7 @@ public sealed class SchoolTimetableServiceTests
             new SaveTimetableEntryRequest(1, TimetableDay.Saturday, 1, TimetableEntryType.Standby, null, null),
             new SaveTimetableEntryRequest(2, TimetableDay.Saturday, 1, TimetableEntryType.Standby, null, null)
         });
-        var saved = await service.SaveAsync(timetable.Id, standby);
-        saved.Entries.Should().HaveCount(2).And.OnlyContain(x => x.EntryType == TimetableEntryType.Standby);
+        await service.Invoking(x => x.SaveAsync(timetable.Id, standby)).Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
@@ -261,6 +260,38 @@ public sealed class SchoolTimetableServiceTests
         current.Entries[0].Id.Should().NotBeNull();
         current.Entries[0].ClassSubjectRequirementId.Should().Be(1);
         current.Entries[0].RoomName.Should().Be("معمل الرياضيات");
+    }
+
+    [Fact]
+    public async Task Weekly_standby_survives_regeneration_clone_and_restore_with_locks_and_settings()
+    {
+        await using var harness = await TimetableHarness.CreateAsync();
+        await harness.ConfigureReviewAsync();
+        var service = harness.Service(harness.Manager());
+        var timetable = await service.CreateAsync(new(1, TimetableSemester.First, "Weekly integration"), null);
+        timetable = await service.RegenerateAsync(timetable.Id, new(timetable.Revision));
+        var repository = new WeeklyStandbyRepository(harness.Context);
+        var validator = new AlFalah.Application.IntelligentTimetable.TimetableValidationEngine();
+        var weekly = new AlFalah.Application.IntelligentTimetable.WeeklyStandbyService(repository, new(validator),
+            new(repository, validator, new(validator), harness.Manager()), harness.Manager(), TimeProvider.System);
+        var view = await weekly.GetAsync(timetable.Id, default);
+        var teacher = view.Teachers.First(); var cell = teacher.Cells.First(x => x.Eligible);
+        var request = new AlFalah.Application.IntelligentTimetable.DTOs.WeeklyStandbyRequest(timetable.Revision, "Manual",
+            new(1, [new(cell.Day, cell.Period, 1)]), [new(teacher.Id, cell.Day, cell.Period, true)]);
+        var preview = await weekly.PreviewAsync(timetable.Id, request, default);
+        await weekly.ApplyAsync(timetable.Id, request with { ProposalId = preview.ProposalId }, default);
+        var saved = await service.GetByIdAsync(timetable.Id);
+        var version = (await service.GetVersionsAsync(timetable.Id)).First().VersionNumber;
+        var reserve = saved.Entries.Single(x => x.EntryType == TimetableEntryType.Standby);
+        reserve.IsStandbyLocked.Should().BeTrue(); reserve.StandbySource.Should().Be("Manual");
+        var regenerated = await service.RegenerateAsync(timetable.Id, new(saved.Revision));
+        regenerated.Entries.Single(x => x.EntryType == TimetableEntryType.Standby).Should().BeEquivalentTo(reserve, o => o.Excluding(x => x.Id));
+        var clone = await service.CloneAsync(timetable.Id, new(regenerated.Revision, "Weekly clone"));
+        clone.Entries.Single(x => x.EntryType == TimetableEntryType.Standby).IsStandbyLocked.Should().BeTrue();
+        var restored = await service.RestoreAsync(timetable.Id, version, new(regenerated.Revision));
+        restored.Entries.Single(x => x.EntryType == TimetableEntryType.Standby).StandbySource.Should().Be("Manual");
+        (await harness.Context.SchoolTimetables.SingleAsync(x => x.Id == clone.Id)).StandbySettingsJson
+            .Should().Be((await harness.Context.SchoolTimetables.SingleAsync(x => x.Id == timetable.Id)).StandbySettingsJson);
     }
 
     [Fact]
@@ -496,7 +527,8 @@ public sealed class SchoolTimetableServiceTests
                 new AlFalah.Application.IntelligentTimetable.TimetableReviewService(reviewRepository, validation,
                     new AlFalah.Application.IntelligentTimetable.TimetableRepairEngine(validation), currentUser),
                 new AlFalah.Application.IntelligentTimetable.TimetableGenerationService(reviewRepository,
-                    new AlFalah.Application.IntelligentTimetable.TimetableGenerationEngine(), currentUser));
+                    new AlFalah.Application.IntelligentTimetable.TimetableGenerationEngine(), currentUser),
+                new WeeklyStandbyRepository(_context), new AlFalah.Application.IntelligentTimetable.WeeklyStandbyEngine(validation));
         }
 
         public async Task ConfigureReviewAsync()

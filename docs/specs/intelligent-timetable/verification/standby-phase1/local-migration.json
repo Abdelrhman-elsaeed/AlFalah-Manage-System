@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-16T17:12:07.124957+00:00",
+  "migration": "20261016164904_AddWeeklyStandbyAllocation",
+  "schemaCount": 73,
+  "tablesChecked": 45,
+  "existingValuesUnchanged": true,
+  "originalStateHash": "1B9B41DB0747F3C162573D1960E86B3721D47A607B3323C6803BD5C41510A298",
+  "providerWrites": false
+}

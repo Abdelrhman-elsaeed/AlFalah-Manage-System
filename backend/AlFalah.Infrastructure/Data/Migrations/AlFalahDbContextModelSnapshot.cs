@@ -3883,6 +3883,12 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int?>("SetupRevision")
                         .HasColumnType("int");
 
+                    b.Property<string>("StandbySettingsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("{}");
+
                     b.Property<int?>("TimetableSetupProfileId")
                         .HasColumnType("int");
 
@@ -3962,6 +3968,9 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsStandbyLocked")
+                        .HasColumnType("bit");
+
                     b.Property<int>("Period")
                         .HasColumnType("int");
 
@@ -3973,6 +3982,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.Property<int>("SchoolTimetableId")
                         .HasColumnType("int");
+
+                    b.Property<string>("StandbySource")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("Subject")
                         .HasMaxLength(200)

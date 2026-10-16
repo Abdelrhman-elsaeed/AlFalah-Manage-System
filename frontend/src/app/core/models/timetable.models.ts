@@ -53,6 +53,8 @@ export interface TimetableCatalog {
 }
 
 export interface TimetableEntry {
+  isStandbyLocked?: boolean | null;
+  standbySource?: string | null;
   id: number | null;
   subjectColor?: string | null;
   classroomId?: number | null;

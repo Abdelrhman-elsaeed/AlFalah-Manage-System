@@ -93,13 +93,15 @@ public sealed class TimetableRepairEngine(TimetableValidationEngine validator)
         var t = c.Timetable;
         var movesByEntry = moves.ToDictionary(x => x.EntryId);
         var copy = new SchoolTimetable { Id = t.Id, SchoolId = t.SchoolId, AcademicYearId = t.AcademicYearId, Semester = t.Semester,
-            Revision = t.Revision, TimetableSetupProfileId = t.TimetableSetupProfileId, BellScheduleRevisionId = t.BellScheduleRevisionId };
+            Revision = t.Revision, TimetableSetupProfileId = t.TimetableSetupProfileId, BellScheduleRevisionId = t.BellScheduleRevisionId,
+            StandbySettingsJson = t.StandbySettingsJson };
         copy.Entries = t.Entries.Where(x => !x.IsDeleted).Select(e => {
             movesByEntry.TryGetValue(e.Id, out var m);
             return new SchoolTimetableEntry { Id = e.Id, SchoolId = e.SchoolId, SchoolTimetableId = e.SchoolTimetableId,
                 ClassroomId = e.ClassroomId, SubjectId = e.SubjectId, ClassSubjectRequirementId = e.ClassSubjectRequirementId,
                 RoomId = e.RoomId, InstructorProfileId = m?.ToTeacherId ?? e.InstructorProfileId, Day = m?.ToDay ?? e.Day,
-                Period = m?.ToPeriod ?? e.Period, EntryType = e.EntryType, ClassLabel = e.ClassLabel, Subject = e.Subject };
+                Period = m?.ToPeriod ?? e.Period, EntryType = e.EntryType, ClassLabel = e.ClassLabel, Subject = e.Subject,
+                IsStandbyLocked = e.IsStandbyLocked, StandbySource = e.StandbySource };
         }).ToList();
         return c with { Timetable = copy };
     }

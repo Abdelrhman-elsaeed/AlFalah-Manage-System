@@ -122,7 +122,22 @@ _Avoid_: Any free teacher, unrestricted manual substitute
 The responsible administrator's choice at distribution time between selecting eligible standby teachers manually and reviewing a fair-distribution proposal. Absence generates coverage needs and suggestions; administrator approval makes an assignment effective.
 _Avoid_: Automatic final assignment, fixed school-wide distribution mode
 
+**Weekly Standby Allocation Mode (طريقة توزيع الانتظار الأسبوعي)**:
+The manager's choice between manual placement and fair allocation of recurring standby periods after the teaching timetable is completed. This choice is independent from the mode used to assign dated absence coverage.
+_Avoid_: Daily coverage mode, interleaved teaching generation
+
+**Eligible Standby Capacity (السعة المتاحة للانتظار)**:
+The actual study periods where a participating teacher is available and free from teaching or another blocking commitment. It is an upper bound on planned standby, not a requirement to fill every free period.
+_Avoid_: Teaching quota remainder, fixed reserve quota, coverage demand
+
+**Waiting-Period Register (سجل توزيع حصص الانتظار)**:
+The dated school record grouping the absent teacher's lessons with their covering teachers, execution narrative, signatures and notes. Its official form is QF71-B-2-1; it is separate from the weekly timetable showing planned standby availability.
+_Avoid_: Weekly standby grid, dismissal-duty report
+
 
 ## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
 
 The owner approved implementation after C32. C33 locally adds the existing-ID manager classroom catalogue and shared direct-confirmation teacher selector, including stage-local numeric sections, separate location, exact-only migration, current-year revisioned association sets and teacher scope ID joins. Legacy letters/unknown names stay retained for explicit review. Old Classes arrays are compatibility echoes, not a second source of new associations. Complete visit/timetable consumer conversion and production assignment UI/export remain later phases. See docs/specs/classroom-catalog/implementation.md.
+## C38 / D-130 — Weekly standby phase 1 (2026-10-16)
+
+Weekly standby is implemented in the existing timetable's separate manager tab after complete validated teaching. Manual/fair selection, visible editable demand (default1 per teaching period,0 otherwise), exclusions, natural capacity, explicit locks, reviewed proposals, undo and guarded draft save/publication are delivered. No arbitrary per-teacher quota is introduced. New additive settings/lock/source metadata preserves legacy manual intent, history/clone/restore/regeneration and teaching IDs on weekly apply. Present/future confirmed coverage guards the older full-entry replacement path.124 backend/SQL and5 Angular tests and actual responsive SQL/browser workflows pass; details and acceptance limits: docs/specs/intelligent-timetable/standby-periods/weekly-implementation.md. Daily coverage/teacher execution and official QF71-B-2-1 remain phases2/3; do not conflate the existing weekly timetable PDF with that register.

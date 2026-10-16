@@ -1,0 +1,44 @@
+{
+  "at": "2026-10-16T17:15:05.083Z",
+  "results": [
+    {
+      "width": 390,
+      "noPageOverflow": true,
+      "boundedScrollableGrid": true,
+      "noPageErrors": true,
+      "isolatedApi": true,
+      "writes": 0,
+      "manualFairPersistenceConflictAndPublication": false
+    },
+    {
+      "width": 768,
+      "noPageOverflow": true,
+      "boundedScrollableGrid": true,
+      "noPageErrors": true,
+      "isolatedApi": true,
+      "writes": 0,
+      "manualFairPersistenceConflictAndPublication": false
+    },
+    {
+      "width": 1440,
+      "noPageOverflow": true,
+      "boundedScrollableGrid": true,
+      "noPageErrors": true,
+      "isolatedApi": true,
+      "writes": 7,
+      "manualFairPersistenceConflictAndPublication": true
+    },
+    {
+      "width": 1920,
+      "noPageOverflow": true,
+      "boundedScrollableGrid": true,
+      "noPageErrors": true,
+      "isolatedApi": true,
+      "writes": 0,
+      "manualFairPersistenceConflictAndPublication": false
+    }
+  ],
+  "localWorkspaceReadOnly": true,
+  "operationalWrites": false,
+  "providerWrites": false
+}

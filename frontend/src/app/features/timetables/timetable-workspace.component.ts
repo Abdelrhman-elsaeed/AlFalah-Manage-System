@@ -12,7 +12,8 @@ export class TimetableWorkspaceComponent {
   private readonly translate = inject(TranslateService);
   @ViewChild(SchoolTimetableComponent) lessons?: SchoolTimetableComponent;
   canLeave() {
-    return !(this.lessons?.dirty() || this.lessons?.inlineSwap.active())
-      || window.confirm(this.translate.instant('DUTY.LEAVE_DRAFT'));
+    if (this.lessons?.standbyBusy()) return false;
+    return !this.lessons?.hasPendingChanges()
+      || window.confirm(this.translate.instant('STANDBY.LEAVE'));
   }
 }

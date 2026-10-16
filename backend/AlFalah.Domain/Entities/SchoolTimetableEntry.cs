@@ -14,6 +14,8 @@ public class SchoolTimetableEntry
     public TimetableDay Day { get; set; }
     public int Period { get; set; }
     public TimetableEntryType EntryType { get; set; }
+    public bool IsStandbyLocked { get; set; }
+    public string? StandbySource { get; set; }
     public string? ClassLabel { get; set; }
     public string? Subject { get; set; }
     public int? SubjectId { get; set; }

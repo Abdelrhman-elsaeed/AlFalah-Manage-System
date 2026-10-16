@@ -47,7 +47,8 @@ public sealed record TimetableEntryDto(
     string? ClassLabel,
     string? Subject,
     int? ClassroomId = null, int? SubjectId = null, int? ClassSubjectRequirementId = null, int? RoomId = null,
-    string? SubjectColor = null, string? RoomName = null, int? Id = null);
+    string? SubjectColor = null, string? RoomName = null, int? Id = null,
+    bool? IsStandbyLocked = null, string? StandbySource = null);
 
 public sealed record TimetableTeacherSummaryDto(
     int InstructorProfileId,
@@ -86,7 +87,8 @@ public sealed record SaveTimetableEntryRequest(
     TimetableEntryType EntryType,
     string? ClassLabel,
     string? Subject,
-    int? ClassroomId = null, int? SubjectId = null, int? ClassSubjectRequirementId = null, int? RoomId = null);
+    int? ClassroomId = null, int? SubjectId = null, int? ClassSubjectRequirementId = null, int? RoomId = null,
+    bool? IsStandbyLocked = null, string? StandbySource = null);
 
 public sealed record SaveSchoolTimetableRequest(
     string Title,
@@ -130,4 +132,4 @@ public sealed record TimetableImportResultDto(
 public sealed record TimetableFileDto(byte[] Bytes, string ContentType, string FileName);
 
 public sealed record TimetableSnapshotDto(string Title, IReadOnlyList<TimetableEntryDto> Entries, BellScheduleDto? BellSchedule = null,
-    int? TimetableSetupProfileId = null, int? SetupRevision = null);
+    int? TimetableSetupProfileId = null, int? SetupRevision = null, string? StandbySettingsJson = null);

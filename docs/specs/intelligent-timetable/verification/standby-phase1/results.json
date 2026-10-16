@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-16",
+  "backend": {
+    "total": 124,
+    "executed": 124,
+    "passed": 124,
+    "failed": 0
+  },
+  "angular": {
+    "passed": 5
+  },
+  "developmentBuild": "passed",
+  "productionBuild": {
+    "passed": false,
+    "unchangedCssBudgetBlockers": [
+      "visits-v2/visit-workspace/visit-workspace.component.css",
+      "storage/storage-page.component.css"
+    ]
+  },
+  "schema": 73,
+  "existingTablesVerified": 45,
+  "providerWritesByFeature": false,
+  "phase2Started": false,
+  "phase3Started": false
+}

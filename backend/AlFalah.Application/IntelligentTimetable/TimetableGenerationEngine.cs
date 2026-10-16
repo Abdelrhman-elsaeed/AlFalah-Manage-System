@@ -212,7 +212,11 @@ public sealed class TimetableGenerationEngine
     {
         var teacher = context.Teachers.SingleOrDefault(x => x.InstructorProfileId == instructorId);
         return teacher is not null && teacher.Instructor.IsActive && !teacher.Instructor.IsDeleted && teacher.Instructor.User.IsActive &&
-            !teacher.Instructor.User.IsDeleted && teacher.Slots.Where(x => x.Day == day && !x.IsAvailable).All(slot =>
+            !teacher.Instructor.User.IsDeleted && !context.Timetable.Entries.Any(e => !e.IsDeleted && e.EntryType == TimetableEntryType.Standby &&
+                e.InstructorProfileId == instructorId && (int)e.Day == day && periods.Any(p =>
+                    TimetableValidationEngine.Periods(context.Schedule, day).Any(q => q.Sequence == e.Period &&
+                        q.StartLocalTime < p.EndLocalTime && p.StartLocalTime < q.EndLocalTime))) &&
+            teacher.Slots.Where(x => x.Day == day && !x.IsAvailable).All(slot =>
                 periods.All(period => slot.Period.EndLocalTime <= period.StartLocalTime || period.EndLocalTime <= slot.Period.StartLocalTime));
     }
 

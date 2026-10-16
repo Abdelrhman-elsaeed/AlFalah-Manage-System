@@ -9,6 +9,8 @@ import { effectiveIntervals } from '../../core/models/schedule-break.models';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WeeklyStandbyComponent } from './standby/weekly-standby.component';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -59,13 +61,41 @@ interface DisplayDay {
 @Component({
   selector: 'app-school-timetable',
   standalone: true,
-  imports: [RouterLink, ClearableSelectComponent, ClassroomPickerComponent, CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule,
+  imports: [TranslateModule, WeeklyStandbyComponent, RouterLink, ClearableSelectComponent, ClassroomPickerComponent, CommonModule, DatePipe, FormsModule, ButtonModule, DialogModule, InputTextModule, TagModule,
     InlineSwapChooserComponent, SwapAnalysisOverlayComponent, SwapGridLegendComponent, SwapModeBarComponent, SwapReviewDialogComponent],
   providers: [InlineSwapSessionStore],
   templateUrl: './school-timetable.component.html',
   styleUrls: ['./school-timetable.component.css']
 })
 export class SchoolTimetableComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+  readonly workspaceTab = signal<'lessons' | 'standby'>('lessons');
+  readonly standbyDirty = signal(false);
+  readonly standbyBusy = signal(false);
+  hasPendingChanges() { return this.dirty() || this.standbyDirty() || this.inlineSwap.active(); }
+  canChangeContext() {
+    return !this.standbyBusy() && !this.saving() && !this.regenerating() &&
+      (!this.hasPendingChanges() || window.confirm(this.translate.instant('STANDBY.LEAVE')));
+  }
+  changeWorkspaceTab(tab: 'lessons' | 'standby') {
+    if (tab === this.workspaceTab() || !this.canChangeContext()) return;
+    this.inlineSwap.cancel(); this.standbyDirty.set(false);
+    if (this.dirty()) this.applyTimetable(this.timetable());
+    this.workspaceTab.set(tab);
+  }
+  refreshAfterStandby() {
+    const id = this.timetable()?.id;
+    if (!id) return;
+    const year = this.selectedYearId(), semester = this.selectedSemester();
+    this.api.getById(id).subscribe({ next: response => {
+      if (response.data && this.timetable()?.id === id && this.selectedYearId() === year && this.selectedSemester() === semester) this.applyTimetable(response.data);
+    },
+      error: () => this.toast.error(this.translate.instant('STANDBY.RELOAD_PARENT'), '') });
+  }
+  @HostListener('window:beforeunload', ['$event'])
+  protectUnsavedChanges(event: BeforeUnloadEvent) {
+    if (this.hasPendingChanges() || this.standbyBusy()) { event.preventDefault(); event.returnValue = ''; }
+  }
   private readonly api = inject(TimetableService);
   private readonly toast = inject(ToastService);
   private readonly settings = inject(TimetableSettingsService);
@@ -256,7 +286,8 @@ export class SchoolTimetableComponent implements OnInit {
   selectTimetable(id: string): void {
     const timetableId = Number(id);
     if (!timetableId || timetableId === this.timetable()?.id || this.loading() || this.saving()) return;
-    if (this.dirty() && !window.confirm('يوجد تعديلات غير محفوظة. هل تريد الانتقال بدون حفظها؟')) return;
+    if (!this.canChangeContext()) return;
+    this.standbyDirty.set(false);
     this.inlineSwap.cancel();
     this.loading.set(true);
     this.api.getById(timetableId).subscribe({
@@ -266,11 +297,15 @@ export class SchoolTimetableComponent implements OnInit {
   }
 
   changeYear(value: string): void {
+    if (!this.canChangeContext()) return;
+    this.standbyDirty.set(false);
     this.selectedYearId.set(Number(value));
     this.loadCurrent();
   }
 
   changeSemester(value: string): void {
+    if (!this.canChangeContext()) return;
+    this.standbyDirty.set(false);
     this.selectedSemester.set(Number(value) as TimetableSemester);
     this.loadCurrent();
   }
