@@ -14,6 +14,9 @@ export class TeachingAssignmentService {
   save(setup: number, revision: number, changes: TeachingCell[]) {
     return this.http.put<ApiResponse<TeachingOverview>>(this.url(setup), { revision, changes }, this.options);
   }
+  statement(setup: number, revision: number, scope: string) {
+    return this.http.get(`${this.url(setup)}/statement/content`, { ...this.options, params: {revision,scope}, responseType: 'blob', observe: 'response' });
+  }
   teachers(setup: number, params: Record<string, string | number | boolean>) {
     return this.http.get<ApiResponse<TeachingTeacherPage>>(`${this.url(setup)}/teachers`, { ...this.options, params });
   }

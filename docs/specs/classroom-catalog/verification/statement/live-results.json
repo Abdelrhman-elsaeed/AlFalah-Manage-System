@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-16T07:34:24.241Z",
+  "sqlHttp": {
+    "generated": true,
+    "retainedBytes": true,
+    "browserTransfer": true,
+    "stale409": true,
+    "invalidScope400": true,
+    "missing404": true,
+    "teacher403": true
+  },
+  "results": [
+    {
+      "width": 390,
+      "realSchoolOptionsReadOnly": true,
+      "isolatedSqlClassificationSave": true,
+      "scopeDiscardRestoresControl": true,
+      "revisionConflictRecovery": true,
+      "actualPdfCanvas": true,
+      "downloadMatchesRetainedBytes": true,
+      "noPageOverflow": true,
+      "noPageErrors": true,
+      "isolatedWriteRequests": 1
+    },
+    {
+      "width": 768,
+      "realSchoolOptionsReadOnly": true,
+      "isolatedSqlClassificationSave": true,
+      "scopeDiscardRestoresControl": true,
+      "revisionConflictRecovery": false,
+      "actualPdfCanvas": true,
+      "downloadMatchesRetainedBytes": true,
+      "noPageOverflow": true,
+      "noPageErrors": true,
+      "isolatedWriteRequests": 1
+    },
+    {
+      "width": 1440,
+      "realSchoolOptionsReadOnly": true,
+      "isolatedSqlClassificationSave": true,
+      "scopeDiscardRestoresControl": true,
+      "revisionConflictRecovery": false,
+      "actualPdfCanvas": true,
+      "downloadMatchesRetainedBytes": true,
+      "noPageOverflow": true,
+      "noPageErrors": true,
+      "isolatedWriteRequests": 1
+    }
+  ]
+}

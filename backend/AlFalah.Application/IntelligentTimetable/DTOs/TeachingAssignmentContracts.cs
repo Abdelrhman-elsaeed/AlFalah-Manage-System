@@ -3,12 +3,12 @@ using MediatR;
 
 namespace AlFalah.Application.IntelligentTimetable.DTOs;
 
-public sealed record TeachingMemberRequest(int TeacherTimetableProfileId, int AllocatedPeriodCount, int AllocatedPairedBlockCount);
+public sealed record TeachingMemberRequest(int TeacherTimetableProfileId, int AllocatedPeriodCount, int AllocatedPairedBlockCount, string? StatementCategory = null);
 // Empty members explicitly unassign this cell. Other cells remain unchanged.
 public sealed record TeachingCellRequest(int ClassSubjectRequirementId, string Mode, IReadOnlyList<TeachingMemberRequest> Members);
 public sealed record SaveTeachingAssignmentsRequest(int Revision, IReadOnlyList<TeachingCellRequest> Changes);
 public sealed record TeachingMemberDto(int TeacherTimetableProfileId, int InstructorProfileId, string Name,
-    int AllocatedPeriodCount, int AllocatedPairedBlockCount);
+    int AllocatedPeriodCount, int AllocatedPairedBlockCount, string? StatementCategory = null);
 public sealed record TeachingAssignmentDto(int Id, int ClassSubjectRequirementId, string Mode, IReadOnlyList<TeachingMemberDto> Members);
 public sealed record TeachingTeacherDto(int Id, int InstructorProfileId, string Name, string? Specialization, bool IsActive,
     int AllocatedPeriods, int MaximumWeeklyPeriods, int RemainingPeriods, int SubjectCount, int ClassroomCount,

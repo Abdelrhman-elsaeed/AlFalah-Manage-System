@@ -316,3 +316,7 @@ C33 / D-125 implements the existing Classroom catalogue foundation: nullable num
 ## C34 / D-126 - Classroom consumer cutover (2026-10-15)
 
 ClassroomLabelHistory retains append-only school/year/name bindings to existing classroom IDs. Visits add nullable ClassroomId; GradeClass remains the recorded snapshot. New/editable V2 observations require an explicitly selected ID. Published timetables retain their original entries/versions and resolve old names read-only. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).
+
+## C36 / D-128 - Saved assignment statement (2026-10-16)
+
+A TeachingAssignmentMember now carries an optional explicit StatementCategory. Classification affects only statement grouping, never the meaning of period/pair allocation or teacher classroom self-association. TeachingAssignmentStatement is an immutable school/setup/revision/scope/renderer artifact with frozen display/allocation JSON, PDF/hash and provenance. It is not a second file browser or a Drive upload intent. [Contracts](specs/classroom-catalog/statement.md).

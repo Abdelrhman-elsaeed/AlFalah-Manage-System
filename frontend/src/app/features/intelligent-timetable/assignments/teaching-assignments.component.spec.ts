@@ -72,10 +72,12 @@ describe('Teaching assignments', () => {
   });
   it('does not warn when a picker selection returns to the same allocation in another order', () => {
     const data=overview();data.assignments=[{id:10,classSubjectRequirementId:10,mode:'CoTeaching',members:data.teachers.map(t=>({
-      teacherTimetableProfileId:t.id,instructorProfileId:t.instructorProfileId,name:t.name,allocatedPeriodCount:4,allocatedPairedBlockCount:1}))}];
+      teacherTimetableProfileId:t.id,instructorProfileId:t.instructorProfileId,name:t.name,allocatedPeriodCount:4,allocatedPairedBlockCount:1,statementCategory:'Specialization'}))}];
     component.data=data;component.open(data.requirements[0]);component.removeMember(1);component.toggle(data.teachers[0]);
     component.mode='CoTeaching';component.modeChanged();
-    expect(component.hasUnsavedChanges()).toBeFalse();const confirmation=spyOn(window,'confirm');component.closeDialog();
+    expect(component.hasUnsavedChanges()).toBeFalse();expect(component.members.every(m=>m.statementCategory==='Specialization')).toBeTrue();
+    component.confirmCell();expect(component.drafts.size).toBe(0);component.open(data.requirements[0]);
+    const confirmation=spyOn(window,'confirm');component.closeDialog();
     expect(confirmation).not.toHaveBeenCalled();expect(component.dialogOpen).toBeFalse();
   });
   it('keeps stage-local grades separate and pages classrooms without losing off-page load', () => {

@@ -1,7 +1,7 @@
 import { Subject, SubjectClassroom, SubjectRequirement } from './subject.models';
 
 export type TeachingMode = 'SingleTeacher' | 'CoTeaching' | 'SplitQuota';
-export interface TeachingMember { teacherTimetableProfileId: number; allocatedPeriodCount: number; allocatedPairedBlockCount: number; }
+export interface TeachingMember { teacherTimetableProfileId: number; allocatedPeriodCount: number; allocatedPairedBlockCount: number; statementCategory?: string | null; }
 export interface TeachingCell { classSubjectRequirementId: number; mode: TeachingMode; members: TeachingMember[]; }
 export interface TeachingAssignment extends TeachingCell { id: number; members: (TeachingMember & { instructorProfileId: number; name: string })[]; }
 export interface TeachingTeacher { id: number; instructorProfileId: number; name: string; specialization: string | null; isActive: boolean;

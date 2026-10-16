@@ -1,6 +1,6 @@
 # Classroom catalogue and teaching assignments
 
-**Current status: C35 / D-127 delivers the C4 production assignment workspace after the C33 foundation and C34 consumers.** [Current assignment behavior](assignments.md), [verification and screenshots](verification/assignments/README.md), [C34 consumer behavior](consumers.md). C5 saved-revision assignment PDF and C6 pilot acceptance remain pending; production build has existing CSS budget blockers documented in C35. The owner approved implementation after C32. [Runtime behavior, contracts, migration and remaining phases](implementation.md). [Implementation verification](verification/implementation/README.md). The following C32 section records the earlier design-only delivery.
+**Current status: C36 / D-128 delivers C5 saved-revision assignment PDF after the C33-C35 foundation/consumers/workspace.** [Current statement behavior](statement.md), [verification, actual PDFs and screenshots](verification/statement/README.md), [assignment workspace](assignments.md). C6 pilot/owner/physical/printer acceptance remains pending. Production build retains existing CSS budget blockers. Earlier sections below record their original delivery scope.
 
 **C32 / D-124 · 2026-10-15 · Discovery, design and interactive prototype delivered. Production implementation NOT started.**
 

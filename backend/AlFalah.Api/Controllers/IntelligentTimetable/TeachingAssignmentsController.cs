@@ -1,3 +1,4 @@
+using AlFalah.Application.IntelligentTimetable;
 using AlFalah.Application.IntelligentTimetable.DTOs;
 using AlFalah.Application.IntelligentTimetable.Handlers;
 using AlFalah.Shared.Models;
@@ -18,6 +19,17 @@ public sealed class TeachingAssignmentsController(IMediator mediator) : Controll
         Respond(await mediator.Send(new SaveTeachingAssignmentsCommand(setupId, request), ct));
     [HttpDelete("{requirementId:int}")] public async Task<IActionResult> Unassign(int setupId, int requirementId, [FromQuery] int revision, CancellationToken ct) =>
         Respond(await mediator.Send(new UnassignTeachingSubjectCommand(setupId, requirementId, revision), ct));
+    [HttpGet("statement/content")]
+    public async Task<IActionResult> Statement(int setupId, [FromQuery] int revision, [FromQuery] string scope, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetTeachingStatementQuery(setupId, revision, scope), ct);
+        if (!result.IsSuccess) return Respond(result);
+        Response.Headers.CacheControl = "private, no-store";
+        Response.Headers["X-Assignment-Revision"] = result.Data!.Revision.ToString();
+        Response.Headers["X-Assignment-Scope"] = result.Data.Scope;
+        Response.Headers.ETag = "\"" + result.Data.Hash + "\"";
+        return File(result.Data.Content, "application/pdf", result.Data.FileName);
+    }
     private IActionResult Respond<T>(ApiResponse<T> response) => response.IsSuccess ? Ok(response) : StatusCode(
         (response.Errors.FirstOrDefault() ?? response.Message) switch {
             TimetableSettingsHandlerSupport.PermissionDenied => 403,

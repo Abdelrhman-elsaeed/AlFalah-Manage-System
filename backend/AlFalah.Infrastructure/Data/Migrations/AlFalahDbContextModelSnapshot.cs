@@ -10154,6 +10154,10 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("SchoolId")
                         .HasColumnType("int");
 
+                    b.Property<string>("StatementCategory")
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
                     b.Property<int>("TeacherTimetableProfileId")
                         .HasColumnType("int");
 
@@ -10176,6 +10180,65 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_TeachingAssignmentMember_Allocation", "[AllocatedPeriodCount] >= 0 AND [AllocatedPairedBlockCount] >= 0 AND 2 * [AllocatedPairedBlockCount] <= [AllocatedPeriodCount]");
                         });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeachingAssignmentStatement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("nvarchar(240)");
+
+                    b.Property<byte[]>("Pdf")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("RendererVersion")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TimetableSetupProfileId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId", "TimetableSetupProfileId", "Revision", "Scope", "RendererVersion")
+                        .IsUnique();
+
+                    b.ToTable("TeachingAssignmentStatements", (string)null);
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.TimetableAnalysisFinding", b =>
@@ -15040,6 +15103,18 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Assignment");
 
                     b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.TeachingAssignmentStatement", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.TimetableSetupProfile", "Setup")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "TimetableSetupProfileId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Setup");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.TimetableAnalysisFinding", b =>

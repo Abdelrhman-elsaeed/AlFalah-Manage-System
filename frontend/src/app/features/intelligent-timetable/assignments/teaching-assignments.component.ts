@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -12,10 +12,11 @@ import { TeachingCell, TeachingMember, TeachingMode, TeachingOverview, TeachingT
 import { SubjectRequirement } from '../../../core/models/subject.models';
 import { TimetableSettingsOverview } from '../../../core/models/timetable-settings.models';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
+import { AssignmentStatementComponent } from './assignment-statement.component';
 import { buildLedger, emptyLoad, gradeKey, gradeLabel, sameCell, slotKey } from './assignment-ledger';
 
 @Component({ selector: 'app-teaching-assignments', standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DialogModule],
+  imports: [CommonModule, FormsModule, RouterLink, DialogModule, AssignmentStatementComponent],
   templateUrl: './teaching-assignments.component.html', styleUrl: './teaching-assignments.component.css' })
 export class TeachingAssignmentsComponent implements OnInit {
   private readonly api = inject(TeachingAssignmentService); private readonly settings = inject(TimetableSettingsService); private readonly route = inject(ActivatedRoute);
@@ -29,6 +30,12 @@ export class TeachingAssignmentsComponent implements OnInit {
   activeFilter: boolean | null = true; visitingFilter: boolean | null = null; capacityOnly = false; first = 0; pageSize = 10;
   private searchVersion = 0; private dialogBaseline = ''; private sort = 'name'; private descending = false;
   private contextVersion = 0; private loadVersion = 0;
+  statementOpen = false;
+  @ViewChild(AssignmentStatementComponent) statementEditor?: AssignmentStatementComponent;
+  openStatement() { if (this.loading || this.saving || this.hasUnsavedChanges()) return; this.statementOpen = true; }
+  closeStatement() { this.statementOpen = false; setTimeout(() => document.getElementById('assignment-statement-trigger')?.focus({preventScroll:true})); }
+  statementSaved(value: TeachingOverview) { this.data = value; }
+  refreshStatement() { this.statementOpen = false; this.reload(); }
   private pickerTrigger: HTMLElement | null = null;
   teacherError = ''; conflict = false; denied = false; gradeScope = '';
   matrixPage = 1; matrixPageSize = 10; summaryPage = 1; summaryPageSize = 10; summarySearch = ''; summarySort = 'name';
@@ -119,7 +126,7 @@ export class TeachingAssignmentsComponent implements OnInit {
     }, error: e => { if (version === this.contextVersion) { this.loading = false; this.fail(e); } } }); }
   changeContext(year: number, semester: number) { if (!this.allowDiscard()) return; this.yearId = year; this.semester = semester; this.setupId = 0; this.resetWorkspace(); this.loadContext(); }
   chooseSetup(id: number) { if (!this.allowDiscard()) return; this.setupId = id; this.resetWorkspace(); this.load(); }
-  private resetWorkspace() { this.data = null; this.drafts = new Map(); this.dialogOpen = false; ++this.searchVersion; this.resetFilters(); this.summaryPage = 1; this.message = ''; this.conflict = false; }
+  private resetWorkspace() { this.data = null; this.drafts = new Map(); this.dialogOpen = false; this.statementOpen = false; ++this.searchVersion; this.resetFilters(); this.summaryPage = 1; this.message = ''; this.conflict = false; }
   reload() { if (this.allowDiscard()) { this.dialogOpen = false; this.setupId ? this.load() : this.loadContext(); } }
   load() { const version = ++this.loadVersion; this.loading = true; this.error = ''; this.denied = false;
     this.api.get(this.setupId).pipe(takeUntilDestroyed(this.destroy), finalize(() => { if (version === this.loadVersion) this.loading = false; })).subscribe({ next: r => {
@@ -156,7 +163,9 @@ export class TeachingAssignmentsComponent implements OnInit {
     this.teacherSearch = ''; this.specialization = ''; this.first = 0; this.searchTeachers(); }
   selected(id: number) { return this.members.some(m => m.teacherTimetableProfileId === id); }
   toggle(t: TeachingTeacher) { if (this.saving || this.teacherLoading) return; if (this.selected(t.id)) { this.removeMember(t.id); return; }
-    else if (t.isActive) this.members = [...this.members, { teacherTimetableProfileId: t.id, allocatedPeriodCount: this.editing!.totalWeeklyPeriods, allocatedPairedBlockCount: this.editing!.rules.pairedBlockCount }];
+    else if (t.isActive) this.members = [...this.members, { teacherTimetableProfileId: t.id, allocatedPeriodCount: this.editing!.totalWeeklyPeriods, allocatedPairedBlockCount: this.editing!.rules.pairedBlockCount,
+      statementCategory: this.cell(this.editing!.id).members.find(m => m.teacherTimetableProfileId === t.id)?.statementCategory ??
+        this.data?.assignments.find(a => a.classSubjectRequirementId === this.editing!.id)?.members.find(m => m.teacherTimetableProfileId === t.id)?.statementCategory ?? null }];
     if (this.members.length > 1 && this.mode === 'SingleTeacher') this.mode = null;
     if (this.members.length === 1) { this.mode = 'SingleTeacher'; this.modeChanged(); }
   }
@@ -182,7 +191,7 @@ export class TeachingAssignmentsComponent implements OnInit {
   private dialogState() { return JSON.stringify({ mode: this.members.length ? this.mode : 'SingleTeacher',
     members: [...this.members].sort((a,b) => a.teacherTimetableProfileId-b.teacherTimetableProfileId)
       .map(m => [m.teacherTimetableProfileId,m.allocatedPeriodCount,m.allocatedPairedBlockCount]) }); }
-  hasUnsavedChanges() { return this.saving || this.drafts.size > 0 || this.dialogOpen && this.dialogState() !== this.dialogBaseline; }
+  hasUnsavedChanges() { return this.saving || !!this.statementEditor?.hasUnsavedWork() || this.drafts.size > 0 || this.dialogOpen && this.dialogState() !== this.dialogBaseline; }
   @HostListener('window:beforeunload', ['$event']) beforeUnload(e: BeforeUnloadEvent) { if (this.hasUnsavedChanges()) { e.preventDefault(); e.returnValue = ''; } }
   private allowDiscard() { return !this.saving && (!this.hasUnsavedChanges() || window.confirm('تجاهل التغييرات غير المحفوظة؟')); }
   discard() { if (this.allowDiscard()) { this.drafts = new Map(); this.dialogOpen = false; this.error = ''; this.conflict = false; this.message = 'تم تجاهل التغييرات غير المحفوظة.'; } }

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-16",
+  "backendBuild": "passed",
+  "frontendDevelopment": "passed",
+  "angularTests": {
+    "passed": 26,
+    "failed": 0
+  },
+  "frontendProduction": {
+    "status": "blocked",
+    "unchangedErrorFiles": {
+      "frontend/src/app/features/visits-v2/visit-workspace/visit-workspace.component.css": true,
+      "frontend/src/app/features/storage/storage-page.component.css": true
+    },
+    "errorBudgetKb": 32,
+    "VisitsV2CssKb": 34.5,
+    "legacyStorageCssKb": 39.34,
+    "budgetRelaxed": false
+  },
+  "deployment": false
+}

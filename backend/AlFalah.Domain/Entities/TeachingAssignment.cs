@@ -23,6 +23,7 @@ public sealed class TeachingAssignmentMember
     public int TimetableSetupProfileId { get; set; }
     public int TeachingAssignmentId { get; set; }
     public int TeacherTimetableProfileId { get; set; }
+    public string? StatementCategory { get; set; }
     public int AllocatedPeriodCount { get; set; }
     /// <summary>Whole double periods owned by this teacher; included in AllocatedPeriodCount.</summary>
     public int AllocatedPairedBlockCount { get; set; }

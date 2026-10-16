@@ -12,5 +12,5 @@ public interface ITeachingAssignmentRepository
     Task<TeachingTeacherPage> SearchTeachersAsync(int school, int setup, TeachingTeacherSearch search, CancellationToken ct);
     void Add(TeachingAssignment assignment);
     void SetMembers(TeachingAssignment assignment, IReadOnlyList<TeachingMemberRequest> members);
-    Task SaveAsync(TimetableSetupProfile setup, string actor, object before, object after, CancellationToken ct);
+    Task SaveAsync(TimetableSetupProfile setup, string actor, object before, object after, CancellationToken ct, bool invalidateTimetables = true);
 }

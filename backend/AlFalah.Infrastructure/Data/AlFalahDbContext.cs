@@ -318,6 +318,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     private void UpdateTimestamps()
     {
+        if (ChangeTracker.Entries<TeachingAssignmentStatement>().Any(e => e.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Assignment statements are immutable; issue another saved revision.");
         if (ChangeTracker.Entries<ClassroomLabelHistory>().Any(e => e.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Classroom name bindings are retained; append a new binding instead of changing history.");
         if (ChangeTracker.Entries().Any(x => x.Entity is AlFalah.Domain.Entities.Duty.DutySignedDocument or AlFalah.Domain.Entities.Duty.DismissalLatenessRevision

@@ -43,6 +43,6 @@ export function buildLedger(data: TeachingOverview, drafts: ReadonlyMap<number,T
 
 export function sameCell(a:TeachingCell,b:TeachingCell):boolean {
   const value=(cell:TeachingCell)=>JSON.stringify({mode:cell.members.length ? cell.mode : 'SingleTeacher',members:[...cell.members]
-    .sort((x,y)=>x.teacherTimetableProfileId-y.teacherTimetableProfileId).map(m=>[m.teacherTimetableProfileId,m.allocatedPeriodCount,m.allocatedPairedBlockCount])});
+    .sort((x,y)=>x.teacherTimetableProfileId-y.teacherTimetableProfileId).map(m=>[m.teacherTimetableProfileId,m.allocatedPeriodCount,m.allocatedPairedBlockCount,m.statementCategory ?? null])});
   return value(a)===value(b);
 }

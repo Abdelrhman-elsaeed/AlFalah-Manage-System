@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-16T06:48:30.3574797+00:00",
+  "migration": "20261016063643_AddTeachingAssignmentStatements",
+  "schemaCount": 72,
+  "originalTables": 37,
+  "existingValuesUnchanged": true,
+  "originalStateHash": "3598B46CFFE11324861EB3ABAF8A5496EBE56FEEFB1F38E1BB493F49244D549E",
+  "providerWrites": false
+}

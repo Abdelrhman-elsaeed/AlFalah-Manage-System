@@ -22,7 +22,7 @@ internal static class BellScheduleTestData
             Name = "الإعداد", CreatedByUserId = actor, UpdatedByUserId = actor, BellScheduleTemplate = template };
         db.Add(profile);
         db.AcademicTerms.Add(new AcademicTerm { SchoolId = schoolId, AcademicYearId = 1, Semester = TimetableSemester.First,
-            StartsOn = new(2026, 8, 1), EndsOn = new(2027, 1, 31), IsActive = true });
+            StartsOn = new(2026, 8, 1), EndsOn = new(2027, 1, 31), IsActive = true, CreatedByUserId = actor, UpdatedByUserId = actor });
         if (published) db.SchoolTimetables.Add(new() { SchoolId = schoolId, AcademicYearId = 1, Semester = TimetableSemester.First,
             Title = "الجدول", IsPublished = true, BellScheduleRevision = revision, TimetableSetupProfile = profile,
             CreatedByUserId = actor, UpdatedByUserId = actor });

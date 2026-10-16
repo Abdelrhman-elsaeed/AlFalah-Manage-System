@@ -1,0 +1,106 @@
+{
+  "at": "2026-10-16T06:55:12.897Z",
+  "results": [
+    {
+      "kind": "real API",
+      "role": "manager",
+      "width": 390,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true,
+      "keyboardOpenCloseAndFocusTrap": true,
+      "focusReturned": true,
+      "reducedMotion": true
+    },
+    {
+      "kind": "real API",
+      "role": "manager",
+      "width": 768,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true,
+      "keyboardOpenCloseAndFocusTrap": true,
+      "focusReturned": true,
+      "reducedMotion": true
+    },
+    {
+      "kind": "real API",
+      "role": "manager",
+      "width": 1440,
+      "noBusinessWrites": true,
+      "noPageErrors": true,
+      "noPageOverflow": true,
+      "keyboardOpenCloseAndFocusTrap": true,
+      "focusReturned": true,
+      "reducedMotion": true
+    },
+    {
+      "kind": "real API",
+      "role": "teacher",
+      "routeDenied": true,
+      "apiStatus": 403
+    },
+    {
+      "kind": "synthetic API fixture",
+      "width": 390,
+      "sections": 24,
+      "teachers": 110,
+      "pagingRetainsSelection": true,
+      "splitPairs": true,
+      "conflictRetainsDraft": true,
+      "failedSearchRetainsSelection": true,
+      "atomicSaveAndReload": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "kind": "synthetic API fixture",
+      "width": 768,
+      "sections": 24,
+      "teachers": 110,
+      "pagingRetainsSelection": true,
+      "splitPairs": true,
+      "conflictRetainsDraft": true,
+      "failedSearchRetainsSelection": true,
+      "atomicSaveAndReload": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "kind": "synthetic API fixture",
+      "width": 1440,
+      "sections": 24,
+      "teachers": 110,
+      "pagingRetainsSelection": true,
+      "splitPairs": true,
+      "conflictRetainsDraft": true,
+      "failedSearchRetainsSelection": true,
+      "atomicSaveAndReload": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    },
+    {
+      "kind": "synthetic API fixture",
+      "states": [
+        "loading",
+        "error",
+        "retry",
+        "empty"
+      ],
+      "largeSchool": {
+        "classrooms": 180,
+        "subjects": 12,
+        "teachers": 500,
+        "requirements": 2070,
+        "renderMs": 699.8636000000006,
+        "visibleClassrooms": 10,
+        "visibleTeacherResults": 10,
+        "visibleSummaryTeachers": 10
+      },
+      "longNamePreserved": true,
+      "navigationDraftGuard": true,
+      "noPageErrors": true,
+      "noPageOverflow": true
+    }
+  ]
+}

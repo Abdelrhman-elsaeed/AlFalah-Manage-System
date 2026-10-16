@@ -80,14 +80,15 @@ public sealed class TeachingAssignmentRepository(AlFalahDbContext db) : ITeachin
             var row = assignment.Members.SingleOrDefault(m => m.TeacherTimetableProfileId == member.TeacherTimetableProfileId);
             if (row is null) { row = new() { SchoolId = assignment.SchoolId, TimetableSetupProfileId = assignment.TimetableSetupProfileId,
                 TeacherTimetableProfileId = member.TeacherTimetableProfileId }; assignment.Members.Add(row); }
+            if (member.StatementCategory is not null) row.StatementCategory = member.StatementCategory;
             row.AllocatedPeriodCount = member.AllocatedPeriodCount;
             row.AllocatedPairedBlockCount = member.AllocatedPairedBlockCount;
         }
     }
-    public async Task SaveAsync(TimetableSetupProfile setup, string actor, object before, object after, CancellationToken ct)
+    public async Task SaveAsync(TimetableSetupProfile setup, string actor, object before, object after, CancellationToken ct, bool invalidateTimetables = true)
     {
-        var timetables = await db.SchoolTimetables.AsTracking().Where(x => x.SchoolId == setup.SchoolId &&
-            x.TimetableSetupProfileId == setup.Id && !x.IsPublished).ToListAsync(ct);
+        var timetables = invalidateTimetables ? await db.SchoolTimetables.AsTracking().Where(x => x.SchoolId == setup.SchoolId &&
+            x.TimetableSetupProfileId == setup.Id && !x.IsPublished).ToListAsync(ct) : [];
         foreach (var timetable in timetables) { timetable.TimingsRequireRevalidation = true; timetable.Revision++; }
         db.AuditLogs.Add(new() { SchoolId = setup.SchoolId, UserId = actor, Action = "Timetable.TeachingAssignments.Saved",
             EntityName = nameof(TeachingAssignment), EntityId = setup.Id.ToString(), OldValues = JsonSerializer.Serialize(before),

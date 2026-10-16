@@ -104,3 +104,7 @@ SQL guards forbid decreasing revision, rewriting/deleting a captured snapshot or
 ## C34 / D-126 - Classroom consumer cutover (2026-10-15)
 
 Migration 20261015115204_AddClassroomConsumerReferences adds nullable Visits.ClassroomId and school/year/ClassroomId-constrained ClassroomLabelHistory, seeding existing names without rewriting old rows. Guarded Down refuses used references/old names. Local schema71 migration hash-checked existing classes, bridges, visit/duty artifacts, storage/archive/Drive settings and timetable entries/versions unchanged. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).
+
+## C36 / D-128 - Saved assignment statement (2026-10-16)
+
+Migration20261016063643_AddTeachingAssignmentStatements adds nullable nvarchar(24) TeachingAssignmentMembers.StatementCategory and TeachingAssignmentStatements with composite school/setup FK and unique school/setup/revision/scope/renderer index. PDF bytes/snapshot/hash are immutable through DbContext; Down refuses retained records/non-null classifications. Isolated SQL migration/reapplication/FK/duplicate/rollback checks passed before authorized local schema72.37 original-table column hashes remained unchanged; no existing category was guessed or backfilled. [Migration and evidence](specs/classroom-catalog/verification/statement/README.md).

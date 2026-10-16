@@ -26,7 +26,7 @@ public sealed class TeachingAssignmentService(ITeachingAssignmentRepository repo
             assignments.Select(a => new TeachingAssignmentDto(a.Id, a.ClassSubjectRequirementId, a.Mode,
                 a.Members.Select(m => { var t = teachers.SingleOrDefault(t => t.Id == m.TeacherTimetableProfileId);
                     return new TeachingMemberDto(m.TeacherTimetableProfileId, t?.InstructorProfileId ?? 0, t?.Name ?? "معلم غير متاح",
-                        m.AllocatedPeriodCount, m.AllocatedPairedBlockCount); }).ToArray())).ToArray(), teachers, warnings);
+                        m.AllocatedPeriodCount, m.AllocatedPairedBlockCount, m.StatementCategory); }).ToArray())).ToArray(), teachers, warnings);
     }
     public async Task<TeachingTeacherPage> SearchAsync(int school, int setup, TeachingTeacherSearch search, CancellationToken ct)
     {
@@ -51,6 +51,8 @@ public sealed class TeachingAssignmentService(ITeachingAssignmentRepository repo
             if (requirement is null && cell.Members.Count == 0 && existing.Any(a => a.ClassSubjectRequirementId == cell.ClassSubjectRequirementId))
                 requirement = new(); // Allow repairing an assignment after its classroom/subject becomes inactive.
             if (requirement is null) throw new ArgumentException("المادة أو الفصل غير نشط أو خارج المدرسة أو ملف الإعداد.");
+            if (cell.Members.Any(m => !StatementCategories.Valid(m.StatementCategory)))
+                throw new ArgumentException("اختر تصنيفًا صالحًا لبيان إسنادات التدريس.");
             TeachingAllocationPolicy.Validate(requirement, cell);
             if (cell.Members.Any(m => teachers.All(t => t.Id != m.TeacherTimetableProfileId || !t.IsActive)))
                 throw new ArgumentException("اختر معلماً نشطاً من المدرسة وله ملف في إعدادات المعلمين لهذا الجدول.");
@@ -67,6 +69,12 @@ public sealed class TeachingAssignmentService(ITeachingAssignmentRepository repo
                 throw new ArgumentException($"{teacher.Name}: النصاب المسند {total} يتجاوز الحد الأسبوعي {teacher.MaximumWeeklyPeriods}. خفّض الإسناد بمقدار {total - teacher.MaximumWeeklyPeriods} حصة.");
         }
         var before = existing.Where(a => changed.Contains(a.ClassSubjectRequirementId)).Select(ToRequest).ToArray();
+        static string Allocation(TeachingCellRequest c) => System.Text.Json.JsonSerializer.Serialize(new { c.Mode,
+            Members=c.Members.OrderBy(m=>m.TeacherTimetableProfileId).Select(m=>new {m.TeacherTimetableProfileId,m.AllocatedPeriodCount,m.AllocatedPairedBlockCount}) });
+        var allocationChanged = request.Changes.Any(c => {
+            var old=before.SingleOrDefault(a=>a.ClassSubjectRequirementId==c.ClassSubjectRequirementId);
+            return old is null ? c.Members.Count>0 : Allocation(old)!=Allocation(c);
+        });
         foreach (var cell in request.Changes)
         {
             var assignment = existing.SingleOrDefault(a => a.ClassSubjectRequirementId == cell.ClassSubjectRequirementId);
@@ -78,11 +86,11 @@ public sealed class TeachingAssignmentService(ITeachingAssignmentRepository repo
             assignment.UpdatedAt = DateTimeOffset.UtcNow; assignment.UpdatedByUserId = actor;
             repository.SetMembers(assignment, cell.Members);
         }
-        setup.Revision++; setup.Status = TimetableSetupStatus.Draft;
+        setup.Revision++; if (allocationChanged) setup.Status = TimetableSetupStatus.Draft;
         setup.UpdatedAt = DateTimeOffset.UtcNow; setup.UpdatedByUserId = actor;
-        await repository.SaveAsync(setup, actor, before, request.Changes, ct);
+        await repository.SaveAsync(setup, actor, before, request.Changes, ct, allocationChanged);
         return await GetAsync(school, setupId, ct);
     }
     private static TeachingCellRequest ToRequest(TeachingAssignment a) => new(a.ClassSubjectRequirementId, a.Mode,
-        a.Members.Select(m => new TeachingMemberRequest(m.TeacherTimetableProfileId, m.AllocatedPeriodCount, m.AllocatedPairedBlockCount)).ToArray());
+        a.Members.Select(m => new TeachingMemberRequest(m.TeacherTimetableProfileId, m.AllocatedPeriodCount, m.AllocatedPairedBlockCount, m.StatementCategory)).ToArray());
 }

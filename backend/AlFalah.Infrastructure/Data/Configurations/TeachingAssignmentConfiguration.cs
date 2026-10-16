@@ -29,6 +29,7 @@ public sealed class TeachingAssignmentMemberConfiguration : IEntityTypeConfigura
         b.ToTable("TeachingAssignmentMembers", t => t.HasCheckConstraint("CK_TeachingAssignmentMember_Allocation",
             "[AllocatedPeriodCount] >= 0 AND [AllocatedPairedBlockCount] >= 0 AND 2 * [AllocatedPairedBlockCount] <= [AllocatedPeriodCount]"));
         b.HasKey(x => x.Id);
+        b.Property(x => x.StatementCategory).HasMaxLength(24);
         b.HasIndex(x => new { x.TeachingAssignmentId, x.TeacherTimetableProfileId }).IsUnique();
         b.HasOne(x => x.Assignment).WithMany(x => x.Members)
             .HasForeignKey(x => new { x.SchoolId, x.TimetableSetupProfileId, x.TeachingAssignmentId })

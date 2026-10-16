@@ -34,3 +34,7 @@ Production picker results use a bounded checkbox list and allocation pane instea
 [Repeatable checks and screenshots](verification/assignments/README.md) distinguish real authenticated manager/teacher reads from synthetic editing/concurrency scenarios.19 Angular checks and50 existing backend regression checks pass. Real browser layouts and keyboard behavior pass at390/768/1440; the synthetic large school contains180 classrooms,500 teachers and2070 requirements while default rendered lists remain bounded.
 
 Development build passes. The production build is blocked by unchanged over-budget CSS in VisitsV2 and legacy storage; assignment CSS also produces a non-blocking18.33kB warning against16kB. Budgets were not relaxed. This is local functional delivery, not production-release certification. Physical devices, actual screen-reader operation, printer acceptance, sustained server performance and the C5 PDF remain outstanding.
+
+## C36 current statement integration
+
+C5 is now delivered on the existing header after this C35 delivery: [saved-revision statement behavior](statement.md), [actual PDF/SQL/browser evidence](verification/statement/README.md). The new action protects assignment drafts and opens explicit scope/classification/preview controls. Existing filters do not narrow its default full-setup export. The earlier C35 pending-PDF statements above describe that earlier phase. C6 owner/assets/physical/printer acceptance remains pending.

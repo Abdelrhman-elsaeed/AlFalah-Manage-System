@@ -1,0 +1,69 @@
+{
+  "at": "2026-10-16T07:10:49.719Z",
+  "results": [
+    {
+      "case": "reference-24",
+      "pages": 1,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    },
+    {
+      "case": "large-120",
+      "pages": 5,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    },
+    {
+      "case": "long-names",
+      "pages": 3,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    },
+    {
+      "case": "dense-appendix",
+      "pages": 2,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    },
+    {
+      "case": "primary-six",
+      "pages": 1,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    },
+    {
+      "case": "multi-stage",
+      "pages": 1,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    },
+    {
+      "case": "co-split-other",
+      "pages": 2,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    },
+    {
+      "case": "prefixed-year",
+      "pages": 1,
+      "landscapeA4": true,
+      "noTextOutsidePage": true,
+      "allTeachersPresent": true,
+      "pdfJsCanvas": true
+    }
+  ]
+}

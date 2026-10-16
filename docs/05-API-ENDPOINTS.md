@@ -509,3 +509,7 @@ C33 / D-125 adds GET /api/v1/classroom-catalog (school/year-scoped SQL pages100)
 ## C34 / D-126 - Classroom consumer cutover (2026-10-15)
 
 The existing catalogue GET additionally accepts onDate=YYYY-MM-DD and rejects a conflicting explicit year. V2 create/update/detail carry classroomId; create/edit/finalize validate it against school/date/year before mutation. GET /classrooms adds currentYearOnly for live directory lookup without removing explicit-year history. No new permission or V1 write route was activated. [Consumer contracts and verification](specs/classroom-catalog/consumers.md).
+
+## C36 / D-128 - Saved assignment statement (2026-10-16)
+
+GET /api/v1/intelligent-timetable/settings/profiles/{setupId}/assignments/statement/content requires revision and explicit scope (all,stage:1,stage:2,stage:3), current TimetableManage permission and existing role exclusions. Returns frozen PDF bytes with revision/scope/hash metadata, or ApiResponse400/403/404/409. Awaited Blob calls reuse C30 transfer negotiation; direct calls remain attachments. The existing assignment PUT accepts optional member statementCategory; null/omission preserves existing classification. Classification-only saves retain timetable timing/status while advancing setup revision/audit. [Complete contract](specs/classroom-catalog/statement.md).

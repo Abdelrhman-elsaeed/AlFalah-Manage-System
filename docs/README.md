@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-16
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -327,3 +327,9 @@ Delivered the second classroom implementation slice (C3): contextual V2/manual t
 | Date | Change |
 |---|---|
 | 2026-10-15 | Delivered C4 in the existing assignment route: grade-grouped ledger, paged classroom/teacher views and picker, complete draft-aware load, single/co/split/whole pairs, no-op edits, conflict recovery and keyboard focus return.19 Angular/50 backend checks and real/synthetic390/768/1440 browser checks pass; Development build passes. Existing production CSS errors and the assignment CSS warning are disclosed; C5 PDF/C6 pilot remain pending. [Behavior and evidence](specs/classroom-catalog/assignments.md). |
+
+## C36 / D-128 - Change log (2026-10-16)
+
+| Date | Change |
+|---|---|
+| 2026-10-16 | Delivered C5 saved-revision assignment PDF with explicit specialization/other classification, full/stage scope, source-structured A4 rows/appendices, frozen bytes/hash and C30 downloads. Additive schema72 preserves37 original-table column hashes.67 final backend plus one distinct SQL and26 Angular checks pass; eight PDF.js renderer cases and real isolated SQL HTTP/browser downloads verified. Development build passes; existing Production CSS blockers and C6 appearance/physical/pilot limits remain. [Behavior and evidence](specs/classroom-catalog/statement.md). |

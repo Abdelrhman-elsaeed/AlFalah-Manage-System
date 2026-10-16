@@ -48,3 +48,7 @@ C3 now has separate [consumer, retained-history, SQL archive, Angular and real-b
 ## C35 runtime assignments
 
 C4 now has separate [Angular/backend, real role-based browser, dense fixture and large-school verification](assignments/README.md), with screenshots at390/768/1440. Development build passes; production CSS budget blockers and physical/assistive-technology limits are disclosed there. C5 saved-revision assignment PDF remains pending.
+
+## C36 / D-128 - Saved assignment statement (2026-10-16)
+
+C5 now exports the saved assignment revision through the existing page/API and C30 transfer policy. The manager explicitly classifies specialization/other loads; no text guessing or automatic timetable rewrite. Frozen school-scoped snapshots/PDFs, A4 merged headings, whole teacher rows, co/split/pair annotations, stage-aware grades and an other-material appendix are implemented. Fresh SQL checks preceded additive local schema72;37 original-table column hashes are preserved.67 final backend plus one distinct SQL check and26 Angular checks pass, with real PDF pixels and isolated SQL browser downloads at390/768/1440. Development build passes; unchanged VisitsV2/storage CSS budgets still block Production. C6 appearance/assets/physical/printer/pilot acceptance remains. [Behavior](../statement.md), [evidence](../verification/statement/README.md).

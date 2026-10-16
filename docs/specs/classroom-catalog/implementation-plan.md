@@ -1,6 +1,6 @@
 # Implementation handoff and acceptance gates
 
-**C35 status:** C1/C2 foundation, C3 consumer cutover and C4 production assignment UX are delivered locally; [C33 foundation](implementation.md), [C34 consumers](consumers.md), [C35 assignment workspace](assignments.md). C5 assignment PDF and C6 pilot acceptance remain pending. Production build is separately blocked by existing CSS budgets; see C35 verification. This table retains the original full acceptance gates.
+**C36 status:** C1/C2 foundation, C3 consumers, C4 production assignment UX and C5 saved-revision assignment PDF are delivered locally. [C33 foundation](implementation.md), [C34 consumers](consumers.md), [C35 workspace](assignments.md), [C36 statement](statement.md). C6 pilot/owner/physical/printer acceptance remains pending. Production CSS budget blockers remain disclosed; no budget was relaxed. This table retains the original acceptance gates.
 
 | Phase | Work | Exit evidence |
 |---|---|---|
@@ -32,7 +32,7 @@
 - [x] Duty late-departure class filters and student selections validated; retained signed files unchanged.
 - [x] Existing timetable PDF/Excel and retained snapshots, search, ID bookmarks and reference projections preserved.
 - [x] Production grouped assignment ledger, bounded teacher picker/summary, no-op drafts, keyboard/focus and concurrent-save handling (C4); physical assistive-technology and release acceptance remain C6.
-- [ ] New saved-revision assignment PDF and its source-template acceptance (C5).
+- [x] New saved-revision assignment PDF, explicit classification/scope, retained bytes and source-structured rendering (C5); final official assets/physical source parity remain C6.
 - [x] Mapping/backfill idempotency, collision handling, auth comparison, constraints and safe rollback proven.
 - [x] Source scan rerun; every remaining active text comparison categorized before cutover.
 
