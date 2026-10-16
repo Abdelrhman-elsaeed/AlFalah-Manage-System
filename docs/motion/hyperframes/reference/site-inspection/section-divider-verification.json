@@ -1,0 +1,126 @@
+{
+  "results": [
+    {
+      "width": 1914,
+      "introHeight": 192.609375,
+      "separator": 192.609375,
+      "stageHeight": 468.71875,
+      "visionHeight": 468.71875,
+      "navLeft": 357,
+      "navRight": 1297.296875,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 1600,
+      "introHeight": 192.609375,
+      "separator": 192.609375,
+      "stageHeight": 468.71875,
+      "visionHeight": 468.71875,
+      "navLeft": 200,
+      "navRight": 1140.296875,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 1280,
+      "introHeight": 184.59375,
+      "separator": 184.59375,
+      "stageHeight": 465.5,
+      "visionHeight": 465.5,
+      "navLeft": 40,
+      "navRight": 980.296875,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 1100,
+      "introHeight": 167.84375,
+      "separator": 167.84375,
+      "stageHeight": 433.34375,
+      "visionHeight": 433.34375,
+      "navLeft": 14.5,
+      "navRight": 858.625,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 1024,
+      "introHeight": 157.953125,
+      "separator": 157.953125,
+      "stageHeight": 413.671875,
+      "visionHeight": 413.671875,
+      "navLeft": 0,
+      "navRight": 0,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 900,
+      "introHeight": 145.96875,
+      "separator": 145.96875,
+      "stageHeight": 405.671875,
+      "visionHeight": 405.671875,
+      "navLeft": 0,
+      "navRight": 0,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 800,
+      "introHeight": 144.703125,
+      "separator": 144.703125,
+      "stageHeight": 419.859375,
+      "visionHeight": 419.859375,
+      "navLeft": 0,
+      "navRight": 0,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 769,
+      "introHeight": 144.703125,
+      "separator": 144.703125,
+      "stageHeight": 419.75,
+      "visionHeight": 419.75,
+      "navLeft": 0,
+      "navRight": 0,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 768,
+      "introHeight": 144.703125,
+      "separator": 144.703125,
+      "stageHeight": 548.359375,
+      "visionHeight": 548.359375,
+      "navLeft": 0,
+      "navRight": 0,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    },
+    {
+      "width": 390,
+      "introHeight": 169.3125,
+      "separator": 169.3125,
+      "stageHeight": 592.15625,
+      "visionHeight": 592.15625,
+      "navLeft": 0,
+      "navRight": 0,
+      "overflow": false,
+      "title": "نظام الفلاح",
+      "independent": true
+    }
+  ],
+  "errors": [],
+  "navigation": true
+}

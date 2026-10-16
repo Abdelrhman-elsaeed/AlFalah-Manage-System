@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:motion": "node ../docs/motion/hyperframes/build-section.cjs && node ../docs/motion/hyperframes/build-site-section.cjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:e2e": "node scripts/run-student-affairs-e2e.mjs",

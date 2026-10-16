@@ -1,0 +1,80 @@
+{
+  "source": "Unchanged localhost:4200 homepage; synthetic intercepted APIs",
+  "records": [
+    {
+      "width": 1914,
+      "height": 468.71875,
+      "innerWidth": 1200,
+      "padding": "104px",
+      "font": "Tajawal, Cairo, \"Segoe UI\", Arial, sans-serif",
+      "lineHeight": "21.75px",
+      "fontSize": "14.5px"
+    },
+    {
+      "width": 1600,
+      "height": 468.71875,
+      "innerWidth": 1200,
+      "padding": "104px",
+      "font": "Tajawal, Cairo, \"Segoe UI\", Arial, sans-serif",
+      "lineHeight": "21.75px",
+      "fontSize": "14.5px"
+    },
+    {
+      "width": 1440,
+      "height": 468.71875,
+      "innerWidth": 1200,
+      "padding": "104px",
+      "font": "Tajawal, Cairo, \"Segoe UI\", Arial, sans-serif",
+      "lineHeight": "21.75px",
+      "fontSize": "14.5px"
+    },
+    {
+      "width": 1280,
+      "height": 465.5,
+      "innerWidth": 1200,
+      "padding": "102.4px",
+      "font": "Tajawal, Cairo, \"Segoe UI\", Arial, sans-serif",
+      "lineHeight": "21.75px",
+      "fontSize": "14.5px"
+    },
+    {
+      "width": 1024,
+      "height": 413.671875,
+      "innerWidth": 995,
+      "padding": "81.92px",
+      "font": "Tajawal, Cairo, \"Segoe UI\", Arial, sans-serif",
+      "lineHeight": "21.75px",
+      "fontSize": "14.5px"
+    },
+    {
+      "width": 768,
+      "height": 548.359375,
+      "innerWidth": 739,
+      "padding": "58px",
+      "font": "Tajawal, Cairo, \"Segoe UI\", Arial, sans-serif",
+      "lineHeight": "21.75px",
+      "fontSize": "14.5px"
+    },
+    {
+      "width": 390,
+      "height": 592.15625,
+      "innerWidth": 362,
+      "padding": "58px",
+      "font": "Tajawal, Cairo, \"Segoe UI\", Arial, sans-serif",
+      "lineHeight": "21.375px",
+      "fontSize": "14.25px"
+    }
+  ],
+  "snapshot": {
+    "html": "<section _ngcontent-ng-c3074834829=\"\" aria-labelledby=\"vision-title\" class=\"vision\"><div _ngcontent-ng-c3074834829=\"\" class=\"vision-inner\"><div _ngcontent-ng-c3074834829=\"\" data-reveal=\"\" class=\"vision-intro is-revealed\"><span _ngcontent-ng-c3074834829=\"\">رؤيتنا</span><h2 _ngcontent-ng-c3074834829=\"\" id=\"vision-title\">قيمنا أساس، وطموحنا المستقبل</h2></div><article _ngcontent-ng-c3074834829=\"\" data-reveal=\"\" class=\"pillar ng-star-inserted is-revealed\" style=\"--reveal-delay: 0ms;\"><span _ngcontent-ng-c3074834829=\"\" class=\"pillar-icon\"><i _ngcontent-ng-c3074834829=\"\" aria-hidden=\"true\" class=\"pi pi-heart\"></i></span><div _ngcontent-ng-c3074834829=\"\"><h3 _ngcontent-ng-c3074834829=\"\">قيم أصيلة</h3><p _ngcontent-ng-c3074834829=\"\">نغرس المبادئ الراسخة ونبني شخصية واعية ومسؤولة.</p></div></article><article _ngcontent-ng-c3074834829=\"\" data-reveal=\"\" class=\"pillar ng-star-inserted is-revealed\" style=\"--reveal-delay: 110ms;\"><span _ngcontent-ng-c3074834829=\"\" class=\"pillar-icon\"><i _ngcontent-ng-c3074834829=\"\" aria-hidden=\"true\" class=\"pi pi-book\"></i></span><div _ngcontent-ng-c3074834829=\"\"><h3 _ngcontent-ng-c3074834829=\"\">تعليم نوعي</h3><p _ngcontent-ng-c3074834829=\"\">نتبنى أحدث المنهجيات لتطوير مهارات طلابنا.</p></div></article><article _ngcontent-ng-c3074834829=\"\" data-reveal=\"\" class=\"pillar ng-star-inserted is-revealed\" style=\"--reveal-delay: 220ms;\"><span _ngcontent-ng-c3074834829=\"\" class=\"pillar-icon\"><i _ngcontent-ng-c3074834829=\"\" aria-hidden=\"true\" class=\"pi pi-flag\"></i></span><div _ngcontent-ng-c3074834829=\"\"><h3 _ngcontent-ng-c3074834829=\"\">طموح وطني</h3><p _ngcontent-ng-c3074834829=\"\">نهيئ جيلاً مبدعاً يساهم بثقة في مستقبل وطنه.</p></div></article><!--container--></div></section>",
+    "vars": {
+      "--brand-950": "#0b3f29",
+      "--brand-100": "#d8eee1",
+      "--gold-700": "#946800",
+      "--bg-surface": "#ffffff",
+      "--text-muted": "#67756d",
+      "--font-app": "\"Tajawal\",\n    \"Cairo\",\n    \"Segoe UI\",\n    Arial,\n    sans-serif"
+    },
+    "height": 468.71875
+  }
+}

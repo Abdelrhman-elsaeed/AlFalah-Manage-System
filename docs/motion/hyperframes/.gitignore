@@ -1,0 +1,7 @@
+# Rebuildable renderer internals, histories and diagnostic traces.
+**/.hyperframes/
+**/node_modules/
+__pycache__/
+reference/*-render.log
+reference/review-server*.log
+reference/review-server.pid

@@ -1,0 +1,10 @@
+{
+  "extends": "../../../frontend/tsconfig.spec.json",
+  "compilerOptions": {
+    "typeRoots": ["../../../frontend/node_modules/@types"]
+  },
+  "include": [
+    "../../../frontend/src/app/features/landing/**/*.spec.ts",
+    "../../../frontend/src/**/*.d.ts"
+  ]
+}

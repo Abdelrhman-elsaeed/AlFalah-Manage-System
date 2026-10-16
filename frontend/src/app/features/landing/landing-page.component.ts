@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LandingHeaderComponent } from './components/landing-header/landing-header.component';
 import { LandingHeroComponent } from './components/landing-hero/landing-hero.component';
+import { SystemStoryComponent } from './components/system-story/system-story.component';
 import { VisionStripComponent } from './components/vision-strip/vision-strip.component';
 import { AchievementsSectionComponent } from './components/achievements-section/achievements-section.component';
 import { OrganizationSectionComponent } from './components/organization-section/organization-section.component';
@@ -18,6 +19,7 @@ import { LandingFooterComponent } from './components/landing-footer/landing-foot
     TranslateModule,
     LandingHeaderComponent,
     LandingHeroComponent,
+    SystemStoryComponent,
     VisionStripComponent,
     OrganizationSectionComponent,
     AchievementsSectionComponent,

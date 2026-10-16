@@ -1,0 +1,235 @@
+{
+  "hyperframesPassed": true,
+  "runtimePassed": true,
+  "layoutPassed": true,
+  "contrastPassed": true,
+  "durationSeconds": 50,
+  "fps": 30,
+  "maskTransitionSamples": [
+    {
+      "time": 4.96667,
+      "meanBrightness": 58.549,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 5,
+      "meanBrightness": 58.552,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 5.255,
+      "meanBrightness": 58.557,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 5.51,
+      "meanBrightness": 71.791,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 5.765,
+      "meanBrightness": 92.872,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 6.02,
+      "meanBrightness": 93.544,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 6.055,
+      "meanBrightness": 93.595,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 12.0037,
+      "meanBrightness": 112.979,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 12.03704,
+      "meanBrightness": 112.993,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 12.29204,
+      "meanBrightness": 113.0,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 12.54704,
+      "meanBrightness": 104.831,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 12.80204,
+      "meanBrightness": 86.812,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 13.05704,
+      "meanBrightness": 86.945,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 13.09204,
+      "meanBrightness": 86.962,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 20.33704,
+      "meanBrightness": 95.5,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 20.37037,
+      "meanBrightness": 95.51,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 20.62537,
+      "meanBrightness": 95.501,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 20.88037,
+      "meanBrightness": 87.554,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 21.13537,
+      "meanBrightness": 86.298,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 21.39037,
+      "meanBrightness": 86.421,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 21.42537,
+      "meanBrightness": 86.441,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 28.67037,
+      "meanBrightness": 94.194,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 28.7037,
+      "meanBrightness": 94.201,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 28.9587,
+      "meanBrightness": 94.203,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 29.2137,
+      "meanBrightness": 90.629,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 29.4687,
+      "meanBrightness": 83.74,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 29.7237,
+      "meanBrightness": 83.869,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 29.7587,
+      "meanBrightness": 83.885,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 37.0037,
+      "meanBrightness": 88.555,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 37.03704,
+      "meanBrightness": 88.567,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 37.29204,
+      "meanBrightness": 88.587,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 37.54704,
+      "meanBrightness": 91.853,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 37.80204,
+      "meanBrightness": 85.557,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 38.05704,
+      "meanBrightness": 85.641,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 38.09204,
+      "meanBrightness": 85.659,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 45.33704,
+      "meanBrightness": 92.397,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 45.37037,
+      "meanBrightness": 92.402,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 45.62537,
+      "meanBrightness": 92.388,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 45.88037,
+      "meanBrightness": 60.614,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 46.13537,
+      "meanBrightness": 58.558,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 46.39037,
+      "meanBrightness": 58.443,
+      "blackPixelFraction": 0.0
+    },
+    {
+      "time": 46.42537,
+      "meanBrightness": 58.43,
+      "blackPixelFraction": 0.0
+    }
+  ],
+  "blackFramesFound": false,
+  "loopSeamMeanRgbDifferenceOutOf255": 0.16442,
+  "removedTimetableScreenshot": true,
+  "applicationSourceUnchanged": true,
+  "masterSha256": "a80804681ff1d967adfb72ac4c21c737ada92bb3986f82e09d1b57d77f4b8119",
+  "approval": "pending",
+  "advisories": [
+    "nested_structure_needs_subcomposition",
+    "nested_structure_needs_subcomposition",
+    "nested_structure_needs_subcomposition",
+    "nested_structure_needs_subcomposition",
+    "nested_structure_needs_subcomposition",
+    "nested_structure_needs_subcomposition",
+    "nested_structure_needs_subcomposition"
+  ]
+}

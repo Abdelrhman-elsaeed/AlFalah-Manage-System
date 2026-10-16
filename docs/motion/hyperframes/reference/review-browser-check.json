@@ -1,0 +1,45 @@
+{
+  "status": 200,
+  "autoplayCount": 0,
+  "desktopOverflow": false,
+  "films": [
+    {
+      "id": "pulse",
+      "duration": 16,
+      "width": 1280,
+      "height": 720,
+      "source": "http://127.0.0.1:8877/renders/01-school-pulse.webm",
+      "muted": true,
+      "playsInline": true,
+      "readyState": 4
+    },
+    {
+      "id": "harmony",
+      "duration": 16,
+      "width": 1280,
+      "height": 720,
+      "source": "http://127.0.0.1:8877/renders/02-day-in-harmony.webm",
+      "muted": true,
+      "playsInline": true,
+      "readyState": 4
+    },
+    {
+      "id": "evidence",
+      "duration": 16,
+      "width": 1280,
+      "height": 720,
+      "source": "http://127.0.0.1:8877/renders/03-evidence-to-insight.webm",
+      "muted": true,
+      "playsInline": true,
+      "readyState": 4
+    }
+  ],
+  "mobileOverflow": false,
+  "mobile": {
+    "width": 640,
+    "height": 360,
+    "source": "http://127.0.0.1:8877/renders/01-school-pulse-mobile.mp4"
+  },
+  "reducedMotionAutoplayCount": 0,
+  "errors": []
+}

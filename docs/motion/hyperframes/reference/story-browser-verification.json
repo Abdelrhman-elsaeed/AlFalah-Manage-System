@@ -1,0 +1,61 @@
+{
+  "film": "alfalah-story",
+  "approval": "pending",
+  "desktop": {
+    "overflow": false,
+    "metadata": {
+      "duration": 64,
+      "width": 1280,
+      "height": 720,
+      "muted": true,
+      "playsInline": true,
+      "source": "http://127.0.0.1:8877/renders/05-alfalah-school-day.webm",
+      "playing": true
+    }
+  },
+  "mobile": {
+    "overflow": false,
+    "metadata": {
+      "duration": 64,
+      "width": 640,
+      "height": 360,
+      "source": "http://127.0.0.1:8877/renders/05-alfalah-school-day-mobile.mp4",
+      "playing": true
+    }
+  },
+  "errors": [],
+  "status": 200,
+  "chapters": [
+    {
+      "target": 10.55,
+      "actual": 10.577627
+    },
+    {
+      "target": 37.6,
+      "actual": 37.628783
+    },
+    {
+      "target": 4.5,
+      "actual": 4.526
+    },
+    {
+      "target": 51.8,
+      "actual": 51.816109
+    },
+    {
+      "target": 30.5,
+      "actual": 30.525168
+    },
+    {
+      "target": 58.8,
+      "actual": 58.82361
+    }
+  ],
+  "mp4Fallback": {
+    "duration": 64,
+    "width": 1280,
+    "height": 720
+  },
+  "byteRanges": true,
+  "reducedMotionPaused": true
+}

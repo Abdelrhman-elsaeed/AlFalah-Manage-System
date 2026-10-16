@@ -1,0 +1,78 @@
+{
+  "film": "يوم دراسي بتناغم — النسخة الموسعة",
+  "durationSeconds": 50,
+  "fps": 30,
+  "masterCanvas": [
+    1600,
+    900
+  ],
+  "paceIncrease": 0.08,
+  "renderer": "HyperFrames 0.8.163 / Three.js 0.181.2",
+  "homepageIntegrated": false,
+  "approval": "pending",
+  "removed": "Actual timetable screen and the other two studies from the review gallery",
+  "files": [
+    {
+      "file": "04-day-in-harmony-extended-master.mp4",
+      "bytes": 11737175,
+      "megabytes": 11.737,
+      "sha256": "a80804681ff1d967adfb72ac4c21c737ada92bb3986f82e09d1b57d77f4b8119",
+      "width": 1600,
+      "height": 900,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 50.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    },
+    {
+      "file": "04-day-in-harmony-extended-mobile.mp4",
+      "bytes": 938828,
+      "megabytes": 0.939,
+      "sha256": "2f5ccfd3f4b118528dd7d6ff071ecd471183357e463f4b2b71410a2b72cc1c8d",
+      "width": 640,
+      "height": 360,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 50.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    },
+    {
+      "file": "04-day-in-harmony-extended-poster.webp",
+      "bytes": 45786,
+      "megabytes": 0.046,
+      "sha256": "9a318f7cf4dc9261365bd5896284dff68218bfced9ba891a3e3a64b38e768aef"
+    },
+    {
+      "file": "04-day-in-harmony-extended.mp4",
+      "bytes": 2718572,
+      "megabytes": 2.719,
+      "sha256": "8b1f68cb9519033308c9875a6b598a8dc90c0ec6697b45352ca5b78643b65f6e",
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 50.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    },
+    {
+      "file": "04-day-in-harmony-extended.webm",
+      "bytes": 2054261,
+      "megabytes": 2.054,
+      "sha256": "282a4aeed0c862f5954f1e9d5ca7d5c71b3354b02472726c7e50a5ba58e33e5b",
+      "width": 1280,
+      "height": 720,
+      "codec": "vp9",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 50.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    }
+  ]
+}

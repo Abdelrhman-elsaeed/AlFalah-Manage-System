@@ -1,0 +1,115 @@
+{
+  "hyperframes": [
+    {
+      "film": "pulse",
+      "passed": true,
+      "lint": true,
+      "runtime": true,
+      "layout": true,
+      "contrast": true,
+      "advisories": [
+        "nested_structure_needs_subcomposition"
+      ]
+    },
+    {
+      "film": "harmony",
+      "passed": true,
+      "lint": true,
+      "runtime": true,
+      "layout": true,
+      "contrast": true,
+      "advisories": [
+        "nested_structure_needs_subcomposition"
+      ]
+    },
+    {
+      "film": "evidence",
+      "passed": true,
+      "lint": true,
+      "runtime": true,
+      "layout": true,
+      "contrast": true,
+      "advisories": [
+        "nested_structure_needs_subcomposition"
+      ]
+    }
+  ],
+  "fullVideoDecode": [
+    {
+      "file": "01-school-pulse-master.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "01-school-pulse-mobile.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "01-school-pulse.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "01-school-pulse.webm",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "02-day-in-harmony-master.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "02-day-in-harmony-mobile.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "02-day-in-harmony.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "02-day-in-harmony.webm",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "03-evidence-to-insight-master.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "03-evidence-to-insight-mobile.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "03-evidence-to-insight.mp4",
+      "passed": true,
+      "errors": ""
+    },
+    {
+      "file": "03-evidence-to-insight.webm",
+      "passed": true,
+      "errors": ""
+    }
+  ],
+  "loops": [
+    {
+      "file": "01-school-pulse-master.mp4",
+      "loopSeamMeanDifferenceOutOf255": 0.1966
+    },
+    {
+      "file": "02-day-in-harmony-master.mp4",
+      "loopSeamMeanDifferenceOutOf255": 0.2172
+    },
+    {
+      "file": "03-evidence-to-insight-master.mp4",
+      "loopSeamMeanDifferenceOutOf255": 0.1884
+    }
+  ],
+  "applicationSourceUnchanged": true,
+  "approval": "pending"
+}

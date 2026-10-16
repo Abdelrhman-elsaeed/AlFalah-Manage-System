@@ -1,0 +1,12 @@
+module.exports=[
+ {id:'identity',start:0,end:5.45,tone:'dark',chapter:'نظام الفلاح',transition:'opening'},
+ {id:'staff',start:4.5,end:11.55,tone:'light',time:'06:40',chapter:'استعداد الكادر',transition:'word',word:'الفلاح'},
+ {id:'arrival',start:10.55,end:18.1,tone:'dark',time:'06:50',chapter:'وصول الطلاب',view:'terminal',transition:'word',word:'حضور'},
+ {id:'assembly',start:17.15,end:24.1,tone:'dark',time:'07:00',chapter:'الطابور الصباحي',view:'school',transition:'iris',origin:[520,450]},
+ {id:'schedule',start:23.15,end:31.5,tone:'light',time:'07:30',chapter:'الحصص والجدول',transition:'grid'},
+ {id:'lesson',start:30.5,end:38.6,tone:'dark',time:'08:15',chapter:'داخل الحصة',view:'classroom',transition:'word',word:'حصّة'},
+ {id:'care',start:37.6,end:45.7,tone:'light',time:'09:10',chapter:'متابعة الطالب',view:'guidance',transition:'line'},
+ {id:'departure',start:44.7,end:52.8,tone:'dark',time:'12:45',chapter:'الانصراف',view:'security',transition:'iris',origin:[1330,170]},
+ {id:'archive',start:51.8,end:59.8,tone:'light',time:'13:00',chapter:'حفظ العمل',view:'storage',transition:'document'},
+ {id:'signature',start:58.8,end:64,tone:'dark',chapter:'نظام الفلاح',transition:'shutter'}
+];

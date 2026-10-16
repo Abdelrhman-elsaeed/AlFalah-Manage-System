@@ -1,0 +1,13 @@
+{
+  "name": "alfalah-cinematic-previews",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HyperFrames authoring sources and isolated review for the native homepage story section",
+  "scripts": {
+    "build": "node build-section.cjs",
+    "preview": "npx hyperframes@0.8.163 preview alfalah-section",
+    "check": "npx hyperframes@0.8.163 check alfalah-section",
+    "review": "python -X utf8 serve-review.py",
+    "verify:review": "node verify-section.cjs"
+  }
+}

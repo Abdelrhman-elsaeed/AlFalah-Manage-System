@@ -1,0 +1,10 @@
+{
+  "revision": "314afd1f12e2",
+  "homepageIntegrated": true,
+  "native": true,
+  "loop": true,
+  "source": "HyperFrames section composition",
+  "assets": "frontend/src/assets/motion/falah",
+  "module": "runtime.mjs",
+  "heightReference": "#vision .vision"
+}

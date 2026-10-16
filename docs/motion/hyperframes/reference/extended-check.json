@@ -1,0 +1,204 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 7,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"shot-arrival\"> is a timeline element that contains nested <div id=\"mask-arrival\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#shot-arrival",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"shot-arrival\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"shot-schedule\"> is a timeline element that contains nested <div id=\"mask-schedule\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#shot-schedule",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"shot-schedule\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"shot-classroom\"> is a timeline element that contains nested <div id=\"mask-classroom\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#shot-classroom",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"shot-classroom\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"shot-guidance\"> is a timeline element that contains nested <div id=\"mask-guidance\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#shot-guidance",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"shot-guidance\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"shot-security\"> is a timeline element that contains nested <div id=\"mask-security\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#shot-security",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"shot-security\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"shot-storage\"> is a timeline element that contains nested <div id=\"mask-storage\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#shot-storage",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"shot-storage\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"shot-together\"> is a timeline element that contains nested <div id=\"mask-together\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#shot-together",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"shot-together\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "duration": 50,
+    "samples": [
+      2.778,
+      8.333,
+      13.889,
+      19.444,
+      25,
+      30.556,
+      36.111,
+      41.667,
+      47.222
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 0,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      2.778,
+      13.889,
+      25,
+      36.111,
+      47.222
+    ],
+    "checked": 59,
+    "passed": 59
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  },
+  "saved": {
+    "id": "0368794e-2e15-4d86-964f-30f117413a65",
+    "revision": "67b587d7-f7e6-4215-801e-28d1987b69bd",
+    "report": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony-extended\\.hyperframes\\artifacts\\checks\\0368794e-2e15-4d86-964f-30f117413a65.json",
+    "attribution": "recorded-revision"
+  },
+  "_meta": {
+    "version": "0.8.163",
+    "latestVersion": "0.8.163",
+    "updateAvailable": false
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "errors": [],
+  "heights": [
+    {
+      "width": 1914,
+      "section": 468.71875,
+      "vision": 468.71875,
+      "overflow": false
+    },
+    {
+      "width": 1600,
+      "section": 468.71875,
+      "vision": 468.71875,
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "section": 468.71875,
+      "vision": 468.71875,
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "section": 465.5,
+      "vision": 465.5,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "section": 413.671875,
+      "vision": 413.671875,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "section": 548.359375,
+      "vision": 548.359375,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "section": 592.15625,
+      "vision": 592.15625,
+      "overflow": false
+    }
+  ],
+  "reverseSeeks": [
+    {
+      "target": 1.1,
+      "exact": true,
+      "stable": true
+    },
+    {
+      "target": 4.25,
+      "exact": true,
+      "stable": true
+    },
+    {
+      "target": 6.8,
+      "exact": true,
+      "stable": true
+    },
+    {
+      "target": 17.15,
+      "exact": true,
+      "stable": true
+    },
+    {
+      "target": 24.1,
+      "exact": true,
+      "stable": true
+    },
+    {
+      "target": 29,
+      "exact": true,
+      "stable": true
+    },
+    {
+      "target": 36.15,
+      "exact": true,
+      "stable": true
+    }
+  ],
+  "rasterTolerance": {
+    "maxChannelDelta": 2,
+    "maxChangedFraction": 0.0001
+  },
+  "videoElements": 0
+}

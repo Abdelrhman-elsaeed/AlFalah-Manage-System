@@ -1,0 +1,172 @@
+{
+  "errors": [],
+  "heights": [
+    {
+      "width": 1914,
+      "section": 468.71875,
+      "vision": 468.71875,
+      "overflow": false
+    },
+    {
+      "width": 1600,
+      "section": 468.71875,
+      "vision": 468.71875,
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "section": 465.5,
+      "vision": 465.5,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "section": 413.671875,
+      "vision": 413.671875,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "section": 548.359375,
+      "vision": 548.359375,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "section": 592.15625,
+      "vision": 592.15625,
+      "overflow": false
+    }
+  ],
+  "loopCounts": [
+    1,
+    2,
+    3
+  ],
+  "cubeTextSafety": [
+    {
+      "id": "staff",
+      "faceIndex": 0,
+      "width": 1600,
+      "leftClearance": 435.890625,
+      "rightClearance": 16
+    },
+    {
+      "id": "staff",
+      "faceIndex": 1,
+      "width": 1600,
+      "leftClearance": 410.53125,
+      "rightClearance": 16
+    },
+    {
+      "id": "learning",
+      "faceIndex": 0,
+      "width": 1600,
+      "leftClearance": 446.390625,
+      "rightClearance": 16
+    },
+    {
+      "id": "learning",
+      "faceIndex": 1,
+      "width": 1600,
+      "leftClearance": 426.328125,
+      "rightClearance": 16
+    },
+    {
+      "id": "care",
+      "faceIndex": 0,
+      "width": 1600,
+      "leftClearance": 385.625,
+      "rightClearance": 16
+    },
+    {
+      "id": "care",
+      "faceIndex": 1,
+      "width": 1600,
+      "leftClearance": 361.421875,
+      "rightClearance": 16
+    },
+    {
+      "id": "guardian",
+      "faceIndex": 0,
+      "width": 1600,
+      "leftClearance": 347.046875,
+      "rightClearance": 16
+    },
+    {
+      "id": "guardian",
+      "faceIndex": 1,
+      "width": 1600,
+      "leftClearance": 429.765625,
+      "rightClearance": 16
+    },
+    {
+      "id": "staff",
+      "faceIndex": 0,
+      "width": 390,
+      "leftClearance": 235.6875,
+      "rightClearance": 32.28125
+    },
+    {
+      "id": "staff",
+      "faceIndex": 1,
+      "width": 390,
+      "leftClearance": 224.0625,
+      "rightClearance": 26.859375
+    },
+    {
+      "id": "learning",
+      "faceIndex": 0,
+      "width": 390,
+      "leftClearance": 214.59375,
+      "rightClearance": 60.328125
+    },
+    {
+      "id": "learning",
+      "faceIndex": 1,
+      "width": 390,
+      "leftClearance": 177.5625,
+      "rightClearance": 83.859375
+    },
+    {
+      "id": "care",
+      "faceIndex": 0,
+      "width": 390,
+      "leftClearance": 182.15625,
+      "rightClearance": 51.875
+    },
+    {
+      "id": "care",
+      "faceIndex": 1,
+      "width": 390,
+      "leftClearance": 164.890625,
+      "rightClearance": 52.859375
+    },
+    {
+      "id": "guardian",
+      "faceIndex": 0,
+      "width": 390,
+      "leftClearance": 203.984375,
+      "rightClearance": 25.953125
+    },
+    {
+      "id": "guardian",
+      "faceIndex": 1,
+      "width": 390,
+      "leftClearance": 228.953125,
+      "rightClearance": 48.0625
+    }
+  ],
+  "gatePaperSafety": [
+    {
+      "width": 1600,
+      "overlap": 0
+    },
+    {
+      "width": 390,
+      "overlap": 0
+    }
+  ],
+  "disposedOnRouteExit": true,
+  "remounted": true
+}

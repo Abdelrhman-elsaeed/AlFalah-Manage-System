@@ -1,0 +1,28 @@
+{
+  "format": "Native responsive section",
+  "scope": "isolated composition behavior",
+  "homepageIntegrated": true,
+  "errors": [],
+  "startsWhenVisible": true,
+  "aspectRatio": "auto",
+  "manualPause": true,
+  "pausesOutsideViewport": true,
+  "resumesOnReturn": true,
+  "sceneNavigation": true,
+  "cubeTransform": "matrix3d(1, 0, 0, 0, 0, 0.539816, 0.841783, 0, 0, -0.841783, 0.539816, 0, 0, 0, 0, 1)",
+  "quillMoves": true,
+  "mobile": {
+    "sectionHeight": 592.15625,
+    "visionHeight": 592.15625,
+    "overflow": false,
+    "cubeFont": "28.4342px",
+    "phoneTop": 337.5,
+    "supportBottom": 315.578125
+  },
+  "reducedMotion": {
+    "time": 45.5,
+    "playing": false,
+    "worldLoaded": false
+  },
+  "vectorFallback": true
+}

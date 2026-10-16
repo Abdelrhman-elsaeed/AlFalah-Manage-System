@@ -1,0 +1,77 @@
+{
+  "film": "نظام الفلاح — من أول حضور إلى آخر أثر",
+  "durationSeconds": 64,
+  "fps": 30,
+  "masterCanvas": [
+    1600,
+    900
+  ],
+  "renderer": "HyperFrames 0.8.163 / Three.js 0.181.2",
+  "homepageIntegrated": false,
+  "approval": "pending",
+  "playback": "User-initiated narrative film; held ending",
+  "files": [
+    {
+      "file": "05-alfalah-school-day-master.mp4",
+      "bytes": 17527350,
+      "megabytes": 17.527,
+      "sha256": "ab58aeb736d4b6f80f9aa56f785854b993e25ea7c70cfec41b0820871b1f60cb",
+      "width": 1600,
+      "height": 900,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 64.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    },
+    {
+      "file": "05-alfalah-school-day-mobile.mp4",
+      "bytes": 1804976,
+      "megabytes": 1.805,
+      "sha256": "d88b0c2626319779579d360bcdf77b65bd9d41d9871b4bc637cc6ad04dc50ad9",
+      "width": 640,
+      "height": 360,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 64.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    },
+    {
+      "file": "05-alfalah-school-day-poster.webp",
+      "bytes": 30856,
+      "megabytes": 0.031,
+      "sha256": "2681c62ef091b308f6516c93ac1116a1a7c0e33401772eb15c7f34b584c59363"
+    },
+    {
+      "file": "05-alfalah-school-day.mp4",
+      "bytes": 5359063,
+      "megabytes": 5.359,
+      "sha256": "d7caa3e66f5c1f2d1b38eb66cf2f500868d227860bad23468ee1b9a6ea0f0a5d",
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 64.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    },
+    {
+      "file": "05-alfalah-school-day.webm",
+      "bytes": 4932848,
+      "megabytes": 4.933,
+      "sha256": "af803e619b13b5260d59c1c6cfa883f87bcafd73831894dc1b078a1d94246a4f",
+      "width": 1280,
+      "height": 720,
+      "codec": "vp9",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 64.0,
+      "audioStreams": 0,
+      "fullDecodePassed": true
+    }
+  ]
+}

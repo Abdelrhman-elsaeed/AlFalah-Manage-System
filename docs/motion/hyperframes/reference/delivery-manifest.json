@@ -1,0 +1,187 @@
+{
+  "homepageIntegrated": false,
+  "approval": "pending",
+  "renderer": "HyperFrames 0.8.163",
+  "masterCanvas": [
+    1600,
+    900
+  ],
+  "durationSeconds": 16,
+  "fps": 30,
+  "files": [
+    {
+      "file": "01-school-pulse-master.mp4",
+      "bytes": 4772140,
+      "megabytes": 4.772,
+      "sha256": "70c4731da0efbdac99f79158595e7dcc0a37f3b2b8db63e7baaca5eca3b6389a",
+      "width": 1600,
+      "height": 900,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "01-school-pulse-mobile.mp4",
+      "bytes": 320469,
+      "megabytes": 0.32,
+      "sha256": "b7c13aca9a13482081717c5165623e0741d6cc858af4c0ac2382b2a6390b4925",
+      "width": 640,
+      "height": 360,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "01-school-pulse-poster.webp",
+      "bytes": 43648,
+      "megabytes": 0.044,
+      "sha256": "6b3840f97d4d8494617ca16a582056d547636d4d6e642d1f7f420c5aeb6b603b"
+    },
+    {
+      "file": "01-school-pulse.mp4",
+      "bytes": 1152515,
+      "megabytes": 1.153,
+      "sha256": "be59a958baf9b9d2c688d38307a597fa74cb4f059078348866949f8be3282f08",
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "01-school-pulse.webm",
+      "bytes": 886041,
+      "megabytes": 0.886,
+      "sha256": "9029b857c1dc2f35c36ef676003121cd3ee4bab48653e4e63db0f2407f01ccdb",
+      "width": 1280,
+      "height": 720,
+      "codec": "vp9",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "02-day-in-harmony-master.mp4",
+      "bytes": 5732188,
+      "megabytes": 5.732,
+      "sha256": "f310e4f9fbd2cdfcda2f002de82f33af0abf168561ccc81cc72235a4e718e21f",
+      "width": 1600,
+      "height": 900,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "02-day-in-harmony-mobile.mp4",
+      "bytes": 357452,
+      "megabytes": 0.357,
+      "sha256": "4d63ac6f166c8452e0cf19bc01349339238b310136d5368ca6aacac9660a8246",
+      "width": 640,
+      "height": 360,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "02-day-in-harmony-poster.webp",
+      "bytes": 47568,
+      "megabytes": 0.048,
+      "sha256": "b2b721c39ed6f33fec1e5f497bbb56bc4b551bd23ba427248c7f1d71572f5922"
+    },
+    {
+      "file": "02-day-in-harmony.mp4",
+      "bytes": 1378110,
+      "megabytes": 1.378,
+      "sha256": "a38e172255c074a124dbf63b5ec05c94fa7ee9f35ff516168c3422e13d349aaa",
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "02-day-in-harmony.webm",
+      "bytes": 1233664,
+      "megabytes": 1.234,
+      "sha256": "2111c805a7a78b081bea1e5c93adf25551cd308b6463444efbd730e6b6cc6499",
+      "width": 1280,
+      "height": 720,
+      "codec": "vp9",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "03-evidence-to-insight-master.mp4",
+      "bytes": 3341400,
+      "megabytes": 3.341,
+      "sha256": "c762585b19e3b10a26cd6951e406e5aa19220020aea89302be7b214917081e19",
+      "width": 1600,
+      "height": 900,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "03-evidence-to-insight-mobile.mp4",
+      "bytes": 248112,
+      "megabytes": 0.248,
+      "sha256": "b1f8bcdd7a071a8001d4bdd7b83f484162fce43fa3f56e83422224631f26dead",
+      "width": 640,
+      "height": 360,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "03-evidence-to-insight-poster.webp",
+      "bytes": 42954,
+      "megabytes": 0.043,
+      "sha256": "53b780631c169b4c433dad43bc1ca9381fe6146924b0735c243bb0d9fbba0ee1"
+    },
+    {
+      "file": "03-evidence-to-insight.mp4",
+      "bytes": 856082,
+      "megabytes": 0.856,
+      "sha256": "7e0a9dcd4889af1108d539c5842a371dcc33a4f88b4cc00672ab74818216cef1",
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    },
+    {
+      "file": "03-evidence-to-insight.webm",
+      "bytes": 547313,
+      "megabytes": 0.547,
+      "sha256": "dfd9993765411ed3eeb9bef30cc1b0050d802fa65392949868badcc4737ffd6b",
+      "width": 1280,
+      "height": 720,
+      "codec": "vp9",
+      "pixelFormat": "yuv420p",
+      "fps": "30/1",
+      "duration": 16.0,
+      "audioStreams": 0
+    }
+  ]
+}

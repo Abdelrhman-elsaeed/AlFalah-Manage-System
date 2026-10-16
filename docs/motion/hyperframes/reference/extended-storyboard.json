@@ -1,0 +1,77 @@
+{
+  "duration": 50,
+  "pace": 1.08,
+  "removedScene": "Actual timetable screenshot",
+  "transitions": "Overlapping diagonal clip-path masks",
+  "scenes": [
+    {
+      "id": "arrival",
+      "start": 0,
+      "end": 6.111111111111111,
+      "title": "يوم دراسي بتناغم.",
+      "sub": "مدرسة واحدة. أدوار تتكامل. تفاصيل مترابطة.",
+      "label": "بداية اليوم",
+      "view": "school",
+      "panel": "<div class=\"opening-note\"><span class=\"mini-rule\"></span><h3>من البوابة<br>إلى آخر حصة.</h3><p>تنظيم الوقت، متابعة الطلاب،<br>وحفظ العمل في مكانه.</p></div>"
+    },
+    {
+      "id": "schedule",
+      "start": 5,
+      "end": 13.055555555555554,
+      "title": "كل حصة في وقتها.",
+      "sub": "الجدول المدرسي والمناوبة… وضوح قبل بداية اليوم.",
+      "label": "الجدول والمناوبة",
+      "panel": "<div class=\"calendar-panel\"><div class=\"calendar-head\"><h3>الجدول المدرسي</h3><span class=\"badge\">منشور للمعلمين</span></div><div class=\"schedule-grid\"><div class=\"cell table-head\">اليوم / الحصة</div><div class=\"cell table-head\">الحصة 1</div><div class=\"cell table-head\">الحصة 2</div><div class=\"cell table-head\">الحصة 3</div><div class=\"cell table-head\">الحصة 4</div><div class=\"cell table-head\">الحصة 5</div><div class=\"cell day-head\">الأحد</div><div class=\"cell lesson gold-cell\"><span>رياضيات</span><small>الأول أ</small></div><div class=\"cell lesson \"><span>علوم</span><small>الثاني أ</small></div><div class=\"cell lesson \"><span>لغة عربية</span><small>الثالث أ</small></div><div class=\"cell lesson \"><span>لغة إنجليزية</span><small>الأول أ</small></div><div class=\"cell lesson gold-cell\"><span>دراسات إسلامية</span><small>الثاني أ</small></div><div class=\"cell day-head\">الاثنين</div><div class=\"cell lesson \"><span>علوم</span><small>الثاني أ</small></div><div class=\"cell lesson \"><span>لغة عربية</span><small>الثالث أ</small></div><div class=\"cell lesson \"><span>لغة إنجليزية</span><small>الأول أ</small></div><div class=\"cell lesson gold-cell\"><span>دراسات إسلامية</span><small>الثاني أ</small></div><div class=\"cell lesson \"><span>رياضيات</span><small>الثالث أ</small></div><div class=\"cell day-head\">الثلاثاء</div><div class=\"cell lesson \"><span>لغة عربية</span><small>الثالث أ</small></div><div class=\"cell lesson \"><span>لغة إنجليزية</span><small>الأول أ</small></div><div class=\"cell lesson gold-cell\"><span>دراسات إسلامية</span><small>الثاني أ</small></div><div class=\"cell lesson \"><span>رياضيات</span><small>الثالث أ</small></div><div class=\"cell lesson \"><span>علوم</span><small>الأول أ</small></div><div class=\"cell day-head\">الأربعاء</div><div class=\"cell lesson \"><span>لغة إنجليزية</span><small>الأول أ</small></div><div class=\"cell lesson gold-cell\"><span>دراسات إسلامية</span><small>الثاني أ</small></div><div class=\"cell lesson \"><span>رياضيات</span><small>الثالث أ</small></div><div class=\"cell lesson \"><span>علوم</span><small>الأول أ</small></div><div class=\"cell lesson \"><span>لغة عربية</span><small>الثاني أ</small></div><div class=\"cell day-head\">الخميس</div><div class=\"cell lesson gold-cell\"><span>دراسات إسلامية</span><small>الثاني أ</small></div><div class=\"cell lesson \"><span>رياضيات</span><small>الثالث أ</small></div><div class=\"cell lesson \"><span>علوم</span><small>الأول أ</small></div><div class=\"cell lesson \"><span>لغة عربية</span><small>الثاني أ</small></div><div class=\"cell lesson gold-cell\"><span>لغة إنجليزية</span><small>الثالث أ</small></div></div><div class=\"calendar-foot\"><span>الفصل الدراسي الأول</span><span>توقيت الحصص والاستراحة</span></div></div><div class=\"side-card duty-card\"><div class=\"glyph calendar-glyph\">▦</div><h3>المناوبة المدرسية</h3><p>توزيع الأدوار ومتابعة التنفيذ</p><div class=\"week\"><b>ح</b><b>ن</b><b class=\"selected\">ث</b><b>ر</b><b>خ</b></div><div class=\"badge\">جدول مستقل للمناوبة</div></div>"
+    },
+    {
+      "id": "classroom",
+      "start": 12.037037037037036,
+      "end": 21.38888888888889,
+      "title": "داخل الفصل… تبدأ المتابعة.",
+      "sub": "المعلم والطالب في قلب اليوم الدراسي.",
+      "label": "الفصل والحضور",
+      "view": "classroom",
+      "panel": "<div class=\"side-card attendance-card\"><span class=\"role-label\">السكرتير</span><h3>رصد الغياب اليومي</h3><div class=\"roster\"><div><i class=\"dot present\"></i><span>طالب تجريبي ١</span><b>حاضر</b></div><div><i class=\"dot present\"></i><span>طالب تجريبي ٢</span><b>حاضر</b></div><div class=\"absent-row\"><i class=\"dot absent\"></i><span>طالب تجريبي ٣</span><b>غائب</b></div></div><div class=\"card-divider\"></div><span class=\"role-label\">المعلم</span><div class=\"teacher-action\"><span>تأخر الحصة</span><span>ملاحظة أكاديمية</span></div><p class=\"small\">لكل إجراء دوره وسجله</p></div><div class=\"scene-caption\">فصل منظم • متابعة واضحة للطلاب</div>"
+    },
+    {
+      "id": "guidance",
+      "start": 20.37037037037037,
+      "end": 29.72222222222222,
+      "title": "ملاحظة تصل… ورعاية تكتمل.",
+      "sub": "المعلم يرصد. الموجّه الطلابي يراجع ويتابع.",
+      "label": "الموجّه الطلابي",
+      "view": "guidance",
+      "panel": "<div class=\"side-card guidance-card\"><span class=\"role-label\">متابعة الطالب</span><h3>الموجّه الطلابي</h3><div class=\"workflow\"><div class=\"workflow-step\"><i>✓</i><span>ملاحظة من المعلم</span></div><div class=\"workflow-step\"><i>✓</i><span>مراجعة الإجراء المناسب</span></div><div class=\"workflow-step\"><i>✓</i><span>تواصل مع ولي الأمر بعد الاعتماد</span></div></div><div class=\"message-note\"><span>متابعة تربوية</span><p>فهم الحالة ومساندة الطالب</p></div></div><div class=\"scene-caption\">المعلم ← الموجّه الطلابي ← متابعة ولي الأمر</div>"
+    },
+    {
+      "id": "security",
+      "start": 28.703703703703702,
+      "end": 38.05555555555556,
+      "title": "خروج منظّم… بخطوات واضحة.",
+      "sub": "طلب ولي الأمر، اعتماد شؤون الطلاب، ثم تحقق الحارس.",
+      "label": "الحارس والبوابة",
+      "view": "security",
+      "panel": "<div class=\"side-card gate-card\"><span class=\"role-label\">الحارس</span><h3>تصريح خروج الطالب</h3><div class=\"gate-steps\"><div><span>طلب ولي الأمر</span><b>تم الطلب</b></div><div><span>مراجعة شؤون الطلاب</span><b>معتمد</b></div><div class=\"identity-check\"><span>مطابقة المستلم</span><b>تحقق الحارس</b></div></div><div class=\"exit-confirm\">✓ تسجيل الخروج الفعلي</div><p class=\"small\">التصريح لا يعني أن الطالب خرج بالفعل</p></div><div class=\"scene-caption\">تحقق عند البوابة، ثم تسجيل لحظة الخروج</div>"
+    },
+    {
+      "id": "storage",
+      "start": 37.03703703703704,
+      "end": 46.388888888888886,
+      "title": "العمل محفوظ… وفي مكانه.",
+      "sub": "مكتبة المدرسة وملفات المعلمين في مساحة منظمة.",
+      "label": "حفظ الملفات",
+      "view": "storage",
+      "panel": "<div class=\"side-card files-card\"><div class=\"files-header\"><h3>مكتبة المدرسة</h3><span>⌕</span></div><div class=\"file-path\">ملفات المدرسة / الخطط والتقارير</div><div class=\"file-row\"><i>PDF</i><div><strong>خطة المدرسة.pdf</strong><small>ملف محفوظ</small></div><b>✓</b></div><div class=\"file-row\"><i>XLS</i><div><strong>سجل المتابعة.xlsx</strong><small>ملف محفوظ</small></div><b>✓</b></div><div class=\"file-row uploaded-file\"><i>PDF</i><div><strong>تقرير اليوم الدراسي.pdf</strong><small>تم حفظ الملف</small></div><b>✓</b></div><div class=\"upload-track\"><div class=\"upload-fill\"></div></div><div class=\"file-actions\"><span>معاينة</span><span>تحميل</span><span>سجل الإصدارات</span></div><p class=\"small\">الوصول حسب الصلاحيات</p></div><div class=\"scene-caption\">تنظيم المجلدات • بحث • معاينة • تحميل • إصدارات</div>"
+    },
+    {
+      "id": "together",
+      "start": 45.37037037037037,
+      "end": 50,
+      "title": "يوم دراسي بتناغم.",
+      "sub": "مدرسة واحدة. أدوار تتكامل. تفاصيل مترابطة.",
+      "label": "كل الأدوار معًا",
+      "view": "school",
+      "panel": "<div class=\"opening-note\"><span class=\"mini-rule\"></span><h3>من البوابة<br>إلى آخر حصة.</h3><p>تنظيم الوقت، متابعة الطلاب،<br>وحفظ العمل في مكانه.</p></div>"
+    }
+  ]
+}

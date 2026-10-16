@@ -1,0 +1,645 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 1,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene-main\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene-main",
+        "dataAttributes": {},
+        "sourceFile": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene-main\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 15,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-header > div:nth-of-type(1) > h3:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 857.89,
+          "top": 373.93,
+          "right": 1030.87,
+          "bottom": 409.93,
+          "width": 172.98,
+          "height": 36
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "الجدول المدرسي",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 857.89,
+          "y": 373.93,
+          "width": 172.98,
+          "height": 36
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-header > div:nth-of-type(1) > small:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 906.43,
+          "top": 414.91,
+          "right": 1031.18,
+          "bottom": 434.6,
+          "width": 124.75,
+          "height": 19.69
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "الفصل الدراسي الأول",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 906.43,
+          "y": 414.91,
+          "width": 124.75,
+          "height": 19.69
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.cell.corner",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 933.18,
+          "top": 464.88,
+          "right": 1018.7,
+          "bottom": 486.33,
+          "width": 85.52,
+          "height": 21.45
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "اليوم / الحصة",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 933.18,
+          "y": 464.88,
+          "width": 85.52,
+          "height": 21.45
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(2)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 825.37,
+          "top": 464.93,
+          "right": 876.92,
+          "bottom": 486.43,
+          "width": 51.55,
+          "height": 21.5
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "الحصة 1",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 825.37,
+          "y": 464.93,
+          "width": 51.55,
+          "height": 21.5
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(3)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 685.06,
+          "top": 464.99,
+          "right": 738.32,
+          "bottom": 486.56,
+          "width": 53.26,
+          "height": 21.57
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "الحصة 2",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 685.06,
+          "y": 464.99,
+          "width": 53.26,
+          "height": 21.57
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(4)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 544.06,
+          "top": 465.04,
+          "right": 598.35,
+          "bottom": 486.7,
+          "width": 54.29,
+          "height": 21.66
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "الحصة 3",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 544.06,
+          "y": 465.04,
+          "width": 54.29,
+          "height": 21.66
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(7)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 960.92,
+          "top": 505.11,
+          "right": 991.85,
+          "bottom": 526.62,
+          "width": 30.93,
+          "height": 21.51
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "الأحد",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 960.92,
+          "y": 505.11,
+          "width": 30.93,
+          "height": 21.51
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(8) > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 826.38,
+          "top": 497.55,
+          "right": 876.28,
+          "bottom": 517.41,
+          "width": 49.9,
+          "height": 19.86
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "رياضيات",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 826.38,
+          "y": 497.55,
+          "width": 49.9,
+          "height": 19.86
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(9) > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 697.18,
+          "top": 497.73,
+          "right": 726.26,
+          "bottom": 517.64,
+          "width": 29.08,
+          "height": 19.91
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "علوم",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 697.18,
+          "y": 497.73,
+          "width": 29.08,
+          "height": 19.91
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(10) > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 542.39,
+          "top": 497.89,
+          "right": 599.7,
+          "bottom": 517.91,
+          "width": 57.31,
+          "height": 20.02
+        },
+        "containerSelector": "div.closing > h2:nth-of-type(1)",
+        "text": "لغة عربية",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 542.39,
+          "y": 497.89,
+          "width": 57.31,
+          "height": 20.02
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(13)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 955.96,
+          "top": 545.45,
+          "right": 997.65,
+          "bottom": 567.09,
+          "width": 41.69,
+          "height": 21.64
+        },
+        "containerSelector": "div.closing > p:nth-of-type(1)",
+        "text": "الاثنين",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 955.96,
+          "y": 545.45,
+          "width": 41.69,
+          "height": 21.64
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(14) > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 837.06,
+          "top": 538.02,
+          "right": 866.07,
+          "bottom": 557.95,
+          "width": 29.01,
+          "height": 19.93
+        },
+        "containerSelector": "div.closing > p:nth-of-type(1)",
+        "text": "علوم",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 837.06,
+          "y": 538.02,
+          "width": 29.01,
+          "height": 19.93
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(14) > small:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 838.31,
+          "top": 560.46,
+          "right": 865.02,
+          "bottom": 575.24,
+          "width": 26.71,
+          "height": 14.78
+        },
+        "containerSelector": "div.closing > p:nth-of-type(1)",
+        "text": "الثاني أ",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 838.31,
+          "y": 560.46,
+          "width": 26.71,
+          "height": 14.78
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(15) > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 683.26,
+          "top": 538.31,
+          "right": 740.16,
+          "bottom": 558.38,
+          "width": 56.9,
+          "height": 20.07
+        },
+        "containerSelector": "div.closing > p:nth-of-type(1)",
+        "text": "لغة عربية",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 683.26,
+          "y": 538.31,
+          "width": 56.9,
+          "height": 20.07
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 14.5,
+        "selector": "div.schedule-grid > div:nth-of-type(15) > small:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 696.97,
+          "top": 560.86,
+          "right": 726.48,
+          "bottom": 575.7,
+          "width": 29.51,
+          "height": 14.84
+        },
+        "containerSelector": "div.closing > p:nth-of-type(1)",
+        "text": "الثالث أ",
+        "fixHint": "Give each block its own zone, or put data-layout-allow-overlap on the text or on a container inside the scene. A marker on the scene root does not apply.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 696.97,
+          "y": 560.86,
+          "width": 29.51,
+          "height": 14.84
+        },
+        "firstSeen": 14.5,
+        "lastSeen": 14.625,
+        "occurrences": 2,
+        "heldMs": 125,
+        "times": [
+          14.5,
+          14.625
+        ]
+      }
+    ],
+    "duration": 16,
+    "samples": [
+      0.889,
+      2.667,
+      4.444,
+      6.222,
+      8,
+      9.778,
+      11.556,
+      13.333,
+      15.111
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 15,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 1,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 1.05:1; WCAG AA requires 4.5:1.",
+        "text": "الجدول المدرسي • من داخل المنصة",
+        "fg": "rgb(82,100,90)",
+        "bg": "rgb(58,109,85)",
+        "ratio": 1.05,
+        "requiredRatio": 4.5,
+        "suggestedColor": "rgb(220,224,222)",
+        "large": false,
+        "selector": "div > div > div > div:nth-of-type(9) > div > div:nth-of-type(1) > span",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 716.953125,
+          "y": 296.1095886230469,
+          "width": 171.109375,
+          "height": 17
+        },
+        "time": 11.556,
+        "times": [
+          11.556
+        ]
+      }
+    ],
+    "enabled": true,
+    "samples": [
+      0.889,
+      4.444,
+      8,
+      11.556,
+      15.111
+    ],
+    "checked": 236,
+    "passed": 235
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  },
+  "saved": {
+    "id": "e5bb235b-47c4-432d-b912-a084b6c4abbb",
+    "revision": "c2c18018-3d03-4756-89cf-00fe45a3a486",
+    "report": "D:\\AlFalah-Manage-System\\docs\\motion\\hyperframes\\harmony\\.hyperframes\\artifacts\\checks\\e5bb235b-47c4-432d-b912-a084b6c4abbb.json",
+    "attribution": "recorded-revision"
+  },
+  "_meta": {
+    "version": "0.8.163",
+    "latestVersion": "0.8.163",
+    "updateAvailable": false
+  }
+}

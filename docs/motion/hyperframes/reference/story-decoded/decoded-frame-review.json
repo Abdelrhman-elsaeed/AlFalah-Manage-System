@@ -1,0 +1,135 @@
+{
+  "frames": [
+    {
+      "time": 0.0,
+      "luminanceMean": 49.55,
+      "luminanceStdDev": 9.23
+    },
+    {
+      "time": 2.0,
+      "luminanceMean": 58.01,
+      "luminanceStdDev": 40.94
+    },
+    {
+      "time": 4.3,
+      "luminanceMean": 55.61,
+      "luminanceStdDev": 36.62
+    },
+    {
+      "time": 5.0,
+      "luminanceMean": 106.7,
+      "luminanceStdDev": 89.49
+    },
+    {
+      "time": 5.45,
+      "luminanceMean": 241.29,
+      "luminanceStdDev": 17.08
+    },
+    {
+      "time": 7.5,
+      "luminanceMean": 235.81,
+      "luminanceStdDev": 33.8
+    },
+    {
+      "time": 10.8,
+      "luminanceMean": 234.22,
+      "luminanceStdDev": 39.54
+    },
+    {
+      "time": 11.5,
+      "luminanceMean": 62.91,
+      "luminanceStdDev": 51.6
+    },
+    {
+      "time": 15.3,
+      "luminanceMean": 71.75,
+      "luminanceStdDev": 60.31
+    },
+    {
+      "time": 17.6,
+      "luminanceMean": 73.32,
+      "luminanceStdDev": 62.26
+    },
+    {
+      "time": 19.8,
+      "luminanceMean": 74.8,
+      "luminanceStdDev": 64.07
+    },
+    {
+      "time": 23.55,
+      "luminanceMean": 141.03,
+      "luminanceStdDev": 96.69
+    },
+    {
+      "time": 25.1,
+      "luminanceMean": 239.18,
+      "luminanceStdDev": 26.22
+    },
+    {
+      "time": 28.5,
+      "luminanceMean": 241.18,
+      "luminanceStdDev": 25.34
+    },
+    {
+      "time": 30.85,
+      "luminanceMean": 233.93,
+      "luminanceStdDev": 37.76
+    },
+    {
+      "time": 33.6,
+      "luminanceMean": 105.8,
+      "luminanceStdDev": 86.34
+    },
+    {
+      "time": 38.1,
+      "luminanceMean": 115.86,
+      "luminanceStdDev": 91.53
+    },
+    {
+      "time": 40.4,
+      "luminanceMean": 220.42,
+      "luminanceStdDev": 55.61
+    },
+    {
+      "time": 45.2,
+      "luminanceMean": 82.41,
+      "luminanceStdDev": 73.42
+    },
+    {
+      "time": 47.5,
+      "luminanceMean": 84.63,
+      "luminanceStdDev": 74.9
+    },
+    {
+      "time": 50.7,
+      "luminanceMean": 84.44,
+      "luminanceStdDev": 74.65
+    },
+    {
+      "time": 52.25,
+      "luminanceMean": 124.41,
+      "luminanceStdDev": 94.42
+    },
+    {
+      "time": 56.8,
+      "luminanceMean": 236.18,
+      "luminanceStdDev": 33.11
+    },
+    {
+      "time": 59.25,
+      "luminanceMean": 149.22,
+      "luminanceStdDev": 95.3
+    },
+    {
+      "time": 61.7,
+      "luminanceMean": 54.73,
+      "luminanceStdDev": 33.34
+    },
+    {
+      "time": 63.9667,
+      "luminanceMean": 54.76,
+      "luminanceStdDev": 33.48
+    }
+  ],
+  "noBlankFramesInSamples": true
+}

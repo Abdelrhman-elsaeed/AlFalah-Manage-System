@@ -1,0 +1,12 @@
+:host{display:block;--af-section-height:469px;scroll-margin-block-start:108px}
+.system-story{width:100%;background:var(--landing-canvas,#f8faf8);color:#0b3f29}
+.story-intro{box-sizing:border-box;width:var(--landing-container,min(100% - 2rem,1200px));margin-inline:auto;padding-block:clamp(38px,4vw,56px) clamp(32px,3.5vw,48px);text-align:center}
+.story-intro h2{margin:0;color:var(--brand-950,#0b3f29);font-size:clamp(1.8rem,3vw,2.35rem);font-weight:800;line-height:1.4}
+.story-intro p{max-width:660px;margin:12px auto 0;color:var(--text-muted,#62756c);font-size:clamp(.95rem,1.3vw,1.05rem);line-height:1.9;text-wrap:pretty}
+.story-stage{width:100%;height:var(--af-section-height);position:relative;background:#0b3f29;color:#f8faf8;overflow:hidden}
+.story-fallback{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;padding:32px;text-align:center}
+.story-fallback img{width:66px;height:66px;object-fit:contain;background:#fff;padding:7px;border-radius:50%}
+.story-fallback span{font-size:14px;color:#d8eee1}
+.story-fallback h2{font-size:clamp(36px,4vw,56px);font-weight:800;color:inherit}
+.story-fallback p{font-size:19px;line-height:1.8;color:#d8eee1}
+@media(max-width:768px){:host{--af-section-height:592px;scroll-margin-block-start:96px}}

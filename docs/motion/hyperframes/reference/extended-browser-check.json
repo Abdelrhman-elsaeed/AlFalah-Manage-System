@@ -1,0 +1,63 @@
+{
+  "film": "harmony-extended",
+  "approval": "pending",
+  "desktop": {
+    "overflow": false,
+    "metadata": {
+      "duration": 50,
+      "width": 1280,
+      "height": 720,
+      "muted": true,
+      "playsInline": true,
+      "source": "http://127.0.0.1:8877/renders/04-day-in-harmony-extended.webm",
+      "playing": true
+    }
+  },
+  "mobile": {
+    "overflow": false,
+    "metadata": {
+      "duration": 50,
+      "width": 640,
+      "height": 360,
+      "source": "http://127.0.0.1:8877/renders/04-day-in-harmony-extended-mobile.mp4",
+      "playing": true
+    }
+  },
+  "errors": [],
+  "status": 200,
+  "filmCount": 1,
+  "autoplayCount": 0,
+  "removedStudies": true,
+  "chapters": [
+    {
+      "target": 5.2,
+      "actual": 5.220638
+    },
+    {
+      "target": 12.3,
+      "actual": 12.311601
+    },
+    {
+      "target": 20.7,
+      "actual": 20.724704
+    },
+    {
+      "target": 29,
+      "actual": 29.01532
+    },
+    {
+      "target": 37.4,
+      "actual": 37.413118
+    }
+  ],
+  "mp4Fallback": {
+    "duration": 50,
+    "width": 1280,
+    "height": 720
+  },
+  "reducedMotion": {
+    "autoplayCount": 0,
+    "paused": true
+  },
+  "passed": true
+}

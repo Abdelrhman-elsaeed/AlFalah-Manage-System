@@ -1,0 +1,131 @@
+{
+  "project": "pulse",
+  "runtime": "all",
+  "compositions": [
+    {
+      "composition": "index.html",
+      "source": "index.html",
+      "tweens": [
+        {
+          "id": ".world-fromTo-2500",
+          "target": ".world",
+          "method": "fromTo",
+          "start": 2.5,
+          "duration": 2.15,
+          "end": 4.65,
+          "totalDuration": 2.15,
+          "position": 2.5,
+          "ease": "power4.out",
+          "unresolved": [],
+          "keyframeBasis": "tween-endpoints",
+          "shape": "flat",
+          "keyframes": [
+            {
+              "pct": 0,
+              "time": 2.5,
+              "properties": {
+                "rotationX": 15,
+                "rotationY": -17,
+                "scale": 0.67,
+                "y": 165
+              }
+            },
+            {
+              "pct": 100,
+              "time": 4.65,
+              "properties": {
+                "rotationX": 5,
+                "rotationY": -5,
+                "scale": 0.91,
+                "y": 18
+              }
+            }
+          ],
+          "path": null
+        },
+        {
+          "id": ".world-fromTo-5300",
+          "target": ".world",
+          "method": "fromTo",
+          "start": 5.3,
+          "duration": 3.2,
+          "end": 8.5,
+          "totalDuration": 3.2,
+          "position": 5.3,
+          "ease": "sine.inOut",
+          "unresolved": [],
+          "keyframeBasis": "tween-endpoints",
+          "shape": "flat",
+          "keyframes": [
+            {
+              "pct": 0,
+              "time": 5.3,
+              "properties": {
+                "rotationX": 5,
+                "rotationY": -5,
+                "scale": 0.91,
+                "y": 18
+              }
+            },
+            {
+              "pct": 100,
+              "time": 8.5,
+              "properties": {
+                "rotationX": 0,
+                "rotationY": 0,
+                "scale": 0.87,
+                "y": 30
+              }
+            }
+          ],
+          "path": null
+        },
+        {
+          "id": ".world-to-12400",
+          "target": ".world",
+          "method": "to",
+          "start": 12.4,
+          "duration": 1.4,
+          "end": 13.8,
+          "totalDuration": 1.4,
+          "position": 12.4,
+          "ease": "power2.inOut",
+          "unresolved": [],
+          "keyframeBasis": "tween-endpoints",
+          "shape": "flat",
+          "keyframes": [
+            {
+              "pct": 0,
+              "time": 12.4,
+              "properties": {
+                "rotationX": 0,
+                "rotationY": 0,
+                "scale": 0.87,
+                "y": 30
+              }
+            },
+            {
+              "pct": 100,
+              "time": 13.8,
+              "properties": {
+                "rotationX": 7,
+                "rotationY": 9,
+                "scale": 0.8,
+                "y": 80
+              }
+            }
+          ],
+          "path": null
+        }
+      ],
+      "traces": [],
+      "cssKeyframes": [],
+      "anime": []
+    }
+  ],
+  "_meta": {
+    "version": "0.8.163",
+    "latestVersion": "0.8.163",
+    "updateAvailable": false
+  }
+}

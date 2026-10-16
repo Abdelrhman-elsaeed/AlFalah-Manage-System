@@ -26,10 +26,11 @@ export class LandingHeaderComponent implements AfterViewInit {
   readonly menuOpen = signal(false);
   readonly isScrolled = signal(false);
   readonly activeSection = signal('home');
-  readonly links = ['home', 'vision', 'organization', 'achievements', 'news', 'contact'];
+  readonly links = ['home', 'system-story', 'vision', 'organization', 'achievements', 'news', 'contact'];
   @ViewChild('menuToggle') menuToggle?: ElementRef<HTMLButtonElement>;
   private readonly destroyRef = inject(DestroyRef);
-  private readonly desktop = window.matchMedia('(min-width: 769px)');
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly desktop = window.matchMedia('(min-width: 1025px)');
   private readonly resizeMenu = () => {
     if (this.desktop.matches) this.closeMenu();
   };
@@ -46,11 +47,7 @@ export class LandingHeaderComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.onScroll();
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries
-          .filter((entry) => entry.isIntersecting)
-          .forEach((entry) => this.activeSection.set(entry.target.id));
-      },
+      () => this.onScroll(),
       { rootMargin: '-15% 0px -35% 0px', threshold: 0 }
     );
     this.links.forEach((id) => {
@@ -61,6 +58,12 @@ export class LandingHeaderComponent implements AfterViewInit {
   }
   @HostListener('window:scroll') onScroll(): void {
     this.isScrolled.set(window.scrollY > 24);
+    const readingLine = this.element.nativeElement.offsetHeight + 80;
+    const section = [...this.links].reverse().find(id => {
+      const target = document.getElementById(id);
+      return target && target.getBoundingClientRect().top <= readingLine;
+    });
+    this.activeSection.set(section ?? 'home');
   }
   @HostListener('document:keydown.escape') onEscape(): void {
     if (this.menuOpen()) {

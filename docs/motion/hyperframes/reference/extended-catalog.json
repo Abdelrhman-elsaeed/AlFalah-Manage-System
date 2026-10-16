@@ -1,0 +1,47 @@
+﻿{
+  "query": "3d school building classroom diorama",
+  "tier": "words",
+  "tier_detail": "local word match",
+  "dropped": 0,
+  "unindexed": 0,
+  "shown": 2,
+  "total": 447,
+  "report_gap": "npx hyperframes feedback --search-miss \"3d school building classroom diorama\" --wanted \"<the move you needed>\" --tier words",
+  "results": [
+    {
+      "name": "cuboid-carousel",
+      "type": "block",
+      "title": "Cuboid Carousel",
+      "description": "A chain of bevelled cuboids rides a travelling wave as a content carousel.",
+      "tags": [
+        "3d-motion",
+        "carousel",
+        "cards",
+        "travelling-wave",
+        "pbr",
+        "shadows",
+        "room-environment"
+      ],
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "duration": 6.67,
+      "preview": {
+        "video": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/cuboid-carousel.mp4",
+        "poster": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/cuboid-carousel.png"
+      }
+    },
+    {
+      "name": "yt-screen-warp",
+      "type": "component",
+      "title": "On-Screen Display Effect",
+      "description": "Grid, scanline, vignette, and sheen overlay plus a 3D-warp wrapper class that makes footage read as if playing on a physical display",
+      "tags": [
+        "effect",
+        "overlay",
+        "texture"
+      ]
+    }
+  ]
+}

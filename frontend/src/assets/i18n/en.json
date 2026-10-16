@@ -1086,9 +1086,11 @@
     "SKIP": "Skip to content",
     "MENU": "Menu",
     "NAV_LABEL": "Main navigation",
+    "SYSTEM_STORY_INTRO": "From arrival to dismissal: organized records, less paperwork, and clearer communication between school and family.",
     "NAV": {
       "home": "Home",
       "vision": "Our vision",
+      "system-story": "Al-Falah System",
       "organization": "Our team",
       "achievements": "Achievements",
       "news": "News",
