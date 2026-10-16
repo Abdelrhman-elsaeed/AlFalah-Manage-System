@@ -84,6 +84,8 @@ C17 follow-up: `guardian-dashboard.component.ts` links messages to `/student-aff
 
 ## Waiting-period follow-up — 2026-10-13
 
+**Current follow-up, 2026-10-16:** The owner corrected the new assessment's source from `2.jpeg` to `3.jpeg`. [C37 standby discovery](../intelligent-timetable/10-standby-periods-discovery.md) records a fresh visual inspection/current file fingerprint, detailed code inventory, generation/grant/gap-label findings, paper-to-system gaps and unresolved business questions. This does not expand or change School Duty behavior. The source fingerprints and static findings below remain historical evidence for their original date.
+
 The owner asked whether the pictured waiting-period register already exists and whether it should be added alongside duty. Current support is established by static code review, not a new live runtime test:
 
 - `TimetableEntryType.Standby = 2` exists. The timetable supports editing/displaying standby cells as `منتظر`, showing standby totals, and including them in existing timetable Excel/PDF paths (`SchoolTimetableService`, `SchoolTimetableDocumentService`, and `school-timetable.component`).

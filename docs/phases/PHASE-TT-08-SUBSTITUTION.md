@@ -1,5 +1,9 @@
 # Intelligent Timetable — Phase 8
 
+> **2026-10-16 discovery completed:** The owner requested a current-code/paper gap assessment for waiting periods, using corrected source `3.jpeg` (`QF71-B-2-1`). [Discovery and proposed stages](../specs/intelligent-timetable/10-standby-periods-discovery.md) are documented; 36 existing substitution/availability tests passed with EF InMemory. Existing Phase 8 daily cover remains implemented; the official distribution/execution/signature register remains unimplemented. No application, schema or provider change is part of this assessment. Business questions remain open before implementation.
+
+> **Owner clarification, same date:** Waiting-period eligibility is **scheduled Standby only**, including manual mode. Recorded absence prepares needs/proposals automatically; administrator approval is required. The administrator chooses **manual or fair distribution at distribution time**. No free-teacher fallback. These are confirmed future policy requirements; signature timing, weekly quotas, fairness details and responsibility/delegation remain design questions. No implementation has started for this amendment.
+
 > **2026-09-16 modernization:** an additive inline swap experience is implemented in the main timetable grid. The existing dashboard and route remain supported. Same-day remains the compatibility default; whole-timetable cross-day search is opt-in. A cross-day candidate touching any confirmed future daily cover is always red and never moves or cancels that cover automatically. See [the inline swap experience specification](../specs/intelligent-timetable/09-inline-swap-experience.md).
 
 The daily dashboard is available at `/intelligent-timetable/substitutions`, with an entry point from lesson cells in the review grid.

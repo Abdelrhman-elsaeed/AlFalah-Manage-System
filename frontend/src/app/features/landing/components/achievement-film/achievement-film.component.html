@@ -1,0 +1,66 @@
+<div #film class="achievement-film" role="region" aria-label="منجزات الفلاح في خمس محطات" (focusin)="onFocus()" (focusout)="onBlur($event)">
+  <div class="achievement-stage">
+    @for (scene of scenes; track scene.id; let index = $index) {
+      <article class="achievement-scene" [class.current]="index === active()" [class]="'achievement-scene scene-' + scene.id" [attr.aria-hidden]="index !== active()" [attr.inert]="index === active() ? null : ''" [attr.data-scene]="scene.id">
+        <div class="achievement-copy">
+          <div class="achievement-stat"><strong class="achievement-number" dir="ltr">{{ scene.value }}</strong><span>{{ 'LANDING.STATS.' + scene.label | translate }}</span></div>
+          <h3 class="achievement-title">{{ scene.title }}</h3>
+          <app-falah-quill class="achievement-signature" />
+          <p class="achievement-description">{{ scene.copy }}</p>
+          <div class="achievement-facts" aria-label="تفاصيل الإنجاز">
+            @for (detail of scene.details; track detail) {<span><i class="pi pi-check" aria-hidden="true"></i>{{ detail }}</span>}
+          </div>
+        </div>
+        <div class="achievement-visual" aria-hidden="true" data-layout-allow-overflow="" data-layout-allow-overlap="">
+          @switch (scene.id) {
+            @case ('students') {
+              <div class="student-keepsake">
+                <div class="keepsake-back"><span>ننتمي. نتعلّم. نكبر.</span><app-falah-quill /></div>
+                <div class="keepsake-photo"><img [achievementImage]="scene.image" alt="" width="720" height="440" loading="lazy" decoding="async" /><span>فرسان الفلاح</span></div>
+                <div class="keepsake-seal"><img src="assets/Logo.png" alt="" width="72" height="72" loading="lazy" /></div>
+              </div>
+            }
+            @case ('participations') {
+              <div class="participation-network">
+                <svg viewBox="0 0 500 420" fill="none"><circle class="network-ring" cx="250" cy="210" r="160"/><circle class="network-ring" cx="250" cy="210" r="105"/>
+                  @for (dot of dots; track $index) {<path class="network-spoke" [attr.d]="'M250 210L' + dot.x + ' ' + dot.y"/><circle class="network-dot" [class.gold]="dot.gold" [attr.cx]="dot.x" [attr.cy]="dot.y" r="6"/>}
+                </svg>
+                <div class="network-heart"><img src="assets/Logo.png" alt="" width="72" height="72" loading="lazy" /></div>
+                <span class="network-label label-discover">نكتشف</span><span class="network-label label-try">نجرّب</span><span class="network-label label-share">نشارك</span>
+              </div>
+            }
+            @case ('projects') {
+              <div class="project-desk">
+                <div class="project-sheet sheet-back"><span>من سؤال…</span><div class="paper-lines"></div></div>
+                <div class="project-sheet sheet-front"><span>إلى فكرة تستحق التجربة.</span><svg viewBox="0 0 250 160" fill="none"><path class="project-line" d="M24 135H225M28 135V20M40 115L84 92L126 108L170 58L214 30"/><circle cx="214" cy="30" r="7"/></svg><app-falah-quill /></div>
+                <div class="idea-emblem"><svg viewBox="0 0 100 100" fill="none"><path d="M34 62C10 39 28 13 50 13S90 39 66 62L62 76H38zM39 84H61M45 91H55M50 4V0M17 19L10 12M83 19L90 12M12 45H3M88 45H97M50 73V45M38 40L50 50L62 40"/></svg></div>
+              </div>
+            }
+            @case ('medals') {
+              <div class="medal-collection">
+                @for (medal of [0,1,2]; track medal) {
+                  <div [class]="'achievement-medal medal-' + medal"><div class="medal-ribbon"></div><div class="medal-disk"><div class="medal-face"><svg viewBox="0 0 100 100" fill="none"><path d="M50 15L60 37L85 40L67 58L71 83L50 71L29 83L33 58L15 40L40 37z"/></svg><span>الفلاح</span></div><div class="medal-glint"></div></div></div>
+                }
+              </div>
+            }
+            @case ('ranks') {
+              <div class="podium-world"><div class="podium">
+                <div class="podium-step step-two"><span>٢</span><i></i><b></b></div>
+                <div class="podium-step step-one"><span>١</span><i></i><b></b><svg class="podium-cup" viewBox="0 0 140 160" fill="none"><path d="M37 16H103L98 65C95 90 83 99 70 99S45 90 42 65zM40 29H14V48C14 66 30 76 44 76M100 29H126V48C126 66 110 76 96 76M70 99V125M47 137H93L101 151H39z"/><path d="M70 30L76 44L91 46L80 57L82 72L70 65L58 72L60 57L49 46L64 44z"/></svg></div>
+                <div class="podium-step step-three"><span>٣</span><i></i><b></b></div>
+              </div></div>
+            }
+          }
+        </div>
+        @if (scene.story) {<button class="achievement-evidence" type="button" (click)="openStory(scene.story)"><span>{{ scene.caption }}</span><i class="pi pi-arrow-up-left" aria-hidden="true"></i></button>}
+      </article>
+    }
+  </div>
+  <div class="achievement-controls">
+    <div class="achievement-chapters" aria-label="محطات الإنجازات">
+      @for (scene of scenes; track scene.id; let index = $index) {<button type="button" [attr.aria-current]="index === active() ? 'step' : null" (click)="choose(index)"><span>{{ scene.chapter }}</span><i aria-hidden="true"><b [attr.data-progress]="index"></b></i></button>}
+    </div>
+    <button class="achievement-play" type="button" [attr.aria-label]="playing() ? 'إيقاف عرض الإنجازات' : 'تشغيل عرض الإنجازات'" [attr.aria-pressed]="playing()" (click)="toggle()"><i class="pi" [class.pi-pause]="playing()" [class.pi-play]="!playing()" aria-hidden="true"></i></button>
+    <button class="achievement-record" type="button" (click)="honorsRequested.emit()">سجل الإنجازات<i class="pi pi-arrow-up-left" aria-hidden="true"></i></button>
+  </div>
+</div>

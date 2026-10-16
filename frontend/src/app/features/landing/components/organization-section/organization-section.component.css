@@ -99,6 +99,14 @@ h2 em {
   line-height: 1.9;
 }
 
+.heading-copy app-falah-quill {
+  display: block;
+  width: 142px;
+  height: 26px;
+  margin: -4px auto 12px;
+  color: var(--gold-highlight);
+}
+
 .team-summary {
   flex: 0 0 auto;
   display: flex;

@@ -9,10 +9,27 @@
 }
 
 .section-heading,
+app-achievement-film,
 app-achievements-showcase {
   display: block;
   width: var(--landing-container);
   margin-inline: auto;
+}
+
+app-achievement-film {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+app-achievements-showcase {
+  margin-block-start: 34px;
+}
+
+app-achievements-showcase.achievement-details-source {
+  width: 0;
+  height: 0;
+  margin: 0;
+  overflow: visible;
 }
 
 .section-heading {
@@ -26,6 +43,7 @@ app-achievements-showcase {
   font-weight: 700;
   font-size: 0.9rem;
 }
+.section-heading app-falah-quill { margin: 0 auto 14px; }
 
 h2 {
   color: var(--brand-950);

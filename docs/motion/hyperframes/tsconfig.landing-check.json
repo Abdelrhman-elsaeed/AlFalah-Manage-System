@@ -5,6 +5,7 @@
   },
   "include": [
     "../../../frontend/src/app/features/landing/**/*.spec.ts",
+    "../../../frontend/src/app/shared/components/achievements-showcase/**/*.spec.ts",
     "../../../frontend/src/**/*.d.ts"
   ]
 }

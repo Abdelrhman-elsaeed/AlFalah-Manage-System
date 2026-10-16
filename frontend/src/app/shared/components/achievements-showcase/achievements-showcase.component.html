@@ -1,5 +1,5 @@
 ﻿<div class="showcase" dir="rtl" (focusin)="onFocusIn()" (focusout)="onFocusOut($event)">
-  @if (view() !== 'news') {
+  @if (view() !== 'news' && view() !== 'honors') {
   <div class="stats-panel">
     <div class="stats-ribbon">
       @for (stat of stats(); track stat.id) {
@@ -26,7 +26,7 @@
     </div>
   </div>
   }
-  @if (view() !== 'achievements') {
+  @if (view() !== 'achievements' && view() !== 'honors') {
   <div class="stories-heading">
     <h3>{{ 'LANDING.FEATURED' | translate }}</h3>
     @if (view() === 'all') {

@@ -42,7 +42,10 @@ describe('LandingPageComponent visual structure', () => {
     expect(achievements).withContext('achievements section should exist').not.toBeNull();
     expect(news).withContext('news section should exist').not.toBeNull();
     expect(achievements.nextElementSibling).toBe(news);
-    expect(achievements.querySelector('.stats-panel')).not.toBeNull();
+    expect(achievements.querySelector('.achievement-film')).not.toBeNull();
+    expect(achievements.querySelectorAll('.achievement-scene').length).toBe(5);
+    expect(achievements.querySelectorAll('.achievement-facts').length).toBe(5);
+    expect(achievements.querySelector('.stats-panel')).toBeNull();
     expect(achievements.querySelector('.story-carousel')).toBeNull();
     expect(news.querySelector('.stats-panel')).toBeNull();
     expect(news.querySelector('.story-carousel')).not.toBeNull();

@@ -3,8 +3,10 @@
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EventEmitter,
   HostListener,
   OnDestroy,
+  Output,
   ViewChild,
   computed,
   inject,
@@ -26,7 +28,8 @@ import { AchievementImageDirective } from './achievement-image.directive';
   styleUrls: ['./achievements-showcase.component.css']
 })
 export class AchievementsShowcaseComponent implements AfterViewInit, OnDestroy {
-  readonly view = input<'all' | 'achievements' | 'news'>('all');
+  @Output() readonly dialogOpenChange = new EventEmitter<boolean>();
+  readonly view = input<'all' | 'achievements' | 'news' | 'honors'>('all');
   readonly activeStoryIndex = signal(1);
   readonly selectedStory = signal<AchievementStory | null>(null);
   readonly currentModalImageIndex = signal(0);
@@ -115,7 +118,7 @@ export class AchievementsShowcaseComponent implements AfterViewInit, OnDestroy {
   }
   private syncPlayback(): void {
     const paused =
-      this.view() === 'achievements' ||
+      this.view() === 'achievements' || this.view() === 'honors' ||
       !this.visible ||
       this.hovered ||
       this.focused ||
@@ -187,12 +190,14 @@ export class AchievementsShowcaseComponent implements AfterViewInit, OnDestroy {
     // Render the selected story and accessible name before the browser moves focus.
     this.changeDetector.detectChanges();
     this.detailsDialog.nativeElement.showModal();
+    this.dialogOpenChange.emit(true);
     this.syncPlayback();
   }
   closeDialog(): void {
     this.detailsDialog.nativeElement.close();
   }
   onDialogClosed(): void {
+    this.dialogOpenChange.emit(false);
     this.selectedStory.set(null);
     this.showAllHonorsModal.set(false);
     this.restoreScrolling();

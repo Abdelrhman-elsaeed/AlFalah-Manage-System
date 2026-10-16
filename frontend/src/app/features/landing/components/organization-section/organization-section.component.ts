@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, inject, signal } from '@angular/core';
+import { FalahQuillComponent } from '../falah-quill/falah-quill.component';
 
 interface StaffMember {
   readonly id: number;
@@ -52,6 +53,7 @@ const STAFF_PHOTOS: Readonly<Record<number, string>> = {
 @Component({
   selector: 'app-organization-section',
   standalone: true,
+  imports: [FalahQuillComponent],
   templateUrl: './organization-section.component.html',
   styleUrls: ['./organization-section.component.css']
 })

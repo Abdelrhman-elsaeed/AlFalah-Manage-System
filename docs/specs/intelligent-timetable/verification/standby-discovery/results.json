@@ -1,0 +1,173 @@
+{
+  "assessment": "C37 / D-129 - Standby discovery",
+  "date": "2026-10-16",
+  "command": "dotnet test backend/AlFalah.Tests/AlFalah.Tests.csproj -c Release --no-restore --filter \"FullyQualifiedName~TimetableSubstitutionPhase8Tests|FullyQualifiedName~TeacherAvailabilityPhase4Tests\" --logger \"trx;LogFileName=standby-baseline.trx\" --results-directory .audit/standby-discovery -m:1 /p:UseSharedCompilation=false /p:CopyRetryCount=0",
+  "exitCode": 0,
+  "counters": {
+    "total": "36",
+    "executed": "36",
+    "passed": "36",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "trxSha256": "aa4fee0ea285849b60aef1f4f147e3be518cdc242aa3afbbe5d94fb594254cc9",
+  "scope": "Existing engine/service/repository fixtures; EF InMemory; no live browser, operational SQL or Google Drive verification. No implementation changes.",
+  "buildNote": "The initial Debug build could not copy API dependencies because the running Development API held the DLLs. Release build/test completed without stopping that API. Existing unrelated EF1002 test-source warnings were retained.",
+  "results": [
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Inline_same_day_contract_projects_server_proposals_to_grid_cells",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Scheduled_standby_can_cover_a_lesson_without_changing_the_weekly_standby",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Rejects_other_schools_inactive_teachers_negative_load_duplicate_and_foreign_cells",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Recorded_absence_disqualifies_a_replacement",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Concurrent_first_profile_creation_conflicts_with_a_prevalidated_assignment",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_moves_day_and_period_and_uses_the_destination_day_time",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Forbidden_roles_and_view_only_users_cannot_read_or_edit(role: \"Guardian\", manage: True)",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Confirmation_revalidates_availability_and_red_is_never_overridden",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.A_lesson_at_the_same_time_is_not_offered_as_a_no_op_swap",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Closing_assigned_cell_keeps_lesson_and_reports_violation_but_lowering_load_is_rejected",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Free_teacher_is_green_and_cover_does_not_rewrite_assignment_quota",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Authorized_yellow_acceptance_requires_and_records_reason(role: \"SchoolManager\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.First_load_defaults_to_all_effective_periods_without_writing_a_profile",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Candidate_search_honors_cancellation_before_entering_the_hot_loop",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Saves_profile_flags_and_bulk_grid_atomically_with_audit_and_rejects_stale_revision",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Stale_expired_and_tampered_proposals_never_write",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Prepared_swap_validation_matches_the_full_validator_for_generated_moves",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Cover_is_live_date_scoped_audited_versioned_and_idempotent",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Busy_same_day_candidate_search_completes_within_the_interactive_budget",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Forbidden_roles_and_view_only_users_cannot_read_or_edit(role: \"Instructor\", manage: True)",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_executes_atomically_and_persists_both_days",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Co_teachers_and_pairs_move_together_in_a_structural_swap",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Live_structural_swap_keeps_publication_and_creates_fresh_analysis",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Zero_is_a_hard_limit_and_unavailability_blocks_lessons_and_standby",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Fourth_consecutive_period_is_yellow",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Notification_outbox_dispatch_is_deduplicated_and_notifies_both_teachers",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Direct_swap_and_three_way_cycles_are_explicit_same_day_and_safe",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Timing_changes_preserve_exact_times_only_and_require_explicit_review",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Paired_cover_is_persisted_as_one_change_and_both_slots_become_live",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TeacherAvailabilityPhase4Tests.Forbidden_roles_and_view_only_users_cannot_read_or_edit(role: \"Secretary\", manage: False)",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Unauthorized_yellow_override_school_leak_and_viewer_execution_are_blocked",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_rejects_cross_day_candidates_that_touch_confirmed_future_cover",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Unavailable_teacher_and_teacher_collision_are_red",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Selecting_second_half_covers_both_periods",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Whole_timetable_marks_disallowed_destination_days_red",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Timetables.TimetableSubstitutionPhase8Tests.Authorized_yellow_acceptance_requires_and_records_reason(role: \"Secretary\")",
+      "outcome": "Passed"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # 13 — Glossary (Bilingual)
 
-**Status:** Baseline · **Last updated:** 2026-07-10
+**Status:** Living glossary · **Last updated:** 2026-10-16
 
 | English | Arabic | Notes |
 |---------|--------|-------|
@@ -8,6 +8,9 @@
 | Main Manager | مدير المدارس العام | Global scope, cannot see complaint details |
 | School Manager | مدير المدرسة | One school only, exactly one per school |
 | Moderator | مشرف | Selected school context; can serve multiple schools |
+| Scheduled Standby Slot | خانة انتظار مجدولة | A teacher marked as available reserve in a published timetable period; not a dismissal-duty assignment |
+| Waiting-Period Coverage | تغطية حصة انتظار | A dated assignment of a replacement teacher to cover a specific lesson |
+| Waiting-Period Execution | تنفيذ حصة انتظار | What the covering teacher actually performed, recorded separately from the assignment itself |
 | Instructor / Teacher | معلم | Own account only |
 | School | مدرسة | Identity = Name + Stage + City + LocationDetails |
 | Visit | زيارة | Classroom visit / evaluation event |

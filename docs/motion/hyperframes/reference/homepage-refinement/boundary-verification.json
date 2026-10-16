@@ -1,0 +1,109 @@
+{
+  "duration": 45,
+  "times": [
+    {
+      "time": 8.55,
+      "current": "students",
+      "visible": [
+        "students",
+        "participations"
+      ]
+    },
+    {
+      "time": 8.95,
+      "current": "students",
+      "visible": [
+        "participations"
+      ]
+    },
+    {
+      "time": 9.05,
+      "current": "participations",
+      "visible": [
+        "participations"
+      ]
+    },
+    {
+      "time": 17.55,
+      "current": "participations",
+      "visible": [
+        "participations",
+        "projects"
+      ]
+    },
+    {
+      "time": 17.95,
+      "current": "participations",
+      "visible": [
+        "projects"
+      ]
+    },
+    {
+      "time": 18.05,
+      "current": "projects",
+      "visible": [
+        "projects"
+      ]
+    },
+    {
+      "time": 26.55,
+      "current": "projects",
+      "visible": [
+        "projects",
+        "medals"
+      ]
+    },
+    {
+      "time": 26.95,
+      "current": "projects",
+      "visible": [
+        "medals"
+      ]
+    },
+    {
+      "time": 27.05,
+      "current": "medals",
+      "visible": [
+        "medals"
+      ]
+    },
+    {
+      "time": 35.55,
+      "current": "medals",
+      "visible": [
+        "medals",
+        "ranks"
+      ]
+    },
+    {
+      "time": 35.95,
+      "current": "medals",
+      "visible": [
+        "ranks"
+      ]
+    },
+    {
+      "time": 36.05,
+      "current": "ranks",
+      "visible": [
+        "ranks"
+      ]
+    },
+    {
+      "time": 44.2,
+      "current": "ranks",
+      "visible": [
+        "ranks"
+      ]
+    },
+    {
+      "time": 44.85,
+      "current": "ranks",
+      "visible": [
+        "ranks",
+        "students"
+      ]
+    }
+  ],
+  "errors": []
+}

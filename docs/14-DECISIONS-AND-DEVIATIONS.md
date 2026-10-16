@@ -1,9 +1,19 @@
 # 14 — Decisions & Deviations (Living Log)
 
-**Status:** Living document · **Last updated:** 2026-10-14
+**Status:** Living document · **Last updated:** 2026-10-16
 
 This file records every intentional deviation from the spec and key engineering
 decisions. **Update it whenever a deviation is accepted.**
+
+## C37 / D-129 — Waiting-period discovery and source correction (2026-10-16)
+
+The owner corrected the source to `3.jpeg`, the official **سجل توزيع حصص الانتظار**, `QF71-B-2-1`; `2.jpeg` remains the teaching-assignment sheet. The current source was visually inspected and fingerprinted. [Discovery](specs/intelligent-timetable/10-standby-periods-discovery.md) traces existing weekly Standby cells, dated lesson coverage, attendance, permissions, generation, notifications and effective teacher ownership. Existing confirmed coverage/audit/outbox behavior is retained; automatic absence-wide allocation, fairness, signed execution and the official waiting-period register are gaps. School Duty dismissal supervision remains a separate process.
+
+The assessment identifies generation replacement of manual Standby cells, a gaps warning misleadingly named waiting periods, and different editor-grant checks between editing and daily cover. These are source findings for implementation review, not fixes claimed in this phase. The paper's «التوقيع بالعلم» does not decide signature timing or row-level approval. Candidate priority/fallback, absence automation, fairness, signature timing, delegation and archival policy remain proposals/questions, not owner-approved requirements. No application behavior, school data, schema, permission grant or provider write changed. Existing unrelated working-tree changes are preserved.
+
+### C37 owner clarification — eligibility, absence and distribution modes (2026-10-16)
+
+The owner explicitly confirmed: (1) only teachers with a scheduled standby period are eligible; a free teaching slot alone is insufficient; (2) Secretary-recorded absence prepares coverage needs and candidate proposals automatically, with administrator approval before an assignment takes effect; (3) the administrator chooses **manual distribution** or **fair distribution** at distribution time. Both modes preserve the standby-only eligibility and existing hard constraints. No eligible standby teacher leaves an explicit uncovered need, with no free-teacher fallback. The revised [discovery specification](specs/intelligent-timetable/10-standby-periods-discovery.md) distinguishes these confirmed decisions from remaining fairness math, weekly quotas, signature, delegation and archive questions. This clarification updates documentation only; current application behavior has not been changed or reverified as implementing the new policy.
 
 | ID | Date | Area | Decision / Deviation | Rationale | Status |
 |----|------|------|----------------------|-----------|--------|

@@ -1,5 +1,7 @@
 # Phase 08 — Lesson Swaps and Substitution
 
+> **Standby discovery (2026-10-16):** The existing `Standby` cell and daily substitution engine are retained as the foundation for the separate waiting-period register. The official `QF71-B-2-1` distribution/execution record is not implemented by this phase. See [standby-periods-discovery](10-standby-periods-discovery.md). Do not conflate it with School Duty dismissal supervision.
+
 **Module:** Intelligent Timetable (الجدول الذكي)  
 **Status:** Implemented — see [Phase 8 delivery notes](../../phases/PHASE-TT-08-SUBSTITUTION.md)
 **Primary actor:** Authorized timetable editor

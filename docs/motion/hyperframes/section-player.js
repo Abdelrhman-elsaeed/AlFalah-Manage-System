@@ -4,7 +4,7 @@
  const root=document.getElementById('falah-section'),wrapper=window.__afWrapper||document.getElementById('af-live-section'),reference=window.__afReference||document.querySelector('#af-vision-reference .vision');
  const tl=window.__timelines.main,scenes=window.__afScenes,duration=47;
  const mq=matchMedia('(prefers-reduced-motion: reduce)');
- let time=0,playing=false,userPaused=false,visible=false,frame=0,lastStamp=null,worldPromise=null,lastRendered=-1,loopCount=0;
+ const playbackRate=.9;let time=0,playing=false,userPaused=false,visible=false,frame=0,lastStamp=null,worldPromise=null,lastRendered=-1,loopCount=0;
  const cleanups=[];function on(target,type,handler){target.addEventListener(type,handler);cleanups.push(()=>target.removeEventListener(type,handler))}
  const playButton=document.getElementById('af-play'),label=document.querySelector('.af-chapter-name');
  const pauseIcon=playButton.innerHTML,playIcon='<svg class="af-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4l12 8-12 8z"/></svg>';
@@ -24,7 +24,7 @@
  function setButton(){playButton.innerHTML=playing?pauseIcon:playIcon;playButton.setAttribute('aria-label',playing?'إيقاف الحركة':'تشغيل الحركة');playButton.setAttribute('aria-pressed',String(playing))}
  function pause(manual=false){playing=false;lastStamp=null;cancelAnimationFrame(frame);if(manual)userPaused=true;setButton()}
  function tick(stamp){
-  if(!playing||window.__afDisposed)return;if(lastStamp!==null)time+=Math.min((stamp-lastStamp)/1000,.12);lastStamp=stamp;
+  if(!playing||window.__afDisposed)return;if(lastStamp!==null)time+=Math.min((stamp-lastStamp)/1000,.12)*playbackRate;lastStamp=stamp;
   if(time>=duration){time%=duration;loopCount++;lastRendered=-1}
   // 30fps is enough for the section and bounds WebGL work on high-refresh screens.
   if(time-lastRendered>=1/30-.0005||time>=duration-.002){paint();lastRendered=time}

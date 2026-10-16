@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, NgZone, ViewChild, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { FALAH_STORY_MODULE } from './story-assets';
+import { FalahQuillComponent } from '../falah-quill/falah-quill.component';
 
 interface StoryController { dispose(): void; }
 interface StoryModule {
@@ -14,7 +15,7 @@ interface StoryModule {
 @Component({
   selector: 'app-system-story',
   standalone: true,
-  imports: [TranslateModule],
+  imports: [TranslateModule, FalahQuillComponent],
   templateUrl: './system-story.component.html',
   styleUrls: ['./system-story.component.css']
 })

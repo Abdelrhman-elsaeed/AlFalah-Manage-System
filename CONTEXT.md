@@ -102,6 +102,26 @@ _Avoid_: Number of classrooms, number of subjects
 A teacher-row statement grouping assigned sections under their grades and separating specialization periods from other-subject periods, with a total teacher load.
 _Avoid_: Published timetable, duty roster
 
+**Scheduled Standby Slot (خانة انتظار مجدولة)**:
+A weekly period reserved for a teacher to be available for cover. It has no assigned classroom or subject until a dated coverage assignment is made.
+_Avoid_: Free period, dismissal duty, completed cover
+
+**Waiting-Period Coverage (تغطية حصة انتظار)**:
+A dated assignment for a replacement teacher to cover a particular lesson while retaining its original teacher, classroom and subject.
+_Avoid_: Structural lesson swap, permanent teaching assignment
+
+**Waiting-Period Execution (تنفيذ حصة انتظار)**:
+The covering teacher's record of what actually happened during an assigned waiting period. Assignment alone does not establish execution.
+_Avoid_: Scheduled standby, automatic completion
+
+**Eligible Waiting-Period Teacher (المعلم المؤهل للانتظار)**:
+A teacher explicitly scheduled as standby for the required period who also satisfies availability, attendance and collision constraints. A free period alone does not qualify a teacher, in either manual or fair distribution.
+_Avoid_: Any free teacher, unrestricted manual substitute
+
+**Waiting-Period Distribution Mode (طريقة توزيع الانتظار)**:
+The responsible administrator's choice at distribution time between selecting eligible standby teachers manually and reviewing a fair-distribution proposal. Absence generates coverage needs and suggestions; administrator approval makes an assignment effective.
+_Avoid_: Automatic final assignment, fixed school-wide distribution mode
+
 
 ## C33 / D-125 - Classroom catalogue foundation (2026-10-15)
 
