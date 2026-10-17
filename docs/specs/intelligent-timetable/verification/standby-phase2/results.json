@@ -1,0 +1,45 @@
+{
+  "phase": 2,
+  "change": "C39 / D-131",
+  "backend": {
+    "passed": 333,
+    "skipped": 2,
+    "failed": 0,
+    "includesFreshIsolatedSql": true,
+    "trx": ".audit/standby-phase2/test-results/final.trx"
+  },
+  "angular": {
+    "passed": 11,
+    "failed": 0,
+    "log": ".audit/standby-phase2/frontend-final.txt"
+  },
+  "browser": [
+    "manager/teacher 390,768,1440,1920",
+    "manual choice + fair preview + approval",
+    "wrong owner HTTP 403",
+    "teacher board HTTP 403",
+    "future receipt + early execution disabled",
+    "persisted historical draft reload + signed execution",
+    "retained separate signatures",
+    "dashboard direct tasks"
+  ],
+  "schemaCount": 74,
+  "existingValueHashesUnchangedAcrossTables": 45,
+  "localAuthenticatedReadOnlyChecks": true,
+  "efModelMatchesMigration": true,
+  "providerWrites": false,
+  "productionBuild": {
+    "passed": false,
+    "unchangedBudgetFailures": [
+      "visits-v2/visit-workspace/visit-workspace.component.css 34.50 kB > 32 kB",
+      "storage/storage-page.component.css 39.34 kB > 32 kB"
+    ]
+  },
+  "broaderRegression": {
+    "passed": 330,
+    "failed": 1,
+    "failure": "Unchanged SQLite SocialWorkerCrmRepositoryQueryTests fixture lacks Users.ProtectedPassword; retained in regression-tests.txt"
+  },
+  "phase3Started": false,
+  "ownerVisualAcceptance": "pending"
+}

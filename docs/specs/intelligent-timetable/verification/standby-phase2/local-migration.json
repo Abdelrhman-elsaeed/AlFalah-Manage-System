@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-16T18:32:46.376985+00:00",
+  "migration": "20261016181024_AddDailyStandbyCoverage",
+  "schemaCount": 74,
+  "tablesChecked": 45,
+  "existingValuesUnchanged": true,
+  "originalStateHash": "7C51A01A1DBC65B3691B8C4239FE1B58790FAE3989D234D7AF0B66CD2745D792",
+  "providerWrites": false
+}

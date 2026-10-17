@@ -14,6 +14,7 @@ public sealed class SignatureEnrollmentMiddleware(RequestDelegate next)
             || !path.StartsWithSegments("/api") || path.StartsWithSegments("/api/v1/auth")
             || path.StartsWithSegments("/api/v1/account/signature")
             || path.StartsWithSegments("/api/v1/school-duty")
+            || path.StartsWithSegments("/api/v1/timetable-coverage")
             || context.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() is not null)
         {
             await next(context);

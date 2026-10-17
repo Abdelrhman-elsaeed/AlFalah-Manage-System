@@ -21,6 +21,7 @@ public sealed class StudentAffairsNotificationDispatcher
     public Task ProcessAsync(IDomainEvent domainEvent, CancellationToken cancellationToken) => domainEvent switch
     {
         TeacherTimetableChangedEvent changed => TimetableChangedAsync(changed, cancellationToken),
+        CoverageAttentionEvent coverage => CoverageAttentionAsync(coverage, cancellationToken),
         MessageReleaseDueEvent released => MessageReleasedAsync(released, cancellationToken),
         GP9jdFE6bJJJBXm548MTsCQvpLk7RqkKB7 summon
             when summon.Action is "Scheduled" or "Rescheduled" => GuardianSummonScheduledAsync(summon, cancellationToken),
@@ -194,20 +195,39 @@ public sealed class StudentAffairsNotificationDispatcher
 
     private async Task TimetableChangedAsync(TeacherTimetableChangedEvent change, CancellationToken ct)
     {
+        var need = change.Kind == "Substitution" ? await _context.Set<DailyCoverageNeed>().AsNoTracking()
+            .SingleOrDefaultAsync(n => n.SchoolId == change.SchoolId && n.ActiveSubstitutionId == change.SubstitutionId, ct) : null;
         var prefix = $"timetable:{change.EventId:N}:";
         var delivered = await _context.Notifications.IgnoreQueryFilters().AsNoTracking()
             .Where(n => n.SchoolId == change.SchoolId && n.CorrelationId == change.EventId)
             .Select(n => n.UserId).ToListAsync(ct);
         foreach (var userId in change.TeacherUserIds.Distinct().Except(delivered))
             _context.Notifications.Add(new Notification {
-                SchoolId = change.SchoolId, UserId = userId, Title = "تغيير في الجدول الدراسي",
-                Message = change.Kind == "Substitution"
-                    ? $"تم اعتماد احتياطي يوم {change.LocalDate:yyyy-MM-dd}. راجع جدولك اليومي (المراجعة {change.Revision})."
+                SchoolId = change.SchoolId, UserId = userId, Title = need?.AssignedUserId == userId ? "تكليف حصة انتظار" : "تغيير في الجدول الدراسي",
+                Message = change.Kind == "CoverageRelease" ? $"تم إلغاء تكليف التغطية يوم {change.LocalDate:yyyy-MM-dd} وإعادة الحصة لمعلمها الأصلي."
+                    : change.Kind == "Substitution"
+                    ? need == null ? $"تم تحديث تغطية يوم {change.LocalDate:yyyy-MM-dd}. راجع جدولك اليومي."
+                        : $"تم اعتماد تغطية {need.Classroom} · {need.Subject} · الحصص {string.Join("، ", System.Text.Json.JsonSerializer.Deserialize<int[]>(need.PeriodsJson)!)} يوم {need.LocalDate:yyyy-MM-dd}. راجع تكليفات الانتظار للإقرار والتنفيذ."
                     : $"تم تبديل حصص في جدولك المنشور وأصبح التغيير سارياً فوراً (المراجعة {change.Revision}).",
-                Type = "TeacherTimetableChanged", RelatedEntityType = nameof(TimetableSubstitution), RelatedEntityId = change.SubstitutionId.ToString(),
+                Type = "TeacherTimetableChanged", RelatedEntityType = need == null ? nameof(TimetableSubstitution) : nameof(DailyCoverageNeed), RelatedEntityId = need?.Id.ToString() ?? change.SubstitutionId.ToString(),
                 CorrelationId = change.EventId, DeduplicationKey = prefix + userId, Priority = NotificationPriority.High,
                 DeliveryStatus = NotificationDeliveryStatus.Delivered, DeliveredAt = _timeProvider.GetUtcNow()
             });
+    }
+
+    private async Task CoverageAttentionAsync(CoverageAttentionEvent coverage, CancellationToken ct)
+    {
+        var recipients = coverage.Kind == "Reopen" && coverage.TeacherUserId != null ? new List<string> { coverage.TeacherUserId }
+            : await _context.UserSchoolRoles.AsNoTracking().Where(a => a.SchoolId == coverage.SchoolId && a.IsActive && a.User.IsActive &&
+                (a.Role.Name == AlFalah.Domain.Enums.RoleNames.SchoolManager || a.Role.RolePermissions.Any(p => p.Permission.Name == AlFalah.Domain.Enums.PermissionNames.TimetableManage) ||
+                 _context.TimetableEditorGrants.Any(g => g.SchoolId == coverage.SchoolId && g.ModeratorUserId == a.UserId)))
+                .Select(a => a.UserId).Distinct().ToListAsync(ct);
+        var delivered = await _context.Notifications.AsNoTracking().Where(n => n.SchoolId == coverage.SchoolId && n.CorrelationId == coverage.EventId).Select(n => n.UserId).ToListAsync(ct);
+        foreach (var user in recipients.Except(delivered)) _context.Notifications.Add(new Notification { SchoolId = coverage.SchoolId, UserId = user,
+            Title = coverage.Kind == "Reopen" ? "تصحيح تنفيذ الانتظار" : "تغطية انتظار تحتاج مراجعة", Message = coverage.Message,
+            Type = "CoverageAttention", RelatedEntityType = nameof(DailyCoverageNeed), RelatedEntityId = coverage.NeedId.ToString(),
+            CorrelationId = coverage.EventId, DeduplicationKey = $"coverage:{coverage.EventId:N}:{user}", Priority = NotificationPriority.High,
+            DeliveryStatus = NotificationDeliveryStatus.Delivered, DeliveredAt = _timeProvider.GetUtcNow() });
     }
 
     private async Task ProcessSessionDelayAsync(

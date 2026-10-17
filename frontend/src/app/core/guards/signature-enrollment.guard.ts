@@ -11,6 +11,7 @@ export const signatureEnrollmentGuard: CanActivateChildFn = (_route, state) => {
   if (state.url.split('?')[0] === '/account/signature') return true;
   const path = state.url.split(/[?#]/)[0];
   if (path === '/school-duty' || path.startsWith('/school-duty/')) return true;
+  if (path === '/standby-tasks') return true;
   if (state.url.startsWith('/timetable') && new URLSearchParams(state.url.split('?')[1]).get('tab') === 'duty') return true;
   const target = () => router.createUrlTree(['/auth/signature'], { queryParams: { returnUrl: state.url } });
   return inject(SignatureEnrollmentService).requirement().pipe(

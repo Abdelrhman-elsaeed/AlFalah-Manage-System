@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
+import { DailyCoverageService } from '../../../core/services/daily-coverage.service';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { InstructorDashboard } from '../../../core/models/dashboard.models';
 import { TeacherTopPriorityDto } from '../../../core/models/student-affairs-dashboard.models';
@@ -16,10 +18,11 @@ describe('InstructorDashboardComponent', () => {
     dashboards.getInstructor.and.returnValue(of(success(performance())));
 
     await TestBed.configureTestingModule({
-      imports: [InstructorDashboardComponent, RouterTestingModule],
+      imports: [InstructorDashboardComponent, RouterTestingModule, TranslateModule.forRoot()],
       providers: [
         { provide: StudentAffairsDashboardService, useValue: studentAffairs },
-        { provide: DashboardService, useValue: dashboards }
+        { provide: DashboardService, useValue: dashboards },
+        { provide: DailyCoverageService, useValue: { tasks: () => of(success({ items: [], page: 1, pageSize: 5, totalCount: 0, totalPages: 0, hasNext: false, hasPrevious: false })) } }
       ]
     }).compileComponents();
 

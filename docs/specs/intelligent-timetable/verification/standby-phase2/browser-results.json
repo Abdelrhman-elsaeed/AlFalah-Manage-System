@@ -1,0 +1,57 @@
+{
+  "at": "2026-10-16T18:34:29.660Z",
+  "isolated": true,
+  "providerWrites": false,
+  "checks": [
+    "manager/teacher 390,768,1440,1920",
+    "manual choice + fair preview + approval",
+    "wrong owner HTTP 403",
+    "teacher board HTTP 403",
+    "future receipt + early execution disabled",
+    "persisted historical draft reload + signed execution",
+    "retained separate signatures",
+    "dashboard direct tasks"
+  ],
+  "results": [
+    {
+      "width": 390,
+      "manager": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 768,
+      "manager": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1440,
+      "manager": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1920,
+      "manager": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 390,
+      "teacher": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 768,
+      "teacher": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1440,
+      "teacher": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1920,
+      "teacher": true,
+      "pageOverflow": false
+    }
+  ]
+}

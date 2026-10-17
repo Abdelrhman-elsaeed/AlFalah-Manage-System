@@ -127,8 +127,8 @@ public sealed class TimetableValidationEngine
         foreach (var teacher in c.Teachers)
         {
             var lessons = entries.Where(x => x.InstructorProfileId == teacher.InstructorProfileId && x.EntryType == TimetableEntryType.Lesson).ToArray();
-            if (lessons.Length > teacher.MaximumWeeklyPeriods)
-                Add(ViolationRuleCode.ScheduleCountMismatch, $"نصاب المعلم {lessons.Length} يتجاوز الحد {teacher.MaximumWeeklyPeriods}.", lessons[0], lessons.Select(x => x.Id), detail: "maximum-load");
+            if (entries.Count(e => e.EntryType == TimetableEntryType.Lesson && AssignedTeacher(e) == teacher.InstructorProfileId) > teacher.MaximumWeeklyPeriods)
+                Add(ViolationRuleCode.ScheduleCountMismatch, $"نصاب المعلم {lessons.Length} يتجاوز الحد {teacher.MaximumWeeklyPeriods}.", entries.First(e => e.EntryType == TimetableEntryType.Lesson && AssignedTeacher(e) == teacher.InstructorProfileId), entries.Where(e => e.EntryType == TimetableEntryType.Lesson && AssignedTeacher(e) == teacher.InstructorProfileId).Select(e => e.Id), detail: "maximum-load");
             var lasts = lessons.Where(e => e.Period == Periods(c.Schedule, (int)e.Day).LastOrDefault()?.Sequence).ToArray();
             if (lasts.Length > 2) Add(ViolationRuleCode.UnfairLastPeriods, "أكثر من حصتين أخيرتين أسبوعياً للمعلم.", lasts[0], lasts.Select(x => x.Id));
             foreach (var day in lessons.GroupBy(x => x.Day))

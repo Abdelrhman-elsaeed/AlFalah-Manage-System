@@ -790,6 +790,272 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("Complaints");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.CoverageReconciliationSignal", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("LeaseOwner")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("NextAttemptAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("ProcessedAt", "NextAttemptAt", "LeaseUntil");
+
+                    b.ToTable("CoverageReconciliationSignals", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.CoverageRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DailyCoverageNeedId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Narrative")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("SignatureBytes")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("SignatureHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("SignatureUpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SnapshotHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SubstitutionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("SchoolId", "DailyCoverageNeedId");
+
+                    b.HasIndex("SchoolId", "RequestId")
+                        .IsUnique();
+
+                    b.HasIndex("SchoolId", "SubstitutionId");
+
+                    b.ToTable("CoverageRecords", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CoverageRecord_Signature", "([Kind] NOT IN ('Acknowledgement','Execution')) OR ([SignatureBytes] IS NOT NULL AND [SignatureHash] IS NOT NULL AND [SignatureUpdatedAt] IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.DailyCoverageNeed", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("AcknowledgedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ActiveSubstitutionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AssignedTeacherName")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("AssignedUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Classroom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CorrectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("EndsAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EntryIdsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Narrative")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("OriginalTeacherId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OriginalTeacherName")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("PeriodsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReviewReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolTimetableId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SourceEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("StartsAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("SubstituteWasAbsent")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId", "ActiveSubstitutionId");
+
+                    b.HasIndex("SchoolId", "OriginalTeacherId");
+
+                    b.HasIndex("SchoolId", "SchoolTimetableId");
+
+                    b.HasIndex("SchoolId", "SourceEntryId");
+
+                    b.HasIndex("SchoolId", "LocalDate", "SchoolTimetableId", "SourceEntryId")
+                        .IsUnique();
+
+                    b.ToTable("DailyCoverageNeeds", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CoverageNeed_State", "[State] IN ('Needed','Assigned','Acknowledged','Executed','Unable','ReviewRequired','Withdrawn')");
+
+                            t.HasCheckConstraint("CK_CoverageNeed_Window", "[StartsAt] < [EndsAt] AND [Revision] > 0");
+                        });
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DismissalLatenessRevision", b =>
                 {
                     b.Property<int>("Id")
@@ -11646,6 +11912,71 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("Visit");
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.CoverageReconciliationSignal", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.CoverageRecord", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.DailyCoverageNeed", "Need")
+                        .WithMany("Records")
+                        .HasForeignKey("SchoolId", "DailyCoverageNeedId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.TimetableSubstitution", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SubstitutionId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Need");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.DailyCoverageNeed", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.TimetableSubstitution", "ActiveSubstitution")
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "ActiveSubstitutionId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AlFalah.Domain.Entities.InstructorProfile", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "OriginalTeacherId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetable", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SchoolTimetableId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.SchoolTimetableEntry", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId", "SourceEntryId")
+                        .HasPrincipalKey("SchoolId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActiveSubstitution");
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DismissalLatenessRevision", b =>
                 {
                     b.HasOne("AlFalah.Domain.Entities.School", null)
@@ -15661,6 +15992,11 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Navigation("FixedSlots");
 
                     b.Navigation("Rooms");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.DailyCoverageNeed", b =>
+                {
+                    b.Navigation("Records");
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.Duty.DutyPlan", b =>

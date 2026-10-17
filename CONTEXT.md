@@ -141,3 +141,17 @@ The owner approved implementation after C32. C33 locally adds the existing-ID ma
 ## C38 / D-130 — Weekly standby phase 1 (2026-10-16)
 
 Weekly standby is implemented in the existing timetable's separate manager tab after complete validated teaching. Manual/fair selection, visible editable demand (default1 per teaching period,0 otherwise), exclusions, natural capacity, explicit locks, reviewed proposals, undo and guarded draft save/publication are delivered. No arbitrary per-teacher quota is introduced. New additive settings/lock/source metadata preserves legacy manual intent, history/clone/restore/regeneration and teaching IDs on weekly apply. Present/future confirmed coverage guards the older full-entry replacement path.124 backend/SQL and5 Angular tests and actual responsive SQL/browser workflows pass; details and acceptance limits: docs/specs/intelligent-timetable/standby-periods/weekly-implementation.md. Daily coverage/teacher execution and official QF71-B-2-1 remain phases2/3; do not conflate the existing weekly timetable PDF with that register.
+
+## C39 / D-131 — Daily standby coverage, phase 2 (2026-10-16)
+
+Phase 2 adds durable attendance-driven needs, independent manual/fair preview and atomic administrator approval through the existing substitution/version/outbox ledger. Every covered period requires scheduled standby; free-only teachers cannot be assigned through old or new endpoints. Fairness balances distinct actual signed execution periods plus pending/proposed term commitments; manual choices are reserved first. Existing timetable manager/delegated-editor authority is reused. Full-day Absent/Excused facts are the input; do not infer partial-day attendance.
+
+The owner explicitly confirms separate signed receipt and signed execution. `/standby-tasks`, teacher navigation/dashboard and existing internal notifications lead to revision-safe drafts, signed receipt, execution after actual period end, inability reporting and administrator correction/release. Signature bytes and assignment data are frozen per action. Reassignment preserves the old draft/receipt and denies the old teacher further edits; signed execution permits retained correction rather than reassignment. Corrected absence/publication/lesson timing requires review. Drafts and notification delivery are never execution.
+
+333 focused backend/SQL and 11 Angular checks pass; real SQL fault injection proves whole-batch rollback, replay and retained signatures. Actual authenticated browser workflows cover 390/768/1440/1920. See docs/specs/intelligent-timetable/verification/standby-phase2/README.md for evidence and limits. The broader unrelated SQLite messaging fixture failure and unchanged VisitsV2/storage production CSS budgets are recorded. Phase 3 official register/PDF/print acceptance is unstarted. No provider writes or deployment.
+
+**Coverage Need (احتياج تغطية)**: A school/date original lesson member or block prepared from recorded absence. It does not change ownership until approved in the existing substitution ledger.
+
+**Receipt Acknowledgement (إقرار الاستلام)**: The actual assigned teacher's independently signed acknowledgement of the assignment; it is not an execution report.
+
+**Signed Execution (تنفيذ موقّع)**: The actual teacher's submitted narrative/notes and signature snapshot after the lesson ends. Corrections append another retained version and count that need once in fairness.

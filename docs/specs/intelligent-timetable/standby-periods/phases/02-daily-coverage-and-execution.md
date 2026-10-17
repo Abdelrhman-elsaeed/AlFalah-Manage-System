@@ -1,6 +1,6 @@
 # Phase 2: daily coverage and teacher execution
 
-**State:** Not started.
+**State:** Delivered locally (C39 / D-131), 2026-10-16. 333 focused backend/SQL and 11 Angular checks pass; real isolated SQL/authenticated responsive browser evidence is linked below. Owner appearance/operational acceptance remains pending.
 **Depends on:** Phase 1 published standby.
 **Skills:** dotnet-layered-api-architect, frontend-design, domain-modeling for transitions/authority; tdd for business, authorization and durable integration behavior.
 
@@ -9,6 +9,8 @@
 A complete absence-to-execution journey: prepare needs, approve manual/fair assignments, notify the actual teacher and retain acknowledgement/execution under the agreed signature policy.
 
 ## Work
+
+Implementation decisions: the owner confirms separate signed acknowledgement and signed execution. Reuse current timetable management/delegated-editor authority. Attendance currently records full-day Present/Absent/Excused facts; Absent and Excused create needs, with no fabricated partial-day times. Fair distribution considers retained actual execution periods during the academic term plus pending approved work and current proposals; deterministic ties use teacher identity. Corrected absence or an absent substitute requests administrator review without erasing assignments or signed history. Execution submission follows the actual period end; authenticated teacher acknowledgement is available before execution. Corrections retain previous signed versions. No automatic deputy signature or PDF/archive operation is introduced.
 
 1. Resolve daily fair counters/tie-breaking, waiting-period administration/delegation, acknowledgement versus execution signing, deputy authority, correction/closure and partial-day absence policy as needed.
 2. Reuse Secretary attendance facts with a separate durable coverage reconciliation flow. Repeated/corrected absence cannot duplicate needs or silently erase completed work.
@@ -33,3 +35,5 @@ A complete absence-to-execution journey: prepare needs, approve manual/fair assi
 ## Exit and boundary
 
 Management can distinguish needed, assigned, acknowledged and executed work. The actual teacher can find and complete the agreed action, and retained snapshots are ready for phase 3. No second substitute or messaging system; no official PDF/Drive success claim before phase 3 proves the artifact.
+
+Delivered behavior: [implementation](../daily-implementation.md). Actual tests, captures, manual route and unchanged production build/unrelated regression limits: [evidence](../../verification/standby-phase2/README.md). Stop at this phase boundary; official QF71-B-2-1 remains phase 3.

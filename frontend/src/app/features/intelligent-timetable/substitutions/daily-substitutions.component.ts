@@ -29,9 +29,9 @@ export class DailySubstitutionsComponent implements OnInit {
   timetables: ReviewTimetableOption[] = []; timetableId: number | null = null;
   date = new Date(); dashboard: DailySubstitution | null = null; teacherId: number | null = null;
   busy = false; error = ''; notice = ''; search = ''; candidateSearch = '';
-  mode = 'Substitution'; source: SwapLesson | null = null; proposals: SwapCandidates | null = null;
+  mode = 'Swap'; source: SwapLesson | null = null; proposals: SwapCandidates | null = null;
   selected: SwapCandidate | null = null; dialog = false; reason = ''; requestId = '';
-  readonly modes = [{ label: 'احتياطي لهذا اليوم فقط', value: 'Substitution' }, { label: 'تبديل حصص الجدول', value: 'Swap' }];
+  readonly modes = [{ label: 'تبديل حصص الجدول', value: 'Swap' }];
   readonly labels = { Green: 'متاح تماماً', Yellow: 'متاح مع تجاوز', Red: 'غير متاح' };
   readonly severities = { Green: 'success', Yellow: 'warning', Red: 'danger' } as const;
   readonly icons = { Green: 'pi pi-check-circle', Yellow: 'pi pi-exclamation-triangle', Red: 'pi pi-ban' };

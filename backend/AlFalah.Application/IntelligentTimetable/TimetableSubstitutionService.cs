@@ -11,8 +11,11 @@ namespace AlFalah.Application.IntelligentTimetable;
 public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepository repository, TimetableSwapEngine engine,
     TimetableReviewService review, TimetableValidationEngine validator, ICurrentUserService user, TimeProvider clock)
 {
-    private bool CanManage => user.HasPermission(PermissionNames.TimetableManage) || user.IsGlobalAdmin() || user.IsInRole(RoleNames.SchoolManager);
-    public Task<IReadOnlyList<ReviewTimetableOption>> ListAsync(CancellationToken ct) => repository.GetTimetablesAsync(School(), ct);
+    private bool editorGranted;
+    private async Task Initialize(CancellationToken ct) => editorGranted = user.ActiveSchoolId is int school && user.UserId != null &&
+        user.IsInRole(RoleNames.Moderator) && await repository.HasEditorGrantAsync(school, user.UserId, ct);
+    private bool CanManage => editorGranted || user.HasPermission(PermissionNames.TimetableManage) || user.IsGlobalAdmin() || user.IsInRole(RoleNames.SchoolManager);
+    public async Task<IReadOnlyList<ReviewTimetableOption>> ListAsync(CancellationToken ct) { await Initialize(ct); return await repository.GetTimetablesAsync(School(), ct); }
     private bool CanOverride => CanManage && (user.IsGlobalAdmin() || user.IsInRole(RoleNames.SchoolManager) || user.IsInRole(RoleNames.Secretary));
     private int School(bool manage = false)
     {
@@ -29,6 +32,7 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
         return c;
     }
     public Task<DailySubstitutionDto> DailyAsync(int id, DateOnly date, CancellationToken ct) => repository.ExecuteAsync(async token => {
+        await Initialize(token);
         var c = await Context(id, date, token);
         var changes = await repository.GetChangesAsync(School(), id, date, token);
         var effective = Effective(c, changes);
@@ -48,6 +52,7 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
     }, ct);
     public async Task<SwapCandidatesDto> CandidatesAsync(int id, DateOnly date, int source, string mode, CancellationToken ct)
     {
+        await Initialize(ct);
         School(true); var c = await Context(id, date, ct); EnsureOperational(c, date, mode);
         var expires = clock.GetUtcNow().AddMinutes(5);
         return new SwapCandidatesDto(id, c.Timetable.Revision, date, source, mode, expires, CanOverride,
@@ -56,6 +61,7 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
     public async Task<InlineSwapCandidatesDto> InlineCandidatesAsync(int id, DateOnly date, int source,
         SwapSearchScope scope, CancellationToken ct)
     {
+        await Initialize(ct);
         School(true);
         if (!Enum.IsDefined(scope)) throw new ArgumentException("نطاق البحث غير صالح.");
         var c = await Context(id, date, ct);
@@ -78,7 +84,11 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
         var candidates = engine.Candidates(context, source, mode, date, expires, assigned, ct, scope);
         if (mode == "Substitution")
         {
+            if (!await repository.IsEffectivePublicationAsync(School(), c.Timetable.Id, date, ct))
+                throw new ArgumentException("اختر الجدول المنشور الوحيد للفصل الدراسي والتاريخ المحدد.");
             var absent = await repository.GetAbsentTeachersAsync(School(), date, ct);
+            var original = c.Timetable.Entries.Single(e => e.Id == source);
+            if (!absent.Contains(original.InstructorProfileId)) throw new ArgumentException("سجّل غياب المعلم الأصلي أولًا في كشف حضور الموظفين.");
             candidates = candidates.Select(p => p.Movements.Any(m => absent.Contains(m.ToTeacherId))
                 ? p with { Color = "Red", Errors = p.Errors.Append("المعلم مسجل غائباً في هذا اليوم.").ToArray() } : p).ToArray();
         }
@@ -129,6 +139,7 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
         if (mode == "Substitution" && !c.Timetable.IsPublished) throw new ArgumentException("الاحتياطي اليومي يتطلب جدولاً منشوراً.");
     }
     public Task<SubstitutionHistoryDto> ExecuteAsync(int id, ExecuteSwapRequest request, CancellationToken ct) => repository.ExecuteAsync(async token => {
+        await Initialize(token);
         School(true);
         if (!Enum.IsDefined(request.Scope)) throw new ArgumentException("نطاق البحث غير صالح.");
         if (request.RequestId == Guid.Empty) throw new ArgumentException("معرف العملية مطلوب.");
@@ -152,6 +163,25 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
                 throw new ArgumentException("يجب تسجيل سبب التجاوز (1–1000 حرف).");
         }
         if (request.OverrideReason?.Length > 1000) throw new ArgumentException("السبب أطول من 1000 حرف.");
+        DailyCoverageNeed? coverage = null;
+        if (candidate.Kind == "Substitution")
+        {
+            var original = c.Timetable.Entries.Single(e => e.Id == request.SourceEntryId);
+            var anchor = TimetableSwapEngine.Block(c, original).Where(e => e.InstructorProfileId == original.InstructorProfileId).Min(e => e.Id);
+            coverage = await repository.CoverageNeedAsync(School(), id, request.Date, anchor, token);
+            if (coverage != null && !DailyCoverageReconciler.Matches(coverage, c)) throw new BellScheduleConflictException("تغيرت تفاصيل الحصة؛ حدّث احتياجات التغطية قبل إعادة الإسناد.");
+            if (coverage?.SubmittedAt != null || coverage?.Records.Any(r => r.Kind == "Execution") == true) throw new ArgumentException("يوجد تنفيذ موقع؛ التصحيح يتم من سجل التنفيذ ولا يعيد إسناد الحصة.");
+            if (coverage?.ActiveSubstitutionId != null && string.IsNullOrWhiteSpace(request.OverrideReason))
+                throw new ArgumentException("اذكر سبب إعادة إسناد الحصة؛ السجل السابق سيظل محفوظًا.");
+            if (coverage == null) { coverage = DailyCoverageReconciler.Create(c, request.Date, request.SourceEntryId); repository.AddNeed(coverage); }
+            // Preserve the prior draft/receipt context before replacing the effective assignment.
+            var snapshot = JsonSerializer.Serialize(new { Before = DailyCoverageService.Map(coverage), Target = candidate.Movements[0].ToTeacherId, request.OverrideReason });
+            repository.AddRecord(new CoverageRecord {
+                SchoolId = School(), Need = coverage, SubstitutionId = coverage.ActiveSubstitutionId,
+                RequestId = request.RequestId, ActorUserId = user.UserId!, Kind = coverage.ActiveSubstitutionId == null ? "Assignment" : "Reassignment",
+                Revision = coverage.Revision, Narrative = coverage.Narrative, Notes = coverage.Notes, Reason = request.OverrideReason?.Trim(),
+                SnapshotJson = snapshot, SnapshotHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(snapshot))), CreatedAt = clock.GetUtcNow() });
+        }
         if (candidate.Kind != "Substitution") await repository.StageMovementsAsync(c.Timetable, candidate.Movements, token);
         c.Timetable.Revision++; c.Timetable.UpdatedByUserId = user.UserId!; c.Timetable.UpdatedAt = clock.GetUtcNow();
         var version = await review.Snapshot(c, Enum.Parse<TimetableChangeKind>(candidate.Kind), token);
@@ -169,6 +199,16 @@ public sealed class TimetableSubstitutionService(ITimetableSubstitutionRepositor
                 candidate.Kind, c.Teachers.Where(t => ids.Contains(t.InstructorProfileId)).Select(t => t.Instructor.UserId).Distinct().ToArray(), clock.GetUtcNow()));
         }
         repository.AddChange(change);
+        if (coverage != null)
+        {
+            var target = c.Teachers.Single(t => t.InstructorProfileId == candidate.Movements[0].ToTeacherId);
+            coverage.AssignedTeacherName = $"{target.Instructor.User.FirstName} {target.Instructor.User.LastName}".Trim();
+            coverage.AssignedUserId = target.Instructor.UserId;
+            coverage.ActiveSubstitution = change; coverage.State = "Assigned"; coverage.ReviewReason = null;
+            coverage.Narrative = ""; coverage.Notes = ""; coverage.CorrectionReason = null;
+            coverage.AcknowledgedAt = null; coverage.SubmittedAt = null; coverage.SubstituteWasAbsent = false;
+            DailyCoverageReconciler.Touch(coverage, clock.GetUtcNow());
+        }
         repository.AddAudit(new() { SchoolId = School(), UserId = user.UserId!, Action = "Timetable." + candidate.Kind,
             EntityName = nameof(SchoolTimetable), EntityId = id.ToString(), NewValues = JsonSerializer.Serialize(new { request, candidate }) });
         await repository.SaveAsync(token);

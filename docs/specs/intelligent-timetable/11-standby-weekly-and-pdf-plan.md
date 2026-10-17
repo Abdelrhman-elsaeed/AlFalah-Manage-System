@@ -1,7 +1,7 @@
 # Standby allocation and official-register PDF: master implementation plan
 
 **Date:** 2026-10-16 · **C37 / D-129**
-**Status:** Phase 1 weekly allocation delivered in C38; phases 2 and 3 remain planned. See [implementation](standby-periods/weekly-implementation.md) and [evidence](verification/standby-phase1/README.md).
+**Status:** Phase 1 weekly allocation (C38) and phase 2 daily coverage/execution (C39) are delivered locally. See [weekly implementation](standby-periods/weekly-implementation.md), [daily implementation](standby-periods/daily-implementation.md) and [phase 2 evidence](verification/standby-phase2/README.md). Phase 3 official register remains planned.
 **Execution index:** [Phases, dependencies and skill map](standby-periods/README.md).
 **References:** [Current-system discovery](10-standby-periods-discovery.md), [UX direction](standby-periods/ux-direction.md), private source `C:\Users\abdelrhman\Desktop\المناوبة\New folder\3.jpeg` (`QF71-B-2-1`).
 
@@ -114,7 +114,7 @@ Absence prepares needs/proposals, not final assignments. The administrator choos
 
 An approved assignment has one effective source of truth reused by current-lesson, roster and permit workflows. Add execution data as a linked register, not a second substitute system.
 
-Teacher dashboard tasks show the actual local date, period/time, classroom, subject and assignment state, with a direct action to details. Use existing durable notifications; notification receipt does not equal acknowledgement or execution. Only the actual assigned teacher can record their action. Resolve signature timing, deputy authority and correction/closure transitions during phase 2 before implementing the dependent actions.
+Teacher dashboard tasks show the actual local date, period/time, classroom, subject and assignment state, with a direct action to details. Use existing durable notifications; notification receipt does not equal acknowledgement or execution. Only the actual assigned teacher can record their action. C39 resolves the owner's signature policy as separate signed receipt and signed execution after actual period end; no deputy signing. Corrections retain prior signed versions and require a reason. See the phase 2 implementation for the delivered transitions and acceptance limits.
 
 ## 9. Official PDF: confirmed source-fidelity requirement
 

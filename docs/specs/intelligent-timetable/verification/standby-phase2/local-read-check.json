@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-16T18:34:40.3989586+00:00",
+  "baseUrl": "http://localhost:5264",
+  "schemaCount": 74,
+  "checks": [
+    {
+      "path": "timetable-coverage/board?date=2026-10-16",
+      "status": 200,
+      "isSuccess": true
+    },
+    {
+      "path": "timetable-coverage/my-tasks?page=1\u0026pageSize=5",
+      "status": 200,
+      "isSuccess": true
+    }
+  ],
+  "mutations": false,
+  "providerWrites": false
+}

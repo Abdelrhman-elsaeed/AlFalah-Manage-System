@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AlFalah.Domain.Entities.StudentAffairs;
+using AlFalah.Domain.Entities;
 using AlFalah.Domain.Events;
 using AlFalah.Application.StudentAffairs.Messaging;
 using AlFalah.Infrastructure.Data;
@@ -17,6 +18,7 @@ public sealed class StudentAffairsOutboxProcessor
     {
         typeof(TeacherTimetableChangedEvent).FullName!,
         typeof(TimetablePublishedEvent).FullName!,
+        typeof(CoverageAttentionEvent).FullName!,
         typeof(MessageReleaseDueEvent).FullName!,
         typeof(BehaviorIncidentLoggedEvent).FullName!,
         typeof(AcademicConcernLoggedEvent).FullName!,
@@ -114,7 +116,15 @@ public sealed class StudentAffairsOutboxProcessor
 
             var domainEvent = Deserialize(message);
             if (domainEvent is TimetablePublishedEvent published)
+            {
                 await _messaging.ReconcileOfficeHoursAsync(published.SchoolId, null, cancellationToken).ConfigureAwait(false);
+                var timing = await _context.SchoolTimetables.Where(t => t.SchoolId == published.SchoolId && t.Id == published.SchoolTimetableId)
+                    .Select(t => t.BellScheduleRevision!.SchoolTimeZoneId).SingleAsync(cancellationToken);
+                var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(_timeProvider.GetUtcNow(), TimeZoneInfo.FindSystemTimeZoneById(timing ?? "Africa/Cairo")).DateTime);
+                var dates = await _context.Set<DailyCoverageNeed>().Where(n => n.SchoolId == published.SchoolId && n.LocalDate >= today)
+                    .Select(n => n.LocalDate).Distinct().ToListAsync(cancellationToken);
+                foreach (var date in dates.Append(today).Distinct()) _context.Add(new CoverageReconciliationSignal { SchoolId = published.SchoolId, LocalDate = date });
+            }
             else if (domainEvent is TeacherTimetableChangedEvent timetableChanged)
                 await _messaging.ReconcileOfficeHoursAsync(timetableChanged.SchoolId, timetableChanged.TeacherUserIds, cancellationToken).ConfigureAwait(false);
             if (domainEvent is MessageReleaseDueEvent release)
@@ -180,6 +190,8 @@ public sealed class StudentAffairsOutboxProcessor
                 JsonSerializer.Deserialize<TeacherTimetableChangedEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(TimetablePublishedEvent), StringComparison.Ordinal) =>
                 JsonSerializer.Deserialize<TimetablePublishedEvent>(message.PayloadJson, JsonOptions),
+            var type when type.EndsWith(nameof(CoverageAttentionEvent), StringComparison.Ordinal) =>
+                JsonSerializer.Deserialize<CoverageAttentionEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(MessageReleaseDueEvent), StringComparison.Ordinal) =>
                 JsonSerializer.Deserialize<MessageReleaseDueEvent>(message.PayloadJson, JsonOptions),
             var type when type.EndsWith(nameof(BehaviorIncidentLoggedEvent), StringComparison.Ordinal) =>

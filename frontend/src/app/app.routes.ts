@@ -266,6 +266,14 @@ export const routes: Routes = [
         title: 'الجدول المدرسي'
       },
       {
+        path: 'standby-tasks',
+        canActivate: [roleGuard],
+        canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],
+        data: { roles: ['Instructor', 'Moderator', 'SchoolManager', 'Secretary'] },
+        loadComponent: () => import('./features/timetables/standby/coverage-tasks.component').then(m => m.CoverageTasksComponent),
+        title: 'تكليفات الانتظار'
+      },
+      {
         path: 'intelligent-timetable',
         canActivate: [roleGuard, permissionGuard],
         data: {
@@ -330,7 +338,8 @@ export const routes: Routes = [
           },
           {
             path: 'substitutions',
-            loadComponent: () => import('./features/intelligent-timetable/substitutions/daily-substitutions.component').then(m => m.DailySubstitutionsComponent),
+            canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],
+            loadComponent: () => import('./features/intelligent-timetable/substitutions/coverage-workspace.component').then(m => m.CoverageWorkspaceComponent),
             title: 'التبديل والاحتياطي'
           },
           {

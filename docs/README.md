@@ -344,3 +344,9 @@ Delivered the second classroom implementation slice (C3): contextual V2/manual t
 | Date | Change |
 |---|---|
 | 2026-10-16 | Delivered weekly standby phase1 inside the existing timetable: teaching prerequisite, manual/fair allocation, real capacity/demand/exclusions, locks, preview/diff/undo, scoped revision-safe persistence, publication/teacher/print integration and regeneration/history protection.124 backend/SQL and5 Angular tests plus real isolated SQL/browser390/768/1440/1920 checks pass. Additive local schema73 preserves existing values. Existing production VisitsV2/storage CSS budget errors remain. Daily execution and the official register are phases2/3. [Implementation](specs/intelligent-timetable/standby-periods/weekly-implementation.md) · [Evidence](specs/intelligent-timetable/verification/standby-phase1/README.md). |
+
+## C39 / D-131 — Change log (2026-10-16)
+
+| Date | Change |
+|---|---|
+| 2026-10-16 | Delivered standby phase2: durable absence reconciliation, standby-only manual/fair reviewed daily approval through the existing ledger, independent signed receipt/execution, draft recovery, actual-owner dashboard/navigation/notifications, inability, retained reassignment/correction and scope/concurrency safety.333 focused backend/SQL and11 Angular checks pass; real SQL rollback/replay/signatures and authenticated responsive browser journeys verified. Existing unrelated SQLite messaging fixture failure and VisitsV2/storage production CSS blockers remain recorded. Official QF71-B-2-1 PDF/Drive/physical acceptance remains phase3. [Implementation](specs/intelligent-timetable/standby-periods/daily-implementation.md) · [Evidence](specs/intelligent-timetable/verification/standby-phase2/README.md). |

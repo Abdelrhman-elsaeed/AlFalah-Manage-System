@@ -72,7 +72,10 @@ public sealed class TimetableSwapEngine(TimetableValidationEngine validator)
                 // Cover every period belonging to the absent member; retain the other co-teachers.
                 var moves = block.Where(e => e.InstructorProfileId == source.InstructorProfileId)
                     .Select(e => Move(e, e.Day, e.Period, t.InstructorProfileId)).ToArray();
-                candidates.Add(Create("Substitution", Name(t.InstructorProfileId), moves, Validate(moves)));
+                var eligibility = moves.All(m => c.Timetable.Entries.Any(e => !e.IsDeleted && e.EntryType == TimetableEntryType.Standby &&
+                    e.InstructorProfileId == t.InstructorProfileId && e.Day == m.ToDay && e.Period == m.ToPeriod))
+                    ? Array.Empty<string>() : new[] { "المعلم غير مسجل منتظرًا في جميع فترات الحصة المطلوبة." };
+                candidates.Add(Create("Substitution", Name(t.InstructorProfileId), moves, Validate(moves, eligibility)));
             }
         }
         else

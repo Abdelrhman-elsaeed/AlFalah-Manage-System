@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { CoverageDashboardTasksComponent } from '../../timetables/standby/coverage-dashboard-tasks.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -24,7 +25,7 @@ interface TeacherShortcut {
 @Component({
   selector: 'app-instructor-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, CoverageDashboardTasksComponent],
   templateUrl: './instructor-dashboard.component.html',
   styleUrls: [
     '../../student-affairs/manager-workspace.css',

@@ -1,7 +1,7 @@
 # Standby periods: current-system discovery and school-form mapping
 
 **Date:** 2026-10-16 · **C37 / D-129**
-**Status:** Discovery completed. This audit records the pre-C38 baseline. Phase 1 weekly standby is now delivered; see [implementation](standby-periods/weekly-implementation.md). Daily coverage modernization and the official register remain phases 2 and 3.
+**Status:** Discovery completed. This audit records the pre-C38 baseline. Phases 1 and 2 are now delivered locally; see [weekly implementation](standby-periods/weekly-implementation.md) and [daily coverage implementation](standby-periods/daily-implementation.md). The official register remains phase 3. Baseline gaps/open questions below are historical; C39 records the separate receipt/execution signature decision and implemented daily workflow.
 **Next reference:** [Weekly allocation and official PDF master plan](11-standby-weekly-and-pdf-plan.md), [phase index](standby-periods/README.md).
 
 This document distinguishes observed application behavior, confirmed owner requirements and proposed changes. Planning documents use English; exact Arabic interface labels and official form text remain Arabic.

@@ -97,10 +97,13 @@ public class AttendanceService : IAttendanceService
             });
         }
 
-        // SaveChanges commits the attendance facts and durable duty signal in one transaction.
+        // SaveChanges commits attendance and both durable duty/coverage signals in one transaction.
         // No change to secretary authorization and no dependency on a browser visit.
         if (factsChanged)
+        {
             _context.Set<DutyReconciliationOperation>().Add(new DutyReconciliationOperation { SchoolId = schoolId, Date = request.Date });
+            _context.Set<CoverageReconciliationSignal>().Add(new CoverageReconciliationSignal { SchoolId = schoolId, LocalDate = request.Date });
+        }
         await _context.SaveChangesAsync(cancellationToken);
         return await BuildSheetAsync(schoolId, request.Date, cancellationToken);
     }

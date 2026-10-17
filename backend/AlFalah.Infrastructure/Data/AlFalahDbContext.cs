@@ -341,6 +341,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
                 throw new InvalidOperationException("Legacy provenance is immutable; rerun reports source drift.");
             if (entry.Entity is TimetableSubstitution or TimetableSubstitutionMovement && entry.State is EntityState.Modified or EntityState.Deleted)
                 throw new InvalidOperationException("Confirmed timetable changes are immutable.");
+            if (entry.Entity is CoverageRecord && entry.State is EntityState.Modified or EntityState.Deleted)
+                throw new InvalidOperationException("Coverage acknowledgements, executions and decisions are append-only.");
             if (entry.Entity is TimetableAnalysisRun && entry.State is EntityState.Modified or EntityState.Deleted)
                 throw new InvalidOperationException("Analysis runs are immutable.");
             if (entry.Entity is TimetableAnalysisFinding finding && (entry.State == EntityState.Deleted ||

@@ -206,6 +206,12 @@ public static class DependencyInjection
         services.AddScoped<TimetableRepairEngine>();
         services.AddScoped<TimetableReviewService>();
         services.AddScoped<ITimetableSubstitutionRepository, TimetableSubstitutionRepository>();
+        services.AddScoped<IDailyCoverageRepository, TimetableSubstitutionRepository>();
+        services.AddScoped<CoverageAccess>();
+        services.AddScoped<DailyCoverageReconciler>();
+        services.AddScoped<DailyCoverageService>();
+        services.AddScoped<CoverageExecutionService>();
+        services.AddHostedService<CoverageReconciliationWorker>();
         services.AddScoped<TimetableSwapEngine>();
         services.AddScoped<TimetableSubstitutionService>();
         services.AddScoped<BellScheduleResolver>();

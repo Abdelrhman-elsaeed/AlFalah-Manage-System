@@ -22,12 +22,12 @@ public sealed class TimetableSubstitutionPhase8Tests
     private static readonly TimetableValidationEngine Validator = new();
     private static readonly TimetableSwapEngine Engine = new(Validator);
 
-    [Fact] public void Free_teacher_is_green_and_cover_does_not_rewrite_assignment_quota()
+    [Fact] public void Scheduled_standby_is_green_and_cover_does_not_rewrite_assignment_quota()
     {
-        var c = Context();
+        var c = Context(); Standby(c, 1);
         var candidate = Engine.Candidates(c, 1, "Substitution", Date, Expires, Assigned(c), default).Single();
         candidate.Color.Should().Be("Green"); candidate.Movements.Single().ToTeacherId.Should().Be(2);
-        c.Timetable.Entries.Single().InstructorProfileId.Should().Be(1);
+        c.Timetable.Entries.Single(e => e.EntryType == TimetableEntryType.Lesson).InstructorProfileId.Should().Be(1);
     }
     [Fact] public void Unavailable_teacher_and_teacher_collision_are_red()
     {
@@ -39,14 +39,14 @@ public sealed class TimetableSubstitutionPhase8Tests
     }
     [Fact] public void Fourth_consecutive_period_is_yellow()
     {
-        var c = Context(); c.Timetable.Entries.First().Period = 4;
+        var c = Context(); c.Timetable.Entries.First().Period = 4; Standby(c, 4);
         for (var p = 1; p <= 3; p++) AddLesson(c, p + 1, 2, 2, p);
         var candidate = Engine.Candidates(c, 1, "Substitution", Date, Expires, Assigned(c), default).Single();
         candidate.Color.Should().Be("Yellow"); candidate.Warnings.Should().Contain(w => w.Contains("متتالية"));
     }
     [Fact] public void Selecting_second_half_covers_both_periods()
     {
-        var c = PairContext();
+        var c = PairContext(); Standby(c, 1, 2);
         var candidate = Engine.Candidates(c, 2, "Substitution", Date, Expires, Assigned(c), default).Single();
         candidate.Color.Should().Be("Green"); candidate.Movements.Select(m => m.EntryId).Should().BeEquivalentTo([1, 2]);
     }
@@ -173,7 +173,7 @@ public sealed class TimetableSubstitutionPhase8Tests
         await using var db = await Seed();
         var r = db.Set<ClassSubjectRequirement>().Single(); r.IndividualPeriodCount = 0; r.PairedBlockCount = 1;
         var member = db.Set<TeachingAssignmentMember>().Single(); member.AllocatedPeriodCount = 2; member.AllocatedPairedBlockCount = 1;
-        db.SchoolTimetableEntries.Add(Copy(db.SchoolTimetableEntries.Single(), 2, 1, 2)); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+        db.SchoolTimetableEntries.Add(Copy(db.SchoolTimetableEntries.Single(e => e.EntryType == TimetableEntryType.Lesson), 2, 1, 2)); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
         var service = Service(db); var p = await service.CandidatesAsync(1, Date, 2, "Substitution", default);
         await service.ExecuteAsync(1, Request(p, p.Candidates.Single()), default);
         db.TimetableSubstitutions.Should().ContainSingle(); db.Set<TimetableSubstitutionMovement>().Should().HaveCount(2);
@@ -194,7 +194,7 @@ public sealed class TimetableSubstitutionPhase8Tests
         var request = Request(candidates, candidates.Candidates.Single());
         var result = await service.ExecuteAsync(1, request, default);
         result.AfterRevision.Should().Be(2); db.SchoolTimetables.Single().IsPublished.Should().BeTrue();
-        db.SchoolTimetableEntries.Single().InstructorProfileId.Should().Be(1);
+        db.SchoolTimetableEntries.Single(e => e.EntryType == TimetableEntryType.Lesson).InstructorProfileId.Should().Be(1);
         db.TimetableSubstitutions.Single().ApprovedByUserId.Should().Be("manager");
         db.SchoolTimetableVersions.Single().ChangeKind.Should().Be(TimetableChangeKind.Substitution);
         db.OutboxMessages.Should().ContainSingle();
@@ -209,7 +209,7 @@ public sealed class TimetableSubstitutionPhase8Tests
     }
     [Fact] public async Task Live_structural_swap_keeps_publication_and_creates_fresh_analysis()
     {
-        await using var db = await Seed(); var c = await new TimetableReviewRepository(db).GetValidationContextAsync(1, 1, default);
+        await using var db = await Seed(false); var c = await new TimetableReviewRepository(db).GetValidationContextAsync(1, 1, default);
         AddLesson(c!, 2, 2, 2, 2); AddNewGraph(db, c!); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
         var service = Service(db); var p = await service.CandidatesAsync(1, Date, 1, "Swap", default);
         var candidate = p.Candidates.First(x => x.Color != "Red");
@@ -221,7 +221,7 @@ public sealed class TimetableSubstitutionPhase8Tests
     }
     [Fact] public async Task Inline_same_day_contract_projects_server_proposals_to_grid_cells()
     {
-        await using var db = await Seed();
+        await using var db = await Seed(false);
         var c = await new TimetableReviewRepository(db).GetValidationContextAsync(1, 1, default);
         AddLesson(c!, 2, 2, 2, 2); AddNewGraph(db, c!); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
 
@@ -237,7 +237,7 @@ public sealed class TimetableSubstitutionPhase8Tests
     }
     [Fact] public async Task Whole_timetable_executes_atomically_and_persists_both_days()
     {
-        await using var db = await Seed();
+        await using var db = await Seed(false);
         var c = await new TimetableReviewRepository(db).GetValidationContextAsync(1, 1, default);
         AddLesson(c!, 2, 2, 2, 2, TimetableDay.Monday); AddNewGraph(db, c!);
         await db.SaveChangesAsync(); db.ChangeTracker.Clear();
@@ -352,13 +352,19 @@ public sealed class TimetableSubstitutionPhase8Tests
     {
         foreach (var r in c.Requirements.Where(x => x.Id > 1)) r.Classroom = db.Classrooms.Single(x => x.Id == r.ClassroomId);
         db.AddRange(c.Subjects.Where(x => x.Id > 1)); db.AddRange(c.Requirements.Where(x => x.Id > 1)); db.AddRange(c.Assignments.Where(x => x.Id > 1));
-        db.AddRange(c.Timetable.Entries.Where(x => x.Id > 1));
+        var existingIds = db.SchoolTimetableEntries.AsNoTracking().Select(e => e.Id).ToHashSet();
+        db.AddRange(c.Timetable.Entries.Where(x => x.Id > 1 && !existingIds.Contains(x.Id)));
     }
-    private static async Task<AlFalahDbContext> Seed()
+    private static void Standby(TimetableValidationContext c, params int[] periods)
+    { foreach(var p in periods) c.Timetable.Entries.Add(new() { Id = 900000+p, SchoolId = 1, SchoolTimetableId = 1, InstructorProfileId = 2, Day = TimetableDay.Sunday, Period = p, EntryType = TimetableEntryType.Standby }); }
+    private static async Task<AlFalahDbContext> Seed(bool reserve = true)
     {
         var db = await TimetableReviewPhase7Tests.Seed();
         var year = db.AcademicYears.Single(); year.StartsOn = new(2026, 1, 1); year.EndsOn = new(2026, 12, 31);
         var t = db.SchoolTimetables.Single(); t.IsPublished = true; t.PublishedAt = Expires.AddDays(-1);
+        db.AcademicTerms.Add(new() { SchoolId = 1, AcademicYearId = 1, Semester = TimetableSemester.First, IsActive = true, StartsOn = new(2026,1,1), EndsOn = new(2026,12,31), CreatedByUserId = "manager", UpdatedByUserId = "manager" });
+        if(reserve) for(var period=1;period<=2;period++) db.SchoolTimetableEntries.Add(new() { Id = 900000+period, SchoolId = 1, SchoolTimetableId = 1, InstructorProfileId = 2, Day = TimetableDay.Sunday, Period = period, EntryType = TimetableEntryType.Standby });
+        foreach(var date in new[]{Date,Date.AddDays(7)}) db.AttendanceRecords.Add(new() { SchoolId = 1, UserId = "teacher1", AttendanceDate = date, Status = AttendanceStatus.Absent, RecordedByUserId = "manager" });
         await db.SaveChangesAsync(); db.ChangeTracker.Clear(); return db;
     }
     private static ExecuteSwapRequest Request(SwapCandidatesDto p, SwapCandidateDto c, string? reason = null) =>

@@ -132,7 +132,7 @@ internal sealed class TimetableSwapValidationSession
         foreach (var teacherId in affectedTeachers)
         {
             if (!teachers.TryGetValue(teacherId, out var teacher)) continue;
-            var count = entries.Count(x => x.InstructorProfileId == teacherId && x.EntryType == TimetableEntryType.Lesson);
+            var count = entries.Count(x => AssignedTeacher(x) == teacherId && x.EntryType == TimetableEntryType.Lesson);
             if (count > teacher.MaximumWeeklyPeriods)
                 found.Add($"نصاب المعلم {count} يتجاوز الحد {teacher.MaximumWeeklyPeriods}.");
         }
@@ -169,7 +169,7 @@ internal sealed class TimetableSwapValidationSession
         foreach (var teacher in context.Teachers)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var lessons = entries.Where(x => x.InstructorProfileId == teacher.InstructorProfileId &&
+            var lessons = entries.Where(x => AssignedTeacher(x) == teacher.InstructorProfileId &&
                 x.EntryType == TimetableEntryType.Lesson).ToArray();
             if (lessons.Length > teacher.MaximumWeeklyPeriods)
                 found.Add($"نصاب المعلم {lessons.Length} يتجاوز الحد {teacher.MaximumWeeklyPeriods}.");
