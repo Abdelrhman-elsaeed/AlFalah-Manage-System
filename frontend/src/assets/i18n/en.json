@@ -2264,5 +2264,31 @@
     "RECORD_Release": "Assignment released",
     "RECORD_Assignment": "Assignment created",
     "RECORD_Reassignment": "Assignment changed; previous draft retained"
+  },
+  "COVERAGE_REGISTER": {
+    "TITLE": "Waiting-period register",
+    "INTRO": "A dated school-form register, retained with its data and signatures at issue time.",
+    "DATE": "Register date",
+    "REFRESH": "Refresh register data",
+    "WHOLE_DAY": "Complete school-day scope",
+    "COUNTS": "{{teachers}} absent teachers · {{periods}} periods · {{executed}} periods with signed execution",
+    "COMPLETE": "Execution complete",
+    "PARTIAL": "Incomplete",
+    "PREPARE": "Issue and preview PDF",
+    "EVIDENCE_HINT": "Includes all assignments for this date, regardless of ledger filters. Receipt appears in the form; signed execution evidence is in the appendix. Unsubmitted drafts are not printed as execution.",
+    "HISTORY": "Retained versions",
+    "REVISION": "Version {{number}}",
+    "NO_HISTORY": "No register has been issued for this date. Prepare one from the saved data.",
+    "LOADING": "Preparing the document…",
+    "EMPTY_TITLE": "The school form, ready to review",
+    "EMPTY_HINT": "Three groups of eight rows, with continuations when needed. Open a retained version or issue one from the current state.",
+    "RETAINED_HINT": "Each version is retained independently. Later edits do not change an issued copy.",
+    "CLOSE": "Close",
+    "DOWNLOAD": "Download displayed version",
+    "RETRY_CONTENT": "Reload retained document",
+    "FAILED": "The register could not be prepared. Try again or refresh its data.",
+    "INVALID_PDF": "A valid PDF was not received. Reload the retained document.",
+    "INTEGRITY": "The received file does not match the retained version. Reload it.",
+    "HISTORY_REFRESH_FAILED": "The retained copy is ready to download. Refresh to reload the revision list."
   }
 }

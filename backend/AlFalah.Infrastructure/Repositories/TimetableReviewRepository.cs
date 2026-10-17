@@ -84,10 +84,18 @@ public class TimetableReviewRepository(AlFalahDbContext db) : ITimetableReviewRe
         return await db.Database.CreateExecutionStrategy().ExecuteAsync(async () => {
             await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
             try { var result = await action(ct); await transaction.CommitAsync(ct); return result; }
-            catch (SqlException ex) when (ex.Number == 1205)
+            // EF's non-retrying strategy can wrap a save deadlock in InvalidOperationException
+            // -> DbUpdateException -> SqlException. The victim transaction is already rolled back.
+            catch (Exception ex) when (IsDeadlock(ex))
             { db.ChangeTracker.Clear(); throw new BellScheduleConflictException("Concurrent timetable change", ex); }
             catch { await transaction.RollbackAsync(ct); db.ChangeTracker.Clear(); throw; }
         });
+    }
+    private static bool IsDeadlock(Exception exception)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+            if (current is SqlException { Number: 1205 }) return true;
+        return false;
     }
     public async Task StageMovementsAsync(SchoolTimetable timetable, IReadOnlyList<RepairMovementDto> movements, CancellationToken ct)
     {

@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-17",
+  "regression": {
+    "total": 345,
+    "passed": 341,
+    "failed": 0,
+    "skipped": 4
+  },
+  "freshSqlIntegration": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "passingBackendAndSqlAcrossRuns": 342,
+  "angular": {
+    "passed": 16,
+    "failed": 0
+  },
+  "independentPdfCases": 6,
+  "responsiveWidths": [
+    390,
+    768,
+    1440,
+    1920
+  ],
+  "localSchema": 75,
+  "unchangedTables": 45,
+  "pendingOwnerPrintAcceptance": true,
+  "driveFileWrites": false,
+  "productionBuild": "blocked by existing VisitsV2/storage CSS budgets",
+  "unrelatedFixtureExcluded": "SocialWorkerCrmRepositoryQueryTests: SQLite Users.ProtectedPassword",
+  "timingFailureUnderConcurrentBuildRetained": true
+}

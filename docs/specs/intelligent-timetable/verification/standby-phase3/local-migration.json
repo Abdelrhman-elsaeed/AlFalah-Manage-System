@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-17T07:42:59.5841351+00:00",
+  "migration": "20261017072905_AddCoverageRegisterArtifacts",
+  "schemaCount": 75,
+  "tablesChecked": 45,
+  "existingValuesUnchanged": true,
+  "originalStateHash": "F55D4457D6152CD4C5B1D9CB8A5A9842F3E720038CBAE90766A4D724C3929EB6",
+  "providerWrites": false
+}

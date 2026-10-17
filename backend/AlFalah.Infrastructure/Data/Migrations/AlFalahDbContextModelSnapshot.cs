@@ -922,6 +922,78 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.CoverageRegisterArtifact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("nvarchar(240)");
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<byte[]>("Pdf")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("RendererVersion")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceRevision")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("SchoolId", "LocalDate", "Revision")
+                        .IsUnique();
+
+                    b.HasIndex("SchoolId", "LocalDate", "SourceRevision", "RendererVersion")
+                        .IsUnique();
+
+                    b.ToTable("CoverageRegisterArtifacts", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CoverageRegister_Revision", "[Revision] > 0");
+                        });
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.DailyCoverageNeed", b =>
                 {
                     b.Property<int>("Id")
@@ -11943,6 +12015,21 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Need");
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.CoverageRegisterArtifact", b =>
+                {
+                    b.HasOne("AlFalah.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlFalah.Domain.Entities.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("AlFalah.Domain.Entities.DailyCoverageNeed", b =>

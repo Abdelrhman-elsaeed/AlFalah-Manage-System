@@ -1,0 +1,74 @@
+{
+  "at": "2026-10-17T07:50:45.993Z",
+  "isolated": true,
+  "providerWrites": false,
+  "checks": [
+    "manager register, teacher 403",
+    "foreign school 404",
+    "actual signed correction and new revision",
+    "uncached stale source 409",
+    "old retained bytes unchanged",
+    "13+ issue history pagination",
+    "transfer MIME restored",
+    "preview/download SHA256 equality",
+    "390/768/1440/1920 layout"
+  ],
+  "results": [
+    {
+      "width": 390,
+      "preview": true,
+      "fitWidth": true,
+      "retainedDownloadHash": true,
+      "pagination": true,
+      "issuedFromSecondPage": true,
+      "pageOverflow": false,
+      "dialog": 366.59375,
+      "workspace": 333,
+      "workspaceWidth": 333,
+      "canvas": 293,
+      "stage": 313
+    },
+    {
+      "width": 768,
+      "preview": true,
+      "fitWidth": true,
+      "retainedDownloadHash": true,
+      "pagination": true,
+      "issuedFromSecondPage": true,
+      "pageOverflow": false,
+      "dialog": 744.953125,
+      "workspace": 711,
+      "workspaceWidth": 711,
+      "canvas": 388,
+      "stage": 420
+    },
+    {
+      "width": 1440,
+      "preview": true,
+      "fitWidth": true,
+      "retainedDownloadHash": true,
+      "pagination": true,
+      "issuedFromSecondPage": true,
+      "pageOverflow": false,
+      "dialog": 1320,
+      "workspace": 1286,
+      "workspaceWidth": 1286,
+      "canvas": 963,
+      "stage": 995
+    },
+    {
+      "width": 1920,
+      "preview": true,
+      "fitWidth": true,
+      "retainedDownloadHash": true,
+      "pagination": true,
+      "issuedFromSecondPage": true,
+      "pageOverflow": false,
+      "dialog": 1320,
+      "workspace": 1286,
+      "workspaceWidth": 1286,
+      "canvas": 963,
+      "stage": 995
+    }
+  ]
+}

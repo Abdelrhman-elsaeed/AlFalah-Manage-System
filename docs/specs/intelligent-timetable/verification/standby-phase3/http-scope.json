@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-17T07:45:38.879Z",
+  "isolated": true,
+  "checks": [
+    {
+      "role": "teacher",
+      "endpoint": "?date=2026-09-13",
+      "status": 403
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/16/content",
+      "status": 403
+    },
+    {
+      "role": "other-school-manager",
+      "endpoint": "/16/content",
+      "status": 404
+    }
+  ]
+}

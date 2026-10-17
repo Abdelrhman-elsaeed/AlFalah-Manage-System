@@ -1,6 +1,6 @@
 # Phase 3: official PDF and final verification
 
-**State:** Not started.
+**State:** Delivered locally on 2026-10-17 (C40 / D-132). [Implementation](../register-implementation.md) and [verification/manual handoff](../../verification/standby-phase3/README.md). Owner appearance/physical-print acceptance and official logo assets remain pending.
 **Depends on:** Phase 2 retained assignment/execution records and resolved signature/issue policy.
 **Skills:** dotnet-layered-api-architect and frontend-design; tdd for immutable artifacts/integration behavior; diagnosing-bugs only when a failure is reproduced.
 
@@ -32,3 +32,7 @@ A source-faithful QF71-B-2-1 register with polished preview/download, plus verif
 ## Handoff and boundary
 
 Provide local frontend/backend URLs and tested roles without secrets, how to choose both weekly/daily modes, approve work, complete teacher execution and preview/download the register. Start services within existing user authorization. No production rollout, operational reset/root deletion or real-user test traffic is implied.
+
+## Actual delivery
+
+Whole-day register issuance and ten-item retained history are integrated in the existing manager ledger. Exact preview/download bytes, independent receipt/execution evidence, draft exclusion, stale/retry behavior and correction retention are verified.342 focused backend/SQL checks across the regression and fresh-SQL runs,16 Angular checks, six independently rendered PDF cases and authenticated responsive HTTP/browser workflows pass. Additive local schema75 preserves existing values across45 related tables. Existing production CSS budget blockers, the unrelated SQLite fixture issue and Arabic glyph text-extraction limitations are recorded in the evidence. No Drive writer is enabled: archive policy for this register remains unagreed. Stop at this phase boundary; no extra implementation phase is introduced.

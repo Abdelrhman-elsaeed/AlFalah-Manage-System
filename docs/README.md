@@ -350,3 +350,9 @@ Delivered the second classroom implementation slice (C3): contextual V2/manual t
 | Date | Change |
 |---|---|
 | 2026-10-16 | Delivered standby phase2: durable absence reconciliation, standby-only manual/fair reviewed daily approval through the existing ledger, independent signed receipt/execution, draft recovery, actual-owner dashboard/navigation/notifications, inability, retained reassignment/correction and scope/concurrency safety.333 focused backend/SQL and11 Angular checks pass; real SQL rollback/replay/signatures and authenticated responsive browser journeys verified. Existing unrelated SQLite messaging fixture failure and VisitsV2/storage production CSS blockers remain recorded. Official QF71-B-2-1 PDF/Drive/physical acceptance remains phase3. [Implementation](specs/intelligent-timetable/standby-periods/daily-implementation.md) · [Evidence](specs/intelligent-timetable/verification/standby-phase2/README.md). |
+
+## C40 / D-132 — Change log (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Delivered standby phase3: QF71-B-2-1 portrait register, three eight-row groups and readable continuations, actual-owner receipt/execution evidence, exclusion of unsent drafts, immutable whole-day revisions, paged history and exact preview/download bytes.342 focused backend/SQL checks across regression/integrated runs,16 Angular checks, six PDF cases and real responsive HTTP/browser checks pass. Additive schema75 preserves original values across45 tables. Official-branding assets, owner/printer acceptance, Arabic text-extraction limits and unchanged production CSS/SQLite baseline blockers are recorded. No unagreed Drive archive, provider write or production rollout. [Implementation](specs/intelligent-timetable/standby-periods/register-implementation.md) · [Evidence and handoff](specs/intelligent-timetable/verification/standby-phase3/README.md). |

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -10,8 +10,9 @@ import { ApiResponse } from '../../../core/models/api-response.model';
 import { CoverageAction, CoverageApproval, CoverageBoard, CoverageChoice, CoverageNeed, CoverageOption, CoveragePreview, CoveragePreviewRequest, CoverageTask } from '../../../core/models/daily-coverage.models';
 import { DailyCoverageService } from '../../../core/services/daily-coverage.service';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
+import { CoverageRegisterComponent } from './coverage-register.component';
 
-@Component({selector:'app-daily-coverage-ledger',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,DialogModule],templateUrl:'./daily-coverage-ledger.component.html',styleUrls:['./daily-coverage-ledger.component.css']})
+@Component({selector:'app-daily-coverage-ledger',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,DialogModule,CoverageRegisterComponent],templateUrl:'./daily-coverage-ledger.component.html',styleUrls:['./daily-coverage-ledger.component.css']})
 export class DailyCoverageLedgerComponent {
   private readonly api=inject(DailyCoverageService);
   private readonly destroy=inject(DestroyRef);
@@ -23,6 +24,7 @@ export class DailyCoverageLedgerComponent {
   proposal:CoveragePreview|null=null; reviewedRequest:CoveragePreviewRequest|null=null; reviewOpen=false; reason='';
   private approval:CoverageApproval|null=null;
   detail:CoverageTask|null=null; adminAction:'reopen'|'keep'|'release'|null=null; adminReason='';
+  registerOpen=false;@ViewChild(CoverageRegisterComponent) register?:CoverageRegisterComponent;
   constructor(){void this.load(false);}
   private async read<T>(request:Observable<ApiResponse<T>>):Promise<T>{const r=await firstValueFrom(request.pipe(takeUntilDestroyed(this.destroy)));if(!r.isSuccess||r.data==null)throw Error(r.errors?.[0]||r.message);return r.data;}
   private async run(action:()=>Promise<void>){if(this.busy)return;this.busy=true;this.error='';this.notice='';try{await action();}catch(e){this.error=extractHttpErrorMessage(e)||this.translate.instant('COVERAGE.REQUEST_FAILED');}finally{this.busy=false;}}
@@ -41,7 +43,7 @@ export class DailyCoverageLedgerComponent {
   async chooseTeacher(n:CoverageNeed){await this.run(async()=>{this.options=await this.read(this.api.options(n.id));this.selected=n;this.candidateSearch='';});}
   choose(o:CoverageOption){if(this.busy||!this.selected||o.color==='Red'||o.color==='Yellow'&&!this.board?.canOverride)return;this.choices=this.choices.filter(c=>c.needId!==this.selected!.id);this.choices.push({needId:this.selected.id,teacherId:o.teacherId});this.selected=null;this.invalidate();}
   remove(n:CoverageNeed){this.choices=this.choices.filter(c=>c.needId!==n.id);this.invalidate();}
-  canLeave(){return !this.busy;}
+  canLeave(){return !this.busy&&(this.register?.canLeave()??true);}
   async preview(){await this.run(async()=>{const current=await this.read(this.api.board(this.date));const request:CoveragePreviewRequest={date:this.date,mode:this.mode,choices:structuredClone(this.choices),expiresAt:new Date(Date.parse(current.now)+4.5*60000).toISOString()};this.proposal=await this.read(this.api.preview(request));this.reviewedRequest=request;this.reviewOpen=true;this.reason='';this.approval=null;});}
   get requiresReason(){return this.proposal?.assignments.some(a=>a.color==='Yellow'||this.board?.needs.find(n=>n.id===a.needId)?.substitutionId!=null)??false;}
   async approve(){if(!this.proposal||!this.reviewedRequest||this.requiresReason&&!this.reason.trim())return;await this.run(async()=>{

@@ -1,7 +1,7 @@
 # Standby periods: three-phase delivery plan
 
 **Date:** 2026-10-16 · **C37 / D-129**
-**Status:** Phases 1 (C38) and 2 (C39) delivered locally; phase 3 has not started. Owner visual/operational acceptance remains pending.
+**Status:** All three phases delivered locally (C38/C39/C40). Owner visual/operational and physical-print acceptance remains pending; see [phase 3 evidence and handoff](../verification/standby-phase3/README.md).
 
 ## References
 
@@ -17,7 +17,7 @@ Planning prose is English. Exact Arabic UI labels and source-form text stay Arab
 |---|---|---|---|
 | [1: Weekly standby](phases/01-weekly-standby.md) | Professional manager UI; manual/fair placement after teaching completion; natural capacity; save, publication and regeneration safety | dotnet-layered-api-architect, frontend-design; domain-modeling for rule decisions; tdd for critical behavior/integration checks | Delivered; [implementation](weekly-implementation.md) / [evidence](../verification/standby-phase1/README.md) |
 | [2: Daily coverage and teacher execution](phases/02-daily-coverage-and-execution.md) | Absence needs/proposals; manual/fair assignment and approval; teacher dashboard/notifications, acknowledgement, execution and signatures | dotnet-layered-api-architect, frontend-design; domain-modeling for transitions; tdd | Delivered locally; [implementation](daily-implementation.md) / [evidence](../verification/standby-phase2/README.md) |
-| [3: Official PDF and final verification](phases/03-pdf-and-final-verification.md) | Source-faithful QF71-B-2-1, preview/download and retained revisions; integrated acceptance and manual-test handoff | dotnet-layered-api-architect, frontend-design; tdd for artifact/integration behavior; diagnosing-bugs only for reproduced failures | Not started |
+| [3: Official PDF and final verification](phases/03-pdf-and-final-verification.md) | Source-faithful QF71-B-2-1, preview/download and retained revisions; integrated acceptance and manual-test handoff | dotnet-layered-api-architect, frontend-design; tdd for artifact/integration behavior; diagnosing-bugs for reproduced layout/concurrency failures | Delivered locally; [implementation](register-implementation.md) / [evidence](../verification/standby-phase3/README.md) |
 
 Design refinement, rule resolution and any useful prototype happen **inside phase 1**, not in a separate delivery phase. Use the prototype skill only where a throwaway interaction would resolve uncertainty. Every phase includes its own tests and actual UI review; phase 3 adds final integrated verification.
 

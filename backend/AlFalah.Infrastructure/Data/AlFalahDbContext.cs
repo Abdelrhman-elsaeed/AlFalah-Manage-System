@@ -318,6 +318,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
 
     private void UpdateTimestamps()
     {
+        if (ChangeTracker.Entries<CoverageRegisterArtifact>().Any(e => e.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Issued coverage registers are immutable; issue a new revision.");
         if (ChangeTracker.Entries<TeachingAssignmentStatement>().Any(e => e.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Assignment statements are immutable; issue another saved revision.");
         if (ChangeTracker.Entries<ClassroomLabelHistory>().Any(e => e.State is EntityState.Modified or EntityState.Deleted))

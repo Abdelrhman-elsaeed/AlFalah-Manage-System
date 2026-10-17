@@ -1,7 +1,7 @@
 # Standby allocation and official-register PDF: master implementation plan
 
 **Date:** 2026-10-16 · **C37 / D-129**
-**Status:** Phase 1 weekly allocation (C38) and phase 2 daily coverage/execution (C39) are delivered locally. See [weekly implementation](standby-periods/weekly-implementation.md), [daily implementation](standby-periods/daily-implementation.md) and [phase 2 evidence](verification/standby-phase2/README.md). Phase 3 official register remains planned.
+**Status:** All three phases delivered locally: [weekly allocation C38](standby-periods/weekly-implementation.md), [daily coverage/execution C39](standby-periods/daily-implementation.md) and [official register C40](standby-periods/register-implementation.md). [Final evidence/handoff](verification/standby-phase3/README.md) distinguishes software delivery from pending owner/printer acceptance and branding assets.
 **Execution index:** [Phases, dependencies and skill map](standby-periods/README.md).
 **References:** [Current-system discovery](10-standby-periods-discovery.md), [UX direction](standby-periods/ux-direction.md), private source `C:\Users\abdelrhman\Desktop\المناوبة\New folder\3.jpeg` (`QF71-B-2-1`).
 
@@ -129,8 +129,8 @@ Preserve portrait page structure, school/year/term header, title/form identifier
 | الحصة | Actual Bell period sequence |
 | الفصل / المادة | Retained original lesson identity/display snapshots |
 | اسم المعلم المنتظر | Approved covering teacher for that date |
-| ما تم تنفيذه في حصة الانتظار | Actual saved execution narrative; blank until recorded |
-| التوقيع | Genuine authorized action/signature snapshot; never copied from the sample or manufactured |
+| ما تم تنفيذه في حصة الانتظار | Latest actually submitted, signed execution narrative; unsent drafts excluded; correction retains prior signed work explicitly |
+| التوقيع | Actual assigned teacher's signed receipt as required by the source instruction; independently signed execution evidence retained in the appendix |
 | ملاحظات | Retained notes without truncation |
 | Deputy/footer area | Actual responsible person's name and genuine signature when the agreed workflow provides one |
 
@@ -146,16 +146,16 @@ The owner requested exactly three implementation phases. Design and tests are in
 
 | Phase | Deliverable | Principal skills | Status |
 |---|---|---|---|
-| [1](standby-periods/phases/01-weekly-standby.md) | Weekly manual/fair standby after completed teaching; premium manager UI, natural capacity, persistence/publication/regeneration and tests | dotnet-layered-api-architect, frontend-design; domain-modeling for rules; tdd | Not started |
-| [2](standby-periods/phases/02-daily-coverage-and-execution.md) | Absence needs and approval; daily manual/fair cover; teacher dashboard, notification, acknowledgement/execution, signatures/corrections and tests | dotnet-layered-api-architect, frontend-design; domain-modeling for transitions; tdd | Not started |
-| [3](standby-periods/phases/03-pdf-and-final-verification.md) | Source-faithful PDF, revisions, preview/download, agreed storage integration, final integrated verification and manual-test handoff | dotnet-layered-api-architect, frontend-design; tdd; diagnosing-bugs for reproduced failures | Not started |
+| [1](standby-periods/phases/01-weekly-standby.md) | Weekly manual/fair standby after completed teaching; premium manager UI, natural capacity, persistence/publication/regeneration and tests | dotnet-layered-api-architect, frontend-design; domain-modeling for rules; tdd | Delivered locally C38 |
+| [2](standby-periods/phases/02-daily-coverage-and-execution.md) | Absence needs and approval; daily manual/fair cover; teacher dashboard, notification, acknowledgement/execution, signatures/corrections and tests | dotnet-layered-api-architect, frontend-design; domain-modeling for transitions; tdd | Delivered locally C39 |
+| [3](standby-periods/phases/03-pdf-and-final-verification.md) | Source-faithful PDF, revisions, preview/download, final integrated verification and manual-test handoff; no unagreed Drive policy enabled | dotnet-layered-api-architect, frontend-design; tdd; diagnosing-bugs for reproduced failures | Delivered locally C40 |
 
 Read the relevant skill when executing its work. Design refinement and a prototype, only if useful, belong inside phase 1; use the prototype skill for that work. Each phase includes its own tests and actual visual checks; phase 3 also verifies the assembled workflow. No additional design/testing delivery phases. Existing authorization governs execution; do not add repetitive approval rituals for already-authorized work.
 
 ## 11. Open decisions and current evidence
 
-Still settle coverage demand/default, optional stricter preferences, exact fairness tie-breaking, shortage/publication behavior, signature/deputy workflow, responsible-role delegation, partial-day absence and archive policy.
+Delivered decisions: editable demand defaults1 on teaching periods/0 otherwise; real eligible capacity; deterministic capacity-constrained weekly fairness; explicit shortage warning/publication review; independent daily manual/fair allocation; existing timetable administration/delegation; owner-confirmed separate receipt and execution signatures. See C38/C39 implementation records for algorithms and constraints. Deputy signing/assets, optional stricter school policy, partial-day attendance and Drive archive policy remain outside the delivered agreement.
 
 Physical limits now derive from the timetable; mandatory arbitrary per-teacher quotas and a daily-only interpretation of the manual/fair choice are superseded.
 
-Discovery has existing baseline evidence: [36 selected tests](verification/standby-discovery/results.json), using EF InMemory. It is completed background work, not a fourth implementation phase. There is no new allocator, source-faithful PDF, interactive standby prototype, live SQL/browser acceptance, migration or provider write yet.
+Discovery's [36 existing baseline tests](verification/standby-discovery/results.json) are historical background, not a fourth phase. The three delivery phases now have actual SQL/browser/PDF/migration evidence; see the [final verification](verification/standby-phase3/README.md). No provider write, production rollout or owner physical-printer acceptance is claimed.
