@@ -121,9 +121,10 @@ export class Phase5Service {
     return this.get<SocialWorkerStudentAffairsDashboardDto>('student-affairs/dashboard/social-worker');
   }
 
-  listPendingDispatch(pageNumber: number, pageSize: number, search = ''): Observable<ApiResponse<PagedResult<PendingDispatchDto>>> {
+  listPendingDispatch(pageNumber: number, pageSize: number, search = '', notificationId?: number): Observable<ApiResponse<PagedResult<PendingDispatchDto>>> {
     let params = new HttpParams().set('pageNumber', pageNumber).set('pageSize', pageSize).set('sortDirection', 'asc');
     if (search.trim()) params = params.set('search', search.trim());
+    if (notificationId) params = params.set('notificationId', notificationId);
     return this.http.get<ApiResponse<PagedResult<PendingDispatchDto>>>(`${this.api}/notifications/pending-dispatch`, {
       context: this.callerHandlesErrors,
       params
@@ -187,9 +188,10 @@ export class Phase5Service {
       params
     });
   }
-  getMessageWindow(id: number, limit = 50, before?: string): Observable<ApiResponse<MessageWindow>> {
+  getMessageWindow(id: number, limit = 50, before?: string, at?: number): Observable<ApiResponse<MessageWindow>> {
     let params = new HttpParams().set('limit', limit);
     if (before) params = params.set('before', before);
+    if (at) params = params.set('at', at);
     return this.http.get<ApiResponse<MessageWindow>>(`${this.api}/conversations/${id}/messages/window`, {
       context: this.callerHandlesErrors, params
     });

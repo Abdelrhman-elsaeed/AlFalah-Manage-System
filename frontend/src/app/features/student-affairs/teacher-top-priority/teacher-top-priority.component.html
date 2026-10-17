@@ -124,7 +124,7 @@
       <article *ngIf="activeTab() === 'gate-passes'" class="table-card acknowledgement-panel">
         <h2>استئذانات الخروج المعلقة</h2>
         <p *ngIf="priority.gatePassAcknowledgements.length === 0">لا توجد استئذانات بانتظار إقرارك.</p>
-        <div *ngFor="let item of priority.gatePassAcknowledgements" class="acknowledgement-item">
+        <div *ngFor="let item of priority.gatePassAcknowledgements" class="acknowledgement-item" [attr.data-gate-pass-id]="item.id">
           <div>
             <strong>{{ item.student.displayName }}</strong>
             <p>{{ item.classroom.label }} · {{ formatTime(item.windowStartsAt) }}–{{ formatTime(item.windowEndsAt) }}</p>
@@ -142,7 +142,7 @@
       <article *ngIf="activeTab() === 'entry-permits'" class="table-card acknowledgement-panel">
         <h2>تصاريح دخول الفصل المعلقة</h2>
         <p *ngIf="priority.entryPermitAcknowledgements.length === 0">لا توجد تصاريح بانتظار إقرارك.</p>
-        <div *ngFor="let item of priority.entryPermitAcknowledgements" class="acknowledgement-item">
+        <div *ngFor="let item of priority.entryPermitAcknowledgements" class="acknowledgement-item" [attr.data-permit-id]="item.id">
           <div>
             <strong>{{ item.student.displayName }}</strong>
             <p>{{ item.classroom.label }} · {{ formatTime(item.validFrom) }}–{{ formatTime(item.validUntil) }}</p>

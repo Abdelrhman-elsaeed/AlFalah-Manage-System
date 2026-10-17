@@ -461,7 +461,8 @@ export class MessagingChatComponent implements OnInit {
   }
 
   selectConversation(item: ConversationDto): void {
-    this.followingLatest.set(true);
+    const linkedMessage = Number(this.route.snapshot.queryParamMap.get('conversationId')) === item.id ? Number(this.route.snapshot.queryParamMap.get('messageId')) || undefined : undefined;
+    this.followingLatest.set(!linkedMessage);
     const request = ++this.windowRequest;
     const session = this.sessionKey;
     this.beforeCursor = null;
@@ -470,7 +471,7 @@ export class MessagingChatComponent implements OnInit {
     this.hasOlder.set(false);
     this.sendError.set('');
     this.loadingThread.set(true);
-    forkJoin({ header: this.api.getConversation(item.id), messages: this.api.getMessageWindow(item.id, 50) })
+    forkJoin({ header: this.api.getConversation(item.id), messages: this.api.getMessageWindow(item.id, 50, undefined, linkedMessage) })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => { if (request === this.windowRequest) this.loadingThread.set(false); })).subscribe({
       next: ({ header, messages }) => {
         if (request !== this.windowRequest || session !== this.sessionKey || this.selected()?.id !== item.id) return;
@@ -482,7 +483,8 @@ export class MessagingChatComponent implements OnInit {
         this.messages.set(this.sortedUnique(messages.data.items));
         this.hasOlder.set(messages.data.hasOlder);
         this.beforeCursor = messages.data.nextBeforeCursor;
-        this.scrollToLatest(true);
+        if (linkedMessage) requestAnimationFrame(() => this.timeline?.nativeElement.querySelector<HTMLElement>(`[data-message-id="${linkedMessage}"]`)?.scrollIntoView({ block: 'center' }));
+        else this.scrollToLatest(true);
       },
       error: error => this.toast.error('تعذر فتح المحادثة', this.httpMessage(error, 'تحقق من صلاحية الوصول ثم حاول مجددًا.'))
     });

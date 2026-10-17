@@ -182,6 +182,21 @@ public sealed class AttendanceAndDelayWorkflowTests
     }
 
     [Fact]
+    public async Task AllPresentClassroomCompletionHasOneSignalAndReplayingRequestHasNone()
+    {
+        var repository = new FakeAttendanceRepository { Roster = [new(17, 4), new(18, 4)] };
+        var handler = new SaveStudentAttendanceSheetCommandHandler(repository,
+            CurrentUser(RoleNames.Secretary, PermissionNames.AttendanceManageStudents), new FixedTimeProvider(Now));
+        var command = new SubmitAbsentRosterCommand(new(new(2026, 8, 30), 12, [], "revision-1"), "n2-all-present");
+        (await handler.Handle(command, default)).IsSuccess.Should().BeTrue();
+        repository.Completions.Should().ContainSingle().Which.Should().Be((42, 12, new DateOnly(2026, 8, 30), 2));
+        repository.AddedAttendances.Should().OnlyContain(x => x.Status == StudentAttendanceStatus.Present);
+        repository.AddedAttendances.SelectMany(x => x.DomainEvents).Should().BeEmpty();
+        await handler.Handle(command, default);
+        repository.Completions.Should().ContainSingle();
+    }
+
+    [Fact]
     public async Task SubmitExcuse_RejectsSpoofedPdfBeforeStorage()
     {
         var repository = new FakeAttendanceRepository();
@@ -564,6 +579,9 @@ public sealed class AttendanceAndDelayWorkflowTests
 
     private sealed class FakeAttendanceRepository : IAttendanceWorkflowRepository
     {
+        public List<(int School, int Classroom, DateOnly Date, int Roster)> Completions { get; } = [];
+        public void AddCompletion(int schoolId, int classroomId, DateOnly date, int rosterCount, DateTimeOffset at) =>
+            Completions.Add((schoolId, classroomId, date, rosterCount));
         public IReadOnlyList<AttendanceRosterStudentSnapshot> Roster { get; init; } =
             Array.Empty<AttendanceRosterStudentSnapshot>();
         public IReadOnlyList<DailyStudentAttendance> ExistingRows { get; init; } =

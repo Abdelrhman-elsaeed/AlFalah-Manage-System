@@ -254,6 +254,7 @@ public sealed class AttendanceMediatRTests
 
     private sealed class StubAttendanceWorkflowRepository : IAttendanceWorkflowRepository
     {
+        public void AddCompletion(int schoolId, int classroomId, DateOnly date, int rosterCount, DateTimeOffset at) { }
         public DailyStudentAttendance? TrackedAttendance { get; set; }
 
         public Task<string?> GetAttendanceSubmissionFingerprintAsync(int schoolId, string idempotencyKey, CancellationToken cancellationToken) =>

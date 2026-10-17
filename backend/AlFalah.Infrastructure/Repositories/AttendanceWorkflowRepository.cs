@@ -19,6 +19,10 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
 
     public AttendanceWorkflowRepository(AlFalahDbContext context) => _context = context;
 
+    public void AddCompletion(int schoolId, int classroomId, DateOnly date, int rosterCount, DateTimeOffset at) =>
+        _context.Add(new AlFalah.Domain.Entities.Notifications.AttendanceCompletion {
+            SchoolId = schoolId, ClassroomId = classroomId, Date = date, RosterCount = rosterCount, SubmittedAtUtc = at });
+
     public Task<string?> GetAttendanceSubmissionFingerprintAsync(
         int schoolId,
         string idempotencyKey,
@@ -577,6 +581,7 @@ public sealed class AttendanceWorkflowRepository : IAttendanceWorkflowRepository
             .Where(x => x.SchoolId == schoolId && !x.IsDeleted
                 && x.Status == AbsenceExcuseStatus.Pending
                 && !x.DailyStudentAttendance.IsDeleted);
+        if (query.ExcuseId is { } selectedId) dbQuery = dbQuery.Where(x => x.Id == selectedId);
 
         if (query.FromDate.HasValue)
             dbQuery = dbQuery.Where(x => x.DailyStudentAttendance.AttendanceDate >= query.FromDate.Value);

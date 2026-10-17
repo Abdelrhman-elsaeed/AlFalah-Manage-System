@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-17",
+  "environment": "Karma / ChromeHeadless 155 on Windows; HTTP, push and update dependencies simulated",
+  "passed": 6,
+  "failed": 0,
+  "actualPhoneEvidence": false,
+  "cases": [
+    {
+      "file": "inbox-sync.service.spec.ts",
+      "name": "uses the authoritative aggregate and ignores a response from the previous school"
+    },
+    {
+      "file": "inbox-sync.service.spec.ts",
+      "name": "coalesces focus requests and explicitly reloads state when the cursor has expired"
+    },
+    {
+      "file": "notification-center.service.spec.ts",
+      "name": "discards old school counts and history and resets on logout"
+    },
+    {
+      "file": "notification-center.service.spec.ts",
+      "name": "uses explicit read commands and sends bounded category/unread cursors"
+    },
+    {
+      "file": "notification-center.service.spec.ts",
+      "name": "clears already rendered previews immediately while the new context request is pending"
+    },
+    {
+      "file": "web-push.service.spec.ts",
+      "name": "never requests permission on login or resume and exposes an update without reloading"
+    }
+  ]
+}

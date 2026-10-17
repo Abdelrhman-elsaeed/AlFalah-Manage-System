@@ -112,3 +112,8 @@ Migration 20261015115204_AddClassroomConsumerReferences adds nullable Visits.Cla
 ## C36 / D-128 - Saved assignment statement (2026-10-16)
 
 Migration20261016063643_AddTeachingAssignmentStatements adds nullable nvarchar(24) TeachingAssignmentMembers.StatementCategory and TeachingAssignmentStatements with composite school/setup FK and unique school/setup/revision/scope/renderer index. PDF bytes/snapshot/hash are immutable through DbContext; Down refuses retained records/non-null classifications. Isolated SQL migration/reapplication/FK/duplicate/rollback checks passed before authorized local schema72.37 original-table column hashes remained unchanged; no existing category was guessed or backfilled. [Migration and evidence](specs/classroom-catalog/verification/statement/README.md).
+
+
+## C52 / D-144 - N2 center and per-device push (2026-10-17)
+
+Additive migrations `20261017144014_AddPersonalCenterAndBrowserPush` and `20261017150426_AddBrowserPushAttemptAudit` add PersonalNotifications, AttendanceCompletions, BrowserPushSubscriptions, BrowserPushTargets and BrowserPushAttempts. Unique school/user/source identity deduplicates related surfaces; independent recipient reads and safe source locators. Source/center/N1 journal/current-device snapshot share the transaction. Protected endpoint/key material, endpoint hash uniqueness, binding-version and lease fencing isolate devices/owners. Completion corrections reuse identity without resetting read or creating another fan-out. Applied only to guarded fresh SQL test databases; no operational migration/history rewrite/backfill. [Concrete schema/settings](specs/notifications-pwa/data-model.md#n2-implemented-schema-and-transport-settings), [evidence](specs/notifications-pwa/verification/n2/README.md).

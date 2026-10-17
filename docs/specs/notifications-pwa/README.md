@@ -1,7 +1,7 @@
 # Reliable Messaging, Realtime Notifications and PWA
 
 **Created / researched:** 2026-10-17  
-**Status:** N1 implemented and locally verified; N2/N3 not started. Production deployment is gated separately.  
+**Status:** N1 and N2 implemented and locally verified; N2 actual-device acceptance pending. N3 not started.
 **Delivery:** Exactly three implementation phases.  
 **Authority:** [Project constitution](../../../.spec/constitution.md), existing school-scoping and business policies.
 
@@ -9,18 +9,20 @@
 
 Parents and staff receive current messages while using the website and can opt into device notifications on supported browsers without waiting for a native mobile application. The server retains an authoritative inbox even when realtime or push delivery fails. A later native application consumes the same business workflows through a separate delivery adapter.
 
-This package plans changes to the existing Angular / ASP.NET Core / SQL Server modular monolith. It does not implement PWA, fix the discovered messaging defect, deploy a server, purchase hosting, register push credentials or send notifications.
+This package records implemented N1/N2 and planned N3 changes to the existing modular monolith. N2 adds the Arabic/RTL personal center, source coverage, exact targets, PWA and protected opt-in Web Push. See [N2 implementation](n2-implementation.md), [transition inventory](notification-catalog.md#n2-concrete-transition-inventory--2026-10-17) and [local evidence / remaining gates](verification/n2/README.md). No actual phone/provider receipt, hosting purchase or deployment is claimed.
 
 ## Read in this order
 
 | Artifact | Purpose |
 |---|---|
 | [spec.md](spec.md) | User stories, requirements, acceptance scenarios and measurable outcomes |
+| [notification-catalog.md](notification-catalog.md) | Nine owner-required groups, concrete event families, recipients/targets, source gaps, optional suggestions and policy questions |
+| [notification-center.md](notification-center.md) | Top-bar bell/history, read versus task state, canonical identity, navigation and explicit N2 scope extension |
 | [research.md](research.md) | Repository findings, official sources, conclusions and verification limits |
 | [plan.md](plan.md) | Architecture, constitution check, decisions and unresolved launch inputs |
-| [data-model.md](data-model.md) | Proposed additive persistence and delivery state semantics |
-| [contracts/api.md](contracts/api.md) | Proposed REST, realtime and push contracts; compatibility rules |
-| [tasks.md](tasks.md) | Ordered, unchecked implementation tasks with requirement traceability |
+| [data-model.md](data-model.md) | Implemented additive persistence and delivery state semantics |
+| [contracts/api.md](contracts/api.md) | Implemented REST, realtime and push contracts; compatibility rules |
+| [tasks.md](tasks.md) | N1/N2 implementation, pending N2 acceptance and N3 task traceability |
 | [quickstart.md](quickstart.md) | Staging verification, hosting checklist, rollout and rollback |
 | [checklists/requirements.md](checklists/requirements.md) | Specification quality check and implementation evidence gates |
 | [Linux VPS preflight](verification/linux-preflight/README.md) | Actual local Linux/SQL checks, publication blockers and limits of the hosting assessment |
@@ -30,7 +32,7 @@ This package plans changes to the existing Angular / ASP.NET Core / SQL Server m
 | Phase | Deliverable | Status |
 |---|---|---|
 | N1 | [Reliable inbox and authenticated realtime](phases/01-reliable-inbox-and-realtime.md) | Implemented; local checks pass; [evidence](verification/n1/README.md) |
-| N2 | [Installable PWA and opt-in Web Push](phases/02-pwa-and-web-push.md) | Not started |
+| N2 | [Unified personal center, event coverage, PWA and opt-in Web Push](phases/02-pwa-and-web-push.md) | Implemented locally; T020 device acceptance pending |
 | N3 | [Device verification, operations and controlled rollout](phases/03-verification-and-rollout.md) | Not started |
 
 Research and design are Spec Kit planning activities, not extra delivery phases. Testing, security review and Arabic/RTL review belong inside each phase. N3 adds cross-device and operational evidence; it does not postpone N1/N2 testing.

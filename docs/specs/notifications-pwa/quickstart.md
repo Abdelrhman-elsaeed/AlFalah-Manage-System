@@ -1,6 +1,6 @@
 # Implementation Verification and Rollout Runbook
 
-**Status:** N1 local implementation/verification instructions; N2/N3 staging and deployment steps remain planned. No production deployment has run.
+**Status:** N1/N2 local implementation/verification instructions; N2 actual-device and N3 operational/deployment gates remain pending. No production deployment has run.
 
 ## Selected direction - VPS
 
@@ -129,7 +129,7 @@ Record server commit, eligibility, worker start, provider acceptance and observe
 
 ## Pilot and channel rollback
 
-Proposed controls: `InboxJournalEnabled`, `RealtimeDispatchEnabled`, `WebPushRegistrationEnabled`, `WebPushDispatchEnabled` and `PwaUiEnabled`. These are design names, not existing configuration keys. Switches must have documented defaults and tested effects; turning off UI alone does not deactivate an installed worker.
+Implemented controls: `Inbox:JournalEnabled`, `Inbox:RealtimeEnabled`, `Inbox:CenterEnabled`, `WebPush:RegistrationEnabled`, `WebPush:DispatchEnabled` and `WebPush:PwaUiEnabled`. All default false. Switches must have documented defaults and tested effects; turning off UI alone does not deactivate an installed worker.
 
 1. Start with synthetic accounts and a stable HTTPS deployment. Enable journal/intents and verify the no-history-backfill baseline before client enrollment.
 2. Move to a specifically agreed school/user cohort only during an authorized rollout. Explain installation/permission, delivery limits and where the authoritative inbox lives.
@@ -148,3 +148,25 @@ Test with a previously installed, stale client, then confirm cache cleanup, auth
 ## Completion report
 
 Record task/requirement evidence, outstanding version/support exceptions, actual deployment and device matrix, approved operating settings, alert owner, restore/rollback results and native-contract boundary. Update [the checklist](checklists/requirements.md) and [central tracker](../../phases/PHASE-NOTIFY-PWA.md). A planned or staged rollout is not a completed production launch.
+
+## N2 implemented local setup and gated activation
+
+Read [local evidence / actual-device gates](verification/n2/README.md) and [dependency review](research.md#n2-dependency-and-protocol-review--2026-10-17). Exact verification commands and screenshot scripts are in that report. All flags default false; no existing customer/development database has been migrated by N2.
+
+Apply `20261017144014_AddPersonalCenterAndBrowserPush` and `20261017150426_AddBrowserPushAttemptAudit` after the N1 migration on a deliberately selected staging database. `ALFALAH_MIGRATIONS_CONNECTION` selects the tooling target; keep it out of output/source. Retain the pre-existing Data Protection application identity/ring. A new unrelated ring or Linux copy of Windows-DPAPI-protected material can break existing encrypted credentials; follow the Linux preflight recovery gate.
+
+| Configuration | Effect |
+|---|---|
+| `Inbox__CenterEnabled=true` | New source projection + owned center readers; requires N2 schema. N1 journal/realtime remain independently controlled by their existing flags. |
+| `Inbox__JournalEnabled=true` | Journal current source/center changes; one existing foreground coordinator owns reconnect/focus/fallback. |
+| `Inbox__RealtimeEnabled=true` | Existing N1 realtime dispatch; configure exact CORS/Inbox allowed origins. |
+| `WebPush__RegistrationEnabled=true` | Permit explicit opt-in registration and publish public key. Requires center access, explicit persistent `DataProtection__KeysPath`, active VAPID key ID/public key and allowed provider hosts. |
+| `WebPush__DispatchEnabled=true` | Snapshot devices for **future new entries** and run source-aware delivery. Disabled worker cancels pending targets; re-enable never replays the cancelled backlog. |
+| `WebPush__PwaUiEnabled=true` | Show contextual installation/update UI. This flag does not unregister an already installed worker. |
+| `WebPush__VapidKeyId`, `__PublicKey`, `__PrivateKey`, `__Subject`, `__AllowedProviderHosts__0` | Operator-owned signing identity/contact and exact reviewed provider DNS hosts; empty allowlist/private configuration sends nothing. No credentials are included here. |
+
+One Angular 17.3.12 root worker is enabled by the optimized production build, public manifest scope/id/start `/`. Serve `ngsw-worker.js`, `ngsw.json`, manifest and public icons directly on the stable HTTPS origin. Keep API/hubs/files/uploads outside caching; ASP.NET marks API/hub private/no-store. Verify actual proxy headers and CacheStorage on that deployment; local Node fixture is not evidence of deployed ASP.NET/proxy behavior. Existing production style-budget failures must be resolved before releasing; `pwa-verification` is only a local optimized inspection build.
+
+Single binding per browser endpoint/user/school; multiple devices per user are allowed. Do not switch accounts by guessing an installation ID or silently sign an old endpoint with a new VAPID identity. Rotate with explicitly reviewed re-enrollment and device tests. Revoke before logout/token discard where connected; offline unsubscribe cannot recall accepted/in-flight generic notices or prove server revocation. Every click reauthorizes its opaque locator under the explicitly active school; it never silently changes schools or performs a decision.
+
+Rollback: disable push dispatch first, registration second, and PWA UI as needed; restart the supervised API so options refresh. Pending targets become Cancelled, history/attempts remain. Disable center projection/readers independently only after checking legacy inbox fallback. Retain additive tables. Worker removal must use the existing exact-root `ngsw-worker.js` safety-worker replacement or actual `ngsw.json` 404 described above; flags alone do not remove it. Stale-client removal/reinstall rehearsal remains N3; no rehearsal or deployment is claimed now.

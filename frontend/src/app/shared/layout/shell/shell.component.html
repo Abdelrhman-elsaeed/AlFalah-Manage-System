@@ -50,6 +50,7 @@
 
     <!-- Left Section: Logout Button -->
     <div class="shell-topbar__actions">
+      <app-notification-center />
       <button
         type="button"
         class="shell-topbar__logout"
@@ -155,6 +156,12 @@
     </aside>
 
     <main class="shell-content">
+      @if (webPush.config()?.pwaUiEnabled && (webPush.updateReady() || webPush.unrecoverable())) {
+        <div role="status" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;margin-bottom:14px;background:#eaf5ef;color:#145c43;border:1px solid #bfd6c8;border-radius:12px;font-size:.85rem">
+          <span>{{ webPush.unrecoverable() ? 'يلزم تحديث التطبيق لاستعادة الملفات. احفظ مسوداتك أولاً.' : 'إصدار جديد من التطبيق متاح. احفظ مسوداتك قبل التحديث.' }}</span>
+          <button type="button" (click)="webPush.reload()">تحديث التطبيق</button>
+        </div>
+      }
       <router-outlet></router-outlet>
       <app-duty-dashboard-summary *ngIf="showDutyDashboard()" [schoolId]="currentUser()?.activeSchoolId||null" />
     </main>

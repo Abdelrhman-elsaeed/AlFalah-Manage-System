@@ -1,15 +1,19 @@
-# N2 - Installable PWA and Opt-in Web Push
+# N2 - Personal Notification Center, PWA and Opt-in Web Push
 
-**Status:** Not started.  
-**Story:** US3. **Tasks:** T012-T021 in [tasks.md](../tasks.md).  
+**Status:** Implemented and locally verified; T020 actual-device acceptance and final T021 exit remain pending. N3 not started. See [local results / gates](../verification/n2/README.md).
+**Stories:** US3/US5. **Tasks:** T012-T021 plus T012A-T012D in [tasks.md](../tasks.md).
 **Dependency:** Accepted N1 exit and compatible dependency decision.
 
 ## Outcome
 
 Supported users can install the website where appropriate, opt into browser notifications and reach the current authorized message/notice from a device notification. Permission denial or unsupported devices retain a usable inbox.
 
+Owner scope extension: first complete the mandatory event inventory and missing approved producers, unified top-bar bell/history and exact-item targets in [notification-catalog.md](../notification-catalog.md) and [notification-center.md](../notification-center.md). These are additional N2 deliverables; N1 generic realtime evidence does not establish their completion.
+
 ## Included work
 
+- T012A-T012D: transition-level required coverage, current recipient policies, durable canonical center/read/count state, shared bell/history and target selection with category/unread filters and pending/resolved status.
+- Resolve complaint administrator access and remaining attendance/report technical mappings before affected producers; preserve original decision permissions. Owner confirms student alerts per completed classroom/date, separate staff attendance alerts, and Duty completion alerts at committed signing/submission of the report to manager/entitled administrators. Optional reminders/NS suggestions remain proposals.
 - Version-matched Angular PWA, stable manifest identity and one root service worker.
 - Public app-shell allowlist and honest offline state; no private API/file caching.
 - Contextual Arabic/RTL installation and permission UX, including iOS Home Screen guidance.
@@ -20,6 +24,9 @@ Supported users can install the website where appropriate, opt into browser noti
 This phase does not require Firebase browser SDKs, Apple Developer Program enrollment, native builds or offline message submission. Preserve business office hours/approval and do not push old seeded/history records.
 
 ## Required checks
+
+- Every mandatory NC row: entitled/excluded recipients, bell/history/count, correct destination, current task state, reassignment/revocation and source deduplication. No alerts produced by dashboard reads.
+- Per-classroom student completion (including all-present) versus partial staff batches; separate staff school/date scope; signed-report submission versus drafts/letter signature/last-student departure, archive failure and replay. Complaint creation/reply visibility and existing role hard denials; manager approval task distinct from pending guardian dispatch.
 
 - Real HTTPS staging iPhone/iPad Home Screen and Android Chrome delivery with app backgrounded/no open tab; record OS/browser and settings.
 - User-gesture permission; denied/unsupported/install-required states; no automatic or repeated prompts.
@@ -33,10 +40,17 @@ This phase does not require Firebase browser SDKs, Apple Developer Program enrol
 ## Exit evidence
 
 - [ ] US3 and N2 portions of SC-004/SC-005/SC-006 pass with device evidence.
-- [ ] Per-event expiry, target support matrix, active-school binding and generic content defaults are reviewed and recorded.
+- [x] US5/FR-015-FR-018 and SC-009/SC-010 pass with transition-level catalog evidence; CP-01-CP-04 are resolved for all required affected producers, or an explicit owner scope revision records the exclusion. Optional suggestions are not silently implemented.
+- [x] Per-event expiry, target support matrix, active-school binding and generic content defaults are reviewed and recorded.
 - [ ] Q01/Q04/Q05/Q07/Q08 N2 inputs are resolved for staging; production-only gaps remain explicitly gated.
 - [ ] No competing root worker; cache policy and notification click work in the selected Angular version.
-- [ ] Channel-disable and service-worker removal procedures are concrete and ready for the N3 stale-client rehearsal.
-- [ ] Source/API/schema/security documentation and central records match actual implementation.
+- [x] Channel-disable and service-worker removal procedures are concrete and ready for the N3 stale-client rehearsal.
+- [x] Source/API/schema/security documentation and central records match actual implementation.
 
 Stop and report after the phase exit. A desktop DevTools push simulation alone does not satisfy the actual-phone requirement.
+
+## Local implementation result
+
+T012A–T012D and T013–T019 are implemented locally: durable personal center, transition policy/missing approved producers, exact authenticated targets, bell/history, matched Angular worker, protected subscriptions and source-aware per-device delivery. See [verification report](../verification/n2/README.md), [concrete catalog](../notification-catalog.md#n2-concrete-transition-inventory--2026-10-17) and [implementation decisions](../n2-implementation.md). There is no operational database migration or provider traffic. The report distinguishes InMemory, actual SQL, intercepted API UI, local worker and intercepted provider HTTP.
+
+Exit review: local catalog/center/source documentation and cache/ownership checks are complete. Compatible pins/expiry/generic-content/single-binding staging defaults are recorded, but final origin/VAPID/provider configuration and actual iOS/Android results remain unresolved. Consequently the device-dependent exit boxes above remain unchecked; N2 is implemented but not fully accepted. T021 local reconciliation is complete, with final exit contingent on T020. N3 has not started.

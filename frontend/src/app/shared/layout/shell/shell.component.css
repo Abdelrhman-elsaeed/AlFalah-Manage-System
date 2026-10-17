@@ -30,6 +30,11 @@
 }
 
 /* Topbar */
+/* An open modal must use the viewport as its fixed containing block. */
+.shell-topbar:has(app-notification-center[data-open="true"]) {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 .shell-topbar {
   position: relative;
   z-index: 100;
@@ -243,6 +248,7 @@
   display: inline-flex;
   align-items: center;
   direction: ltr;
+  gap: 12px;
 }
 
 .shell-topbar__logout {

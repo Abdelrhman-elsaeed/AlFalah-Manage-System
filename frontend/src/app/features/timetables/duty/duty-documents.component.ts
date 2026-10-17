@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 import { firstValueFrom, timer } from 'rxjs';
 import { DutyDocumentCollection, DutyDocumentState, DutyDocumentsService } from '../../../core/services/duty-documents.service';
+import { ActivatedRoute } from '@angular/router';
 import { filenameFromContentDisposition } from '../../../core/services/visits.service';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { DutyPdfPreviewComponent } from './duty-pdf-preview.component';
@@ -14,6 +15,8 @@ import { isDutyPdf } from './duty-pdf-content';
 @Component({ selector: 'app-duty-documents', standalone: true, imports: [CommonModule, TranslateModule, DialogModule, DutyPdfPreviewComponent, DutyErrorDirective],
   templateUrl: './duty-documents.component.html', styleUrls: ['./duty-documents.component.css'] })
 export class DutyDocumentsComponent implements OnChanges {
+  private readonly notificationRoute = inject(ActivatedRoute);
+  private linkedDocumentOpened = false;
   @Input({ required: true }) assignmentId = 0; @Input() canManage = false; @Input() signedCount = 0;
   @Input() actionsOnly = false; @Output() changed=new EventEmitter<void>();
   private readonly api = inject(DutyDocumentsService); private readonly translate = inject(TranslateService);
@@ -41,6 +44,12 @@ export class DutyDocumentsComponent implements OnChanges {
     try {
       const r = await firstValueFrom(this.api.list(this.assignmentId)); if (sequence !== this.sequence) return;
       if (!r.isSuccess || !r.data || !Array.isArray(r.data.documents)) throw new Error(r.message || this.t('ERROR')); this.data.set(r.data);
+      const linkedId = Number(this.notificationRoute.snapshot.queryParamMap.get('documentId'));
+      if (linkedId > 0 && !this.linkedDocumentOpened && !this.actionsOnly) {
+        const document = r.data.documents.find(x => x.documentId === linkedId);
+        this.linkedDocumentOpened = true;
+        if (document) void this.open(document); else this.error.set(this.t('UNAVAILABLE'));
+      }
     } catch (e: any) {
       if (sequence !== this.sequence) return;
       if (e.status === 403 || e.status === 404) { this.denied = e.status === 403; this.data.set(null); this.previewOpen = false; this.historyOpen = false; this.release(); }

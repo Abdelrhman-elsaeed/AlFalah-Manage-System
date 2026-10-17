@@ -218,7 +218,8 @@ export class ExcusesManagementComponent implements OnDestroy {
     this.queuePageSize.set(pageSize);
     this.queueLoading.set(true);
     this.queueError.set('');
-    this.api.getPendingExcuses(pageNumber, pageSize).pipe(
+    const linkedId = Number(this.route.snapshot.queryParamMap.get('excuseId')) || undefined;
+    this.api.getPendingExcuses(pageNumber, pageSize, linkedId).pipe(
       finalize(() => this.queueLoading.set(false)),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
@@ -229,6 +230,10 @@ export class ExcusesManagementComponent implements OnDestroy {
         }
         this.queue.set(response.data.items);
         this.queueTotal.set(response.data.totalCount);
+        if (linkedId && !this.reviewDialogVisible()) {
+          const item = response.data.items.find(x => x.excuse.id === linkedId);
+          if (item) this.openReview(item); else this.queueError.set('سبق حسم هذا العذر أو لم يعد متاحًا للمراجعة.');
+        }
       },
       error: error => {
         this.queueError.set(error instanceof Error ? error.message : 'تعذر تحميل قائمة الأعذار.');

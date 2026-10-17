@@ -61,6 +61,8 @@ public class AttendanceService : IAttendanceService
             throw new ArgumentException("لا يمكن تسجيل نفس الموظف أكثر من مرة في نفس اليوم.");
         if (!submittedUserIds.SetEquals(rosterUserIds))
             throw new ArgumentException("يجب حفظ الحضور لكافة موظفي المدرسة الحاليين.");
+        if (rosterUserIds.Count == 0)
+            throw new ArgumentException("لا يمكن حفظ كشف حضور فارغ.");
 
         var currentUserId = _currentUser.UserId
             ?? throw new UnauthorizedAccessException("يجب تسجيل الدخول أولاً.");
@@ -101,6 +103,8 @@ public class AttendanceService : IAttendanceService
         // No change to secretary authorization and no dependency on a browser visit.
         if (factsChanged)
         {
+            _context.Add(new AlFalah.Domain.Entities.Notifications.AttendanceCompletion {
+                SchoolId = schoolId, Date = request.Date, RosterCount = roster.Count, SubmittedAtUtc = now });
             _context.Set<DutyReconciliationOperation>().Add(new DutyReconciliationOperation { SchoolId = schoolId, Date = request.Date });
             _context.Set<CoverageReconciliationSignal>().Add(new CoverageReconciliationSignal { SchoolId = schoolId, LocalDate = request.Date });
         }

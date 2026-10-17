@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, TemplateRef, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -65,6 +65,7 @@ export class ComplaintsListComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly confirm = inject(ConfirmationService);
   private readonly translate = inject(TranslateService);
 
@@ -124,6 +125,13 @@ export class ComplaintsListComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const complaintId = Number(this.route.snapshot.queryParamMap.get('complaintId'));
+    if (complaintId > 0) {
+      this.activeTab.set('results');
+      this.complaintsService.getById(complaintId).subscribe({ next: response => {
+        if (response.isSuccess && response.data) this.openDetail(response.data);
+      }, error: () => this.toast.warn('هذا العنصر غير متاح', 'تحقق من المدرسة النشطة وصلاحيات الوصول.') });
+    }
     this.load();
     if (this.canSubmit()) {
       this.loadReports();

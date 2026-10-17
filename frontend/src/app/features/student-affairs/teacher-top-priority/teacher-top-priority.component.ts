@@ -191,6 +191,8 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    if (Number(this.route.snapshot.queryParamMap.get('permitId')) > 0) this.selectTab('entry-permits');
+    else if (Number(this.route.snapshot.queryParamMap.get('gatePassId')) > 0) this.selectTab('gate-passes');
     const classroomId = Number(this.route.snapshot.queryParamMap.get('classroomId'));
     if (Number.isInteger(classroomId) && classroomId > 0) this.detailClassroomId.set(classroomId);
     this.load();
@@ -519,6 +521,13 @@ export class TeacherTopPriorityComponent implements OnInit, OnDestroy {
     };
 
     this.topPriority.set(mergedValue);
+      const linkedPermit = Number(this.route.snapshot.queryParamMap.get('permitId'));
+      const linkedGate = Number(this.route.snapshot.queryParamMap.get('gatePassId'));
+      const selector = linkedPermit > 0 ? `[data-permit-id="${linkedPermit}"]` : linkedGate > 0 ? `[data-gate-pass-id="${linkedGate}"]` : '';
+      if (selector) requestAnimationFrame(() => {
+        const target = document.querySelector<HTMLElement>(selector);
+        if (target) { target.scrollIntoView({ block: 'center' }); target.setAttribute('tabindex', '-1'); target.focus({ preventScroll: true }); target.style.outline = '3px solid #b78231'; }
+      });
     this.lastContext = mergedValue.context;
     const selected = this.selectedStudent();
     if (selected && !mergedValue.context.roster.some(student => student.id === selected.id)) {

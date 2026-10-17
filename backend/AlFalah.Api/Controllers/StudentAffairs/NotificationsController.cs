@@ -41,7 +41,7 @@ public sealed class NotificationsController : StudentAffairsControllerBase
     }
 
     [HttpGet("pending-dispatch")]
-    public async Task<IActionResult> PendingDispatch([FromQuery] StudentAffairsPageQuery query, CancellationToken cancellationToken)
+    public async Task<IActionResult> PendingDispatch([FromQuery] PendingDispatchQuery query, CancellationToken cancellationToken)
     {
         if (!HasAnyPermission(PermissionNames.NotificationApproveDispatch, PermissionNames.NotificationSuppressDispatch)) return PermissionDenied();
         return FromResponse(await Mediator.Send(new GetPendingDispatchNotificationsQuery(query), cancellationToken));

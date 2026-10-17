@@ -36,7 +36,7 @@ public sealed partial class InboxRepository(AlFalahDbContext db, IOptions<InboxO
             .Select(x => x.Permission.Name).Distinct().ToArrayAsync(ct);
         var messaging = permissions.Contains(PermissionNames.MessagingViewOwn);
         var notifications = permissions.Contains(PermissionNames.NotificationViewOwn);
-        if (!messaging && !notifications) return null;
+        if (!messaging && !notifications && !options.Value.CenterEnabled) return null;
         var fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
             string.Join('|', roles.Order()) + ":" + string.Join('|', permissions.Order())
             + ":" + await GuardianBindingAsync(scope, roles.Contains(RoleNames.Guardian), ct))));
@@ -55,7 +55,7 @@ public sealed partial class InboxRepository(AlFalahDbContext db, IOptions<InboxO
         return string.Join(',', links);
     }
 
-    private async Task<IQueryable<ConversationThread>> ThreadsAsync(InboxScope scope, CancellationToken ct)
+    internal async Task<IQueryable<ConversationThread>> ThreadsAsync(InboxScope scope, CancellationToken ct)
     {
         var roles = await db.UserSchoolRoles.AsNoTracking().Where(x => x.SchoolId == scope.SchoolId
             && x.UserId == scope.UserId && x.IsActive && x.Role.IsActive && x.User.IsActive)
@@ -173,4 +173,14 @@ public sealed partial class InboxRepository(AlFalahDbContext db, IOptions<InboxO
             "Recipient", r.DeliveryState == MessageDeliveryState.Delivered ? NotificationDeliveryStatus.Delivered
                 : r.DeliveryState == MessageDeliveryState.Failed ? NotificationDeliveryStatus.Failed : NotificationDeliveryStatus.Pending,
             r.DeliveredAt, r.ReadAt)).ToArray()) { VisibleAtUtc = visibleAt };
+
+    public async Task<MessagePosition?> GetPositionAsync(InboxScope scope, int conversationId, int messageId, CancellationToken ct)
+    {
+        var threads = await ThreadsAsync(scope, ct);
+        if (!await threads.AnyAsync(x => x.Id == conversationId, ct)) return null;
+        return await db.ConversationMessages.AsNoTracking().Where(m => m.Id == messageId && m.SchoolId == scope.SchoolId && m.ConversationThreadId == conversationId && !m.IsDeleted
+            && (m.SenderUserId == scope.UserId || m.Receipts.Any(r => r.RecipientUserId == scope.UserId && r.DeliveryState == MessageDeliveryState.Delivered)))
+            .Select(m => new MessagePosition(m.SenderUserId == scope.UserId ? m.QueuedAt : m.Receipts.Where(r => r.RecipientUserId == scope.UserId && r.DeliveryState == MessageDeliveryState.Delivered)
+                .Select(r => r.DeliveredAt ?? r.CreatedAt).First(), (long)m.Id + 1)).SingleOrDefaultAsync(ct);
+    }
 }

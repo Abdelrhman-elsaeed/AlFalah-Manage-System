@@ -31,6 +31,7 @@ interface JwtClaims {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  beforeLogout: (() => Promise<void>) | null = null;
   private readonly apiUrl = `${environment.apiUrl}/api/v1/auth`;
   private accessToken: string | null = this.readSession(ACCESS_TOKEN_KEY);
   private refreshTokenValue: string | null = this.readSession(REFRESH_TOKEN_KEY);
@@ -104,7 +105,8 @@ export class AuthService {
     );
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
+    await this.beforeLogout?.();
     const refreshToken = this.refreshTokenValue;
     if (refreshToken) {
       this.http.post(`${this.apiUrl}/logout`, { refreshToken }).subscribe({ error: () => undefined });

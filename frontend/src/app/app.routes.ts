@@ -70,6 +70,10 @@ export const routes: Routes = [
       .then(m => m.ShellComponent),
     children: [
       // Main Manager routes
+      { path: 'notifications', loadComponent: () => import('./features/notifications/notification-history.component').then(m => m.NotificationHistoryComponent), title: 'الإشعارات' },
+      { path: 'notification-entry', loadComponent: () => import('./features/notifications/notification-entry.component').then(m => m.NotificationEntryComponent), title: 'فتح الإشعار' },
+      { path: 'notifications/detail/:id', loadComponent: () => import('./features/notifications/notification-detail.component').then(m => m.NotificationDetailComponent), title: 'تفاصيل الإشعار' },
+      { path: 'notifications/sheet/:id', loadComponent: () => import('./features/notifications/notification-detail.component').then(m => m.NotificationDetailComponent), title: 'كشف الحضور' },
       {
         path: 'main-manager',
         canActivate: [roleGuard],

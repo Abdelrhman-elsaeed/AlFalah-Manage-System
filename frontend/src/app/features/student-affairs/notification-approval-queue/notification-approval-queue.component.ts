@@ -15,6 +15,7 @@ import { DispatchFactDto, PendingDispatchDto, isBehaviorFact } from '../../../co
 import { AuthService } from '../../../core/services/auth.service';
 import { Phase5Service } from '../../../core/services/phase5.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ActivatedRoute } from '@angular/router';
 
 type Decision = 'approve' | 'suppress';
 
@@ -29,6 +30,8 @@ export class NotificationApprovalQueueComponent {
   private readonly api = inject(Phase5Service);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
+  private selectedFromNotification = false;
 
   readonly items = signal<readonly PendingDispatchDto[]>([]);
   readonly totalRecords = signal(0);
@@ -57,7 +60,8 @@ export class NotificationApprovalQueueComponent {
   load(page = this.pageNumber()): void {
     this.loading.set(true);
     this.errorMessage.set('');
-    this.api.listPendingDispatch(page, this.pageSize(), this.search.value).pipe(finalize(() => this.loading.set(false))).subscribe({
+    const linkedId = Number(this.route.snapshot.queryParamMap.get('notificationId')) || undefined;
+    this.api.listPendingDispatch(page, this.pageSize(), this.search.value, linkedId).pipe(finalize(() => this.loading.set(false))).subscribe({
       next: response => {
         if (!response.isSuccess || !response.data) {
           this.errorMessage.set(response.errors[0] ?? response.message ?? 'تعذر تحميل طابور الإشعارات.');
@@ -67,6 +71,12 @@ export class NotificationApprovalQueueComponent {
         this.totalRecords.set(response.data.totalCount);
         this.pageNumber.set(response.data.page);
         this.pageSize.set(response.data.pageSize);
+        if (linkedId && !this.selectedFromNotification) {
+          this.selectedFromNotification = true;
+          const item = this.items().find(x => x.id === linkedId);
+          if (item) this.openDecision(item, this.canApprove ? 'approve' : 'suppress');
+          else this.errorMessage.set('سبق حسم هذا الإشعار أو لم يعد متاحًا للمراجعة.');
+        }
       },
       error: error => this.errorMessage.set(this.httpMessage(error, 'تعذر تحميل طابور الإشعارات.'))
     });

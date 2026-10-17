@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-17",
+  "environment": "Desktop Chromium; responsive widths; intercepted synthetic HTTP; no Web Push delivery",
+  "checks": [
+    {
+      "width": 1440,
+      "passed": true,
+      "checks": [
+        "open-does-not-read",
+        "authoritative-independent-count",
+        "unread-and-category-filter",
+        "read-preserves-task",
+        "escape-and-focus-trap",
+        "exact-source-navigation",
+        "no-overflow"
+      ],
+      "listQueries": [
+        "limit=30&unread=false",
+        "limit=30&unread=false",
+        "limit=30&unread=false",
+        "limit=30&unread=true",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false&category=approvals",
+        "limit=30&unread=false&category=approvals",
+        "limit=30&unread=false"
+      ]
+    },
+    {
+      "width": 390,
+      "passed": true,
+      "checks": [
+        "open-does-not-read",
+        "authoritative-independent-count",
+        "unread-and-category-filter",
+        "read-preserves-task",
+        "escape-and-focus-trap",
+        "exact-source-navigation",
+        "no-overflow"
+      ],
+      "listQueries": [
+        "limit=30&unread=false",
+        "limit=30&unread=false",
+        "limit=30&unread=false",
+        "limit=30&unread=true",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false&category=approvals",
+        "limit=30&unread=false&category=approvals",
+        "limit=30&unread=false"
+      ]
+    },
+    {
+      "width": 320,
+      "passed": true,
+      "checks": [
+        "open-does-not-read",
+        "authoritative-independent-count",
+        "unread-and-category-filter",
+        "read-preserves-task",
+        "escape-and-focus-trap",
+        "exact-source-navigation",
+        "no-overflow"
+      ],
+      "listQueries": [
+        "limit=30&unread=false",
+        "limit=30&unread=false",
+        "limit=30&unread=false",
+        "limit=30&unread=true",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false",
+        "limit=30&unread=true&category=approvals",
+        "limit=30&unread=false&category=approvals",
+        "limit=30&unread=false&category=approvals",
+        "limit=30&unread=false"
+      ]
+    }
+  ]
+}

@@ -21,6 +21,7 @@ import {
 import { AuthService } from '../../../core/services/auth.service';
 import { GatePassService } from '../../../core/services/gate-pass.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ActivatedRoute } from '@angular/router';
 
 type QueueLoadResult =
   | { readonly ok: true; readonly items: readonly SecurityGatePassQueueItemDto[]; readonly total: number; readonly page: number; readonly pageSize: number; readonly serverNow: string }
@@ -50,6 +51,7 @@ export class SecurityGateExecutionComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly manualRefresh = new Subject<void>();
   private readonly syncedAt = new Map<number, number>();
+  private readonly route = inject(ActivatedRoute);
 
   readonly queue = signal<readonly SecurityGatePassQueueItemDto[]>([]);
   readonly totalRecords = signal(0);
@@ -80,6 +82,15 @@ export class SecurityGateExecutionComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const linked = Number(this.route.snapshot.queryParamMap.get('gatePassId'));
+    if (linked > 0) this.api.securityDetail(linked).subscribe({ next: r => {
+      const detail = r.data;
+      if (r.isSuccess && detail && (detail.status === 'Approved' || detail.status === 'SecurityAcknowledged') && detail.approvedWindowStartsAt && detail.approvedWindowEndsAt && detail.approvedAt) {
+        const item: SecurityGatePassQueueItemDto = { ...detail, status: detail.status, approvedWindowStartsAt: detail.approvedWindowStartsAt, approvedWindowEndsAt: detail.approvedWindowEndsAt, approvedAt: detail.approvedAt };
+        this.queue.update(items => [item, ...items.filter(x => x.id !== item.id)]); this.syncedAt.set(item.id, Date.now());
+        if (item.status === 'Approved') this.acknowledge(item); else this.openExit(item);
+      } else this.errorMessage.set('هذا الاستئذان لم يعد متاحًا للتنفيذ.');
+    }, error: () => this.errorMessage.set('هذا الاستئذان غير متاح حاليًا.') });
     const focus$ = typeof window === 'undefined' ? of(undefined) : fromEvent(window, 'focus');
     const visibility$ = typeof document === 'undefined' ? of(undefined) : fromEvent(document, 'visibilitychange');
     merge(timer(0, 30_000), focus$, visibility$, this.manualRefresh).pipe(

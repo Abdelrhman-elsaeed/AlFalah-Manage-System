@@ -414,3 +414,22 @@ Read-only follow-up: diagnosed empty standby-register names as zero daily covera
 | Date | Change |
 |---|---|
 | 2026-10-17 | Implemented notification phase N1: compatible latest/history windows, uncapped current-permission aggregates, transactional recipient journal/intents, authenticated SignalR and one Angular coordinator for chat/sidebar/guardian notifications. Preserves office hours, approval and actual Duty canonical identity; later surfaces re-arm the same realtime intent and fence old leases. Added migration `20261017125332_AddRecipientInboxRealtime`, SQL concurrency/rollback/deadlock/interleaving/lease/retention checks, real protocol tests and inspected desktop/mobile RTL viewport evidence. Local request-to-viewport p95 2,089/1,948 ms; [named results and limits](specs/notifications-pwa/verification/n1/README.md). Existing production CSS/broad storage-test and framework/Linux deployment gates remain; flags default off, operational database unchanged, no push/provider/deployment. N2/N3 not started. |
+
+## C50 / D-142 - Required notification coverage and personal center design (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Recorded the owner's nine mandatory notification groups in the English [event catalog](specs/notifications-pwa/notification-catalog.md), with NC-01-NC-18 recipients/actions/source gaps, six optional suggestions and five policy questions. Added [unified top-bar bell/history design](specs/notifications-pwa/notification-center.md), exact-item authenticated navigation, independent read/task state and canonical dashboard/System/source deduplication. Source review identifies missing complaint-submission alert, default-Pending status notice, actual complaint access restrictions and unresolved attendance/dismissal completion definitions. Expanded N2 with US5, FR-015-FR-018, SC-009/SC-010 and T012A-T012D; exactly three phases, 33 tasks (11 complete, 22 pending). Updated spec/plan/model/contracts/tasks/checklists/tracker. Documentation only; no runtime, permission, schema, provider or deployment changes. |
+
+## C51 / D-143 - Attendance and Duty report notification triggers confirmed (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Owner resolves catalog CP-02/CP-03: attendance notices cover both students and staff; students notify the SchoolManager after each completed classroom/date sheet (classroom, not academic term), while staff use their separate complete daily school sheet. Duty completion means successful signing/submission of its report to SchoolManager/entitled Duty administrators, not last-student departure or whole-school departure completion. Updated catalog/center/spec/plan/tasks/N2 scope and central tracker. Verified source boundaries: student full-roster submission, staff full-roster equality validation, and atomic signed-report submission. Canonical correction/replay handling remains N2 implementation work. Documentation only; no runtime or deployment changes. |
+
+
+## C52 / D-144 - N2 personal center, event coverage and PWA/Web Push (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Implemented N2 including T012A-T012D: Arabic/RTL top-bar bell, mobile panel/history, independent authoritative counts/read/task state, exact source navigation and confirmed attendance/signed Duty report triggers. Added canonical recipient projection, protected per-device Web Push, matched Angular root worker/public cache and contextual opt-in/update/device controls. Preserves complaint hard denials, current relationships/assignments, office hours/dispatch approvals and original commands. Two additive migrations exercised only on fresh guarded SQL databases. [Local test/browser/worker results and acceptance gates](specs/notifications-pwa/verification/n2/README.md), [transition inventory](specs/notifications-pwa/notification-catalog.md#n2-concrete-transition-inventory--2026-10-17). N2 code/docs are implemented; T020 actual HTTPS iOS/Android/provider acceptance and final phase exit remain pending. All flags default off, no operational database/provider/deployment action; N3 not started. |

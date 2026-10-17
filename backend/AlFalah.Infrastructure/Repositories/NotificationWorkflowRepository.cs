@@ -90,6 +90,7 @@ public sealed class NotificationWorkflowRepository : INotificationWorkflowReposi
             && !notification.IsSuppressed
             && (notification.RelatedEntityType == nameof(BehaviorIncident)
                 || notification.RelatedEntityType == nameof(AcademicConcern)));
+        if (query is PendingDispatchQuery { NotificationId: { } selectedId }) source = source.Where(x => x.Id == selectedId);
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.Trim();

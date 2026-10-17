@@ -175,3 +175,10 @@ The existing assignment component now renders a grade-grouped classroom-by-subje
 ## C36 / D-128 - Saved assignment statement (2026-10-16)
 
 The existing assignment header opens a focused statement dialog, independently scoped from ledger filters. It groups/paginates classification editing, saves via the existing sparse revisioned assignment API and previews/downloads the exact received PDF Blob. It reuses the existing PDF.js preview and C30 HTTP/filename helpers. Main assignment drafts block export; classification changes have discard protection, explicit save, server conflict recovery and no specialization substring inference. Existing school page is read-only in verification; write workflows use isolated SQL/API fixtures. [Behavior and screenshots](specs/classroom-catalog/statement.md).
+
+
+## C52 / D-144 - Arabic personal notification center and PWA (2026-10-17)
+
+Shared top-bar bell opens an RTL panel and responsive mobile bottom sheet; full history reuses the same list, category/unread filters, explicit read controls, previews and independent pending/read states. Uses application typography/green, visible focus, Escape/Tab handling, safe-area spacing and reduced motion. NotificationCenterService consumes the existing N1 coordinator; no second polling owner. Server totals are independent of the message badge. Auth/context changes discard stale count/history/detail responses.
+
+One version-matched Angular root worker caches public shell assets only; manifest/icons derive from existing branding. Contextual WebPushService requires explicit permission, explains iOS Home Screen/denial/unsupported states, reconciles owned devices and revokes before logout. Update banners require deliberate draft-aware reload. Bell and push share an authenticated exact-item resolver; original workflows keep their commands and concurrency controls. [Screenshots and precise test boundaries](specs/notifications-pwa/verification/n2/README.md). Dedicated optimized pwa-verification build does not waive pre-existing production CSS budgets or support/device gates; N3 remains unstarted.

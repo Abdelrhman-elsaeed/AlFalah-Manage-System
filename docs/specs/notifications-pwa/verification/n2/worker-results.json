@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-17",
+  "browser": "153.0.8010.12",
+  "environment": "Real localhost Angular worker; synthetic API; desktop Chromium; no phone/provider delivery",
+  "registrations": [
+    {
+      "scope": "http://127.0.0.1:4317/",
+      "script": "http://127.0.0.1:4317/ngsw-worker.js"
+    }
+  ],
+  "cachedPathCount": 210,
+  "expectedPublicAssets": 207,
+  "completePublicPrefetch": true,
+  "controlledNavigation": true,
+  "privatePathCount": 0,
+  "offline": {
+    "privateAvailable": false,
+    "shellAvailable": true
+  },
+  "manifest": {
+    "id": "/",
+    "dir": "rtl",
+    "display": "standalone"
+  },
+  "passed": true
+}

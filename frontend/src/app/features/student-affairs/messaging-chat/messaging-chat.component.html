@@ -57,7 +57,7 @@
           <div #timeline class="timeline" (scroll)="onTimelineScroll()">
             @if (hasOlder()) { <button pButton type="button" label="تحميل رسائل أقدم" icon="pi pi-history" class="p-button-text older" [loading]="loadingOlder()" (click)="loadOlder()"></button> }
             @for (message of messages(); track message.id) {
-              <article class="message" [class.mine]="isMine(message)" [class.system-notice-message]="message.sender.roleSnapshot==='System'">
+              <article class="message" [attr.data-message-id]="message.id" [class.mine]="isMine(message)" [class.system-notice-message]="message.sender.roleSnapshot==='System'">
                 <div class="message-head"><strong><i *ngIf="message.sender.roleSnapshot==='System'" class="pi pi-shield" aria-hidden="true"></i>{{ message.sender.roleSnapshot==='System'?('DUTY_EXEC.SYSTEM' | translate):message.sender.displayName }}</strong><time><bdi dir="ltr">{{ formatDateTime(message.createdAt) }}</bdi></time></div>
                 <p dir="auto">{{ message.body }}</p>
                 @if (isMine(message) && receiptView(message); as receipt) {

@@ -8,6 +8,7 @@ import { TagModule } from 'primeng/tag';
 import { forkJoin } from 'rxjs';
 import { GuardianEntryPermitDto, GuardianSummonDto } from '../../../core/models/guardian-self-service.models';
 import { GuardianSelfServiceService } from '../../../core/services/guardian-self-service.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-guardian-activity',
@@ -18,6 +19,7 @@ import { GuardianSelfServiceService } from '../../../core/services/guardian-self
 })
 export class GuardianActivityComponent {
   private readonly api = inject(GuardianSelfServiceService);
+  private readonly route = inject(ActivatedRoute);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly permits = signal<readonly GuardianEntryPermitDto[]>([]);
@@ -29,7 +31,11 @@ export class GuardianActivityComponent {
   readonly summonPage = signal(1);
   readonly summonTotal = signal(0);
 
-  constructor() { this.load(); }
+  constructor() {
+    this.load();
+    const summonId = Number(this.route.snapshot.queryParamMap.get('summonId'));
+    if (summonId > 0) this.showSummon(summonId);
+  }
 
   load(): void {
     this.loading.set(true);
@@ -48,6 +54,10 @@ export class GuardianActivityComponent {
         this.summons.set(result.summons.data?.items ?? []);
         this.permitTotal.set(result.permits.data?.totalCount ?? 0);
         this.summonTotal.set(result.summons.data?.totalCount ?? 0);
+        const permitId = Number(this.route.snapshot.queryParamMap.get('permitId'));
+        if (permitId > 0) this.api.getEntryPermit(permitId).subscribe({ next: r => {
+          if (r.isSuccess && r.data) { this.permits.set([r.data]); this.permitTotal.set(1); }
+        }, error: () => this.error.set('هذا التصريح غير متاح حاليًا.') });
       },
       error: () => { this.loading.set(false); this.error.set('تعذر تحميل التصاريح والاستدعاءات.'); }
     });

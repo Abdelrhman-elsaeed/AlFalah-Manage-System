@@ -50,6 +50,7 @@
               "html2pdf.js"
             ],
             "assets": [
+              "src/manifest.webmanifest",
               "src/favicon.ico",
               "src/assets",
               {
@@ -74,7 +75,14 @@
             "scripts": []
           },
           "configurations": {
+            "pwa-verification": {
+              "optimization": true,
+              "serviceWorker": "ngsw-config.json",
+              "outputHashing": "all",
+              "fileReplacements": [{ "replace": "src/environments/environment.ts", "with": "src/environments/environment.prod.ts" }]
+            },
             "production": {
+              "serviceWorker": "ngsw-config.json",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

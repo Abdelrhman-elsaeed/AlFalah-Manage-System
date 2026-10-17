@@ -6,7 +6,7 @@ N1 implementation follow-up: the official SignalR JavaScript 8.x package was ver
 
 ## Evidence levels
 
-**Observed** means inspected repository behavior; **reproduced** means a specific isolated check; **documented** means an official source describes a capability; **proposed** means a design decision in this package. None of these establishes real-device or production readiness. No new runtime tests were executed for this documentation change.
+**Observed** means inspected repository behavior; **reproduced** means a specific isolated check; **documented** means an official source describes a capability; **proposed** means a design decision in this package. None of these establishes real-device or production readiness. The original planning change ran no new runtime tests. N1/N2 implementation evidence is recorded separately below.
 
 ## Repository baseline
 
@@ -80,3 +80,16 @@ The later [Linux preflight](verification/linux-preflight/README.md) supersedes t
 - Actual household OS/browser distribution, school count, peak fan-out and hosting budget are not supplied.
 - Provider-specific endpoint hosts, error mapping, rate limits and VAPID rotation behavior must be verified against the selected adapter during N2.
 - Push is a convenience channel. Urgent school procedures requiring guaranteed acknowledgement need a separately agreed escalation policy; SMS/WhatsApp/native apps are not implied solutions in this scope.
+
+## N2 dependency and protocol review — 2026-10-17
+
+| Component | Selected pin / verified evidence | Boundary |
+|---|---|---|
+| Angular worker | `@angular/service-worker` **17.3.12**, matching the resolved Angular core/common version; MIT. Actual installed source and [versioned worker driver](https://github.com/angular/angular/blob/17.3.12/packages/service-worker/worker/src/driver.ts) include navigateLastFocusedOrOpen; real optimized local worker/cache test passes. | Deliberate compatibility pin, not a supported-stack exception for production. Angular 17 support/Node compatibility remains a release decision. No second Firebase/root worker. |
+| C# adapter | `Lib.Net.Http.WebPush` **3.3.1**, MIT; [project](https://github.com/tpeczek/Lib.Net.Http.WebPush), [package](https://www.nuget.org/packages/Lib.Net.Http.WebPush/3.3.1), [changelog](https://github.com/tpeczek/Lib.Net.Http.WebPush/blob/main/CHANGELOG.md). Author's current project advertises the same version and standard VAPID/encryption support; no maintenance SLA is inferred. Uses compatible net6 asset from net8; restored/compiled/tested here. | Actual library signing/encryption runs against intercepted HTTP; not actual provider acceptance. This replaces the earlier R09 candidate, rather than claiming web-push-csharp was installed. |
+| Provider requests | RFC 8030 TTL/urgency; real library exceptions classified as invalid subscription 404/410, config 401/403, retry 429/5xx, invalid payload otherwise. Retry-After is tested; library auto-retry disabled. | Provider allowlist defaults empty. Exact production Chrome/Edge/Firefox/Apple hosts require observed subscription origins and controlled configuration; no wildcard or arbitrary URL support. |
+| Apple baseline | Existing R05 and [Apple's Web Push documentation](https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers) guide contextual Home Screen/user-gesture UX. | No Apple developer enrollment/native build; no actual iOS delivery evidence. |
+
+Q01 final origin/operator/provider identities and Q04 actual devices are unresolved acceptance inputs. Q05 staging engineering cap is normal urgency/24h, capped by existing permit/gate/Duty expiry; Q07 one user/school binding per endpoint and Q08 generic Arabic content are implemented conservative defaults. They require staging/device review before non-test activation. No new business deadlines, penalty rules, escalation or legal retention policy are selected. N3 remains unstarted.
+
+The [N2 report](verification/n2/README.md) supersedes the original planning-only statements for package installation, local migration/SQL, browser and worker checks. It does not supersede the production support, hosting or actual-device gates.

@@ -1,6 +1,6 @@
 # Data Model and State Semantics
 
-**Status:** N1 implemented by migration `20261017125332_AddRecipientInboxRealtime`; N2 persistence remains proposed.  
+**Status:** N1 implemented by `20261017125332_AddRecipientInboxRealtime`; N2 by `20261017144014_AddPersonalCenterAndBrowserPush` and `20261017150426_AddBrowserPushAttemptAudit`.
 **Implementation:** N1 foundations, N2 browser subscriptions, N3 operational verification.
 
 ## Existing records remain authoritative
@@ -12,6 +12,12 @@ Retain `Notification`, conversation threads/messages/receipts, approval fields, 
 Legacy nullable `Notification.SchoolId` rows are not eligible for external delivery until an existing authorized policy resolves their school. Do not infer school from a client parameter or mass-update historical rows to make them pushable.
 
 ## Proposed persistence
+
+### N2 center extension: source-aware identity before device delivery
+
+The owner-required [catalog](notification-catalog.md) and [center design](notification-center.md) add a durable personal-center projection in N2. T012A must select its concrete reuse/additive schema and migration before T012B. Record recipient school/user, category, canonical source/revision, target reference, creation/visibility and independent read state. Reuse existing `Notification` IDs when appropriate; explicitly define message-entry read storage, message grouping/count semantics and Duty System-message deduplication. Source task status remains independent of notification read/delivery state.
+
+Preserve N1's generic journal and realtime tables; they are not the center's actionable history. Extend authoritative counts and transactionally journal new center/read transitions without redefining existing message/notification counts. The center badge counts canonical center entries, not the sum of two overlapping source counts. Revalidate resource access for lists/counts as well as targets. No schema change is implemented by this design update.
 
 N1 records below are implemented; N2 records remain design targets. N1 concurrency protection uses transaction-held stream locks and conditional lease updates rather than row-version columns. Store UTC instants; preserve existing school-time-zone policy for business release.
 
@@ -90,13 +96,13 @@ One failed endpoint does not retry successful targets on another phone. On first
 
 ### 6. DeliveryAttempt - N1/N2
 
-N1 implements `InboxDeliveryAttempts`: `Id`, `IntentId`, `LeaseId`, `CompletedAtUtc`, `Succeeded`; unique intent/lease. Only a still-owned, unexpired lease can append a completion. No bodies, tokens, endpoints, names or exception text. N2 will extend provider/target diagnostics separately.
+N1 implements `InboxDeliveryAttempts`: `Id`, `IntentId`, `LeaseId`, `CompletedAtUtc`, `Succeeded`; unique intent/lease. Only a still-owned, unexpired lease can append a completion. No bodies, tokens, endpoints, names or exception text. N2 adds BrowserPushAttempts separately; see concrete schema below.
 
 N1 technical defaults: five-minute invalidation expiry, 30-second lease, eight maximum attempts, capped exponential retry to 60 seconds; 25 claims per sweep, five concurrent deliveries and a three-second transport deadline. Journal/attempt/intents use a configurable seven-day recovery buffer (clamped 1-90 days). Cleanup is bounded to 500 old intents and one recipient journal per maintenance sweep. These are recovery settings, not an approved school-record/legal retention policy; original messages/notifications are not deleted.
 
 ## Channel state machine
 
-N1 only submits generic cache invalidations to currently authorized connections; suppression/deletion can itself require an invalidation to remove cached content. The richer source/device cancellation and provider state machine below is N2 design, not an implemented external-delivery guarantee.
+N1 only submits generic cache invalidations to currently authorized connections; suppression/deletion can itself require an invalidation to remove cached content. N2 implements the richer source/device cancellation and provider state machine below; provider acceptance remains distinct from delivery or read.
 
 ```text
 Pending -> Claimed -> Submitted (realtime) / ProviderAccepted (push)
@@ -129,3 +135,23 @@ Final numeric retry/lease/retention settings are documented and tested in N2/N3;
 - Batch cleanup and fan-out are bounded. Query indexes cover recipient/sequence, due state/time, leases and subscription ownership.
 - Real SQL Server tests cover duplicate keys, transaction rollback, deadlock retry, commit ordering, stale lease completion and concurrent registration.
 - Rollback initially disables producers/dispatch while retaining additive records. Do not drop delivery tables while workers or old clients can still reference them.
+
+## N2 implemented schema and transport settings
+
+These concrete names supersede the proposed N2 names above. Migrations are additive: `20261017144014_AddPersonalCenterAndBrowserPush`, then `20261017150426_AddBrowserPushAttemptAudit`. Applied only to fresh guarded test databases; no operational migration.
+
+| Table | Implemented keys and semantics |
+|---|---|
+| `PersonalNotifications` | Guid Id; unique SchoolId/UserId/SourceKey; recipient CreatedAtUtc/Id history index; category, audience, permission, source type/id, optional legacy NotificationId/MessageId/StudentId/date, safe title/preview, independent ReadAtUtc, updated/expiry and PushDisposition. SourceKey 240/UserId 450 keeps SQL unique key below the nonclustered byte limit. |
+| `AttendanceCompletions` | Durable explicit nonempty full-sheet signal: school, optional classroom, date, roster count, submitted UTC. Projection key deduplicates school/classroom/date or school/date staff; corrected saves may add a signal but never reset the existing entry or create a second device fan-out. |
+| `BrowserPushSubscriptions` | Guid Id/installation, current school/user, unique SHA256 endpoint hash, Data Protection protected endpoint+p256dh+auth JSON, VAPID key association, binding version, created/confirmed/revoked. Installation is correlation, never an ownership credential. Maximum 20 active devices per user. |
+| `BrowserPushTargets` | Entry/subscription/binding unique key, expiry/due, lease token/until, attempts/state, last HTTP status and provider acceptance timestamp; restrictive FKs preserve source/device audit. |
+| `BrowserPushAttempts` | Unique target/lease, completed UTC, classified state and nullable HTTP status. Conditional completion rejects expired/stale leases before appending. No raw provider response, endpoint, key, body or exception text. |
+
+The source save, canonical entry, N1 recipient journal and current-device snapshot commit together. Existing source transactions remain intact. New devices are not attached to old events. PushDisposition is Disabled, Expired, NoActiveSubscription or Scheduled; no active device never blocks the inbox.
+
+N2 uses one claimed target per worker turn, a 30-second lease, 10-second HTTP deadline, at most eight claims, exponential delay with jitter capped at 900 seconds unless valid Retry-After is longer, always bounded by expiry. No library-level hidden retry. Normal urgency; maximum 24h TTL, capped by permit validity, approved gate window or next school-local Duty assignment midnight. Recheck pending workflow, latest Duty revision, submitted report, school/user/grants/relationships and binding before each send. Superseded/expired/cancelled work is not replayed. Configuration/signing failure is terminal for that target and retains audit; operator summaries/channel-key alerting remain N3.
+
+ProviderAccepted records transport acceptance only; read state and business decisions remain unchanged. 404/410 revoke only the affected device/version and cancel its pending targets; 401/403 are configuration failures; 429/5xx and network/timeouts retry within limits; other provider failures are invalid payload. These mappings are exercised through intercepted real-library HTTP, not observed live providers. Interrupted unknown outcomes may repeat a generic stable-tag banner. Old-key subscriptions are fenced, not silently signed using a new identity; rotation requires explicit client re-enrollment and device acceptance testing.
+
+Retention for the new center/device audit is not silently borrowed from N1's seven-day journal cleanup. It remains an operator/business retention decision for N3; no new source-history deletion job is added.

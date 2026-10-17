@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
@@ -52,6 +53,7 @@ export class GatePassRequestComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
   private pendingIdempotencyKey: string | null = null;
 
   readonly loading = signal(true);
@@ -117,6 +119,18 @@ export class GatePassRequestComponent implements OnInit {
         if (advisory.isSuccess && advisory.data) {
           this.advisoryRequests.set(advisory.data.items.filter(item => ACTIVE_GATE_PASS_STATUSES.includes(item.status)));
           this.updateOverlapWarning();
+        }
+        const linkedId = Number(this.route.snapshot.queryParamMap.get('gatePassId'));
+        if (Number.isSafeInteger(linkedId) && linkedId > 0) {
+          this.api.getById(linkedId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+            next: response => {
+              if (response.isSuccess && response.data) {
+                this.activeTab.set('history');
+                this.applyPage([response.data], 1, 1, this.pageSize());
+              }
+            },
+            error: error => this.toast.error('الاستئذان غير متاح', this.errorMessage(error))
+          });
         }
       },
       error: error => this.toast.error('تعذر تحميل صفحة الاستئذان', this.errorMessage(error))

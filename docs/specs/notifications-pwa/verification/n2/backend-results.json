@@ -1,0 +1,317 @@
+{
+  "date": "2026-10-17",
+  "environment": "Windows, fresh guarded LocalDB SQL Server and EF InMemory; net8 test assembly on installed .NET 10 roll-forward host",
+  "scope": "Focused N2 plus selected N1/attendance/Duty/Data Protection regressions, not the whole repository suite",
+  "total": 76,
+  "passed": 76,
+  "failed": 0,
+  "skipped": 0,
+  "cases": [
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ComplaintSubmissionAndResponseArePrivateAndCountAndReadUseCurrentPolicy",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.RejectExcuse_LeavesOfficialAttendanceAbsent",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_WithStaleRevision_DoesNotMutateOrSave",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxWindowTests.AggregateCountsAllOneHundredTwentyOneThreadsWithoutLeakingOtherSchoolsOrPendingReceipts",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTransitionsTests.PermitLifecycleAndGatePassStagesHaveExactCurrentRecipientScope",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SubmitExcuse_ReusedIdempotencyKeyWithDifferentPayload_IsRejected",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTransitionsTests.ExcuseSubmissionAndBothDecisionsReachOnlyReviewerAndOwningGuardian",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.BiometricDelay_UsesActiveSchoolAndAppendsEvent",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.CleanupCannotDeleteAnIntentRearmedAfterItsCandidateScan",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterSqlTests.SourceCenterJournalAndDeviceSnapshotShareRollbackAndOptInDoesNotBackfill",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.StaffAttendanceRejectsPartialAndEmptySheetsAndFullSheetCorrectionsKeepOneManagerEntry",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.ReviewExcuse_WhenSecretaryHasInjectedReviewPermission_IsStillDenied",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_MarksSubmittedStudentAbsentAndEveryoneElsePresent",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.SnapshotCountsAreUncappedAndPermissionsAreResolvedFromCurrentDatabase",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.RetentionForcesExplicitResyncAndKeepsBusinessHistory",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEndpointMustBeExactAllowlistedHttpsOrigin(endpoint: \"https://localhost/x\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 410, state: \"InvalidSubscription\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.ClaimRaceIsExclusiveAndOldLeaseCannotCompleteAfterReclaim",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ProviderClassificationDoesNotConfuseAcceptanceWithRead(status: 404, state: \"InvalidSubscription\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_WithSameContent_IsIdempotentNoOp",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ProviderClassificationDoesNotConfuseAcceptanceWithRead(status: 413, state: \"InvalidPayload\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Duty.DutyExecutionSqlTests.N2_actual_Duty_dismissal_surfaces_share_center_identity_and_signed_submission_is_the_completion_trigger",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.AttendanceAggregates_WriteEventsToTransactionalOutbox",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.DutyAssignmentRevisionsSelectExactCurrentTaskAndFormerTeacherReceivesOnlyTheirChangeNotice",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterSqlTests.ConcurrentAccountsCannotOwnOneEndpointAndDeviceFailuresAreIndependent",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.AdditiveMigrationPreservesExistingSchoolAndDoesNotBroadcastHistory",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Security.DataProtectionPersistenceTests.KeyEncryption_None_Does_Not_Write_A_Dpapi_Encrypted_Key",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEndpointMustBeExactAllowlistedHttpsOrigin(endpoint: \"https://fcm.googleapis.com.evil.example/x\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushKeysAreValidatedAndNetworkAddressesCannotReachPrivateNetworks",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTransitionsTests.ThresholdAlertKeepsItsCanonicalNoticeAndRequiresCurrentOfficerRoleAndMetric",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Security.DataProtectionPersistenceTests.N2_Push_Material_Survives_Restart_In_Existing_Ring_With_An_Isolated_Purpose",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.RollbackRemovesBusinessRowJournalCounterAndIntentTogether",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SubmitExcuse_RejectsSpoofedPdfBeforeStorage",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SubmitExcuse_RequiresGuardianCapabilityAndAppendsPendingEvent",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.SignedDutySubmissionIgnoresDraftLetterArchiveAndReplays",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSecurityTests.SignedCursorsCannotBeReusedAcrossUserSchoolConversationOrPurpose",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.AttendanceSheet_UsesOnlyActiveDatedRosterAndReturnsDeterministicRevision",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterSqlTests.PushClaimRacesAndStaleCompletionCannotOverwriteANewerLease",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ProviderClassificationDoesNotConfuseAcceptanceWithRead(status: 403, state: \"ConfigurationError\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxWindowTests.InitialChatWindowContainsLatestFiftyOfSixtyMessages",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.Security.DataProtectionPersistenceTests.GoogleDriveCredential_Survives_A_Fresh_ServiceProvider_When_The_Key_Path_Is_Stable",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 401, state: \"ConfigurationError\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.ReviewExcuse_WithStaleVersion_DoesNotMutateOrSave",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEndpointMustBeExactAllowlistedHttpsOrigin(endpoint: \"https://fcm.googleapis.com/x#fragment\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSecurityTests.CurrentPermissionMembershipAndStampOverrideOldTokenGrants",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.AcceptExcuse_ChangesOfficialAttendanceToAbsentExcused",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 403, state: \"ConfigurationError\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEndpointMustBeExactAllowlistedHttpsOrigin(endpoint: \"https://127.0.0.1/x\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEndpointMustBeExactAllowlistedHttpsOrigin(endpoint: \"https://fcm.googleapis.com:8443/x\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.ChannelFailureAndRetryDoNotReexecuteBusinessOrChangeReadState",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxWindowTests.PendingMessagesAreVisibleToSenderAndLateReleaseUsesRecipientTimeInsteadOfId",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTransitionsTests.GuardianDispatchReviewIsSeparateFromApprovalVisibilityAndManagerApproval",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTransitionsTests.DirectAttendanceAndDelayNoticesResolveTheirExactSourceAndDisappearAfterCorrectionOrDeletion",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.ConcurrentWritersCannotCommitHigherRecipientSequenceAheadOfLowerSequence",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 429, state: \"Retry\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ProviderClassificationDoesNotConfuseAcceptanceWithRead(status: 429, state: \"Retry\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterSqlTests.CenterHistoryCountsAndTargetsRecheckPermissionsWithoutFirstPageCap",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTransitionsTests.ReferralsCaseFollowupSummonAndAutomationRespectAssignmentAndDoNotProduceFromDashboardReads",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.AttendanceCompletionHasClassroomAndStaffIdentitiesAndCorrectionsDoNotResetRead",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.SnapshotRetriesACommitBetweenMessageAndNotificationCounts",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ProviderClassificationDoesNotConfuseAcceptanceWithRead(status: 503, state: \"Retry\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.AllPresentClassroomCompletionHasOneSignalAndReplayingRequestHasNone",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.AttendanceAndDelayWorkflowTests.SaveSheet_PreservesAcceptedAbsentExcusedRow",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxWindowTests.ProjectionAndDispatcherUseTheSameInjectedClock",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ProviderClassificationDoesNotConfuseAcceptanceWithRead(status: 410, state: \"InvalidSubscription\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 400, state: \"InvalidPayload\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 503, state: \"Retry\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxWindowTests.JournalDoesNotPublishPendingApprovalAndReadTransitionsRemainSeparateFromCanonicalDutyDelivery",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEndpointMustBeExactAllowlistedHttpsOrigin(endpoint: \"https://user:secret@fcm.googleapis.com/x\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 404, state: \"InvalidSubscription\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEndpointMustBeExactAllowlistedHttpsOrigin(endpoint: \"http://fcm.googleapis.com/x\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.PushEnrollmentProtectsMaterialRejectsOtherOwnersAndNeverReplaysOldEntries",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.CanonicalCorrelationSharesIntentButReadChangesHaveNewIdentity",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationCenterTests.ProviderClassificationDoesNotConfuseAcceptanceWithRead(status: 401, state: \"ConfigurationError\")",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.InboxSqlTests.RealSqlDeadlockRetriesWholeCommandWithFreshScopeAndCommitsOnce",
+      "outcome": "Passed"
+    },
+    {
+      "name": "AlFalah.Tests.StudentAffairs.NotificationPushAdapterTests.AdapterEncryptsGenericPayloadSignsVapidAndClassifiesInterceptedResponses(status: 201, state: \"ProviderAccepted\")",
+      "outcome": "Passed"
+    }
+  ],
+  "externalProviderTraffic": false,
+  "actualPhoneEvidence": false
+}

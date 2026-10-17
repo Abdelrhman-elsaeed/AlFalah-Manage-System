@@ -183,6 +183,7 @@ public sealed class SaveStudentAttendanceSheetCommandHandler
             idempotencyKey,
             requestFingerprint,
             now);
+        _repository.AddCompletion(schoolId.Value, request.ClassroomId, request.Date, roster.Count, now);
         hasChanges = true;
 
         try

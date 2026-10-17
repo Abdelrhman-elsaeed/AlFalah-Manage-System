@@ -223,6 +223,9 @@ public class ComplaintService : IComplaintService
             Title = $"تحديث الشكوى: {StatusLabelAr(target)}",
             Message = complaint.ResolutionNote ?? $"تم تحديث حالة شكواك إلى «{StatusLabelAr(target)}».",
             Type = "Complaint.StatusChanged",
+            DeliveryStatus = AlFalah.Domain.Enums.StudentAffairs.NotificationDeliveryStatus.Delivered,
+            DeliveredAt = now,
+            DeduplicationKey = $"complaint:{complaint.Id}:{target}:{now.UtcTicks}",
             RelatedEntityType = "Complaint",
             RelatedEntityId = complaint.Id.ToString()
         });

@@ -517,3 +517,8 @@ The existing catalogue GET additionally accepts onDate=YYYY-MM-DD and rejects a 
 ## C36 / D-128 - Saved assignment statement (2026-10-16)
 
 GET /api/v1/intelligent-timetable/settings/profiles/{setupId}/assignments/statement/content requires revision and explicit scope (all,stage:1,stage:2,stage:3), current TimetableManage permission and existing role exclusions. Returns frozen PDF bytes with revision/scope/hash metadata, or ApiResponse400/403/404/409. Awaited Blob calls reuse C30 transfer negotiation; direct calls remain attachments. The existing assignment PUT accepts optional member statementCategory; null/omission preserves existing classification. Classification-only saves retain timetable timing/status while advancing setup revision/audit. [Complete contract](specs/classroom-catalog/statement.md).
+
+
+## C52 / D-144 - N2 personal center and browser push (2026-10-17)
+
+Adds authenticated active-school `GET /api/v1/notification-center`, `/state`, `/{id}/target`, `/{id}/detail`, and explicit `POST /{id}/read`, `/read-all`; independent uncapped center-entry totals and protected time/Guid history. Adds `/api/v1/push/config` and owned GET/POST/DELETE subscription routes (registration rate/body limits). Existing conversation window accepts optional `at=messageId`; old before/latest semantics remain. Exact complaint, approval, permit, gate, case/summon, Duty report and dated-sheet selectors retain original decision APIs and permissions. All API/hub responses receive private/no-store headers. [Exact contracts](specs/notifications-pwa/contracts/api.md#n2-implemented-contracts), [local evidence / device gates](specs/notifications-pwa/verification/n2/README.md). Defaults off; no operational migration, provider traffic or N3 implementation.

@@ -17,6 +17,8 @@ import { StorageApiService } from '../../../features/storage/storage-api.service
 import { VisitArchiveApiService } from '../../../features/storage/visit-archive-api.service';
 import { DUTY_SECTIONS, dutySectionRoute } from '../../../features/timetables/duty/duty-workspace-navigation';
 import { DutyDashboardSummaryComponent } from '../../../features/timetables/duty/duty-dashboard-summary.component';
+import { NotificationCenterComponent } from '../../components/notification-center/notification-center.component';
+import { WebPushService } from '../../../core/services/web-push.service';
 
 interface NavItem {
   labelKey: string;
@@ -373,11 +375,12 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslateModule, TooltipModule, RoleDisplayNamePipe, DutyDashboardSummaryComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslateModule, TooltipModule, RoleDisplayNamePipe, DutyDashboardSummaryComponent, NotificationCenterComponent],
   templateUrl: './shell.component.html',
   styleUrls: ['./shell.component.css']
 })
 export class ShellComponent implements OnInit {
+  readonly webPush = inject(WebPushService);
   showDutyDashboard(){return !!this.authService.activeSchoolId()&&this.authService.hasPermission('Duty.Manage')&&this.router.url.split(/[?#]/)[0]===roleLandingFor(this.authService.roles());}
   private readonly authService = inject(AuthService);
   private readonly inboxSync = inject(InboxSyncService);

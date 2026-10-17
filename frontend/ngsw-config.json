@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "public-shell",
+      "installMode": "prefetch",
+      "resources": { "files": ["/index.html", "/favicon.ico", "/*.css", "/*.js", "/manifest.webmanifest", "/assets/pwa/*.png", "/assets/Logo.png", "/assets/i18n/*.json"] }
+    }
+  ],
+  "dataGroups": [],
+  "navigationUrls": ["/**", "!/**/*.*", "!/api/**", "!/hubs/**", "!/uploads/**", "!/files/**"],
+  "navigationRequestStrategy": "freshness"
+}

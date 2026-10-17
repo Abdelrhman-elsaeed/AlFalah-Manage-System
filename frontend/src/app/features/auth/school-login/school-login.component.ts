@@ -99,7 +99,10 @@ export class SchoolLoginComponent implements OnInit {
   }
 
   private redirectByRole(roles: string[]): void {
-    this.router.navigate([roleLandingFor(roles)]);
+    const target = sessionStorage.getItem('alfalah_notification_target');
+    if (target && /^[0-9a-f-]{36}$/i.test(target)) {
+      void this.router.navigate(['/notification-entry'], { queryParams: { target } });
+    } else this.router.navigate([roleLandingFor(roles)]);
   }
 
   get schoolIdControl() { return this.loginForm.get('schoolId'); }

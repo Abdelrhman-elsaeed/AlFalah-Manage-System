@@ -14,6 +14,7 @@ The operator has evidence that the selected deployment can run the workers, hand
 - Protected delivery telemetry, actionable alerts and audited replay that rechecks eligibility/expiry.
 - Restart, provider failure, lease overrun, fan-out, restore and stale-installed-client rollback drills.
 - Complete real device/browser/OS matrix and Gulf connection measurements.
+- Verify required catalog events and bell/target/decision behavior across actual school roles and approved delegates; include center fan-out/count/history in declared load and recovery checks.
 - Provider-neutral native adapter contract and future token lifecycle notes; retain current APIs and SQL Server.
 - Operator and school onboarding, pilot cohorts, rollout observations and rollback triggers.
 
@@ -32,7 +33,7 @@ Do not turn this into a native mobile development phase, implement a new schedul
 
 ## Exit evidence
 
-- [ ] SC-001-SC-008 are linked to actual evidence or explicit, owner-accepted exceptions; mandatory failures block general rollout.
+- [ ] SC-001-SC-010 are linked to actual evidence or explicit, owner-accepted exceptions; mandatory failures block general rollout. NC-01-NC-18 have transition-level recipient/target coverage and resolved completion/access definitions.
 - [ ] Hosting and version decisions, support matrix, capacity assumptions, retention/expiry settings and incident owner are recorded.
 - [ ] Independent channel switches and restore/rollback drills have measured outcomes.
 - [ ] Pilot instructions identify users/school, observation window, stop conditions and authorized external actions.

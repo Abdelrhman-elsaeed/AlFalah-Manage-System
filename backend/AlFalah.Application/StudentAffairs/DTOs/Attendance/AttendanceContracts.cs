@@ -18,6 +18,7 @@ public sealed class StudentAttendanceRecordsQuery : StudentAffairsPageQuery
 
 public sealed class OfficerAbsenceExcuseQueueQuery : StudentAffairsPageQuery
 {
+    public int? ExcuseId { get; set; }
     public DateOnly? FromDate { get; set; }
     public DateOnly? ToDate { get; set; }
     public int? ClassroomId { get; set; }

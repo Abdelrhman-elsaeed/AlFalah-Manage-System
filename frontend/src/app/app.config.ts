@@ -10,6 +10,8 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { browserTransferInterceptor } from './core/interceptors/browser-transfer.interceptor';
 import { AuthService } from './core/services/auth.service';
+import { provideServiceWorker } from '@angular/service-worker';
+import { isDevMode } from '@angular/core';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -41,6 +43,7 @@ export class StoragePreloadingStrategy implements PreloadingStrategy {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:30000' }),
     provideRouter(routes, withPreloading(StoragePreloadingStrategy)),
     provideHttpClient(withInterceptors([browserTransferInterceptor, authInterceptor])),
     MessageService,

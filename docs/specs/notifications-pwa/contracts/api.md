@@ -1,6 +1,6 @@
 # Transport Contracts
 
-**Status:** N1 routes/event implemented; N2 browser subscription routes remain proposed. See [N1 evidence](../verification/n1/README.md).
+**Status:** N1/N2 routes and event contracts implemented locally. See [concrete N2 contracts](#n2-implemented-contracts) and [evidence/device gates](../verification/n2/README.md).
 
 All paths below are relative to the application origin. Existing REST endpoints and `ApiResponse<T>` remain compatible. Version new fields/contracts explicitly; keep existing routes during client transition. Authenticate all school data, derive user/school from current server context and use existing permission checks. The caller cannot select a delivery recipient or hub group.
 
@@ -59,6 +59,12 @@ Handle bearer extraction only on the exact hub route where browser transport req
 Client responsibilities: bounded initial-start retry, reconnect retry, token refresh through existing auth flow, current-context group establishment on every new connection, REST catch-up, coalescing duplicate hints and one bounded foreground fallback timer. App logout stops the connection/coordinator and clears context-specific in-memory state.
 
 ## N2 Web Push registration
+
+### N2 personal center and target contract gate
+
+Before implementing the [center](../notification-center.md), T012A must finalize bounded center list/history with category/unread filters, authoritative center count, owned read/read-all and authenticated target-resolution contracts in this file. Reuse compatible existing routes where possible; do not advertise unimplemented endpoints. Preserve legacy notification and message API meanings and distinguish source counts from the new canonical center-entry count.
+
+Each row needs a stable recipient entry identity, category, safe authorized display data, timestamps, read state, current pending/resolved/unavailable task state where applicable and a server-resolved target locator. Target resolution must identify the exact message, complaint, approval, permit, Duty assignment or other source, or an explicitly scoped queue/date/filter with selection support. Use the same resolver for bell and device clicks. It never grants access or executes a business command. [Catalog CP-01-CP-04](../notification-catalog.md) remain gates for affected producer contracts.
 
 | Method and proposed path | Purpose / constraints |
 |---|---|
@@ -123,3 +129,24 @@ Payload excludes student names, behavior/medical information, lesson details, me
 Operations provide permission-controlled summaries and audit/replay through the existing administration conventions; finalize exact operation routes in N3 before implementation. Track queue age, expiry, invalid endpoints, retry/dead-letter counts, worker heartbeat and provider latency. Replay rechecks source visibility, binding and expiry, and cannot replay a business workflow.
 
 Future native registration is separate from a browser subscription: model device token/platform/adapter through a later versioned contract. Reuse canonical event identity, current recipient policy, authenticated target resolution and explicit read APIs. Do not add native tokens to the browser subscription request or implement native SDKs in these phases.
+
+## N2 implemented contracts
+
+The following replaces the provisional center/registration/payload descriptions above. All endpoints are authenticated, active-school/current-user scoped and use `ApiResponse<T>`. Both center reads and outbound attempts recheck current database authorization. No client recipient/school is accepted.
+
+| Method/path | Implemented request/result |
+|---|---|
+| GET `/api/v1/notification-center` | `before?`, `category?`, `unread=false`, `limit=30` clamped 1–50; `{items,nextCursor}`. Protected cursor binds user/school/category/unread and tuple time/Guid. Item: id/category/title/preview/createdAtUtc/readAtUtc/taskState/sourceType/sourceId. |
+| GET `/api/v1/notification-center/state` | `{unreadCount,available}`; uncapped authorized **center-entry** count, independent from N1 source message/notice totals. |
+| POST `/api/v1/notification-center/{id}/read`, `/read-all` | Explicit intent only; owned currently visible entries, bounded 250-row transactions for read-all. Mirrors linked legacy notification read, never a message receipt or workflow decision. Missing/ineligible single entry fails neutrally. |
+| GET `/api/v1/notification-center/{id}/target` | `{available,route?,query?,title?,state?}` from allowlisted server resolver; exact selectors. Unavailable target returns `{available:false}` without disclosing its original school/user. No mutation. |
+| GET `/api/v1/notification-center/{id}/detail` | Authorized explicit source DTO: title/preview/state/sourceType/sourceId/rows(label,value)/optional action. Read-only attendance sheets and selected workflow detail; no raw entities or case graph. |
+| GET `/api/v1/push/config` | `{enabled,pwaUiEnabled,publicKey?,vapidKeyId?}`. Never private key/subject/endpoint. |
+| POST `/api/v1/push/subscriptions` | `{installationId:Guid,vapidKeyId,subscription:{endpoint,keys:{p256dh,auth}}}`; max 8192-byte body; 10 requests/minute per authenticated user. Return safe PushDevice; reject foreign active endpoint/installation binding. |
+| GET `/api/v1/push/subscriptions` | Up to 20 safe owned active records: `{id,installationId,bindingVersion,confirmedAtUtc}`; no endpoint/key. |
+| DELETE `/api/v1/push/subscriptions/{id}` | Idempotent owned revocation, version fence and queued-target cancellation. |
+| GET existing `/api/v1/conversations/{id}/messages/window` | Additive optional `at=messageId` loads the authorized selected message's window, including beyond the latest 50. Existing before/latest clients remain compatible. |
+
+Exact selection is added to the original complaint, visit, Duty document, review, teacher/security, guardian and case workspaces; original commands, permissions and row-version checks remain authoritative. Plain source detail is the safe fallback when the user can view a notice but cannot execute the workflow. The entry route retains only a safe Guid locator through login. It never automatically switches schools or follows producer-supplied URLs.
+
+Actual push payload: generic Arabic `title`/`body`, stable entry tag, `dir:rtl`, `lang:ar`, public icon, and `data:{contractVersion:1,targetKey:<entry Guid>,onActionClick:{default:{operation:"navigateLastFocusedOrOpen",url:"/notification-entry?target=<entry Guid>"}}}`. No extra eventId, private preview or auth token. Angular 17.3.12 implements the chosen click operation; actual closed-client phone behavior remains T020.

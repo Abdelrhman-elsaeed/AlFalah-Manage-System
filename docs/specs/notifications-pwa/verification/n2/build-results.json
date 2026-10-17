@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-17",
+  "pwaVerification": {
+    "command": "npx ng build --configuration=pwa-verification --output-path=dist/n2-pwa-verification",
+    "passed": true,
+    "releaseAcceptance": false
+  },
+  "production": {
+    "command": "npx ng build --configuration=production --output-path=dist/n2-production-check",
+    "passed": false,
+    "existingStyleBudgetKb": 32,
+    "errors": [
+      {
+        "component": "visit-workspace.component.css",
+        "actualKb": 34.5
+      },
+      {
+        "component": "storage-page.component.css",
+        "actualKb": 39.34
+      }
+    ],
+    "budgetsChanged": false
+  },
+  "backendFocusedTestsPassed": 76,
+  "actualPhoneEvidence": false
+}

@@ -52,8 +52,7 @@ export class InboxSyncService {
     this.requests.pipe(auditTime(150), takeUntilDestroyed(this.destroyRef)).subscribe(() => void this.synchronize());
     effect(() => {
       const user = this.auth.currentUser();
-      const identity = user?.activeSchoolId && (user.permissions.includes('Messaging.ViewOwn')
-        || user.permissions.includes('Notification.ViewOwn'))
+      const identity = user?.activeSchoolId
         ? `${user.userId}:${user.activeSchoolId}:${[...user.roles].sort().join(',')}:${[...user.permissions].sort().join(',')}` : '';
       if (identity === this.identity) return;
       this.identity = identity;

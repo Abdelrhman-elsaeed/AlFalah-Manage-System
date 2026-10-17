@@ -1,8 +1,10 @@
 # Technical Plan
 
-**Status:** N1 implemented and locally verified; N2/N3 remain planned. See [actual results and release gates](verification/n1/README.md).  
+**Status:** N1/N2 implemented locally; N2 actual-device acceptance pending; N3 planned. See [N2 results and release gates](verification/n2/README.md).
 **Feature specification:** [spec.md](spec.md)  
 **Research:** [research.md](research.md)
+
+N2 implementation record: [source/recipient inventory](notification-catalog.md#n2-concrete-transition-inventory--2026-10-17), [design and refinements](n2-implementation.md), [implemented schema](data-model.md#n2-implemented-schema-and-transport-settings), [contracts](contracts/api.md#n2-implemented-contracts), [local evidence / outstanding acceptance](verification/n2/README.md). The original planning sections below retain their historical rationale; these concrete implementation records supersede proposed N2 names. CP-01/CP-04 preserve existing recipient classes and denials; CP-02/CP-03 are implemented as confirmed. NS suggestions remain unselected. T020 and final T021 exit remain gated; do not start N3.
 
 ## Technical context
 
@@ -71,6 +73,12 @@ Business outbox rows can first cause a policy-controlled visibility transition. 
 
 ## Module boundaries and integration inventory
 
+Owner coverage extension: [notification-catalog.md](notification-catalog.md) and [notification-center.md](notification-center.md) are normative for FR-015-FR-018. N1 remains a completed infrastructure baseline; N2 explicitly adds missing approved producers, a recipient center projection, bell/history and authenticated exact-item navigation before external fan-out. Reuse existing sources and N1 synchronization; do not turn generic invalidations into actionable records. The extension adds four ordered tasks T012A-T012D, without another phase or a retrospective N1 completion claim.
+
+T012A must inventory transitions and resolve CP-01 complaint delegation, CP-02 attendance completion, CP-03 dismissal completion and CP-04 approval recipients for affected producers. The current complaint hard denials and officer-only dispatch approval are real backend constraints. An administrator grant or manager label does not override them. Optional NS-01-NS-06 suggestions remain proposals until selected. Center schema/API/count/read and canonical source policies must be recorded before T012B implementation.
+
+Owner clarification (2026-10-17): CP-02 covers both students and staff, with student completion alerts per classroom/date rather than whole school or academic term. Staff use a separate complete school/date sheet; `AttendanceService.SaveSheetAsync` already requires the entire current roster. CP-03 is resolved as successful signing/submission of the Duty report: alert its SchoolManager and entitled Duty administrators with an exact report target after commit, independently of archive success. Do not wait for last-student departure or all assignments. Remaining mapping/canonical correction rules are implementation work, not unresolved product scope.
+
 - **Domain:** channel state, delivery identity and eligibility facts; existing message/notification enum numbers remain stable.
 - **Application:** notification visibility/delivery orchestration, current authorization checks, subscription ownership, canonical event identity and unread/query contracts.
 - **Infrastructure:** SQL repositories/claims, Web Push client, SignalR outbound publisher and hosted delivery worker. Workers invoke Application orchestration rather than duplicating policy.
@@ -127,6 +135,6 @@ Unresolved launch inputs are recorded gates, not reasons to pause documentation.
 
 ## Dependencies and phase exits
 
-N1 delivers US1/US2 with channel infrastructure and no browser push activation. N2 completes US3 end to end on HTTPS staging. N3 proves US4 and cross-cutting acceptance, documents native adapter compatibility and prepares an explicit pilot. A production deployment or provider traffic requires its own actual authorized implementation step; this documentation request authorizes neither.
+N1 delivers US1/US2 with channel infrastructure and no browser push activation. N2 completes US3/US5, including mandatory source coverage and the personal center, end to end on HTTPS staging. N3 proves US4 and cross-cutting event/recipient/device acceptance, documents native adapter compatibility and prepares an explicit pilot. A production deployment or provider traffic requires its own actual authorized implementation step; this documentation request authorizes neither.
 
 See [tasks.md](tasks.md) for requirement coverage and [quickstart.md](quickstart.md) for operational gates. No constitution violation or additional microservice is proposed.

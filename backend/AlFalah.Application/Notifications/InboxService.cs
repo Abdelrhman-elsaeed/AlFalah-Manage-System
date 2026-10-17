@@ -31,7 +31,7 @@ public sealed class InboxService(IInboxRepository repository, IInboxCursorCodec 
             page.HasMore, page.ResyncRequired));
     }
 
-    public async Task<ApiResponse<MessageWindowDto>> WindowAsync(int conversationId, string? before, int limit, CancellationToken ct)
+    public async Task<ApiResponse<MessageWindowDto>> WindowAsync(int conversationId, string? before, int limit, CancellationToken ct, int? at = null)
     {
         if (Scope is not { } scope || await repository.GetAccessAsync(scope, null, ct) is not { Messaging: true })
             return ApiResponse<MessageWindowDto>.Fail("You do not have permission to view messages");
@@ -43,7 +43,14 @@ public sealed class InboxService(IInboxRepository repository, IInboxCursorCodec 
                 return ApiResponse<MessageWindowDto>.Fail("Invalid conversation cursor");
         }
         limit = Math.Clamp(limit, 1, 100);
-        var rows = await repository.GetWindowAsync(scope, conversationId, cursor?.Position, limit + 1, ct);
+        var position = cursor?.Position;
+        if (at is { } messageId)
+        {
+            if (before is not null || await repository.GetPositionAsync(scope, conversationId, messageId, ct) is not { } anchor)
+                return ApiResponse<MessageWindowDto>.Fail("Message was not found");
+            position = anchor;
+        }
+        var rows = await repository.GetWindowAsync(scope, conversationId, position, limit + 1, ct);
         if (rows is null) return ApiResponse<MessageWindowDto>.Fail("Conversation was not found");
         var hasOlder = rows.Count > limit;
         var selected = rows.Take(limit).Reverse().ToArray();

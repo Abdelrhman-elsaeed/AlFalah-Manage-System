@@ -15,6 +15,6 @@ public sealed class InboxController(InboxService inbox) : ControllerBase
         => Ok(await inbox.ChangesAsync(after, limit, ct));
 
     [HttpGet("/api/v1/conversations/{id:int}/messages/window")]
-    public async Task<IActionResult> Window(int id, CancellationToken ct, [FromQuery] string? before = null, [FromQuery] int limit = 50)
-        => Ok(await inbox.WindowAsync(id, before, limit, ct));
+    public async Task<IActionResult> Window(int id, CancellationToken ct, [FromQuery] string? before = null, [FromQuery] int limit = 50, [FromQuery] int? at = null)
+        => Ok(await inbox.WindowAsync(id, before, limit, ct, at));
 }

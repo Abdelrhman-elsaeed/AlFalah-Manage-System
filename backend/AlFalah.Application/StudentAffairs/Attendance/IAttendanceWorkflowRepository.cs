@@ -80,6 +80,7 @@ public interface IAttendanceWorkflowRepository
         CancellationToken cancellationToken);
 
     void AddAttendance(DailyStudentAttendance attendance);
+    void AddCompletion(int schoolId, int classroomId, DateOnly date, int rosterCount, DateTimeOffset at);
     void AddExcuse(AbsenceExcuse excuse);
     void SetExpectedRowVersion(AbsenceExcuse excuse, byte[] rowVersion);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

@@ -7,6 +7,7 @@ public sealed class InboxOptions
     public const string SectionName = "Inbox";
     public bool JournalEnabled { get; set; }
     public bool RealtimeEnabled { get; set; }
+    public bool CenterEnabled { get; set; }
     public int RetentionDays { get; set; } = 7;
     public string[] AllowedOrigins { get; set; } = [];
 }
@@ -44,6 +45,7 @@ public interface IInboxRepository
     Task<InboxChangesPage> GetChangesAsync(InboxScope scope, long sequence, int limit, CancellationToken ct);
     Task<IReadOnlyList<MessageWindowRow>?> GetWindowAsync(InboxScope scope, int conversationId,
         MessagePosition? before, int limit, CancellationToken ct);
+    Task<MessagePosition?> GetPositionAsync(InboxScope scope, int conversationId, int messageId, CancellationToken ct);
     Task<IReadOnlyList<RealtimeLease>> ClaimAsync(int limit, CancellationToken ct);
     Task CompleteAsync(RealtimeLease lease, bool success, CancellationToken ct);
     Task PruneAsync(CancellationToken ct);

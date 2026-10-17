@@ -25,6 +25,9 @@ import {
 import { ReferralDto, SummonDto } from '../../../core/models/phase5.models';
 import { DailyOperationsService } from '../../../core/services/daily-operations.service';
 import { OfficerOperationsService } from '../../../core/services/officer-operations.service';
+import { Phase5Service } from '../../../core/services/phase5.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 type WorkflowMode = 'permits' | 'referrals' | 'automation' | 'records';
 
@@ -44,6 +47,8 @@ export class OfficerWorkflowsComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly messages = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly phase5 = inject(Phase5Service);
+  private readonly http = inject(HttpClient);
 
   readonly mode = (this.route.snapshot.data['workflowMode'] ?? 'records') as WorkflowMode;
   readonly loading = signal(false);
@@ -116,6 +121,18 @@ export class OfficerWorkflowsComponent {
   readonly recordsWithSeverity = computed(() => this.records().filter(item => item.severity).length);
 
   constructor() {
+    const referralId = Number(this.route.snapshot.queryParamMap.get('referralId'));
+    const summonId = Number(this.route.snapshot.queryParamMap.get('summonId'));
+    const permitId = Number(this.route.snapshot.queryParamMap.get('permitId'));
+    if (this.mode === 'referrals' && referralId > 0) this.phase5.getReferral(referralId).subscribe({ next: r => {
+      if (r.isSuccess && r.data) this.openAssignment(r.data);
+    }, error: () => this.error.set('هذه الإحالة غير متاحة حاليًا.') });
+    if (this.mode === 'automation' && summonId > 0) this.phase5.getSummon(summonId).subscribe({ next: r => {
+      if (r.isSuccess && r.data) this.openReview(r.data);
+    }, error: () => this.error.set('هذا الاستدعاء غير متاح حاليًا.') });
+    if (this.mode === 'permits' && permitId > 0) this.http.get<ApiResponse<ClassroomEntryPermitDto>>(`${environment.apiUrl}/api/v1/classroom-entry-permits/${permitId}`).subscribe({ next: r => {
+      if (r.isSuccess && r.data) this.openRevoke(r.data);
+    }, error: () => this.error.set('هذا التصريح غير متاح حاليًا.') });
     this.load();
     if (this.mode === 'permits' || this.mode === 'referrals') this.loadStudentDirectory();
     if (this.mode === 'referrals') this.loadWorkers();

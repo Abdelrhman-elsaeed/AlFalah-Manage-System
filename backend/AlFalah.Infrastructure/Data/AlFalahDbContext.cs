@@ -23,9 +23,12 @@ public partial class AlFalahDbContext : IdentityDbContext<ApplicationUser, Appli
 
     public AlFalahDbContext(DbContextOptions<AlFalahDbContext> options,
         Microsoft.Extensions.Options.IOptions<AlFalah.Application.Notifications.InboxOptions>? inboxOptions = null,
-        TimeProvider? timeProvider = null) : base(options)
+        TimeProvider? timeProvider = null,
+        Microsoft.Extensions.Options.IOptions<AlFalah.Application.Notifications.WebPushOptions>? webPushOptions = null) : base(options)
     {
         InboxJournalEnabled = inboxOptions?.Value.JournalEnabled ?? false;
+        CenterProjectionEnabled = inboxOptions?.Value.CenterEnabled ?? false;
+        pushOptions = webPushOptions?.Value ?? new();
         inboxTime = timeProvider ?? TimeProvider.System;
     }
 
@@ -243,7 +246,8 @@ public partial class AlFalahDbContext : IdentityDbContext<ApplicationUser, Appli
         UpdateTimestamps();
         var sources = GetDomainEventSources();
         var inbox = CaptureInboxTransitions();
-        if (sources.Count == 0 && inbox.Count == 0) return base.SaveChanges();
+        var center = CaptureCenterChanges();
+        if (sources.Count == 0 && inbox.Count == 0 && center.Count == 0) return base.SaveChanges();
 
         var ownsTransaction = Database.IsRelational() && Database.CurrentTransaction is null;
         using var transaction = ownsTransaction ? Database.BeginTransaction() : null;
@@ -251,7 +255,10 @@ public partial class AlFalahDbContext : IdentityDbContext<ApplicationUser, Appli
         {
             var affectedRows = base.SaveChanges();
             AppendOutboxMessages(sources);
+            var created = ProjectCenterAsync(center, CancellationToken.None).GetAwaiter().GetResult();
+            inbox.AddRange(CaptureInboxTransitions());
             AppendInboxChangesAsync(inbox, CancellationToken.None).GetAwaiter().GetResult();
+            SnapshotPushTargetsAsync(created, CancellationToken.None).GetAwaiter().GetResult();
             affectedRows += base.SaveChanges();
             transaction?.Commit();
             ClearDomainEvents(sources);
@@ -269,7 +276,8 @@ public partial class AlFalahDbContext : IdentityDbContext<ApplicationUser, Appli
         UpdateTimestamps();
         var sources = GetDomainEventSources();
         var inbox = CaptureInboxTransitions();
-        if (sources.Count == 0 && inbox.Count == 0)
+        var center = CaptureCenterChanges();
+        if (sources.Count == 0 && inbox.Count == 0 && center.Count == 0)
             return await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var ownsTransaction = Database.IsRelational() && Database.CurrentTransaction is null;
@@ -281,7 +289,10 @@ public partial class AlFalahDbContext : IdentityDbContext<ApplicationUser, Appli
         {
             var affectedRows = await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             AppendOutboxMessages(sources);
+            var created = await ProjectCenterAsync(center, cancellationToken).ConfigureAwait(false);
+            inbox.AddRange(CaptureInboxTransitions());
             await AppendInboxChangesAsync(inbox, cancellationToken).ConfigureAwait(false);
+            await SnapshotPushTargetsAsync(created, cancellationToken).ConfigureAwait(false);
             affectedRows += await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             if (transaction is not null)
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);

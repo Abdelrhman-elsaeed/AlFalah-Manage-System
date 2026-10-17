@@ -1,0 +1,38 @@
+@if (!history) {
+  <button #bell type="button" class="bell" [attr.aria-label]="'الإشعارات، ' + center.unread() + ' غير مقروءة'" aria-haspopup="dialog" [attr.aria-expanded]="open()" (click)="open() ? close() : show()">
+    <i class="pi pi-bell" aria-hidden="true"></i>
+    @if (center.unread() > 0) { <span class="bell-count" aria-hidden="true">{{ center.unread() > 99 ? '99+' : center.unread() }}</span> }
+    <span class="sr-only">{{ center.unread() }} إشعارات غير مقروءة</span>
+  </button>
+}
+@if (open() || history) {
+  @if (!history) { <div class="notification-backdrop" (click)="close()" aria-hidden="true"></div> }
+  <section #panel class="notification-center" [class.history]="history" dir="rtl" [attr.role]="history ? 'region' : 'dialog'" [attr.aria-modal]="history ? null : true" aria-label="مركز الإشعارات">
+    <header class="center-heading">
+      <div><div class="heading-line"><h1>الإشعارات</h1><span class="unread-total">{{ center.unread() }} غير مقروءة</span></div><p>كل ما يحتاج انتباهك، في مكان واحد.</p></div>
+      @if (!history) { <button class="icon-button" type="button" aria-label="إغلاق الإشعارات" (click)="close()"><i class="pi pi-times" aria-hidden="true"></i></button> }
+    </header>
+    @if (sync.status() === 'offline') { <div class="connection-note" role="status"><i class="pi pi-wifi" aria-hidden="true"></i> الاتصال غير متاح. أعد الاتصال لتحديث بيانات المدرسة.</div> }
+    <div class="center-tools"><div class="view-switch" aria-label="تصفية القراءة"><button type="button" [attr.aria-pressed]="!unread" [class.active]="!unread" (click)="unread = false; load()">الكل</button><button type="button" [attr.aria-pressed]="unread" [class.active]="unread" (click)="unread = true; load()">غير المقروءة</button></div><button class="read-all" type="button" [disabled]="reading() || !center.unread()" (click)="mark()"><i class="pi pi-check-circle" aria-hidden="true"></i> قراءة الكل</button></div>
+    <label class="category-filter"><i class="pi pi-filter" aria-hidden="true"></i><span class="sr-only">نوع الإشعارات</span><select [(ngModel)]="category" (ngModelChange)="load()">@for (item of categories; track item.id) { <option [value]="item.id">{{ item.label }}</option> }</select><button type="button" class="icon-button" aria-label="تحديث الإشعارات" (click)="load()"><i class="pi pi-refresh" [class.pi-spin]="loading()" aria-hidden="true"></i></button></label>
+    <div class="entry-scroll" [attr.aria-busy]="loading()">
+      @if (error()) { <div class="empty-state" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><p>{{ error() }}</p><button type="button" (click)="load()">إعادة المحاولة</button></div> }
+      @else if (loading() && !entries().length) { <div class="loading-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> جارٍ تحميل الإشعارات…</div> }
+      @else if (!center.available()) { <div class="empty-state"><i class="pi pi-bell-slash" aria-hidden="true"></i><h2>الإشعارات غير متاحة</h2><p>تحقق من المدرسة النشطة وصلاحيات حسابك ثم أعد المحاولة.</p></div> }
+      @else if (!entries().length) { <div class="empty-state"><span class="empty-seal"><i class="pi pi-check" aria-hidden="true"></i></span><h2>{{ unread ? 'اطّلعت على كل جديد' : 'لا إشعارات هنا بعد' }}</h2><p>{{ unread ? 'ستجد هنا التحديثات التي لم تقرأها بعد.' : 'ستظهر تحديثات المدرسة الموجّهة إليك هنا.' }}</p></div> }
+      @for (entry of entries(); track entry.id) {
+        <article class="notification-entry" [attr.data-entry-id]="entry.id" [class.unread]="!entry.readAtUtc">
+          <span class="category-icon" [attr.data-category]="entry.category"><i class="pi" [ngClass]="center.icon(entry.category)" aria-hidden="true"></i></span>
+          <div class="entry-content"><div class="entry-meta"><span>{{ center.category(entry.category) }}</span><time [attr.datetime]="entry.createdAtUtc" [title]="entry.createdAtUtc | date:'medium'">{{ time(entry.createdAtUtc) }}</time></div>
+            <button type="button" class="entry-open" (click)="go(entry)"><h2>{{ entry.title }} @if (!entry.readAtUtc) { <span class="unread-dot"><span class="sr-only">غير مقروء</span></span> }</h2><p dir="auto">{{ entry.preview }}</p></button>
+            <div class="entry-footer">@if (status(entry.taskState)) { <span class="task-state" [class.pending]="entry.taskState === 'pending'"><i class="pi" [ngClass]="entry.taskState === 'pending' ? 'pi-clock' : 'pi-check'" aria-hidden="true"></i>{{ status(entry.taskState) }}</span> } @if (!entry.readAtUtc) { <button type="button" class="mark-read" [disabled]="reading()" (click)="mark(entry.id)" [attr.aria-label]="'تحديد كمقروء: ' + entry.title">تحديد كمقروء</button> }</div>
+          </div>
+        </article>
+      }
+      @if (next && !error()) { <button type="button" class="load-more" [disabled]="loading()" (click)="load(true)">عرض الأقدم <i class="pi pi-angle-down" aria-hidden="true"></i></button> }
+    </div>
+    @if (push.config()?.pwaUiEnabled && push.installAvailable()) { <div class="connection-note"><button type="button" (click)="push.install()">تثبيت تطبيق الفلاح على هذا الجهاز</button></div> }
+    <footer class="center-footer">@if (!history) { <a routerLink="/notifications" (click)="close()">سجل الإشعارات <i class="pi pi-angle-left" aria-hidden="true"></i></a> }<button type="button" (click)="push.controlsOpen.set(!push.controlsOpen())"><i class="pi pi-mobile" aria-hidden="true"></i> إشعارات الجهاز</button></footer>
+    @if (push.controlsOpen()) { <div class="push-controls"><strong>ابقَ على اطلاع خارج التطبيق</strong><p>{{ push.explanation() }}</p>@if (push.canEnable()) { <button class="enable-push" type="button" [disabled]="push.busy()" (click)="push.enable()">تفعيل إشعارات هذا الجهاز</button> }@if (push.enabled()) { <button type="button" [disabled]="push.busy()" (click)="push.disable()">إيقاف إشعارات هذا الجهاز</button> }<button type="button" (click)="push.loadDevices()">إدارة أجهزتي</button>@for (device of push.devices(); track device.id) { <div class="device"><span>{{ device.installationId === push.installationId ? 'هذا المتصفح' : 'متصفح آخر' }} · {{ device.confirmedAtUtc | date:'yyyy/MM/dd' }}</span><button type="button" [disabled]="push.busy()" (click)="push.revoke(device.id)">إيقاف</button></div> }<p role="status">{{ push.message() }}</p></div> }
+  </section>
+}

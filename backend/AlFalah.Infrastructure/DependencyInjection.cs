@@ -29,6 +29,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QuestPDF.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace AlFalah.Infrastructure;
 
@@ -99,6 +100,20 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton(TimeProvider.System);
         services.Configure<AlFalah.Application.Notifications.InboxOptions>(configuration.GetSection("Inbox"));
+        services.Configure<AlFalah.Application.Notifications.WebPushOptions>(configuration.GetSection("WebPush"));
+        // Reuse the existing application key ring; changing its name/path would break Drive secrets and N1 cursors.
+        var keyPath = configuration["DataProtection:KeysPath"];
+        if ((configuration.GetValue<bool>("WebPush:RegistrationEnabled") || configuration.GetValue<bool>("WebPush:DispatchEnabled"))
+            && string.IsNullOrWhiteSpace(keyPath)) throw new InvalidOperationException("Web Push requires an explicit durable DataProtection:KeysPath.");
+        services.AddScoped<AlFalah.Application.Notifications.ICenterRepository, CenterRepository>();
+        services.AddScoped<AlFalah.Application.Notifications.CenterService>();
+        services.AddScoped<AlFalah.Application.Notifications.IPushRepository, PushRepository>();
+        services.AddSingleton<AlFalah.Application.Notifications.IPushEndpointPolicy, PushEndpointPolicy>();
+        services.AddScoped<AlFalah.Application.Notifications.PushService>();
+        services.AddScoped<AlFalah.Application.Notifications.PushDeliveryService>();
+        services.AddHttpClient<AlFalah.Application.Notifications.IWebPushClient, WebPushDeliveryClient>(client => client.Timeout = TimeSpan.FromSeconds(10))
+            .RemoveAllLoggers()
+            .ConfigurePrimaryHttpMessageHandler(PushEndpointPolicy.Handler);
         services.AddScoped<AlFalah.Application.Notifications.IInboxRepository, InboxRepository>();
         services.AddSingleton<AlFalah.Application.Notifications.IInboxCursorCodec, InboxCursorCodec>();
         services.AddScoped<AlFalah.Application.Notifications.InboxService>();

@@ -299,7 +299,7 @@ export class DailyOperationsService {
     );
   }
 
-  getPendingExcuses(pageNumber: number, pageSize: number): Observable<ApiResponse<OfficerExcuseQueuePage>> {
+  getPendingExcuses(pageNumber: number, pageSize: number, excuseId?: number): Observable<ApiResponse<OfficerExcuseQueuePage>> {
     return this.http.get<ApiResponse<OfficerExcuseQueuePage>>(
       `${this.api}/student-attendance/excuses/pending`,
       {
@@ -307,6 +307,7 @@ export class DailyOperationsService {
         params: new HttpParams()
           .set('pageNumber', pageNumber)
           .set('pageSize', pageSize)
+            .set('excuseId', excuseId ?? '')
       }
     );
   }

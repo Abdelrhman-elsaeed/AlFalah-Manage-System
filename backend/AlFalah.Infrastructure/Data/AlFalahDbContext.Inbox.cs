@@ -17,7 +17,9 @@ public partial class AlFalahDbContext
         var transitions = new List<InboxTransition>();
         foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted))
         {
-            if (entry.Entity is Notification n && n.SchoolId is { } school)
+            if (entry.Entity is PersonalNotification center)
+                transitions.Add(new(center.SchoolId, center.UserId, center, null));
+            else if (entry.Entity is Notification n && n.SchoolId is { } school)
             {
                 var visible = !n.IsDeleted && !n.RequiresApproval && !n.IsSuppressed
                     && n.DeliveryStatus == NotificationDeliveryStatus.Delivered;

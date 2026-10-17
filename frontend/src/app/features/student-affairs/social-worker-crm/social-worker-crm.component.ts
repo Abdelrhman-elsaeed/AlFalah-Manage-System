@@ -170,6 +170,14 @@ export class SocialWorkerCrmComponent implements OnInit {
   summonBusy(): boolean { return this.summonSaving() || this.summonReconciling(); }
 
   ngOnInit(): void {
+    const referralId = Number(this.route.snapshot.queryParamMap.get('referralId'));
+    const summonId = Number(this.route.snapshot.queryParamMap.get('summonId'));
+    if (referralId > 0) this.api.getReferral(referralId).subscribe({ next: r => {
+      if (r.isSuccess && r.data) this.openReferral(r.data, r.data.status === 'Assigned' ? 'accept' : 'addAction');
+    }, error: () => this.errorMessage.set('هذه الإحالة غير متاحة حاليًا.') });
+    if (summonId > 0) this.api.getSummon(summonId).subscribe({ next: r => {
+      if (r.isSuccess && r.data) this.openSummon(r.data, r.data.status === 'Pending' ? 'schedule' : r.data.status === 'Attended' ? 'observe' : 'improve');
+    }, error: () => this.errorMessage.set('هذا الاستدعاء غير متاح حاليًا.') });
     this.section.set(this.route.snapshot.data['crmView'] === 'summons' ? 'summons' : 'cases');
     this.loadDashboard();
     this.load();

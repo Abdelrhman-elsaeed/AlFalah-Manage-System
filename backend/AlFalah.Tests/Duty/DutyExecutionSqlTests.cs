@@ -21,6 +21,36 @@ namespace AlFalah.Tests.Duty;
 public sealed class DutyExecutionSqlTests(DutySqlFixture fixture)
 {
     [DutySqlFact]
+    public async Task N2_actual_Duty_dismissal_surfaces_share_center_identity_and_signed_submission_is_the_completion_trigger()
+    {
+        var s = await Seed(); await using var db = fixture.Db();
+        foreach (var name in new[] { PermissionNames.NotificationViewOwn, PermissionNames.MessagingViewOwn })
+        {
+            var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Name == name);
+            if (permission is null) { permission = new() { Name = name }; db.Add(permission); await db.SaveChangesAsync(); }
+            if (!await db.RolePermissions.AnyAsync(x => x.RoleId == RoleNames.Guardian && x.PermissionId == permission.Id)) db.RolePermissions.Add(new() { RoleId = RoleNames.Guardian, PermissionId = permission.Id });
+        }
+        await db.SaveChangesAsync(); db.InboxJournalEnabled = true; db.CenterProjectionEnabled = true;
+        var service = Service(db, s); var ack = await Ack(db, s);
+        var saved = await service.SaveDraftAsync(s.Assignment, new(ack.AssignmentRevision, 0, new(true, true, [], "Synthetic report", new TimeOnly(0, 3))), default);
+        (await db.Set<AlFalah.Domain.Entities.Notifications.PersonalNotification>().CountAsync(x => x.SchoolId == s.School && x.SourceType == "DutyReport")).Should().Be(0);
+        await service.ConfirmLateAsync(s.Assignment, Late(s) with { DepartureAt = new TimeOnly(0, 2) }, default);
+        await Process(db, s); await Process(db, s);
+        var guardianEntry = await db.Set<AlFalah.Domain.Entities.Notifications.PersonalNotification>().SingleAsync(x => x.SchoolId == s.School && x.UserId == s.Guardian);
+        guardianEntry.MessageId.Should().NotBeNull(); guardianEntry.NotificationId.Should().NotBeNull();
+        (await db.Set<AlFalah.Domain.Entities.Notifications.PersonalNotification>().CountAsync(x => x.SchoolId == s.School && x.SourceType == "DutyReport")).Should().Be(0);
+        saved = await service.SaveDraftAsync(s.Assignment, new(ack.AssignmentRevision, saved.Draft!.Version, new(false, true, [], "Synthetic report with confirmed lateness", new TimeOnly(0, 3))), default);
+        var request = new DutySignRequest(ack.AssignmentRevision, Guid.NewGuid(), saved.Draft!.Version);
+        var submitted = await service.SubmitAsync(s.Assignment, request, default); await service.SubmitAsync(s.Assignment, request, default);
+        var managerEntry = await db.Set<AlFalah.Domain.Entities.Notifications.PersonalNotification>().SingleAsync(x => x.SchoolId == s.School && x.SourceType == "DutyReport");
+        managerEntry.UserId.Should().Be(s.Manager);
+        var archive = await db.Set<DutyArchiveIntent>().SingleAsync(x => x.SchoolId == s.School && x.DocumentId == db.Set<DutySignedDocument>().Where(d => d.SchoolId == s.School && d.Kind == "Report").Select(d => d.Id).Single());
+        archive.State = "Failed"; await db.SaveChangesAsync();
+        var corrected = await Service(db, s, s.Manager, RoleNames.SchoolManager).CorrectReportAsync(s.Assignment, new(ack.AssignmentRevision, submitted.Draft!.Version, "Synthetic correction", Guid.NewGuid()), default);
+        await service.SubmitAsync(s.Assignment, new(ack.AssignmentRevision, Guid.NewGuid(), corrected.Draft!.Version), default);
+        (await db.Set<AlFalah.Domain.Entities.Notifications.PersonalNotification>().CountAsync(x => x.SchoolId == s.School && x.SourceType == "DutyReport")).Should().Be(1);
+    }
+    [DutySqlFact]
     public async Task Inbox_N1_actual_Duty_surfaces_have_one_channel_identity_and_independent_read_changes()
     {
         var s = await Seed();

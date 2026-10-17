@@ -16,6 +16,7 @@ import { GatePassDto, gatePassStatusLabel } from '../../../core/models/gate-pass
 import { AuthService } from '../../../core/services/auth.service';
 import { GatePassService } from '../../../core/services/gate-pass.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ActivatedRoute } from '@angular/router';
 
 type DecisionMode = 'approve' | 'reject';
 
@@ -42,6 +43,7 @@ export class OfficerGatePassQueueComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
 
   readonly queue = signal<readonly GatePassDto[]>([]);
   readonly totalRecords = signal(0);
@@ -74,6 +76,10 @@ export class OfficerGatePassQueueComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const gatePassId = Number(this.route.snapshot.queryParamMap.get('gatePassId'));
+    if (gatePassId > 0) this.api.getById(gatePassId).subscribe({ next: r => {
+      if (r.isSuccess && r.data) this.openDecision(r.data, 'approve');
+    }, error: () => this.errorMessage.set('هذا الاستئذان غير متاح حاليًا.') });
     this.loadQueue(1);
     timer(60_000, 60_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.autoRefreshEnabled() && !this.dialogVisible() && (typeof document === 'undefined' || document.visibilityState === 'visible')) {

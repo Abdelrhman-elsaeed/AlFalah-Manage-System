@@ -1,12 +1,14 @@
 # Feature Specification: Reliable Notifications and PWA
 
 **Date:** 2026-10-17  
-**Status:** N1 implemented and locally verified; N2/N3 remain unstarted. See [N1 evidence and deployment limits](verification/n1/README.md).  
+**Status:** N1/N2 implemented and locally verified; N2 device acceptance remains pending; N3 not started. See [N2 evidence and gates](verification/n2/README.md).
 **Input:** School messaging must be useful without repeatedly opening the website; prepare for a possible future mobile application; use three phases and researched Spec Kit artifacts.
 
 ## Scope and non-goals
 
 Deliver a correct server inbox, live updates in an open website, opt-in Web Push, installation guidance and operational controls. Reuse the existing messages, notification records, approval workflow and durable automation outbox. Include Student Affairs, School Duty notices and other explicitly classified existing notification writers.
+
+Owner scope extension (2026-10-17): deliver a unified personal notification center with a top-bar bell and all nine mandatory event groups, including missing approved producers and exact-item navigation. [notification-catalog.md](notification-catalog.md) defines NC-01-NC-18, additional suggestions and unresolved recipient/completion policies. [notification-center.md](notification-center.md) defines UX, source identity and phase placement. N2 implementation and transition-level evidence are recorded in the catalog and verification report; N1 generic infrastructure alone does not establish this coverage.
 
 Native Android/iOS builds, store publication, SMS, WhatsApp, email fallback, full offline school operations, a database replacement and a microservices migration are outside these three phases. No notification is evidence that a guardian has read or acknowledged a school instruction.
 
@@ -42,7 +44,7 @@ Independent test: on a real supported phone, install where required, opt in, bac
 
 1. **Given** permission is undecided, **then** explain the benefit before a user gesture triggers the browser prompt; opening a page alone never requests permission.
 2. **Given** permission is denied or support is unavailable, **then** keep the web inbox usable and show actionable instructions without repeated prompts.
-3. **Given** a pending approval or an unreleased message, **then** no external push is attempted.
+3. **Given** guardian content awaiting dispatch approval or an unreleased message, **then** no external push of that content is attempted to its eventual recipient. A separate, safe approval-task notification may reach the currently authorized reviewer.
 4. **Given** logout, account change, school change, subscription rotation or endpoint invalidation, **then** old queued jobs cannot intentionally target the former binding.
 5. **Given** a locked phone or an expired login, **then** the notification reveals generic text only, and opening it requires current authentication and school authorization.
 
@@ -56,6 +58,18 @@ Independent test: restart the worker during delivery, simulate provider failures
 2. Expired, cancelled, suppressed and no-longer-authorized notices are not submitted on retry; already accepted external notifications cannot be recalled reliably.
 3. Operators can distinguish pending business release, in-app visibility, provider acceptance, failed attempts and explicit user read state.
 4. Native adapter contracts are documented; a native app, FCM/APNs credentials and device acknowledgements are not implemented in this scope.
+
+### US5 - One personal center for school actions (priority P1; phase N2)
+
+As a teacher, guardian, officer, social worker, manager or entitled administrator, I can open the top-bar bell, see all my currently authorized notifications and reach the correct item to read or act.
+
+Independent test: exercise every required catalog row with an eligible and excluded account; verify center count/history, foreground update, exact target and current task state. Test optional push separately from in-app availability.
+
+1. New messages, Duty and Student Affairs events, manager approvals, defined attendance/dismissal completion and complaint submission/replies reach the correct recipients under NC-01-NC-18.
+2. Opening the bell never bulk-reads or approves work; read tasks remain pending until their domain decision occurs.
+3. Dashboard alerts reuse canonical source identities; repeated dashboard reads create no notifications and duplicate surfaces do not inflate counts.
+4. Reassignment, role removal, source cancellation/deletion and school changes cannot expose stale private entries or keep an invalid decision action active.
+5. Attendance covers both students and staff: notify the manager for each completed student classroom/date sheet; staff use their separate school/date sheet. Classroom means a class/group, not an academic term. The dismissal notice means a committed signed/submitted Duty report to its manager/entitled administrators, not last-student departure. Resolve staff completion detection, correction identity and complaint delegation before their affected producers are enabled.
 
 ## Functional requirements
 
@@ -75,6 +89,10 @@ Independent test: restart the worker during delivery, simulate provider failures
 | FR-012 | Validate browser/OS/device behavior, SQL concurrency, restart recovery, Gulf network latency and deployment prerequisites before broad rollout. | N1-N3 |
 | FR-013 | Keep provider interfaces extensible for future native FCM/APNs without coupling business rules or requiring Google-hosted application servers. | N3 |
 | FR-014 | Pin a compatible supported deployment stack, or record an owner-accepted, time-bounded version exception and remediation date before production. | N1/N3 |
+| FR-015 | Cover all mandatory catalog families NC-01-NC-18; inventory concrete transitions, add missing approved producers and distinguish existing sources from tested coverage. | N2-N3 |
+| FR-016 | Provide a shared top-bar bell, authoritative center-entry unread count, bounded history/category/unread filters and explicit read/read-all with responsive Arabic/RTL accessibility. | N2 |
+| FR-017 | Resolve every center/push target to the correct authorized item or scoped queue; retain pending/resolved task state independently of read/delivery state and preserve original decision commands. | N2-N3 |
+| FR-018 | Resolve recipient/completion definitions before affected producers; deduplicate dashboard/System/source surfaces and prevent false completion, repeated snapshot alerts and unauthorized role/delegate fan-out. | N2-N3 |
 
 ## Measurable success criteria
 
@@ -90,6 +108,8 @@ These are proposed acceptance targets for a declared staging workload, not measu
 | SC-006 | Every supported device-matrix row passes actual permission, background delivery, click and reconnect checks. Failed/unsupported rows have an explicit fallback and support statement. |
 | SC-007 | At the agreed workload, eligible-intent-to-provider-acceptance p95 <= 10 seconds with a healthy provider. Report actual phone-arrival timing separately; no guaranteed arrival deadline. |
 | SC-008 | Worker restart recovers eligible queued work; a rehearsed channel rollback preserves inbox/read state; an isolated database restore is documented. |
+| SC-009 | Every mandatory catalog row has transition-level evidence for entitled/excluded recipients, center history/count, current task state and correct target; resolved CP definitions and any owner exclusions are explicit. |
+| SC-010 | Replaying a canonical event or reading a dashboard repeatedly creates no duplicate center entries; partial attendance/dismissal saves create no false completion and source/read/provider updates do not trigger new device alerts. |
 
 ## Edge cases that must be exercised
 

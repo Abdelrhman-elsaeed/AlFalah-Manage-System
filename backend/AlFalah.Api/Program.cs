@@ -74,6 +74,7 @@ builder.Services.AddSignalR(options => options.MaximumReceiveMessageSize = 4096)
 builder.Services.AddSingleton<AlFalah.Api.Hubs.InboxConnectionRegistry>();
 builder.Services.AddScoped<AlFalah.Application.Notifications.IInboxPublisher, AlFalah.Api.Hubs.SignalRInboxPublisher>();
 builder.Services.AddHostedService<AlFalah.Api.Hubs.InboxDeliveryWorker>();
+builder.Services.AddHostedService<AlFalah.Api.Hubs.PushDeliveryWorker>();
 // Browser WebSocket/SSE bearer tokens use the query string. Hosting diagnostics
 // otherwise logs that query before middleware can redact it.
 builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
@@ -168,6 +169,9 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddRateLimiter(options =>
 {
+    options.AddPolicy("push-registration", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     // A rejected rate-limited request is not a storage outage. Return a distinct
     // response so clients can retry without showing a misleading 503 error.
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -330,6 +334,18 @@ app.UseRequestLocalization();
 
 // Global exception handling must be first (still applied after our D-30 reader).
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api") || context.Request.Path.StartsWithSegments("/hubs"))
+    {
+        context.Response.OnStarting(() => {
+            context.Response.Headers.CacheControl = "private, no-store";
+            context.Response.Headers.Pragma = "no-cache";
+            return Task.CompletedTask;
+        });
+    }
+    await next();
+});
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -394,6 +410,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AlFalahDbContext>();
     db.InboxJournalEnabled = false; // Startup seed/history fixtures are never new inbox deliveries.
+    db.CenterProjectionEnabled = false;
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
