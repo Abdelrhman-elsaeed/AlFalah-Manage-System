@@ -1,0 +1,72 @@
+[
+  {
+    "file": "generated-pdf\\duty\\source-eighteen-weeks.pdf",
+    "pages": 1,
+    "bytes": 66776,
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "sha256": "52948a1cb23c430b7c89c4489c054a66977e70259ddeabf1546c4abd21c02e9e"
+  },
+  {
+    "file": "generated-pdf\\duty\\source-full-year.pdf",
+    "pages": 3,
+    "bytes": 94950,
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "sha256": "6f96de5723cca5d12273503de835fd0b9cd59b7a278f13e4070f34050191e42f"
+  },
+  {
+    "file": "generated-pdf\\duty\\source-long-names-closures.pdf",
+    "pages": 3,
+    "bytes": 76531,
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "sha256": "baed1a8ea9ea5406615bf3abe7896488532ee7409af3c8c88642d1bcc9e5bd35"
+  },
+  {
+    "file": "generated-pdf\\duty\\source-partial-weeks.pdf",
+    "pages": 1,
+    "bytes": 52424,
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "sha256": "b57eb1a1f3512f587e8a0a299d6b01dbc90b77f05d2255d97f149da7532ff23c"
+  },
+  {
+    "file": "generated-pdf\\duty\\source-seven-study-days.pdf",
+    "pages": 2,
+    "bytes": 74831,
+    "fonts": [
+      "AAAAAA+Amiri-Regular",
+      "BAAAAA+Amiri-Bold"
+    ],
+    "sha256": "233846dd90afcc512fc474d2e4f2750ed00c735dba939c86f3676e144fdab251"
+  },
+  {
+    "file": "generated-pdf\\visit-report.pdf",
+    "pages": 4,
+    "bytes": 171142,
+    "fonts": [
+      "AAAAAA+Amiri-Bold",
+      "BAAAAA+Amiri-Regular"
+    ],
+    "sha256": "3f1d068525a3779939f4950762bfe0dfb8f38ff37095019353c00874e9fe3d1c"
+  },
+  {
+    "file": "generated-pdf\\visit-v2-report.pdf",
+    "pages": 4,
+    "bytes": 178435,
+    "fonts": [
+      "AAAAAA+Amiri-Bold",
+      "BAAAAA+Amiri-Regular"
+    ],
+    "sha256": "8660bce565612670e43cff67578feb85dab8e2c1bf1068565ae317e565410de2"
+  }
+]

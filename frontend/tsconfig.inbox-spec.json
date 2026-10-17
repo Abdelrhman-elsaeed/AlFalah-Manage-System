@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/app/core/services/inbox-sync.service.spec.ts",
+    "src/app/shared/layout/shell/shell-navigation.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

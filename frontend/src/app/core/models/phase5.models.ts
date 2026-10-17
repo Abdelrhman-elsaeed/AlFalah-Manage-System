@@ -308,6 +308,7 @@ export interface ConversationDto {
   readonly referralId?: number | null;
 }
 export interface ConversationMessageDto {
+  readonly visibleAtUtc?: string | null;
   readonly id: number;
   readonly conversationId: number;
   readonly sender: ActorSummaryDto;

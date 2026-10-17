@@ -20,6 +20,26 @@ namespace AlFalah.Tests.Duty;
 [Collection("Duty SQL")]
 public sealed class DutyExecutionSqlTests(DutySqlFixture fixture)
 {
+    [DutySqlFact]
+    public async Task Inbox_N1_actual_Duty_surfaces_have_one_channel_identity_and_independent_read_changes()
+    {
+        var s = await Seed();
+        await using var db = fixture.Db();
+        db.InboxJournalEnabled = true;
+        await Ack(db, s);
+        await Service(db, s).ConfirmLateAsync(s.Assignment, Late(s), default);
+        await Process(db, s);
+        await Process(db, s);
+        (await db.Set<AlFalah.Domain.Entities.Notifications.NotificationDeliveryIntent>()
+            .CountAsync(i => i.SchoolId == s.School && i.UserId == s.Guardian)).Should().Be(1);
+        (await db.Set<AlFalah.Domain.Entities.Notifications.InboxChange>()
+            .CountAsync(i => i.SchoolId == s.School && i.UserId == s.Guardian)).Should().Be(2);
+        var notification = await db.Notifications.SingleAsync(n => n.SchoolId == s.School && n.UserId == s.Guardian);
+        await Service(db, s, s.Guardian, RoleNames.Guardian).MarkGuardianNoticeReadAsync(notification.Id, default);
+        (await db.Set<AlFalah.Domain.Entities.Notifications.NotificationDeliveryIntent>()
+            .CountAsync(i => i.SchoolId == s.School && i.UserId == s.Guardian)).Should().Be(2);
+        (await db.MessageReceipts.SingleAsync(r => r.SchoolId == s.School)).ReadAt.Should().BeNull();
+    }
     public sealed record Scene(int School, int Term, int Assignment, string Manager, string Teacher, string Replacement, string Guardian,
         DateOnly Date, int Student, int Enrollment, int Classroom);
     private DutyExecutionService Service(AlFalahDbContext db, Scene s, string? user = null, string role = RoleNames.Instructor) =>

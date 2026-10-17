@@ -70,6 +70,14 @@ builder.Services.AddAlFalahDataProtection(builder.Configuration, builder.Environ
 
 // Infrastructure (EF Core, Identity, services)
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddSignalR(options => options.MaximumReceiveMessageSize = 4096);
+builder.Services.AddSingleton<AlFalah.Api.Hubs.InboxConnectionRegistry>();
+builder.Services.AddScoped<AlFalah.Application.Notifications.IInboxPublisher, AlFalah.Api.Hubs.SignalRInboxPublisher>();
+builder.Services.AddHostedService<AlFalah.Api.Hubs.InboxDeliveryWorker>();
+// Browser WebSocket/SSE bearer tokens use the query string. Hosting diagnostics
+// otherwise logs that query before middleware can redact it.
+builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
+builder.Logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Warning);
 
 var isE2E = builder.Environment.IsEnvironment("E2E");
 var isLocalFrontendEnvironment = builder.Environment.IsDevelopment() || isE2E;
@@ -124,6 +132,13 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Path == "/hubs/inbox"
+                && context.Request.Query.TryGetValue("access_token", out var token))
+                context.Token = token;
+            return Task.CompletedTask;
+        },
         OnTokenValidated = async context =>
         {
             var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -342,12 +357,27 @@ if (!isLocalFrontendEnvironment)
     app.UseStaticFiles();
 }
 
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/hubs/inbox") && context.Request.Headers.TryGetValue("Origin", out var origin))
+    {
+        var allowed = builder.Configuration.GetSection("Inbox:AllowedOrigins").Get<string[]>()
+            ?? builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? (isLocalFrontendEnvironment ? new[] { "http://localhost:4200" } : Array.Empty<string>());
+        var sameOrigin = $"{context.Request.Scheme}://{context.Request.Host}";
+        if (origin.Count != 1 || !string.Equals(origin[0], sameOrigin, StringComparison.OrdinalIgnoreCase)
+            && !allowed.Contains(origin[0], StringComparer.OrdinalIgnoreCase))
+        { context.Response.StatusCode = StatusCodes.Status403Forbidden; return; }
+    }
+    await next();
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<SignatureEnrollmentMiddleware>();
 app.UseRateLimiter();
 
 app.MapControllers();
+app.MapHub<AlFalah.Api.Hubs.InboxHub>("/hubs/inbox", options => options.CloseOnAuthenticationExpiration = true);
 if (!isLocalFrontendEnvironment)
 {
     app.MapFallbackToFile("index.html");
@@ -363,6 +393,7 @@ if (initializeDatabase)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AlFalahDbContext>();
+    db.InboxJournalEnabled = false; // Startup seed/history fixtures are never new inbox deliveries.
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 

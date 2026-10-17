@@ -1,34 +1,20 @@
-import { Injectable, signal } from '@angular/core';
-import { finalize } from 'rxjs';
-import { Phase5Service } from './phase5.service';
+import { Injectable } from '@angular/core';
+import { InboxSyncService } from './inbox-sync.service';
 
 @Injectable({ providedIn: 'root' })
 export class MessagingUnreadService {
-  readonly count = signal(0);
-  private refreshing = false;
-
-  constructor(private readonly api: Phase5Service) {}
+  readonly count = this.inbox.unreadMessages;
+  constructor(private readonly inbox: InboxSyncService) {}
 
   refresh(): void {
-    if (this.refreshing) return;
-    this.refreshing = true;
-    this.api.listConversations({ pageNumber: 1, pageSize: 100, isUnread: true }).pipe(
-      finalize(() => { this.refreshing = false; })
-    ).subscribe({
-      next: response => {
-        if (!response.isSuccess || !response.data) return;
-        this.count.set(response.data.items.reduce((total, conversation) => total + conversation.unreadCount, 0));
-      },
-      error: () => undefined
-    });
+    this.inbox.refresh();
   }
 
   markThreadRead(unreadCount: number): void {
-    if (unreadCount <= 0) return;
-    this.count.update(current => Math.max(0, current - unreadCount));
+    if (unreadCount > 0) this.inbox.refresh();
   }
 
   reset(): void {
-    this.count.set(0);
+    this.inbox.reset();
   }
 }

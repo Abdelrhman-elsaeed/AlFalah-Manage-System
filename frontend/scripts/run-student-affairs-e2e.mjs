@@ -10,7 +10,7 @@ const repositoryDirectory = resolve(frontendDirectory, '..');
 const resultsDirectory = resolve(frontendDirectory, 'test-results');
 const clockFile = resolve(resultsDirectory, 'e2e-clock.txt');
 const fixtureFile = resolve(resultsDirectory, 'e2e-fixtures.json');
-const databaseName = 'AlFalahW10E2E';
+const databaseName = process.env.E2E_DATABASE_NAME ?? 'AlFalahW10E2E';
 const apiPort = process.env.E2E_API_PORT ?? '5264';
 const webPort = process.env.E2E_WEB_PORT ?? '4200';
 const apiUrl = `http://127.0.0.1:${apiPort}`;
@@ -18,7 +18,7 @@ const webUrl = `http://127.0.0.1:${webPort}`;
 const connectionString = `Server=(localdb)\\MSSQLLocalDB;Database=${databaseName};Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true`;
 const fixturePassword = `E2e!${randomBytes(24).toString('base64url')}aA1`;
 
-if (!databaseName.toUpperCase().includes('E2E')) {
+if (!/^AlFalah[A-Za-z0-9_]*E2E[A-Za-z0-9_]*$/.test(databaseName)) {
   throw new Error('Refusing to reset a database whose name does not contain E2E.');
 }
 

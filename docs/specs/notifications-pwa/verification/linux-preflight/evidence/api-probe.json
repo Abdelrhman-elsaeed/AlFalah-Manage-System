@@ -1,0 +1,8 @@
+{
+  "swagger_status": 200,
+  "openapi_paths": 421,
+  "/api/v1/conversations": 401,
+  "/api/v1/notifications/unread-count": 401,
+  "/": 404,
+  "public_ports_published": false
+}

@@ -1,6 +1,7 @@
 import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { MessageWindow } from '../models/inbox.models';
 import { environment } from '../../../environments/environment';
 import { SUPPRESS_ERROR_TOAST } from '../http/http-context.tokens';
 import { ApiResponse, PagedResult } from '../models/api-response.model';
@@ -184,6 +185,13 @@ export class Phase5Service {
     return this.http.get<ApiResponse<PagedResult<ConversationMessageDto>>>(`${this.api}/conversations/${id}/messages`, {
       context: this.callerHandlesErrors,
       params
+    });
+  }
+  getMessageWindow(id: number, limit = 50, before?: string): Observable<ApiResponse<MessageWindow>> {
+    let params = new HttpParams().set('limit', limit);
+    if (before) params = params.set('before', before);
+    return this.http.get<ApiResponse<MessageWindow>>(`${this.api}/conversations/${id}/messages/window`, {
+      context: this.callerHandlesErrors, params
     });
   }
   sendMessage(id: number, request: SendMessageRequestDto): Observable<ApiResponse<SendMessageResultDto>> {

@@ -1,7 +1,7 @@
 # Al-Falah Schools Evaluation System — Spec Kit (Project Memory)
 
 **Status:** Phase 1 COMPLETED + gap-fix DONE · Phase 2 COMPLETED · Phase 3 COMPLETED ✅ · Phase 4 COMPLETED ✅ · Phase 5 COMPLETED ✅ · Phase 6 Stage 1 COMPLETED ✅ · Phase 6 Stage 2 COMPLETED ✅ · D-41 polish COMPLETED ✅ · Phase 7 COMPLETED ✅ · Phase 8 COMPLETED ✅ · Phase 9 COMPLETED ✅ · Phase 10 IN PROGRESS
-**Last updated:** 2026-10-16
+**Last updated:** 2026-10-17
 
 > This spec kit is the **single source of truth** and **project memory** for the
 > Al-Falah Schools Evaluation System (نظام تقييم مدارس الفلاح).
@@ -44,6 +44,7 @@
 | SFS | [specs/school-file-storage/plan.md](specs/school-file-storage/plan.md) | School file storage, teacher evidence, prototype parity, permissions, readiness, and visit PDF archival specification |
 | DUTY | [specs/school-duty/README.md](specs/school-duty/README.md) | D1/D2 implemented: rotation, signed execution, shared dismissal lateness and System communication; verification/visual evidence; D3 not started |
 | TT-STANDBY | [specs/intelligent-timetable/standby-periods/README.md](specs/intelligent-timetable/standby-periods/README.md) | English standby plan with three phases: weekly allocation; daily coverage/teacher execution; official PDF/final verification. Skills, frontend quality and tests are included in each phase; implementation not started |
+| NOTIFY-PWA | [specs/notifications-pwa/README.md](specs/notifications-pwa/README.md) | English Spec Kit plan: reliable inbox/realtime, installable PWA/Web Push, operations/device verification and future native contracts; exactly three phases, implementation not started |
 | SA-1 | [Phase1-Domain-And-Database-Schema.md](Phase1-Domain-And-Database-Schema.md) | Student Affairs domain and EF Core schema specification |
 | SA-2 | [Phase2-Identity-Roles-And-Permissions.md](Phase2-Identity-Roles-And-Permissions.md) | Student Affairs Identity roles and granular permissions |
 | SA-3 | [Phase3-Core-API-Contracts.md](Phase3-Core-API-Contracts.md) | Student Affairs REST/CQRS contracts |
@@ -68,6 +69,7 @@
 | SFS | [phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md](phases/PHASE-SFS-SCHOOL-FILE-STORAGE.md) | S5 IMPLEMENTED; Drive picker/test-account preparation implemented; four flags OFF; live consent/QA and S6 historical import/cutover pending |
 | SA-1–SA-5 | Student Affairs Technical Specification Kit | BLUEPRINT LOCKED — implementation not started |
 | DUTY | [phases/PHASE-DUTY-SCHOOL-DUTY.md](phases/PHASE-DUTY-SCHOOL-DUTY.md) | D1/D2 IMPLEMENTED / VERIFIED; client visual review pending; D3 not started; general assignment deferred |
+| NOTIFY-PWA | [phases/PHASE-NOTIFY-PWA.md](phases/PHASE-NOTIFY-PWA.md) | Planning artifacts reviewed; N1/N2/N3 not started |
 
 ## Change-log
 | Date | Change | By |
@@ -388,3 +390,27 @@ Read-only follow-up: diagnosed empty standby-register names as zero daily covera
 | Date | Change |
 |---|---|
 | 2026-10-17 | Added Day/Week selection to the existing standby register: one retained Sunday–Saturday PDF with ordered daily forms, explicit empty days, Gregorian range and continuous pages. Separate scoped history/revisions preserve old daily bytes. Additive schema 76 verified across 153 tables in synthetic and local databases. 37 backend checks (one opt-in allocator SQL suite skipped), 29 Angular checks, Development build, four-width real SQL/browser and independent PDF checks pass. No Drive writes or production rollout. [Implementation and evidence](specs/intelligent-timetable/verification/standby-week/README.md). |
+
+## C46 / D-138 - Notifications and PWA planning (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Created an English [Spec Kit feature package](specs/notifications-pwa/README.md) with exactly three delivery phases: reliable inbox/authenticated realtime; installable PWA/opt-in Web Push; device/operations verification and rollout readiness. Includes source-backed research, current-code defects, requirements, data model, proposed contracts, traceable tasks and hosting/rollback gates. Preserves school/recipient scope, office hours, approvals and Duty event deduplication; native mobile remains future work. Angular/.NET support decisions are explicit. Documentation only; no application/schema/provider/deployment changes or new runtime tests. [Tracker](phases/PHASE-NOTIFY-PWA.md). |
+
+## C47 / D-139 - Owner selects VPS direction (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Owner selects VPS and prefers Hostinger. Updated [notification deployment plan](specs/notifications-pwa/plan.md) and research/runbook with proposed KVM 4 sizing, KVM 2 budget alternative, Linux/PDF compatibility, production SQL edition/licensing, supervised workers, region/latency, backup and billing gates. Exactly three feature phases remain unstarted. Documentation only; no purchase, provisioning, code/schema/provider change or runtime test. |
+
+## C48 / D-140 - Linux VPS preflight (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Completed [isolated Linux/SQL preflight](specs/notifications-pwa/verification/linux-preflight/README.md): Linux Release publish and 52 focused tests pass; SQL Server 2022 Express applies 76 migrations with 153 application tables, repeat run and Arabic roundtrip; API Production HTTP smoke and Arabic PDF samples verified. Reproduced current production frontend CSS build failure and Linux case-variant file-containment defect; identified historical DPAPI key portability and deployment initialization/proxy/configuration/storage/packaging gates. Original DB queried read-only for aggregate metadata; source/config unchanged, no live provider or purchase/deployment. Notification N1-N3 remain unstarted. |
+
+## C49 / D-141 - Reliable inbox and authenticated realtime N1 (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Implemented notification phase N1: compatible latest/history windows, uncapped current-permission aggregates, transactional recipient journal/intents, authenticated SignalR and one Angular coordinator for chat/sidebar/guardian notifications. Preserves office hours, approval and actual Duty canonical identity; later surfaces re-arm the same realtime intent and fence old leases. Added migration `20261017125332_AddRecipientInboxRealtime`, SQL concurrency/rollback/deadlock/interleaving/lease/retention checks, real protocol tests and inspected desktop/mobile RTL viewport evidence. Local request-to-viewport p95 2,089/1,948 ms; [named results and limits](specs/notifications-pwa/verification/n1/README.md). Existing production CSS/broad storage-test and framework/Linux deployment gates remain; flags default off, operational database unchanged, no push/provider/deployment. N2/N3 not started. |

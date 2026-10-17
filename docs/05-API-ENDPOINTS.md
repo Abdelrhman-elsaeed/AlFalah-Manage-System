@@ -1,5 +1,9 @@
 # 05 — API Endpoints
 
+## Notification inbox N1 (2026-10-17)
+
+Authenticated additions: `GET /api/v1/conversations/{id}/messages/window`, `GET /api/v1/inbox/state`, `GET /api/v1/inbox/changes`, and SignalR `/hubs/inbox` (`InboxChanged.v1`). Existing message/read/notification routes remain compatible. New counts independently enforce current `Messaging.ViewOwn` / `Notification.ViewOwn`; unavailable counts are null. Protected cursors bind user/school/purpose and history conversation. See [exact contracts](specs/notifications-pwa/contracts/api.md) and [verification](specs/notifications-pwa/verification/n1/README.md). Web Push subscription routes are not implemented in N1.
+
 **Status:** Phase 6 Stage 1 (PDF Reports) added · **Last updated:** 2026-07-15
 
 > **Base URL (dev):** `http://localhost:5264` · **Swagger:** `http://localhost:5264/swagger`

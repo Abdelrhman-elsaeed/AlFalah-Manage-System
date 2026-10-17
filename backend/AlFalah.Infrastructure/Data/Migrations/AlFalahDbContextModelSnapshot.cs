@@ -2886,6 +2886,151 @@ namespace AlFalah.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AlFalah.Domain.Entities.Notifications.InboxChange", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("OccurredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAtUtc");
+
+                    b.HasIndex("SchoolId", "UserId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("InboxChanges", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Notifications.InboxDeliveryAttempt", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("IntentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("LeaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IntentId", "LeaseId")
+                        .IsUnique();
+
+                    b.ToTable("InboxDeliveryAttempts", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Notifications.NotificationDeliveryIntent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("LeaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("LeaseUntilUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("NextAttemptAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompletedAtUtc", "NextAttemptAtUtc", "LeaseUntilUtc");
+
+                    b.HasIndex("SchoolId", "UserId", "SourceKey", "Channel")
+                        .IsUnique();
+
+                    b.ToTable("NotificationDeliveryIntents", (string)null);
+                });
+
+            modelBuilder.Entity("AlFalah.Domain.Entities.Notifications.RecipientInboxStream", b =>
+                {
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<long>("CommittedSequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("MinimumRetainedSequence")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("SchoolId", "UserId");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("SchoolId", "UserId"), false);
+
+                    b.ToTable("RecipientInboxStreams", (string)null);
+                });
+
             modelBuilder.Entity("AlFalah.Domain.Entities.ParentSurvey", b =>
                 {
                     b.Property<int>("Id")

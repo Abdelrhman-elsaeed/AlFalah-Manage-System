@@ -69,6 +69,14 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
       JSON.stringify(envelope.data),
       { encoding: 'utf8', mode: 0o600 }
     );
+    if (process.env['E2E_ENROLL_SIGNATURES'] === '1') {
+      const png = await readFile(resolve('..', 'backend', 'AlFalah.Tests', 'TestAssets', 'Duty', 'signature-0.png'));
+      const signature = await api.put('/api/v1/account/signature', {
+        headers: { Authorization: `Bearer ${envelope.data.accessToken}` },
+        data: { signatureDrawnData: `data:image/png;base64,${png.toString('base64')}` }
+      });
+      if (!signature.ok()) throw new Error(`Synthetic signature enrollment failed for ${role}: ${signature.status()}.`);
+    }
   }
 
   await writeFile(

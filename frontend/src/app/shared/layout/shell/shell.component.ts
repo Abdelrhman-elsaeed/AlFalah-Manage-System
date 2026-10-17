@@ -7,10 +7,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
-import { GuardianSelfServiceService } from '../../../core/services/guardian-self-service.service';
 import { StudentAnalyzerService } from '../../../core/services/student-analyzer.service';
 import { VisitsV2Service } from '../../../core/services/visits-v2.service';
 import { MessagingUnreadService } from '../../../core/services/messaging-unread.service';
+import { InboxSyncService } from '../../../core/services/inbox-sync.service';
 import { roleLandingFor } from '../../../core/utils/role-landing';
 import { RoleDisplayNamePipe } from '../../pipes/role-display-name.pipe';
 import { StorageApiService } from '../../../features/storage/storage-api.service';
@@ -380,7 +380,7 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
 export class ShellComponent implements OnInit {
   showDutyDashboard(){return !!this.authService.activeSchoolId()&&this.authService.hasPermission('Duty.Manage')&&this.router.url.split(/[?#]/)[0]===roleLandingFor(this.authService.roles());}
   private readonly authService = inject(AuthService);
-  private readonly guardianSelfService = inject(GuardianSelfServiceService);
+  private readonly inboxSync = inject(InboxSyncService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly studentAnalyzer = inject(StudentAnalyzerService);
@@ -407,10 +407,9 @@ export class ShellComponent implements OnInit {
   readonly canReviewSchoolEvidence = signal(this.authService.hasPermission('Storage.ReviewEvidence'));
   readonly storageMoreOpen = signal(false);
   readonly ksaTime = signal<string>('');
-  readonly guardianUnreadNotifications = this.guardianSelfService.unreadNotifications;
+  readonly guardianUnreadNotifications = this.inboxSync.unreadNotifications;
   readonly unreadMessages = this.messagingUnreadService.count;
   private clockInterval: ReturnType<typeof setInterval> | null = null;
-  private messageUnreadInterval: ReturnType<typeof setInterval> | null = null;
 
   private readonly categories = SHELL_NAV_CATEGORIES;
 
@@ -528,12 +527,8 @@ export class ShellComponent implements OnInit {
     this.updateKsaTime();
     if (typeof window !== 'undefined') {
       this.clockInterval = setInterval(() => this.updateKsaTime(), 1000);
-      this.messageUnreadInterval = setInterval(() => {
-        if (document.visibilityState === 'visible') this.refreshMessagingUnread();
-      }, 30_000);
       this.destroyRef.onDestroy(() => {
         if (this.clockInterval) clearInterval(this.clockInterval);
-        if (this.messageUnreadInterval) clearInterval(this.messageUnreadInterval);
       });
     }
 
@@ -589,12 +584,11 @@ export class ShellComponent implements OnInit {
 
   private refreshGuardianUnread(): void {
     if (!this.authService.hasRole('Guardian') || !this.authService.hasPermission('Notification.ViewOwn')) return;
-    this.guardianSelfService.unreadCount().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
+    this.inboxSync.refresh();
   }
 
   private refreshMessagingUnread(): void {
     if (!this.authService.hasPermission('Messaging.ViewOwn')) {
-      this.messagingUnreadService.reset();
       return;
     }
     this.messagingUnreadService.refresh();

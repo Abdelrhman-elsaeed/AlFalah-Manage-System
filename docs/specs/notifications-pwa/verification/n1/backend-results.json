@@ -1,0 +1,221 @@
+{
+  "run": "N1 final isolated SQL and focused backend regression",
+  "count": 43,
+  "tests": [
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSecurityTests.CurrentPermissionMembershipAndStampOverrideOldTokenGrants",
+      "outcome": "Passed",
+      "duration": "00:00:00.0923453"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.StaffCanSendOutsideOfficeHoursWithoutAnyConfiguredOccurrence(threadType: GuardianSocialWorker, staffRole: \"SocialWorker\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0106730"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianMessageWithoutConfiguredOfficeHoursIsAcceptedAndRemainsPending",
+      "outcome": "Passed",
+      "duration": "00:00:00.0186723"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSecurityTests.SignedCursorsCannotBeReusedAcrossUserSchoolConversationOrPurpose",
+      "outcome": "Passed",
+      "duration": "00:00:04.9155701"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianDeliveryRespectsOfficeHourStartAndEnd(instant: \"2026-10-04T05:00:00Z\", expected: SentImmediately)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0261054"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CreateConversation_OfficerCanStartGuardianThread_WithExplicitPermission",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007499"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.ApplicationAssembly_Registers_All_GatePass_And_Messaging_Handlers",
+      "outcome": "Passed",
+      "duration": "00:00:00.1147957"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.AdditiveMigrationPreservesExistingSchoolAndDoesNotBroadcastHistory",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005526"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianDeliveryRespectsOfficeHourStartAndEnd(instant: \"2026-10-04T04:50:00Z\", expected: SentImmediately)",
+      "outcome": "Passed",
+      "duration": "00:00:05.1624970"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianQueueUsesEarliestRecurringOfficeHourAndReleasesOnlyWhenDue",
+      "outcome": "Passed",
+      "duration": "00:00:00.0905922"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.CleanupCannotDeleteAnIntentRearmedAfterItsCandidateScan",
+      "outcome": "Passed",
+      "duration": "00:00:01.3094444"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CreateConversation_AssignedSocialWorkerCanStartReferralGuardianThread",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020776"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxWindowTests.AggregateCountsAllOneHundredTwentyOneThreadsWithoutLeakingOtherSchoolsOrPendingReceipts",
+      "outcome": "Passed",
+      "duration": "00:00:05.4539962"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxWindowTests.JournalDoesNotPublishPendingApprovalAndReadTransitionsRemainSeparateFromCanonicalDutyDelivery",
+      "outcome": "Passed",
+      "duration": "00:00:00.2106520"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxWindowTests.ProjectionAndDispatcherUseTheSameInjectedClock",
+      "outcome": "Passed",
+      "duration": "00:00:00.0271867"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.StaffCanSendOutsideOfficeHoursWithoutAnyConfiguredOccurrence(threadType: GuardianStudentAffairs, staffRole: \"StudentAffairsOfficer\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0114315"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.RetentionForcesExplicitResyncAndKeepsBusinessHistory",
+      "outcome": "Passed",
+      "duration": "00:00:00.0647336"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.GuardianDeliveryRespectsOfficeHourStartAndEnd(instant: \"2026-10-04T05:30:00Z\", expected: QueuedUntilOfficeHours)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0270916"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.ConcurrentWritersCannotCommitHigherRecipientSequenceAheadOfLowerSequence",
+      "outcome": "Passed",
+      "duration": "00:00:00.2329958"
+    },
+    {
+      "test": "AlFalah.Tests.Duty.DutyExecutionSqlTests.Inbox_N1_actual_Duty_surfaces_have_one_channel_identity_and_independent_read_changes",
+      "outcome": "Passed",
+      "duration": "00:00:02.8633286"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.SnapshotRetriesACommitBetweenMessageAndNotificationCounts",
+      "outcome": "Passed",
+      "duration": "00:00:00.0646034"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.SchoolInstructorOptions_Requires_Exact_Manager_Role",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020100"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.ManagerGatePassAudit_Denies_Officer_With_InjectedPermission",
+      "outcome": "Passed",
+      "duration": "00:00:00.0019555"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetGatePassesQueryHandler_Returns_Success_When_Authorized",
+      "outcome": "Passed",
+      "duration": "00:00:00.0059453"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.ChannelFailureAndRetryDoNotReexecuteBusinessOrChangeReadState",
+      "outcome": "Passed",
+      "duration": "00:00:00.0450795"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.MessagingAudit_Denies_NonManager_With_InjectedPermission",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020157"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.RealSqlDeadlockRetriesWholeCommandWithFreshScopeAndCommitsOnce",
+      "outcome": "Passed",
+      "duration": "00:00:04.9739609"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetStudentGuardianOptions_RequiresExactOfficerRole",
+      "outcome": "Passed",
+      "duration": "00:00:00.0022313"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.ClaimRaceIsExclusiveAndOldLeaseCannotCompleteAfterReclaim",
+      "outcome": "Passed",
+      "duration": "00:00:00.0827344"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxWindowTests.PendingMessagesAreVisibleToSenderAndLateReleaseUsesRecipientTimeInsteadOfId",
+      "outcome": "Passed",
+      "duration": "00:00:00.1181078"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetGuardianTeacherOptionsQueryHandler_RequiresGuardianRole",
+      "outcome": "Passed",
+      "duration": "00:00:00.0026400"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.SendConversationMessageCommandHandler_Denies_NonParticipant",
+      "outcome": "Passed",
+      "duration": "00:00:00.0030509"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.TeacherWithFutureOfficeHoursStillSendsImmediately",
+      "outcome": "Passed",
+      "duration": "00:00:00.0255206"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.MessagingAuditDto_Serializes_Metadata_Without_Confidential_Fields",
+      "outcome": "Passed",
+      "duration": "00:00:00.0759940"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.UpdateMyOfficeHoursCommandHandler_RequiresExactInstructorRole",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024476"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.MessagingDeliveryTests.StaffCanSendOutsideOfficeHoursWithoutAnyConfiguredOccurrence(threadType: GuardianTeacher, staffRole: \"Instructor\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0462988"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxWindowTests.InitialChatWindowContainsLatestFiftyOfSixtyMessages",
+      "outcome": "Passed",
+      "duration": "00:00:00.1053442"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CloseConversationCommandHandler_Returns_Conflict_Response_For_Stale_RowVersion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020872"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.RollbackRemovesBusinessRowJournalCounterAndIntentTogether",
+      "outcome": "Passed",
+      "duration": "00:00:00.0285334"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.GetConversationsQueryHandler_Returns_Success_When_Authorized",
+      "outcome": "Passed",
+      "duration": "00:00:00.0019105"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.CanonicalCorrelationSharesIntentButReadChangesHaveNewIdentity",
+      "outcome": "Passed",
+      "duration": "00:00:00.0674302"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.InboxSqlTests.SnapshotCountsAreUncappedAndPermissionsAreResolvedFromCurrentDatabase",
+      "outcome": "Passed",
+      "duration": "00:00:01.7955620"
+    },
+    {
+      "test": "AlFalah.Tests.StudentAffairs.GatePassAndMessagingMediatRTests.CreateConversation_RequiresPermissionForSelectedThreadType",
+      "outcome": "Passed",
+      "duration": "00:00:00.0069705"
+    }
+  ]
+}

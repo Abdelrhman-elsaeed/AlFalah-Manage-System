@@ -1,4 +1,7 @@
 <main class="messages-page" dir="rtl">
+  @if (inboxSync.status() !== 'connected') {
+    <p role="status" aria-live="polite">{{ inboxSync.status() === 'offline' ? 'الاتصال غير متاح حاليًا. سنعيد المحاولة تلقائيًا.' : 'جارٍ استعادة التحديث المباشر؛ يمكنك متابعة استخدام الرسائل.' }}</p>
+  }
   <header class="page-header"><div><span class="eyebrow"><i class="pi pi-shield"></i> التواصل المدرسي الآمن</span><h1>مركز الرسائل</h1><p>كل محادثات الطلاب في مساحة هادئة، مع تحديث تلقائي وحالة تسليم واضحة.</p></div><div class="header-actions"><div class="message-metrics"><span><strong>{{ openCount() }}</strong> مفتوحة</span><span [class.has-unread]="unreadCount() > 0"><strong>{{ unreadCount() }}</strong> غير مقروءة</span></div><button pButton type="button" label="تحديث" icon="pi pi-refresh" class="p-button-outlined" [loading]="loadingInbox()" (click)="loadInbox()"></button></div></header>
 
   <section class="chat-shell" [class.has-selection]="!!selected() || !!selectedContact()" [class.is-compact]="compactViewport()">
@@ -48,7 +51,10 @@
         </div>
         @if (loadingThread()) { <div class="conversation-empty"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الرسائل…</span></div> }
         @else {
-          <div class="timeline">
+          @if (!followingLatest() && thread.unreadCount > 0) {
+            <button pButton type="button" class="p-button-text" label="عرض الرسائل الجديدة" icon="pi pi-arrow-down" (click)="showLatest()"></button>
+          }
+          <div #timeline class="timeline" (scroll)="onTimelineScroll()">
             @if (hasOlder()) { <button pButton type="button" label="تحميل رسائل أقدم" icon="pi pi-history" class="p-button-text older" [loading]="loadingOlder()" (click)="loadOlder()"></button> }
             @for (message of messages(); track message.id) {
               <article class="message" [class.mine]="isMine(message)" [class.system-notice-message]="message.sender.roleSnapshot==='System'">

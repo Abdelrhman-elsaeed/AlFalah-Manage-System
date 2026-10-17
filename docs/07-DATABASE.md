@@ -1,5 +1,9 @@
 # 07 — Database
 
+## Notification inbox N1 (2026-10-17)
+
+Additive migration `20261017125332_AddRecipientInboxRealtime` introduces `RecipientInboxStreams`, `InboxChanges`, `NotificationDeliveryIntents` and `InboxDeliveryAttempts`. Business changes and generic invalidations commit together; recipient sequence allocation uses SQL Server key/range locks. Claims use an explicit Read Committed transaction and conditional lease completion. Counts validate the recipient version before/after reading, retry crossed commits, and use a Serializable fallback with bounded deadlock retry. Existing business outbox, delivery enums and retained inbox records are unchanged. No historical backfill. [Implemented model](specs/notifications-pwa/data-model.md) / [isolated migration and concurrency evidence](specs/notifications-pwa/verification/n1/README.md). The operational Development/customer database was not migrated by this feature task.
+
 **Status:** Baseline + verified Development database · **Last updated:** 2026-07-15
 
 ## Engine & ORM

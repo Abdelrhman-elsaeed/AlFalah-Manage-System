@@ -1,0 +1,13 @@
+{
+  "os": "Debian GNU/Linux 12 (bookworm)",
+  "runtime": "8.0.32",
+  "timeZones": {
+    "Africa/Cairo": "Africa/Cairo",
+    "Asia/Riyadh": "Asia/Riyadh",
+    "Arabic Standard Time": "Arabic Standard Time"
+  },
+  "caseVariantOutsideRootReadSucceeded": true,
+  "caseVariantOutsideRootExpected": "must be rejected",
+  "storageRoundtrip": true,
+  "storageGregorianPath": true
+}

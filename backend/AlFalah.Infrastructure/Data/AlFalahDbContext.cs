@@ -14,14 +14,23 @@ namespace AlFalah.Infrastructure.Data;
 /// alongside Al-Falah domain entities.
 /// Global soft-delete query filters are applied where applicable.
 /// </summary>
-public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
+public partial class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
     private static readonly JsonSerializerOptions DomainEventJsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public AlFalahDbContext(DbContextOptions<AlFalahDbContext> options) : base(options) { }
+    public AlFalahDbContext(DbContextOptions<AlFalahDbContext> options,
+        Microsoft.Extensions.Options.IOptions<AlFalah.Application.Notifications.InboxOptions>? inboxOptions = null,
+        TimeProvider? timeProvider = null) : base(options)
+    {
+        InboxJournalEnabled = inboxOptions?.Value.JournalEnabled ?? false;
+        inboxTime = timeProvider ?? TimeProvider.System;
+    }
+
+    private readonly TimeProvider inboxTime;
+    public bool InboxJournalEnabled { get; set; }
 
     // Identity extensions
     public DbSet<Permission> Permissions => Set<Permission>();
@@ -233,7 +242,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     {
         UpdateTimestamps();
         var sources = GetDomainEventSources();
-        if (sources.Count == 0) return base.SaveChanges();
+        var inbox = CaptureInboxTransitions();
+        if (sources.Count == 0 && inbox.Count == 0) return base.SaveChanges();
 
         var ownsTransaction = Database.IsRelational() && Database.CurrentTransaction is null;
         using var transaction = ownsTransaction ? Database.BeginTransaction() : null;
@@ -241,6 +251,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         {
             var affectedRows = base.SaveChanges();
             AppendOutboxMessages(sources);
+            AppendInboxChangesAsync(inbox, CancellationToken.None).GetAwaiter().GetResult();
             affectedRows += base.SaveChanges();
             transaction?.Commit();
             ClearDomainEvents(sources);
@@ -257,7 +268,8 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     {
         UpdateTimestamps();
         var sources = GetDomainEventSources();
-        if (sources.Count == 0)
+        var inbox = CaptureInboxTransitions();
+        if (sources.Count == 0 && inbox.Count == 0)
             return await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var ownsTransaction = Database.IsRelational() && Database.CurrentTransaction is null;
@@ -269,6 +281,7 @@ public class AlFalahDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         {
             var affectedRows = await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             AppendOutboxMessages(sources);
+            await AppendInboxChangesAsync(inbox, cancellationToken).ConfigureAwait(false);
             affectedRows += await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             if (transaction is not null)
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);

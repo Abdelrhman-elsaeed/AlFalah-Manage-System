@@ -1,5 +1,11 @@
 # 08 — Security & Authorization
 
+## Authenticated inbox realtime N1 (2026-10-17)
+
+The hub exposes no client-callable business/group-join methods. Connections bind authenticated user, active school, security stamp and current grant/guardian-link fingerprint; each outbound send and a five-second sweep revalidate current access and abort revoked connections. ASP.NET Core 8 `CloseOnAuthenticationExpiration` closes expired connections. Angular detaches on logout/account/school/grant change and discards stale-context responses.
+
+Browser query bearer tokens are read only on exact `/hubs/inbox`; REST still requires its normal bearer header. Explicit hub Origin checks supplement CORS. Hosting request diagnostics and connection transport logs are restricted to Warning so WebSocket/SSE query tokens are not logged by default; a production reverse proxy must also redact/omit hub queries. Generic event/journal payloads contain no message bodies, names or resource IDs. Data Protection binds cursors to context and purpose. N2 subscription/device/source authorization is future work. [Contracts and residual rollout gates](specs/notifications-pwa/contracts/api.md).
+
 **Status:** Baseline · **Last updated:** 2026-07-10
 
 ## Critical rule

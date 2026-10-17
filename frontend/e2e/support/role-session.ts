@@ -49,6 +49,15 @@ export async function openRoleSession(
       const rewritten = route.request().url().replace('http://localhost:5264', isolatedApiUrl);
       return route.continue({ url: rewritten });
     });
+    await context.addInitScript(apiUrl => {
+      const NativeWebSocket = window.WebSocket;
+      const target = apiUrl.replace(/^http/, 'ws');
+      window.WebSocket = class extends NativeWebSocket {
+        constructor(url: string | URL, protocols?: string | string[]) {
+          super(String(url).replace('ws://localhost:5264', target), protocols);
+        }
+      };
+    }, isolatedApiUrl);
   }
   await context.addInitScript(session => {
     window.sessionStorage.setItem('alfalah_access_token', session.accessToken);

@@ -98,6 +98,13 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton(TimeProvider.System);
+        services.Configure<AlFalah.Application.Notifications.InboxOptions>(configuration.GetSection("Inbox"));
+        services.AddScoped<AlFalah.Application.Notifications.IInboxRepository, InboxRepository>();
+        services.AddSingleton<AlFalah.Application.Notifications.IInboxCursorCodec, InboxCursorCodec>();
+        services.AddScoped<AlFalah.Application.Notifications.InboxService>();
+        services.AddScoped<AlFalah.Application.Notifications.InboxConnectionService>();
+        services.AddScoped<AlFalah.Application.Notifications.InboxDeliveryService>();
+        services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(InboxCommandRetryBehavior<,>));
         services.Configure<AlFalah.Application.Storage.StorageOptions>(configuration.GetSection(AlFalah.Application.Storage.StorageOptions.SectionName));
         services.AddScoped<AlFalah.Application.Storage.IStorageRepository, StorageRepository>();
         services.AddScoped<AlFalah.Application.Storage.IStorageLibraryRepository, StorageLibraryRepository>();

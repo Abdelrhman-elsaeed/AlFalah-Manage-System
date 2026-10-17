@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-17",
+  "scope": "Isolated Linux compatibility audit; no application source change",
+  "source_files_hash_compared": 1090,
+  "source_mismatches": [],
+  "linux_sdk": "8.0.426",
+  "linux_runtime": "8.0.32",
+  "linux_userland": "Debian 12 x86-64",
+  "publish": "passed with existing warnings",
+  "focused_tests": {
+    "total": 52,
+    "passed": 52,
+    "failed": 0,
+    "classes": {
+      "TimetableGenerationTests": 18,
+      "DutyRosterRendererTests": 5,
+      "DataProtectionPersistenceTests": 2,
+      "LocalFileStorageServiceTests": 3,
+      "CoverageRegisterTests": 13,
+      "VisitV2DocumentServiceTests": 8,
+      "PdfVisualDumpTests": 1,
+      "PdfReportServiceTests": 1,
+      "DashboardExportTests": 1
+    }
+  },
+  "sql": {
+    "os": "Debian GNU/Linux 12 (bookworm)",
+    "runtime": "8.0.32",
+    "appliedMigrations": 76,
+    "pendingMigrations": 0,
+    "secondMigrationRunCompleted": true,
+    "edition": "Express Edition (64-bit)",
+    "sqlVersion": "16.0.4305.5",
+    "applicationTables": 153,
+    "arabicSqlRoundtrip": true
+  },
+  "platform_probe": {
+    "os": "Debian GNU/Linux 12 (bookworm)",
+    "runtime": "8.0.32",
+    "timeZones": {
+      "Africa/Cairo": "Africa/Cairo",
+      "Asia/Riyadh": "Asia/Riyadh",
+      "Arabic Standard Time": "Arabic Standard Time"
+    },
+    "caseVariantOutsideRootReadSucceeded": true,
+    "caseVariantOutsideRootExpected": "must be rejected",
+    "storageRoundtrip": true,
+    "storageGregorianPath": true
+  },
+  "http": {
+    "swagger_status": 200,
+    "openapi_paths": 421,
+    "/api/v1/conversations": 401,
+    "/api/v1/notifications/unread-count": 401,
+    "/": 404,
+    "public_ports_published": false
+  },
+  "frontend_production_build": "failed: existing component CSS budget violations",
+  "generated_pdf_count": 7,
+  "retained_pdf_samples": [
+    "visit-report.pdf",
+    "source-eighteen-weeks.pdf"
+  ],
+  "original_config_copied_to_audit": false,
+  "school_data_copied": false,
+  "public_container_ports": false
+}

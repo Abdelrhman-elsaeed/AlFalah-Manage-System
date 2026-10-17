@@ -1,0 +1,11 @@
+{
+  "os": "Debian GNU/Linux 12 (bookworm)",
+  "runtime": "8.0.32",
+  "appliedMigrations": 76,
+  "pendingMigrations": 0,
+  "secondMigrationRunCompleted": true,
+  "edition": "Express Edition (64-bit)",
+  "sqlVersion": "16.0.4305.5",
+  "applicationTables": 153,
+  "arabicSqlRoundtrip": true
+}
