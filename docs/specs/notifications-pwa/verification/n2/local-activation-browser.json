@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "actualLocalApi": true,
+  "interceptedResponses": false,
+  "requests": [
+    {
+      "path": "/api/v1/notification-center/state",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/notification-center",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/inbox/state",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/notification-center/state",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/notification-center",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/notification-center",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/inbox/state",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/notification-center/state",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/notification-center",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/notification-center",
+      "status": 200
+    }
+  ],
+  "emptyState": true,
+  "pageErrors": []
+}

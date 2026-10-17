@@ -68,7 +68,7 @@ interface ConversationContact {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ButtonModule, DialogModule, DropdownModule, InputTextModule, InputTextareaModule, ProgressSpinnerModule, TagModule, TranslateModule],
   templateUrl: './messaging-chat.component.html',
-  styleUrls: ['./messaging-chat.component.css','./system-notice-message.css']
+  styleUrls: ['./messaging-contacts.css', './messaging-chat.component.css', './system-notice-message.css', './messaging-mobile-header.css']
 })
 export class MessagingChatComponent implements OnInit {
   private readonly api = inject(Phase5Service);
@@ -85,6 +85,7 @@ export class MessagingChatComponent implements OnInit {
   readonly conversations = signal<readonly ConversationDto[]>([]);
   readonly totalRecords = signal(0);
   readonly loadingInbox = signal(true);
+  private inboxLoaded = false;
   readonly inboxError = signal('');
   readonly unreadOnly = signal(false);
   readonly inboxView = signal<InboxView>('conversations');
@@ -144,6 +145,8 @@ export class MessagingChatComponent implements OnInit {
   readonly loadingOlder = signal(false);
   readonly hasOlder = signal(false);
   readonly followingLatest = signal(true);
+  readonly quickRepliesOpen = signal(false);
+  readonly threadDetailsOpen = signal(false);
   @ViewChild('timeline') private timeline?: ElementRef<HTMLDivElement>;
   readonly sending = signal(false);
   readonly sendError = signal('');
@@ -180,7 +183,10 @@ export class MessagingChatComponent implements OnInit {
   private beforeCursor: string | null = null;
   private windowRequest = 0;
   private inboxRequest = 0;
+  private conversationMutation = 0;
   private renderingLatest = false;
+  private refreshingThread = false;
+  private refreshThreadAgain = false;
   private readonly readSignatures = new Map<number, string>();
   private get sessionKey(): string { return `${this.auth.currentUser()?.userId}:${this.auth.activeSchoolId()}`; }
 
@@ -222,7 +228,8 @@ export class MessagingChatComponent implements OnInit {
   loadInbox(): void {
     const request = ++this.inboxRequest;
     const session = this.sessionKey;
-    this.loadingInbox.set(true);
+    const mutation = this.conversationMutation;
+    this.loadingInbox.set(!this.inboxLoaded);
     this.inboxError.set('');
     const isUnread = this.unreadOnly() || undefined;
     this.api.listConversations({ pageNumber: 1, pageSize: 100, isUnread }).pipe(
@@ -231,7 +238,7 @@ export class MessagingChatComponent implements OnInit {
         : EMPTY),
       toArray(),
       takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.loadingInbox.set(false))
+      finalize(() => { if (request === this.inboxRequest) this.loadingInbox.set(false); })
     ).subscribe({
       next: pages => {
         if (request !== this.inboxRequest || session !== this.sessionKey) return;
@@ -240,7 +247,10 @@ export class MessagingChatComponent implements OnInit {
           this.inboxError.set(failed?.errors[0] ?? failed?.message ?? 'تعذر تحميل المحادثات.');
           return;
         }
-        const items = pages.flatMap(response => response.data?.items ?? []);
+        const current = this.selected();
+        const items = pages.flatMap(response => response.data?.items ?? []).map(item =>
+          current?.id === item.id && mutation !== this.conversationMutation ? current : item);
+        this.inboxLoaded = true;
         this.conversations.set(items);
         this.totalRecords.set(pages[0].data.totalCount);
         const deepLink = Number(this.route.snapshot.queryParamMap.get('conversationId'));
@@ -250,7 +260,6 @@ export class MessagingChatComponent implements OnInit {
         if (selectedId) {
           const latest = items.find(item => item.id === selectedId);
           if (latest) this.selected.set(latest);
-          else if (items.length) this.selectConversation(items[0]);
         } else if (items.length && !this.compactViewport() && this.inboxView() === 'conversations') {
           this.selectConversation(items[0]);
         }
@@ -470,6 +479,8 @@ export class MessagingChatComponent implements OnInit {
     this.messages.set([]);
     this.hasOlder.set(false);
     this.sendError.set('');
+    this.quickRepliesOpen.set(false);
+    this.threadDetailsOpen.set(false);
     this.loadingThread.set(true);
     forkJoin({ header: this.api.getConversation(item.id), messages: this.api.getMessageWindow(item.id, 50, undefined, linkedMessage) })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => { if (request === this.windowRequest) this.loadingThread.set(false); })).subscribe({
@@ -533,7 +544,7 @@ export class MessagingChatComponent implements OnInit {
     const thread = this.selected();
     const body = this.draft.value.trim();
     const session = this.sessionKey;
-    if (!thread || thread.status !== 'Open' || !body || this.sending()) return;
+    if (!thread || thread.status !== 'Open' || !body || this.draft.invalid || this.sending()) return;
     const key = this.pendingIdempotencyKey() ?? this.api.createIdempotencyKey();
     this.pendingIdempotencyKey.set(key);
     this.sending.set(true);
@@ -562,7 +573,18 @@ export class MessagingChatComponent implements OnInit {
     const current = this.draft.value.trim();
     this.draft.setValue(current ? `${current}\n${reply}` : reply);
     this.draft.markAsDirty();
+    this.quickRepliesOpen.set(false);
   }
+
+  showDateDivider(index: number): boolean {
+    return index === 0 || new Date(this.messages()[index - 1].createdAt).toDateString() !== new Date(this.messages()[index].createdAt).toDateString();
+  }
+  messageDate(value: string): string {
+    const date = new Date(value);
+    return date.toDateString() === new Date().toDateString() ? 'اليوم' : new Intl.DateTimeFormat('ar-SA', { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
+  }
+  messageTime(value: string): string { return new Intl.DateTimeFormat('ar-SA', { hour: 'numeric', minute: '2-digit' }).format(new Date(value)); }
+  threadInitial(thread: ConversationDto): string { return thread.student.displayName.trim().charAt(0); }
 
   openCloseDialog(): void { this.closeReason.reset(''); this.closeDialogVisible.set(true); }
   closeThread(): void {
@@ -573,7 +595,7 @@ export class MessagingChatComponent implements OnInit {
     this.api.closeConversation(thread.id, { reason, rowVersion: thread.rowVersion }).pipe(finalize(() => this.closing.set(false))).subscribe({
       next: response => {
         if (!response.isSuccess || !response.data) { this.toast.warn('لم تُغلق المحادثة', response.errors[0] ?? response.message); return; }
-        this.acceptConversationUpdate(response.data);
+        this.acceptConversationUpdate(response.data, true);
         this.closeDialogVisible.set(false);
         this.toast.success('تم إغلاق المحادثة', 'أصبح صندوق الكتابة للقراءة فقط.');
       },
@@ -669,7 +691,7 @@ export class MessagingChatComponent implements OnInit {
         ...thread,
         rowVersion: result.conversationRowVersion,
         updatedAt: result.message.createdAt
-      });
+      }, true);
     }
     const officeHoursNotice = this.officeHoursNotice(result.message);
     if (officeHoursNotice) {
@@ -737,18 +759,22 @@ export class MessagingChatComponent implements OnInit {
     // Do not replace older pages or mark arriving messages read while the user is
     // looking back through history. The inbox/header count still updates live.
     if (!this.followingLatest()) return;
-    const request = ++this.windowRequest;
+    if (this.refreshingThread) { this.refreshThreadAgain = true; return; }
+    this.refreshingThread = true;
+    const request = this.windowRequest;
     const session = this.sessionKey;
+    const mutation = this.conversationMutation;
     forkJoin({ header: this.api.getConversation(thread.id), messages: this.api.getMessageWindow(thread.id, 50) })
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => {
+        this.refreshingThread = false;
+        if (this.refreshThreadAgain) { this.refreshThreadAgain = false; this.revalidateOpenThread(); }
+      })).subscribe({
       next: ({ header, messages }) => {
         if (request !== this.windowRequest || session !== this.sessionKey || this.selected()?.id !== thread.id) return;
         if (!this.followingLatest()) return;
-        if (header.isSuccess && header.data) this.acceptConversationUpdate(header.data);
+        if (mutation === this.conversationMutation && header.isSuccess && header.data) this.acceptConversationUpdate(header.data);
         if (messages.isSuccess && messages.data) {
-          this.messages.set(this.sortedUnique(messages.data.items));
-          this.beforeCursor = messages.data.nextBeforeCursor;
-          this.hasOlder.set(messages.data.hasOlder);
+          this.mergeMessages(messages.data.items);
           this.scrollToLatest(true);
         }
       },
@@ -758,9 +784,15 @@ export class MessagingChatComponent implements OnInit {
   private revalidateHeader(): void {
     const thread = this.selected();
     if (!thread) return;
-    this.api.getConversation(thread.id).subscribe({ next: response => { if (response.isSuccess && response.data) this.acceptConversationUpdate(response.data); } });
+    const session = this.sessionKey;
+    const mutation = this.conversationMutation;
+    this.api.getConversation(thread.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: response => {
+      if (session === this.sessionKey && mutation === this.conversationMutation && this.selected()?.id === thread.id
+        && response.isSuccess && response.data) this.acceptConversationUpdate(response.data);
+    } });
   }
-  private acceptConversationUpdate(updated: ConversationDto): void {
+  private acceptConversationUpdate(updated: ConversationDto, localMutation = false): void {
+    if (localMutation) this.conversationMutation++;
     this.selected.set(updated);
     this.conversations.update(items => items.map(item => item.id === updated.id ? updated : item));
   }
@@ -811,7 +843,7 @@ export class MessagingChatComponent implements OnInit {
       if (session !== this.sessionKey) return;
       this.readSignatures.set(thread.id, signature);
       this.messagingUnread.markThreadRead(thread.unreadCount);
-      if (this.selected()?.id === thread.id) this.acceptConversationUpdate({ ...this.selected()!, unreadCount: 0 });
+      if (this.selected()?.id === thread.id) this.acceptConversationUpdate({ ...this.selected()!, unreadCount: 0 }, true);
       this.messagingUnread.refresh();
     } });
   }

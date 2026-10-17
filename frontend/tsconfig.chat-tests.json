@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/**/*.d.ts",
+    "src/app/features/student-affairs/messaging-chat/messaging-chat.component.spec.ts",
+    "src/app/core/services/inbox-sync.service.spec.ts"
+  ]
+}

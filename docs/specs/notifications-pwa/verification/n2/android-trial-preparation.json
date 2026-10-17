@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-17",
+  "scope": "N2 T020 preparation and temporary operator-run HTTPS trial",
+  "ownerContext": { "stableHttpsDeployment": false, "temporaryHttpsTrialRunning": true, "androidAvailable": true, "iphoneAvailable": false },
+  "vapid": { "generatedOutsideRepository": true, "curve": "P-256", "publicPrivateConsistencyVerified": true, "productionIdentity": false },
+  "cloudflared": { "version": "2026.10.1", "releaseDigestVerified": true, "tunnelStartedByOperator": true },
+  "checks": {
+    "syntheticLoopbackProxy": "passed",
+    "windowsUtf8BomConfiguration": "passed",
+    "pwaMimeScopeAndMissingAssetRouting": "passed",
+    "apiAuthenticationForwardingAndNoStore": "passed",
+    "deniedPathsNeverReachUpstream": "passed",
+    "powershellLauncherSyntax": "passed",
+    "powershellConfigurationPreflightRegression": {
+      "reportedError": "Keyword not supported: 'ConnectionString'.",
+      "reproducedBeforeFix": true,
+      "runtime": "Windows PowerShell 5.1.19041.6456",
+      "passedCasesAfterFix": 8,
+      "actualPrivateTrialConfiguration": "passed without SQL/process/network operations",
+      "fix": "Parse connection through SqlConnectionStringBuilder constructor instead of dictionary-adapted property assignment"
+    },
+    "actualSqlAccountRestrictionRegression": {
+      "reportedError": "Invalid object name 'AspNetUsers'.",
+      "reproducedBeforeFix": true,
+      "fix": "Use the application's mapped dbo.Users table",
+      "executesActualLauncherSql": true,
+      "exactlyBothSyntheticActorsEnabled": true,
+      "allOtherAccountsDisabledInTransaction": true,
+      "everyOriginalAccountStateRestoredAfterRollback": true,
+      "result": "passed on actual isolated SQL database"
+    },
+    "launcherEndToEnd": "operator started temporary HTTPS trial; actual Android basic receipt/click confirmed by owner, full T020 matrix pending",
+    "frontendErrorFollowup": "ten N2 Angular tests and separate optimized build pass; not deployed to the active trial"
+  },
+  "initialAgentExecutionGate": { "action": "start isolated trial API", "automaticReview": "rejected", "reportedReason": "blocked by policy", "specificReasonProvided": false },
+  "operatorRetryReachedE2eInitialization": true,
+  "trialDatabaseCreated": true,
+  "trialDatabaseAppliedMigrations": 79,
+  "trialDatabaseSyntheticUsers": 15,
+  "trialApiAndProxyCurrentlyListening": true,
+  "trialPushEnabled": true,
+  "publicHttpsOrigin": "https://infants-carbon-opera-glow.trycloudflare.com",
+  "externalProviderAcceptedAttemptsObserved": 1,
+  "actualAndroidEvidence": "initial enrollment failed; subsequent retry registered guardian device, provider accepted new message, owner confirms outside-app notification and click opened correct conversation",
+  "actualIphoneEvidence": "pending - no device available",
+  "n2Accepted": false,
+  "n3Started": false
+}

@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-17",
+  "scope": "N2 T020 temporary synthetic HTTPS trial",
+  "reportedDeviceEvidence": {
+    "source": "owner's actual Android report; not directly instrumented",
+    "foregroundSystemNotification": "not observed",
+    "lockedScreenSystemNotification": "not observed",
+    "inAppBellMessage": "observed",
+    "phoneModel": "not supplied",
+    "androidVersion": "not supplied",
+    "browserVersion": "not supplied"
+  },
+  "ownerEnrollmentFollowup": {
+    "browser": "Chrome on Android",
+    "permissionPromptShown": true,
+    "ownerSelectedAllow": true,
+    "applicationResult": "لم تُفعّل الإشعارات. تحقق من إذن المتصفح وحالة الاتصال ثم أعد المحاولة."
+  },
+  "initialDirectServerEvidence": {
+    "database": "exact private configured isolated local E2E target",
+    "registrationEnabled": true,
+    "dispatchEnabled": true,
+    "pwaUiEnabled": true,
+    "authenticatedConfigPublicKeyMatchesTrialIdentity": true,
+    "totalSubscriptionRows": 0,
+    "ownedGuardianDevices": 0,
+    "personalMessageEntries": 3,
+    "allEntryPushDispositions": "NoActiveSubscription",
+    "pushTargets": 0,
+    "pushAttempts": 0,
+    "pushSweepWarningsObserved": 0,
+    "actualHttpsManifestStatus": 200,
+    "actualHttpsManifestMime": "application/manifest+json",
+    "actualHttpsWorkerStatus": 200,
+    "actualHttpsWorkerMime": "text/javascript"
+  },
+  "successfulRetryEvidence": {
+    "source": "subsequent actual SQL/API inspection plus explicit owner phone report",
+    "activeOwnedSubscriptions": 2,
+    "distinctSyntheticOwners": ["officer.test", "parent.test"],
+    "guardianSubscriptionConfirmedAtUtc": "2026-10-17T19:01:21.2632886+00:00",
+    "newGuardianMessageCreatedAtUtc": "2026-10-17T19:01:59.2392490+00:00",
+    "guardianProviderAcceptedAtUtc": "2026-10-17T19:02:00.9224225+00:00",
+    "acceptedGuardianTargets": 1,
+    "acceptedAttemptRows": 1,
+    "ownerReopenedAndLoggedInAgainBeforeActivationSucceeded": true,
+    "ownerReportsNotificationOutsideApplication": true,
+    "ownerReportsClickOpenedCorrectConversation": true,
+    "exactInitialBrowserException": "not captured",
+    "initialFailureRootCause": "not established",
+    "desktopActivationRequiredForAndroid": false,
+    "initialThreeMessagesReplayed": false
+  },
+  "frontendFollowup": {
+    "change": "Actionable Arabic browser-permission, push-service and server-registration failures; stale-account failure discarded",
+    "redBeforeFix": "four targeted cases failed with generic failure/stale-account status",
+    "greenAfterFix": "all ten N2 Angular tests passed in ChromeHeadless 155",
+    "browserFailuresInTests": "simulated DOMExceptions; not captured Android errors",
+    "optimizedPwaVerificationBuild": "passed at frontend/dist/n2-device-diagnostic-build",
+    "newBuildDeployedToActiveTrial": false,
+    "phoneRecoveryPrecededDeploymentOfCopyChange": true
+  },
+  "conclusion": "Initial messages had no registered device. Subsequent retry persisted independent device bindings and a fresh guardian message was accepted by the provider. Owner confirms actual Android notification outside the app and correct click navigation; exact initial failure cause remains unknown.",
+  "nextRequiredEvidence": "Exact phone/OS/browser versions and install/settings context; remaining locked/no-tab/lifecycle/multi-device matrix, iPhone and stable-origin acceptance",
+  "mutationsPerformedByDiagnosis": "Synthetic-account login/read-only SQL checks; private trial logging temporarily enabled then restored. No agent-created business message, fabricated subscription, historical replay or main-database change.",
+  "providerAcceptanceEstablished": true,
+  "actualPhoneDeliveryEstablished": true,
+  "phoneDeliveryEvidenceLevel": "explicit owner report; no direct phone instrumentation or retained screenshot",
+  "historicalPushReplay": false,
+  "n2Accepted": false,
+  "n3Started": false
+}

@@ -1,8 +1,8 @@
-<main class="messages-page" dir="rtl">
-  @if (inboxSync.status() !== 'connected') {
-    <p role="status" aria-live="polite">{{ inboxSync.status() === 'offline' ? 'الاتصال غير متاح حاليًا. سنعيد المحاولة تلقائيًا.' : 'جارٍ استعادة التحديث المباشر؛ يمكنك متابعة استخدام الرسائل.' }}</p>
-  }
-  <header class="page-header"><div><span class="eyebrow"><i class="pi pi-shield"></i> التواصل المدرسي الآمن</span><h1>مركز الرسائل</h1><p>كل محادثات الطلاب في مساحة هادئة، مع تحديث تلقائي وحالة تسليم واضحة.</p></div><div class="header-actions"><div class="message-metrics"><span><strong>{{ openCount() }}</strong> مفتوحة</span><span [class.has-unread]="unreadCount() > 0"><strong>{{ unreadCount() }}</strong> غير مقروءة</span></div><button pButton type="button" label="تحديث" icon="pi pi-refresh" class="p-button-outlined" [loading]="loadingInbox()" (click)="loadInbox()"></button></div></header>
+<main class="messages-page" dir="rtl" [class.thread-open]="!!selected()">
+  <header class="page-header">
+    <div class="page-title"><span class="page-symbol" aria-hidden="true"><i class="pi pi-comments"></i></span><div><h1>مركز الرسائل</h1><p>حلقة الوصل بين البيت والمدرسة</p></div></div>
+    <div class="header-actions"><span class="connection-state" [class.is-connected]="inboxSync.status() === 'connected'" [class.is-offline]="inboxSync.status() === 'offline'" role="status" [title]="inboxSync.status() === 'connected' ? 'تحديث مباشر للرسائل' : 'سنحاول استعادة التحديث المباشر تلقائيًا'"><span></span>{{ inboxSync.status() === 'connected' ? 'متصل مباشرة' : inboxSync.status() === 'offline' ? 'الاتصال منقطع' : 'جارٍ الاتصال' }}</span><div class="message-metrics"><span><strong>{{ openCount() }}</strong> مفتوحة</span><span [class.has-unread]="unreadCount() > 0"><strong>{{ unreadCount() }}</strong> غير مقروءة</span></div><button type="button" class="refresh-button" aria-label="تحديث المحادثات" title="تحديث المحادثات" (click)="loadInbox(); showLatest()"><i class="pi pi-refresh" aria-hidden="true"></i></button></div>
+  </header>
 
   <section class="chat-shell" [class.has-selection]="!!selected() || !!selectedContact()" [class.is-compact]="compactViewport()">
     <aside class="inbox" aria-label="صندوق المحادثات">
@@ -17,14 +17,15 @@
           <div class="new-thread-note"><i class="pi pi-shield"></i><span>{{ isOfficer ? 'اختر الفصل ثم الطالب؛ سيظهر فقط أولياء الأمور المرتبطون به حاليًا.' : isSocialWorker ? 'اختر إحالة نشطة؛ سيظهر فقط أولياء أمور الطالب المرتبطون بها.' : 'تظهر فقط الجهات المرتبطة حاليًا بالابن؛ لا يمكن إدخال مستلم يدويًا.' }}</span></div>
         </div>
       }
-      <label class="inbox-search" for="conversation-search"><i class="pi pi-search"></i><input id="conversation-search" pInputText [formControl]="conversationSearch" [placeholder]="inboxView() === 'people' ? 'ابحث عن ولي أمر أو موظف' : 'ابحث عن طالب أو موضوع'" /></label>
+      <label class="inbox-search" for="conversation-search"><i class="pi pi-search"></i><input id="conversation-search" pInputText [formControl]="conversationSearch" [attr.aria-label]="inboxView() === 'people' ? 'ابحث عن ولي أمر أو موظف' : 'ابحث عن طالب أو موضوع'" [placeholder]="inboxView() === 'people' ? 'ابحث عن ولي أمر أو موظف' : 'ابحث عن طالب أو موضوع'" /></label>
+      @if (inboxError() && conversations().length) { <div class="inbox-error" role="status"><i class="pi pi-info-circle"></i>{{ inboxError() }} <button type="button" (click)="loadInbox()">إعادة المحاولة</button></div> }
       @if (loadingInbox()) { <div class="inbox-state"><p-progressSpinner strokeWidth="4"></p-progressSpinner></div> }
-      @else if (inboxError()) { <div class="inbox-state error"><i class="pi pi-exclamation-triangle"></i><span>{{ inboxError() }}</span></div> }
-      @else if (inboxView() === 'conversations') { <div class="thread-list">@for (thread of filteredConversations(); track thread.id) { <button type="button" class="thread-item" [class.active]="selected()?.id === thread.id" (click)="selectedContactId.set(null); selectConversation(thread)"><div class="thread-top"><strong>{{ thread.subject }}</strong>@if (thread.unreadCount) { <span class="unread">{{ thread.unreadCount }}</span> }</div><span><b>{{ thread.student.displayName }}</b> · {{ threadTypeLabel(thread.threadType) }}</span><div class="thread-meta"><small>{{ formatDateTime(thread.updatedAt) }}</small><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : thread.status === 'Closed' ? 'مغلقة' : 'مؤرشفة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag></div></button> } @empty { <div class="inbox-state"><i class="pi pi-comments"></i><span>{{ conversationSearch.value ? 'لا توجد نتيجة مطابقة للبحث.' : 'لا توجد محادثات في هذا العرض.' }}</span></div> }</div> }
+      @else if (inboxError() && !conversations().length) { <div class="inbox-state error"><i class="pi pi-exclamation-triangle"></i><span>{{ inboxError() }}</span><button type="button" (click)="loadInbox()">إعادة المحاولة</button></div> }
+      @else if (inboxView() === 'conversations') { <div class="thread-list">@for (thread of filteredConversations(); track thread.id) { <button type="button" class="thread-item" [class.active]="selected()?.id === thread.id" [class.is-unread]="thread.unreadCount > 0" [attr.aria-current]="selected()?.id === thread.id ? 'true' : null" (click)="selectedContactId.set(null); selectConversation(thread)"><span class="thread-avatar" [class.system-avatar]="thread.threadType === 'SystemNotice'">@if (thread.threadType === 'SystemNotice') { <i class="pi pi-shield"></i> } @else { {{ threadInitial(thread) }} }</span><span class="thread-copy"><span class="thread-top"><strong>{{ thread.subject }}</strong><time>{{ messageTime(thread.updatedAt) }}</time></span><span class="thread-student">{{ thread.student.displayName }}</span><span class="thread-meta"><small>{{ threadTypeLabel(thread.threadType) }}</small><span class="thread-status" [class.closed]="thread.status !== 'Open'">{{ thread.status === 'Open' ? 'مفتوحة' : thread.status === 'Closed' ? 'مغلقة' : 'مؤرشفة' }}</span>@if (thread.unreadCount) { <span class="unread">{{ thread.unreadCount }}</span> }</span></span></button> } @empty { <div class="inbox-state"><i class="pi pi-comments"></i><span>{{ conversationSearch.value ? 'لا توجد نتيجة مطابقة للبحث.' : 'لا توجد محادثات في هذا العرض.' }}</span></div> }</div> }
       @else { <div class="people-list">@for (contact of filteredContacts(); track contact.userId) { <button type="button" class="person-item" [class.active]="selectedContactId() === contact.userId" (click)="selectContact(contact)"><span class="person-avatar">{{ contact.displayName.charAt(0) }}</span><span class="person-copy"><strong>{{ contact.displayName }}</strong><small>{{ participantRoleLabel(contact.role) }} · {{ contact.conversations.length }} محادثة</small><small>آخر تواصل: {{ formatDateTime(contact.updatedAt) }}</small></span>@if (contact.unreadCount) { <span class="unread">{{ contact.unreadCount }}</span> }</button> } @empty { <div class="inbox-state"><i class="pi pi-users"></i><span>{{ conversationSearch.value ? 'لا يوجد شخص مطابق للبحث.' : 'ستظهر هنا أسماء الأشخاص بعد بدء أول محادثة معهم.' }}</span></div> }</div> }
     </aside>
 
-    <section class="conversation" aria-live="polite">
+    <section class="conversation" [class.conversation--empty]="!selected()" aria-label="المحادثة">
       @if (!selected() && selectedContact(); as contact) {
         <section class="contact-history">
           <header class="contact-history-header"><button *ngIf="compactViewport()" type="button" class="mobile-back" aria-label="العودة إلى قائمة الأشخاص" (click)="backToInbox()"><i class="pi pi-arrow-right"></i></button><span class="person-avatar large">{{ contact.displayName.charAt(0) }}</span><div><span>سجل التواصل الكامل</span><h2>{{ contact.displayName }}</h2><p>{{ participantRoleLabel(contact.role) }} · {{ contact.conversations.length }} محادثة سابقة</p></div><div class="contact-stats"><span><b>{{ contact.openCount }}</b> مفتوحة</span><span><b>{{ contact.unreadCount }}</b> غير مقروءة</span></div></header>
@@ -42,23 +43,38 @@
       }
       @else if (!selected()) { <div class="conversation-empty"><span class="empty-illustration"><i class="pi pi-comments"></i></span><h2>{{ inboxView() === 'people' ? 'اختر شخصًا لعرض سجل التواصل' : 'ابدأ من صندوق المحادثات' }}</h2><p>{{ inboxView() === 'people' ? 'ستظهر كل المحادثات المفتوحة والمغلقة التي تمت مع الشخص في مكان واحد.' : 'اختر محادثة لمراجعة السياق والرد، أو أنشئ محادثة جديدة من القائمة الجانبية.' }}</p><div class="privacy-note"><i class="pi pi-lock"></i> المحادثات لا تظهر إلا للمشاركين المصرح لهم</div></div> }
       @else { @if (selected(); as thread) {
-        <header class="conversation-header"><button *ngIf="compactViewport()" type="button" class="mobile-back" aria-label="العودة إلى صندوق المحادثات" (click)="backToInbox()"><i class="pi pi-arrow-right"></i></button><div><h2>{{ thread.subject }}</h2><span>{{ thread.student.displayName }} · {{ threadTypeLabel(thread.threadType) }}</span><small>{{ thread.participants.length }} مشاركين: @for (participant of thread.participants; track participant.userId) { {{ participant.displayName }}@if (!$last) {، } }</small></div><div><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : 'مغلقة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag>@if (canClose && thread.status === 'Open') { <button pButton type="button" label="إغلاق" icon="pi pi-lock" size="small" class="p-button-outlined" (click)="openCloseDialog()"></button> }</div></header>
+        <header class="conversation-header">
+          <button *ngIf="compactViewport()" type="button" class="mobile-back" aria-label="العودة إلى صندوق المحادثات" (click)="backToInbox()"><i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+          <span class="thread-avatar header-avatar" aria-hidden="true">{{ threadInitial(thread) }}</span>
+          <div class="conversation-title">
+            <h2 [title]="thread.subject">{{ thread.subject }}</h2>
+            <span>{{ threadTypeLabel(thread.threadType) }}</span>
+            <small>{{ thread.participants.length }} مشاركين: @for (participant of thread.participants; track participant.userId) { {{ participant.displayName }}@if (!$last) {، } }</small>
+            <span class="mobile-thread-subtitle"><span class="thread-connection-dot" [class.is-connected]="inboxSync.status() === 'connected'" [class.is-offline]="inboxSync.status() === 'offline'" role="status" [attr.aria-label]="inboxSync.status() === 'connected' ? 'متصل مباشرة' : inboxSync.status() === 'offline' ? 'الاتصال منقطع' : 'جارٍ الاتصال'"></span><span>{{ thread.student.displayName }}</span>@if (thread.status !== 'Open') { <b>{{ thread.status === 'Archived' ? 'مؤرشفة' : 'مغلقة' }}</b> }</span>
+          </div>
+          <div class="conversation-actions"><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : thread.status === 'Archived' ? 'مؤرشفة' : 'مغلقة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag>@if (canClose && thread.status === 'Open') { <button pButton type="button" label="إغلاق" aria-label="إغلاق المحادثة" icon="pi pi-lock" size="small" class="p-button-outlined" (click)="openCloseDialog()"></button> }</div>
+          <button type="button" class="thread-details-toggle" aria-label="تفاصيل المحادثة" aria-controls="thread-details" [attr.aria-expanded]="threadDetailsOpen()" (click)="threadDetailsOpen.set(!threadDetailsOpen())"><i class="pi" [class.pi-info-circle]="!threadDetailsOpen()" [class.pi-times]="threadDetailsOpen()" aria-hidden="true"></i></button>
+        </header>
+        <div id="thread-details" class="conversation-details" [class.is-expanded]="threadDetailsOpen()">
+        <div class="details-participants"><strong>{{ threadTypeLabel(thread.threadType) }}</strong><span>المشاركون: @for (participant of thread.participants; track participant.userId) { {{ participant.displayName }}@if (!$last) {، } }</span></div>
         <div class="conversation-context" aria-label="سياق المحادثة">
           <span><i class="pi pi-user"></i><b>{{ thread.student.displayName }}</b></span>
           <span><i class="pi pi-id-card"></i><bdi dir="ltr">{{ thread.student.studentNumber }}</bdi></span>
           @if (thread.student.classLabel) { <span><i class="pi pi-building"></i>{{ thread.student.classLabel }}</span> }
           <span class="secure"><i class="pi pi-shield"></i>محادثة مدرسية موثقة</span>
         </div>
+        <div class="mobile-thread-actions"><p-tag [value]="thread.status === 'Open' ? 'مفتوحة' : thread.status === 'Archived' ? 'مؤرشفة' : 'مغلقة'" [severity]="thread.status === 'Open' ? 'success' : 'info'"></p-tag><button type="button" class="refresh-button" aria-label="تحديث المحادثات" title="تحديث المحادثات" (click)="loadInbox(); showLatest()"><i class="pi pi-refresh" aria-hidden="true"></i></button>@if (canClose && thread.status === 'Open') { <button pButton type="button" label="إغلاق المحادثة" aria-label="إغلاق المحادثة" icon="pi pi-lock" size="small" class="p-button-outlined" (click)="openCloseDialog()"></button> }</div>
+        </div>
         @if (loadingThread()) { <div class="conversation-empty"><p-progressSpinner strokeWidth="4"></p-progressSpinner><span>جارٍ تحميل الرسائل…</span></div> }
         @else {
-          @if (!followingLatest() && thread.unreadCount > 0) {
-            <button pButton type="button" class="p-button-text" label="عرض الرسائل الجديدة" icon="pi pi-arrow-down" (click)="showLatest()"></button>
-          }
-          <div #timeline class="timeline" (scroll)="onTimelineScroll()">
+          <div class="timeline-wrap">
+          @if (!followingLatest()) { <button type="button" class="latest-button" (click)="showLatest()"><i class="pi pi-arrow-down"></i>{{ thread.unreadCount > 0 ? 'عرض الرسائل الجديدة' : 'أحدث الرسائل' }}</button> }
+          <div #timeline class="timeline" role="log" aria-label="الرسائل" aria-live="polite" aria-relevant="additions" (scroll)="onTimelineScroll()">
             @if (hasOlder()) { <button pButton type="button" label="تحميل رسائل أقدم" icon="pi pi-history" class="p-button-text older" [loading]="loadingOlder()" (click)="loadOlder()"></button> }
             @for (message of messages(); track message.id) {
+              @if (showDateDivider($index)) { <div class="date-divider"><span>{{ messageDate(message.createdAt) }}</span></div> }
               <article class="message" [attr.data-message-id]="message.id" [class.mine]="isMine(message)" [class.system-notice-message]="message.sender.roleSnapshot==='System'">
-                <div class="message-head"><strong><i *ngIf="message.sender.roleSnapshot==='System'" class="pi pi-shield" aria-hidden="true"></i>{{ message.sender.roleSnapshot==='System'?('DUTY_EXEC.SYSTEM' | translate):message.sender.displayName }}</strong><time><bdi dir="ltr">{{ formatDateTime(message.createdAt) }}</bdi></time></div>
+                <div class="message-head"><strong><i *ngIf="message.sender.roleSnapshot==='System'" class="pi pi-shield" aria-hidden="true"></i>{{ message.sender.roleSnapshot==='System'?('DUTY_EXEC.SYSTEM' | translate):message.sender.displayName }}</strong><time [attr.datetime]="message.createdAt" [title]="formatDateTime(message.createdAt)">{{ messageTime(message.createdAt) }}</time></div>
                 <p dir="auto">{{ message.body }}</p>
                 @if (isMine(message) && receiptView(message); as receipt) {
                   <footer><span class="receipt-status" [class]="'receipt-status receipt-status--' + receipt.tone"><i [class]="receipt.icon"></i>{{ receipt.label }}@if (receipt.time) { <time><bdi dir="ltr">{{ formatDateTime(receipt.time) }}</bdi></time> }</span></footer>
@@ -77,18 +93,16 @@
               </article>
             } @empty { <div class="conversation-empty small"><i class="pi pi-envelope"></i><span>لا توجد رسائل بعد.</span></div> }
           </div>
+          </div>
           @if (thread.threadType === 'SystemNotice') { <div class="system-thread-note"><i class="pi pi-shield" aria-hidden="true"></i>{{ 'DUTY_EXEC.SYSTEM_READ_ONLY' | translate }}</div> }
           <form *ngIf="thread.threadType !== 'SystemNotice'" class="composer" (submit)="submitComposer($event)">
             @if (thread.status !== 'Open') { <div class="closed-note"><i class="pi pi-lock"></i><span>المحادثة مغلقة والرد غير متاح.</span></div> }
             @if (sendError()) { <div class="send-error" role="alert"><i class="pi pi-exclamation-triangle"></i><span>{{ sendError() }}</span></div> }
             @if (thread.status === 'Open') {
-              <div class="reply-tools" aria-label="ردود سريعة">
-                <span><i class="pi pi-bolt"></i> ردود سريعة</span>
-                <div>@for (reply of quickReplies; track reply) { <button type="button" (click)="useQuickReply(reply)">{{ reply }}</button> }</div>
-              </div>
+              @if (quickRepliesOpen()) { <div id="quick-replies" class="reply-tools" aria-label="ردود سريعة"><div>@for (reply of quickReplies; track reply) { <button type="button" (click)="useQuickReply(reply)">{{ reply }}</button> }</div></div> }
             }
-            <textarea pInputTextarea [formControl]="draft" rows="3" placeholder="اكتب رسالتك…" [readOnly]="thread.status !== 'Open'"></textarea>
-            <div><small><bdi dir="ltr">{{ draft.value.length }}/4000</bdi> · رسالة آمنة بنص عادي</small><button pButton type="submit" label="إرسال" icon="pi pi-send" [loading]="sending()" [disabled]="thread.status !== 'Open' || !draft.value.trim()"></button></div>
+            <div class="composer-input"><textarea pInputTextarea [formControl]="draft" rows="2" maxlength="4000" aria-label="نص الرسالة" placeholder="اكتب رسالتك هنا…" [readOnly]="thread.status !== 'Open'"></textarea><button pButton type="submit" label="إرسال" aria-label="إرسال الرسالة" icon="pi pi-send" [loading]="sending()" [disabled]="thread.status !== 'Open' || draft.invalid || !draft.value.trim()"></button></div>
+            <div class="composer-footer">@if (thread.status === 'Open') { <button type="button" class="quick-replies-toggle" aria-controls="quick-replies" [attr.aria-expanded]="quickRepliesOpen()" (click)="quickRepliesOpen.set(!quickRepliesOpen())"><i class="pi pi-bolt"></i> ردود سريعة <i class="pi" [class.pi-angle-up]="!quickRepliesOpen()" [class.pi-angle-down]="quickRepliesOpen()"></i></button> }<small class="composer-hint"><i class="pi pi-lock"></i> للمشاركين فقط</small><small><bdi dir="ltr">{{ draft.value.length }} / 4000</bdi></small></div>
           </form>
         }
       } }

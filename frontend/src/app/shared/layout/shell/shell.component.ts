@@ -1,6 +1,6 @@
 import { SCHOOL_PEOPLE_ROLES } from '../../../core/models/school-people';
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -386,6 +386,7 @@ export class ShellComponent implements OnInit {
   private readonly inboxSync = inject(InboxSyncService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject(ElementRef<HTMLElement>);
   private readonly studentAnalyzer = inject(StudentAnalyzerService);
   private readonly visitsV2 = inject(VisitsV2Service);
   private readonly messagingUnreadService = inject(MessagingUnreadService);
@@ -400,6 +401,10 @@ export class ShellComponent implements OnInit {
   readonly currentUser = this.authService.currentUser;
   readonly expandedCategoryIds = signal<ReadonlySet<string>>(new Set<string>());
   readonly isSidebarCollapsed = signal(this.getInitialSidebarState());
+  readonly mobileNavigation = signal(window.matchMedia('(max-width: 860px)').matches);
+  readonly mobileMenuOpen = signal(false);
+  @ViewChild('mobileMenuButton') private mobileMenuButton?: ElementRef<HTMLButtonElement>;
+  @ViewChild('navigationDrawer') private navigationDrawer?: ElementRef<HTMLElement>;
   readonly hasStudentAnalyzerAccess = signal(false);
   readonly visitsV2Enabled = signal(false);
   readonly hasSchoolStorageAccess = signal(this.authService.hasPermission('Storage.ViewSchool'));
@@ -509,6 +514,26 @@ export class ShellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const media = window.matchMedia('(max-width: 860px)');
+    const viewport = window.visualViewport;
+    const updateViewport = () => {
+      this.host.nativeElement.style.setProperty('--shell-height', media.matches && viewport ? `${viewport.height}px` : '100dvh');
+      this.host.nativeElement.style.setProperty('--shell-top', media.matches && viewport ? `${viewport.offsetTop}px` : '0px');
+    };
+    const resize = (event: MediaQueryListEvent) => {
+      this.mobileNavigation.set(event.matches);
+      this.mobileMenuOpen.set(false);
+      updateViewport();
+    };
+    media.addEventListener('change', resize);
+    viewport?.addEventListener('resize', updateViewport);
+    viewport?.addEventListener('scroll', updateViewport);
+    updateViewport();
+    this.destroyRef.onDestroy(() => {
+      media.removeEventListener('change', resize);
+      viewport?.removeEventListener('resize', updateViewport);
+      viewport?.removeEventListener('scroll', updateViewport);
+    });
     this.storageApi.accessInfo(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: access => { this.hasSchoolStorageAccess.set(true); this.canManageSchoolStorage.set(access.canManage); this.canReviewSchoolEvidence.set(access.canReviewEvidence); },
       error: error => { if (error?.status === 401 || error?.status === 403) { this.hasSchoolStorageAccess.set(false); this.canManageSchoolStorage.set(false); this.canReviewSchoolEvidence.set(false); } }
@@ -546,6 +571,7 @@ export class ShellComponent implements OnInit {
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(event => {
+      this.closeMobileMenu(false);
       this.expandActiveCategory(event.urlAfterRedirects);
       this.refreshGuardianUnread();
       this.refreshMessagingUnread();
@@ -598,11 +624,42 @@ export class ShellComponent implements OnInit {
   }
 
   toggleSidebar(): void {
+    if (this.mobileNavigation()) { this.closeMobileMenu(); return; }
     this.setSidebarCollapsed(!this.isSidebarCollapsed());
   }
 
+  openMobileMenu(): void {
+    this.mobileMenuOpen.set(true);
+    requestAnimationFrame(() => this.navigationDrawer?.nativeElement.querySelector<HTMLButtonElement>('button')?.focus());
+  }
+
+  closeMobileMenu(restoreFocus = true): void {
+    if (!this.mobileMenuOpen()) return;
+    this.mobileMenuOpen.set(false);
+    if (restoreFocus) this.mobileMenuButton?.nativeElement.focus();
+  }
+
+  onNavigationClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).closest('a')) this.closeMobileMenu();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDrawerKeydown(event: KeyboardEvent): void {
+    if (!this.mobileMenuOpen()) return;
+    if (event.key === 'Escape') { event.preventDefault(); this.closeMobileMenu(); return; }
+    if (event.key !== 'Tab') return;
+    const items = Array.from(this.navigationDrawer!.nativeElement.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'))
+      .filter(item => item.getClientRects().length > 0);
+    const first = items[0], last = items[items.length - 1];
+    if (!this.navigationDrawer!.nativeElement.contains(document.activeElement)) {
+      event.preventDefault(); (event.shiftKey ? last : first)?.focus();
+    }
+    else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }
+
   toggleCategory(category: NavCategory): void {
-    if (this.isSidebarCollapsed()) {
+    if (!this.mobileNavigation() && this.isSidebarCollapsed()) {
       this.setSidebarCollapsed(false);
       this.expandedCategoryIds.update(current => new Set([...current, category.id]));
       return;
@@ -630,6 +687,7 @@ export class ShellComponent implements OnInit {
     const path = this.router.url.split('?')[0];
     return path === '/instructor/my-files' || path.startsWith('/school-manager/storage');
   }
+  routerUrlIsMessages(): boolean { return this.router.url.split(/[?#]/)[0] === '/student-affairs/messages'; }
   storageMobileItems(): NavItem[] {
     const items = this.visibleCategories().find(category => category.id === 'storage')?.items || [];
     return items.filter(item => ['نظرة عامة', 'الملفات', 'الشواهد', 'التقويم', 'ملفاتي'].includes(item.labelKey));

@@ -93,19 +93,35 @@ export class WebPushService {
   async enable(): Promise<void> {
     if (!this.canEnable() || this.busy()) return;
     const generation = this.generation, config = this.config();
+    let registering = false;
     this.busy.set(true); this.message.set('');
     try {
       if (this.subscription && !this.deviceId) await this.subscription.unsubscribe();
       const subscription = await this.sw.requestSubscription({ serverPublicKey: config!.publicKey! });
       if (generation !== this.generation) { await subscription.unsubscribe(); return; }
+      registering = true;
       const response = await firstValueFrom(this.http.post<ApiResponse<PushDevice>>(`${this.url}/subscriptions`, {
         installationId: this.installationId, vapidKeyId: config!.vapidKeyId, subscription: subscription.toJSON()
       }, { context: this.context }));
       if (!response.isSuccess || !response.data) { await subscription.unsubscribe(); throw new Error('registration'); }
       if (generation !== this.generation) { await subscription.unsubscribe(); return; }
       this.deviceId = response.data.id; this.enabled.set(true); this.message.set('تم تفعيل إشعارات هذا الجهاز.'); await this.loadDevices();
-    } catch { this.enabled.set(false); this.message.set('لم تُفعّل الإشعارات. تحقق من إذن المتصفح وحالة الاتصال ثم أعد المحاولة.'); }
+    } catch (error: unknown) {
+      if (generation !== this.generation) return;
+      this.enabled.set(false);
+      this.message.set(registering
+        ? 'تعذر تسجيل الجهاز لدى المدرسة. تحقق من الاتصال والحساب النشط ثم أعد المحاولة.'
+        : this.subscriptionFailure(error));
+    }
     finally { this.busy.set(false); }
+  }
+  private subscriptionFailure(error: unknown): string {
+    const name = error instanceof DOMException ? error.name : '';
+    if (name === 'NotAllowedError') return 'لم يسمح المتصفح بالاشتراك. راجع إذن إشعارات الموقع وإشعارات Chrome في إعدادات الهاتف، ثم أعد المحاولة.';
+    if (name === 'AbortError' || name === 'NetworkError') return 'تعذر اتصال المتصفح بخدمة الإشعارات. جرّب شبكة أخرى ثم أعد المحاولة.';
+    if (name === 'InvalidAccessError' || name === 'InvalidStateError') return 'تعذر استخدام إعدادات الاشتراك الحالية. حدّث التطبيق ثم أعد تفعيل إشعارات الجهاز.';
+    if (name === 'NotSupportedError') return 'تعذر إنشاء اشتراك الإشعارات في هذا المتصفح. افتح الرابط في أحدث إصدار من Chrome ثم أعد المحاولة.';
+    return 'لم يكتمل اشتراك المتصفح بالإشعارات. أعد فتح التطبيق ثم حاول مرة أخرى.';
   }
   async disable(): Promise<void> {
     this.busy.set(true);

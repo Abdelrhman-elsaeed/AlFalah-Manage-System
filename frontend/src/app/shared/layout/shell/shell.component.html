@@ -1,5 +1,6 @@
-<div class="shell" dir="rtl" [class.shell--storage]="isStorageRoute()">
+<div class="shell" dir="rtl" [class.shell--storage]="isStorageRoute()" [class.shell--messages]="routerUrlIsMessages()" [class.mobile-menu-open]="mobileMenuOpen()">
   <header class="shell-topbar">
+    <button #mobileMenuButton type="button" class="shell-menu-button" aria-label="فتح القائمة الرئيسية" aria-controls="main-navigation-drawer" [attr.aria-expanded]="mobileMenuOpen()" (click)="mobileMenuOpen() ? closeMobileMenu() : openMobileMenu()"><i class="pi pi-bars" aria-hidden="true"></i></button>
     <!-- Right Section: Framed User Profile + Saudi Digital Clock -->
     <div class="shell-topbar__right-group">
       <!-- Framed User Profile Card -->
@@ -66,7 +67,8 @@
   </header>
 
   <div class="shell-body" [class.is-sidebar-collapsed]="isSidebarCollapsed()">
-    <aside class="shell-sidebar" [class.is-collapsed]="isSidebarCollapsed()">
+    <div *ngIf="mobileMenuOpen()" class="shell-menu-backdrop" (click)="closeMobileMenu()" aria-hidden="true"></div>
+    <aside #navigationDrawer id="main-navigation-drawer" class="shell-sidebar" [class.is-collapsed]="!mobileNavigation() && isSidebarCollapsed()" [attr.role]="mobileNavigation() ? 'dialog' : null" [attr.aria-modal]="mobileMenuOpen() ? 'true' : null" aria-label="القائمة الرئيسية" [attr.inert]="mobileNavigation() && !mobileMenuOpen() ? '' : null">
       <div class="shell-sidebar__controls">
         <span class="shell-sidebar__menu-title">
           <i class="pi pi-th-large" aria-hidden="true"></i>
@@ -81,16 +83,17 @@
           tooltipPosition="left"
           tooltipAppendTo="body"
           [attr.aria-expanded]="!isSidebarCollapsed()"
-          [attr.aria-label]="(isSidebarCollapsed() ? 'NAV.EXPAND_SIDEBAR' : 'NAV.COLLAPSE_SIDEBAR') | translate">
+          [attr.aria-label]="mobileNavigation() ? 'إغلاق القائمة الرئيسية' : ((isSidebarCollapsed() ? 'NAV.EXPAND_SIDEBAR' : 'NAV.COLLAPSE_SIDEBAR') | translate)">
           <i
             class="pi"
             [class.pi-angle-double-left]="isSidebarCollapsed()"
             [class.pi-angle-double-right]="!isSidebarCollapsed()"
+            [class.pi-times]="mobileNavigation()"
             aria-hidden="true"></i>
         </button>
       </div>
 
-      <nav [attr.aria-label]="'NAV.MAIN_NAVIGATION' | translate">
+      <nav [attr.aria-label]="'NAV.MAIN_NAVIGATION' | translate" (click)="onNavigationClick($event)">
         <ul class="shell-sidebar__list shell-sidebar__list--top">
           <li *ngFor="let item of topItems()">
             <a
@@ -155,7 +158,7 @@
       </nav>
     </aside>
 
-    <main class="shell-content">
+    <main class="shell-content" [attr.inert]="mobileMenuOpen() ? '' : null">
       @if (webPush.config()?.pwaUiEnabled && (webPush.updateReady() || webPush.unrecoverable())) {
         <div role="status" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;margin-bottom:14px;background:#eaf5ef;color:#145c43;border:1px solid #bfd6c8;border-radius:12px;font-size:.85rem">
           <span>{{ webPush.unrecoverable() ? 'يلزم تحديث التطبيق لاستعادة الملفات. احفظ مسوداتك أولاً.' : 'إصدار جديد من التطبيق متاح. احفظ مسوداتك قبل التحديث.' }}</span>

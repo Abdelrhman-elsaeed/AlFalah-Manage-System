@@ -1,5 +1,5 @@
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
-import { DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, NgZone, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { Subject, auditTime, firstValueFrom } from 'rxjs';
@@ -29,6 +29,7 @@ export class InboxSyncService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly zone = inject(NgZone);
   private readonly context = new HttpContext().set(SUPPRESS_ERROR_TOAST, true);
   private readonly requests = new Subject<void>();
   private readonly invalidations = new Subject<void>();
@@ -118,15 +119,22 @@ export class InboxSyncService {
       const response = await firstValueFrom(this.http.get<ApiResponse<InboxState>>(
         `${environment.apiUrl}/api/v1/inbox/state`, { context: this.context }));
       if (!this.current(generation)) return;
-      if (!response.isSuccess || !response.data) { this.stateValue.set(null); this.status.set('offline'); return; }
-      this.stateValue.set(response.data);
+      if (!response.isSuccess || !response.data) {
+        this.zone.run(() => { this.stateValue.set(null); this.status.set('offline'); });
+        return;
+      }
       this.cursor = response.data.syncCursor;
       this.lastRefresh = Date.now();
-      this.invalidations.next();
+      // Native async continuations and SignalR callbacks may resume outside Angular.
+      // Publish both the aggregate and its invalidation in the rendering zone.
+      this.zone.run(() => {
+        this.stateValue.set(response.data!);
+        this.invalidations.next();
+      });
       if (response.data.realtimeAvailable) void this.connect(generation);
-      else this.status.set('recovering');
+      else this.zone.run(() => this.status.set('recovering'));
     } catch {
-      if (this.current(generation)) { this.status.set('offline'); this.lastRefresh = Date.now(); }
+      if (this.current(generation)) { this.zone.run(() => this.status.set('offline')); this.lastRefresh = Date.now(); }
     } finally {
       if (this.busyGeneration === generation) this.busyGeneration = null;
       if (this.current(generation) && this.pending) this.refresh();
@@ -140,23 +148,23 @@ export class InboxSyncService {
       connection = new HubConnectionBuilder().withUrl(`${environment.apiUrl}/hubs/inbox`, {
         accessTokenFactory: () => this.auth.getAccessToken() ?? ''
       }).configureLogging(LogLevel.None).build();
-      connection.on('InboxChanged.v1', () => { if (this.current(generation)) this.refresh(); });
+      connection.on('InboxChanged.v1', () => { if (this.current(generation)) this.zone.run(() => this.refresh()); });
       connection.onclose(() => {
         if (!this.current(generation)) return;
-        this.status.set('recovering'); this.scheduleRetry(); this.refresh();
+        this.zone.run(() => { this.status.set('recovering'); this.scheduleRetry(); this.refresh(); });
       });
       this.connection = connection;
     }
     if (connection.state !== HubConnectionState.Disconnected) return;
-    this.status.set('connecting');
+    this.zone.run(() => this.status.set('connecting'));
     try {
       await connection.start();
       if (!this.current(generation)) { await connection.stop(); return; }
       this.failures = 0;
-      this.status.set('connected');
+      this.zone.run(() => this.status.set('connected'));
       this.refresh(); // Covers commits between the REST snapshot and hub subscription.
     } catch {
-      if (this.current(generation)) { this.status.set('recovering'); this.scheduleRetry(); }
+      if (this.current(generation)) { this.zone.run(() => this.status.set('recovering')); this.scheduleRetry(); }
     }
   }
 

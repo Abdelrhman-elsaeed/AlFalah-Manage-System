@@ -1,6 +1,6 @@
 import { TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
+import { NgZone, signal } from '@angular/core';
 import { AuthService } from './auth.service';
 import { InboxSyncService } from './inbox-sync.service';
 import { CurrentUserDto } from '../models/auth.models';
@@ -23,6 +23,20 @@ describe('InboxSyncService recovery', () => {
     http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => { http.verify(); TestBed.resetTestingModule(); });
+
+  it('publishes asynchronous inbox changes inside Angular so an open chat renders without a click', fakeAsync(() => {
+    const sync = TestBed.inject(InboxSyncService);
+    const zone = TestBed.inject(NgZone);
+    const zones: boolean[] = [];
+    sync.changes$.subscribe(() => zones.push(NgZone.isInAngularZone()));
+    TestBed.flushEffects(); tick(151);
+    zone.runOutsideAngular(() => {
+      http.expectOne(r => r.url.endsWith('/inbox/state')).flush(response('received', 1));
+      flushMicrotasks();
+    });
+    expect(zones).toEqual([true]);
+    TestBed.resetTestingModule();
+  }));
 
   it('uses the authoritative aggregate and ignores a response from the previous school', fakeAsync(() => {
     const sync = TestBed.inject(InboxSyncService);

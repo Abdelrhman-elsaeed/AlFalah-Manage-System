@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-17",
+  "authorization": "Owner requested local rebuild, migrations, activation and verification",
+  "target": "(localdb)\\mssqllocaldb / AlFalahDb",
+  "beforeMigrations": 76,
+  "afterMigrations": 79,
+  "applied": [
+    "20261017125332_AddRecipientInboxRealtime",
+    "20261017144014_AddPersonalCenterAndBrowserPush",
+    "20261017150426_AddBrowserPushAttemptAudit"
+  ],
+  "backup": {
+    "copyOnly": true,
+    "checksumVerified": true,
+    "path": "C:\\Users\\abdelrhman\\AppData\\Local\\AlFalah\\Backups\\AlFalahDb-before-notifications-20261017-185551.bak"
+  },
+  "runtime": {
+    "origin": "http://localhost:5264",
+    "oldAssembly": ".audit/standby-week/api/AlFalah.Api.dll",
+    "newAssembly": "backend/AlFalah.Api/bin/Debug/net8.0/AlFalah.Api.dll",
+    "startupInitialization": false,
+    "seedingRan": false
+  },
+  "localFlags": {
+    "center": true,
+    "journal": true,
+    "realtime": true,
+    "pushRegistration": false,
+    "pushDispatch": false,
+    "pwaUi": false
+  },
+  "verification": {
+    "build": "passed",
+    "notificationRoutesAdvertised": 11,
+    "unauthenticatedRoutes": 401,
+    "authenticatedCenterStateAvailable": true,
+    "authenticatedCenterList": "success, empty",
+    "authenticatedInboxState": "success",
+    "centerRows": 0,
+    "pushDevices": 0,
+    "pushTargets": 0,
+    "actualBrowserWithLiveApi": {
+      "passed": true,
+      "origin": "http://localhost:4200",
+      "interceptedResponses": false,
+      "notificationRequestsStatus": 200,
+      "offlineOrErrorBanner": false,
+      "pageErrors": 0
+    }
+  },
+  "actualPhoneEvidence": false,
+  "N3Started": false
+}

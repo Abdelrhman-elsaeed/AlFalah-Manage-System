@@ -1,0 +1,38 @@
+/* The mobile conversation uses one compact header; secondary details open on demand. */
+.conversation-header { grid-row: 1; }
+.conversation-details { grid-row: 2; }
+.timeline-wrap,
+.conversation > .conversation-empty { grid-row: 3; }
+.composer,
+.system-thread-note { grid-row: 4; }
+.thread-details-toggle,
+.mobile-thread-actions,
+.details-participants,
+.conversation-title > .mobile-thread-subtitle { display: none; }
+@media (max-width: 860px) {
+  .messages-page.thread-open > .page-header { display: none; }
+  .thread-open .conversation-header { min-height: 60px; height: 60px; gap: 8px; padding: 6px 10px; }
+  .thread-open .header-avatar,
+  .thread-open .conversation-actions,
+  .thread-open .conversation-title > span:not(.mobile-thread-subtitle),
+  .thread-open .conversation-title > small { display: none; }
+  .thread-open .mobile-back { flex-basis: 40px; width: 40px; height: 44px; }
+  .thread-open .conversation-title { gap: 4px; }
+  .thread-open .conversation-title h2 { font-size: 1rem; line-height: 1.3; }
+  .conversation-title > .mobile-thread-subtitle { display: flex; align-items: center; gap: 6px; min-width: 0; color: #687d70; font-size: .73rem; line-height: 1.3; }
+  .mobile-thread-subtitle > span:not(.thread-connection-dot) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-thread-subtitle b { flex-shrink: 0; font-size: .65rem; font-weight: 500; }
+  .thread-connection-dot { flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; background: #af8b43; }
+  .thread-connection-dot.is-connected { background: #268559; }
+  .thread-connection-dot.is-offline { background: #a84848; }
+  .thread-details-toggle { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 44px; padding: 0; border: 0; border-radius: 10px; color: #416c56; background: transparent; cursor: pointer; font-size: 19px; }
+  .thread-details-toggle[aria-expanded="true"] { background: #edf4ee; }
+  .conversation-details:not(.is-expanded) { display: none; }
+  .conversation-details.is-expanded { max-height: min(240px, 35dvh); overflow-y: auto; border-bottom: 1px solid var(--chat-line); background: #f9fbf8; }
+  .details-participants { display: grid; gap: 7px; padding: 14px 16px 0; color: #687d70; font-size: .75rem; line-height: 1.7; }
+  .details-participants strong { color: var(--chat-ink); font-size: .8rem; }
+  .conversation-details .conversation-context { flex-wrap: wrap; overflow: visible; padding: 12px 16px; border: 0; }
+  .conversation-details .conversation-context .secure { display: inline-flex; }
+  .mobile-thread-actions { display: flex; align-items: center; gap: 10px; padding: 0 16px 14px; }
+  .mobile-thread-actions > button:last-child:not(.refresh-button) { margin-inline-start: auto; min-height: 40px; font-size: .75rem; }
+}

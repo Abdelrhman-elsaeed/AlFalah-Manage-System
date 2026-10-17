@@ -1,6 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
+import { signal } from '@angular/core';
+import { InboxSyncService } from '../../../core/services/inbox-sync.service';
+import { MessagingUnreadService } from '../../../core/services/messaging-unread.service';
 import { ApiResponse, PagedResult } from '../../../core/models/api-response.model';
 import { ClassroomPage, StudentStatsPage } from '../../../core/models/daily-operations.models';
 import { ConversationDto, ConversationMessageDto, ReferralDto, SendMessageResultDto } from '../../../core/models/phase5.models';
@@ -20,12 +23,14 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
   let directory: jasmine.SpyObj<DailyOperationsService>;
   let auth: jasmine.SpyObj<AuthService>;
   let toast: jasmine.SpyObj<ToastService>;
+  let changes: Subject<void>;
 
   beforeEach(async () => {
     api = jasmine.createSpyObj<Phase5Service>('Phase5Service', [
       'listConversations', 'getGuardianTeacherOptions', 'getGuardianStaffOptions',
       'getStudentGuardianOptions', 'getStudentGuardians', 'listReferrals',
-      'createConversation', 'createIdempotencyKey', 'sendMessage', 'closeConversation'
+      'createConversation', 'createIdempotencyKey', 'sendMessage', 'closeConversation',
+      'getConversation', 'getMessageWindow', 'markConversationRead'
     ]);
     api.listConversations.and.returnValue(of(success(page<ConversationDto>())));
     api.getGuardianTeacherOptions.and.returnValue(of(success([
@@ -43,11 +48,13 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
     directory.getClassrooms.and.returnValue(of(success<ClassroomPage>(page())));
     directory.getStudentsStats.and.returnValue(of(success<StudentStatsPage>({ ...page(), totalClassrooms: 0 })));
 
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['hasRole', 'hasPermission', 'currentUser']);
+    auth = jasmine.createSpyObj<AuthService>('AuthService', ['hasRole', 'hasPermission', 'currentUser', 'activeSchoolId']);
+    auth.activeSchoolId.and.returnValue(1);
     auth.hasRole.and.callFake(role => role === 'Guardian');
     auth.hasPermission.and.returnValue(true);
     auth.currentUser.and.returnValue({ userId: 'guardian-1' } as any);
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error', 'warn', 'info']);
+    changes = new Subject<void>();
 
     await TestBed.configureTestingModule({
       imports: [MessagingChatComponent, NoopAnimationsModule, TranslateModule.forRoot()],
@@ -58,9 +65,53 @@ describe('MessagingChatComponent Guardian conversation wizard', () => {
         { provide: StudentAffairsDashboardService, useValue: dashboard },
         { provide: DailyOperationsService, useValue: directory },
         { provide: AuthService, useValue: auth },
-        { provide: ToastService, useValue: toast }
+        { provide: ToastService, useValue: toast },
+        { provide: InboxSyncService, useValue: { changes$: changes, status: signal('connected') } },
+        { provide: MessagingUnreadService, useValue: { refresh: () => {}, markThreadRead: () => {} } }
       ]
     }).compileComponents();
+  });
+
+  it('keeps the conversation row mounted while a background inbox refresh is in flight', () => {
+    const fixture = TestBed.createComponent(MessagingChatComponent);
+    const component = fixture.componentInstance;
+    component.compactViewport.set(true);
+    const thread = conversation(9, 'v1');
+    api.listConversations.and.returnValue(of(success({ ...page<ConversationDto>(), items: [thread], totalCount: 1 })));
+    fixture.detectChanges();
+    const row = fixture.nativeElement.querySelector('.thread-item');
+    expect(row).not.toBeNull();
+    const pending = new Subject<ApiResponse<PagedResult<ConversationDto>>>();
+    api.listConversations.and.returnValue(pending);
+    changes.next();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.thread-item')).toBe(row);
+    pending.next(success({ ...page<ConversationDto>(), items: [{ ...thread, rowVersion: 'v2' }], totalCount: 1 }));
+    pending.complete();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.thread-item')).toBe(row);
+  });
+
+  it('keeps a newly sent message and its row version when an older background response finishes later', () => {
+    const fixture = TestBed.createComponent(MessagingChatComponent);
+    const component = fixture.componentInstance;
+    component.compactViewport.set(true);
+    fixture.detectChanges();
+    const thread = conversation(9, 'v1');
+    component.selected.set(thread);
+    const header = new Subject<ApiResponse<ConversationDto>>();
+    const window = new Subject<any>();
+    api.getConversation.and.returnValue(header);
+    api.getMessageWindow.and.returnValue(window);
+    changes.next();
+    const sent = { ...queuedMessage(), disposition: 'SentImmediately' as const, deliveryState: 'Delivered' as const };
+    api.sendMessage.and.returnValue(of(success<SendMessageResultDto>({ message: sent, disposition: 'SentImmediately', nextEligibleSendAt: null, conversationRowVersion: 'v2' })));
+    component.draft.setValue(sent.body);
+    component.send();
+    header.next(success(thread)); header.complete();
+    window.next(success({ items: [], hasOlder: false, nextBeforeCursor: null })); window.complete();
+    expect(component.messages().map(message => message.id)).toContain(sent.id);
+    expect(component.selected()?.rowVersion).toBe('v2');
   });
 
   it('builds recipient choices only from the safe teacher lookup', () => {

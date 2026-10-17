@@ -1,0 +1,78 @@
+{
+  "mode": "synthetic-api-and-websocket",
+  "results": [
+    {
+      "width": 1440,
+      "passed": true,
+      "checks": [
+        "SignalR-arrival-without-click",
+        "send-immediate",
+        "no-list-remount",
+        "draft-preserved",
+        "composer-fits",
+        "quick-replies",
+        "close-keeps-history"
+      ]
+    },
+    {
+      "width": 768,
+      "passed": true,
+      "checks": [
+        "SignalR-arrival-without-click",
+        "send-immediate",
+        "no-list-remount",
+        "draft-preserved",
+        "composer-fits",
+        "quick-replies",
+        "close-keeps-history",
+        "compact-header",
+        "expandable-details",
+        "overlay-navigation",
+        "focus-trap",
+        "escape",
+        "short-viewport",
+        "people-history"
+      ]
+    },
+    {
+      "width": 390,
+      "passed": true,
+      "checks": [
+        "SignalR-arrival-without-click",
+        "send-immediate",
+        "no-list-remount",
+        "draft-preserved",
+        "composer-fits",
+        "quick-replies",
+        "close-keeps-history",
+        "compact-header",
+        "expandable-details",
+        "overlay-navigation",
+        "focus-trap",
+        "escape",
+        "short-viewport",
+        "people-history"
+      ]
+    },
+    {
+      "width": 320,
+      "passed": true,
+      "checks": [
+        "SignalR-arrival-without-click",
+        "send-immediate",
+        "no-list-remount",
+        "draft-preserved",
+        "composer-fits",
+        "quick-replies",
+        "close-keeps-history",
+        "compact-header",
+        "expandable-details",
+        "overlay-navigation",
+        "focus-trap",
+        "escape",
+        "short-viewport",
+        "people-history"
+      ]
+    }
+  ]
+}

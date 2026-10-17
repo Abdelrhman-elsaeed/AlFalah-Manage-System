@@ -433,3 +433,29 @@ Read-only follow-up: diagnosed empty standby-register names as zero daily covera
 | Date | Change |
 |---|---|
 | 2026-10-17 | Implemented N2 including T012A-T012D: Arabic/RTL top-bar bell, mobile panel/history, independent authoritative counts/read/task state, exact source navigation and confirmed attendance/signed Duty report triggers. Added canonical recipient projection, protected per-device Web Push, matched Angular root worker/public cache and contextual opt-in/update/device controls. Preserves complaint hard denials, current relationships/assignments, office hours/dispatch approvals and original commands. Two additive migrations exercised only on fresh guarded SQL databases. [Local test/browser/worker results and acceptance gates](specs/notifications-pwa/verification/n2/README.md), [transition inventory](specs/notifications-pwa/notification-catalog.md#n2-concrete-transition-inventory--2026-10-17). N2 code/docs are implemented; T020 actual HTTPS iOS/Android/provider acceptance and final phase exit remain pending. All flags default off, no operational database/provider/deployment action; N3 not started. |
+
+
+| Date | C52 / D-144 local runtime follow-up |
+|---|---|
+| 2026-10-17 | Diagnosed the notification-panel failure against the existing API at localhost:5264: new inbox/center/push routes repeatedly return 404 and are absent from Swagger, while old conversation routes exist. The running backend has not loaded the notification endpoints; rebuild/restart precedes migration/feature-flag verification. Read-only probes only; no restart, migration, activation or N3 work. |
+
+
+| Date | C52 / D-144 authorized local activation |
+|---|---|
+| 2026-10-17 | Owner requested execution after diagnosis. Backed up/checksum-verified local AlFalahDb; applied exactly three notification migrations (76 -> 79); rebuilt/replaced stale audit API on 5264; enabled local center/journal/realtime while preserving no-seed startup and external push OFF. Swagger routes now present; authenticated synthetic-school center/list/inbox succeed. No history backfill/provider traffic/N3 work. [Sanitized activation evidence](specs/notifications-pwa/verification/n2/local-activation.json). Next gate is N2 actual HTTPS device verification, not N3. |
+
+| Date | C53 / D-145 Android-only trial preparation |
+|---|---|
+| 2026-10-17 | Owner has Android only and no current HTTPS deployment. Prepared an isolated, bounded synthetic HTTPS launcher/proxy and generated verified trial VAPID keys outside source. Synthetic proxy auth/cache/PWA routing checks and launcher syntax pass; automatic review blocked API startup, so full launcher/HTTPS/provider/device evidence remain absent. [Operator step and remaining gates](specs/notifications-pwa/verification/n2/android-device-trial.md). Existing local application stays externally disabled; N2 T020/T021 acceptance pending, iPhone unavailable, N3 unstarted. |
+
+| Date | C53 / D-145 Windows PowerShell startup correction |
+|---|---|
+| 2026-10-17 | Fixed the operator-reported `Keyword not supported: 'ConnectionString'` in the trial launcher by using the SQL connection-string builder constructor. Reproduced before fixing; eight actual preflight regression cases, real private-config validation without SQL/network/process actions, and synthetic proxy checks pass. Full HTTPS launch/device evidence remains unverified; N2 acceptance pending and N3 unstarted. [Details](specs/notifications-pwa/verification/n2/android-device-trial.md#windows-powershell-startup-fix--2026-10-17). |
+
+| Date | C53 / D-145 trial SQL account-table correction |
+|---|---|
+| 2026-10-17 | Fixed operator-reported `Invalid object name 'AspNetUsers'`: actual mapping is dbo.Users, with 79 trial migrations already applied. Owner retry created/seeded the guarded trial DB (15 synthetic users), superseding preparation-only state. Actual launcher-SQL regression fails before/passes after fix; transaction verifies only both synthetic actors remain enabled, then rollback restores every account state. Existing preflight/proxy checks pass. Full HTTPS/provider/phone acceptance remains pending; N3 unstarted. [Details](specs/notifications-pwa/verification/n2/android-device-trial.md#sql-account-table-startup-fix--2026-10-17). |
+
+| Date | C53 / D-145 actual Android trial and opt-in follow-up |
+|---|---|
+| 2026-10-17 | Temporary HTTPS trial now proves separate guardian/staff subscriptions and actual provider acceptance for a new guardian message. Owner explicitly confirms outside-app Android notification and click opening the correct conversation after reopening/login; initial enrollment failure cause remains unknown and desktop activation is independent. Added actionable Arabic opt-in errors/stale-context protection: four red-before cases, all 10 N2 Angular tests pass afterward and separate optimized build passes (not deployed to active phone session). Temporary private logging restored; no main DB/permissions/history replay/N3 changes. [Actual evidence and limits](specs/notifications-pwa/verification/n2/android-trial-diagnostics.json). Full T020/T021 and iPhone/stable-origin/lifecycle gates pending. |
