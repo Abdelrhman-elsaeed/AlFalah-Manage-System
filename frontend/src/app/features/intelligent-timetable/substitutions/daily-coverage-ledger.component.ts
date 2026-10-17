@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, Input, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 import { firstValueFrom, Observable } from 'rxjs';
@@ -14,6 +14,7 @@ import { CoverageRegisterComponent } from './coverage-register.component';
 
 @Component({selector:'app-daily-coverage-ledger',standalone:true,imports:[CommonModule,FormsModule,RouterLink,TranslateModule,DialogModule,CoverageRegisterComponent],templateUrl:'./daily-coverage-ledger.component.html',styleUrls:['./daily-coverage-ledger.component.css']})
 export class DailyCoverageLedgerComponent {
+  @Input() embedded = false;
   private readonly api=inject(DailyCoverageService);
   private readonly destroy=inject(DestroyRef);
   private readonly translate=inject(TranslateService);
@@ -24,7 +25,7 @@ export class DailyCoverageLedgerComponent {
   proposal:CoveragePreview|null=null; reviewedRequest:CoveragePreviewRequest|null=null; reviewOpen=false; reason='';
   private approval:CoverageApproval|null=null;
   detail:CoverageTask|null=null; adminAction:'reopen'|'keep'|'release'|null=null; adminReason='';
-  registerOpen=false;@ViewChild(CoverageRegisterComponent) register?:CoverageRegisterComponent;
+  registerOpen=inject(ActivatedRoute).snapshot.queryParamMap.get('register')==='true';@ViewChild(CoverageRegisterComponent) register?:CoverageRegisterComponent;
   constructor(){void this.load(false);}
   private async read<T>(request:Observable<ApiResponse<T>>):Promise<T>{const r=await firstValueFrom(request.pipe(takeUntilDestroyed(this.destroy)));if(!r.isSuccess||r.data==null)throw Error(r.errors?.[0]||r.message);return r.data;}
   private async run(action:()=>Promise<void>){if(this.busy)return;this.busy=true;this.error='';this.notice='';try{await action();}catch(e){this.error=extractHttpErrorMessage(e)||this.translate.instant('COVERAGE.REQUEST_FAILED');}finally{this.busy=false;}}

@@ -1,0 +1,98 @@
+{
+  "at": "2026-10-17T10:08:20.1602293+00:00",
+  "schoolId": 18,
+  "standby": [
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Sunday",
+      "Period": 1
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Sunday",
+      "Period": 3
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Monday",
+      "Period": 1
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Monday",
+      "Period": 3
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Tuesday",
+      "Period": 1
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Tuesday",
+      "Period": 3
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Wednesday",
+      "Period": 1
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Wednesday",
+      "Period": 3
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Thursday",
+      "Period": 1
+    },
+    {
+      "UserName": "substitute.teacher.test",
+      "SchoolTimetableId": 2,
+      "IsPublished": true,
+      "day": "Thursday",
+      "Period": 3
+    }
+  ],
+  "dailyNeedCount": 0,
+  "dailyAssignedCount": 0,
+  "artifacts": [
+    {
+      "Id": 2,
+      "LocalDate": "2026-10-11",
+      "Scope": "Week",
+      "Revision": 1,
+      "rowCount": 0
+    },
+    {
+      "Id": 1,
+      "LocalDate": "2026-10-17",
+      "Scope": "Day",
+      "Revision": 1,
+      "rowCount": 0
+    }
+  ],
+  "knownDevelopmentPasswordVerified": true,
+  "nameBeforeSignaturesVerified": true,
+  "databaseWrites": false,
+  "providerWrites": false
+}

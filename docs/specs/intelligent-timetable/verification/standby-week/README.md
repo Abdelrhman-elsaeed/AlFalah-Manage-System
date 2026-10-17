@@ -1,0 +1,33 @@
+# Daily or whole-week standby register PDF
+
+Date: 2026-10-17. C45 / D-137. Owner-requested extension of the existing phase 3 register.
+
+## Workflow and rules
+
+Open **حصص الانتظار → سجل الانتظار PDF**, select **يوم واحد** or **أسبوع كامل**, and choose a date. Weekly mode normalizes any selected date to Sunday and includes Sunday through Saturday. The dialog displays the exact Gregorian range before issue. This is a seven-calendar-day register, including empty/non-study days, not a replacement for the weekly teaching-timetable export.
+
+One PDF contains the existing QF71-B-2-1 daily forms in date order, with a fresh section for each day and the existing execution appendices/continuations. Empty days explicitly state that no coverage assignments are recorded. Week range, daily footer dates and weekly filename use the Gregorian calendar independently of the API's Arabic/Saudi culture. Page numbers continue across the combined file. The original daily rendering/version stays unchanged.
+
+The selected period includes all saved school assignments, independent of ledger search/pagination. Reuse current-assignment genuine receipt/execution projection; unsubmitted drafts remain excluded. Weekly completion requires at least one recorded period and complete execution for every non-empty day; empty days do not make otherwise completed work incomplete. If the source requires conflicting academic-year/term headers, the existing single-context validation explains why issuance is unavailable rather than fabricating a header.
+
+## Architecture and compatibility
+
+`CoverageRegisterController → CoverageRegisterService → ICoverageRegisterRepository → EF/SQL` remains authoritative. Existing GET/POST register endpoints accept optional `scope=Day|Week`; omission preserves daily requests. Responses include scope and end date. Service authorization precedes scope/source/history/content access. Weekly dates are normalized server-side; unknown scopes and unrepresentable weeks return a validation error.
+
+The repository fetches the bounded date range and signed records as one scoped batch, then one shared academic header. Service projection assembles seven dated snapshots and hashes the complete ordered source. One explicit issue freezes the weekly manifest, renderer version, exact bytes and SHA-256. Same-source retries replay that artifact; stale unissued sources conflict. Content authorization/integrity and local PDF.js/blob download reuse the existing path. No Drive writer or new notification/assignment flow.
+
+`CoverageRegisterArtifact.Scope` defaults to `Day`. Migration `20261017094734_AddCoverageRegisterScope` adds this column and replaces the revision index with school/date/scope/revision, retaining existing source uniqueness and adding a Day/Week check constraint. History/revision numbering is separate for daily and weekly issues even when both start on the same Sunday. Old snapshots/PDFs/hashes are never rewritten. Down migration refuses to remove scope while retained weekly artifacts exist, preventing silent history loss.
+
+The UI resets obsolete preview, source and history pagination when date/scope changes; issuing remains explicit. Only an in-flight issue activates the existing leave protection. Daily and weekly previews download their exact validated retained bytes.
+
+## Verification
+
+- 37 focused backend checks pass; one separately opt-in fresh weekly allocator SQL suite is skipped. Coverage includes daily compatibility, seven-day normalization, independent history/revisions, replay after edits, stale source, scope/teacher rejection, unsent draft exclusion and the actual merged renderer. `.audit/standby-week/backend-release-check.txt` is the final run. An initial new-fixture assertion expected three periods; inspection showed the reused seed has one Sunday period plus the added Monday period, and the expected count was corrected to two (`backend-tests.txt`).
+- 29 focused Angular checks pass (`.audit/standby-week/frontend-tests.txt`), including scope changes, canonical weekly issue date, separated old preview/history, disabled in-flight switching and the existing register/standby/daily/dashboard regressions. Development build passes (`build.txt`, 62.056 seconds); unrelated production CSS budgets are not claimed green.
+- The migration was first applied to the guarded synthetic SQL fixture, then to the configured local Development LocalDB with the old API stopped and startup seeding disabled. [Isolated migration](isolated-migration.json) and [local migration](local-migration.json) prove unchanged original-column hashes across 153 tables and existing artifacts defaulted to Day. The new local schema is 76 migrations. No operational records were reset, no provider files were written and no production database was touched.
+- `node frontend/scripts/check-standby-week-live.mjs`: actual Angular/SQL API at 390/768/1440/1920; explicit Day/Week choice/range, real weekly issue/replay, separate daily history, cleared stale preview, canvas preview and downloaded SHA-256 equality. HTTP checks cover unknown scope 400, stale source 409 and teacher 403. Previously issued daily bytes remain identical. [Browser results](browser-results.json), [phone](week-390.png), [desktop](week-1440.png), [signed weekly sample](signed-week.pdf). Only synthetic retained artifacts are issued by verification; unrelated timetable-only fixture storage 403s are recorded separately.
+- `node frontend/scripts/check-standby-week-pdf.mjs`: independently parses/rasterizes the actual seven-day fixture, checks ordered daily footer dates, every A4 form header and text bounds. [PDF results](pdf/results.json), [sample](pdf/week.pdf), [first day](pdf/week-1.png), [last day](pdf/week-7.png). The initial assertion assumed ISO ordering in extracted RTL text; actual PDF.js output uses DD-MM-YYYY. The final check validates the last dated run (the daily footer, not the shared range) for each page. Existing shaped-Arabic text extraction limitations remain; raster inspection establishes appearance separately.
+
+During actual API screenshot review, Arabic/Saudi culture formatted the new weekly range using Hijri years despite Gregorian UI dates. The renderer/filename now format weekly dates explicitly with invariant Gregorian culture; the renderer fixture exercises `ar-SA`. Continuous pagination was also added after visual review. No claim of official-logo or physical-printer acceptance beyond the previously recorded phase 3 limits.
+
+The updated local API and frontend remain available on ports 5264 and 4200 for manual testing. No commit/deployment was performed.

@@ -1,10 +1,17 @@
-<section class="standby" [attr.aria-busy]="busy" *ngIf="view as v; else loading">
-  <header class="intro">
+<section class="standby" [class.integrated]="integratedHeader" [attr.aria-busy]="busy" *ngIf="view as v; else loading">
+  <header class="intro" *ngIf="!integratedHeader">
     <div><span class="eyebrow">{{ 'STANDBY.EYEBROW' | translate }}</span><h2>{{ 'STANDBY.TITLE' | translate }}</h2><p>{{ 'STANDBY.INTRO' | translate }}</p></div>
     <button class="icon-button" type="button" (click)="load()" [disabled]="busy" [attr.aria-label]="'STANDBY.RELOAD' | translate"><i class="pi pi-refresh" [class.pi-spin]="busy"></i></button>
   </header>
   <div class="message error" role="alert" *ngIf="error">{{ error }} <span>{{ 'STANDBY.ERROR_RECOVERY' | translate }}</span></div>
   <div class="message success" role="status" *ngIf="notice">{{ notice }}</div>
+  <div class="publication-status">
+    <span *ngIf="!integratedHeader"><i class="pi" [ngClass]="v.isPublished ? 'pi-check-circle' : 'pi-pencil'"></i>{{ (v.isPublished ? 'STANDBY.STATUS_PUBLISHED' : 'STANDBY.STATUS_DRAFT') | translate }}</span>
+    <span *ngIf="integratedHeader"><i class="pi pi-calendar"></i>{{ 'STANDBY.WEEKLY_SUMMARY' | translate }}</span>
+    <div class="overview-actions"><button *ngIf="integratedHeader" type="button" class="overview-reload secondary" (click)="load()" [disabled]="busy"><i class="pi pi-refresh" [class.pi-spin]="busy"></i>{{ 'STANDBY.RELOAD' | translate }}</button>
+    <button *ngIf="canPublishSaved" type="button" class="secondary publish-saved" [disabled]="busy" (click)="publishSaved()"><i class="pi pi-send"></i>{{ 'STANDBY.PUBLISH_SAVED' | translate }}</button>
+    </div>
+  </div>
   <details class="change-review" *ngIf="accepted"><summary>{{ 'STANDBY.CHANGES' | translate }} · +{{ added.length }} / −{{ removed.length }}</summary><div><p *ngFor="let p of added">+ {{ teacherName(p.instructorProfileId) }} · {{ dayLabel(p.day) }} · {{ 'STANDBY.PERIOD' | translate }} {{ p.period }}</p><p *ngFor="let p of removed">− {{ teacherName(p.instructorProfileId) }} · {{ dayLabel(p.day) }} · {{ 'STANDBY.PERIOD' | translate }} {{ p.period }}</p><p *ngIf="!added.length && !removed.length">{{ 'STANDBY.NO_PLACEMENT_CHANGES' | translate }}</p></div></details>
   <div class="message warning" *ngFor="let message of v.notices">{{ message }}</div>
   <div class="message warning" *ngIf="invalidPlacements.length"><p>{{ 'STANDBY.INVALID_HINT' | translate }} ({{ invalidPlacements.length }})</p><button type="button" class="secondary" [disabled]="busy" (click)="removeInvalid()">{{ 'STANDBY.REMOVE_INVALID' | translate }}</button></div>
@@ -26,7 +33,7 @@
     <div class="planner-tools">
       <nav class="days" [attr.aria-label]="'STANDBY.DAYS' | translate"><button *ngFor="let d of days" type="button" [class.active]="day === d" [attr.aria-pressed]="day === d" (click)="day = d">{{ dayLabel(d) }}</button></nav>
       <label class="search"><i class="pi pi-search"></i><input type="search" [(ngModel)]="search" [placeholder]="'STANDBY.SEARCH' | translate" [attr.aria-label]="'STANDBY.SEARCH' | translate"></label>
-      <button type="button" class="icon-button" [disabled]="busy || !canUndo" (click)="undo()" [attr.aria-label]="'STANDBY.UNDO' | translate" [title]="'STANDBY.UNDO' | translate"><i class="pi pi-undo"></i></button>
+      <button type="button" class="secondary undo-action" [disabled]="busy || !canUndo" (click)="undo()" [title]="'STANDBY.UNDO_HINT' | translate"><i class="pi pi-undo"></i>{{ 'STANDBY.UNDO' | translate }}</button>
     </div>
     <div class="legend"><span><b class="legend-dot teaching"></b>{{ 'STANDBY.TEACHING' | translate }}</span><span><b class="legend-dot reserve"></b>{{ 'STANDBY.RESERVE' | translate }}</span><span><i class="pi pi-lock"></i>{{ 'STANDBY.KEEP_LOCKED' | translate }}</span><span>{{ 'STANDBY.CAPACITY_HINT' | translate }}</span></div>
     <div class="grid-scroll" tabindex="0" [attr.aria-label]="'STANDBY.GRID' | translate">
@@ -34,7 +41,7 @@
         <thead><tr><th scope="col" class="teacher-heading">{{ 'STANDBY.TEACHER' | translate }}<small>{{ 'STANDBY.LOAD' | translate }}</small></th><th scope="col" *ngFor="let p of periods">
           <button type="button" class="inspect-trigger" (click)="inspect(null, p.period, $event)">{{ 'STANDBY.PERIOD' | translate }} {{ p.period }} <i class="pi pi-info-circle"></i></button><small dir="ltr">{{ p.start }} – {{ p.end }}</small>
           <label class="demand-input"><span>{{ 'STANDBY.NEEDED' | translate }}</span><input type="number" min="0" [max]="v.teachers.length" [ngModel]="p.required" (ngModelChange)="setDemand(p.period, $event)" [disabled]="busy || !v.ready" [attr.aria-label]="('STANDBY.NEEDED' | translate) + ' ' + p.period"></label>
-          <span class="period-count" [class.missing]="count(day, p.period) < p.required">{{ count(day, p.period) }} / {{ p.required }} <i class="pi" [ngClass]="count(day, p.period) < p.required ? 'pi-exclamation-circle' : 'pi-check'"></i></span>
+          <span class="period-count" [class.missing]="count(day, p.period) < p.required">{{ 'STANDBY.PERIOD_FILL' | translate:{allocated:count(day, p.period),required:p.required} }} <i class="pi" [ngClass]="count(day, p.period) < p.required ? 'pi-exclamation-circle' : 'pi-check'"></i></span>
           <small>{{ 'STANDBY.AVAILABLE' | translate }}: {{ availableCount(day, p.period) }}</small>
         </th></tr></thead>
         <tbody><tr *ngFor="let teacher of teachers" [class.excluded]="excluded(teacher)">
@@ -49,7 +56,7 @@
                   <i class="pi" [ngClass]="placement(teacher, p.period) ? 'pi-check-circle' : c.canStandby && !excluded(teacher) ? 'pi-plus' : 'pi-minus'"></i>
                   <span>{{ (placement(teacher, p.period) ? 'STANDBY.RESERVE' : excluded(teacher) ? 'STANDBY.EXCLUDED' : c.canStandby ? 'STANDBY.AVAILABLE' : 'STANDBY.UNAVAILABLE') | translate }}</span>
                 </button>
-                <button *ngIf="placement(teacher, p.period) as selected" type="button" class="lock-button" [class.locked]="selected.isLocked" [disabled]="busy || c.isProtected" [attr.aria-pressed]="selected.isLocked" [attr.aria-label]="(selected.isLocked ? 'STANDBY.UNLOCK' : 'STANDBY.LOCK') | translate" [title]="(c.isProtected ? 'STANDBY.PROTECTED' : selected.isLocked ? 'STANDBY.UNLOCK' : 'STANDBY.LOCK') | translate" (click)="toggleLock(teacher, p.period)"><i class="pi" [ngClass]="selected.isLocked ? 'pi-lock' : 'pi-lock-open'"></i></button>
+                <button *ngIf="placement(teacher, p.period) as selected" type="button" class="lock-button" [class.locked]="selected.isLocked" [disabled]="busy || c.isProtected" [attr.aria-pressed]="selected.isLocked" [attr.aria-label]="(selected.isLocked ? 'STANDBY.UNLOCK' : 'STANDBY.LOCK') | translate" [title]="(c.isProtected ? 'STANDBY.PROTECTED' : selected.isLocked ? 'STANDBY.UNLOCK_HINT' : 'STANDBY.LOCK_HINT') | translate" (click)="toggleLock(teacher, p.period)"><i class="pi" [ngClass]="selected.isLocked ? 'pi-lock' : 'pi-lock-open'"></i></button>
               </ng-template>
             </div>
           </ng-container></td>
@@ -58,7 +65,20 @@
     </div>
   </div>
   <aside class="inspector" tabindex="-1" *ngIf="inspectedTeacher || inspectedPeriod"><header><strong>{{ inspectorTeacher?.name || (dayLabel(day) + ' · ' + ('STANDBY.PERIOD' | translate) + ' ' + inspectedPeriod) }}</strong><button type="button" class="icon-button" (click)="closeInspector()" [attr.aria-label]="'STANDBY.CLOSE_DETAILS' | translate"><i class="pi pi-times"></i></button></header><ng-container *ngIf="inspectorTeacher as teacher"><p>{{ teacher.teachingCount }} {{ 'STANDBY.LESSONS' | translate }} + {{ teacherCount(teacher) }} {{ 'STANDBY.RESERVE' | translate }} · {{ 'STANDBY.FREE_CAPACITY' | translate }} {{ remainingCapacity(teacher) }}</p><p>{{ 'STANDBY.FAIR_EXPLANATION' | translate }}</p></ng-container><div class="inspector-candidates" *ngIf="inspectedPeriod"><p *ngFor="let row of inspectorRows"><strong>{{ row.teacher.name }}</strong><span>{{ excluded(row.teacher) ? ('STANDBY.EXCLUDED' | translate) : row.cell?.reason || ('STANDBY.AVAILABLE' | translate) }}</span></p></div></aside>
-  <div class="message warning" *ngIf="shortages > 0 && v.ready"><i class="pi pi-info-circle"></i>{{ 'STANDBY.SHORTAGE_HINT' | translate }}</div>
-  <footer class="save-bar"><div><strong>{{ (accepted ? 'STANDBY.REVIEWED' : 'STANDBY.PREVIEW_FIRST') | translate }}</strong><p>{{ (v.isPublished ? 'STANDBY.PUBLISHED_HINT' : 'STANDBY.DRAFT_HINT') | translate }}</p></div><div class="save-actions"><button type="button" class="secondary" (click)="preview()" [disabled]="busy || !v.ready"><i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-eye'"></i>{{ (mode === 'Fair' ? 'STANDBY.GENERATE' : 'STANDBY.CHECK') | translate }}</button><button type="button" class="primary" (click)="save()" [disabled]="busy || !accepted"><i class="pi pi-save"></i>{{ 'STANDBY.SAVE' | translate }}</button></div></footer>
+  <div class="planning-status" role="status" *ngIf="v.ready && !accepted"><i class="pi pi-info-circle"></i><div><strong>{{ (mode === 'Manual' ? 'STANDBY.MANUAL_NEXT' : 'STANDBY.FAIR_NEXT') | translate }}</strong><p>{{ 'STANDBY.UNALLOCATED' | translate:{count:shortages} }}</p></div></div>
+  <div class="message warning" *ngIf="shortages > 0 && v.ready && accepted"><i class="pi pi-info-circle"></i>{{ 'STANDBY.SHORTAGE_HINT' | translate:{count:shortages} }}</div>
+  <footer class="save-bar"><div><strong>{{ (accepted ? 'STANDBY.REVIEWED' : 'STANDBY.PREVIEW_FIRST') | translate }}</strong><p>{{ (v.isPublished ? 'STANDBY.PUBLISHED_HINT' : 'STANDBY.DRAFT_HINT') | translate }}</p></div><div class="save-actions"><button *ngIf="canUndo" type="button" class="secondary undo-action" [disabled]="busy" (click)="undo()" [title]="'STANDBY.UNDO_HINT' | translate"><i class="pi pi-undo"></i>{{ 'STANDBY.UNDO' | translate }}</button><button type="button" class="primary" (click)="reviewForSave()" [disabled]="busy || !v.ready"><i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-eye'"></i>{{ 'STANDBY.REVIEW_AND_SAVE' | translate }}</button></div></footer>
+  <p-dialog [visible]="reviewOpen" (visibleChange)="!busy && (reviewOpen = $event)" [modal]="true" [draggable]="false" [resizable]="false" [closable]="!busy" [style]="{width:'720px',maxWidth:'95vw'}" [header]="'STANDBY.REVIEW_TITLE' | translate">
+    <section class="standby-save-review" *ngIf="accepted" [attr.aria-busy]="busy">
+      <p class="review-intro">{{ 'STANDBY.REVIEW_INTRO' | translate }}</p>
+      <p class="review-undo-hint">{{ 'STANDBY.REVIEW_UNDO_HINT' | translate }}</p>
+      <div class="review-totals"><div><span>{{ 'STANDBY.DEMAND' | translate }}</span><strong>{{ totalRequired }}</strong></div><div><span>{{ 'STANDBY.ALLOCATED' | translate }}</span><strong>{{ totalAllocated }}</strong></div><div><span>{{ 'STANDBY.SHORTAGE' | translate }}</span><strong>{{ shortages }}</strong></div></div>
+      <div class="message error" *ngIf="error" role="alert">{{ error }}<p>{{ 'STANDBY.ERROR_RECOVERY' | translate }}</p></div>
+      <p class="message warning" *ngIf="shortages > 0">{{ 'STANDBY.SHORTAGE_HINT' | translate:{count:shortages} }}</p>
+      <div class="review-changes"><h3>{{ 'STANDBY.CHANGES' | translate }}</h3><p *ngFor="let p of added"><span class="change-kind">{{ 'STANDBY.ADDITION' | translate }}</span>{{ teacherName(p.instructorProfileId) }} · {{ dayLabel(p.day) }} · {{ 'STANDBY.PERIOD' | translate }} {{ p.period }}</p><p *ngFor="let p of removed"><span class="change-kind removal">{{ 'STANDBY.REMOVAL' | translate }}</span>{{ teacherName(p.instructorProfileId) }} · {{ dayLabel(p.day) }} · {{ 'STANDBY.PERIOD' | translate }} {{ p.period }}</p><p *ngIf="!added.length && !removed.length">{{ 'STANDBY.NO_PLACEMENT_CHANGES' | translate }}</p></div>
+      <p class="publication-note"><i class="pi pi-info-circle"></i>{{ (publicationAllowed ? 'STANDBY.PUBLISH_REVIEW_HINT' : 'STANDBY.CLONE_HINT') | translate }}</p>
+    </section>
+    <ng-template pTemplate="footer"><div class="review-actions"><button *ngIf="canUndo" type="button" class="secondary undo-review" [disabled]="busy" (click)="undo()"><i class="pi pi-undo"></i>{{ 'STANDBY.UNDO' | translate }}</button><button type="button" class="secondary continue-editing" [disabled]="busy" (click)="reviewOpen=false">{{ 'STANDBY.CONTINUE_EDITING' | translate }}</button><button type="button" class="save-draft" [ngClass]="publicationAllowed ? 'secondary' : 'primary'" [disabled]="busy || !accepted || !v.ready" (click)="save()"><i class="pi pi-save"></i>{{ 'STANDBY.SAVE' | translate }}</button><button *ngIf="publicationAllowed" type="button" class="primary save-and-publish" [disabled]="busy || !accepted || !v.ready" (click)="save(true)"><i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-send'"></i>{{ 'STANDBY.SAVE_AND_PUBLISH' | translate }}</button></div></ng-template>
+  </p-dialog>
 </section>
 <ng-template #loading><div class="loading" role="status"><i *ngIf="busy" class="pi pi-spin pi-spinner"></i>{{ (busy ? 'STANDBY.LOADING' : 'STANDBY.LOAD_FAILED') | translate }}<p *ngIf="error">{{ error }}</p><button *ngIf="!busy" type="button" class="secondary" (click)="load()">{{ 'STANDBY.RELOAD' | translate }}</button></div></ng-template>

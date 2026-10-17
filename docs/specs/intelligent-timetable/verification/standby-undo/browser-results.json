@@ -1,0 +1,48 @@
+{
+  "at": "2026-10-17T08:55:40.722Z",
+  "isolated": true,
+  "storedRevisionUnchanged": true,
+  "providerWrites": false,
+  "results": [
+    {
+      "width": 390,
+      "fairProposalChanged": true,
+      "reviewUndoRestoredExactManualState": true,
+      "secondUndoRestoredLoadedState": true,
+      "settingsAndLocksRestored": true,
+      "noApplyRequests": true,
+      "cleanUnload": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 768,
+      "fairProposalChanged": true,
+      "reviewUndoRestoredExactManualState": true,
+      "secondUndoRestoredLoadedState": true,
+      "settingsAndLocksRestored": true,
+      "noApplyRequests": true,
+      "cleanUnload": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1440,
+      "fairProposalChanged": true,
+      "reviewUndoRestoredExactManualState": true,
+      "secondUndoRestoredLoadedState": true,
+      "settingsAndLocksRestored": true,
+      "noApplyRequests": true,
+      "cleanUnload": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1920,
+      "fairProposalChanged": true,
+      "reviewUndoRestoredExactManualState": true,
+      "secondUndoRestoredLoadedState": true,
+      "settingsAndLocksRestored": true,
+      "noApplyRequests": true,
+      "cleanUnload": true,
+      "pageOverflow": false
+    }
+  ]
+}

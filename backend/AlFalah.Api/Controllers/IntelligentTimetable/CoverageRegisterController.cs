@@ -9,7 +9,7 @@ namespace AlFalah.Api.Controllers.IntelligentTimetable;
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
 public sealed class CoverageRegisterController(CoverageRegisterService service):ControllerBase
 {
-    [HttpGet] public Task<IActionResult> Context(DateOnly date,CancellationToken ct,int page=1,int pageSize=10)=>Respond(()=>service.ContextAsync(date,page,pageSize,ct));
+    [HttpGet] public Task<IActionResult> Context(DateOnly date,CancellationToken ct,int page=1,int pageSize=10,string scope="Day")=>Respond(()=>service.ContextAsync(date,page,pageSize,ct,scope));
     [HttpPost] public Task<IActionResult> Issue(IssueCoverageRegisterRequest request,CancellationToken ct)=>Respond(()=>service.IssueAsync(request,ct));
     [HttpGet("{id:int}/content")]
     public async Task<IActionResult> Content(int id,CancellationToken ct)

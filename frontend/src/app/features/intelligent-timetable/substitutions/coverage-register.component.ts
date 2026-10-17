@@ -6,7 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 import { Observable, firstValueFrom } from 'rxjs';
 import { CoverageRegisterService } from '../../../core/services/coverage-register.service';
-import { CoverageRegisterContext, CoverageRegisterInfo } from '../../../core/models/coverage-register.models';
+import { CoverageRegisterContext, CoverageRegisterInfo, CoverageRegisterScope } from '../../../core/models/coverage-register.models';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { extractHttpErrorMessage, readHttpErrorBody } from '../../../core/http/http-error-message';
 import { downloadBlob } from '../../../core/utils/browser-download';
@@ -17,6 +17,7 @@ import { isDutyPdf } from '../../timetables/duty/duty-pdf-content';
   templateUrl:'./coverage-register.component.html',styleUrl:'./coverage-register.component.css'})
 export class CoverageRegisterComponent implements OnInit {
   @Input({required:true}) date!:string;
+  scope:CoverageRegisterScope='Day';
   @Output() closed=new EventEmitter<void>();
   private readonly api=inject(CoverageRegisterService);private readonly destroy=inject(DestroyRef);private readonly translate=inject(TranslateService);
   context:CoverageRegisterContext|null=null;selected:CoverageRegisterInfo|null=null;blob:Blob|null=null;
@@ -27,13 +28,14 @@ export class CoverageRegisterComponent implements OnInit {
   close(){if(!this.busy)this.closed.emit();}
   private async read<T>(request:Observable<ApiResponse<T>>){const r=await firstValueFrom(request.pipe(takeUntilDestroyed(this.destroy)));if(!r.isSuccess||r.data==null)throw Error(r.errors?.[0]||r.message);return r.data;}
   private async run(action:()=>Promise<void>){if(this.busy)return;this.busy=true;this.error='';try{await action();}catch(e){await readHttpErrorBody(e);this.error=extractHttpErrorMessage(e)||(e instanceof Error && e.name==='Error'?e.message:null)||this.translate.instant('COVERAGE_REGISTER.FAILED');}finally{this.busy=false;this.issuing=false;}}
-  private async refreshHistory(page:number){const context=await this.read(this.api.context(this.date,page));this.context=context;this.page=page;this.historyWarning='';}
+  private async refreshHistory(page:number){const context=await this.read(this.api.context(this.date,page,this.scope));this.context=context;this.page=page;this.historyWarning='';}
   async load(){await this.run(async()=>{await this.refreshHistory(this.page);this.pendingSource=null;});}
   async changeDate(){this.blob=null;this.selected=null;this.context=null;this.pendingSource=null;this.page=1;await this.load();}
+  async changeScope(scope:CoverageRegisterScope){if(this.busy||scope===this.scope)return;this.scope=scope;await this.changeDate();}
   async changePage(delta:number){await this.run(async()=>{await this.refreshHistory(this.page+delta);this.pendingSource=null;});}
   async prepare(){if(!this.context?.sourceRevision)return;await this.run(async()=>{
     this.issuing=true;this.pendingSource??=this.context!.sourceRevision!;
-    const issued=await this.read(this.api.issue(this.date,this.pendingSource));this.selected=issued;this.blob=null;
+    const issued=await this.read(this.api.issue(this.context!.date,this.pendingSource,this.scope));this.selected=issued;this.blob=null;
     await this.fetchContent(issued);
     // A failed secondary refresh must neither mix history pages nor invalidate the retained preview.
     try{await this.refreshHistory(1);}catch{this.historyWarning=this.translate.instant('COVERAGE_REGISTER.HISTORY_REFRESH_FAILED');}

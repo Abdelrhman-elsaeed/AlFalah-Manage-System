@@ -1,0 +1,60 @@
+{
+  "at": "2026-10-17T08:48:48.664Z",
+  "isolated": true,
+  "providerWrites": false,
+  "teachingRowsUnchanged": true,
+  "results": [
+    {
+      "width": 390,
+      "standaloneRoute": true,
+      "neutralUnallocatedGuidance": true,
+      "actionableReview": true,
+      "noWriteBeforeConfirmation": true,
+      "confirmedSave": false,
+      "mode": "Manual",
+      "dirtyNavigation": true,
+      "staleSaveRecovery": false,
+      "teachingRouteUnchanged": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 768,
+      "standaloneRoute": true,
+      "neutralUnallocatedGuidance": true,
+      "actionableReview": true,
+      "noWriteBeforeConfirmation": true,
+      "confirmedSave": false,
+      "mode": "Manual",
+      "dirtyNavigation": true,
+      "staleSaveRecovery": false,
+      "teachingRouteUnchanged": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1440,
+      "standaloneRoute": true,
+      "neutralUnallocatedGuidance": true,
+      "actionableReview": true,
+      "noWriteBeforeConfirmation": true,
+      "confirmedSave": true,
+      "mode": "Manual",
+      "dirtyNavigation": false,
+      "staleSaveRecovery": false,
+      "teachingRouteUnchanged": true,
+      "pageOverflow": false
+    },
+    {
+      "width": 1920,
+      "standaloneRoute": true,
+      "neutralUnallocatedGuidance": true,
+      "actionableReview": true,
+      "noWriteBeforeConfirmation": true,
+      "confirmedSave": true,
+      "mode": "Fair",
+      "dirtyNavigation": false,
+      "staleSaveRecovery": true,
+      "teachingRouteUnchanged": true,
+      "pageOverflow": false
+    }
+  ]
+}

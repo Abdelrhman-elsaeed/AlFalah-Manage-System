@@ -964,6 +964,13 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.Property<int>("SchoolId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)")
+                        .HasDefaultValue("Day");
+
                     b.Property<string>("Sha256")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -982,7 +989,7 @@ namespace AlFalah.Infrastructure.Data.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("SchoolId", "LocalDate", "Revision")
+                    b.HasIndex("SchoolId", "LocalDate", "Scope", "Revision")
                         .IsUnique();
 
                     b.HasIndex("SchoolId", "LocalDate", "SourceRevision", "RendererVersion")
@@ -991,6 +998,8 @@ namespace AlFalah.Infrastructure.Data.Migrations
                     b.ToTable("CoverageRegisterArtifacts", null, t =>
                         {
                             t.HasCheckConstraint("CK_CoverageRegister_Revision", "[Revision] > 0");
+
+                            t.HasCheckConstraint("CK_CoverageRegister_Scope", "[Scope] IN ('Day', 'Week')");
                         });
                 });
 

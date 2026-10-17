@@ -776,7 +776,7 @@ export class DashboardLiveComponent implements OnInit {
 
   /** Navigate to the given route (for tool card clicks). */
   navigateTo(route: string): void {
-    this.router.navigate([route]);
+    void this.router.navigateByUrl(route);
   }
 
   /** Meter width as a share of the published maximum (0–100). */

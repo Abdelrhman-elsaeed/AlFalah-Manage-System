@@ -2,6 +2,11 @@
 
 **Date:** 2026-10-16 · **C37 / D-129**
 **Status:** All three phases delivered locally (C38/C39/C40). Owner visual/operational and physical-print acceptance remains pending; see [phase 3 evidence and handoff](../verification/standby-phase3/README.md).
+**Current weekly entry:** **الجدول الذكي → حصص الانتظار** (`/intelligent-timetable/standby`). C41 replaces the embedded timetable tab and clarifies reviewed saving/unallocated guidance; see [follow-up evidence](../verification/standby-save-navigation/README.md).
+**Current undo:** C42 adds clearly labelled pre-save **تراجع خطوة** inside review and beside the grid/save controls; identical preview output does not add a history step. [Lock semantics and verification](../verification/standby-undo/README.md).
+**Current publication/PDF:** C43 adds explicit **حفظ ونشر للمعلمين**, optional draft save and publication-only retry. **سجل الانتظار PDF** opens the existing dated daily register from the weekly header. [Workflow and verification](../verification/standby-publish/README.md).
+**Current unified page:** C44 brings **التوزيع الأسبوعي** and **التغطية اليومية** into the same **حصص الانتظار** page. The shared command header connects actions, context/status and summaries; swaps remain separate. [Navigation, visual review and verification](../verification/standby-hub/README.md).
+**Current PDF period:** C45 adds **يوم واحد** / **أسبوع كامل** in the existing register dialog. Select any date in weekly mode for a retained Sunday–Saturday PDF with seven dated daily sections and continuous pagination. Daily/weekly history is separate; existing daily bytes remain unchanged. [Implementation and verification](../verification/standby-week/README.md).
 
 ## References
 

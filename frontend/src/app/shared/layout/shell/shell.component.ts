@@ -325,13 +325,14 @@ export const SHELL_NAV_CATEGORIES: NavCategory[] = [
     icon: 'pi pi-calendar-clock',
     items: [
       { labelKey: 'الجدول الدراسي', icon: 'pi pi-calendar', route: '/timetable', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'STANDBY.PAGE_TITLE', icon: 'pi pi-users', route: '/intelligent-timetable/standby', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
       { labelKey: 'توقيتات الجدول', icon: 'pi pi-clock', route: '/intelligent-timetable/timings', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
       { labelKey: 'الاستراحة', icon: 'pi pi-stopwatch', route: '/intelligent-timetable/breaks', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
       { labelKey: 'إعدادات المعلمين', icon: 'pi pi-id-card', route: '/intelligent-timetable/teachers', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.Manage'] },
       { labelKey: 'المواد', icon: 'pi pi-book', route: '/intelligent-timetable/subjects', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
       { labelKey: 'إسنادات التدريس', icon: 'pi pi-link', route: '/intelligent-timetable/assignments', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
       { labelKey: 'المراجعة والتحليل', icon: 'pi pi-chart-bar', route: '/intelligent-timetable/review', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
-      { labelKey: 'التبديل والاحتياطي', icon: 'pi pi-sync', route: '/intelligent-timetable/substitutions', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
+      { labelKey: 'COVERAGE.SWAPS', icon: 'pi pi-sync', route: '/intelligent-timetable/substitutions', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
       { labelKey: 'الطباعة', icon: 'pi pi-print', route: '/intelligent-timetable/print', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] },
       { labelKey: 'إعدادات الجدول', icon: 'pi pi-cog', route: '/intelligent-timetable/settings', roles: ['Secretary', 'SchoolManager', 'Moderator'], permissions: ['Timetable.View'] }
     ]

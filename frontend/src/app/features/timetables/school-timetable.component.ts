@@ -7,7 +7,7 @@ import { ClassroomOption } from '../../core/services/classroom-catalog.service';
 import { BellSchedule, effectivePeriods } from '../../core/models/bell-schedule.models';
 import { effectiveIntervals } from '../../core/models/schedule-break.models';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, Input, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WeeklyStandbyComponent } from './standby/weekly-standby.component';
@@ -70,18 +70,15 @@ interface DisplayDay {
 export class SchoolTimetableComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   readonly workspaceTab = signal<'lessons' | 'standby'>('lessons');
+  @Input() set standbyOnly(value: boolean) { this.workspaceTab.set(value ? 'standby' : 'lessons'); }
+  @Input() embeddedStandby = false;
+  @ViewChild(WeeklyStandbyComponent) weeklyPlanner?: WeeklyStandbyComponent;
   readonly standbyDirty = signal(false);
   readonly standbyBusy = signal(false);
   hasPendingChanges() { return this.dirty() || this.standbyDirty() || this.inlineSwap.active(); }
   canChangeContext() {
     return !this.standbyBusy() && !this.saving() && !this.regenerating() &&
       (!this.hasPendingChanges() || window.confirm(this.translate.instant('STANDBY.LEAVE')));
-  }
-  changeWorkspaceTab(tab: 'lessons' | 'standby') {
-    if (tab === this.workspaceTab() || !this.canChangeContext()) return;
-    this.inlineSwap.cancel(); this.standbyDirty.set(false);
-    if (this.dirty()) this.applyTimetable(this.timetable());
-    this.workspaceTab.set(tab);
   }
   refreshAfterStandby() {
     const id = this.timetable()?.id;

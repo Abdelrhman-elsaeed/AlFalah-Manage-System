@@ -72,6 +72,53 @@ public sealed class CoverageRegisterTests
         await db.Invoking(d=>d.SaveChangesAsync()).Should().ThrowAsync<InvalidOperationException>();
     }
     [Theory]
+    [InlineData("Month")][InlineData("")]
+    public async Task Unknown_scope_is_rejected_before_reading_a_register(string scope)
+    {
+        await using var db=await DailyCoverageTests.Seed();var repository=new TimetableSubstitutionRepository(db);
+        var service=new CoverageRegisterService(repository,new FakeRenderer(),new(repository,new DailyCoverageTests.User()),new DailyCoverageTests.Clock());
+        await service.Invoking(s=>s.ContextAsync(DailyCoverageTests.Date,1,10,default,scope)).Should().ThrowAsync<ArgumentException>();
+    }
+    [Fact]
+    public async Task Weekly_snapshot_contains_seven_days_and_has_independent_replay_history_and_stale_protection()
+    {
+        await using var db=await DailyCoverageTests.Seed();var clock=new DailyCoverageTests.Clock();await DailyCoverageTests.Assign(db,clock);
+        var secondDay=Need();secondDay.Id=99;secondDay.LocalDate=DailyCoverageTests.Date.AddDays(1);secondDay.State="Assigned";secondDay.SubmittedAt=null;
+        secondDay.Narrative="UNSENT-WEEK-DRAFT";db.Add(secondDay);await db.SaveChangesAsync();
+        var repository=new TimetableSubstitutionRepository(db);var renderer=new FakeRenderer();var service=new CoverageRegisterService(repository,renderer,new(repository,new DailyCoverageTests.User()),clock);
+        var day=await service.ContextAsync(DailyCoverageTests.Date,1,10,default);var daily=await service.IssueAsync(new(day.Date,day.SourceRevision!),default);
+        var week=await service.ContextAsync(DailyCoverageTests.Date.AddDays(3),1,10,default,"Week");
+        week.Date.Should().Be(DailyCoverageTests.Date);week.EndDate.Should().Be(week.Date.AddDays(6));week.PeriodCount.Should().Be(2);
+        var issue=await service.IssueAsync(new(week.Date,week.SourceRevision!,"Week"),default);issue.Scope.Should().Be("Week");issue.Revision.Should().Be(1);
+        var stored=await db.Set<CoverageRegisterArtifact>().SingleAsync(x=>x.Id==issue.Id);
+        var snapshot=System.Text.Json.JsonSerializer.Deserialize<CoverageRegisterWeek>(stored.SnapshotJson)!;
+        snapshot.Days.Should().HaveCount(7);snapshot.Days.Select(d=>d.Date).Should().Equal(Enumerable.Range(0,7).Select(i=>week.Date.AddDays(i)));
+        snapshot.Days[1].Rows.Should().OnlyContain(r=>r.Narrative=="");snapshot.Days.Skip(2).Should().OnlyContain(d=>d.Rows.Count==0);
+        var bytes=(await service.ContentAsync(issue.Id,default)).Bytes;
+        secondDay.Revision++;await db.SaveChangesAsync();
+        (await service.IssueAsync(new(week.Date.AddDays(6),week.SourceRevision!,"Week"),default)).Id.Should().Be(issue.Id);
+        (await service.ContentAsync(issue.Id,default)).Bytes.Should().Equal(bytes);
+        var changed=await service.ContextAsync(week.Date,1,10,default,"Week");secondDay.Revision++;await db.SaveChangesAsync();
+        await service.Invoking(s=>s.IssueAsync(new(week.Date,changed.SourceRevision!,"Week"),default)).Should().ThrowAsync<BellScheduleConflictException>();
+        var latest=await service.ContextAsync(week.Date,1,10,default,"Week");var next=await service.IssueAsync(new(week.Date,latest.SourceRevision!,"Week"),default);next.Revision.Should().Be(2);
+        (await service.ContextAsync(week.Date,1,10,default)).History.Items.Select(x=>x.Id).Should().Equal(daily.Id);
+        (await service.ContextAsync(week.Date,1,1,default,"Week")).History.TotalCount.Should().Be(2);
+        await service.Invoking(s=>s.IssueAsync(new(week.Date,latest.SourceRevision!,"Day"),default)).Should().ThrowAsync<BellScheduleConflictException>();
+        await new CoverageRegisterService(repository,renderer,new(repository,DailyCoverageTests.Teacher),clock).Invoking(s=>s.ContentAsync(issue.Id,default)).Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+    [Fact]
+    public void Actual_week_renderer_preserves_daily_forms_dates_and_empty_days_in_one_pdf()
+    {
+        QuestPDF.Settings.License=LicenseType.Community;QuestPDF.Settings.EnableDebugging=false;
+        var date=new DateOnly(2026,10,18);var days=Enumerable.Range(0,7).Select(i=>CoverageRegisterProjector.Project(Header,date.AddDays(i),i==0?[Need()]:[])).ToArray();
+        var originalCulture=System.Globalization.CultureInfo.CurrentCulture;
+        byte[] pdf;
+        try{System.Globalization.CultureInfo.CurrentCulture=new System.Globalization.CultureInfo("ar-SA");pdf=new CoverageRegisterRenderer().RenderWeek(new(date,date.AddDays(6),days),1,new(2026,10,18,9,0,0,TimeSpan.Zero));}
+        finally{System.Globalization.CultureInfo.CurrentCulture=originalCulture;}
+        Encoding.ASCII.GetString(pdf,0,5).Should().Be("%PDF-");pdf.Length.Should().BeGreaterThan(1000);
+        var output=Environment.GetEnvironmentVariable("ALFALAH_REGISTER_PDF_OUTPUT");if(!string.IsNullOrEmpty(output)){Directory.CreateDirectory(output);File.WriteAllBytes(Path.Combine(output,"week.pdf"),pdf);}
+    }
+    [Theory]
     [InlineData("one",1,1,false)] [InlineData("three",3,8,false)] [InlineData("four",4,8,false)]
     [InlineData("period-nine",1,9,false)] [InlineData("long-signed",1,1,true)] [InlineData("signed",3,2,true)]
     public void Actual_renderer_handles_source_capacity_and_readable_continuations(string name,int teachers,int periods,bool signed)
@@ -103,5 +150,6 @@ public sealed class CoverageRegisterTests
     {
         public int Calls;public string Version=>"test-v1";
         public byte[] Render(CoverageRegisterSnapshot snapshot,int revision,DateTimeOffset at){Calls++;return Encoding.ASCII.GetBytes("%PDF-"+new string('a',150)+revision);}
+        public byte[] RenderWeek(CoverageRegisterWeek snapshot,int revision,DateTimeOffset at){Calls++;return Encoding.ASCII.GetBytes("%PDF-"+new string('w',150)+revision);}
     }
 }

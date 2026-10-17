@@ -356,3 +356,35 @@ Delivered the second classroom implementation slice (C3): contextual V2/manual t
 | Date | Change |
 |---|---|
 | 2026-10-17 | Delivered standby phase3: QF71-B-2-1 portrait register, three eight-row groups and readable continuations, actual-owner receipt/execution evidence, exclusion of unsent drafts, immutable whole-day revisions, paged history and exact preview/download bytes.342 focused backend/SQL checks across regression/integrated runs,16 Angular checks, six PDF cases and real responsive HTTP/browser checks pass. Additive schema75 preserves original values across45 tables. Official-branding assets, owner/printer acceptance, Arabic text-extraction limits and unchanged production CSS/SQLite baseline blockers are recorded. No unagreed Drive archive, provider write or production rollout. [Implementation](specs/intelligent-timetable/standby-periods/register-implementation.md) · [Evidence and handoff](specs/intelligent-timetable/verification/standby-phase3/README.md). |
+
+## C41 / D-133 — Change log (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Corrected weekly standby usability after owner testing: an independent **حصص الانتظار** sidebar page under Intelligent timetable, clear unallocated-demand guidance and an actionable review/save dialog with explicit final confirmation. Existing API/readiness/scope/publication rules remain intact.20 Angular checks and real isolated SQL/browser manual/fair save, cancellation, stale recovery, dirty navigation and responsive390/768/1440/1920 checks pass; teaching rows are unchanged. No migration or backend policy change. [Cause and evidence](specs/intelligent-timetable/verification/standby-save-navigation/README.md). |
+
+## C42 / D-134 — Change log (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Clarified existing weekly standby locks and exposed labelled pre-save undo in review, toolbar and footer. Changed fair proposals restore the exact prior manual state; identical previews no longer insert empty undo steps.22 focused Angular checks and real responsive browser/SQL-preview checks verify stepwise settings/lock restoration, clean unload and unchanged stored data without apply. No backend/schema/provider change. [Evidence](specs/intelligent-timetable/verification/standby-undo/README.md). |
+
+## C43 / D-135 — Change log (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Added explicit reviewed Save and publish for teachers from weekly standby, optional draft save, saved-status clarity and publication-only retry after partial failure. Reused existing publication validation/event and retained dated PDF; a weekly-header shortcut opens its daily-ledger dialog. 26 focused Angular checks and actual isolated SQL/browser checks at 390/768/1440/1920 verify publication, teacher visibility, failure recovery and identical preview/download bytes. No backend/schema/renderer/provider changes. [Evidence](specs/intelligent-timetable/verification/standby-publish/README.md). |
+
+## C44 / D-136 — Change log (2026-10-17)
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Unified weekly allocation and daily coverage under **حصص الانتظار**, with one connected command/context/summary surface and retained local state between sections. Swaps remain separate; dashboard daily links and previous PDF deep links reach the new host. 28 focused Angular checks, Development build, real four-width SQL/browser navigation/state/PDF checks and four-width publication regression pass. Fixed a mobile selector clipping found during visual review. No backend/schema/provider change. [Evidence and current navigation](specs/intelligent-timetable/verification/standby-hub/README.md). |
+
+## C45 / D-137 — Change log (2026-10-17)
+
+Read-only follow-up: diagnosed empty standby-register names as zero daily coverage needs/assignments despite ten published weekly reserve slots. Verified names are projected before signatures and verified the owner's synthetic test account credentials without changing them. [Manual-test handoff](specs/intelligent-timetable/verification/standby-names/README.md). No application/database/provider changes.
+
+| Date | Change |
+|---|---|
+| 2026-10-17 | Added Day/Week selection to the existing standby register: one retained Sunday–Saturday PDF with ordered daily forms, explicit empty days, Gregorian range and continuous pages. Separate scoped history/revisions preserve old daily bytes. Additive schema 76 verified across 153 tables in synthetic and local databases. 37 backend checks (one opt-in allocator SQL suite skipped), 29 Angular checks, Development build, four-width real SQL/browser and independent PDF checks pass. No Drive writes or production rollout. [Implementation and evidence](specs/intelligent-timetable/verification/standby-week/README.md). |

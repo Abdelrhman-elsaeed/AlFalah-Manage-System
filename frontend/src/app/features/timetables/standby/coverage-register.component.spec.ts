@@ -24,7 +24,17 @@ describe('Retained coverage register',()=>{
     expect(api.issue).not.toHaveBeenCalled();await component.prepare();expect(component.blob).toBe(blob);
     spyOn(URL,'createObjectURL').and.returnValue('blob:register-test');spyOn(HTMLAnchorElement.prototype,'click');
     component.download();expect(URL.createObjectURL).toHaveBeenCalledOnceWith(blob);
-    expect(api.issue.calls.mostRecent().args).toEqual(['2026-10-18','a'.repeat(64)]);
+    expect(api.issue.calls.mostRecent().args).toEqual(['2026-10-18','a'.repeat(64),'Day']);
+  });
+  it('switches to a canonical school week and issues that scope without mixing daily preview or history',async()=>{
+    component.date='2026-10-21';component.blob=blob;component.selected=info;component.page=2;
+    api.context.and.callFake(()=>of({isSuccess:true,data:{...context(),scope:'Week',endDate:'2026-10-24'},errors:[],message:''}));
+    await component.changeScope('Week');expect(component.scope).toBe('Week');expect(component.blob).toBeNull();expect(component.selected).toBeNull();expect(component.page).toBe(1);
+    expect(api.context.calls.mostRecent().args).toEqual(['2026-10-21',1,'Week']);expect(api.issue).not.toHaveBeenCalled();
+    api.issue.and.returnValue(of({isSuccess:true,data:{...info,scope:'Week',endDate:'2026-10-24'},errors:[],message:''}));
+    await component.prepare();expect(api.issue.calls.mostRecent().args).toEqual(['2026-10-18','a'.repeat(64),'Week']);expect(component.blob).toBe(blob);
+    component.busy=true;await component.changeScope('Day');expect(component.scope).toBe('Week');component.busy=false;
+    await component.changeScope('Day');expect(component.blob).toBeNull();expect(component.selected).toBeNull();expect(api.context.calls.mostRecent().args).toEqual(['2026-10-21',1,'Day']);
   });
   it('retries the same source after a lost response and retains the selected issue after a content failure',async()=>{
     api.issue.and.returnValue(throwError(()=>({status:0})));await component.prepare();

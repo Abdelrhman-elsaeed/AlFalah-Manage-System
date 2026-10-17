@@ -1,6 +1,10 @@
 # Phase 1: weekly standby allocation and manager UI
 
 **State:** Delivered on 2026-10-16 (C38 / D-130). Automated backend/SQL, Angular and actual responsive browser verification complete. Owner appearance/assistive-technology acceptance is not claimed.
+**Usability follow-up:** C41 / D-133 on 2026-10-17 moves weekly standby to its own sidebar page and replaces the disabled-before-review save affordance with an explicit review/confirmation dialog. [Cause, verification and current navigation](../../verification/standby-save-navigation/README.md). No fourth delivery phase or backend policy change.
+**Undo follow-up:** C42 / D-134 exposes labelled pre-save undo in review/toolbar/footer, skips identical preview history steps and explains existing lock semantics. [Evidence](../../verification/standby-undo/README.md).
+**Publication follow-up:** C43 / D-135 adds explicit reviewed Save and publish through the existing endpoints, optional draft save, publication-only retry and a direct entry to the existing dated PDF register. [Evidence](../../verification/standby-publish/README.md).
+**Unified-page follow-up:** C44 / D-136 hosts weekly planning and daily coverage in one standby page, joins the header/context/summary and preserves local work when switching. [Verification](../../verification/standby-hub/README.md).
 **Implementation:** [Behavior and design](../weekly-implementation.md), [verification](../../verification/standby-phase1/README.md).
 **Depends on:** Completed discovery and the existing teaching timetable.
 **Skills:** dotnet-layered-api-architect and frontend-design; domain-modeling for unresolved rules; tdd for critical behavioral/integration checks. Use prototype only if an uncertain interaction benefits from a throwaway review.

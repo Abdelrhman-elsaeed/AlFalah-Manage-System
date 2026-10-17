@@ -1,12 +1,11 @@
-<section class="timetable-page tt-workspace" dir="rtl">
-  <header class="page-header tt-page-header">
+<section class="timetable-page" [class.tt-workspace]="!embeddedStandby" [class.standby-embedded]="embeddedStandby" dir="rtl">
+  <header class="page-header tt-page-header" *ngIf="!embeddedStandby">
     <div>
       <span class="eyebrow">الإدارة الأكاديمية</span>
-      <h1>الجدول المدرسي</h1>
-      <p>إدارة جدول المدرسة وطباعته ومشاركته مع المعلمين.</p>
+      <h1>{{ workspaceTab() === 'standby' ? ('STANDBY.PAGE_TITLE' | translate) : 'الجدول المدرسي' }}</h1>
+      <p>{{ workspaceTab() === 'standby' ? ('STANDBY.PAGE_INTRO' | translate) : 'إدارة جدول المدرسة وطباعته ومشاركته مع المعلمين.' }}</p>
     </div>
-    <div class="header-actions" *ngIf="timetable() as current">
-      <ng-container *ngIf="workspaceTab() === 'lessons'">
+    <div class="header-actions" *ngIf="workspaceTab() === 'lessons' && timetable() as current">
       <button pButton type="button" class="p-button-outlined" icon="pi pi-palette" label="PDF A4 ملون" (click)="downloadPdf('color')"></button>
       <button pButton type="button" class="p-button-outlined monochrome-pdf-button" icon="pi pi-file-pdf" label="PDF A4 أبيض وأسود" (click)="downloadPdf('monochrome')"></button>
       <ng-container *ngIf="canManage()">
@@ -20,7 +19,10 @@
         <button pButton type="button" icon="pi pi-save" label="حفظ" [disabled]="!dirty() || saving()" [loading]="saving()" (click)="save()"></button>
         <button *ngIf="!current.isClone && (!current.isPublished || current.timingsRequireRevalidation)" pButton type="button" class="publish-button" icon="pi pi-send" label="نشر للمعلمين" [disabled]="dirty() || saving()" (click)="publish()"></button>
       </ng-container>
-      </ng-container>
+    </div>
+    <div class="header-actions" *ngIf="workspaceTab() === 'standby'">
+      <a *ngIf="canManage()" pButton class="p-button-outlined standby-register-link" icon="pi pi-file-pdf" [label]="'STANDBY.OPEN_REGISTER' | translate" routerLink="/intelligent-timetable/standby" [queryParams]="{tab:'daily',register:'true'}"></a>
+      <a pButton class="p-button-outlined" icon="pi pi-calendar" [label]="'STANDBY.OPEN_TEACHING' | translate" routerLink="/timetable"></a>
     </div>
   </header>
 
@@ -72,11 +74,8 @@
     </label>
   </div>
 
-  <nav class="standby-workspace-tabs" *ngIf="canManage() && timetable()" aria-label="Timetable workspace">
-    <button type="button" [class.active]="workspaceTab() === 'lessons'" [attr.aria-pressed]="workspaceTab() === 'lessons'" [disabled]="standbyBusy() || saving()" (click)="changeWorkspaceTab('lessons')"><i class="pi pi-calendar"></i>{{ 'STANDBY.TAB_LESSONS' | translate }}</button>
-    <button type="button" [class.active]="workspaceTab() === 'standby'" [attr.aria-pressed]="workspaceTab() === 'standby'" [disabled]="standbyBusy() || saving()" (click)="changeWorkspaceTab('standby')"><i class="pi pi-users"></i>{{ 'STANDBY.TAB_STANDBY' | translate }}</button>
-  </nav>
-  <app-weekly-standby *ngIf="workspaceTab() === 'standby' && canManage() && timetable() && !loading()" [timetableId]="timetable()!.id" (dirtyChange)="standbyDirty.set($event)" (busyChange)="standbyBusy.set($event)" (saved)="refreshAfterStandby()" />
+  <app-weekly-standby *ngIf="workspaceTab() === 'standby' && canManage() && timetable() && !loading()" [timetableId]="timetable()!.id" [integratedHeader]="embeddedStandby" [publicationAllowed]="!timetable()!.isClone" (dirtyChange)="standbyDirty.set($event)" (busyChange)="standbyBusy.set($event)" (saved)="refreshAfterStandby()" />
+  <p class="standby-access-note" *ngIf="workspaceTab() === 'standby' && !loading() && !canManage()">{{ 'STANDBY.MANAGER_ONLY' | translate }}</p>
 
   <div class="loading-state" *ngIf="loading()">
     <i class="pi pi-spin pi-spinner"></i>
@@ -85,10 +84,10 @@
 
   <div class="empty-state" *ngIf="!loading() && !timetable()">
     <div class="empty-icon"><i class="pi" [ngClass]="canManage() ? 'pi-calendar-plus' : 'pi-calendar-times'"></i></div>
-    <h2>{{ canManage() ? 'لا يوجد جدول لهذا الفصل الدراسي' : 'لم يُنشر جدول لهذا الفصل الدراسي بعد' }}</h2>
-    <p *ngIf="canManage(); else teacherEmpty">أنشئ مسودة جديدة، أضف الحصص، ثم انشرها للمعلمين.</p>
+    <h2>{{ workspaceTab() === 'standby' ? ('STANDBY.PREREQUISITE' | translate) : canManage() ? 'لا يوجد جدول لهذا الفصل الدراسي' : 'لم يُنشر جدول لهذا الفصل الدراسي بعد' }}</h2>
+    <p *ngIf="canManage(); else teacherEmpty">{{ workspaceTab() === 'standby' ? ('STANDBY.EMPTY_GUIDANCE' | translate) : 'أنشئ مسودة جديدة، أضف الحصص، ثم انشرها للمعلمين.' }}</p>
     <ng-template #teacherEmpty><p>سيظهر الجدول هنا تلقائيًا بعد اعتماده ونشره من إدارة المدرسة.</p></ng-template>
-    <button *ngIf="canManage()" pButton type="button" icon="pi pi-plus" label="إنشاء الجدول" (click)="openCreate()"></button>
+    <button *ngIf="canManage() && workspaceTab() === 'lessons'" pButton type="button" icon="pi pi-plus" label="إنشاء الجدول" (click)="openCreate()"></button>
   </div>
 
   <ng-container *ngIf="!loading() && workspaceTab() === 'lessons'">

@@ -1,0 +1,14 @@
+<main class="standby-hub" dir="rtl">
+  <section class="command-header" aria-labelledby="standby-title">
+    <header class="hub-header">
+      <div class="hub-identity"><span class="hub-mark" aria-hidden="true"><i class="pi pi-users"></i></span><div><h1 id="standby-title">{{ 'STANDBY.PAGE_TITLE' | translate }}</h1><p>{{ (tab === 'weekly' ? 'STANDBY.HUB_WEEKLY_INTRO' : 'STANDBY.HUB_DAILY_INTRO') | translate }}</p></div></div>
+      <div class="hub-actions"><button type="button" class="register-action" [disabled]="busy" (click)="openRegister()"><i class="pi pi-file-pdf"></i>{{ 'STANDBY.OPEN_REGISTER' | translate }}</button><a routerLink="/timetable"><i class="pi pi-calendar"></i>{{ 'STANDBY.OPEN_TEACHING' | translate }}</a></div>
+    </header>
+    <nav class="hub-tabs" [attr.aria-label]="'STANDBY.HUB_SECTIONS' | translate">
+      <button id="weekly-tab" type="button" [class.active]="tab === 'weekly'" [attr.aria-pressed]="tab === 'weekly'" aria-controls="weekly-panel" [disabled]="busy" (click)="select('weekly')"><i class="pi pi-calendar"></i><span>{{ 'STANDBY.WEEKLY_TAB' | translate }}</span></button>
+      <button id="daily-tab" type="button" [class.active]="tab === 'daily'" [attr.aria-pressed]="tab === 'daily'" aria-controls="daily-panel" [disabled]="busy" (click)="select('daily')"><i class="pi pi-user-plus"></i><span>{{ 'COVERAGE.TAB' | translate }}</span></button>
+    </nav>
+  </section>
+  <section id="weekly-panel" [hidden]="tab !== 'weekly'" aria-labelledby="weekly-tab"><app-school-timetable *ngIf="weeklyVisited" [standbyOnly]="true" [embeddedStandby]="true" /></section>
+  <section id="daily-panel" [hidden]="tab !== 'daily'" aria-labelledby="daily-tab"><app-daily-coverage-ledger *ngIf="dailyVisited" [embedded]="true" /></section>
+</main>

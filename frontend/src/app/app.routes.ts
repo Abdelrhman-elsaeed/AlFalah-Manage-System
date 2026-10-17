@@ -11,6 +11,7 @@ import { studentAnalyzerGuard } from './core/guards/student-analyzer.guard';
 import { unsavedTimetableSettingsGuard } from './core/guards/unsaved-timetable-settings.guard';
 import { visitV2UnsavedGuard } from './features/visits-v2/visit-v2-unsaved.guard';
 import { legacyImprovementPlanGuard } from './core/guards/legacy-improvement-plan.guard';
+import { legacyCoverageRegisterGuard } from './core/guards/legacy-coverage-register.guard';
 import { legacySchoolDutyGuard, schoolDutyAccessGuard, schoolDutyDelegationGuard, schoolDutyEntryGuard, schoolDutyManagerGuard, schoolDutySectionGuard, schoolDutyUnsavedGuard } from './core/guards/school-duty-navigation.guard';
 
 function translatedTitle(key: string): ResolveFn<string> {
@@ -282,6 +283,13 @@ export const routes: Routes = [
         },
         children: [
           {
+            path: 'standby',
+            data: { standbyOnly: true },
+            canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],
+            loadComponent: () => import('./features/timetables/standby/standby-workspace.component').then(m => m.StandbyWorkspaceComponent),
+            title: translatedTitle('STANDBY.PAGE_TITLE')
+          },
+          {
             path: 'settings',
             canDeactivate: [unsavedTimetableSettingsGuard],
             loadComponent: () => import('./features/intelligent-timetable/settings/timetable-settings.component')
@@ -338,6 +346,7 @@ export const routes: Routes = [
           },
           {
             path: 'substitutions',
+            canActivate: [legacyCoverageRegisterGuard],
             canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],
             loadComponent: () => import('./features/intelligent-timetable/substitutions/coverage-workspace.component').then(m => m.CoverageWorkspaceComponent),
             title: 'التبديل والاحتياطي'

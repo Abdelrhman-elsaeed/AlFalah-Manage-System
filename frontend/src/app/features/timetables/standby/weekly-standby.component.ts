@@ -4,21 +4,26 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
+import { DialogModule } from 'primeng/dialog';
 import { extractHttpErrorMessage } from '../../../core/http/http-error-message';
 import { StandbyCell, StandbyPlacement, StandbyTeacher, WeeklyStandbyRequest, WeeklyStandbyWorkbench } from '../../../core/models/weekly-standby.models';
 import { WeeklyStandbyService } from '../../../core/services/weekly-standby.service';
+import { TimetableService } from '../../../core/services/timetable.service';
 
 @Component({
   selector: 'app-weekly-standby', standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, DialogModule],
   templateUrl: './weekly-standby.component.html', styleUrls: ['./weekly-standby.component.css']
 })
 export class WeeklyStandbyComponent implements OnChanges {
   private readonly api = inject(WeeklyStandbyService);
+  private readonly timetables = inject(TimetableService);
   private readonly destroy = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly host = inject(ElementRef);
   @Input({ required: true }) timetableId!: number;
+  @Input() publicationAllowed = true;
+  @Input() integratedHeader = false;
   @Output() saved = new EventEmitter<void>();
   @Output() dirtyChange = new EventEmitter<boolean>();
   @Output() busyChange = new EventEmitter<boolean>();
@@ -31,6 +36,7 @@ export class WeeklyStandbyComponent implements OnChanges {
   error = '';
   notice = '';
   accepted: WeeklyStandbyRequest | null = null;
+  reviewOpen = false;
   inspectedTeacher: number | null = null;
   inspectedPeriod: number | null = null;
   private detailsTrigger: HTMLElement | null = null;
@@ -58,6 +64,7 @@ export class WeeklyStandbyComponent implements OnChanges {
   private original = '';
   private previousState: { settings: WeeklyStandbyWorkbench['settings']; placements: StandbyPlacement[] }[] = [];
   get canUndo() { return this.previousState.length > 0; }
+  get canPublishSaved() { return this.publicationAllowed && !!this.view?.ready && !this.view.isPublished && !this.dirty && !this.accepted; }
   private remember() { if (this.view) this.previousState.push(structuredClone({ settings: this.view.settings, placements: this.view.placements })); }
   undo() {
     if (!this.view || this.busy) return;
@@ -90,10 +97,10 @@ export class WeeklyStandbyComponent implements OnChanges {
   excluded(t: StandbyTeacher) { return this.view?.settings.excludedTeacherIds.includes(t.id) ?? false; }
   teacherCount(t: StandbyTeacher) { return this.view?.placements.filter(p => p.instructorProfileId === t.id).length ?? 0; }
   count(day: number, period: number) { return this.view?.placements.filter(p => p.day === day && p.period === period).length ?? 0; }
-  private state() { return JSON.stringify({ settings: this.view?.settings, placements: this.view?.placements }); }
+  private state(view = this.view) { return JSON.stringify({ settings: view?.settings, placements: view?.placements }); }
   private setBusy(value: boolean) { this.busy = value; this.busyChange.emit(value); }
   private changed() {
-    this.accepted = null; this.error = ''; this.notice = '';
+    this.accepted = null; this.reviewOpen = false; this.error = ''; this.notice = '';
     this.dirty = this.state() !== this.original;
     this.dirtyChange.emit(this.dirty);
   }
@@ -114,10 +121,10 @@ export class WeeklyStandbyComponent implements OnChanges {
     this.view = structuredClone(view);
     this.previousState = [];
     if (!this.days.includes(this.day)) this.day = this.days[0] ?? 2;
-    this.original = this.state(); this.dirty = false; this.accepted = null; this.dirtyChange.emit(false);
+    this.original = this.state(); this.dirty = false; this.accepted = null; this.reviewOpen = false; this.dirtyChange.emit(false);
     this.originalPlacements = structuredClone(view.placements);
   }
-  setMode(mode: 'Fair' | 'Manual') { if (this.busy || mode === this.mode) return; this.mode = mode; this.accepted = null; this.notice = ''; }
+  setMode(mode: 'Fair' | 'Manual') { if (this.busy || mode === this.mode) return; this.mode = mode; this.accepted = null; this.reviewOpen = false; this.notice = ''; }
   setDefault(value: number) {
     if (!this.view || this.busy) return;
     this.remember();
@@ -172,28 +179,57 @@ export class WeeklyStandbyComponent implements OnChanges {
     if (!this.view?.ready || this.busy) return;
     const body: WeeklyStandbyRequest = structuredClone({ revision: this.view.revision, mode: this.mode,
       settings: this.view.settings, placements: this.view.placements });
-    this.setBusy(true); this.error = ''; this.notice = ''; this.accepted = null;
+    this.setBusy(true); this.error = ''; this.notice = ''; this.accepted = null; this.reviewOpen = false;
     try {
       const result = await firstValueFrom(this.api.preview(this.timetableId, body).pipe(takeUntilDestroyed(this.destroy)));
       if (this.disposed) return;
       if (!result.data) throw new Error(this.translate.instant('STANDBY.PREVIEW_FAILED'));
-      this.remember();
+      if (this.state(result.data.workbench) !== this.state()) this.remember();
       this.view = structuredClone(result.data.workbench);
       this.dirty = this.state() !== this.original; this.dirtyChange.emit(this.dirty);
       this.accepted = { ...body, proposalId: result.data.proposalId };
-      this.notice = this.translate.instant('STANDBY.REVIEW_READY');
+      this.reviewOpen = true;
     } catch (e) { if (!this.disposed) this.error = extractHttpErrorMessage(e) ?? this.translate.instant('STANDBY.PREVIEW_FAILED'); }
     finally { if (!this.disposed) this.setBusy(false); }
   }
-  async save() {
-    if (!this.accepted || this.busy) return;
+  async reviewForSave() {
+    if (this.busy || !this.view?.ready) return;
+    if (this.accepted) this.reviewOpen = true;
+    else await this.preview();
+  }
+  async save(andPublish = false) {
+    if (!this.accepted || this.busy || !this.view?.ready || (andPublish && !this.publicationAllowed)) return;
     this.setBusy(true); this.error = '';
+    let applied = false;
     try {
       const result = await firstValueFrom(this.api.apply(this.timetableId, this.accepted).pipe(takeUntilDestroyed(this.destroy)));
       if (this.disposed) return;
-      if (!result.data) throw new Error(this.translate.instant('STANDBY.SAVE_FAILED'));
-      this.adopt(result.data); this.notice = this.translate.instant('STANDBY.SAVED'); this.saved.emit();
-    } catch (e) { if (!this.disposed) { this.accepted = null; this.error = extractHttpErrorMessage(e) ?? this.translate.instant('STANDBY.SAVE_FAILED'); } }
+      if (!result.isSuccess || !result.data) throw new Error(result.message || this.translate.instant('STANDBY.SAVE_FAILED'));
+      this.adopt(result.data); applied = true;
+      if (andPublish) await this.publishCurrent();
+      else this.notice = this.translate.instant(this.publicationAllowed ? 'STANDBY.SAVED' : 'STANDBY.CLONE_HINT');
+    } catch (e) { if (!this.disposed) {
+      this.accepted = null; this.reviewOpen = false;
+      this.error = (applied ? this.translate.instant('STANDBY.SAVED_NOT_PUBLISHED') + ' ' : '') +
+        (extractHttpErrorMessage(e) ?? this.translate.instant(applied ? 'STANDBY.PUBLISH_FAILED' : 'STANDBY.SAVE_FAILED'));
+    } }
+    finally { if (!this.disposed) { this.setBusy(false); if (applied) this.saved.emit(); } }
+  }
+  async publishSaved() {
+    if (this.busy || !this.canPublishSaved) return;
+    this.setBusy(true); this.error = ''; this.notice = '';
+    try { await this.publishCurrent(); if (!this.disposed) this.saved.emit(); }
+    catch (e) { if (!this.disposed) this.error = this.translate.instant('STANDBY.SAVED_NOT_PUBLISHED') + ' ' +
+      (extractHttpErrorMessage(e) ?? this.translate.instant('STANDBY.PUBLISH_FAILED')); }
     finally { if (!this.disposed) this.setBusy(false); }
+  }
+  private async publishCurrent() {
+    const view = this.view!;
+    const result = await firstValueFrom(this.timetables.publish(view.timetableId, view.revision).pipe(takeUntilDestroyed(this.destroy)));
+    if (this.disposed) return;
+    if (!result.isSuccess || !result.data?.isPublished || result.data.id !== view.timetableId)
+      throw new Error(result.message || this.translate.instant('STANDBY.PUBLISH_FAILED'));
+    view.revision = result.data.revision; view.isPublished = true;
+    this.notice = this.translate.instant('STANDBY.PUBLISHED');
   }
 }

@@ -2,6 +2,7 @@
 
 **State:** Delivered locally (C39 / D-131), 2026-10-16. 333 focused backend/SQL and 11 Angular checks pass; real isolated SQL/authenticated responsive browser evidence is linked below. Owner appearance/operational acceptance remains pending.
 **Depends on:** Phase 1 published standby.
+**Navigation follow-up:** C44 / D-136 moves the existing daily ledger into **حصص الانتظار → التغطية اليومية** with the same APIs/approval/signature policy; structural swaps remain separate. [Verification](../../verification/standby-hub/README.md).
 **Skills:** dotnet-layered-api-architect, frontend-design, domain-modeling for transitions/authority; tdd for business, authorization and durable integration behavior.
 
 ## Deliver

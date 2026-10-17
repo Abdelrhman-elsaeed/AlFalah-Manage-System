@@ -1,11 +1,12 @@
 namespace AlFalah.Domain.Entities;
 
-/// <summary>A frozen, dated QF71-B-2-1 issue. Corrections append a new artifact.</summary>
+/// <summary>A frozen daily or weekly QF71-B-2-1 issue. Corrections append a new artifact.</summary>
 public sealed class CoverageRegisterArtifact
 {
     public int Id { get; set; }
     public int SchoolId { get; set; }
     public DateOnly LocalDate { get; set; }
+    public string Scope { get; set; } = "Day";
     public int Revision { get; set; }
     public string SourceRevision { get; set; } = "";
     public string RendererVersion { get; set; } = "";

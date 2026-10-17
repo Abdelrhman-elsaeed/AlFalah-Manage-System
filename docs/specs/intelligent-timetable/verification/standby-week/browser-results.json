@@ -1,0 +1,108 @@
+{
+  "at": "2026-10-17T09:58:55.628Z",
+  "isolated": true,
+  "providerWrites": false,
+  "oldDailyBytesUnchanged": true,
+  "weeklyReplayUnique": true,
+  "invalidScope400": true,
+  "staleSource409": true,
+  "teacher403": true,
+  "results": [
+    {
+      "width": 390,
+      "dayAndWeekChoices": true,
+      "explicitSevenDayRange": true,
+      "weeklyIssueAndPreview": true,
+      "separateHistory": true,
+      "exactDownloadHash": true,
+      "clearsObsoletePreview": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "dayAndWeekChoices": true,
+      "explicitSevenDayRange": true,
+      "weeklyIssueAndPreview": true,
+      "separateHistory": true,
+      "exactDownloadHash": true,
+      "clearsObsoletePreview": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "dayAndWeekChoices": true,
+      "explicitSevenDayRange": true,
+      "weeklyIssueAndPreview": true,
+      "separateHistory": true,
+      "exactDownloadHash": true,
+      "clearsObsoletePreview": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "dayAndWeekChoices": true,
+      "explicitSevenDayRange": true,
+      "weeklyIssueAndPreview": true,
+      "separateHistory": true,
+      "exactDownloadHash": true,
+      "clearsObsoletePreview": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        }
+      ]
+    }
+  ]
+}

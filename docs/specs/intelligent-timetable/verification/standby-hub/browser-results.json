@@ -1,0 +1,268 @@
+{
+  "at": "2026-10-17T09:31:12.543Z",
+  "isolated": true,
+  "providerWrites": false,
+  "storedWorkbenchUnchanged": true,
+  "results": [
+    {
+      "width": 390,
+      "singlePageHeading": true,
+      "weeklyAndDailyInOneHub": true,
+      "localWeeklyStateAndUndoRetained": true,
+      "dirtyLeaveCancelled": true,
+      "dailyDateRetainedAcrossTabs": true,
+      "emptyAndSignedDailyRows": true,
+      "pdfPreviewDownloadHash": true,
+      "dailyRefreshRoute": true,
+      "legacyPdfRedirect": true,
+      "swapsSeparate": true,
+      "noMutations": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "singlePageHeading": true,
+      "weeklyAndDailyInOneHub": true,
+      "localWeeklyStateAndUndoRetained": true,
+      "dirtyLeaveCancelled": true,
+      "dailyDateRetainedAcrossTabs": true,
+      "emptyAndSignedDailyRows": true,
+      "pdfPreviewDownloadHash": true,
+      "dailyRefreshRoute": true,
+      "legacyPdfRedirect": true,
+      "swapsSeparate": true,
+      "noMutations": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "singlePageHeading": true,
+      "weeklyAndDailyInOneHub": true,
+      "localWeeklyStateAndUndoRetained": true,
+      "dirtyLeaveCancelled": true,
+      "dailyDateRetainedAcrossTabs": true,
+      "emptyAndSignedDailyRows": true,
+      "pdfPreviewDownloadHash": true,
+      "dailyRefreshRoute": true,
+      "legacyPdfRedirect": true,
+      "swapsSeparate": true,
+      "noMutations": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "singlePageHeading": true,
+      "weeklyAndDailyInOneHub": true,
+      "localWeeklyStateAndUndoRetained": true,
+      "dirtyLeaveCancelled": true,
+      "dailyDateRetainedAcrossTabs": true,
+      "emptyAndSignedDailyRows": true,
+      "pdfPreviewDownloadHash": true,
+      "dailyRefreshRoute": true,
+      "legacyPdfRedirect": true,
+      "swapsSeparate": true,
+      "noMutations": true,
+      "pageOverflow": false,
+      "unrelatedStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        }
+      ]
+    }
+  ]
+}

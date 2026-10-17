@@ -1,0 +1,1236 @@
+{
+  "at": "2026-10-17T09:50:57.4278781+00:00",
+  "local": false,
+  "applied": "20261017094734_AddCoverageRegisterScope",
+  "tables": 153,
+  "originalColumnHashesUnchanged": true,
+  "oldArtifactsDayScoped": true,
+  "before": {
+    "dbo.AbsenceExcuseAttachments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AbsenceExcuses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AcademicConcerns": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AcademicTerms": {
+      "Item1": 1,
+      "Item2": "EB2F72F91EBCC26B2B5A3BDBDF7F1D937806E21CAF92903D75BA6D79E31F4120"
+    },
+    "dbo.AcademicYears": {
+      "Item1": 1,
+      "Item2": "BDE8CB75B6C7A712B9B8456222FA99CE293B0F0DF602CF2E2484D24DE9AEBC6C"
+    },
+    "dbo.AttendanceRecords": {
+      "Item1": 4,
+      "Item2": "BB183CB320A8070C8EECBF0A01832958635534DDB44116F529D0E9717061ECB6"
+    },
+    "dbo.AuditLogs": {
+      "Item1": 67,
+      "Item2": "249928A1BFDAA7E33D7CDCD0797A0E4E74DA7E1F88BC5E57872D4831E04A033E"
+    },
+    "dbo.AutomationRuleDefinitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AutomationTriggerLedgers": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.BehaviorIncidents": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.BellPeriods": {
+      "Item1": 2,
+      "Item2": "405E924CD3F55A4B3133A39524A2F74F1F32F4CA5F940AAFCFF07A1FEC50FD77"
+    },
+    "dbo.BellScheduleDays": {
+      "Item1": 8,
+      "Item2": "8C26CA3A5B69B3CB292F25D0EFD9B29408C2A558731E59B53B3C58C8139CD7E8"
+    },
+    "dbo.BellScheduleRevisions": {
+      "Item1": 1,
+      "Item2": "84C88BFF809CC4F7BDB915AD9895B05E5E89D3A4B087BFB9835D40DBD5FF1E1A"
+    },
+    "dbo.BellScheduleTemplates": {
+      "Item1": 1,
+      "Item2": "961C40081785B857D376661B1936DB5069665ACD1B73C75A8D36BD0A13266F0D"
+    },
+    "dbo.ClassroomEntryPermits": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ClassroomLabelHistory": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Classrooms": {
+      "Item1": 1,
+      "Item2": "E7A170CD6B4A6EFE21E5D7509C3C96493B8DDF17B9F2408709BBAC50A0C9FAD7"
+    },
+    "dbo.ClassSubjectAllowedDays": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ClassSubjectFixedSlots": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ClassSubjectRequirements": {
+      "Item1": 1,
+      "Item2": "0B1BC39A4ABB25B3735CAA4CA61C2C47FFC72AE1F4856D3169AC353A17CE39BC"
+    },
+    "dbo.Complaints": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ConversationMessages": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ConversationParticipants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ConversationThreads": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.CoverageReconciliationSignals": {
+      "Item1": 15,
+      "Item2": "4CE665B9B7F55F9936905164ED958844E88BE5404947D8626772442319D17EDC"
+    },
+    "dbo.CoverageRecords": {
+      "Item1": 13,
+      "Item2": "F3DE3F23E01C4877C002C88173DCA1F8FC1A6DB594196541966FE13CC68C069E"
+    },
+    "dbo.CoverageRegisterArtifacts": {
+      "Item1": 17,
+      "Item2": "E3DDCD97FCF2D4399834EA458737277A1E26605AD23EB3EA295490A26CD6D23F"
+    },
+    "dbo.DailyCoverageNeeds": {
+      "Item1": 2,
+      "Item2": "22F9F7264FA9BFD433CAD723F4C208CFB7A2FBF8481F1CB165E8795705E6D3BA"
+    },
+    "dbo.DailyStudentAttendances": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DismissalLatenessRevisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DismissalNoticeBatches": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DismissalNoticeRecipients": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyArchiveIntents": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyAssignmentChanges": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyAssignments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyClosedDates": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyParticipants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyPdfArtifacts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyPlans": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyReconciliationOperations": {
+      "Item1": 1,
+      "Item2": "5837F4AA3C7609FE2438D56DF65585190D7CD7AB491CDA0866D7C371176620F1"
+    },
+    "dbo.DutyReportDrafts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyRequestReceipts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutySignedDocuments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceLinks": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceRequirements": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceReviewDecisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceTasks": {
+      "Item1": 31,
+      "Item2": "8DBFDA4547863523A524C2065A1721E0576E63F2C24442BB335EE84E67C786C4"
+    },
+    "dbo.EvidenceUploadOperations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.FileChangeDecisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.FileChangeRequests": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GatePasses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GatePassTransitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianProfiles": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianSummonAppointmentHistory": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianSummons": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianSummonStatusHistory": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ImprovementPlans": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.InboxMessages": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.InstructorClasses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.InstructorProfiles": {
+      "Item1": 2,
+      "Item2": "C271B288DADE8C09FE40C67390E31D6C6CDE6D8F2773818F017C29F314381693"
+    },
+    "dbo.ManualEvaluationRevisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ManualEvaluations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.MessageReceipts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.MorningArrivalDelays": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.NoorAbsenceCorrectionBatches": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.NoorAbsenceCorrectionBatchItems": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Notifications": {
+      "Item1": 7,
+      "Item2": "F356AE54FF4B138A5D3D05762F1E36D1DC67B0441653841EB81E33CBB0972752"
+    },
+    "dbo.OutboxMessages": {
+      "Item1": 19,
+      "Item2": "28C95CD0D5ED34A069DA77F974D9DA37129B2FE203DE6E63CB5BAD0E7D7D0168"
+    },
+    "dbo.ParentSurveyAnswers": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ParentSurveyItems": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ParentSurveys": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ParentSurveySubmissions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Permissions": {
+      "Item1": 13,
+      "Item2": "DC00CABCCEAB5E5FE50DD127A180DDB129F0296F321623F2C7168FB299EA3E06"
+    },
+    "dbo.PlanFollowUps": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.PrototypeImportBatches": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.PrototypeImportRows": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RefreshTokens": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ReportViewLogs": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RequirementFollowUpRevisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RoleClaims": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RolePermissions": {
+      "Item1": 4,
+      "Item2": "CDD5D1B33CB6DE6D144B4AA02CAEAB47F0AA780748F74F1CB787C66857DC509E"
+    },
+    "dbo.Roles": {
+      "Item1": 3,
+      "Item2": "72D6CAFCB19757D3638BD6FC017B188E42D7AFAA578006CFB90A9FB670F7873E"
+    },
+    "dbo.RubricDomains": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RubricIndicators": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RubricStandards": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RubricVersions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ScheduleBreakDefinitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ScheduleBreakWindows": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolEvaluationScopes": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolGoogleDrives": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolLocations": {
+      "Item1": 18,
+      "Item2": "9A2A449FE9A3FF06239B770D3207DCCA905B550B19D4C4B9B5A88C7E5F25E56E"
+    },
+    "dbo.SchoolReportSettings": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Schools": {
+      "Item1": 2,
+      "Item2": "04425AAAA780AEA20F2B8E0249FECB98954136CD98B1E22975CB1A9A4F597025"
+    },
+    "dbo.SchoolStudentAffairsSettings": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolStudentAnalyzerSettings": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolTimetableEntries": {
+      "Item1": 8,
+      "Item2": "0090336A1F0AD8AAB3F9F6E63CF038E524DA28E5613749CBD2639D311D665F06"
+    },
+    "dbo.SchoolTimetables": {
+      "Item1": 1,
+      "Item2": "4D66223AB2BB7E6075C107F7146CAB595BC940DFC599C43A6DEE73E49A4CD095"
+    },
+    "dbo.SchoolTimetableVersions": {
+      "Item1": 39,
+      "Item2": "C5C726CA135FFBD883A129F593BD0C50B5BC5773F3A05D77FB62E5A849A537A6"
+    },
+    "dbo.SelfEvaluationTemplates": {
+      "Item1": 1,
+      "Item2": "E5AD55D4938114A0812BF3BA98434E75ACFCBCC0CC01B7B90A386CCC295ACA4B"
+    },
+    "dbo.SessionDelays": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StorageDelegations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StorageFolders": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StorageOperations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StoredFiles": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StoredFileVersions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentAnalyzerAccessGrants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentAnalyzerReports": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentAnalyzerSourceFiles": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentCaseActions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentDismissalLateness": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentEnrollments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentGuardians": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentRecognitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentReferrals": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentReferralTransitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Students": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentTermMetrics": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SubjectDefinition": {
+      "Item1": 1,
+      "Item2": "CF66944A56EF6C533791EC438D454B4E7BFD776B8A7FB362216BC4EEDC816AE2"
+    },
+    "dbo.SubjectRoomRequirement": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherAvailabilitySlots": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherDriveFolders": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherEvidenceSubmissions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherOfficeHourAudits": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherOfficeHourConfigurations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherOfficeHours": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherTaskStatuses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherTimetableProfiles": {
+      "Item1": 2,
+      "Item2": "414BFF813DE5EEABDE195792A09BCBE3530533036D082FF5CBC8EE0032329831"
+    },
+    "dbo.TeachingAssignmentMembers": {
+      "Item1": 1,
+      "Item2": "89508312EE271CFE106D5322FE2445F35C3616990EF99FB1327EFE29B2BC9D31"
+    },
+    "dbo.TeachingAssignments": {
+      "Item1": 1,
+      "Item2": "50ACB66AD968A6E50AAD9E9D23CE8321F6B666A205A3F7C6E2FA411C4AE6D235"
+    },
+    "dbo.TeachingAssignmentStatements": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TimetableAnalysisFindings": {
+      "Item1": 28,
+      "Item2": "3995B5833884454400225092B92ED02898CD9A818B1522886BD359C31E0306BB"
+    },
+    "dbo.TimetableAnalysisRuns": {
+      "Item1": 28,
+      "Item2": "9148DF89D7DEEF9DCB2C55E0B35343D946652905FA07D009DA4147112C302B27"
+    },
+    "dbo.TimetableEditorGrants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TimetableRoom": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TimetableSetupProfiles": {
+      "Item1": 1,
+      "Item2": "997DB4DC8127D2B52182373E9B76826AFF48E3F43F813EFBEA4C60AE5B2D005E"
+    },
+    "dbo.TimetableSubstitutionMovements": {
+      "Item1": 2,
+      "Item2": "8CDD88CE08A9E5AF6BA8101687CCCC57E861C30133585B2B4DDAEC5EE96CE359"
+    },
+    "dbo.TimetableSubstitutions": {
+      "Item1": 2,
+      "Item2": "E28E3BC04EA1C540AA7FBB2ABA09D92F5755C301766F2F0E10E0F7F2C55DD95A"
+    },
+    "dbo.UserClaims": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.UserLogins": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.UserRoles": {
+      "Item1": 4,
+      "Item2": "A7E84BED0D5268DF90C081C08260B27BEFA716CB876CED7E37722D9756CFF810"
+    },
+    "dbo.Users": {
+      "Item1": 5,
+      "Item2": "FF17E99B5B7E8EBC0668B77C62F4C327A2AFB8CB5D77A9D9B86A7C1C8A5A302B"
+    },
+    "dbo.UserSchoolRoles": {
+      "Item1": 5,
+      "Item2": "CB84EA604FB8F88B987396BFF8EA550F4E008861A6940DB10FD0BDC01F71D46D"
+    },
+    "dbo.UserSignatures": {
+      "Item1": 1,
+      "Item2": "B37D2700D14CDB3E22BB1C617CA0004D2C22DA2A0284547D47E5ED6AA2014871"
+    },
+    "dbo.UserTokens": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitAnalyses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitArchiveArtifacts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitArchiveOperations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitDomainAverages": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitFeedbackTemplates": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitObservedIndicators": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Visits": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitScores": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitTreatmentSnapshots": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    }
+  },
+  "after": {
+    "dbo.AbsenceExcuseAttachments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AbsenceExcuses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AcademicConcerns": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AcademicTerms": {
+      "Item1": 1,
+      "Item2": "EB2F72F91EBCC26B2B5A3BDBDF7F1D937806E21CAF92903D75BA6D79E31F4120"
+    },
+    "dbo.AcademicYears": {
+      "Item1": 1,
+      "Item2": "BDE8CB75B6C7A712B9B8456222FA99CE293B0F0DF602CF2E2484D24DE9AEBC6C"
+    },
+    "dbo.AttendanceRecords": {
+      "Item1": 4,
+      "Item2": "BB183CB320A8070C8EECBF0A01832958635534DDB44116F529D0E9717061ECB6"
+    },
+    "dbo.AuditLogs": {
+      "Item1": 67,
+      "Item2": "249928A1BFDAA7E33D7CDCD0797A0E4E74DA7E1F88BC5E57872D4831E04A033E"
+    },
+    "dbo.AutomationRuleDefinitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.AutomationTriggerLedgers": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.BehaviorIncidents": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.BellPeriods": {
+      "Item1": 2,
+      "Item2": "405E924CD3F55A4B3133A39524A2F74F1F32F4CA5F940AAFCFF07A1FEC50FD77"
+    },
+    "dbo.BellScheduleDays": {
+      "Item1": 8,
+      "Item2": "8C26CA3A5B69B3CB292F25D0EFD9B29408C2A558731E59B53B3C58C8139CD7E8"
+    },
+    "dbo.BellScheduleRevisions": {
+      "Item1": 1,
+      "Item2": "84C88BFF809CC4F7BDB915AD9895B05E5E89D3A4B087BFB9835D40DBD5FF1E1A"
+    },
+    "dbo.BellScheduleTemplates": {
+      "Item1": 1,
+      "Item2": "961C40081785B857D376661B1936DB5069665ACD1B73C75A8D36BD0A13266F0D"
+    },
+    "dbo.ClassroomEntryPermits": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ClassroomLabelHistory": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Classrooms": {
+      "Item1": 1,
+      "Item2": "E7A170CD6B4A6EFE21E5D7509C3C96493B8DDF17B9F2408709BBAC50A0C9FAD7"
+    },
+    "dbo.ClassSubjectAllowedDays": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ClassSubjectFixedSlots": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ClassSubjectRequirements": {
+      "Item1": 1,
+      "Item2": "0B1BC39A4ABB25B3735CAA4CA61C2C47FFC72AE1F4856D3169AC353A17CE39BC"
+    },
+    "dbo.Complaints": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ConversationMessages": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ConversationParticipants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ConversationThreads": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.CoverageReconciliationSignals": {
+      "Item1": 15,
+      "Item2": "4CE665B9B7F55F9936905164ED958844E88BE5404947D8626772442319D17EDC"
+    },
+    "dbo.CoverageRecords": {
+      "Item1": 13,
+      "Item2": "F3DE3F23E01C4877C002C88173DCA1F8FC1A6DB594196541966FE13CC68C069E"
+    },
+    "dbo.CoverageRegisterArtifacts": {
+      "Item1": 17,
+      "Item2": "E3DDCD97FCF2D4399834EA458737277A1E26605AD23EB3EA295490A26CD6D23F"
+    },
+    "dbo.DailyCoverageNeeds": {
+      "Item1": 2,
+      "Item2": "22F9F7264FA9BFD433CAD723F4C208CFB7A2FBF8481F1CB165E8795705E6D3BA"
+    },
+    "dbo.DailyStudentAttendances": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DismissalLatenessRevisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DismissalNoticeBatches": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DismissalNoticeRecipients": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyArchiveIntents": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyAssignmentChanges": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyAssignments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyClosedDates": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyParticipants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyPdfArtifacts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyPlans": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyReconciliationOperations": {
+      "Item1": 1,
+      "Item2": "5837F4AA3C7609FE2438D56DF65585190D7CD7AB491CDA0866D7C371176620F1"
+    },
+    "dbo.DutyReportDrafts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutyRequestReceipts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.DutySignedDocuments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceLinks": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceRequirements": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceReviewDecisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.EvidenceTasks": {
+      "Item1": 31,
+      "Item2": "8DBFDA4547863523A524C2065A1721E0576E63F2C24442BB335EE84E67C786C4"
+    },
+    "dbo.EvidenceUploadOperations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.FileChangeDecisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.FileChangeRequests": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GatePasses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GatePassTransitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianProfiles": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianSummonAppointmentHistory": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianSummons": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.GuardianSummonStatusHistory": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ImprovementPlans": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.InboxMessages": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.InstructorClasses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.InstructorProfiles": {
+      "Item1": 2,
+      "Item2": "C271B288DADE8C09FE40C67390E31D6C6CDE6D8F2773818F017C29F314381693"
+    },
+    "dbo.ManualEvaluationRevisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ManualEvaluations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.MessageReceipts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.MorningArrivalDelays": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.NoorAbsenceCorrectionBatches": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.NoorAbsenceCorrectionBatchItems": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Notifications": {
+      "Item1": 7,
+      "Item2": "F356AE54FF4B138A5D3D05762F1E36D1DC67B0441653841EB81E33CBB0972752"
+    },
+    "dbo.OutboxMessages": {
+      "Item1": 19,
+      "Item2": "28C95CD0D5ED34A069DA77F974D9DA37129B2FE203DE6E63CB5BAD0E7D7D0168"
+    },
+    "dbo.ParentSurveyAnswers": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ParentSurveyItems": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ParentSurveys": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ParentSurveySubmissions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Permissions": {
+      "Item1": 13,
+      "Item2": "DC00CABCCEAB5E5FE50DD127A180DDB129F0296F321623F2C7168FB299EA3E06"
+    },
+    "dbo.PlanFollowUps": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.PrototypeImportBatches": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.PrototypeImportRows": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RefreshTokens": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ReportViewLogs": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RequirementFollowUpRevisions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RoleClaims": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RolePermissions": {
+      "Item1": 4,
+      "Item2": "CDD5D1B33CB6DE6D144B4AA02CAEAB47F0AA780748F74F1CB787C66857DC509E"
+    },
+    "dbo.Roles": {
+      "Item1": 3,
+      "Item2": "72D6CAFCB19757D3638BD6FC017B188E42D7AFAA578006CFB90A9FB670F7873E"
+    },
+    "dbo.RubricDomains": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RubricIndicators": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RubricStandards": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.RubricVersions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ScheduleBreakDefinitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.ScheduleBreakWindows": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolEvaluationScopes": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolGoogleDrives": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolLocations": {
+      "Item1": 18,
+      "Item2": "9A2A449FE9A3FF06239B770D3207DCCA905B550B19D4C4B9B5A88C7E5F25E56E"
+    },
+    "dbo.SchoolReportSettings": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Schools": {
+      "Item1": 2,
+      "Item2": "04425AAAA780AEA20F2B8E0249FECB98954136CD98B1E22975CB1A9A4F597025"
+    },
+    "dbo.SchoolStudentAffairsSettings": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolStudentAnalyzerSettings": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SchoolTimetableEntries": {
+      "Item1": 8,
+      "Item2": "0090336A1F0AD8AAB3F9F6E63CF038E524DA28E5613749CBD2639D311D665F06"
+    },
+    "dbo.SchoolTimetables": {
+      "Item1": 1,
+      "Item2": "4D66223AB2BB7E6075C107F7146CAB595BC940DFC599C43A6DEE73E49A4CD095"
+    },
+    "dbo.SchoolTimetableVersions": {
+      "Item1": 39,
+      "Item2": "C5C726CA135FFBD883A129F593BD0C50B5BC5773F3A05D77FB62E5A849A537A6"
+    },
+    "dbo.SelfEvaluationTemplates": {
+      "Item1": 1,
+      "Item2": "E5AD55D4938114A0812BF3BA98434E75ACFCBCC0CC01B7B90A386CCC295ACA4B"
+    },
+    "dbo.SessionDelays": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StorageDelegations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StorageFolders": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StorageOperations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StoredFiles": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StoredFileVersions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentAnalyzerAccessGrants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentAnalyzerReports": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentAnalyzerSourceFiles": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentCaseActions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentDismissalLateness": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentEnrollments": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentGuardians": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentRecognitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentReferrals": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentReferralTransitions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Students": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.StudentTermMetrics": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.SubjectDefinition": {
+      "Item1": 1,
+      "Item2": "CF66944A56EF6C533791EC438D454B4E7BFD776B8A7FB362216BC4EEDC816AE2"
+    },
+    "dbo.SubjectRoomRequirement": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherAvailabilitySlots": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherDriveFolders": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherEvidenceSubmissions": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherOfficeHourAudits": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherOfficeHourConfigurations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherOfficeHours": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherTaskStatuses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TeacherTimetableProfiles": {
+      "Item1": 2,
+      "Item2": "414BFF813DE5EEABDE195792A09BCBE3530533036D082FF5CBC8EE0032329831"
+    },
+    "dbo.TeachingAssignmentMembers": {
+      "Item1": 1,
+      "Item2": "89508312EE271CFE106D5322FE2445F35C3616990EF99FB1327EFE29B2BC9D31"
+    },
+    "dbo.TeachingAssignments": {
+      "Item1": 1,
+      "Item2": "50ACB66AD968A6E50AAD9E9D23CE8321F6B666A205A3F7C6E2FA411C4AE6D235"
+    },
+    "dbo.TeachingAssignmentStatements": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TimetableAnalysisFindings": {
+      "Item1": 28,
+      "Item2": "3995B5833884454400225092B92ED02898CD9A818B1522886BD359C31E0306BB"
+    },
+    "dbo.TimetableAnalysisRuns": {
+      "Item1": 28,
+      "Item2": "9148DF89D7DEEF9DCB2C55E0B35343D946652905FA07D009DA4147112C302B27"
+    },
+    "dbo.TimetableEditorGrants": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TimetableRoom": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.TimetableSetupProfiles": {
+      "Item1": 1,
+      "Item2": "997DB4DC8127D2B52182373E9B76826AFF48E3F43F813EFBEA4C60AE5B2D005E"
+    },
+    "dbo.TimetableSubstitutionMovements": {
+      "Item1": 2,
+      "Item2": "8CDD88CE08A9E5AF6BA8101687CCCC57E861C30133585B2B4DDAEC5EE96CE359"
+    },
+    "dbo.TimetableSubstitutions": {
+      "Item1": 2,
+      "Item2": "E28E3BC04EA1C540AA7FBB2ABA09D92F5755C301766F2F0E10E0F7F2C55DD95A"
+    },
+    "dbo.UserClaims": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.UserLogins": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.UserRoles": {
+      "Item1": 4,
+      "Item2": "A7E84BED0D5268DF90C081C08260B27BEFA716CB876CED7E37722D9756CFF810"
+    },
+    "dbo.Users": {
+      "Item1": 5,
+      "Item2": "FF17E99B5B7E8EBC0668B77C62F4C327A2AFB8CB5D77A9D9B86A7C1C8A5A302B"
+    },
+    "dbo.UserSchoolRoles": {
+      "Item1": 5,
+      "Item2": "CB84EA604FB8F88B987396BFF8EA550F4E008861A6940DB10FD0BDC01F71D46D"
+    },
+    "dbo.UserSignatures": {
+      "Item1": 1,
+      "Item2": "B37D2700D14CDB3E22BB1C617CA0004D2C22DA2A0284547D47E5ED6AA2014871"
+    },
+    "dbo.UserTokens": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitAnalyses": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitArchiveArtifacts": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitArchiveOperations": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitDomainAverages": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitFeedbackTemplates": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitObservedIndicators": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.Visits": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitScores": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "dbo.VisitTreatmentSnapshots": {
+      "Item1": 0,
+      "Item2": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    }
+  }
+}

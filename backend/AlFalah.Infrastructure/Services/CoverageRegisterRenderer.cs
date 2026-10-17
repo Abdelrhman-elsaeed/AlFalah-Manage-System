@@ -14,7 +14,15 @@ public sealed class CoverageRegisterRenderer : ICoverageRegisterRenderer
     private sealed record Group(string Name,IReadOnlyList<CoverageRegisterRow?> Rows,int FirstPeriod);
     private static string Digits(int number)=>string.Concat(number.ToString(CultureInfo.InvariantCulture).Select(c=>char.IsDigit(c)?"٠١٢٣٤٥٦٧٨٩"[c-'0']:c));
     private static string Compact(string text,int limit,int reference)=>text.Length>limit?$"ملحق ({Digits(reference)})":text;
-    public byte[] Render(CoverageRegisterSnapshot snapshot,int revision,DateTimeOffset issuedAt)
+    public byte[] Render(CoverageRegisterSnapshot snapshot,int revision,DateTimeOffset issuedAt)=>Compose(snapshot,revision,issuedAt).GeneratePdf();
+    public byte[] RenderWeek(CoverageRegisterWeek snapshot,int revision,DateTimeOffset issuedAt)
+    {
+        if(snapshot.Days.Count!=7||snapshot.End!=snapshot.Start.AddDays(6)||snapshot.Days.Where((d,i)=>d.Date!=snapshot.Start.AddDays(i)).Any())
+            throw new ArgumentException("راجع أيام الأسبوع قبل إصدار السجل.");
+        var label=$"سجل الأسبوع (ميلادي): \u2066{snapshot.Start.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)}\u2069 — \u2066{snapshot.End.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)}\u2069";
+        return Document.Merge(snapshot.Days.Select(day=>Compose(day,revision,issuedAt,label))).UseContinuousPageNumbers().GeneratePdf();
+    }
+    private static IDocument Compose(CoverageRegisterSnapshot snapshot,int revision,DateTimeOffset issuedAt,string? weekLabel=null)
     {
         PdfTheme.EnsureFonts();
         var references=snapshot.Rows.Select(r=>r.NeedId).Distinct().Select((id,i)=>(id,i:i+1)).ToDictionary(x=>x.id,x=>x.i);
@@ -37,7 +45,7 @@ public sealed class CoverageRegisterRenderer : ICoverageRegisterRenderer
         var logoPath=Path.Combine(AppContext.BaseDirectory,"Assets","Logo.png");var logo=File.Exists(logoPath)?File.ReadAllBytes(logoPath):null;
         return Document.Create(document=>{
             foreach(var pageGroups in groups.Chunk(3))document.Page(page=>{
-                Setup(page,snapshot,revision,issuedAt,logo);
+                Setup(page,snapshot,revision,issuedAt,logo,weekLabel);
                 page.Content().Column(column=>{
                     column.Spacing(12);
                     for(var index=0;index<3;index++){
@@ -47,7 +55,7 @@ public sealed class CoverageRegisterRenderer : ICoverageRegisterRenderer
                 });
             });
             if(appendices.Length>0||longHeader)document.Page(page=>{
-                Setup(page,snapshot,revision,issuedAt,logo);
+                Setup(page,snapshot,revision,issuedAt,logo,weekLabel);
                 page.Content().Column(column=>{
                     column.Spacing(7);column.Item().Text("ملحق البيانات وإثبات تنفيذ حصص الانتظار").FontSize(13).Bold();
                     column.Item().Text("توقيع الجدول إقرار بالعلم. توقيع التنفيذ أدناه إجراء مستقل بعد انتهاء الحصة. النصوص تخص آخر تنفيذ مُرسل، وتبقى المسودات خارج السجل.").FontSize(10);
@@ -68,11 +76,11 @@ public sealed class CoverageRegisterRenderer : ICoverageRegisterRenderer
                     }
                 });
             });
-        }).GeneratePdf();
+        });
     }
     private static bool NeedsAppendix(CoverageRegisterRow row)=>row.Execution!=null||row.CorrectionOpen||row.OriginalTeacher.Length>70||
         (row.Teacher?.Length??0)>32||row.Classroom.Length>16||row.Subject.Length>27||row.Narrative.Length>32||row.Notes.Length>18||row.State is "ReviewRequired" or "Unable";
-    private static void Setup(PageDescriptor page,CoverageRegisterSnapshot snapshot,int revision,DateTimeOffset at,byte[]? logo)
+    private static void Setup(PageDescriptor page,CoverageRegisterSnapshot snapshot,int revision,DateTimeOffset at,byte[]? logo,string? weekLabel=null)
     {
         page.Size(PageSizes.A4);page.MarginHorizontal(26);page.MarginTop(22);page.MarginBottom(20);page.ContentFromRightToLeft();
         page.DefaultTextStyle(x=>x.FontFamily(PdfTheme.Font).FontSize(9).FontColor("#111111").DirectionFromRightToLeft().LineHeight(1.08f));
@@ -96,13 +104,17 @@ public sealed class CoverageRegisterRenderer : ICoverageRegisterRenderer
                 text.Span("العام الدراسي: ");text.Span("\u2066"+year+"\u2069").DirectionFromLeftToRight();
                 text.Span("    /    الفصل الدراسي: ("+(snapshot.Header.Semester==1?"الأول":"الثاني")+")");text.DefaultTextStyle(x=>x.FontSize(11).Bold());
             });
+            if(weekLabel!=null)column.Item().PaddingTop(4).Text(weekLabel).FontSize(9);
+            if(weekLabel!=null&&snapshot.Rows.Count==0)column.Item().PaddingTop(3).Text($"{snapshot.Date.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)} — لا توجد تكليفات تغطية مسجلة لهذا اليوم.").FontSize(9);
         });
         page.Footer().PaddingTop(8).Column(column=>{
             column.Item().Row(row=>{row.RelativeItem().AlignCenter().Text("وكيل المدرسة: ____________________").FontSize(10);row.RelativeItem().AlignCenter().Text("التوقيع: ____________________").FontSize(10);});
             var local=TimeZoneInfo.ConvertTime(at,TimeZoneInfo.FindSystemTimeZoneById(snapshot.Header.TimeZoneId));
             column.Item().PaddingTop(5).AlignCenter().Text(text=>{
                 text.Span(snapshot.IsComplete?"تنفيذ مكتمل":"سجل غير مكتمل — حسب البيانات المحفوظة وقت الإصدار");
-                text.Span($"   |   النسخة {revision}   |   {snapshot.Date:yyyy-MM-dd}   |   {local:yyyy-MM-dd HH:mm}   |   ");
+                var date=weekLabel==null?snapshot.Date.ToString("yyyy-MM-dd"):snapshot.Date.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture);
+                var issued=weekLabel==null?local.ToString("yyyy-MM-dd HH:mm"):local.ToString("yyyy-MM-dd HH:mm",CultureInfo.InvariantCulture);
+                text.Span($"   |   النسخة {revision}   |   {date}   |   {issued}   |   ");
                 text.CurrentPageNumber();text.Span(" / ");text.TotalPages();text.DefaultTextStyle(x=>x.FontSize(7));
             });
         });

@@ -1,0 +1,115 @@
+{
+  "at": "2026-10-17T09:30:32.920Z",
+  "isolated": true,
+  "providerWrites": false,
+  "results": [
+    {
+      "width": 390,
+      "explicitDraftOption": true,
+      "combinedSavePublish": false,
+      "publicationRecoveryWithoutSecondApply": false,
+      "noWritesBeforeConfirmation": true,
+      "teacherSeesPublishedStandby": true,
+      "teachingRowsUnchanged": true,
+      "pdfShortcutOpensExistingRegister": true,
+      "retainedPreviewDownloadHash": true,
+      "noRegisterIssueOnView": true,
+      "pageOverflow": false,
+      "unrelatedFixtureStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "explicitDraftOption": false,
+      "combinedSavePublish": true,
+      "publicationRecoveryWithoutSecondApply": true,
+      "noWritesBeforeConfirmation": true,
+      "teacherSeesPublishedStandby": true,
+      "teachingRowsUnchanged": true,
+      "pdfShortcutOpensExistingRegister": true,
+      "retainedPreviewDownloadHash": true,
+      "noRegisterIssueOnView": true,
+      "pageOverflow": false,
+      "unrelatedFixtureStorageDenials": [
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "explicitDraftOption": false,
+      "combinedSavePublish": true,
+      "publicationRecoveryWithoutSecondApply": false,
+      "noWritesBeforeConfirmation": true,
+      "teacherSeesPublishedStandby": true,
+      "teachingRowsUnchanged": true,
+      "pdfShortcutOpensExistingRegister": true,
+      "retainedPreviewDownloadHash": true,
+      "noRegisterIssueOnView": true,
+      "pageOverflow": false,
+      "unrelatedFixtureStorageDenials": [
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "explicitDraftOption": false,
+      "combinedSavePublish": true,
+      "publicationRecoveryWithoutSecondApply": false,
+      "noWritesBeforeConfirmation": true,
+      "teacherSeesPublishedStandby": true,
+      "teachingRowsUnchanged": true,
+      "pdfShortcutOpensExistingRegister": true,
+      "retainedPreviewDownloadHash": true,
+      "noRegisterIssueOnView": true,
+      "pageOverflow": false,
+      "unrelatedFixtureStorageDenials": [
+        {
+          "path": "/api/v1/storage/context",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/access",
+          "status": 403
+        },
+        {
+          "path": "/api/v1/storage/visits/operations-status",
+          "status": 403
+        }
+      ]
+    }
+  ]
+}

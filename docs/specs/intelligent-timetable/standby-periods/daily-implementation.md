@@ -4,6 +4,8 @@
 
 ## Journey and authority
 
+C44 / D-136 moves the existing ledger under **الجدول الذكي → حصص الانتظار → التغطية اليومية** (`/intelligent-timetable/standby?tab=daily`). The shared command header includes the retained PDF entry; date/status controls join that surface. The weekly and daily panels load once per visit and retain their local state when switched. Structural swaps remain at `/intelligent-timetable/substitutions` with their original deep links. APIs, daily approval/signature authority and teacher notifications are unchanged. [Current navigation and verification](../verification/standby-hub/README.md).
+
 Secretary attendance writes an independent durable coverage reconciliation signal in the same transaction as attendance. A retryable worker and explicit authorized refresh reconcile the effective, unique published school/term timetable. Absence prepares needs, never approvals. Current full-day Absent/Excused records are the input; partial-day absence times do not exist in the attendance model and are not inferred.
 
 The existing substitution ledger remains the sole effective-lesson ownership source. A coverage need links a dated original lesson member/block to its approved ledger entry. There is no second effective-assignment table. Manual and fair previews require scheduled standby for every period of the member/block. Both use the existing availability/resource validator and attendance revalidation. Weekly teaching maximums apply to original scheduled teaching; dated cover cannot alter those permanent quotas.

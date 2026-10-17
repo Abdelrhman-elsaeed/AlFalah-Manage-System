@@ -1,6 +1,6 @@
 # Standby workspace: visual direction and acceptance
 
-**Status:** Design direction; no new UI/prototype delivered yet.
+**Status:** Production UI delivered locally across C38/C39/C40. C41 updates weekly navigation and reviewed saving; [current usability evidence](../verification/standby-save-navigation/README.md). Owner visual/assistive-technology acceptance remains distinct from automated checks.
 **Required skill:** frontend-design. Use prototype inside phase 1 only where a throwaway interaction would resolve uncertainty.
 
 ## Product purpose
@@ -26,6 +26,10 @@ Reuse the current design-token and component systems:
 Keep restrained green/gold accents, readable neutral teaching cells, consistent radii, modest elevation and explicit focus states. Use color plus text/icon/pattern. No full-width dark-green navigation band, oversized hero or repeated large teacher cards; the owner previously rejected those layouts.
 
 ## Weekly workbench layout
+
+Use **الجدول الذكي → حصص الانتظار** at `/intelligent-timetable/standby`. C44 hosts **التوزيع الأسبوعي** and **التغطية اليومية** here, with structural swaps separate. A single white command surface joins the page title, restrained identity mark, shared PDF/teaching actions, visible section buttons, active context, saved status and summary counts. Suppress repeated child headings, detached patterned headers and duplicate publication text. Retain the original teaching-page presentation outside this host. Below 480px academic selectors stack at full available width; inspect control bounds, not just page overflow. Visited weekly/daily editors stay mounted to retain selections, undo and date while switching. [Actual captures and evidence](../verification/standby-hub/README.md).
+
+Keep one actionable review/save entry: open the proposal dialog, show changes/totals, and require explicit final confirmation. **حفظ ونشر للمعلمين** uses the existing saved-revision publication flow; draft-only save remains secondary and partial failure has a publication-only retry. Initial unallocated slots receive neutral next-step guidance. The shared **سجل الانتظار PDF** action opens the retained dated register in the daily panel; it does not publish or issue automatically.
 
 ```text
 Existing account header and sidebar

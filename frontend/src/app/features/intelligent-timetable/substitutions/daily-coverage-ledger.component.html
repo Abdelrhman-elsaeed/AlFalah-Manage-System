@@ -1,8 +1,8 @@
-<main class="coverage-ledger" [attr.aria-busy]="busy">
-  <header class="ledger-header"><div><h1>{{ 'COVERAGE.TITLE' | translate }}</h1><p>{{ 'COVERAGE.INTRO' | translate }}</p></div><a class="button secondary" routerLink="/timetable"><i class="pi pi-calendar"></i>{{ 'COVERAGE.WEEKLY' | translate }}</a></header>
+<main class="coverage-ledger" [class.embedded]="embedded" [attr.aria-busy]="busy">
+  <header class="ledger-header" *ngIf="!embedded"><div><h1>{{ 'COVERAGE.TITLE' | translate }}</h1><p>{{ 'COVERAGE.INTRO' | translate }}</p></div><a class="button secondary" routerLink="/intelligent-timetable/standby"><i class="pi pi-calendar"></i>{{ 'COVERAGE.WEEKLY' | translate }}</a></header>
   <div class="message error" role="alert" *ngIf="error">{{ error }}</div><div class="message success" role="status" *ngIf="notice">{{ notice }}</div>
   <div class="toolbar"><label>{{ 'COVERAGE.DATE' | translate }}<input type="date" [(ngModel)]="date" (change)="load(false)" [disabled]="busy"></label><button class="secondary" type="button" [disabled]="busy" (click)="load(true)"><i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-refresh'"></i>{{ 'COVERAGE.RECONCILE' | translate }}</button><p>{{ 'COVERAGE.ATTENDANCE_HINT' | translate }}</p></div>
-  <button type="button" class="register-trigger secondary" [disabled]="busy" (click)="registerOpen=true"><i class="pi pi-file-pdf"></i>{{ 'COVERAGE_REGISTER.TITLE' | translate }}</button>
+  <button *ngIf="!embedded" type="button" class="register-trigger secondary" [disabled]="busy" (click)="registerOpen=true"><i class="pi pi-file-pdf"></i>{{ 'COVERAGE_REGISTER.TITLE' | translate }}</button>
   <app-coverage-register *ngIf="registerOpen" [date]="date" (closed)="registerOpen=false"/>
   <ng-container *ngIf="board as b">
     <div class="message warning" *ngIf="b.issue">{{ b.issue }}</div>
