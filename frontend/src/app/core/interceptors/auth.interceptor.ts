@@ -106,7 +106,10 @@ function handleUnauthorized(
         return token;
       }),
       catchError(error => {
-        endSession(auth, router);
+        // Keep the refresh credential when the network/server is temporarily unavailable.
+        if (!(error instanceof HttpErrorResponse) || error.status === 401 || error.status === 403) {
+          endSession(auth, router);
+        }
         return throwError(() => error);
       }),
       finalize(() => { refreshInFlight$ = null; }),

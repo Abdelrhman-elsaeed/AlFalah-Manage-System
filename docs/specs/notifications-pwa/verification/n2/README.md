@@ -1,5 +1,7 @@
 # N2 local verification and acceptance gates
 
+Latest follow-up: [retained login, single-row story navigation, rebuilt chat artifact and device retest cases](session-and-chat-retest.md). The rebuilt frontend is served on the existing temporary HTTPS trial; 58 Angular tests, browser checks and real isolated-API session restoration pass. The owner confirms retained login after closing/reopening the phone app, direct homepage platform entry, and the combined removed-app/locked-screen notification scenario: external arrival and tapping it opened the correct conversation without another login. These device results are owner-reported. Remaining lifecycle/device cases and full N2 acceptance stay pending; N3 is not started.
+
 Date: 2026-10-17. Scope: T012–T021 and T012A–T012D. N3 is not started. Implementation is present; N2 acceptance remains conditional on T020 and the deployment inputs below. This directory contains synthetic evidence, never operational subscriptions, credentials or student records.
 
 ## Evidence levels

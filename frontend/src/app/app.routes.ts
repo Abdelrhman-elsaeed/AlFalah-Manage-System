@@ -3,6 +3,7 @@ import { ResolveFn, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { storageGuard, visitWorkspaceGuard } from './features/storage/storage.guard';
 import { authGuard } from './core/guards/auth.guard';
+import { guestGuard } from './core/guards/guest.guard';
 import { signatureEnrollmentGuard } from './core/guards/signature-enrollment.guard';
 import { SCHOOL_PEOPLE_ROLES } from './core/models/school-people';
 import { roleGuard } from './core/guards/role.guard';
@@ -27,7 +28,7 @@ export const routes: Routes = [
     title: translatedTitle('LANDING.PAGE_TITLE')
   },
 
-  // Auth routes (no guard needed)
+  // Login forms redirect an existing session to its role's dashboard.
   {
     path: 'auth',
     children: [
@@ -40,12 +41,14 @@ export const routes: Routes = [
       },
       {
         path: 'school-login',
+        canActivate: [guestGuard],
         loadComponent: () => import('./features/auth/school-login/school-login.component')
           .then(m => m.SchoolLoginComponent),
         title: translatedTitle('ROUTE_TITLES.SCHOOL_LOGIN')
       },
       {
         path: 'main-manager-login',
+        canActivate: [guestGuard],
         loadComponent: () => import('./features/auth/main-manager-login/main-manager-login.component')
           .then(m => m.MainManagerLoginComponent),
         title: translatedTitle('ROUTE_TITLES.MAIN_MANAGER_LOGIN')

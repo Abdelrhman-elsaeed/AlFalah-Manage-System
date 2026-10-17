@@ -1,5 +1,5 @@
-import { HttpClient, HttpContext } from '@angular/common/http';
-import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -16,6 +16,7 @@ import {
 const ACCESS_TOKEN_KEY = 'alfalah_access_token';
 const REFRESH_TOKEN_KEY = 'alfalah_refresh_token';
 const USER_KEY = 'alfalah_user';
+const AUTH_STORAGE_KEYS = [ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY];
 const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
 
 interface JwtClaims {
@@ -33,9 +34,11 @@ interface JwtClaims {
 export class AuthService {
   beforeLogout: (() => Promise<void>) | null = null;
   private readonly apiUrl = `${environment.apiUrl}/api/v1/auth`;
+  private readonly storage = this.restorePersistentStorage();
   private accessToken: string | null = this.readSession(ACCESS_TOKEN_KEY);
   private refreshTokenValue: string | null = this.readSession(REFRESH_TOKEN_KEY);
   private readonly currentUserState = signal<CurrentUserDto | null>(this.restoreUser());
+  private readonly destroy = inject(DestroyRef);
 
   readonly currentUser = this.currentUserState.asReadonly();
   readonly isAuthenticated = computed(() =>
@@ -47,7 +50,19 @@ export class AuthService {
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router
-  ) {}
+  ) {
+    if (typeof window === 'undefined') return;
+    const syncSession = (event: StorageEvent) => {
+      if (event.storageArea !== this.storage ||
+          event.key !== USER_KEY && event.key !== REFRESH_TOKEN_KEY && event.key !== null) return;
+      this.accessToken = this.readSession(ACCESS_TOKEN_KEY);
+      this.refreshTokenValue = this.readSession(REFRESH_TOKEN_KEY);
+      this.currentUserState.set(this.restoreUser());
+      if (!this.accessToken && !this.refreshTokenValue) void this.router.navigate(['/auth/school-login']);
+    };
+    window.addEventListener('storage', syncSession);
+    this.destroy.onDestroy(() => window.removeEventListener('storage', syncSession));
+  }
 
   schoolLogin(request: SchoolLoginRequestDto): Observable<ApiResponse<AuthResponseDto>> {
     return this.authenticate(`${this.apiUrl}/school-login`, request);
@@ -57,7 +72,7 @@ export class AuthService {
     return this.authenticate(`${this.apiUrl}/main-manager-login`, request);
   }
 
-  /** Restores and verifies a tab-scoped session before protected routes mount. */
+  /** Restores a saved session and verifies it with the server before protected routes mount. */
   bootstrapSession(): Observable<void> {
     if (!this.accessToken && !this.refreshTokenValue) return of(undefined);
 
@@ -66,8 +81,11 @@ export class AuthService {
       : this.refreshToken().pipe(map(() => undefined));
 
     return session$.pipe(
-      catchError(() => {
-        this.clearAuthData();
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status !== 401 && error.status !== 403) {
+          // A lost connection must not erase a valid saved login. Retry verification on re-entry.
+          this.currentUserState.set(null);
+        } else this.clearAuthData();
         return of(undefined);
       })
     );
@@ -180,11 +198,9 @@ export class AuthService {
     this.removeSession(REFRESH_TOKEN_KEY);
     this.removeSession(USER_KEY);
 
-    // Remove tokens written by the former persistent-storage implementation.
+    // Also discard credentials left by an older, tab-scoped client.
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-      window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-      window.localStorage.removeItem(USER_KEY);
+      for (const key of AUTH_STORAGE_KEYS) window.sessionStorage.removeItem(key);
     }
   }
 
@@ -252,15 +268,29 @@ export class AuthService {
   }
 
   private readSession(key: string): string | null {
-    if (typeof window === 'undefined') return null;
-    return window.sessionStorage.getItem(key);
+    return this.storage?.getItem(key) ?? null;
   }
 
   private writeSession(key: string, value: string): void {
-    if (typeof window !== 'undefined') window.sessionStorage.setItem(key, value);
+    this.storage?.setItem(key, value);
   }
 
   private removeSession(key: string): void {
-    if (typeof window !== 'undefined') window.sessionStorage.removeItem(key);
+    this.storage?.removeItem(key);
+  }
+
+  private restorePersistentStorage(): Storage | null {
+    if (typeof window === 'undefined') return null;
+    const persistent = window.localStorage;
+    const previous = window.sessionStorage;
+    // Migrate the whole legacy session together; never combine two accounts' token pairs.
+    if (!persistent.getItem(ACCESS_TOKEN_KEY) && !persistent.getItem(REFRESH_TOKEN_KEY)) {
+      for (const key of AUTH_STORAGE_KEYS) {
+        const value = previous.getItem(key);
+        if (value !== null) persistent.setItem(key, value);
+      }
+    }
+    for (const key of AUTH_STORAGE_KEYS) previous.removeItem(key);
+    return persistent;
   }
 }
